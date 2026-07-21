@@ -633,6 +633,9 @@ defmodule OrbitalDynamics.CandidateRefresh.CapabilitiesTest do
     assert :source_contact_intent_summary_input_provenance in row_semantics
     assert :source_contact_filter_report_station_feedback in row_semantics
     assert :source_contact_allocation_report_station_feedback in row_semantics
+
+    assert :source_contact_allocation_unavailable_resource_contact_filtering in row_semantics
+
     assert :contact_allocation_policy_handoff in row_semantics
     assert :contact_allocation_reduced_capacity_policy_handoff in row_semantics
     assert :source_resource_projection_report_resource_feedback in row_semantics

@@ -82,7 +82,7 @@ From those inputs the pipeline:
 
 - Replays prior `contact_filter_report.v1` station suppressions from the same direct, wrapped, review, and import surfaces as ground-network unavailable/reserved/zero-capacity station intervals before regenerated contacts are filtered, while preserving contact-filter source report provenance, suppression reason counts, invalid contact input counts, and trust-boundary evidence.
 
-### Unavailable-resource readiness and quality-gate evidence
+### Unavailable-resource readiness, quality-gate, and contact-allocation evidence
 
 - Applies direct, accepted-state, mission-state, and result-artifact-wrapped
   `operational_readiness_report.v1`
@@ -91,14 +91,20 @@ From those inputs the pipeline:
   regenerated contact selection only when an exact candidate contact ID is
   listed under that candidate's spacecraft identity in the respective
   blocked-contact map.
+- Applies canonical `contact_allocation_report.v1` rows carrying
+  `source_resource_suppression` through the same exact candidate-ID and
+  spacecraft-identity boundary. The filter derives contact and spacecraft
+  scope from the row; stale top-level resource-blocked maps are not selection
+  inputs.
 - Readiness reports with only aggregate resource pressure and no explicit
   blocked-contact map do not emit a selection-time rejection report. Aggregate
   quality-summary reasons, pressure counts, blocking-dimension maps, and contact
   IDs scoped to another spacecraft do not suppress candidates; an explicit map
   can still yield a zero-rejection explanation of the evaluated set.
 - Emits `candidate_rejection_report.v1` rows for the evaluated candidate set,
-  preserving readiness/quality source paths, artifact/report identities, scope,
-  and trust evidence for rejected contacts. A matching prior candidate is
+  preserving readiness, quality, or contact-allocation source paths,
+  artifact/report identity, resource blocking dimension, spacecraft scope, and
+  trust evidence for rejected contacts. A matching prior candidate is
   invalidated with a source-specific unavailable-resource reason, and the
   existing operator-review/Cadence-import handoff remains review-only.
 

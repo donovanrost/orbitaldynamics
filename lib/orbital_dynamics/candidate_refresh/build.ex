@@ -70,7 +70,7 @@ defmodule OrbitalDynamics.CandidateRefresh.Build do
       ContactGate.filter_candidates(raw_candidates, refresh, &BuildGroundNetwork.build/1)
 
     {contact_candidates, quality_gate_dropped_candidates, readiness_dropped_candidates,
-     candidate_rejection_report} =
+     contact_allocation_resource_dropped_candidates, candidate_rejection_report} =
       UnavailableResourceCandidateFilter.apply(contact_candidates, refresh)
 
     {candidates, resource_filter_report} =
@@ -113,6 +113,10 @@ defmodule OrbitalDynamics.CandidateRefresh.Build do
           CandidateDiffReport.mark_dropped_candidates(
             readiness_dropped_candidates,
             "dropped_by_operational_readiness_unavailable_resource"
+          ) ++
+          CandidateDiffReport.mark_dropped_candidates(
+            contact_allocation_resource_dropped_candidates,
+            "dropped_by_contact_allocation_unavailable_resource"
           ) ++
           CandidateDiffReport.mark_dropped_candidates(
             budget_dropped_candidates,
@@ -177,6 +181,8 @@ defmodule OrbitalDynamics.CandidateRefresh.Build do
           contact_filter_report: contact_filter_report,
           quality_gate_dropped_candidates: quality_gate_dropped_candidates,
           readiness_dropped_candidates: readiness_dropped_candidates,
+          contact_allocation_resource_dropped_candidates:
+            contact_allocation_resource_dropped_candidates,
           allocation_dropped_candidates: allocation_dropped_candidates,
           resource_filter_report: resource_filter_report,
           refresh_budget_report: refresh_budget_report,

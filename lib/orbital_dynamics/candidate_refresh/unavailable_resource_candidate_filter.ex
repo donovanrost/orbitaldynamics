@@ -7,9 +7,13 @@ defmodule OrbitalDynamics.CandidateRefresh.UnavailableResourceCandidateFilter do
   }
 
   alias OrbitalDynamics.CandidateRefresh.SourceReports.{
+    ContactReviewCollection,
     ReadinessQualityGate,
     ResultArtifactCollection
   }
+
+  alias OrbitalDynamics.CandidateRefresh.ReplaySummary.ContactAllocation.SourceReportFields.Allocation.Report.Rows,
+    as: ContactAllocationRows
 
   alias OrbitalDynamics.Timeline
 
@@ -21,25 +25,55 @@ defmodule OrbitalDynamics.CandidateRefresh.UnavailableResourceCandidateFilter do
     sources = unavailable_resource_sources(refresh)
 
     if sources == [] do
-      {candidates, [], [], nil}
+      {candidates, [], [], [], nil}
     else
       spacecraft_by_scenario = ObjectiveMatching.spacecraft_identity_by_scenario(refresh)
 
-      {kept, quality_dropped, readiness_dropped, explained} =
-        Enum.reduce(candidates, {[], [], [], []}, fn candidate,
-                                                     {kept, quality_dropped, readiness_dropped,
-                                                      explained} ->
+      {kept, quality_dropped, readiness_dropped, contact_allocation_dropped, explained} =
+        Enum.reduce(candidates, {[], [], [], [], []}, fn candidate,
+                                                         {kept, quality_dropped,
+                                                          readiness_dropped,
+                                                          contact_allocation_dropped, explained} ->
           case blocking_evidence(candidate, sources, spacecraft_by_scenario) do
             [] ->
-              {[candidate | kept], quality_dropped, readiness_dropped, [candidate | explained]}
+              {
+                [candidate | kept],
+                quality_dropped,
+                readiness_dropped,
+                contact_allocation_dropped,
+                [candidate | explained]
+              }
 
             evidence ->
               rejected = rejected_candidate(candidate, evidence)
 
-              if Enum.any?(evidence, &(&1["source_family"] == "quality_gate")) do
-                {kept, [rejected | quality_dropped], readiness_dropped, [rejected | explained]}
-              else
-                {kept, quality_dropped, [rejected | readiness_dropped], [rejected | explained]}
+              cond do
+                Enum.any?(evidence, &(&1["source_family"] == "quality_gate")) ->
+                  {
+                    kept,
+                    [rejected | quality_dropped],
+                    readiness_dropped,
+                    contact_allocation_dropped,
+                    [rejected | explained]
+                  }
+
+                Enum.any?(evidence, &(&1["source_family"] == "operational_readiness")) ->
+                  {
+                    kept,
+                    quality_dropped,
+                    [rejected | readiness_dropped],
+                    contact_allocation_dropped,
+                    [rejected | explained]
+                  }
+
+                true ->
+                  {
+                    kept,
+                    quality_dropped,
+                    readiness_dropped,
+                    [rejected | contact_allocation_dropped],
+                    [rejected | explained]
+                  }
               end
           end
         end)
@@ -53,13 +87,15 @@ defmodule OrbitalDynamics.CandidateRefresh.UnavailableResourceCandidateFilter do
         Enum.reverse(kept),
         Enum.reverse(quality_dropped),
         Enum.reverse(readiness_dropped),
+        Enum.reverse(contact_allocation_dropped),
         report
       }
     end
   end
 
   defp unavailable_resource_sources(refresh) do
-    quality_gate_sources(refresh) ++ operational_readiness_sources(refresh)
+    quality_gate_sources(refresh) ++
+      operational_readiness_sources(refresh) ++ contact_allocation_sources(refresh)
   end
 
   defp quality_gate_sources(refresh) do
@@ -112,6 +148,57 @@ defmodule OrbitalDynamics.CandidateRefresh.UnavailableResourceCandidateFilter do
     end)
   end
 
+  defp contact_allocation_sources(refresh) do
+    refresh
+    |> ContactReviewCollection.contact_allocation_reports(
+      &ResultArtifactCollection.reports/1,
+      &ResultArtifactTrustBoundary.inherit/2
+    )
+    |> Enum.flat_map(fn {path, report} ->
+      if report["schema_contract"] == "contact_allocation_report.v1" do
+        report
+        |> ContactAllocationRows.resource_blocked_rows()
+        |> Enum.flat_map(&contact_allocation_row_source(path, report, &1))
+      else
+        []
+      end
+    end)
+  end
+
+  defp contact_allocation_row_source(path, report, row) do
+    contact_id = ContactAllocationRows.summary_contact_id(row)
+    spacecraft_id = stable_string(row["spacecraft_id"])
+    resource_suppression = row["source_resource_suppression"]
+
+    resource_blocking_dimension =
+      stable_string(
+        row["resource_blocking_dimension"] ||
+          get_in(row, ["source_resource_suppression", "resource_blocking_dimension"])
+      )
+
+    if contact_id && spacecraft_id && resource_blocking_dimension &&
+         ContactAllocationRows.effective_status(row) == "blocked" &&
+         is_map(resource_suppression) && map_size(resource_suppression) > 0 do
+      [
+        %{
+          "source_family" => "contact_allocation",
+          "source_report_path" => path,
+          "source_schema_contract" => "contact_allocation_report.v1",
+          "source_artifact_id" => report["source_artifact_id"],
+          "source_contact_allocation_report_id" => report["report_id"] || report["id"],
+          "source_report_source" => report["source"],
+          "blocked_contact_ids_by_spacecraft_id" => %{spacecraft_id => [contact_id]},
+          "resource_blocking_dimension" => resource_blocking_dimension,
+          "trust_boundaries" =>
+            (report_trust_boundaries(report) ++ contact_allocation_row_trust_boundaries(row))
+            |> stable_values()
+        }
+      ]
+    else
+      []
+    end
+  end
+
   defp blocking_evidence(candidate, sources, spacecraft_by_scenario) do
     if contact_candidate?(candidate) do
       candidate_id = Map.get(candidate, "id")
@@ -159,6 +246,9 @@ defmodule OrbitalDynamics.CandidateRefresh.UnavailableResourceCandidateFilter do
       "source_artifact_id",
       "source_quality_gate_report_id",
       "source_readiness_report_id",
+      "source_contact_allocation_report_id",
+      "source_report_source",
+      "resource_blocking_dimension",
       "trust_boundaries"
     ])
     |> Map.put("spacecraft_id", spacecraft_id)
@@ -181,6 +271,11 @@ defmodule OrbitalDynamics.CandidateRefresh.UnavailableResourceCandidateFilter do
       Map.get(evidence_by_family, "operational_readiness", []),
       "source_schema_contract"
     )
+    |> put_selection_provenance(
+      "contact_allocation_candidate_filter",
+      Map.get(evidence_by_family, "contact_allocation", []),
+      "source_schema_contract"
+    )
   end
 
   defp put_selection_provenance(candidate, _key, [], _contract_field), do: candidate
@@ -194,6 +289,11 @@ defmodule OrbitalDynamics.CandidateRefresh.UnavailableResourceCandidateFilter do
         "source_quality_gate_report_ids" =>
           evidence_values(evidence, "source_quality_gate_report_id"),
         "source_readiness_report_ids" => evidence_values(evidence, "source_readiness_report_id"),
+        "source_contact_allocation_report_ids" =>
+          evidence_values(evidence, "source_contact_allocation_report_id"),
+        "source_report_sources" => evidence_values(evidence, "source_report_source"),
+        "resource_blocking_dimensions" =>
+          evidence_values(evidence, "resource_blocking_dimension"),
         "blocked_spacecraft_ids" => evidence_values(evidence, "spacecraft_id"),
         "trust_boundaries" =>
           evidence
@@ -221,6 +321,18 @@ defmodule OrbitalDynamics.CandidateRefresh.UnavailableResourceCandidateFilter do
     |> stable_values()
   end
 
+  defp contact_allocation_row_trust_boundaries(row) do
+    [
+      row["trust_boundary"],
+      row["resource_trust_boundary"],
+      get_in(row, ["provenance", "trust_boundary"]),
+      get_in(row, ["resource_provenance", "trust_boundary"]),
+      get_in(row, ["source_resource_suppression", "resource_trust_boundary"]),
+      get_in(row, ["source_resource_suppression", "resource_provenance", "trust_boundary"])
+    ]
+    |> stable_values()
+  end
+
   defp candidate_rejection_source(sources) do
     case sources |> Enum.map(& &1["source_family"]) |> Enum.uniq() |> Enum.sort() do
       ["quality_gate"] ->
@@ -228,6 +340,9 @@ defmodule OrbitalDynamics.CandidateRefresh.UnavailableResourceCandidateFilter do
 
       ["operational_readiness"] ->
         "candidate_refresh.operational_readiness_unavailable_resource"
+
+      ["contact_allocation"] ->
+        "candidate_refresh.contact_allocation_unavailable_resource"
 
       _families ->
         "candidate_refresh.unavailable_resource_readiness_evidence"
@@ -255,6 +370,9 @@ defmodule OrbitalDynamics.CandidateRefresh.UnavailableResourceCandidateFilter do
   end
 
   defp blocked_contact_map?(_value), do: false
+
+  defp stable_string(value) when is_binary(value) and value != "", do: value
+  defp stable_string(_value), do: nil
 
   defp list_value(values) when is_list(values), do: values
   defp list_value(_values), do: []

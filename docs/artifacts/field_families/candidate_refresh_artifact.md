@@ -992,6 +992,14 @@ Branch-generated refresh requests preserve direct and result-artifact-wrapped
 wrapper-qualified request paths and indexed embedded replay copies, keeping raw
 allocation rows, capacity-pack demand/routing, direction routing, station
 pressure, and trust-boundary evidence visible to the replay helper.
+During CandidateRefresh build, canonical allocation rows with a
+`source_resource_suppression` map can also reject a regenerated contact when
+the row-derived contact ID and spacecraft identity both match. The resulting
+candidate-rejection row preserves the allocation path/source, blocking
+dimension, spacecraft scope, and row/report trust evidence; a matching prior
+candidate uses `dropped_by_contact_allocation_unavailable_resource`.
+Top-level resource-blocked count/ID maps remain replay provenance only and do
+not activate selection without a qualifying row.
 Preserved selected/deferred capacity-pack contact-ID station maps,
 selected/deferred capacity-pack contact-ID direction maps, deferred-contact ID
 maps, station-pressure contact-ID maps, station-pressure review contact IDs, and

@@ -5,54 +5,55 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Add a curated CandidateRefresh readiness-selection challenge fixture.
+Apply exact resource-unavailable rows from canonical contact-allocation reports
+to CandidateRefresh selection.
 
 Status:
 Implemented and verified; publish pending.
 
 Why this slice:
-Canonical readiness blocks were planner-effective but the curated validation
-corpus only replayed readiness provenance with zero candidates. Exact
-spacecraft-scoped selection therefore lacked durable reference evidence.
+`contact_allocation_report.v1` already exposes row-derived resource-blocked
+contact IDs with spacecraft scope, but CandidateRefresh only turns
+station-specific allocation reasons into ground-network selection state.
+Resource-unavailable rows remain provenance/scoring evidence even when they
+identify a regenerated contact exactly.
+
+Level 6 pillar:
+Refreshed candidates from current mission state and fleet-level contact/resource
+behavior.
 
 Behavior/evidence added:
-- A deterministic two-spacecraft refresh generates two contacts.
-- Canonical readiness evidence lists both IDs under `sat_1`; the exact `sat_1`
-  contact is rejected while the `sat_2` contact survives.
-- CandidateRefresh observations now expose stable selected/contact-intent,
-  rejected, and invalidated candidate identity when that evidence exists.
-- Evidence-free artifacts retain the prior observation shape.
-- The challenge pins rejection reason, readiness-specific invalidation reason,
-  source identity/trust, warning count, and survivor identity.
-- The checked-in validation registry now contains 198 passing fixtures.
-
-Files changed:
-- CandidateRefresh artifact observations.
-- Readiness validation fixture support, reference definition, and tests.
-- Deterministic validation registry test and generated report.
+- Canonical contact-allocation rows carrying nonempty
+  `source_resource_suppression` evidence now filter regenerated contacts only
+  when row-derived contact ID, spacecraft/scenario scope, blocked status, and
+  resource blocking dimension are exact.
+- Aggregate-only blocked-contact maps, stale allocated rows, and matching IDs
+  scoped to another spacecraft do not affect selection.
+- Direct and result-artifact-wrapped reports preserve report path/source,
+  blocking dimension, spacecraft scope, and report/row/wrapper trust evidence.
+- Rejected prior contacts receive
+  `dropped_by_contact_allocation_unavailable_resource`; operator-review and
+  Cadence-import handoffs remain schema-valid and review-only.
+- Public capability metadata and CandidateRefresh docs describe the new
+  row-derived selection boundary.
 
 Verification:
-- Focused readiness fixture tests: 4 passed.
-- CandidateRefresh validation/readiness suites: 31 passed.
-- Validation/reference evidence suites: 187 passed.
-- Compatibility regression proof after review fix: 10 passed.
-- Full `mix test --timeout 180000`: 3,474 passed.
+- Focused cross-family and review/import handoff tests: 27 passed.
+- Full CandidateRefresh suite: 761 passed.
+- Capability catalog/schema registry tests: 15 passed.
+- Full `mix test --timeout 180000`: 3,475 passed.
 - Schema lint: 155 artifacts, zero errors/warnings.
 - `mix format --check-formatted` and `git diff --check`: pass.
 
-Level 6 pillar advanced:
-Durable schema-versioned compatibility evidence now protects planner-effective
-readiness selection and its cross-spacecraft identity boundary.
-
 Parent review:
-Complete. Initial full-suite review found new empty identity/count observations
-on evidence-free artifacts; those fields are now conditional and the exact-map
-compatibility contract passes. No must-fix findings remain. Runtime policy
-disallows subagent delegation, so the parent performed review and publish prep.
+Complete. The parent verified the reused source resolver, row normalization,
+wrapper trust inheritance, checked-in canonical row shape, aggregate-only
+non-action, and source-family invalidation precedence. No must-fix findings
+remain. Runtime policy disallows subagent delegation, so the parent performed
+review and publish prep.
 
 Previous published slice:
-- `e29742c0` Apply canonical readiness blocks in candidate refresh
-  (`3473 passed`).
+- `94b65d65` Add readiness selection challenge fixture (`3474 passed`).
 
 Current publish:
 - Commit pending.
@@ -62,9 +63,6 @@ Remaining maturity gaps:
 - Continue branch-local realized-feedback depth and challenge fixtures.
 - Continue deeper numerical/backend and resource-model maturity separately.
 
-Next candidate:
-Reassess the roadmap after publish; prefer the next missing planner-visible,
-exactly scoped contact/resource signal over aggregate-only pressure.
-
 Blocked:
-Not blocked.
+Not blocked. Runtime policy disallows subagent delegation, so the parent will
+perform bounded review and publish handoff.

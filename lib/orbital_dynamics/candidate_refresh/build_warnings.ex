@@ -29,6 +29,10 @@ defmodule OrbitalDynamics.CandidateRefresh.BuildWarnings do
     contact_filter_report = Map.fetch!(context, :contact_filter_report)
     quality_gate_dropped_candidates = Map.fetch!(context, :quality_gate_dropped_candidates)
     readiness_dropped_candidates = Map.fetch!(context, :readiness_dropped_candidates)
+
+    contact_allocation_resource_dropped_candidates =
+      Map.fetch!(context, :contact_allocation_resource_dropped_candidates)
+
     allocation_dropped_candidates = Map.fetch!(context, :allocation_dropped_candidates)
     resource_filter_report = Map.fetch!(context, :resource_filter_report)
     refresh_budget_report = Map.fetch!(context, :refresh_budget_report)
@@ -63,6 +67,10 @@ defmodule OrbitalDynamics.CandidateRefresh.BuildWarnings do
     |> maybe_warn(
       readiness_dropped_candidates != [],
       "operational readiness excluded explicitly scoped unavailable-resource contact candidates"
+    )
+    |> maybe_warn(
+      contact_allocation_resource_dropped_candidates != [],
+      "contact allocation resource evidence excluded explicitly scoped contact candidates"
     )
     |> maybe_warn(
       Map.get(resource_filter_report, "suppressed_candidate_count", 0) > 0,

@@ -545,6 +545,7 @@ defmodule OrbitalDynamics.CandidateRefresh.Capabilities do
         :source_contact_intent_summary_input_provenance,
         :source_contact_filter_report_station_feedback,
         :source_contact_allocation_report_station_feedback,
+        :source_contact_allocation_unavailable_resource_contact_filtering,
         :contact_allocation_policy_handoff,
         :contact_allocation_reduced_capacity_policy_handoff,
         :source_resource_projection_report_resource_feedback,

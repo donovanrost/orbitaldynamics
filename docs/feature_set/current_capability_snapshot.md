@@ -75,11 +75,13 @@ Implemented or partially implemented modules and artifacts include:
   paths, with replay-derived pressure feeding explainable V3 score terms for
   branch-local contact, resource, station-calendar, timeline, readiness,
   quality-gate, import-readiness, validation, and storage/downlink tradeoffs.
-  Explicit unavailable-resource contact IDs from either canonical operational
-  readiness evidence or the compact quality-gate summary now also affect
+  Explicit unavailable-resource contact IDs from canonical operational
+  readiness evidence, the compact quality-gate summary, or row-derived
+  canonical contact-allocation resource suppressions now also affect
   CandidateRefresh selection when the ID is scoped to the regenerated
-  candidate's spacecraft; aggregate pressure remains provenance-only, and each
-  decision emits a candidate-rejection review/import explanation.
+  candidate's spacecraft. Aggregate allocation/readiness pressure remains
+  provenance-only, and each decision emits a candidate-rejection review/import
+  explanation.
 - Example manifests and outputs in `studies/`, `study_results/`, and
   `benchmark_results/`.
 
