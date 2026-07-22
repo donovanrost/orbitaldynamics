@@ -24,6 +24,11 @@ defmodule OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactAllocation
     |> Map.merge(CapacityPackSummary.fields(reports))
     |> Map.merge(PressureConflictSummary.fields(reports))
     |> Map.merge(ProviderReservationSummary.fields(reports))
+    |> correlate_direction_fields()
     |> compact_map()
+  end
+
+  defp correlate_direction_fields(summary) do
+    Map.merge(summary, DirectionRouting.direction_fields_from_summary(summary))
   end
 end

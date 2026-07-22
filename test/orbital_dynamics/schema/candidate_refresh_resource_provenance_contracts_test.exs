@@ -528,6 +528,75 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshResourceProvenanceContractsTest
                  "$.provenance.source_reports.contact_allocation_report.direction_routing")
            )
 
+    artifact_with_allocation_direction_summary =
+      put_in(artifact, ["provenance", "source_reports", "contact_allocation_report"], %{
+        "paths" => ["source_contact_allocation_report"],
+        "contract" => "contact_allocation_report.v1",
+        "count" => 1,
+        "row_count" => 2,
+        "direction_counts" => %{"downlink" => 2},
+        "contact_ids_by_direction" => %{
+          "downlink" => ["dl_backup", "dl_primary"]
+        },
+        "direction_routing" => %{
+          "downlink" => %{
+            "contact_count" => 2,
+            "contact_ids" => ["dl_backup", "dl_primary"],
+            "provider_reservation_no_request_contact_ids" => [],
+            "provider_reservation_request_contact_ids" => [],
+            "provider_reservation_review_contact_ids" => [],
+            "reservation_conflict_contact_ids" => [],
+            "station_pressure_contact_ids" => []
+          }
+        }
+      })
+
+    assert {:ok, %{"schema_contract" => "candidate_refresh.v1"}} =
+             Schema.validate_artifact(artifact_with_allocation_direction_summary)
+
+    noncanonical_allocation_direction =
+      update_in(
+        artifact_with_allocation_direction_summary,
+        [
+          "provenance",
+          "source_reports",
+          "contact_allocation_report",
+          "direction_counts"
+        ],
+        fn counts -> counts |> Map.delete("downlink") |> Map.put("Down Link", 2) end
+      )
+
+    assert {:error, noncanonical_allocation_direction_report} =
+             Schema.validate_artifact(noncanonical_allocation_direction)
+
+    assert Enum.any?(
+             noncanonical_allocation_direction_report["errors"],
+             &(&1["path"] ==
+                 "$.provenance.source_reports.contact_allocation_report.direction_counts")
+           )
+
+    over_cardinality_allocation_direction =
+      put_in(
+        artifact_with_allocation_direction_summary,
+        [
+          "provenance",
+          "source_reports",
+          "contact_allocation_report",
+          "direction_counts",
+          "downlink"
+        ],
+        1
+      )
+
+    assert {:error, over_cardinality_allocation_direction_report} =
+             Schema.validate_artifact(over_cardinality_allocation_direction)
+
+    assert Enum.any?(
+             over_cardinality_allocation_direction_report["errors"],
+             &(&1["path"] ==
+                 "$.provenance.source_reports.contact_allocation_report.contact_ids_by_direction")
+           )
+
     invalid_station_pressure_count =
       put_in(
         artifact_with_station_pressure_summary,

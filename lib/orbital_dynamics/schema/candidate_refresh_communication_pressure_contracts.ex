@@ -12,6 +12,9 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshCommunicationPressureContracts 
   alias OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactAllocation.DirectionRouting,
     as: ContactAllocationDirectionRouting
 
+  alias OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactAllocation.DirectionRouting.Correlation,
+    as: ContactAllocationDirectionCorrelation
+
   alias OrbitalDynamics.Schema.StableIdValidation
 
   import OrbitalDynamics.Schema.PrimitiveValidation,
@@ -56,8 +59,53 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshCommunicationPressureContracts 
         end
       )
 
-    validate_contact_allocation_direction_routing(issues, path, summary)
+    issues
+    |> validate_contact_allocation_direction_fields(path, summary)
+    |> validate_contact_allocation_direction_routing(path, summary)
   end
+
+  defp validate_contact_allocation_direction_fields(
+         issues,
+         path,
+         %{"contract" => "contact_allocation_report.v1"} = summary
+       ) do
+    counts = Map.get(summary, "direction_counts")
+    contact_ids_by_direction = Map.get(summary, "contact_ids_by_direction")
+    canonical_counts = ContactAllocationDirectionCorrelation.direction_counts(counts)
+
+    issues =
+      if is_map(counts) and counts != canonical_counts do
+        [
+          error(
+            path <> ".direction_counts",
+            "must use canonical stable direction keys with positive integer counts"
+          )
+          | issues
+        ]
+      else
+        issues
+      end
+
+    canonical_contact_ids =
+      ContactAllocationDirectionCorrelation.contact_ids_by_direction(
+        canonical_counts,
+        contact_ids_by_direction
+      ) || %{}
+
+    if is_map(contact_ids_by_direction) and contact_ids_by_direction != canonical_contact_ids do
+      [
+        error(
+          path <> ".contact_ids_by_direction",
+          "must contain sorted unique stable IDs within each positive local direction count"
+        )
+        | issues
+      ]
+    else
+      issues
+    end
+  end
+
+  defp validate_contact_allocation_direction_fields(issues, _path, _summary), do: issues
 
   defp validate_contact_allocation_direction_routing(
          issues,

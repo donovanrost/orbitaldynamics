@@ -25,8 +25,16 @@ defmodule OrbitalDynamics.CandidateRefresh.ContactAllocationPressureMapReplaySum
             "reservation_conflict_contact_ids" => ["reservation_conflict_contact"],
             "invalid_contact_input_ids" => ["invalid_contact"],
             "review_contact_ids" => ["review_contact"],
-            "direction_counts" => %{"downlink" => 1},
-            "contact_ids_by_direction" => %{"downlink" => ["selected_contact"]},
+            "direction_counts" => %{
+              "Down Link" => 1,
+              "tracking" => 1,
+              "uplink" => 1
+            },
+            "contact_ids_by_direction" => %{
+              "down" => ["selected_contact"],
+              "missing_direction" => ["orphan_contact"],
+              "uplink" => ["shifted_uplink_a", "shifted_uplink_b"]
+            },
             "direction_routing" => %{
               "downlink" => %{
                 "contact_count" => 1,
@@ -85,7 +93,9 @@ defmodule OrbitalDynamics.CandidateRefresh.ContactAllocationPressureMapReplaySum
            ]
 
     assert source_summary["source_report_contact_allocation_direction_counts"] == %{
-             "downlink" => 1
+             "downlink" => 1,
+             "tracking" => 1,
+             "uplink" => 1
            }
 
     assert source_summary["source_report_contact_allocation_contact_ids_by_direction"] == %{
@@ -127,7 +137,13 @@ defmodule OrbitalDynamics.CandidateRefresh.ContactAllocationPressureMapReplaySum
     assert replay_summary["reservation_conflict_contact_ids"] == ["reservation_conflict_contact"]
     assert replay_summary["invalid_contact_input_ids"] == ["invalid_contact"]
     assert replay_summary["review_contact_ids"] == ["review_contact"]
-    assert replay_summary["direction_counts"] == %{"downlink" => 1}
+
+    assert replay_summary["direction_counts"] == %{
+             "downlink" => 1,
+             "tracking" => 1,
+             "uplink" => 1
+           }
+
     assert replay_summary["contact_ids_by_direction"] == %{"downlink" => ["selected_contact"]}
 
     assert replay_summary["direction_routing"] == %{

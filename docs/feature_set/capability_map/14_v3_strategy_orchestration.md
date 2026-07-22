@@ -1073,6 +1073,11 @@ field maps at flattened-source and replay boundaries. Explicit compact count
 maps retain occurrence counts while stable ID lists remain de-duplicated, stale
 route-only entries cannot create pressure, and compact schema validation rejects
 a supplied route that differs from the canonical rebuild.
+Base allocation direction counts and contact-ID lists are canonicalized after
+raw merges and at compact replay boundaries. Lists require positive local counts
+and cannot exceed those occurrence counts; count-only directions remain scalar
+pressure without emitting identity routes, and schema validation enforces the
+same correlation.
 Branch-generated CandidateRefresh requests also carry mission-state
 `source_contact_allocation_summary` / `contact_allocation_summary`,
 	`source_contact_allocation_station_pressure_summary` /

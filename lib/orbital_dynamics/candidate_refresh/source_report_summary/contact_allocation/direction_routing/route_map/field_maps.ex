@@ -10,7 +10,7 @@ defmodule OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactAllocation
   end
 
   def route_keys(field_maps) do
-    FieldSpecs.route_field_names()
+    FieldSpecs.route_identity_field_names()
     |> Enum.flat_map(fn field_name ->
       field_maps
       |> Map.fetch!(field_name)

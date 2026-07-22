@@ -242,6 +242,12 @@ lists de-duplicate identities; nested provider maps continue to derive route
 evidence when direct maps are absent. Stale supplied route-only entries cannot
 create allocation pressure, and compact schema validation requires a supplied
 route map to equal the canonical rebuild.
+Base allocation direction counts and contact-ID lists are canonicalized through
+the shared provider aliases after raw report merges and again at compact replay
+boundaries. Counts require positive integer evidence; each sorted unique stable
+ID list requires a positive local direction count and cannot exceed that
+occurrence count. Count-only directions remain scalar pressure and do not emit
+identity routes, while valid merged counts may exceed de-duplicated ID lists.
 Allocation row duplicate-contact and station-calendar overlap/reservation count
 fields are also executable integer counts, duplicate-contact collision rows must
 preserve candidate count, ID, and source-candidate evidence, and contention

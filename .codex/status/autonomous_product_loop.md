@@ -5,37 +5,37 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Rebuild compact contact-allocation routes.
+Correlate compact allocation directions.
 
 Status:
 Verified; ready for mechanical publish.
 
 Selection evidence:
-- Contact-contention count/row/path identity is provenance-only and correctly
-  remains independent of discarded route pressure.
-- Contact-allocation replay still copies preserved `direction_routing` verbatim,
-  allowing a stale route-only compact field to create allocation pressure.
-- The existing allocation routing module can rebuild routes from preserved
-  direction, station-pressure, reservation-conflict, and provider maps.
+- Contact-allocation routes now rebuild from compact field maps, but explicit
+  `direction_counts` and `contact_ids_by_direction` remain independent inputs.
+- Noncanonical, non-positive, uncounted, or over-cardinality direction lists can
+  therefore authorize freshly rebuilt allocation routes and branch pressure.
+- Valid merged summaries require occurrence counts to remain greater than or
+  equal to their de-duplicated stable contact-ID lists.
 
 Intended behavior:
-- Rebuild contact-allocation routes from preserved authoritative field maps at
-  flattened-source and replay boundaries; ignore stale supplied route entries.
-- Preserve provider-reservation and station/conflict route evidence already
-  represented in the authoritative compact maps.
-- If compact schema input includes a route, require it to equal the canonical
-  rebuild.
+- Canonicalize positive direction counts and stable contact-ID lists, merging
+  provider aliases before correlation.
+- Retain each list only when it has a positive local count and no more unique IDs
+  than that occurrence count; do not require equality.
+- Apply the same fields to flattened/replay outputs, rebuilt routes, and compact
+  schema validation.
 
 Level 6 pillar advanced:
 Fleet-scale planning decisions and durable reproducible audit handoffs.
 
 Planned files:
-- contact-allocation flattened/replay routing and compact schema correlation
-- stale-route and provider-map rebuild challenge tests
+- contact-allocation direction correlation, flattened/replay fields, and schema
+- alias, uncounted-ID, and local-cardinality challenge tests
 - allocation artifact documentation and autonomous-loop ledger
 
 Verification:
-- Compact allocation replay, campaign handoff, and schema focus -> `8 passed`.
+- Allocation replay, campaign handoff, and compact schema focus -> `8 passed`.
 - `mix test test/orbital_dynamics/**/*contact_allocation*.exs --timeout 120000`
   -> `177 passed`.
 - Checked-in repair golden facade focus -> `1 passed`.
@@ -44,15 +44,17 @@ Verification:
 - `mix test --timeout 120000` -> `3807 passed`.
 
 Review:
-- Flattened-source and replay boundaries rebuild routes without consulting the
-  supplied route map; schema comparison is contract-gated and uses the same path.
-- Explicit compact route field maps remain authoritative, preserving merged
-  occurrence counts even when stable contact IDs de-duplicate across reports.
-- Missing direct provider maps still derive from nested station evidence, and
-  stale route-only entries cannot create pressure. No unresolved findings.
+- Canonicalization runs after raw multi-report aggregation and again at compact
+  flattened/replay boundaries, preserving summed occurrence counts while
+  de-duplicating stable IDs for identity routing.
+- Each retained list has a positive local count and unique-ID cardinality no
+  greater than that count; uncounted/over-cardinality lists drop whole.
+- Count-only directions remain scalar pressure, routes require identity-bearing
+  fields, and compact schema validation enforces the same maps. No unresolved
+  findings.
 
 Last published slice:
-- `0374efdb` Correlate contention direction routes (`3807 passed`).
+- `254e03be` Rebuild compact allocation routes (`3807 passed`).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions while preserving explicit
@@ -63,8 +65,7 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-After publish, audit contact-allocation direction count/list identity correlation
-for preserved compact summaries.
+After publish, audit compact allocation status-count identity correlation.
 
 Blocked:
 None.

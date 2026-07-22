@@ -8,13 +8,10 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.ContactAllocation.Sourc
   import Aggregation
 
   def source_report_allocation_fields(source_reports) do
-    direction_routing =
+    direction_fields =
       source_reports
       |> Map.get("contact_allocation_report")
-      |> case do
-        %{} = summary -> DirectionRouting.fields_from_summary(summary)
-        _summary -> nil
-      end
+      |> DirectionRouting.direction_fields_from_summary()
 
     %{
       "source_report_contact_allocation_blocked_row_count" =>
@@ -31,10 +28,11 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.ContactAllocation.Sourc
       "source_report_contact_allocation_allocation_reason_counts" =>
         source_report_family_merge_count_maps(source_reports, "allocation_reason_counts"),
       "source_report_contact_allocation_direction_counts" =>
-        source_report_family_merge_count_maps(source_reports, "direction_counts"),
+        Map.get(direction_fields, "direction_counts"),
       "source_report_contact_allocation_contact_ids_by_direction" =>
-        source_report_family_merge_string_list_maps(source_reports, "contact_ids_by_direction"),
-      "source_report_contact_allocation_direction_routing" => direction_routing,
+        Map.get(direction_fields, "contact_ids_by_direction"),
+      "source_report_contact_allocation_direction_routing" =>
+        Map.get(direction_fields, "direction_routing"),
       "source_report_contact_allocation_allocated_contact_count" =>
         source_report_family_count(source_reports, "allocated_contact_count"),
       "source_report_contact_allocation_allocated_contact_ids" =>
