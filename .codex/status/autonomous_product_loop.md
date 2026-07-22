@@ -5,25 +5,25 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Preserve list-valued reservation identities in provider-pressure branches.
+Preserve list-valued reservation owner/status evidence in provider pressure.
 
 Status:
 Verified; ready to publish.
 
 Selection evidence:
-- `clear` request-status observations must remain provenance-only: a clear
-  source can coexist with a legacy statusless source that contributes positive
-  request/review evidence.
-- Provider-reservation summary rows preserve scalar `station_reservation_id`
-  and list-valued `station_calendar_reservation_ids` evidence.
-- Derived provider-pressure events, risks, and branch comparisons currently
-  carry only the scalar ID, dropping additional reservation identities.
+- Provider-reservation rows preserve list-valued `station_calendar_reserved_by`
+  and `station_calendar_reservation_statuses` evidence beside scalar owner and
+  status fields.
+- Branch event normalization already supports both lists, but provider-pressure
+  construction and review-risk mapping omit them.
+- Branch comparison owner/status summaries currently inspect only scalar fields,
+  dropping additional selected-contact evidence.
 
 Intended behavior:
-- Carry canonical list-valued reservation IDs through the selected contact's
-  provider-pressure event, risk indicator, branch metadata, and comparison row.
-- Merge scalar and list-valued IDs into branch reservation identity without
-  inventing aggregate planner effects.
+- Carry list-valued reservation owners and statuses through the selected
+  contact's provider-pressure event, risk indicator, and branch metadata.
+- Merge scalar and list-valued evidence into canonical branch comparison owner
+  and status lists without inventing aggregate planner effects.
 - Preserve request/review classification, scoring, approval, and execution
   boundaries.
 
@@ -31,8 +31,8 @@ Level 6 pillar advanced:
 Fleet-scale planning decisions and durable reproducible audit handoffs.
 
 Planned files:
-- provider-pressure event/risk and branch-comparison identity extraction
-- multi-reservation branch proof, docs, and loop ledger
+- provider-pressure event/risk and branch-comparison evidence extraction
+- multi-owner/status branch proof, docs, and loop ledger
 
 Verification:
 - Focused provider-pressure branch handoff: `9 passed`.
@@ -44,21 +44,20 @@ Verification:
 
 Review:
 - Provider-pressure events and their high-severity review risks retain the
-  selected row's list-valued reservation IDs beside the scalar ID.
-- Branch provenance metadata retains the list, and branch comparison identity
-  merges scalar and list-valued reservation IDs into one canonical list.
-- The multi-reservation proof preserves request/review classification, policy
+  selected row's list-valued reservation owners and statuses beside the scalar
+  owner and status.
+- Branch provenance metadata retains both lists; branch comparison merges their
+  scalar/list evidence into canonical owner and status lists.
+- The multi-owner/status proof preserves request/review classification, policy
   blocking, risk scoring, and the existing comparison schema; generated schemas
   and golden artifacts do not change.
-- `clear` status observations remain intentionally provenance-only across mixed
-  current/legacy source paths.
-- No aggregate reservation route creates a planner effect, and all
+- No aggregate reservation evidence creates a planner effect, and all
   no-provider-request, no-reservation, no-schedule-mutation, no-Cadence-write,
   no-operator-authority, and no-autonomous-execution boundaries remain intact.
 - Local review found no publish blocker.
 
 Last published slice:
-- `a3c077e4` Correlate provider reservation status evidence (`3883 passed`).
+- `239d2570` Preserve provider pressure reservation identities (`3883 passed`).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions while preserving explicit
@@ -69,8 +68,8 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-Audit list-valued reservation owner/status evidence in provider-pressure
-branches for the same selected-contact identity loss.
+Audit selected-row reservation-expiration context for provider-pressure branch
+loss before broadening any planner effect.
 
 Blocked:
 None.

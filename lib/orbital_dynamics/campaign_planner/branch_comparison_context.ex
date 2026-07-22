@@ -162,11 +162,16 @@ defmodule OrbitalDynamics.CampaignPlanner.BranchComparisonContext do
             "station_calendar_reservation_ids"
           ]),
         "branch_station_reserved_by" =>
-          branch_event_unique_values(events, ["station_reserved_by", "reserved_by"]),
+          branch_event_unique_values(events, [
+            "station_reserved_by",
+            "reserved_by",
+            "station_calendar_reserved_by"
+          ]),
         "branch_station_reservation_statuses" =>
           branch_event_unique_values(events, [
             "station_reservation_status",
-            "reservation_status"
+            "reservation_status",
+            "station_calendar_reservation_statuses"
           ]),
         "branch_station_reservation_match_statuses" =>
           branch_event_unique_values(events, [

@@ -753,6 +753,14 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyContactAllocationPressureTest 
           "summary_provider_reservation_review_backup"
         ]
       )
+      |> update_in(
+        ["provider_reservation_review_rows", Access.at(0)],
+        &Map.merge(&1, %{
+          "station_reserved_by" => "ops_primary",
+          "station_calendar_reserved_by" => ["ops_backup", "ops_primary"],
+          "station_calendar_reservation_statuses" => ["confirmed", "tentative"]
+        })
+      )
 
     mission_state =
       mission_state_with_refresh_inputs()
@@ -1085,6 +1093,9 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyContactAllocationPressureTest 
                "summary_provider_reservation_review",
                "summary_provider_reservation_review_backup"
              ],
+             "station_reserved_by" => "ops_primary",
+             "station_calendar_reserved_by" => ["ops_backup", "ops_primary"],
+             "station_calendar_reservation_statuses" => ["confirmed", "tentative"],
              "station_reservation_match_status" => "overlap",
              "provider_reservation_request_status" => "review_required",
              "provider_reservation_row_scope" => "review",
@@ -1112,7 +1123,9 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyContactAllocationPressureTest 
                  &1["station_calendar_reservation_ids"] == [
                    "summary_provider_reservation_review",
                    "summary_provider_reservation_review_backup"
-                 ])
+                 ] and
+                 &1["station_calendar_reserved_by"] == ["ops_backup", "ops_primary"] and
+                 &1["station_calendar_reservation_statuses"] == ["confirmed", "tentative"])
            )
 
     assert get_in(provider_branch, [
@@ -1123,6 +1136,18 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyContactAllocationPressureTest 
              "summary_provider_reservation_review",
              "summary_provider_reservation_review_backup"
            ]
+
+    assert get_in(provider_branch, [
+             "provenance",
+             "branch_metadata",
+             "station_calendar_reserved_by"
+           ]) == ["ops_backup", "ops_primary"]
+
+    assert get_in(provider_branch, [
+             "provenance",
+             "branch_metadata",
+             "station_calendar_reservation_statuses"
+           ]) == ["confirmed", "tentative"]
 
     assert_provider_reservation_request_pressure_score_terms(provider_branch, artifact)
 
@@ -1138,6 +1163,13 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyContactAllocationPressureTest 
     assert provider_row["branch_station_reservation_ids"] == [
              "summary_provider_reservation_review",
              "summary_provider_reservation_review_backup"
+           ]
+
+    assert provider_row["branch_station_reserved_by"] == ["ops_backup", "ops_primary"]
+
+    assert provider_row["branch_station_reservation_statuses"] == [
+             "confirmed",
+             "tentative"
            ]
 
     refute Enum.any?(

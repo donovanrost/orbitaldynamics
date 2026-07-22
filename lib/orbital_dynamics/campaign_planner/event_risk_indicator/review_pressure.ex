@@ -17,6 +17,8 @@ defmodule OrbitalDynamics.CampaignPlanner.EventRiskIndicator.ReviewPressure do
         "direction" => event["direction"],
         "station_reservation_id" => event["station_reservation_id"],
         "station_calendar_reservation_ids" => event["station_calendar_reservation_ids"],
+        "station_calendar_reserved_by" => event["station_calendar_reserved_by"],
+        "station_calendar_reservation_statuses" => event["station_calendar_reservation_statuses"],
         "station_reserved_by" => event["station_reserved_by"],
         "station_reservation_match_status" => event["station_reservation_match_status"],
         "station_reservation_status" => event["station_reservation_status"],
