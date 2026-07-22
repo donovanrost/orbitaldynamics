@@ -1140,6 +1140,29 @@ defmodule OrbitalDynamics.Schema.OperatorReviewContractsTest do
 
     assert {:ok, _package} = Schema.validate_artifact(aligned_routes)
 
+    overlap_request_routes =
+      Map.merge(package, %{
+        "provider_reservation_request_contact_ids_by_match_status" => %{
+          "overlap" => ["contact_a"]
+        },
+        "provider_reservation_request_ids_by_match_status" => %{
+          "overlap" => ["reservation_a"]
+        }
+      })
+
+    assert {:error, overlap_request_routes_report} =
+             Schema.validate_artifact(overlap_request_routes)
+
+    for field <- [
+          "provider_reservation_request_contact_ids_by_match_status",
+          "provider_reservation_request_ids_by_match_status"
+        ] do
+      assert Enum.any?(
+               overlap_request_routes_report["errors"],
+               &(&1["path"] == "$.#{field}")
+             )
+    end
+
     unsupported_routes =
       Map.merge(package, %{
         "provider_reservation_request_contact_ids_by_match_status" => %{

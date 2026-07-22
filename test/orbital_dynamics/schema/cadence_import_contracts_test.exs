@@ -3388,6 +3388,29 @@ defmodule OrbitalDynamics.Schema.CadenceImportContractsTest do
 
     assert {:ok, _manifest} = Schema.validate_artifact(aligned_routes)
 
+    overlap_request_routes =
+      Map.merge(manifest, %{
+        "provider_reservation_request_contact_ids_by_match_status" => %{
+          "overlap" => ["contact_request"]
+        },
+        "provider_reservation_request_ids_by_match_status" => %{
+          "overlap" => ["reservation_request"]
+        }
+      })
+
+    assert {:error, overlap_request_routes_report} =
+             Schema.validate_artifact(overlap_request_routes)
+
+    for field <- [
+          "provider_reservation_request_contact_ids_by_match_status",
+          "provider_reservation_request_ids_by_match_status"
+        ] do
+      assert Enum.any?(
+               overlap_request_routes_report["errors"],
+               &(&1["path"] == "$.#{field}")
+             )
+    end
+
     unsupported_routes =
       Map.merge(manifest, %{
         "provider_reservation_review_contact_ids_by_match_status" => %{

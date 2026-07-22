@@ -41,6 +41,10 @@ defmodule OrbitalDynamics.Schema.ContactAllocationProviderReservationRequestSumm
     "provider_reservation_request_ids_by_match_status",
     "provider_reservation_review_ids_by_match_status"
   ]
+  @request_match_status_route_fields [
+    "provider_reservation_request_contact_ids_by_match_status",
+    "provider_reservation_request_ids_by_match_status"
+  ]
 
   @nested_stable_id_array_map_fields [
     "provider_reservation_no_request_contact_ids_by_direction_and_ground_station_id",
@@ -152,9 +156,14 @@ defmodule OrbitalDynamics.Schema.ContactAllocationProviderReservationRequestSumm
   end
 
   def property(field, opts) when field in @match_status_route_fields do
-    match_statuses =
+    all_match_statuses =
       ContactAllocationCapabilityContext.contact_allocation_capabilities()
       |> Map.fetch!(:station_reservation_match_statuses)
+
+    match_statuses =
+      if field in @request_match_status_route_fields,
+        do: Enum.filter(all_match_statuses, &(&1 in ["matched", "owner_matched"])),
+        else: all_match_statuses
 
     opts
     |> Keyword.fetch!(:stable_id_pattern)

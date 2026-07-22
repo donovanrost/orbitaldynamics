@@ -93,13 +93,31 @@ defmodule OrbitalDynamics.Schema.ContactAllocationProviderReservationContractsTe
             %{"schema_contract" => "contact_allocation_provider_reservation_request_summary.v1"}} =
              Schema.validate_artifact(summary)
 
+    matched_review_row =
+      review_row
+      |> Map.put("station_reservation_match_status", "matched")
+      |> Map.delete("station_reservation_id")
+
+    matched_review_summary =
+      summary
+      |> Map.put("rows", [request_row, matched_review_row, no_request_row])
+      |> Map.put("provider_reservation_review_rows", [matched_review_row])
+      |> Map.put("provider_reservation_review_contact_ids_by_match_status", %{
+        "matched" => ["reserved_overlap_uplink"]
+      })
+      |> Map.put("provider_reservation_review_ids_by_match_status", %{})
+
+    assert {:ok,
+            %{"schema_contract" => "contact_allocation_provider_reservation_request_summary.v1"}} =
+             Schema.validate_artifact(matched_review_summary)
+
     invalid_match_status_routes =
       Map.merge(summary, %{
         "provider_reservation_request_contact_ids_by_match_status" => %{
-          "provider_review" => ["reserved_downlink"]
+          "overlap" => ["reserved_downlink"]
         },
         "provider_reservation_request_ids_by_match_status" => %{
-          "provider_review" => ["reservation_downlink"]
+          "overlap" => ["reservation_downlink"]
         }
       })
 

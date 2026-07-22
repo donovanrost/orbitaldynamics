@@ -118,15 +118,22 @@ defmodule OrbitalDynamics.Schema.JsonSchemaStableIdContractsTest do
              ]) == provider_reservation_request_statuses
     end
 
-    for schema <- [cadence_schema, operator_review_schema, provider_request_schema],
-        field <- [
-          "provider_reservation_request_contact_ids_by_match_status",
-          "provider_reservation_review_contact_ids_by_match_status",
-          "provider_reservation_request_ids_by_match_status",
-          "provider_reservation_review_ids_by_match_status"
-        ] do
-      assert get_in(schema, ["properties", field, "propertyNames", "enum"]) ==
-               station_reservation_match_statuses
+    for schema <- [cadence_schema, operator_review_schema, provider_request_schema] do
+      for field <- [
+            "provider_reservation_request_contact_ids_by_match_status",
+            "provider_reservation_request_ids_by_match_status"
+          ] do
+        assert get_in(schema, ["properties", field, "propertyNames", "enum"]) ==
+                 ["matched", "owner_matched"]
+      end
+
+      for field <- [
+            "provider_reservation_review_contact_ids_by_match_status",
+            "provider_reservation_review_ids_by_match_status"
+          ] do
+        assert get_in(schema, ["properties", field, "propertyNames", "enum"]) ==
+                 station_reservation_match_statuses
+      end
     end
 
     Enum.each(

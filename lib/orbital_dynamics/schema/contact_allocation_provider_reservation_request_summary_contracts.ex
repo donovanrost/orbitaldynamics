@@ -34,6 +34,10 @@ defmodule OrbitalDynamics.Schema.ContactAllocationProviderReservationRequestSumm
     "provider_reservation_request_ids_by_match_status",
     "provider_reservation_review_ids_by_match_status"
   ]
+  @request_match_status_route_fields [
+    "provider_reservation_request_contact_ids_by_match_status",
+    "provider_reservation_request_ids_by_match_status"
+  ]
 
   def validate_summary(issues, path, summary, row_validator) when is_function(row_validator, 3) do
     issues
@@ -229,9 +233,14 @@ defmodule OrbitalDynamics.Schema.ContactAllocationProviderReservationRequestSumm
   end
 
   defp validate_match_status_route_keys(issues, path, summary) do
-    allowed = contact_allocation_station_reservation_match_statuses()
+    all_match_statuses = contact_allocation_station_reservation_match_statuses()
 
     Enum.reduce(@match_status_route_fields, issues, fn field, acc ->
+      allowed =
+        if field in @request_match_status_route_fields,
+          do: @request_ready_match_statuses,
+          else: all_match_statuses
+
       case Map.get(summary, field) do
         %{} = routes ->
           if Enum.all?(Map.keys(routes), &(&1 in allowed)) do
