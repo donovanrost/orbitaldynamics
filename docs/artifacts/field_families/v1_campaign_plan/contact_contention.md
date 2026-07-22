@@ -160,6 +160,10 @@ When a conflict group carries `source_contact_candidates`, their ID multiset
 must likewise match `contact_ids`; ordering may differ and legitimate duplicate
 identity evidence remains representable, but substituted or missing candidate
 rows are rejected.
+Resolution-summary group maps must reference their corresponding recommendation,
+review, or ambiguous group lists, and review/ambiguous group IDs must reference
+recommendation groups. Candidate-refresh aggregation and replay apply the same
+lineage filter when consuming preserved summaries without standalone validation.
 Its exported JSON Schema includes the nested row and `timeline_identity` field
 shape used by executable validation. Rows also carry artifact-only operational
 kind, required operator action, operator-action reason, execution boundary,

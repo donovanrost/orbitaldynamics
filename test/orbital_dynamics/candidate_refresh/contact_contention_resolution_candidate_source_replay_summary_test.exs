@@ -27,7 +27,7 @@ defmodule OrbitalDynamics.CandidateRefresh.ContactContentionResolutionCandidateS
               "deferred_contact_count" => 1,
               "resolution_status_counts" => %{"deferred" => 1},
               "selection_reason_counts" => %{"highest_score" => 1},
-              "recommendation_group_ids" => ["branch_group"],
+              "recommendation_group_ids" => ["ambiguous_group", "branch_group"],
               "review_group_ids" => ["branch_group"],
               "ambiguous_group_ids" => ["ambiguous_group"],
               "ambiguous_duplicate_contact_ids" => ["ambiguous_contact"],
@@ -164,7 +164,7 @@ defmodule OrbitalDynamics.CandidateRefresh.ContactContentionResolutionCandidateS
     assert summary["deferred_contact_count"] == 1
     assert summary["resolution_status_counts"] == %{"deferred" => 1}
     assert summary["selection_reason_counts"] == %{"highest_score" => 1}
-    assert summary["recommendation_group_ids"] == ["branch_group"]
+    assert summary["recommendation_group_ids"] == ["ambiguous_group", "branch_group"]
     assert summary["review_group_ids"] == ["branch_group"]
     assert summary["ambiguous_group_ids"] == ["ambiguous_group"]
     assert summary["ambiguous_duplicate_contact_ids"] == ["ambiguous_contact"]

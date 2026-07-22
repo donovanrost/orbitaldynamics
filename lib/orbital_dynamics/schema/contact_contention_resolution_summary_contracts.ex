@@ -6,6 +6,7 @@ defmodule OrbitalDynamics.Schema.ContactContentionResolutionSummaryContracts do
 
   import OrbitalDynamics.Schema.PrimitiveValidation,
     only: [
+      error: 2,
       expect_equal: 5,
       expect_field_equals: 6,
       expect_non_negative_integer: 4,
@@ -225,6 +226,32 @@ defmodule OrbitalDynamics.Schema.ContactContentionResolutionSummaryContracts do
       list_count(summary, "review_group_ids"),
       "must equal review_group_ids count"
     )
+    |> validate_group_id_subset(path, summary, "review_group_ids", "recommendation_group_ids")
+    |> validate_group_id_subset(path, summary, "ambiguous_group_ids", "recommendation_group_ids")
+    |> validate_group_map_keys(
+      path,
+      summary,
+      "selected_contact_ids_by_group_id",
+      "recommendation_group_ids"
+    )
+    |> validate_group_map_keys(
+      path,
+      summary,
+      "deferred_contact_ids_by_group_id",
+      "recommendation_group_ids"
+    )
+    |> validate_group_map_keys(
+      path,
+      summary,
+      "review_contact_ids_by_group_id",
+      "review_group_ids"
+    )
+    |> validate_group_map_keys(
+      path,
+      summary,
+      "ambiguous_duplicate_contact_ids_by_group_id",
+      "ambiguous_group_ids"
+    )
     |> expect_field_equals(
       path,
       summary,
@@ -376,6 +403,38 @@ defmodule OrbitalDynamics.Schema.ContactContentionResolutionSummaryContracts do
 
   defp capacity_status_value(%{} = values, status), do: Map.get(values, status)
   defp capacity_status_value(_values, _status), do: nil
+
+  defp validate_group_id_subset(issues, path, summary, field, allowed_field) do
+    values = Map.get(summary, field)
+    allowed_values = Map.get(summary, allowed_field)
+
+    if is_list(values) and is_list(allowed_values) and
+         Enum.all?(values, &(&1 in allowed_values)) do
+      issues
+    else
+      if is_list(values) and is_list(allowed_values) do
+        [error("#{path}.#{field}", "must reference #{allowed_field}") | issues]
+      else
+        issues
+      end
+    end
+  end
+
+  defp validate_group_map_keys(issues, path, summary, field, allowed_field) do
+    values = Map.get(summary, field)
+    allowed_values = Map.get(summary, allowed_field)
+
+    if is_map(values) and is_list(allowed_values) and
+         Enum.all?(Map.keys(values), &(&1 in allowed_values)) do
+      issues
+    else
+      if is_map(values) and is_list(allowed_values) do
+        [error("#{path}.#{field}", "keys must reference #{allowed_field}") | issues]
+      else
+        issues
+      end
+    end
+  end
 
   defp source_counts(summary) do
     case Map.get(summary, "required_capacity_fraction_contact_ids_by_source") do

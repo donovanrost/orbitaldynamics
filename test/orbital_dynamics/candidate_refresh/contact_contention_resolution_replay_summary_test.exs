@@ -304,4 +304,104 @@ defmodule OrbitalDynamics.CandidateRefresh.ContactContentionResolutionReplaySumm
     assert summary["branch_local_capacity_pack_pressure"]
     assert summary["branch_local_contact_contention_resolution_action_pressure"]
   end
+
+  test "contact contention resolution replay filters phantom group lineage" do
+    resolution_summary = %{
+      "schema_contract" => "contact_contention_resolution_summary.v1",
+      "recommendation_group_ids" => ["real_contention_group"],
+      "review_group_ids" => ["phantom_review_group"],
+      "ambiguous_group_ids" => ["phantom_ambiguous_group"],
+      "selected_contact_ids" => ["selected_contact"],
+      "deferred_contact_ids" => ["deferred_contact"],
+      "review_contact_ids" => ["deferred_contact", "selected_contact"],
+      "ambiguous_duplicate_contact_ids" => ["duplicate_contact"],
+      "selected_contact_ids_by_group_id" => %{
+        "phantom_decision_group" => ["selected_contact"]
+      },
+      "deferred_contact_ids_by_group_id" => %{
+        "phantom_decision_group" => ["deferred_contact"]
+      },
+      "review_contact_ids_by_group_id" => %{
+        "phantom_review_group" => ["deferred_contact", "selected_contact"]
+      },
+      "ambiguous_duplicate_contact_ids_by_group_id" => %{
+        "phantom_ambiguous_group" => ["duplicate_contact"]
+      }
+    }
+
+    refresh = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "source_contact_contention_resolution_summary" => resolution_summary
+    }
+
+    source_summary = CandidateRefresh.source_report_summary(refresh)
+
+    assert source_summary["source_report_contact_contention_resolution_recommendation_group_ids"] ==
+             ["real_contention_group"]
+
+    assert List.wrap(
+             source_summary["source_report_contact_contention_resolution_review_group_ids"]
+           ) == []
+
+    assert Map.get(
+             source_summary,
+             "source_report_contact_contention_resolution_selected_contact_ids_by_group_id",
+             %{}
+           ) == %{}
+
+    assert Map.get(
+             source_summary,
+             "source_report_contact_contention_resolution_deferred_contact_ids_by_group_id",
+             %{}
+           ) == %{}
+
+    assert Map.get(
+             source_summary,
+             "source_report_contact_contention_resolution_review_contact_ids_by_group_id",
+             %{}
+           ) == %{}
+
+    assert Map.get(
+             source_summary,
+             "source_report_contact_contention_resolution_ambiguous_duplicate_contact_ids_by_group_id",
+             %{}
+           ) == %{}
+
+    replay_summary = CandidateRefresh.contact_contention_resolution_replay_summary(refresh)
+
+    assert replay_summary["recommendation_group_ids"] == ["real_contention_group"]
+    assert List.wrap(replay_summary["review_group_ids"]) == []
+    assert List.wrap(replay_summary["ambiguous_group_ids"]) == []
+    assert Map.get(replay_summary, "selected_contact_ids_by_group_id", %{}) == %{}
+    assert Map.get(replay_summary, "deferred_contact_ids_by_group_id", %{}) == %{}
+    assert Map.get(replay_summary, "review_contact_ids_by_group_id", %{}) == %{}
+    assert Map.get(replay_summary, "ambiguous_duplicate_contact_ids_by_group_id", %{}) == %{}
+    assert replay_summary["selected_contact_ids"] == ["selected_contact"]
+    assert replay_summary["deferred_contact_ids"] == ["deferred_contact"]
+    assert replay_summary["branch_local_contact_contention_resolution_pressure"]
+    assert replay_summary["branch_local_deferred_contact_pressure"]
+
+    preserved_artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "provenance" => %{
+        "source_reports" => %{
+          "contact_contention_resolution_report" =>
+            Map.put(resolution_summary, "contract", "contact_contention_resolution_summary.v1")
+        }
+      }
+    }
+
+    preserved_replay =
+      CandidateRefresh.contact_contention_resolution_replay_summary(preserved_artifact)
+
+    assert preserved_replay["recommendation_group_ids"] == ["real_contention_group"]
+    assert List.wrap(preserved_replay["review_group_ids"]) == []
+    assert List.wrap(preserved_replay["ambiguous_group_ids"]) == []
+    assert Map.get(preserved_replay, "selected_contact_ids_by_group_id", %{}) == %{}
+    assert Map.get(preserved_replay, "deferred_contact_ids_by_group_id", %{}) == %{}
+    assert Map.get(preserved_replay, "review_contact_ids_by_group_id", %{}) == %{}
+
+    assert Map.get(preserved_replay, "ambiguous_duplicate_contact_ids_by_group_id", %{}) ==
+             %{}
+  end
 end

@@ -1590,6 +1590,57 @@ defmodule OrbitalDynamics.Communications.ContactContentionTest do
              )
            )
 
+    phantom_decision_group =
+      summary
+      |> Map.put("selected_contact_ids_by_group_id", %{
+        "phantom_contention_group" => summary["selected_contact_ids"]
+      })
+      |> Map.put("deferred_contact_ids_by_group_id", %{
+        "phantom_contention_group" => summary["deferred_contact_ids"]
+      })
+
+    assert {:error, phantom_decision_group_report} =
+             Schema.validate_artifact(phantom_decision_group)
+
+    assert Enum.any?(
+             phantom_decision_group_report["errors"],
+             &(&1["path"] == "$.selected_contact_ids_by_group_id" and
+                 &1["message"] == "keys must reference recommendation_group_ids")
+           )
+
+    phantom_review_group =
+      summary
+      |> Map.put("review_group_ids", ["phantom_review_group"])
+      |> Map.put("review_contact_ids_by_group_id", %{
+        "phantom_review_group" => summary["review_contact_ids"]
+      })
+
+    assert {:error, phantom_review_group_report} =
+             Schema.validate_artifact(phantom_review_group)
+
+    assert Enum.any?(
+             phantom_review_group_report["errors"],
+             &(&1["path"] == "$.review_group_ids" and
+                 &1["message"] == "must reference recommendation_group_ids")
+           )
+
+    phantom_ambiguous_group =
+      summary
+      |> Map.put("ambiguous_group_ids", ["phantom_ambiguous_group"])
+      |> Map.put("ambiguous_duplicate_contact_ids", ["phantom_duplicate_contact"])
+      |> Map.put("ambiguous_duplicate_contact_ids_by_group_id", %{
+        "phantom_ambiguous_group" => ["phantom_duplicate_contact"]
+      })
+
+    assert {:error, phantom_ambiguous_group_report} =
+             Schema.validate_artifact(phantom_ambiguous_group)
+
+    assert Enum.any?(
+             phantom_ambiguous_group_report["errors"],
+             &(&1["path"] == "$.ambiguous_group_ids" and
+                 &1["message"] == "must reference recommendation_group_ids")
+           )
+
     stale_summary_resolution =
       resolution
       |> Map.put("conflict_group_count", 9)

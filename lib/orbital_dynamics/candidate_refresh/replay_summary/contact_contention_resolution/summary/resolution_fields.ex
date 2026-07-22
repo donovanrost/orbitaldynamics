@@ -2,25 +2,46 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.ContactContentionResolu
   @moduledoc false
 
   def fields(resolution_summary) do
+    recommendation_group_ids =
+      list_or_empty(Map.get(resolution_summary, "recommendation_group_ids"))
+
+    review_group_ids =
+      lineage_group_ids(resolution_summary, "review_group_ids", recommendation_group_ids)
+
+    ambiguous_group_ids =
+      lineage_group_ids(resolution_summary, "ambiguous_group_ids", recommendation_group_ids)
+
     %{
       "resolution_status_counts" => Map.get(resolution_summary, "resolution_status_counts", %{}),
       "selection_reason_counts" => Map.get(resolution_summary, "selection_reason_counts", %{}),
-      "recommendation_group_ids" => Map.get(resolution_summary, "recommendation_group_ids", []),
-      "review_group_ids" => Map.get(resolution_summary, "review_group_ids", []),
-      "ambiguous_group_ids" => Map.get(resolution_summary, "ambiguous_group_ids", []),
+      "recommendation_group_ids" => recommendation_group_ids,
+      "review_group_ids" => review_group_ids,
+      "ambiguous_group_ids" => ambiguous_group_ids,
       "ambiguous_duplicate_contact_ids" =>
         Map.get(resolution_summary, "ambiguous_duplicate_contact_ids", []),
       "ambiguous_duplicate_contact_ids_by_group_id" =>
-        Map.get(resolution_summary, "ambiguous_duplicate_contact_ids_by_group_id", %{}),
+        take_group_keys(
+          resolution_summary,
+          "ambiguous_duplicate_contact_ids_by_group_id",
+          ambiguous_group_ids
+        ),
       "selected_contact_ids" => Map.get(resolution_summary, "selected_contact_ids", []),
       "deferred_contact_ids" => Map.get(resolution_summary, "deferred_contact_ids", []),
       "review_contact_ids" => Map.get(resolution_summary, "review_contact_ids", []),
       "selected_contact_ids_by_group_id" =>
-        Map.get(resolution_summary, "selected_contact_ids_by_group_id", %{}),
+        take_group_keys(
+          resolution_summary,
+          "selected_contact_ids_by_group_id",
+          recommendation_group_ids
+        ),
       "deferred_contact_ids_by_group_id" =>
-        Map.get(resolution_summary, "deferred_contact_ids_by_group_id", %{}),
+        take_group_keys(
+          resolution_summary,
+          "deferred_contact_ids_by_group_id",
+          recommendation_group_ids
+        ),
       "review_contact_ids_by_group_id" =>
-        Map.get(resolution_summary, "review_contact_ids_by_group_id", %{}),
+        take_group_keys(resolution_summary, "review_contact_ids_by_group_id", review_group_ids),
       "selected_contact_ids_by_selection_reason" =>
         Map.get(resolution_summary, "selected_contact_ids_by_selection_reason", %{}),
       "selected_contact_ids_by_ground_station" =>
@@ -92,4 +113,21 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.ContactContentionResolu
 
   defp non_empty_list([]), do: nil
   defp non_empty_list(list), do: list
+
+  defp take_group_keys(summary, field, group_ids) when is_list(group_ids) do
+    case Map.get(summary, field) do
+      %{} = values -> Map.take(values, group_ids)
+      _values -> %{}
+    end
+  end
+
+  defp lineage_group_ids(summary, field, allowed_group_ids) when is_list(allowed_group_ids) do
+    summary
+    |> Map.get(field, [])
+    |> List.wrap()
+    |> Enum.filter(&(&1 in allowed_group_ids))
+  end
+
+  defp list_or_empty(values) when is_list(values), do: values
+  defp list_or_empty(_values), do: []
 end
