@@ -1,6 +1,8 @@
 defmodule OrbitalDynamics.Schema.CampaignRepairReplacementRankingContracts do
   @moduledoc false
 
+  alias OrbitalDynamics.CampaignPlanner.{ActivityIdentity, RepairActivityIdentity}
+
   @model "greedy_repair_replacement_ranking"
   @selection_scope "viable_unique_candidates_within_repair_intent"
   @station_pressure_sources [
@@ -75,7 +77,7 @@ defmodule OrbitalDynamics.Schema.CampaignRepairReplacementRankingContracts do
         issues
 
       %{} = repair ->
-        validate_repair(issues, path <> ".repair", repair)
+        validate_repair(issues, path <> ".repair", repair, activity)
 
       _value ->
         [error(path <> ".repair", "must be a map") | issues]
@@ -84,7 +86,7 @@ defmodule OrbitalDynamics.Schema.CampaignRepairReplacementRankingContracts do
 
   defp validate_activity(issues, _path, _activity), do: issues
 
-  defp validate_repair(issues, path, repair) do
+  defp validate_repair(issues, path, repair, activity) do
     case Map.get(repair, "replacement_ranking") do
       nil ->
         issues
@@ -93,14 +95,21 @@ defmodule OrbitalDynamics.Schema.CampaignRepairReplacementRankingContracts do
         issues
 
       %{} = ranking ->
-        validate_ranking(issues, path <> ".replacement_ranking", ranking)
+        validate_ranking(
+          issues,
+          path <> ".replacement_ranking",
+          ranking,
+          path,
+          repair,
+          activity
+        )
 
       _value ->
         [error(path <> ".replacement_ranking", "must be a map") | issues]
     end
   end
 
-  defp validate_ranking(issues, path, ranking) do
+  defp validate_ranking(issues, path, ranking, repair_path, repair, activity) do
     rows = Map.get(ranking, "rows")
 
     issues
@@ -121,6 +130,63 @@ defmodule OrbitalDynamics.Schema.CampaignRepairReplacementRankingContracts do
     |> validate_stable_ids(path, ranking, ["selected_candidate_id"])
     |> validate_rows(path <> ".rows", rows)
     |> validate_consistency(path, ranking, rows)
+    |> validate_selected_handoff(path, ranking, repair_path, repair, activity)
+  end
+
+  defp validate_selected_handoff(issues, path, ranking, repair_path, repair, activity) do
+    activity_id = activity_id(activity)
+    replacement_timeline_id = RepairActivityIdentity.timeline_id(activity)
+
+    issues
+    |> validate_equal(
+      path <> ".selected_candidate_id",
+      Map.get(ranking, "selected_candidate_id"),
+      activity_id,
+      "must equal enclosing repaired activity ID"
+    )
+    |> validate_optional_equal(
+      repair_path <> ".replacement_timeline_id",
+      repair,
+      "replacement_timeline_id",
+      replacement_timeline_id,
+      "must equal enclosing repaired activity timeline ID"
+    )
+    |> validate_optional_timeline_link(
+      repair_path <> ".timeline_link",
+      Map.get(repair, "timeline_link"),
+      %{
+        "source_activity_id" => Map.get(repair, "source_activity_id"),
+        "replacement_activity_id" => activity_id,
+        "source_timeline_id" => Map.get(repair, "source_timeline_id"),
+        "replacement_timeline_id" => replacement_timeline_id
+      }
+    )
+  end
+
+  defp activity_id(%{"id" => _id} = activity), do: ActivityIdentity.activity_id(activity)
+  defp activity_id(_activity), do: nil
+
+  defp validate_optional_timeline_link(issues, path, %{} = link, expected_fields) do
+    Enum.reduce(expected_fields, issues, fn {field, expected}, acc ->
+      validate_optional_equal(
+        acc,
+        path <> "." <> field,
+        link,
+        field,
+        expected,
+        "must match enclosing repair handoff identity"
+      )
+    end)
+  end
+
+  defp validate_optional_timeline_link(issues, _path, _link, _expected_fields), do: issues
+
+  defp validate_optional_equal(issues, path, map, field, expected, message) do
+    case Map.fetch(map, field) do
+      {:ok, actual} when actual in [nil, :null] -> issues
+      {:ok, actual} -> validate_equal(issues, path, actual, expected, message)
+      :error -> issues
+    end
   end
 
   defp validate_rows(issues, path, rows) when is_list(rows) do

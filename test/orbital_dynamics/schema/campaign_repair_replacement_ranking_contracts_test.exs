@@ -63,6 +63,7 @@ defmodule OrbitalDynamics.Schema.CampaignRepairReplacementRankingContractsTest d
 
   test "rejects stale ranking envelopes and derived summary values", context do
     ranking_path = ranking_path(context.activity_index)
+    repair_path = "$.activities[#{context.activity_index}].repair"
     row_path = ranking_path <> ".rows[0]"
     [ranking_row] = get_in_path(context.artifact, ranking_path <> ".rows")
 
@@ -132,7 +133,33 @@ defmodule OrbitalDynamics.Schema.CampaignRepairReplacementRankingContractsTest d
       {ranking_path <> ".rows[0]",
        put_in_path(context.artifact, ranking_path <> ".rows", ["invalid_row"])},
       {ranking_path <> ".selected_candidate_id",
-       put_in_path(context.artifact, ranking_path <> ".selected_candidate_id", "dl_other")}
+       put_in_path(context.artifact, ranking_path <> ".selected_candidate_id", "dl_other")},
+      {ranking_path <> ".selected_candidate_id",
+       put_in_path(context.artifact, "$.activities[#{context.activity_index}].id", "dl_drift")},
+      {ranking_path <> ".selected_candidate_id",
+       update_in(
+         context.artifact,
+         ["activities", Access.at(context.activity_index)],
+         &Map.delete(&1, "id")
+       )},
+      {repair_path <> ".replacement_timeline_id",
+       put_in_path(
+         context.artifact,
+         repair_path <> ".replacement_timeline_id",
+         "timeline:drift"
+       )},
+      {repair_path <> ".timeline_link.replacement_activity_id",
+       put_in_path(
+         context.artifact,
+         repair_path <> ".timeline_link.replacement_activity_id",
+         "dl_drift"
+       )},
+      {repair_path <> ".timeline_link.source_timeline_id",
+       put_in_path(
+         context.artifact,
+         repair_path <> ".timeline_link.source_timeline_id",
+         "timeline:source:drift"
+       )}
     ]
 
     for {expected_path, invalid} <- invalid_cases do

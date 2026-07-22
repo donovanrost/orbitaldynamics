@@ -109,7 +109,9 @@ Already implemented or heavily covered:
   schedule churn is replayed from source/candidate start times and both schedule
   penalties are pinned to policy weights; semantic-diff matches are replayed
   from exact source ID/window and replacement-candidate links; candidate IDs and
-  values are pinned to exactly one embedded source candidate row
+  values are pinned to exactly one embedded source candidate row; and the
+  selected row is reconciled to the enclosing repaired activity and optional
+  source/replacement timeline handoff identities
 - runtime and exported V2 contracts require numeric aggregate score terms;
   runtime validation pins their sum and optional score-term report repair model,
   embedded policy/source assumption, sorted rows, source-plan row identities,

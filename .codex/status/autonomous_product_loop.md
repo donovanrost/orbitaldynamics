@@ -5,43 +5,41 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Reconcile V2 replacement-ranking semantic diff priority.
+Reconcile V2 selected replacement handoff identity.
 
 Status:
 Complete; ready to publish.
 
 Selection evidence:
-- The V2 replacement producer marks a semantic match only when the embedded
-  candidate-diff report links the row candidate to the repair source ID or
-  source-window identity.
-- Runtime currently pins priority to the row boolean but does not recompute that
-  boolean from the source report, so both fields can drift together.
-- The repair source ID/context, candidate ID, and optional source diff report
-  already contain the exact producer predicate without requiring new fields.
+- Runtime currently pins `selected_candidate_id` to the sole selected ranking
+  row, but not to the enclosing repaired activity payload.
+- Replacement activity/timeline IDs in repair metadata and `timeline_link` are
+  shape-checked but are not reconciled across the handoff.
+- A compensating selection mutation can therefore leave one candidate marked
+  selected while the artifact carries another candidate as the repaired plan.
 
 Intended behavior:
-- Recompute every ranking-row semantic-match boolean from embedded candidate-
-  diff replacement rows using the exact source ID/window and candidate ID rule.
-- Let the existing priority contract continue deriving zero/one priority from
-  the now source-reconciled boolean.
-- Preserve repairs with no source diff report by requiring every row to remain
-  a nonmatch.
-- Add positive, negative, missing-source, and drift coverage; update the V2
-  ranking documentation.
+- Require ranking selection to equal the enclosing repaired activity ID.
+- Reconcile optional repair replacement timeline identity to the enclosing
+  activity and optional timeline-link source/replacement IDs to repair metadata.
+- Preserve older repairs that omit optional timeline handoff fields while
+  rejecting contradictory fields when present.
+- Add exact selected-activity and source/replacement timeline-link drift cases;
+  update the V2 ranking documentation.
 
 Level 6 pillar advanced:
-Reproducible V2 branch ranking with source-replayable semantic priority.
+Reproducible V2 branch ranking with exact selected-plan handoff identity.
 
 Last published slice:
-- `6b6a7b91` Reconcile V2 ranking schedule costs (`3784 passed`).
+- `39e9830a` Reconcile V2 ranking semantic priority (`3784 passed`).
 
 Likely files:
-- V2 replacement-ranking semantic validator wiring
-- focused replacement-ranking/candidate-diff planner tests
+- V2 replacement-ranking selected-handoff validator
+- focused replacement-ranking identity tests
 - resource/communications capability documentation
 
 Verification:
-- Focused ranking/candidate-diff contract tests: `5 passed`.
+- Focused replacement-ranking identity tests: `5 passed`.
 - Related V2 repair/schema coverage: `150 passed`.
 - Full checked-artifact lint: `155/155 passed`, zero warnings.
 - Full suite with a 120-second per-test ceiling: `3784 passed`.
@@ -50,22 +48,23 @@ Verification:
 - No artifact shape or checked-in schema export changed.
 
 Review:
-- Runtime now applies the producer's exact semantic-match predicate over source
-  activity ID, optional source-window identity, and replacement candidate ID.
-- A real planner artifact validates both the linked match and unrelated
-  nonmatch; deleting its source diff report now rejects the stale match at the
-  exact ranking-row path.
-- The existing priority check derives zero/one priority from the source-
-  reconciled boolean, closing the prior paired-field mutation gap.
-- Repairs without a source diff report remain compatible only with nonmatch
-  rows, matching producer behavior.
-- Malformed diff rows are ignored by this replay layer and remain errors for the
-  standalone source-report validator rather than crashing artifact validation;
-  all checked artifacts and existing V2 consumers remain valid.
+- `selected_candidate_id` now equals both the sole selected row and the
+  enclosing repaired activity ID, preventing ranking/payload split-brain.
+- Present repair replacement-timeline identity is pinned to the enclosing
+  activity's persistent or derived timeline ID.
+- Present timeline-link source/replacement activity and timeline IDs are
+  reconciled to repair metadata and the selected activity.
+- Omitted or explicit-null legacy timeline fields remain optional; contradictory
+  non-null fields fail at their exact handoff paths.
+- Focused activity, replacement-timeline, and source/replacement-link drift
+  cases fail as intended; all checked artifacts and existing V2 consumers remain
+  valid.
 
 Remaining maturity gaps:
-- Reassess the remaining V2 replacement-ranking envelope for selected-candidate
-  handoff identity and candidate-specific replay gaps.
+- Continue fleet-scale station/allocation decisions while preserving explicit
+  provider and Cadence execution boundaries.
+- Reassess remaining V2 ranking metadata only after a new concrete producer/
+  source contradiction is found.
 - Continue fleet-scale station/allocation decisions while preserving explicit
   provider and Cadence execution boundaries.
 - Continue broader schema/versioned compatibility discipline and stale-input
