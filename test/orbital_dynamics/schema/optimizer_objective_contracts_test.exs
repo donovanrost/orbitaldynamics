@@ -672,6 +672,43 @@ defmodule OrbitalDynamics.Schema.OptimizerObjectiveContractsTest do
              &(&1["path"] == "$.rows[0].branch_source_window_bounds")
            )
 
+    valid_source_window_coverage =
+      branch_comparison_report
+      |> put_in(["rows", Access.at(0), "branch_source_window_ids"], ["window_a", "window_b"])
+      |> put_in(["rows", Access.at(0), "branch_source_window_count"], 2)
+      |> put_in(
+        ["rows", Access.at(0), "branch_source_window_bounds"],
+        [%{"source_window_id" => "window_a", "earliest_starts_at_s" => 100.0}]
+      )
+      |> put_in(["rows", Access.at(0), "branch_source_window_bound_count"], 1)
+      |> put_in(["rows", Access.at(0), "branch_untimed_source_window_ids"], ["window_b"])
+      |> put_in(["rows", Access.at(0), "branch_untimed_source_window_count"], 1)
+
+    assert {:ok, _valid_source_window_coverage} =
+             Schema.validate_artifact(valid_source_window_coverage)
+
+    stale_source_window_coverage =
+      valid_source_window_coverage
+      |> put_in(["rows", Access.at(0), "branch_source_window_count"], 3)
+      |> put_in(["rows", Access.at(0), "branch_source_window_bound_count"], 2)
+      |> put_in(["rows", Access.at(0), "branch_untimed_source_window_ids"], ["window_a"])
+      |> put_in(["rows", Access.at(0), "branch_untimed_source_window_count"], 2)
+
+    assert {:error, stale_source_window_coverage_report} =
+             Schema.validate_artifact(stale_source_window_coverage)
+
+    for field <- [
+          "branch_source_window_count",
+          "branch_source_window_bound_count",
+          "branch_untimed_source_window_ids",
+          "branch_untimed_source_window_count"
+        ] do
+      assert Enum.any?(
+               stale_source_window_coverage_report["errors"],
+               &(&1["path"] == "$.rows[0].#{field}")
+             )
+    end
+
     invalid_capacity_pack_pressure =
       branch_comparison_report
       |> put_in(["rows", Access.at(0), "capacity_pack_max_required_capacity_fraction"], 1.1)

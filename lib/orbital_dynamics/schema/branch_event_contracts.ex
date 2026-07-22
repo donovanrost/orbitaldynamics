@@ -553,8 +553,15 @@ defmodule OrbitalDynamics.Schema.BranchEventContracts do
     |> expect_optional_type(path, row, "branch_source_window_ids", :list)
     |> validate_optional_stable_id_list(path, row, "branch_source_window_ids")
     |> validate_canonical_branch_source_window_ids(path, row)
+    |> expect_optional_non_negative_integer(path, row, "branch_source_window_count")
     |> expect_optional_type(path, row, "branch_source_window_bounds", :list)
     |> validate_branch_source_window_bounds(path, row)
+    |> expect_optional_non_negative_integer(path, row, "branch_source_window_bound_count")
+    |> expect_optional_type(path, row, "branch_untimed_source_window_ids", :list)
+    |> validate_optional_stable_id_list(path, row, "branch_untimed_source_window_ids")
+    |> validate_canonical_branch_untimed_source_window_ids(path, row)
+    |> expect_optional_non_negative_integer(path, row, "branch_untimed_source_window_count")
+    |> validate_branch_source_window_coverage(path, row)
     |> expect_optional_number(path, row, "branch_earliest_starts_at_s")
     |> expect_optional_number(path, row, "branch_latest_ends_at_s")
     |> validate_branch_window_bounds(path, row)
@@ -581,6 +588,26 @@ defmodule OrbitalDynamics.Schema.BranchEventContracts do
             error(
               "#{path}.branch_source_window_ids",
               "must equal sorted unique stable source-window IDs"
+            )
+            | issues
+          ]
+        end
+
+      _ids ->
+        issues
+    end
+  end
+
+  defp validate_canonical_branch_untimed_source_window_ids(issues, path, row) do
+    case Map.get(row, "branch_untimed_source_window_ids") do
+      ids when is_list(ids) ->
+        if ids == ids |> Enum.uniq() |> Enum.sort() do
+          issues
+        else
+          [
+            error(
+              "#{path}.branch_untimed_source_window_ids",
+              "must equal sorted unique untimed source-window IDs"
             )
             | issues
           ]
@@ -685,6 +712,76 @@ defmodule OrbitalDynamics.Schema.BranchEventContracts do
   end
 
   defp validate_branch_source_window_bound_ids(issues, _path, _row, _bounds), do: issues
+
+  defp validate_branch_source_window_coverage(issues, path, row) do
+    source_window_ids = Map.get(row, "branch_source_window_ids")
+
+    if is_list(source_window_ids) do
+      source_window_bounds =
+        case Map.get(row, "branch_source_window_bounds") do
+          bounds when is_list(bounds) -> bounds
+          _bounds -> []
+        end
+
+      bounded_source_window_ids =
+        Enum.flat_map(source_window_bounds, fn
+          %{"source_window_id" => source_window_id} when is_binary(source_window_id) ->
+            [source_window_id]
+
+          _bound ->
+            []
+        end)
+
+      untimed_source_window_ids = source_window_ids -- bounded_source_window_ids
+
+      issues
+      |> validate_source_window_coverage_count(
+        path,
+        row,
+        "branch_source_window_count",
+        length(source_window_ids)
+      )
+      |> validate_source_window_coverage_count(
+        path,
+        row,
+        "branch_source_window_bound_count",
+        length(source_window_bounds)
+      )
+      |> validate_source_window_coverage_count(
+        path,
+        row,
+        "branch_untimed_source_window_count",
+        length(untimed_source_window_ids)
+      )
+      |> validate_untimed_source_window_ids(path, row, untimed_source_window_ids)
+    else
+      issues
+    end
+  end
+
+  defp validate_source_window_coverage_count(issues, path, row, field, expected_count) do
+    if Map.has_key?(row, field) and Map.get(row, field) != expected_count do
+      [error("#{path}.#{field}", "must equal the row-derived source-window count") | issues]
+    else
+      issues
+    end
+  end
+
+  defp validate_untimed_source_window_ids(issues, path, row, expected_ids) do
+    case Map.get(row, "branch_untimed_source_window_ids") do
+      ids when is_list(ids) and ids != expected_ids ->
+        [
+          error(
+            "#{path}.branch_untimed_source_window_ids",
+            "must equal source-window IDs without bound rows"
+          )
+          | issues
+        ]
+
+      _ids ->
+        issues
+    end
+  end
 
   defp validate_branch_window_bounds(issues, path, row) do
     earliest_starts_at_s = Map.get(row, "branch_earliest_starts_at_s")

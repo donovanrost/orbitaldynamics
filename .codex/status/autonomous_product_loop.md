@@ -5,55 +5,58 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Prove selected-recommendation window output.
+Expose source-window timing coverage.
 
 Status:
 Verified; ready to publish.
 
 Selection evidence:
-- The live pressure fixture's selected branch already emits eleven source-window
-  IDs and ten correlated bounds across recommendation outputs.
-- One source-window ID intentionally has no timing and remains outside the
-  bounds list, exercising the optional correlation semantics.
-- Existing broad handoff expectations omit the new fields, so that real
-  selected-recommendation path could regress without a focused failure.
+- The live selected branch has eleven source-window IDs but only ten timed bound
+  rows; consumers must currently reopen both lists to discover coverage.
+- An explicit total, bounded count, and untimed ID/count summary would make
+  incomplete timing visible at the same audit boundary.
+- The existing canonical ID and bounds lists remain the authoritative evidence
+  from which every new value can be validated.
 
 Intended behavior:
-- Pin the real branch-event summary, operator recommendation, selected Cadence
-  import, and review-derived Cadence import to one identical window context.
-- Prove the untimed source-window ID stays in the canonical ID list but is not
-  fabricated into the correlated bounds list.
-- Keep this a proof-only slice unless the live path exposes an adapter gap.
+- Derive source-window total/bounded/untimed counts and canonical untimed IDs
+  whenever a branch has source-window identity.
+- Preserve the optional fields through operator-review and Cadence handoffs,
+  with executable count/list derivation and source-copy consistency.
+- Keep legacy omission valid and preserve timing, scoring, approval, and
+  execution behavior.
 
 Level 6 pillar advanced:
 Fleet-scale planning decisions and durable reproducible audit handoffs.
 
 Planned files:
-- selected-recommendation handoff proof
-- capability docs and loop ledger
+- branch comparison context, shared schema/validation, and adapters
+- selected-output/challenge proofs, generated schemas, docs, and ledger
 
 Verification:
-- Focused selected-recommendation handoff proof: `1 passed`.
+- Focused derivation/schema/handoff proofs: `53 passed`.
 - Contact-allocation family: `213 passed`.
 - Golden artifacts: `12 passed`.
 - Schema lint: `155` artifacts passed with zero errors or warnings.
 - Full suite: `3886 passed`.
 
 Review:
-- The real pressure fixture pins eleven sorted source-window IDs and ten exact
-  per-ID bounds in its selected branch-event summary.
-- The untimed `equator_prime_rejected_window` remains in the ID list but is
-  absent from bounds, proving the adapter does not fabricate timing.
-- Identical context is asserted on the operator recommendation, selected
-  Cadence import, review-derived import, and its nested source review row.
-- This proof/docs-only slice found no adapter gap and changed no production
-  module, schema, golden artifact, scoring, approval, or execution behavior.
-- All no-provider-request, no-reservation, no-schedule-mutation,
-  no-Cadence-write, no-operator-authority, and no-autonomous-execution
-  boundaries remain intact; local review found no publish blocker.
+- Coverage is row-derived only when source-window identity exists. The fully
+  timed provider row reports `1/1/0`; the selected pressure branch reports
+  `11/10/1` and names `equator_prime_rejected_window` as untimed.
+- Executable validation rejects stale total, bounded, untimed-count, and
+  untimed-ID summaries at their exact paths while legacy omission stays valid.
+- Operator-review, recommendation/tradeoff, and Cadence adapters preserve the
+  optional fields, with shared source-copy consistency checks.
+- Twelve direct/dependent schemas were regenerated. The public V3 campaign was
+  regenerated through the runner and remained byte-stable.
+- Timing, scoring, approval, and execution behavior did not change. All
+  no-provider-request, no-reservation, no-schedule-mutation, no-Cadence-write,
+  no-operator-authority, and no-autonomous-execution boundaries remain intact;
+  local review found no publish blocker.
 
 Last published slice:
-- `cf9829b2` Challenge multi-window source copies (`3886 passed`).
+- `0b6b3ee3` Prove selected recommendation window context (`3886 passed`).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions while preserving explicit
@@ -64,7 +67,7 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-Expose bounded versus untimed source-window coverage counts.
+Challenge stale source-window coverage summaries.
 
 Blocked:
 None.

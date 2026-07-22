@@ -1227,6 +1227,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyContactAllocationPressureTest 
     assert "provider_reservation_request_review" in provider_row["risk_types"]
 
     assert provider_row["branch_source_window_ids"] == ["summary_provider_source_window"]
+    assert provider_row["branch_source_window_count"] == 1
 
     assert provider_row["branch_source_window_bounds"] == [
              %{
@@ -1235,6 +1236,10 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyContactAllocationPressureTest 
                "latest_ends_at_s" => 880.0
              }
            ]
+
+    assert provider_row["branch_source_window_bound_count"] == 1
+    assert provider_row["branch_untimed_source_window_count"] == 0
+    refute Map.has_key?(provider_row, "branch_untimed_source_window_ids")
 
     assert provider_row["branch_earliest_starts_at_s"] == 820.0
     assert provider_row["branch_latest_ends_at_s"] == 880.0
@@ -1282,6 +1287,10 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyContactAllocationPressureTest 
     assert provider_review_row["branch_source_window_bounds"] ==
              provider_row["branch_source_window_bounds"]
 
+    assert provider_review_row["branch_source_window_count"] == 1
+    assert provider_review_row["branch_source_window_bound_count"] == 1
+    assert provider_review_row["branch_untimed_source_window_count"] == 0
+
     assert provider_review_row["branch_earliest_starts_at_s"] == 820.0
     assert provider_review_row["branch_latest_ends_at_s"] == 880.0
 
@@ -1304,6 +1313,10 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyContactAllocationPressureTest 
     assert provider_import_row["branch_source_window_bounds"] ==
              provider_row["branch_source_window_bounds"]
 
+    assert provider_import_row["branch_source_window_count"] == 1
+    assert provider_import_row["branch_source_window_bound_count"] == 1
+    assert provider_import_row["branch_untimed_source_window_count"] == 0
+
     assert provider_import_row["branch_earliest_starts_at_s"] == 820.0
     assert provider_import_row["branch_latest_ends_at_s"] == 880.0
 
@@ -1314,7 +1327,11 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyContactAllocationPressureTest 
 
     branch_window_fields = [
       "branch_source_window_ids",
+      "branch_source_window_count",
       "branch_source_window_bounds",
+      "branch_source_window_bound_count",
+      "branch_untimed_source_window_ids",
+      "branch_untimed_source_window_count",
       "branch_earliest_starts_at_s",
       "branch_latest_ends_at_s"
     ]

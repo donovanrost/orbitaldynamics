@@ -32,6 +32,21 @@ defmodule OrbitalDynamics.CampaignPlanner.BranchComparisonContext do
       |> Enum.uniq()
       |> Enum.sort()
 
+    source_window_ids =
+      branch_event_unique_values(events, ["source_window_id", "source_window_ids"])
+
+    source_window_bounds = branch_source_window_bounds(events)
+    bounded_source_window_ids = Enum.map(source_window_bounds, & &1["source_window_id"])
+    untimed_source_window_ids = source_window_ids -- bounded_source_window_ids
+
+    source_window_count = if source_window_ids == [], do: nil, else: length(source_window_ids)
+
+    source_window_bound_count =
+      if source_window_ids == [], do: nil, else: length(source_window_bounds)
+
+    untimed_source_window_count =
+      if source_window_ids == [], do: nil, else: length(untimed_source_window_ids)
+
     fields =
       %{
         "branch_event_count" => length(events),
@@ -130,9 +145,12 @@ defmodule OrbitalDynamics.CampaignPlanner.BranchComparisonContext do
           ),
         "branch_source_activity_ids" =>
           branch_event_unique_values(events, ["source_activity_id", "source_activity_ids"]),
-        "branch_source_window_ids" =>
-          branch_event_unique_values(events, ["source_window_id", "source_window_ids"]),
-        "branch_source_window_bounds" => branch_source_window_bounds(events),
+        "branch_source_window_ids" => source_window_ids,
+        "branch_source_window_count" => source_window_count,
+        "branch_source_window_bounds" => source_window_bounds,
+        "branch_source_window_bound_count" => source_window_bound_count,
+        "branch_untimed_source_window_ids" => untimed_source_window_ids,
+        "branch_untimed_source_window_count" => untimed_source_window_count,
         "branch_earliest_starts_at_s" => minimum_present(events, "starts_at_s"),
         "branch_latest_ends_at_s" => maximum_present(events, "ends_at_s"),
         "branch_directions" => branch_event_unique_values(events, "direction"),
@@ -393,7 +411,11 @@ defmodule OrbitalDynamics.CampaignPlanner.BranchComparisonContext do
     |> maybe_put_nonempty("branch_timeline_preservation_invalid_activity_input_reasons")
     |> maybe_put_nonempty("branch_source_activity_ids")
     |> maybe_put_nonempty("branch_source_window_ids")
+    |> maybe_put_nonempty("branch_source_window_count")
     |> maybe_put_nonempty("branch_source_window_bounds")
+    |> maybe_put_nonempty("branch_source_window_bound_count")
+    |> maybe_put_nonempty("branch_untimed_source_window_ids")
+    |> maybe_put_nonempty("branch_untimed_source_window_count")
     |> maybe_put_nonempty("branch_earliest_starts_at_s")
     |> maybe_put_nonempty("branch_latest_ends_at_s")
     |> maybe_put_nonempty("branch_directions")

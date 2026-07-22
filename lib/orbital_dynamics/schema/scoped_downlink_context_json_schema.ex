@@ -129,6 +129,7 @@ defmodule OrbitalDynamics.Schema.ScopedDownlinkContextJsonSchema do
         CommonJsonSchema.stable_id_array(stable_id_pattern),
       "branch_source_activity_ids" => CommonJsonSchema.stable_id_array(stable_id_pattern),
       "branch_source_window_ids" => CommonJsonSchema.stable_id_array(stable_id_pattern),
+      "branch_source_window_count" => %{"type" => "integer", "minimum" => 0},
       "branch_source_window_bounds" => %{
         "type" => "array",
         "items" => %{
@@ -146,6 +147,9 @@ defmodule OrbitalDynamics.Schema.ScopedDownlinkContextJsonSchema do
           }
         }
       },
+      "branch_source_window_bound_count" => %{"type" => "integer", "minimum" => 0},
+      "branch_untimed_source_window_ids" => CommonJsonSchema.stable_id_array(stable_id_pattern),
+      "branch_untimed_source_window_count" => %{"type" => "integer", "minimum" => 0},
       "branch_earliest_starts_at_s" => %{"type" => "number"},
       "branch_latest_ends_at_s" => %{"type" => "number"},
       "branch_max_latency_s" => %{"type" => "number"},
