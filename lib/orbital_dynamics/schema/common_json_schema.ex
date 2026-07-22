@@ -38,6 +38,11 @@ defmodule OrbitalDynamics.Schema.CommonJsonSchema do
     %{"type" => "object", "additionalProperties" => stable_id_array(stable_id_pattern)}
   end
 
+  def enum_stable_id_array_map(stable_id_pattern, values) do
+    stable_id_array_map(stable_id_pattern)
+    |> Map.put("propertyNames", %{"enum" => values})
+  end
+
   def nested_stable_id_array_map(stable_id_pattern) do
     %{
       "type" => "object",

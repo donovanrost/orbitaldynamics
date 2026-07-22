@@ -3036,7 +3036,7 @@ defmodule OrbitalDynamics.Schema.CadenceImportContractsTest do
       Map.merge(manifest, %{
         "provider_reservation_request_ids_by_match_status" => %{
           "matched" => ["reservation_a", "reservation_z"],
-          "not_matched" => []
+          "owner_matched" => []
         },
         "provider_reservation_review_ids_by_match_status" => %{
           "overlap" => ["reservation_review_a", "reservation_review_z"]
@@ -3378,15 +3378,37 @@ defmodule OrbitalDynamics.Schema.CadenceImportContractsTest do
       Map.merge(manifest, %{
         "provider_reservation_review_contact_ids_by_match_status" => %{
           "overlap" => ["contact_review"],
-          "provider_review" => []
+          "owner_matched" => []
         },
         "provider_reservation_review_ids_by_match_status" => %{
           "overlap" => ["reservation_review"],
-          "provider_review" => []
+          "owner_matched" => []
         }
       })
 
     assert {:ok, _manifest} = Schema.validate_artifact(aligned_routes)
+
+    unsupported_routes =
+      Map.merge(manifest, %{
+        "provider_reservation_review_contact_ids_by_match_status" => %{
+          "provider_review" => ["contact_review"]
+        },
+        "provider_reservation_review_ids_by_match_status" => %{
+          "provider_review" => ["reservation_review"]
+        }
+      })
+
+    assert {:error, unsupported_routes_report} = Schema.validate_artifact(unsupported_routes)
+
+    for field <- [
+          "provider_reservation_review_contact_ids_by_match_status",
+          "provider_reservation_review_ids_by_match_status"
+        ] do
+      assert Enum.any?(
+               unsupported_routes_report["errors"],
+               &(&1["path"] == "$.#{field}")
+             )
+    end
 
     mismatched_routes =
       Map.merge(manifest, %{

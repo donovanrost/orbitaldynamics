@@ -93,6 +93,30 @@ defmodule OrbitalDynamics.Schema.ContactAllocationProviderReservationContractsTe
             %{"schema_contract" => "contact_allocation_provider_reservation_request_summary.v1"}} =
              Schema.validate_artifact(summary)
 
+    invalid_match_status_routes =
+      Map.merge(summary, %{
+        "provider_reservation_request_contact_ids_by_match_status" => %{
+          "provider_review" => ["reserved_downlink"]
+        },
+        "provider_reservation_request_ids_by_match_status" => %{
+          "provider_review" => ["reservation_downlink"]
+        }
+      })
+
+    assert {:error, invalid_match_status_routes_report} =
+             Schema.validate_artifact(invalid_match_status_routes)
+
+    for field <- [
+          "provider_reservation_request_contact_ids_by_match_status",
+          "provider_reservation_request_ids_by_match_status"
+        ] do
+      assert Enum.any?(
+               invalid_match_status_routes_report["errors"],
+               &(&1["path"] == "$.#{field}" and
+                   String.starts_with?(&1["message"], "keys must be one of"))
+             )
+    end
+
     [
       {
         "provider_reservation_no_request_contact_ids_by_direction",

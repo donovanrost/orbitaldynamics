@@ -1000,6 +1000,7 @@ defmodule OrbitalDynamics.Schema.ContactAllocationHandoffContracts do
       "provider_reservation_review_ids_by_match_status"
     )
     |> validate_provider_reservation_id_maps(path, artifact)
+    |> validate_provider_reservation_match_status_route_keys(path, artifact)
     |> validate_provider_reservation_route_vocabularies(path, artifact)
     |> validate_provider_reservation_contact_identity_summary(path, artifact, "request")
     |> validate_provider_reservation_contact_identity_summary(path, artifact, "review")
@@ -1640,6 +1641,33 @@ defmodule OrbitalDynamics.Schema.ContactAllocationHandoffContracts do
           {_contact_routes, _reservation_routes} ->
             acc
         end
+    end)
+  end
+
+  defp validate_provider_reservation_match_status_route_keys(issues, path, artifact) do
+    allowed =
+      ContactAllocationCapabilityContext.contact_allocation_capabilities()
+      |> Map.fetch!(:station_reservation_match_statuses)
+
+    fields =
+      @provider_reservation_match_status_route_field_pairs
+      |> Enum.flat_map(fn {contact_field, reservation_field} ->
+        [contact_field, reservation_field]
+      end)
+      |> Enum.uniq()
+
+    Enum.reduce(fields, issues, fn field, acc ->
+      case Map.get(artifact, field) do
+        %{} = routes ->
+          if Enum.all?(Map.keys(routes), &(&1 in allowed)) do
+            acc
+          else
+            [error("#{path}.#{field}", "keys must be one of #{inspect(allowed)}") | acc]
+          end
+
+        _routes ->
+          acc
+      end
     end)
   end
 

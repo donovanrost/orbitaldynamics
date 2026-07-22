@@ -2182,7 +2182,7 @@ defmodule OrbitalDynamics.OperatorReview.ContactAllocationEmbeddedSummaryTest do
         "source_contact_allocation_report" => %{
           "provider_reservation_request_ids_by_match_status" => %{
             "matched" => ["reservation_z", "reservation_shared", "reservation_z"],
-            "not_matched" => []
+            "owner_matched" => []
           },
           "provider_reservation_review_ids_by_match_status" => %{
             "overlap" => ["reservation_review_z", "reservation_review_shared"]
@@ -2204,7 +2204,7 @@ defmodule OrbitalDynamics.OperatorReview.ContactAllocationEmbeddedSummaryTest do
 
     assert package["provider_reservation_request_ids_by_match_status"] == %{
              "matched" => ["reservation_a", "reservation_shared", "reservation_z"],
-             "not_matched" => []
+             "owner_matched" => []
            }
 
     assert package["provider_reservation_review_ids_by_match_status"] == %{

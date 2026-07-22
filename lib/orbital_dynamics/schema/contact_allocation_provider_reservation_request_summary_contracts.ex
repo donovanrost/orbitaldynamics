@@ -14,6 +14,7 @@ defmodule OrbitalDynamics.Schema.ContactAllocationProviderReservationRequestSumm
       expect_optional_field_equals: 6,
       expect_optional_type: 5,
       expect_type: 5,
+      error: 2,
       validate_optional_exact_model_limits: 5,
       validate_string_list_items: 4
     ]
@@ -27,6 +28,12 @@ defmodule OrbitalDynamics.Schema.ContactAllocationProviderReservationRequestSumm
 
   @request_statuses ["clear", "request_ready", "review_required"]
   @request_ready_match_statuses ["matched", "owner_matched"]
+  @match_status_route_fields [
+    "provider_reservation_request_contact_ids_by_match_status",
+    "provider_reservation_review_contact_ids_by_match_status",
+    "provider_reservation_request_ids_by_match_status",
+    "provider_reservation_review_ids_by_match_status"
+  ]
 
   def validate_summary(issues, path, summary, row_validator) when is_function(row_validator, 3) do
     issues
@@ -218,6 +225,25 @@ defmodule OrbitalDynamics.Schema.ContactAllocationProviderReservationRequestSumm
       path <> ".provider_reservation_review_ids_by_match_status",
       Map.get(summary, "provider_reservation_review_ids_by_match_status")
     )
+    |> validate_match_status_route_keys(path, summary)
+  end
+
+  defp validate_match_status_route_keys(issues, path, summary) do
+    allowed = contact_allocation_station_reservation_match_statuses()
+
+    Enum.reduce(@match_status_route_fields, issues, fn field, acc ->
+      case Map.get(summary, field) do
+        %{} = routes ->
+          if Enum.all?(Map.keys(routes), &(&1 in allowed)) do
+            acc
+          else
+            [error("#{path}.#{field}", "keys must be one of #{inspect(allowed)}") | acc]
+          end
+
+        _routes ->
+          acc
+      end
+    end)
   end
 
   defp validate_assumptions(issues, path, summary) do

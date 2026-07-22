@@ -1,7 +1,7 @@
 defmodule OrbitalDynamics.Schema.ContactAllocationProviderReservationRequestSummaryJsonSchema do
   @moduledoc false
 
-  alias OrbitalDynamics.Schema.CommonJsonSchema
+  alias OrbitalDynamics.Schema.{CommonJsonSchema, ContactAllocationCapabilityContext}
 
   @row_fields [
     "rows",
@@ -29,6 +29,13 @@ defmodule OrbitalDynamics.Schema.ContactAllocationProviderReservationRequestSumm
     "provider_reservation_no_request_contact_ids_by_direction",
     "provider_reservation_request_contact_ids_by_direction",
     "provider_reservation_review_contact_ids_by_direction",
+    "provider_reservation_request_contact_ids_by_match_status",
+    "provider_reservation_review_contact_ids_by_match_status",
+    "provider_reservation_request_ids_by_match_status",
+    "provider_reservation_review_ids_by_match_status"
+  ]
+
+  @match_status_route_fields [
     "provider_reservation_request_contact_ids_by_match_status",
     "provider_reservation_review_contact_ids_by_match_status",
     "provider_reservation_request_ids_by_match_status",
@@ -142,6 +149,16 @@ defmodule OrbitalDynamics.Schema.ContactAllocationProviderReservationRequestSumm
     opts
     |> Keyword.fetch!(:stable_id_pattern)
     |> CommonJsonSchema.stable_id_array()
+  end
+
+  def property(field, opts) when field in @match_status_route_fields do
+    match_statuses =
+      ContactAllocationCapabilityContext.contact_allocation_capabilities()
+      |> Map.fetch!(:station_reservation_match_statuses)
+
+    opts
+    |> Keyword.fetch!(:stable_id_pattern)
+    |> CommonJsonSchema.enum_stable_id_array_map(match_statuses)
   end
 
   def property(field, opts) when field in @stable_id_array_map_fields do
