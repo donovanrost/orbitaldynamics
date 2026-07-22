@@ -1,7 +1,9 @@
 defmodule OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactContention.DirectionRouting do
   @moduledoc false
 
-  alias __MODULE__.{ConflictGroupDirections, RouteMap}
+  alias __MODULE__.{ConflictGroupDirections, Correlation, RouteMap}
+
+  alias OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactContention.CountFields.ConflictGroups
 
   import OrbitalDynamics.CandidateRefresh.SourceReportSummary.Common,
     only: [
@@ -10,20 +12,40 @@ defmodule OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactContention
     ]
 
   def fields(reports) do
+    report_fields = Enum.map(reports, &report_fields/1)
+
     direction_counts =
-      reports
-      |> Enum.map(&ConflictGroupDirections.direction_counts/1)
+      report_fields
+      |> Enum.map(&elem(&1, 0))
       |> merge_count_maps()
 
     contact_ids_by_direction =
-      reports
-      |> Enum.map(&ConflictGroupDirections.contact_ids_by_direction/1)
+      report_fields
+      |> Enum.map(&elem(&1, 1))
       |> merge_string_list_maps()
 
     %{
       "direction_counts" => direction_counts,
       "contact_ids_by_direction" => contact_ids_by_direction,
-      "direction_routing" => RouteMap.field(direction_counts, contact_ids_by_direction)
+      "direction_routing" =>
+        RouteMap.field(Correlation.positive_counts(direction_counts), contact_ids_by_direction)
     }
+  end
+
+  defp report_fields(report) do
+    direction_counts = ConflictGroupDirections.direction_counts(report)
+
+    contact_id_counts =
+      ConflictGroups.contact_id_counts(report) ||
+        Map.get(report, "contact_contention_contact_id_counts")
+
+    contact_ids_by_direction =
+      Correlation.contact_ids_by_direction(
+        direction_counts,
+        ConflictGroupDirections.contact_ids_by_direction(report),
+        contact_id_counts
+      )
+
+    {direction_counts, contact_ids_by_direction}
   end
 end

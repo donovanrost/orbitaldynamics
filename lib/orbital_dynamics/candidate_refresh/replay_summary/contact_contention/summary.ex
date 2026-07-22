@@ -1,6 +1,11 @@
 defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.ContactContention.Summary do
   @moduledoc false
 
+  alias OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactContention.DirectionRouting.{
+    Correlation,
+    RouteMap
+  }
+
   def summary(contention_summary, summary_source, replay_scope) do
     conflict_group_count = summary_integer(contention_summary, "conflict_group_count")
 
@@ -14,11 +19,26 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.ContactContention.Summa
     ground_station_counts =
       Map.get(contention_summary, "contact_contention_ground_station_counts", %{})
 
-    contact_id_counts = Map.get(contention_summary, "contact_contention_contact_id_counts", %{})
+    contact_id_counts =
+      contention_summary
+      |> Map.get("contact_contention_contact_id_counts")
+      |> Correlation.map_or_empty()
+
     required_action_counts = Map.get(contention_summary, "required_operator_action_counts", %{})
-    direction_counts = Map.get(contention_summary, "direction_counts", %{})
-    contact_ids_by_direction = Map.get(contention_summary, "contact_ids_by_direction", %{})
-    direction_routing = Map.get(contention_summary, "direction_routing", %{})
+
+    direction_counts =
+      contention_summary |> Map.get("direction_counts") |> Correlation.map_or_empty()
+
+    contact_ids_by_direction =
+      Correlation.contact_ids_by_direction(
+        direction_counts,
+        Map.get(contention_summary, "contact_ids_by_direction"),
+        contact_id_counts
+      ) || %{}
+
+    direction_routing =
+      RouteMap.field(Correlation.positive_counts(direction_counts), contact_ids_by_direction) ||
+        %{}
 
     %{
       "model" => "artifact_only_candidate_refresh_contact_contention_replay_summary",

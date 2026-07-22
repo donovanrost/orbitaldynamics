@@ -144,6 +144,8 @@ defmodule OrbitalDynamics.CandidateRefresh.ContactContentionCandidateSourceRepla
             "paths" => [
               "candidate_source.candidate_refresh_request.source_contact_contention_report"
             ],
+            "contact_contention_contact_id_counts" => %{"direct_branch_contact" => 1},
+            "direction_counts" => %{"downlink" => 1},
             "contact_ids_by_direction" => %{
               "downlink" => ["direct_branch_contact"]
             }
@@ -237,6 +239,8 @@ defmodule OrbitalDynamics.CandidateRefresh.ContactContentionCandidateSourceRepla
             "contract" => "contact_contention_report.v1",
             "count" => 1,
             "paths" => ["source_contact_contention_report"],
+            "contact_contention_contact_id_counts" => %{"provenance_contact" => 1},
+            "direction_counts" => %{"downlink" => 1},
             "contact_ids_by_direction" => %{
               "downlink" => ["provenance_contact"]
             }

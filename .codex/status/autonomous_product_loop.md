@@ -5,56 +5,55 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Correlate resolution capacity-pack numeric maps.
+Correlate contention direction routing identity.
 
 Status:
-Complete; verified and ready to publish.
+Verified; ready for mechanical publish.
 
 Selection evidence:
-- Capacity status keys are producer-owned by selected/deferred demand, but the
-  executable schema accepts unsupported keys in some scalar-omission shapes.
-- CandidateRefresh aggregates and replays station/status numeric maps without
-  checking their sums against corresponding scalar totals.
-- Compact summaries have no independent station-ID authority, so station keys
-  can only be retained or rejected by map-total consistency.
+- Raw contention rows derive direction/contact identity, but preserved compact
+  summaries replay direction contact maps and carried route payloads unchanged.
+- Missing or zero-count direction keys and contact IDs absent from positive
+  contention contact-count entries can therefore surface as branch pressure.
+- Direction and contact count maps provide direct conservative authority while
+  remaining review evidence themselves.
 
 Intended behavior:
-- Restrict capacity status maps to selected/deferred keys in validation,
-  aggregation, and replay.
-- Retain station/status numeric maps only when their non-negative values sum to
-  the corresponding scalar totals, applied per report before aggregation and
-  again during replay.
-- Preserve scalar totals as conservative pressure when an unvalidated map is
-  rejected; do not invent station identity.
+- Filter direction contact maps per report to positive direction-count keys and
+  positive contention contact-count IDs.
+- Reapply the correlation for flattened preserved source fields and replay.
+- Rebuild direction routing from correlated counts and IDs while retaining raw
+  direction/contact counts as conservative review pressure.
 
 Level 6 pillar advanced:
 Fleet-scale planning decisions and durable reproducible audit handoffs.
 
 Planned files:
-- resolution schema, capacity numeric aggregation, and replay fields
-- unsupported-status and mismatched-map challenge tests
+- contention direction correlation, flattened source fields, and replay summary
+- zero-count/substituted direction-routing challenge tests
 - contention artifact documentation and autonomous-loop ledger
 
 Verification:
-- `44 passed` focused schema and capacity-routing replay tests.
-- `28 passed` targeted contention-resolution CandidateRefresh/planner tests.
-- `102 passed` contention-family regression sweep.
-- `92 passed` related schema, export, validation, and replay tests.
-- `mix orbital_dynamics.schema.lint --all`: `155` artifacts passed.
-- `mix test --timeout 120000`: `3805 passed`.
+- `mix test test/orbital_dynamics/candidate_refresh/contact_contention_replay_summary_test.exs --timeout 120000`
+  -> `10 passed`.
+- `mix test test/orbital_dynamics/**/*contact_contention*.exs --timeout 120000`
+  -> `103 passed`.
+- Focused golden repair facade check -> `1 passed` (`11 excluded`).
+- `mix orbital_dynamics.schema.lint --all` -> `155 passed`, no warnings.
 - `mix format --check-formatted` and `git diff --check` passed.
+- `mix test --timeout 120000` -> `3806 passed`.
 
 Review:
-- Executable validation now restricts capacity status keys to selected/deferred.
-- CandidateRefresh normalizes non-negative numeric maps per report and retains
-  them only when their sums match required, selected, or deferred scalar totals.
-- Preserved replay reapplies station-map totals and status key/value totals;
-  inconsistent maps are removed while scalar demand remains pressure.
-- Station keys remain evidence rather than independently authorized identity;
-  no capacity, allocation, reservation, or provider mutation was inferred.
+- Direction/contact identities are filtered per raw or compact report before
+  aggregation, then correlated again at flattened-source and replay boundaries.
+- Raw direction/contact count maps remain unchanged; only identity maps and the
+  derived route are constrained, preserving conservative review evidence.
+- Absent families retain the established nil flattened shape, and malformed
+  non-list direction identities are ignored without suppressing positive count
+  evidence. No unresolved findings.
 
 Last published slice:
-- `685ce150` Correlate resolution capacity sources (`3804 passed`).
+- `2b41dec7` Correlate resolution capacity maps (`3805 passed`).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions while preserving explicit
@@ -65,8 +64,8 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-After publish, move beyond contention summaries and audit another planner input
-family with branch pressure but incomplete identity correlation.
+After publish, audit contention invalid-input identity counts/lists for replay
+correlation when preserved summaries bypass report validation.
 
 Blocked:
 None.

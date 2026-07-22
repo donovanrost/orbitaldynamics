@@ -3,7 +3,28 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.ContactContention.Sourc
 
   alias __MODULE__.Values
 
+  alias OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactContention.DirectionRouting.{
+    Correlation,
+    RouteMap
+  }
+
   def source_report_fields(source_reports) do
+    direction_counts =
+      source_report_family_merge_count_maps(source_reports, "direction_counts")
+
+    contact_id_counts =
+      source_report_family_merge_count_maps(
+        source_reports,
+        "contact_contention_contact_id_counts"
+      )
+
+    contact_ids_by_direction =
+      Correlation.contact_ids_by_direction(
+        direction_counts,
+        source_report_family_merge_string_list_maps(source_reports, "contact_ids_by_direction"),
+        contact_id_counts
+      )
+
     %{
       "source_report_contact_contention_contract" =>
         source_report_family_field(source_reports, "contract"),
@@ -24,17 +45,11 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.ContactContention.Sourc
           source_reports,
           "contact_contention_ground_station_counts"
         ),
-      "source_report_contact_contention_contact_id_counts" =>
-        source_report_family_merge_count_maps(
-          source_reports,
-          "contact_contention_contact_id_counts"
-        ),
-      "source_report_contact_contention_direction_counts" =>
-        source_report_family_merge_count_maps(source_reports, "direction_counts"),
-      "source_report_contact_contention_contact_ids_by_direction" =>
-        source_report_family_merge_string_list_maps(source_reports, "contact_ids_by_direction"),
+      "source_report_contact_contention_contact_id_counts" => contact_id_counts,
+      "source_report_contact_contention_direction_counts" => direction_counts,
+      "source_report_contact_contention_contact_ids_by_direction" => contact_ids_by_direction,
       "source_report_contact_contention_direction_routing" =>
-        source_report_family_field(source_reports, "direction_routing"),
+        RouteMap.field(Correlation.positive_counts(direction_counts), contact_ids_by_direction),
       "source_report_contact_contention_invalid_contact_input_ids" =>
         source_report_family_merge_string_lists(source_reports, "invalid_contact_input_ids"),
       "source_report_contact_contention_required_operator_action_counts" =>

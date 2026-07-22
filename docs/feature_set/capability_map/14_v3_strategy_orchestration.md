@@ -1179,6 +1179,10 @@ preserved `contact_contention_report.v1` source-report provenance, so
 branch-local consumers can route conflict-group counts, invalid-contact-input
 counts, resource scopes, station/contact maps, and required actions without
 mutating contact allocation, selecting candidates, or approving imports.
+Preserved contention direction contact maps are limited to positive direction
+counts and positive contention contact-ID counts, and direction routing is
+rebuilt from those correlated fields at flattened-source and replay boundaries.
+The raw count maps remain conservative review pressure.
 Branch-generated CandidateRefresh requests preserve direct mission-state and
 result-artifact-wrapped raw `source_contact_contention_report` /
 `contact_contention_report` inputs with wrapper-qualified request paths and

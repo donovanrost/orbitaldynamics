@@ -192,6 +192,11 @@ sum to the corresponding required, selected, or deferred scalar totals, applying
 that check per report and during preserved replay. Scalar totals remain review
 pressure when an inconsistent map is removed; station keys are not treated as
 independently authorized identity.
+For preserved compact contention summaries, CandidateRefresh filters direction
+contact maps to positive direction-count keys and contact IDs with positive
+contention contact counts. It rebuilds the route map from those correlated
+fields at flattened-source and replay boundaries while retaining the raw count
+maps as conservative review evidence.
 Its exported JSON Schema includes the nested row and `timeline_identity` field
 shape used by executable validation. Rows also carry artifact-only operational
 kind, required operator action, operator-action reason, execution boundary,
