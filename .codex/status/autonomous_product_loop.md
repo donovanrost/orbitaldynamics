@@ -5,52 +5,54 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Prefer canonical allocation rows over stale same-contract subsets.
+Constrain contact-contention pressure rows by report contract.
 
 Status:
 Complete; ready to publish.
 
 Selection evidence:
-- The five summary contracts derive their subset collections from canonical
-  `rows`, but CampaignPlanner currently unions base and subset rows.
-- When `rows` is present, a stale same-contract `review_rows` or conflict/request
-  subset can add a second contact decision not represented by canonical rows.
-- Older partial planner fixtures omit `rows`, so subset-only compatibility must
-  remain explicit rather than overriding a present canonical collection.
+- Schema validation assigns `conflict_groups` only to
+  `contact_contention_report.v1` and `recommendations` only to
+  `contact_contention_resolution_report.v1`.
+- CampaignPlanner currently derives pressure from either collection by field
+  presence alone, so a wrong-contract shadow collection can create a branch.
+- The same derivation functions serve direct, wrapped, and prior-plan sources,
+  making contract ownership a bounded convergence rule.
 
 Implemented behavior:
-- Treat present canonical `rows`, including an empty list, as authoritative.
-- Use contract-owned subset rows only when the base field is absent.
-- For provider-request scope, accept only subset rows that occur in canonical
-  rows while retaining subset-only fallback for partial handoffs.
+- Derive conflict pressure only from `contact_contention_report.v1`.
+- Derive resolution pressure only from
+  `contact_contention_resolution_report.v1`.
+- Prove wrong-contract shadow collections remain provenance-only and do not
+  create planner branches.
 
 Level 6 pillar advanced:
 Fleet-scale planning decisions and durable reproducible audit handoffs.
 
 Files changed:
-- contact-allocation compact-summary row precedence
-- station-pressure and provider-request stale-subset challenge tests
+- contact-contention pressure branch extraction
+- focused wrong-contract challenge tests
 - V3 strategy capability documentation and autonomous-loop ledger
 
 Verification:
-- Focused contact-allocation/provider-request tests: `12 passed`.
-- Related allocation/station-pressure planner matrix: `23 passed`.
+- Focused contact-pressure tests: `12 passed`.
+- Related contention/source-report planner matrix: `21 passed`.
 - Full checked-artifact lint: `155/155 passed`, zero warnings.
-- Full suite with a 120-second per-test ceiling: `3794 passed`.
+- Full suite with a 120-second per-test ceiling: `3796 passed`.
 - `mix format --check-formatted`, `mix compile --warnings-as-errors`, and
   `git diff --check` passed.
 - No public artifact shape or checked-in schema export changed.
 
 Review:
-- A present canonical row collection always wins, including an intentional
-  empty list; stale derived subsets cannot add planner decisions.
-- Provider request/review subsets are intersected by exact canonical row value
-  before scope metadata can create a provider-reservation branch.
-- Subset-only compatibility remains for handoffs that omit `rows`, while direct,
-  wrapped, and prior-plan paths converge on the same precedence rule.
+- The shared extraction boundary gates both direct and embedded mission-state
+  reports plus direct and embedded prior-plan resolution reports.
+- Valid report contracts retain their existing conflict/recommendation paths;
+  wrong-contract shadow collections cannot create planner decisions.
+- Challenge fixtures cover prior-plan resolution and wrapped mission-state
+  conflict paths, complementing existing positive direct/wrapped coverage.
 
 Last published slice:
-- `d41b3629` Constrain allocation pressure row families (`3792 passed`).
+- `0d65aece` Prefer canonical allocation pressure rows (`3794 passed`).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions while preserving explicit
@@ -61,8 +63,8 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-After publish, audit the next planner-affecting compact handoff for exact source
-identity or selected-candidate scope.
+After publish, audit selected/deferred contact identity correlation before a
+resolution recommendation can create planner pressure.
 
 Blocked:
 None.

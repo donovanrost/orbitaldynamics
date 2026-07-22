@@ -1094,6 +1094,87 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyContactPressureTest do
              Schema.validate_artifact(artifact)
   end
 
+  test "strategy ignores resolution recommendations shadowed by a contention report contract" do
+    prior_plan =
+      base_plan(%{
+        "source_contact_contention_resolution_report" => %{
+          "schema_contract" => "contact_contention_report.v1",
+          "model" => "single_station_interval_overlap",
+          "input_contact_count" => 0,
+          "conflicted_contact_count" => 0,
+          "conflict_group_count" => 0,
+          "conflict_groups" => [],
+          "recommendations" => [
+            %{
+              "group_id" => "shadow_resolution_group",
+              "ground_station_id" => "equator_prime",
+              "selected_contact_id" => "dl_shadow_selected",
+              "deferred_contact_ids" => ["dl_shadow_resolution"],
+              "selection_reason" => "shadow_collection",
+              "direction" => "downlink",
+              "starts_at_s" => 500.0,
+              "ends_at_s" => 560.0
+            }
+          ]
+        }
+      })
+
+    artifact =
+      strategy(prior_plan,
+        mission_state: mission_state_with_refresh_inputs(),
+        derive_branches?: true,
+        branches: [%{id: "baseline"}],
+        current_epoch_s: 0.0
+      )
+
+    refute Enum.any?(
+             artifact["branches"],
+             &(&1["branch_id"] ==
+                 "derived_contact_contention_pressure_deferred_dl_shadow_resolution")
+           )
+  end
+
+  test "strategy ignores conflict groups shadowed by a resolution report contract" do
+    artifact =
+      strategy(base_plan(%{}),
+        mission_state:
+          mission_state_with_refresh_inputs()
+          |> Map.put(:source_result_artifact, %{
+            "schema_contract" => "result_artifact.v1",
+            "artifact_type" => "mission_state_result_artifact",
+            "contact_contention_report" => %{
+              "schema_contract" => "contact_contention_resolution_report.v1",
+              "model" => "deterministic_contact_contention_recommendation",
+              "policy" => %{},
+              "conflict_group_count" => 0,
+              "recommendation_count" => 0,
+              "recommendations" => [],
+              "conflict_groups" => [
+                %{
+                  "id" => "shadow_conflict_group",
+                  "ground_station_id" => "equator_prime",
+                  "contact_ids" => ["dl_shadow_conflict"],
+                  "direction" => "downlink",
+                  "starts_at_s" => 600.0,
+                  "ends_at_s" => 660.0
+                }
+              ]
+            }
+          }),
+        derive_branches?: true,
+        branches: [%{id: "baseline"}],
+        current_epoch_s: 0.0
+      )
+
+    refute Enum.any?(
+             artifact["branches"],
+             &String.starts_with?(
+               &1["branch_id"],
+               "derived_contact_contention_pressure_conflict_shadow_conflict_group"
+             )
+           )
+  end
+
   test "strategy keeps independent contact contention pressures for the same deferred contact" do
     prior_plan =
       base_plan(%{

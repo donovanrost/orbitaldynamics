@@ -1114,6 +1114,11 @@ prior-plan reports, preserving selected/deferred contact identity,
 source-window lineage, selection reason, priority source, review status, trust
 boundaries, and `mission_state.source_contact_contention_resolution_report`
 candidate-source audit paths.
+CampaignPlanner derives recommendation pressure only from
+`contact_contention_resolution_report.v1` and conflict pressure only from
+`contact_contention_report.v1`; wrong-contract shadow collections remain
+provenance-only instead of authorizing branches across direct, wrapped, or
+prior-plan inputs.
 Branch-generated CandidateRefresh requests preserve direct mission-state and
 result-artifact-wrapped raw `source_contact_contention_resolution_report` /
 `contact_contention_resolution_report` inputs with wrapper-qualified request

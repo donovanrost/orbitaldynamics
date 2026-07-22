@@ -1,6 +1,9 @@
 defmodule OrbitalDynamics.CampaignPlanner.ContactContentionPressureBranches do
   @moduledoc false
 
+  @contention_report_contract "contact_contention_report.v1"
+  @resolution_report_contract "contact_contention_resolution_report.v1"
+
   alias OrbitalDynamics.CampaignPlanner.{
     ActivityTiming,
     ContactAllocationPressureBranches,
@@ -13,17 +16,21 @@ defmodule OrbitalDynamics.CampaignPlanner.ContactContentionPressureBranches do
     stringify_keys = Keyword.fetch!(callbacks, :stringify_keys)
 
     Enum.flat_map(reports, fn {report, source_path} ->
-      trust_boundary =
-        Map.get(report, "trust_boundary") || get_in(report, ["provenance", "trust_boundary"])
+      if report["schema_contract"] == @resolution_report_contract do
+        trust_boundary =
+          Map.get(report, "trust_boundary") || get_in(report, ["provenance", "trust_boundary"])
 
-      report
-      |> Map.get("recommendations", [])
-      |> Enum.map(&stringify_keys.(&1))
-      |> Enum.flat_map(fn recommendation ->
-        recommendation
-        |> Map.put("_source_report_trust_boundary", trust_boundary)
-        |> resolution(source_path, callbacks)
-      end)
+        report
+        |> Map.get("recommendations", [])
+        |> Enum.map(&stringify_keys.(&1))
+        |> Enum.flat_map(fn recommendation ->
+          recommendation
+          |> Map.put("_source_report_trust_boundary", trust_boundary)
+          |> resolution(source_path, callbacks)
+        end)
+      else
+        []
+      end
     end)
   end
 
@@ -31,18 +38,22 @@ defmodule OrbitalDynamics.CampaignPlanner.ContactContentionPressureBranches do
     stringify_keys = Keyword.fetch!(callbacks, :stringify_keys)
 
     Enum.flat_map(reports, fn {report, source_path} ->
-      trust_boundary =
-        Map.get(report, "trust_boundary") || get_in(report, ["provenance", "trust_boundary"])
+      if report["schema_contract"] == @contention_report_contract do
+        trust_boundary =
+          Map.get(report, "trust_boundary") || get_in(report, ["provenance", "trust_boundary"])
 
-      report
-      |> Map.get("conflict_groups", [])
-      |> List.wrap()
-      |> Enum.map(&stringify_keys.(&1))
-      |> Enum.flat_map(fn group ->
-        group
-        |> Map.put("_source_report_trust_boundary", trust_boundary)
-        |> conflict("#{source_path}.conflict_groups", callbacks)
-      end)
+        report
+        |> Map.get("conflict_groups", [])
+        |> List.wrap()
+        |> Enum.map(&stringify_keys.(&1))
+        |> Enum.flat_map(fn group ->
+          group
+          |> Map.put("_source_report_trust_boundary", trust_boundary)
+          |> conflict("#{source_path}.conflict_groups", callbacks)
+        end)
+      else
+        []
+      end
     end)
   end
 
