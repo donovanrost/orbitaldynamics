@@ -508,6 +508,11 @@ so adapters can route contact queues without recounting rows.
   match/status/owner/expiration reservation-ID routes. Route-only handoffs
   synthesize top identity, while legacy artifacts may still omit that optional
   top field; supplied top and routed identity must be canonical and consistent.
+- Station-reservation owner and status vocabulary lists form sorted unique
+  unions of direct values plus their matching count, contact-ID, and
+  reservation-ID map keys. Count/route-only handoffs synthesize the top
+  vocabulary, while legacy artifacts may omit it; supplied lists must be
+  complete and canonical.
 - Capacity-pack group IDs form a canonical top-level union across direct and
   status-routed identity evidence and fix the exact group count. Each supplied
   status route likewise fixes its status count; count-only keys and top-absent

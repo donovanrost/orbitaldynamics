@@ -339,6 +339,7 @@ defmodule OrbitalDynamics.Schema.OperatorReviewPackageJsonSchema do
 
   def property(field, _opts) when field in @string_array_fields do
     CommonJsonSchema.string_array()
+    |> Map.put("uniqueItems", true)
   end
 
   def property("rows", opts) do

@@ -5,57 +5,58 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Correlate station-reservation top-level and routed identity at handoff boundaries.
+Correlate station-reservation owner/status vocabularies at handoff boundaries.
 
 Status:
 Verified; ready to publish.
 
 Selection evidence:
-- Station-reservation owner contact identity/count correlation is now
-  schema-enforced across both handoffs.
-- Top-level reservation IDs currently merge only direct lists while match,
-  status, owner, and expiration routes merge independently.
-- A live probe produced an unsorted three-ID top list beside four additional
-  routed reservation IDs in both handoffs; both contradictory artifacts
+- Station-reservation top-level and routed reservation identity is now
+  canonical and schema-enforced across both handoffs.
+- Owner/status vocabulary lists currently merge only direct lists in source
+  order, independently of count, contact-ID, and reservation-ID route keys.
+- A live probe preserved unsorted direct vocabularies while omitting four
+  count/route keys from each top list in both handoffs; both artifacts
   validated.
 
 Intended behavior:
-- Build sorted unique top-level reservation identity from direct and all routed
-  reservation-ID evidence, including route-only and explicit-empty inputs.
-- Emit canonical match/status/owner/expiration reservation-ID routes.
-- Reject a supplied noncanonical or incomplete top union and noncanonical
-  routes while accepting legacy route-only artifacts that omit the top field.
+- Build sorted unique owner/status vocabularies from direct lists plus matching
+  count, contact-ID, and reservation-ID map keys, including route/count-only
+  and explicit-empty inputs.
+- Reject supplied noncanonical or incomplete vocabularies while accepting
+  legacy artifacts that omit the optional top lists.
 
 Level 6 pillar advanced:
 Fleet-scale planning decisions and durable reproducible audit handoffs.
 
 Planned files:
-- operator-review station-reservation identity aggregation
-- shared review/import identity validation and generated schemas
+- operator-review station-reservation vocabulary aggregation
+- shared review/import vocabulary validation and generated schemas
 - overlap/empty/fallback challenge proofs, docs, and loop ledger
 
 Verification:
 - Focused review/import producer and schema proofs: `4 passed`.
-- Contact-allocation family: `208 passed`.
+- Contact-allocation family: `209 passed`.
 - Golden artifacts: `12 passed` after deterministic V1/V2/V3 and dependent
   fixture regeneration.
 - Schema lint: `155` artifacts passed with zero errors or warnings.
-- Full suite: `3867 passed`.
+- Full suite: `3871 passed`.
 
 Review:
-- Top-level identity is the canonical union of direct and all four routed
-  reservation-ID surfaces; routed maps are canonicalized independently.
-- Route-only legacy artifacts remain accepted when the top field is absent;
-  supplied top fields must be complete, sorted, and unique, including explicit
-  empty evidence.
-- Generated schemas require unique reservation ID lists, and regenerated
-  public fixtures pin the additive handoff surface.
+- Owner/status vocabularies now form canonical unions of direct values and all
+  matching count, contact-ID, and reservation-ID route keys.
+- Count/route-only producers synthesize the top vocabulary and explicit empty
+  evidence remains explicit; top-absent legacy artifacts stay compatible.
+- Both validators reject incomplete or noncanonical supplied vocabularies, and
+  generated schemas require unique vocabulary values.
+- Regenerated public fixtures pin the additive empty vocabulary surface and
+  its deterministic hashes/reference metrics.
 - No provider request, reservation, schedule mutation, Cadence write, operator
   authority, candidate selection, or planner-effect boundary changed.
 - Local review found no publish blocker.
 
 Last published slice:
-- `9ccb5a96` Lift reservation owner counts (`3863 passed`).
+- `c669ae00` Correlate reservation identity union (`3867 passed`).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions while preserving explicit
@@ -66,7 +67,7 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-After publish, audit reservation owner/status vocabulary-list consistency.
+After publish, audit station-reservation expiration value/list consistency.
 
 Blocked:
 None.

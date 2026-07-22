@@ -1560,6 +1560,75 @@ defmodule OrbitalDynamics.Schema.OperatorReviewSchemaContractsTest do
            )
   end
 
+  test "correlates station-reservation owner and status vocabularies" do
+    owner_evidence_fields = [
+      "station_reserved_by_counts",
+      "station_reservation_contact_ids_by_reserved_by",
+      "station_reservation_ids_by_reserved_by"
+    ]
+
+    status_evidence_fields = [
+      "station_reservation_status_counts",
+      "station_reservation_contact_ids_by_status",
+      "station_reservation_ids_by_status"
+    ]
+
+    package =
+      "study_results/operator_review_resource_pressure_v1.json"
+      |> read_json!()
+      |> Map.drop(
+        ["station_reserved_bys", "station_reservation_statuses"] ++
+          owner_evidence_fields ++ status_evidence_fields
+      )
+
+    schema = read_json!("schemas/operator_review_package.v1.schema.json")
+    assert get_in(schema, ["properties", "station_reserved_bys", "uniqueItems"]) == true
+
+    assert get_in(schema, ["properties", "station_reservation_statuses", "uniqueItems"]) ==
+             true
+
+    valid_vocabularies =
+      Map.merge(package, %{
+        "station_reserved_bys" => ["owner_direct", "owner_route"],
+        "station_reservation_ids_by_reserved_by" => %{
+          "owner_route" => ["reservation_owner"]
+        },
+        "station_reservation_statuses" => ["status_direct", "status_route"],
+        "station_reservation_ids_by_status" => %{
+          "status_route" => ["reservation_status"]
+        }
+      })
+
+    assert {:ok, _package} = Schema.validate_artifact(valid_vocabularies)
+
+    route_only =
+      Map.put(package, "station_reservation_ids_by_reserved_by", %{
+        "owner_route" => ["reservation_owner"]
+      })
+
+    assert {:ok, _package} = Schema.validate_artifact(route_only)
+
+    invalid_owner = Map.put(valid_vocabularies, "station_reserved_bys", ["owner_direct"])
+    assert {:error, invalid_owner_report} = Schema.validate_artifact(invalid_owner)
+
+    assert Enum.any?(
+             invalid_owner_report["errors"],
+             &(&1["path"] == "$.station_reserved_bys")
+           )
+
+    invalid_status =
+      Map.merge(package, %{
+        "station_reservation_statuses" => ["status_z", "status_a"]
+      })
+
+    assert {:error, invalid_status_report} = Schema.validate_artifact(invalid_status)
+
+    assert Enum.any?(
+             invalid_status_report["errors"],
+             &(&1["path"] == "$.station_reservation_statuses")
+           )
+  end
+
   test "correlates station-reservation contact IDs with owner counts" do
     fields = [
       "station_reserved_by_counts",

@@ -803,6 +803,7 @@ defmodule OrbitalDynamics.Schema.CadenceImportManifestJsonSchema do
 
   def property(field, _opts) when field in @string_array_fields do
     CommonJsonSchema.string_array()
+    |> Map.put("uniqueItems", true)
   end
 
   def property("source_artifact_type", opts) do

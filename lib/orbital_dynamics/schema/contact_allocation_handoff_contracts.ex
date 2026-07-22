@@ -49,6 +49,20 @@ defmodule OrbitalDynamics.Schema.ContactAllocationHandoffContracts do
     "station_reservation_ids_by_status",
     "station_reservation_ids_by_reserved_by"
   ]
+  @station_reservation_vocabulary_fields [
+    {"station_reserved_bys",
+     [
+       "station_reserved_by_counts",
+       "station_reservation_contact_ids_by_reserved_by",
+       "station_reservation_ids_by_reserved_by"
+     ]},
+    {"station_reservation_statuses",
+     [
+       "station_reservation_status_counts",
+       "station_reservation_contact_ids_by_status",
+       "station_reservation_ids_by_status"
+     ]}
+  ]
   @provider_reservation_contact_identity_fields %{
     "no_request" => %{
       count_field: "provider_reservation_no_request_contact_count",
@@ -1131,6 +1145,7 @@ defmodule OrbitalDynamics.Schema.ContactAllocationHandoffContracts do
       "station_reservation_ids_by_reserved_by"
     )
     |> validate_station_reservation_identity_summary(path, artifact)
+    |> validate_station_reservation_vocabulary_summaries(path, artifact)
   end
 
   defp validate_station_reservation_identity_summary(issues, path, artifact) do
@@ -1167,6 +1182,42 @@ defmodule OrbitalDynamics.Schema.ContactAllocationHandoffContracts do
       _reservation_ids ->
         issues
     end
+  end
+
+  defp validate_station_reservation_vocabulary_summaries(issues, path, artifact) do
+    Enum.reduce(@station_reservation_vocabulary_fields, issues, fn
+      {vocabulary_field, evidence_map_fields}, acc ->
+        case Map.get(artifact, vocabulary_field) do
+          vocabulary when is_list(vocabulary) ->
+            evidence_keys =
+              Enum.flat_map(evidence_map_fields, fn field ->
+                case Map.get(artifact, field) do
+                  %{} = evidence_map -> Map.keys(evidence_map)
+                  _evidence_map -> []
+                end
+              end)
+
+            canonical_vocabulary =
+              (vocabulary ++ evidence_keys)
+              |> Enum.uniq()
+              |> Enum.sort()
+
+            if vocabulary == canonical_vocabulary do
+              acc
+            else
+              [
+                error(
+                  "#{path}.#{vocabulary_field}",
+                  "must equal sorted unique direct and routed station-reservation vocabulary"
+                )
+                | acc
+              ]
+            end
+
+          _vocabulary ->
+            acc
+        end
+    end)
   end
 
   defp validate_station_reservation_expiration_identity_summary(issues, path, artifact) do

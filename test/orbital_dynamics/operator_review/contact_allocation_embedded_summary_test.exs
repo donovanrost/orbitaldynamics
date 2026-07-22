@@ -802,7 +802,7 @@ defmodule OrbitalDynamics.OperatorReview.ContactAllocationEmbeddedSummaryTest do
     assert refresh["reduced_capacity_deferred_contact_ids"] == ["dl_refresh_deferred"]
 
     assert repair["station_reservation_ids"] == ["reservation_result", "reservation_source"]
-    assert repair["station_reserved_bys"] == ["ops_source", "ops_result"]
+    assert repair["station_reserved_bys"] == ["ops_result", "ops_source"]
     assert repair["station_reservation_statuses"] == ["confirmed", "released"]
     assert repair["station_reservation_match_status_counts"] == %{"matched" => 2, "overlap" => 1}
 
@@ -1041,7 +1041,7 @@ defmodule OrbitalDynamics.OperatorReview.ContactAllocationEmbeddedSummaryTest do
            ]
 
     assert strategy["station_reservation_ids"] == ["reservation_result", "reservation_source"]
-    assert strategy["station_reserved_bys"] == ["ops_source", "ops_result"]
+    assert strategy["station_reserved_bys"] == ["ops_result", "ops_source"]
     assert strategy["station_reservation_statuses"] == ["confirmed", "released"]
 
     assert strategy["station_reservation_match_status_counts"] == %{
@@ -2048,6 +2048,83 @@ defmodule OrbitalDynamics.OperatorReview.ContactAllocationEmbeddedSummaryTest do
     assert route_only["station_reservation_ids"] == ["reservation_route_only"]
     assert explicit_empty["station_reservation_ids"] == []
     assert explicit_empty["station_reservation_ids_by_match_status"] == %{"matched" => []}
+
+    for package <- [repair, route_only, explicit_empty] do
+      assert {:ok, %{"schema_contract" => "operator_review_package.v1"}} =
+               Schema.validate_artifact(package)
+    end
+  end
+
+  test "correlates station-reservation owner and status vocabularies" do
+    repair =
+      OperatorReview.from_repair_artifact(%{
+        "repair_metadata" => %{"repair_id" => "repair:reservation_vocabularies"},
+        "source_contact_allocation_report" => %{
+          "station_reserved_bys" => ["owner_z", "owner_direct", "owner_z"],
+          "station_reservation_statuses" => ["status_z", "status_direct", "status_z"],
+          "station_reserved_by_counts" => %{"owner_count_only" => 2},
+          "station_reservation_status_counts" => %{"status_count_only" => 2},
+          "station_reservation_contact_ids_by_reserved_by" => %{
+            "owner_contact_route" => ["contact_owner"]
+          },
+          "station_reservation_contact_ids_by_status" => %{
+            "status_contact_route" => ["contact_status"]
+          },
+          "station_reservation_ids_by_reserved_by" => %{
+            "owner_reservation_route" => ["reservation_owner"]
+          },
+          "station_reservation_ids_by_status" => %{
+            "status_reservation_route" => ["reservation_status"]
+          }
+        },
+        "contact_allocation_report" => %{
+          "station_reserved_bys" => ["owner_a", "owner_direct"],
+          "station_reservation_statuses" => ["status_a", "status_direct"]
+        }
+      })
+
+    route_only =
+      OperatorReview.from_campaign_artifact(%{
+        "plan_id" => "plan:reservation_vocabulary_route_only",
+        "contact_allocation_report" => %{
+          "station_reserved_by_counts" => %{"owner_count_only" => 2},
+          "station_reservation_ids_by_status" => %{
+            "status_route_only" => ["reservation_status"]
+          }
+        }
+      })
+
+    explicit_empty =
+      OperatorReview.from_campaign_artifact(%{
+        "plan_id" => "plan:reservation_vocabulary_empty",
+        "contact_allocation_report" => %{
+          "station_reserved_bys" => [],
+          "station_reservation_statuses" => []
+        }
+      })
+
+    assert repair["station_reserved_bys"] == [
+             "owner_a",
+             "owner_contact_route",
+             "owner_count_only",
+             "owner_direct",
+             "owner_reservation_route",
+             "owner_z"
+           ]
+
+    assert repair["station_reservation_statuses"] == [
+             "status_a",
+             "status_contact_route",
+             "status_count_only",
+             "status_direct",
+             "status_reservation_route",
+             "status_z"
+           ]
+
+    assert route_only["station_reserved_bys"] == ["owner_count_only"]
+    assert route_only["station_reservation_statuses"] == ["status_route_only"]
+    assert explicit_empty["station_reserved_bys"] == []
+    assert explicit_empty["station_reservation_statuses"] == []
 
     for package <- [repair, route_only, explicit_empty] do
       assert {:ok, %{"schema_contract" => "operator_review_package.v1"}} =

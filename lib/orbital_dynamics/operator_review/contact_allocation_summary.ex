@@ -22,6 +22,20 @@ defmodule OrbitalDynamics.OperatorReview.ContactAllocationSummary do
     "station_reservation_ids_by_status",
     "station_reservation_ids_by_reserved_by"
   ]
+  @station_reservation_vocabulary_fields [
+    {"station_reserved_bys",
+     [
+       "station_reserved_by_counts",
+       "station_reservation_contact_ids_by_reserved_by",
+       "station_reservation_ids_by_reserved_by"
+     ]},
+    {"station_reservation_statuses",
+     [
+       "station_reservation_status_counts",
+       "station_reservation_contact_ids_by_status",
+       "station_reservation_ids_by_status"
+     ]}
+  ]
   @provider_reservation_contact_id_fields %{
     "no_request" => [
       "provider_reservation_no_request_contact_ids",
@@ -228,9 +242,8 @@ defmodule OrbitalDynamics.OperatorReview.ContactAllocationSummary do
       "earliest_station_reservation_expires_at_s"
     )
     |> put_station_reservation_identity_summary(reports)
+    |> put_station_reservation_vocabulary_summaries(reports)
     |> put_contact_allocation_list_summary(reports, "station_reservation_expires_at_s")
-    |> put_contact_allocation_list_summary(reports, "station_reserved_bys")
-    |> put_contact_allocation_list_summary(reports, "station_reservation_statuses")
     |> put_contact_allocation_list_summary(reports, "reduced_capacity_packed_contact_ids")
     |> put_contact_allocation_list_summary(reports, "reduced_capacity_deferred_contact_ids")
     |> put_station_pressure_direction_routes(reports)
@@ -627,6 +640,37 @@ defmodule OrbitalDynamics.OperatorReview.ContactAllocationSummary do
           canonical_stable_ids(List.flatten(identity_lists))
         )
     end
+  end
+
+  defp put_station_reservation_vocabulary_summaries(package, reports) do
+    Enum.reduce(@station_reservation_vocabulary_fields, package, fn
+      {vocabulary_field, evidence_map_fields}, acc ->
+        direct_lists =
+          Enum.flat_map(reports, fn report ->
+            collect_identity_lists(report[vocabulary_field])
+          end)
+
+        evidence_keys =
+          Enum.flat_map(evidence_map_fields, fn field ->
+            case Map.get(acc, field) do
+              %{} = evidence_map -> Map.keys(evidence_map)
+              _evidence_map -> []
+            end
+          end)
+
+        case direct_lists ++ evidence_keys do
+          [] ->
+            acc
+
+          vocabulary_evidence ->
+            vocabulary =
+              vocabulary_evidence
+              |> List.flatten()
+              |> canonical_stable_ids()
+
+            Map.put(acc, vocabulary_field, vocabulary)
+        end
+    end)
   end
 
   defp put_station_pressure_direction_routes(package, reports) do
