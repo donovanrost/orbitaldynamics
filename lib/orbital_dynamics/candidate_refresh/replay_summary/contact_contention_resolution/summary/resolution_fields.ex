@@ -18,6 +18,10 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.ContactContentionResolu
 
     selected_contact_ids = list_or_empty(Map.get(resolution_summary, "selected_contact_ids"))
     deferred_contact_ids = list_or_empty(Map.get(resolution_summary, "deferred_contact_ids"))
+    review_contact_ids = list_or_empty(Map.get(resolution_summary, "review_contact_ids"))
+
+    ambiguous_duplicate_contact_ids =
+      list_or_empty(Map.get(resolution_summary, "ambiguous_duplicate_contact_ids"))
 
     direction_counts = count_map_or_empty(Map.get(resolution_summary, "direction_counts"))
 
@@ -43,31 +47,38 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.ContactContentionResolu
       "recommendation_group_ids" => recommendation_group_ids,
       "review_group_ids" => review_group_ids,
       "ambiguous_group_ids" => ambiguous_group_ids,
-      "ambiguous_duplicate_contact_ids" =>
-        Map.get(resolution_summary, "ambiguous_duplicate_contact_ids", []),
+      "ambiguous_duplicate_contact_ids" => ambiguous_duplicate_contact_ids,
       "ambiguous_duplicate_contact_ids_by_group_id" =>
-        take_group_keys(
+        take_group_contact_ids(
           resolution_summary,
           "ambiguous_duplicate_contact_ids_by_group_id",
-          ambiguous_group_ids
+          ambiguous_group_ids,
+          ambiguous_duplicate_contact_ids
         ),
       "selected_contact_ids" => selected_contact_ids,
       "deferred_contact_ids" => deferred_contact_ids,
-      "review_contact_ids" => Map.get(resolution_summary, "review_contact_ids", []),
+      "review_contact_ids" => review_contact_ids,
       "selected_contact_ids_by_group_id" =>
-        take_group_keys(
+        take_group_contact_ids(
           resolution_summary,
           "selected_contact_ids_by_group_id",
-          recommendation_group_ids
+          recommendation_group_ids,
+          selected_contact_ids
         ),
       "deferred_contact_ids_by_group_id" =>
-        take_group_keys(
+        take_group_contact_ids(
           resolution_summary,
           "deferred_contact_ids_by_group_id",
-          recommendation_group_ids
+          recommendation_group_ids,
+          deferred_contact_ids
         ),
       "review_contact_ids_by_group_id" =>
-        take_group_keys(resolution_summary, "review_contact_ids_by_group_id", review_group_ids),
+        take_group_contact_ids(
+          resolution_summary,
+          "review_contact_ids_by_group_id",
+          review_group_ids,
+          review_contact_ids
+        ),
       "selected_contact_ids_by_selection_reason" =>
         take_positive_count_keys(
           resolution_summary,
@@ -173,6 +184,12 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.ContactContentionResolu
       %{} = values -> Map.take(values, group_ids)
       _values -> %{}
     end
+  end
+
+  defp take_group_contact_ids(summary, field, group_ids, allowed_contact_ids) do
+    summary
+    |> take_group_keys(field, group_ids)
+    |> filter_contact_ids(:all_keys, allowed_contact_ids)
   end
 
   defp take_positive_count_keys(summary, field, counts) when is_map(counts) do

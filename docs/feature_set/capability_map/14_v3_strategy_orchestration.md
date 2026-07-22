@@ -1128,7 +1128,9 @@ omit source candidates retain contact-ID fallback pressure.
 Compact resolution-summary selected, deferred, review, and ambiguous maps are
 group-lineage filtered during source aggregation and replay, so phantom group
 keys cannot surface as branch pressure even when standalone validation is
-bypassed.
+bypassed. Their values are also filtered per report against the corresponding
+flattened selected, deferred, review, or ambiguous contact-ID list, preventing a
+valid group key from carrying borrowed identity across reports.
 Resource-scope, selection-reason, and review-action routing maps are likewise
 restricted to positive keys in their corresponding count maps during executable
 validation, per-report aggregation, and preserved replay. Flattened contact IDs

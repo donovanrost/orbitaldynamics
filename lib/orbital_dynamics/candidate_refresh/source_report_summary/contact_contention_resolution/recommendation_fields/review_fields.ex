@@ -39,10 +39,31 @@ defmodule OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactContention
       } do
         {%{} = values, group_ids, recommendation_group_ids}
         when is_list(group_ids) and is_list(recommendation_group_ids) ->
+          allowed_contact_ids =
+            report
+            |> Map.get("ambiguous_duplicate_contact_ids")
+            |> List.wrap()
+            |> MapSet.new()
+
+          values =
+            values
+            |> Map.take(Enum.filter(group_ids, &(&1 in recommendation_group_ids)))
+            |> Enum.reduce(%{}, fn {group_id, contact_ids}, filtered ->
+              contact_ids =
+                contact_ids
+                |> List.wrap()
+                |> Enum.filter(&MapSet.member?(allowed_contact_ids, &1))
+
+              case contact_ids do
+                [] -> filtered
+                contact_ids -> Map.put(filtered, group_id, contact_ids)
+              end
+            end)
+
           Map.put(
             report,
             "ambiguous_duplicate_contact_ids_by_group_id",
-            Map.take(values, Enum.filter(group_ids, &(&1 in recommendation_group_ids)))
+            values
           )
 
         _values ->

@@ -6,6 +6,11 @@ defmodule OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactContention
     "deferred_contact_ids_by_group_id"
   ]
   @review_group_fields ["review_contact_ids_by_group_id"]
+  @group_contact_id_fields %{
+    "selected_contact_ids_by_group_id" => "selected_contact_ids",
+    "deferred_contact_ids_by_group_id" => "deferred_contact_ids",
+    "review_contact_ids_by_group_id" => "review_contact_ids"
+  }
   @resource_scope_fields [
     "selected_contact_ids_by_resource_scope",
     "deferred_contact_ids_by_resource_scope",
@@ -30,11 +35,17 @@ defmodule OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactContention
     |> merge_string_list_maps()
   end
 
-  defp lineage_map(report, field) when field in @recommendation_group_fields,
-    do: take_group_keys(report, field, "recommendation_group_ids")
+  defp lineage_map(report, field) when field in @recommendation_group_fields do
+    report
+    |> take_group_keys(field, "recommendation_group_ids")
+    |> filter_contact_ids(Map.get(report, Map.fetch!(@group_contact_id_fields, field)))
+  end
 
-  defp lineage_map(report, field) when field in @review_group_fields,
-    do: take_group_keys(report, field, "review_group_ids", "recommendation_group_ids")
+  defp lineage_map(report, field) when field in @review_group_fields do
+    report
+    |> take_group_keys(field, "review_group_ids", "recommendation_group_ids")
+    |> filter_contact_ids(Map.get(report, Map.fetch!(@group_contact_id_fields, field)))
+  end
 
   defp lineage_map(report, field) when field in @resource_scope_fields,
     do: take_positive_count_keys(report, field, "resource_scope_counts")
@@ -78,4 +89,22 @@ defmodule OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactContention
         %{}
     end
   end
+
+  defp filter_contact_ids(%{} = values_by_group, allowed_contact_ids) do
+    allowed_contact_ids = MapSet.new(List.wrap(allowed_contact_ids))
+
+    Enum.reduce(values_by_group, %{}, fn {group_id, contact_ids}, filtered ->
+      contact_ids =
+        contact_ids
+        |> List.wrap()
+        |> Enum.filter(&MapSet.member?(allowed_contact_ids, &1))
+
+      case contact_ids do
+        [] -> filtered
+        contact_ids -> Map.put(filtered, group_id, contact_ids)
+      end
+    end)
+  end
+
+  defp filter_contact_ids(_values_by_group, _allowed_contact_ids), do: %{}
 end

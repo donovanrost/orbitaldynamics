@@ -538,4 +538,121 @@ defmodule OrbitalDynamics.CandidateRefresh.ContactContentionResolutionReplaySumm
       assert Map.get(preserved_replay, field, %{}) == %{}
     end
   end
+
+  test "contact contention resolution replay filters substituted group contact identity" do
+    first_summary = %{
+      "schema_contract" => "contact_contention_resolution_summary.v1",
+      "recommendation_group_ids" => ["group_a"],
+      "review_group_ids" => ["group_a"],
+      "ambiguous_group_ids" => ["group_a"],
+      "selected_contact_ids" => ["selected_a"],
+      "deferred_contact_ids" => ["deferred_a"],
+      "review_contact_ids" => ["deferred_a", "selected_a"],
+      "ambiguous_duplicate_contact_ids" => ["duplicate_a"],
+      "selected_contact_ids_by_group_id" => %{
+        "group_a" => ["selected_a", "selected_b", "substituted_contact"]
+      },
+      "deferred_contact_ids_by_group_id" => %{
+        "group_a" => ["deferred_a", "deferred_b", "substituted_contact"]
+      },
+      "review_contact_ids_by_group_id" => %{
+        "group_a" => [
+          "deferred_a",
+          "selected_a",
+          "selected_b",
+          "substituted_contact"
+        ]
+      },
+      "ambiguous_duplicate_contact_ids_by_group_id" => %{
+        "group_a" => ["duplicate_a", "duplicate_b", "substituted_contact"]
+      }
+    }
+
+    second_summary = %{
+      "schema_contract" => "contact_contention_resolution_summary.v1",
+      "recommendation_group_ids" => ["group_b"],
+      "review_group_ids" => ["group_b"],
+      "ambiguous_group_ids" => ["group_b"],
+      "selected_contact_ids" => ["selected_b"],
+      "deferred_contact_ids" => ["deferred_b"],
+      "review_contact_ids" => ["deferred_b", "selected_b"],
+      "ambiguous_duplicate_contact_ids" => ["duplicate_b"]
+    }
+
+    refresh = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "source_contact_contention_resolution_summary" => first_summary,
+      "mission_state" => %{
+        "source_contact_contention_resolution_summary" => second_summary
+      }
+    }
+
+    source_summary = CandidateRefresh.source_report_summary(refresh)
+
+    assert source_summary[
+             "source_report_contact_contention_resolution_selected_contact_ids_by_group_id"
+           ] == %{"group_a" => ["selected_a"]}
+
+    assert source_summary[
+             "source_report_contact_contention_resolution_deferred_contact_ids_by_group_id"
+           ] == %{"group_a" => ["deferred_a"]}
+
+    assert source_summary[
+             "source_report_contact_contention_resolution_review_contact_ids_by_group_id"
+           ] == %{"group_a" => ["deferred_a", "selected_a"]}
+
+    assert source_summary[
+             "source_report_contact_contention_resolution_ambiguous_duplicate_contact_ids_by_group_id"
+           ] == %{"group_a" => ["duplicate_a"]}
+
+    replay_summary = CandidateRefresh.contact_contention_resolution_replay_summary(refresh)
+
+    assert replay_summary["selected_contact_ids_by_group_id"] == %{
+             "group_a" => ["selected_a"]
+           }
+
+    assert replay_summary["deferred_contact_ids_by_group_id"] == %{
+             "group_a" => ["deferred_a"]
+           }
+
+    assert replay_summary["review_contact_ids_by_group_id"] == %{
+             "group_a" => ["deferred_a", "selected_a"]
+           }
+
+    assert replay_summary["ambiguous_duplicate_contact_ids_by_group_id"] == %{
+             "group_a" => ["duplicate_a"]
+           }
+
+    assert replay_summary["selected_contact_ids"] == ["selected_a", "selected_b"]
+    assert replay_summary["deferred_contact_ids"] == ["deferred_a", "deferred_b"]
+
+    preserved_artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "provenance" => %{
+        "source_reports" => %{
+          "contact_contention_resolution_report" =>
+            Map.put(first_summary, "contract", "contact_contention_resolution_summary.v1")
+        }
+      }
+    }
+
+    preserved_replay =
+      CandidateRefresh.contact_contention_resolution_replay_summary(preserved_artifact)
+
+    assert preserved_replay["selected_contact_ids_by_group_id"] == %{
+             "group_a" => ["selected_a"]
+           }
+
+    assert preserved_replay["deferred_contact_ids_by_group_id"] == %{
+             "group_a" => ["deferred_a"]
+           }
+
+    assert preserved_replay["review_contact_ids_by_group_id"] == %{
+             "group_a" => ["deferred_a", "selected_a"]
+           }
+
+    assert preserved_replay["ambiguous_duplicate_contact_ids_by_group_id"] == %{
+             "group_a" => ["duplicate_a"]
+           }
+  end
 end
