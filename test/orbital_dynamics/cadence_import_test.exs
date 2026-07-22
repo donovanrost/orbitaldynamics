@@ -10296,6 +10296,50 @@ defmodule OrbitalDynamics.CadenceImportTest do
     end
   end
 
+  test "correlates station-reservation expiration values and earliest summary" do
+    repair =
+      CadenceImport.from_repair_artifact(%{
+        "repair_metadata" => %{"repair_id" => "repair:reservation_expirations"},
+        "source_plan_id" => "plan:reservation_expirations",
+        "source_contact_allocation_report" => %{
+          "station_reservation_expires_at_s" => [360.0, 120.0, 360.0],
+          "earliest_station_reservation_expires_at_s" => 999.0
+        },
+        "contact_allocation_report" => %{
+          "earliest_station_reservation_expires_at_s" => 300.0
+        }
+      })
+
+    scalar_only =
+      CadenceImport.from_campaign_artifact(%{
+        "plan_id" => "plan:reservation_expiration_scalar_only",
+        "contact_allocation_report" => %{
+          "earliest_station_reservation_expires_at_s" => 420.0
+        }
+      })
+
+    explicit_empty =
+      CadenceImport.from_campaign_artifact(%{
+        "plan_id" => "plan:reservation_expiration_empty",
+        "contact_allocation_report" => %{
+          "station_reservation_expires_at_s" => [],
+          "earliest_station_reservation_expires_at_s" => 999.0
+        }
+      })
+
+    assert repair["station_reservation_expires_at_s"] == [120.0, 300.0, 360.0]
+    assert repair["earliest_station_reservation_expires_at_s"] == 120.0
+    assert scalar_only["station_reservation_expires_at_s"] == [420.0]
+    assert scalar_only["earliest_station_reservation_expires_at_s"] == 420.0
+    assert explicit_empty["station_reservation_expires_at_s"] == []
+    refute Map.has_key?(explicit_empty, "earliest_station_reservation_expires_at_s")
+
+    for manifest <- [repair, scalar_only, explicit_empty] do
+      assert {:ok, %{"schema_contract" => "cadence_import_manifest.v1"}} =
+               Schema.validate_artifact(manifest)
+    end
+  end
+
   test "lifts and correlates station-reservation owner contact identity and counts" do
     owner = "mission_ops"
 

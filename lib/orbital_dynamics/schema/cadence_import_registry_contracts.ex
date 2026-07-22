@@ -116,6 +116,7 @@ defmodule OrbitalDynamics.Schema.CadenceImportRegistryContracts do
           "reduced_capacity_deferred_contact_ids",
           "station_reservation_declared_expiration_contact_count",
           "station_reservation_missing_expiration_contact_count",
+          "station_reservation_expires_at_s",
           "earliest_station_reservation_expires_at_s",
           "station_reservation_contact_ids_by_expiration_status",
           "station_reservation_ids_by_expiration_status",

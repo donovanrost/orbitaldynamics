@@ -1085,6 +1085,7 @@ defmodule OrbitalDynamics.Schema.ContactAllocationHandoffContracts do
       artifact,
       "earliest_station_reservation_expires_at_s"
     )
+    |> validate_station_reservation_expiration_summary(path, artifact)
     |> validate_optional_stable_id_array_map(
       path,
       artifact,
@@ -1180,6 +1181,63 @@ defmodule OrbitalDynamics.Schema.ContactAllocationHandoffContracts do
         end
 
       _reservation_ids ->
+        issues
+    end
+  end
+
+  defp validate_station_reservation_expiration_summary(issues, path, artifact) do
+    expiration_values = Map.get(artifact, "station_reservation_expires_at_s")
+    earliest = Map.get(artifact, "earliest_station_reservation_expires_at_s")
+
+    case expiration_values do
+      values when is_list(values) ->
+        canonical_values =
+          values
+          |> Enum.filter(&is_number/1)
+          |> Enum.map(&(&1 * 1.0))
+          |> Enum.uniq()
+          |> Enum.sort()
+
+        issues =
+          if values == canonical_values do
+            issues
+          else
+            [
+              error(
+                "#{path}.station_reservation_expires_at_s",
+                "must equal sorted unique station-reservation expiration values"
+              )
+              | issues
+            ]
+          end
+
+        case canonical_values do
+          [] when is_nil(earliest) ->
+            issues
+
+          [] ->
+            [
+              error(
+                "#{path}.earliest_station_reservation_expires_at_s",
+                "must be absent when station-reservation expiration values are empty"
+              )
+              | issues
+            ]
+
+          [expected_earliest | _] when earliest == expected_earliest ->
+            issues
+
+          [expected_earliest | _] ->
+            [
+              error(
+                "#{path}.earliest_station_reservation_expires_at_s",
+                "must equal earliest station-reservation expiration value #{expected_earliest}"
+              )
+              | issues
+            ]
+        end
+
+      _expiration_values ->
         issues
     end
   end

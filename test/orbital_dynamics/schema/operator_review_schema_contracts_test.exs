@@ -1629,6 +1629,58 @@ defmodule OrbitalDynamics.Schema.OperatorReviewSchemaContractsTest do
            )
   end
 
+  test "correlates station-reservation expiration values and earliest summary" do
+    package =
+      "study_results/operator_review_resource_pressure_v1.json"
+      |> read_json!()
+      |> Map.drop([
+        "station_reservation_expires_at_s",
+        "earliest_station_reservation_expires_at_s"
+      ])
+
+    schema = read_json!("schemas/operator_review_package.v1.schema.json")
+
+    assert get_in(schema, ["properties", "station_reservation_expires_at_s"]) == %{
+             "type" => "array",
+             "items" => %{"type" => "number"},
+             "uniqueItems" => true
+           }
+
+    valid_expirations =
+      Map.merge(package, %{
+        "station_reservation_expires_at_s" => [120.0, 300.0],
+        "earliest_station_reservation_expires_at_s" => 120.0
+      })
+
+    assert {:ok, _package} = Schema.validate_artifact(valid_expirations)
+
+    scalar_only = Map.put(package, "earliest_station_reservation_expires_at_s", 300.0)
+    assert {:ok, _package} = Schema.validate_artifact(scalar_only)
+
+    invalid_order =
+      Map.merge(package, %{
+        "station_reservation_expires_at_s" => [300.0, 120.0],
+        "earliest_station_reservation_expires_at_s" => 120.0
+      })
+
+    assert {:error, invalid_order_report} = Schema.validate_artifact(invalid_order)
+
+    assert Enum.any?(
+             invalid_order_report["errors"],
+             &(&1["path"] == "$.station_reservation_expires_at_s")
+           )
+
+    invalid_earliest =
+      Map.put(valid_expirations, "earliest_station_reservation_expires_at_s", 300.0)
+
+    assert {:error, invalid_earliest_report} = Schema.validate_artifact(invalid_earliest)
+
+    assert Enum.any?(
+             invalid_earliest_report["errors"],
+             &(&1["path"] == "$.earliest_station_reservation_expires_at_s")
+           )
+  end
+
   test "correlates station-reservation contact IDs with owner counts" do
     fields = [
       "station_reserved_by_counts",

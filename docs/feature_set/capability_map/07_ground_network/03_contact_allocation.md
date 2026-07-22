@@ -513,6 +513,11 @@ so adapters can route contact queues without recounting rows.
   reservation-ID map keys. Count/route-only handoffs synthesize the top
   vocabulary, while legacy artifacts may omit it; supplied lists must be
   complete and canonical.
+- Station-reservation expiration seconds form a sorted unique list, with each
+  report's detailed list taking precedence over its earliest scalar and
+  scalar-only reports supplying fallback values. The handoff derives the
+  earliest scalar from that list; legacy scalar-only artifacts remain valid,
+  while supplied lists must be canonical and scalar-consistent.
 - Capacity-pack group IDs form a canonical top-level union across direct and
   status-routed identity evidence and fix the exact group count. Each supplied
   status route likewise fixes its status count; count-only keys and top-absent

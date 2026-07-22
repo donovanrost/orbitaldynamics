@@ -648,7 +648,10 @@ defmodule OrbitalDynamics.Schema.CadenceImportManifestJsonSchema do
       field in @capacity_fraction_fields or field in @capacity_fraction_map_fields or
       field in @stable_id_array_fields or field in @stable_id_array_map_fields or
       field in @nested_stable_id_array_map_fields or field in @string_array_fields or
-      field == "earliest_station_reservation_expires_at_s"
+      field in [
+        "station_reservation_expires_at_s",
+        "earliest_station_reservation_expires_at_s"
+      ]
   end
 
   def property_opts("source_readiness_report_id", deps) do
@@ -743,6 +746,11 @@ defmodule OrbitalDynamics.Schema.CadenceImportManifestJsonSchema do
 
   def property("earliest_station_reservation_expires_at_s", _opts) do
     %{"type" => "number"}
+  end
+
+  def property("station_reservation_expires_at_s", _opts) do
+    CommonJsonSchema.number_array()
+    |> Map.put("uniqueItems", true)
   end
 
   def property(field, opts)

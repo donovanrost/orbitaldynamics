@@ -237,13 +237,9 @@ defmodule OrbitalDynamics.OperatorReview.ContactAllocationSummary do
       "provider_reservation_request_status_counts"
     )
     |> put_capacity_pack_group_identity_summary(reports)
-    |> put_contact_allocation_min_number_summary(
-      reports,
-      "earliest_station_reservation_expires_at_s"
-    )
+    |> put_station_reservation_expiration_summary(reports)
     |> put_station_reservation_identity_summary(reports)
     |> put_station_reservation_vocabulary_summaries(reports)
-    |> put_contact_allocation_list_summary(reports, "station_reservation_expires_at_s")
     |> put_contact_allocation_list_summary(reports, "reduced_capacity_packed_contact_ids")
     |> put_contact_allocation_list_summary(reports, "reduced_capacity_deferred_contact_ids")
     |> put_station_pressure_direction_routes(reports)
@@ -401,18 +397,6 @@ defmodule OrbitalDynamics.OperatorReview.ContactAllocationSummary do
       |> Enum.frequencies()
 
     put_merged_count_map(package, target_field, counts)
-  end
-
-  defp put_contact_allocation_min_number_summary(package, reports, field) do
-    values =
-      reports
-      |> Enum.map(&Map.get(&1, field))
-      |> Enum.filter(&is_number/1)
-
-    case values do
-      [] -> package
-      values -> Map.put(package, field, Enum.min(values))
-    end
   end
 
   defp put_contact_allocation_list_summary(package, reports, field) do
@@ -639,6 +623,41 @@ defmodule OrbitalDynamics.OperatorReview.ContactAllocationSummary do
           "station_reservation_ids",
           canonical_stable_ids(List.flatten(identity_lists))
         )
+    end
+  end
+
+  defp put_station_reservation_expiration_summary(package, reports) do
+    {expiration_values, explicit_list?} =
+      Enum.reduce(reports, {[], false}, fn report, {values, list?} ->
+        case Map.get(report, "station_reservation_expires_at_s") do
+          report_values when is_list(report_values) ->
+            {values ++ Enum.filter(report_values, &is_number/1), true}
+
+          _report_values ->
+            case Map.get(report, "earliest_station_reservation_expires_at_s") do
+              fallback when is_number(fallback) -> {values ++ [fallback], list?}
+              _fallback -> {values, list?}
+            end
+        end
+      end)
+
+    canonical_expiration_values =
+      expiration_values
+      |> Enum.map(&(&1 * 1.0))
+      |> Enum.uniq()
+      |> Enum.sort()
+
+    case {canonical_expiration_values, explicit_list?} do
+      {[], false} ->
+        package
+
+      {[], true} ->
+        Map.put(package, "station_reservation_expires_at_s", [])
+
+      {[earliest | _] = values, _list?} ->
+        package
+        |> Map.put("station_reservation_expires_at_s", values)
+        |> Map.put("earliest_station_reservation_expires_at_s", earliest)
     end
   end
 
