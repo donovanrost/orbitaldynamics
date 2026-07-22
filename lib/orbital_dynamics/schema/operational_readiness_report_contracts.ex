@@ -18,6 +18,7 @@ defmodule OrbitalDynamics.Schema.OperationalReadinessReportContracts do
 
   alias OrbitalDynamics.Schema.OperationalReadinessClassificationContracts
   alias OrbitalDynamics.Schema.OperationalReadinessEvidenceContracts
+  alias OrbitalDynamics.OperationalReadiness.SourceIdentity
 
   def validate(issues, path, report, model_limits, gate_validator, evidence_validator) do
     gates = Map.get(report, "gates", [])
@@ -33,6 +34,7 @@ defmodule OrbitalDynamics.Schema.OperationalReadinessReportContracts do
       "artifact_only_operational_readiness_classifier"
     )
     |> validate_stable_ids(path, report, ["report_id", "source_artifact_id"])
+    |> validate_report_identity(path, report)
     |> expect_one_of(path, report, "readiness_level", capability.readiness_levels)
     |> expect_one_of(
       path,
@@ -106,6 +108,25 @@ defmodule OrbitalDynamics.Schema.OperationalReadinessReportContracts do
   end
 
   def gate_status_count(_gates, _status), do: nil
+
+  defp validate_report_identity(issues, path, report) do
+    case {report["source_artifact_type"], report["source_artifact_id"]} do
+      {source_artifact_type, source_artifact_id}
+      when is_binary(source_artifact_type) and source_artifact_type != "" and
+             is_binary(source_artifact_id) and source_artifact_id != "" ->
+        expect_field_equals(
+          issues,
+          path,
+          report,
+          "report_id",
+          SourceIdentity.readiness_report_id(source_artifact_type, source_artifact_id),
+          "must match source artifact identity"
+        )
+
+      _source_identity ->
+        issues
+    end
+  end
 
   defp expect_field_equals(issues, path, map, field, nil),
     do: expect_field_equals(issues, path, map, field, nil, nil)

@@ -470,7 +470,7 @@ defmodule OrbitalDynamics.Validation.CandidateRefreshReadinessReplayFixtures do
     operational_readiness_resource_pressure_fixture()
     |> Map.put(
       "report_id",
-      "operational_readiness:contact_selection:stale_scope_challenge"
+      "operational_readiness:resource_projection_report.v1:readiness-selection-challenge"
     )
     |> Map.put("source_artifact_id", "readiness-selection-challenge")
     |> put_in(

@@ -542,12 +542,42 @@ defmodule OrbitalDynamics.CandidateRefresh.QualityGateOperationalSummaryReplaySu
         generated_at: ~U[2026-05-14 00:00:00Z]
       )
 
+    stale_lineage_report =
+      candidate_id
+      |> candidate_quality_gate_report(:blocked)
+      |> Map.put(
+        "source_readiness_report_id",
+        "operational_readiness:planned_activity.v1:stale_observe_target_a_1"
+      )
+
+    assert {:error, %{"errors" => stale_lineage_errors}} =
+             Schema.validate_artifact(stale_lineage_report)
+
+    assert Enum.any?(
+             stale_lineage_errors,
+             &(&1["path"] == "$.source_readiness_report_id" and
+                 &1["message"] == "must match source artifact identity")
+           )
+
+    stale_lineage_artifact =
+      result_set()
+      |> CandidateRefresh.build(
+        candidate_refresh:
+          refresh_request()
+          |> put_in(
+            ["accepted_planning_state", "quality_gate_report"],
+            stale_lineage_report
+          ),
+        generated_at: ~U[2026-05-14 00:00:00Z]
+      )
+
     for artifact <- [
           nonmatching_artifact,
           nonblocked_artifact,
           wrong_source_type_artifact,
           compact_summary_artifact,
-          invalid_report_artifact
+          invalid_report_artifact,
+          stale_lineage_artifact
         ] do
       assert Enum.map(artifact["candidate_activities"], & &1["id"]) == [
                "leo_1_observe_target_a_1",
@@ -567,6 +597,7 @@ defmodule OrbitalDynamics.CandidateRefresh.QualityGateOperationalSummaryReplaySu
     refute Map.has_key?(wrong_source_type_artifact, "candidate_rejection_report")
     refute Map.has_key?(compact_summary_artifact, "candidate_rejection_report")
     refute Map.has_key?(invalid_report_artifact, "candidate_rejection_report")
+    refute Map.has_key?(stale_lineage_artifact, "candidate_rejection_report")
   end
 
   defp result_set do

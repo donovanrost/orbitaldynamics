@@ -81,7 +81,9 @@ Current implementation:
   handoff artifact contracts, and the readiness review/import action names.
   Generated readiness reports, runtime validation, and JSON Schema export pin
   the capability `known_limits` list as the report-level `model_limits`
-  contract.
+  contract. Runtime validation also derives `report_id` from the declared source
+  artifact type and ID, preventing stale readiness lineage from being relabeled
+  as evidence for a current artifact.
 - `OperationalReadiness.import_eligibility/2` and
   `OrbitalDynamics.operational_import_eligibility/2` publish the validated
   `operational_import_eligibility_summary.v1` artifact-only eligibility summary
@@ -121,7 +123,9 @@ Current implementation:
   stay `not_required` and `not_applicable` so simulation, rehearsal,
   trade-study, and not-for-execution artifacts do not look import-ready.
   Generated quality-gate reports, runtime validation, and JSON Schema export pin
-  the artifact-only report `model_limits`.
+  the artifact-only report `model_limits`. Runtime validation derives both the
+  quality-gate report ID and its source-readiness report ID from the declared
+  source artifact identity, so stale lineage cannot pass as a current gate.
   Existing `quality_gate_report.v1` artifacts are accepted as idempotent handoff
   inputs when downstream queues already hold the compact gate artifact.
 - `OperationalReadiness.quality_gate_summary/2` and

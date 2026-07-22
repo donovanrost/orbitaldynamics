@@ -247,6 +247,41 @@ defmodule OrbitalDynamics.CandidateRefresh.OperationalReadinessReplaySummaryTest
 
     assert {:ok, %{"schema_contract" => "candidate_refresh.v1", "status" => "pass"}} =
              Schema.validate_artifact(artifact)
+
+    stale_lineage_report =
+      Map.put(
+        readiness_report,
+        "report_id",
+        "operational_readiness:contact_allocation_report.v1:stale_allocation"
+      )
+
+    assert {:error, %{"errors" => stale_lineage_errors}} =
+             Schema.validate_artifact(stale_lineage_report)
+
+    assert Enum.any?(
+             stale_lineage_errors,
+             &(&1["path"] == "$.report_id" and
+                 &1["message"] == "must match source artifact identity")
+           )
+
+    stale_lineage_artifact =
+      result_set()
+      |> CandidateRefresh.build(
+        candidate_refresh:
+          put_in(
+            refresh,
+            ["accepted_planning_state", "source_operational_readiness_report"],
+            stale_lineage_report
+          ),
+        generated_at: ~U[2026-05-14 00:00:00Z]
+      )
+
+    assert Enum.map(stale_lineage_artifact["candidate_activities"], & &1["id"]) == [
+             "leo_1_observe_target_a_1",
+             blocked_contact_id
+           ]
+
+    refute Map.has_key?(stale_lineage_artifact, "candidate_rejection_report")
   end
 
   test "build excludes the exact candidate named by blocked planned-activity readiness" do
@@ -386,12 +421,30 @@ defmodule OrbitalDynamics.CandidateRefresh.OperationalReadinessReplaySummaryTest
     assert {:error, %{"schema_contract" => "operational_readiness_report.v1", "status" => "fail"}} =
              Schema.validate_artifact(invalid_report)
 
+    stale_lineage_report =
+      candidate_id
+      |> candidate_readiness_report(:blocked)
+      |> Map.put(
+        "report_id",
+        "operational_readiness:planned_activity.v1:stale_observe_target_a_1"
+      )
+
+    assert {:error, %{"errors" => stale_lineage_errors}} =
+             Schema.validate_artifact(stale_lineage_report)
+
+    assert Enum.any?(
+             stale_lineage_errors,
+             &(&1["path"] == "$.report_id" and
+                 &1["message"] == "must match source artifact identity")
+           )
+
     artifacts = [
       build_with_readiness("operational_readiness_report", nonmatching_report),
       build_with_readiness("operational_readiness_report", review_only_report),
       build_with_readiness("operational_readiness_report", wrong_source_type_report),
       build_with_readiness("operational_readiness_gate_summary", compact_summary),
-      build_with_readiness("operational_readiness_report", invalid_report)
+      build_with_readiness("operational_readiness_report", invalid_report),
+      build_with_readiness("operational_readiness_report", stale_lineage_report)
     ]
 
     for artifact <- artifacts do

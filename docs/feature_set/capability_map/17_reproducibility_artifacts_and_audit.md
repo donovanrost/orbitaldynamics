@@ -70,7 +70,8 @@ work, a **partial** executable-schema track, and **near-term** / **later** /
 
 - `operational_readiness_report.v1` for machine-readable importable, review-only,
   analysis-only, and blocked readiness classification over existing review/import
-  evidence.
+  evidence. Runtime validation reconciles the report ID to its source artifact
+  type and ID rather than accepting merely well-formed stale lineage.
 - Includes structured operational-mode gate evidence for analysis-only mode
   markers and capability-published analysis-mode aliases such as `sim`,
   `tradeoff`, `no execution`, and `not for ops`, including direct artifact
@@ -87,7 +88,9 @@ work, a **partial** executable-schema track, and **near-term** / **later** /
 
 - Standalone `quality_gate_report.v1` artifacts from
   `OperationalReadiness.quality_gate_report/2` for row-oriented gate routing with
-  explicit **handoff-only execution-boundary** fields.
+  explicit **handoff-only execution-boundary** fields. Runtime validation pins
+  both report identity and source-readiness lineage to the declared source
+  artifact identity.
 - `operational_quality_gate_summary` provides a compact row-derived routing view
   over standalone quality-gate rows, preserving status/classification counts,
   gate IDs, row IDs, and non-passed rows without approving or importing work.

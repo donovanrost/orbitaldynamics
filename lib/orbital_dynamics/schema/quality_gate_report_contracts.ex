@@ -5,6 +5,7 @@ defmodule OrbitalDynamics.Schema.QualityGateReportContracts do
     as: ReadinessClassification
 
   alias OrbitalDynamics.Schema.QualityGateRowContracts, as: QualityGateRow
+  alias OrbitalDynamics.OperationalReadiness.SourceIdentity
 
   import OrbitalDynamics.Schema.CollectionValidation, only: [validate_rows: 4]
 
@@ -47,6 +48,7 @@ defmodule OrbitalDynamics.Schema.QualityGateReportContracts do
       "source_artifact_id",
       "source_readiness_report_id"
     ])
+    |> validate_report_identity(path, report)
     |> expect_one_of(path, report, "readiness_level", capability.readiness_levels)
     |> expect_one_of(
       path,
@@ -92,6 +94,32 @@ defmodule OrbitalDynamics.Schema.QualityGateReportContracts do
     |> validate_assumptions(path, report)
     |> validate_classification(path, report, rows)
     |> validate_counts(path, report, rows)
+  end
+
+  defp validate_report_identity(issues, path, report) do
+    case {report["source_artifact_type"], report["source_artifact_id"]} do
+      {source_artifact_type, source_artifact_id}
+      when is_binary(source_artifact_type) and source_artifact_type != "" and
+             is_binary(source_artifact_id) and source_artifact_id != "" ->
+        issues
+        |> expect_field_equals(
+          path,
+          report,
+          "report_id",
+          SourceIdentity.quality_gate_report_id(source_artifact_type, source_artifact_id),
+          "must match source artifact identity"
+        )
+        |> expect_field_equals(
+          path,
+          report,
+          "source_readiness_report_id",
+          SourceIdentity.readiness_report_id(source_artifact_type, source_artifact_id),
+          "must match source artifact identity"
+        )
+
+      _source_identity ->
+        issues
+    end
   end
 
   defp validate_aggregate_maps(issues, path, report, rows) do

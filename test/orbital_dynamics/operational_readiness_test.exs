@@ -236,6 +236,22 @@ defmodule OrbitalDynamics.OperationalReadinessTest do
     assert {:ok, %{"schema_contract" => "operational_readiness_report.v1"}} =
              Schema.validate_artifact(report)
 
+    stale_report_identity =
+      Map.put(
+        report,
+        "report_id",
+        "operational_readiness:planned_activity.v1:stale_activity"
+      )
+
+    assert {:error, stale_report_identity_validation} =
+             Schema.validate_artifact(stale_report_identity)
+
+    assert Enum.any?(
+             stale_report_identity_validation["errors"],
+             &(&1["path"] == "$.report_id" and
+                 &1["message"] == "must match source artifact identity")
+           )
+
     stale_model = Map.put(report, "model", "stale_operational_readiness_model")
 
     assert {:error, stale_model_report} = Schema.validate_artifact(stale_model)
@@ -1466,6 +1482,15 @@ defmodule OrbitalDynamics.OperationalReadinessTest do
              "artifact_only_operational_quality_gate_report"
 
     invalid_model = Map.put(report, "model", "stale_quality_gate_model")
+    invalid_report_id = Map.put(report, "report_id", "quality_gate:planned_activity.v1:stale")
+
+    invalid_source_readiness_report_id =
+      Map.put(
+        report,
+        "source_readiness_report_id",
+        "operational_readiness:planned_activity.v1:stale"
+      )
+
     invalid_gate_count = Map.put(report, "gate_count", 99)
     invalid_execution_boundary = Map.put(report, "execution_boundary", "adapter_handoff_only")
     invalid_gate_status_counts = put_in(report, ["gate_status_counts", "passed"], 99)
@@ -1498,6 +1523,16 @@ defmodule OrbitalDynamics.OperationalReadinessTest do
                  &1["message"] ==
                    "must equal \"artifact_only_operational_quality_gate_report\"")
            )
+
+    for invalid_identity <- [invalid_report_id, invalid_source_readiness_report_id] do
+      assert {:error, invalid_identity_report} = Schema.validate_artifact(invalid_identity)
+
+      assert Enum.any?(
+               invalid_identity_report["errors"],
+               &(&1["path"] in ["$.report_id", "$.source_readiness_report_id"] and
+                   &1["message"] == "must match source artifact identity")
+             )
+    end
 
     assert {:error, invalid_gate_count_report} =
              Schema.validate_artifact(invalid_gate_count)

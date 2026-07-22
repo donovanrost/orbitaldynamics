@@ -223,7 +223,7 @@ defmodule OrbitalDynamics.CandidateRefresh.UnavailableResourceCandidateFilter do
       report["schema_contract"] == @readiness_contract and
         blocked_contact_map?(
           get_in(report, ["evidence", "resource_blocked_contact_ids_by_spacecraft_id"])
-        )
+        ) and valid_operational_readiness_report?(report)
     end)
     |> Enum.map(fn {path, report} ->
       %{
