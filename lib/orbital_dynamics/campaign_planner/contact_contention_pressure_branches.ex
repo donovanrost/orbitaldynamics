@@ -58,42 +58,46 @@ defmodule OrbitalDynamics.CampaignPlanner.ContactContentionPressureBranches do
   end
 
   def resolution(recommendation, source_path, callbacks \\ default_callbacks()) do
-    encode_value = Keyword.fetch!(callbacks, :encode_value)
+    if recommendation_identity_correlated?(recommendation, callbacks) do
+      encode_value = Keyword.fetch!(callbacks, :encode_value)
 
-    recommendation
-    |> Map.get("deferred_contact_ids", [])
-    |> List.wrap()
-    |> Enum.map(&encode_value.(&1))
-    |> Enum.reject(&(&1 in [nil, ""]))
-    |> Enum.flat_map(fn contact_id ->
-      case resolution_pressure_event(recommendation, contact_id, source_path, callbacks) do
-        nil ->
-          []
+      recommendation
+      |> Map.get("deferred_contact_ids", [])
+      |> List.wrap()
+      |> Enum.map(&encode_value.(&1))
+      |> Enum.reject(&(&1 in [nil, ""]))
+      |> Enum.flat_map(fn contact_id ->
+        case resolution_pressure_event(recommendation, contact_id, source_path, callbacks) do
+          nil ->
+            []
 
-        event ->
-          branch_id_fragment = Keyword.fetch!(callbacks, :branch_id_fragment)
-          compact_map = Keyword.fetch!(callbacks, :compact_map)
+          event ->
+            branch_id_fragment = Keyword.fetch!(callbacks, :branch_id_fragment)
+            compact_map = Keyword.fetch!(callbacks, :compact_map)
 
-          [
-            %{
-              "id" =>
-                "derived_contact_contention_pressure_deferred_#{branch_id_fragment.(contact_id)}",
-              "label" => "Derived contact contention pressure #{contact_id}",
-              "events" => [event],
-              "metadata" =>
-                %{
-                  "derived_source" => source_path,
-                  "contention_group_id" => recommendation["group_id"],
-                  "selected_contact_id" => recommendation["selected_contact_id"],
-                  "selection_reason" => recommendation["selection_reason"],
-                  "resolution_selection_rule" => recommendation["resolution_selection_rule"],
-                  "selected_priority_source" => recommendation["selected_priority_source"]
-                }
-                |> compact_map.()
-            }
-          ]
-      end
-    end)
+            [
+              %{
+                "id" =>
+                  "derived_contact_contention_pressure_deferred_#{branch_id_fragment.(contact_id)}",
+                "label" => "Derived contact contention pressure #{contact_id}",
+                "events" => [event],
+                "metadata" =>
+                  %{
+                    "derived_source" => source_path,
+                    "contention_group_id" => recommendation["group_id"],
+                    "selected_contact_id" => recommendation["selected_contact_id"],
+                    "selection_reason" => recommendation["selection_reason"],
+                    "resolution_selection_rule" => recommendation["resolution_selection_rule"],
+                    "selected_priority_source" => recommendation["selected_priority_source"]
+                  }
+                  |> compact_map.()
+              }
+            ]
+        end
+      end)
+    else
+      []
+    end
   end
 
   def conflict(group, source_path, callbacks \\ default_callbacks()) do
@@ -441,6 +445,28 @@ defmodule OrbitalDynamics.CampaignPlanner.ContactContentionPressureBranches do
     |> Enum.filter(&is_map/1)
     |> Enum.map(&stringify_keys(&1, callbacks))
     |> Enum.find(%{}, &(contact_identity.(&1) == contact_id))
+  end
+
+  defp recommendation_identity_correlated?(recommendation, callbacks) do
+    encode_value = Keyword.fetch!(callbacks, :encode_value)
+    contact_identity = Keyword.fetch!(callbacks, :contact_identity)
+    stable_id_string? = Keyword.fetch!(callbacks, :stable_id_string?)
+
+    decision_ids =
+      [recommendation["selected_contact_id"] | List.wrap(recommendation["deferred_contact_ids"])]
+      |> Enum.map(&encode_value.(&1))
+
+    candidate_ids =
+      recommendation
+      |> Map.get("source_contact_candidates", [])
+      |> List.wrap()
+      |> Enum.filter(&is_map/1)
+      |> Enum.map(&stringify_keys(&1, callbacks))
+      |> Enum.map(&(contact_identity.(&1) |> encode_value.()))
+
+    decision_ids != [] and Enum.all?(decision_ids, stable_id_string?) and
+      length(Enum.uniq(decision_ids)) == length(decision_ids) and
+      Enum.sort(decision_ids) == Enum.sort(candidate_ids)
   end
 
   defp deferred_downlink?(recommendation, source_contact, callbacks) do

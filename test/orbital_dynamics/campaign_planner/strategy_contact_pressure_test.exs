@@ -1175,6 +1175,75 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyContactPressureTest do
            )
   end
 
+  test "strategy requires resolution decisions to match source candidate identities" do
+    recommendation = fn prefix, selected_contact_id, deferred_contact_id, candidate_ids ->
+      %{
+        "group_id" => "#{prefix}_group",
+        "ground_station_id" => "equator_prime",
+        "selected_contact_id" => selected_contact_id,
+        "deferred_contact_ids" => [deferred_contact_id],
+        "candidate_count" => length(candidate_ids),
+        "selection_reason" => "highest_score_earliest_start",
+        "direction" => "downlink",
+        "starts_at_s" => 700.0,
+        "ends_at_s" => 760.0,
+        "source_contact_candidates" =>
+          Enum.map(candidate_ids, fn contact_id ->
+            downlink(contact_id, 700.0, 760.0)
+            |> Map.put("estimated_throughput_mb", 32.0)
+          end)
+      }
+    end
+
+    prior_plan =
+      base_plan(%{
+        "source_contact_contention_resolution_report" => %{
+          "schema_contract" => "contact_contention_resolution_report.v1",
+          "recommendations" => [
+            recommendation.(
+              "substituted_selected",
+              "dl_phantom_selected",
+              "dl_selected_substitution_deferred",
+              ["dl_actual_selected", "dl_selected_substitution_deferred"]
+            ),
+            recommendation.(
+              "substituted_deferred",
+              "dl_deferred_substitution_selected",
+              "dl_phantom_deferred",
+              ["dl_deferred_substitution_selected", "dl_actual_deferred"]
+            ),
+            recommendation.(
+              "selected_as_deferred",
+              "dl_self_selected",
+              "dl_self_selected",
+              ["dl_self_selected", "dl_self_other"]
+            ),
+            recommendation.(
+              "correlated",
+              "dl_correlated_selected",
+              "dl_correlated_deferred",
+              ["dl_correlated_selected", "dl_correlated_deferred"]
+            )
+          ]
+        }
+      })
+
+    artifact =
+      strategy(prior_plan,
+        mission_state: mission_state_with_refresh_inputs(),
+        derive_branches?: true,
+        branches: [%{id: "baseline"}],
+        current_epoch_s: 0.0
+      )
+
+    branch_ids = Enum.map(artifact["branches"], & &1["branch_id"])
+
+    refute "derived_contact_contention_pressure_deferred_dl_selected_substitution_deferred" in branch_ids
+    refute "derived_contact_contention_pressure_deferred_dl_phantom_deferred" in branch_ids
+    refute "derived_contact_contention_pressure_deferred_dl_self_selected" in branch_ids
+    assert "derived_contact_contention_pressure_deferred_dl_correlated_deferred" in branch_ids
+  end
+
   test "strategy keeps independent contact contention pressures for the same deferred contact" do
     prior_plan =
       base_plan(%{

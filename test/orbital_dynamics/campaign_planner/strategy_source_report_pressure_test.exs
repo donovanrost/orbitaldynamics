@@ -135,6 +135,8 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategySourceReportPressureTest do
                 "selection_reason" => "highest_score_earliest_start",
                 "direction" => "downlink",
                 "source_contact_candidates" => [
+                  downlink("dl_source_selected", 500.0, 560.0)
+                  |> Map.put("estimated_throughput_mb", 40.0),
                   downlink("dl_source_contention_deferred", 520.0, 580.0)
                   |> Map.put("estimated_throughput_mb", 42.0)
                   |> Map.put("source_window_id", "window:source:contention")

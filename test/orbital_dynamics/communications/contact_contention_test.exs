@@ -3906,6 +3906,59 @@ defmodule OrbitalDynamics.Communications.ContactContentionTest do
              &(&1["path"] == "$.recommendations[0].candidate_count" and
                  &1["message"] == "must equal selected plus deferred contact count")
            )
+
+    substituted_selected_id =
+      put_in(
+        resolution,
+        ["recommendations", Access.at(0), "selected_contact_id"],
+        "dl_substituted_selected"
+      )
+
+    assert {:error, substituted_selected_id_report} =
+             Schema.validate_artifact(substituted_selected_id)
+
+    assert Enum.any?(
+             substituted_selected_id_report["errors"],
+             &(&1["path"] == "$.recommendations[0].source_contact_candidates" and
+                 &1["message"] ==
+                   "contact IDs must match selected_contact_id plus deferred_contact_ids")
+           )
+
+    substituted_deferred_id =
+      put_in(
+        resolution,
+        ["recommendations", Access.at(0), "deferred_contact_ids"],
+        ["dl_substituted_deferred"]
+      )
+
+    assert {:error, substituted_deferred_id_report} =
+             Schema.validate_artifact(substituted_deferred_id)
+
+    assert Enum.any?(
+             substituted_deferred_id_report["errors"],
+             &(&1["path"] == "$.recommendations[0].source_contact_candidates" and
+                 &1["message"] ==
+                   "contact IDs must match selected_contact_id plus deferred_contact_ids")
+           )
+
+    selected_contact_id =
+      get_in(resolution, ["recommendations", Access.at(0), "selected_contact_id"])
+
+    selected_also_deferred =
+      put_in(
+        resolution,
+        ["recommendations", Access.at(0), "deferred_contact_ids"],
+        [selected_contact_id]
+      )
+
+    assert {:error, selected_also_deferred_report} =
+             Schema.validate_artifact(selected_also_deferred)
+
+    assert Enum.any?(
+             selected_also_deferred_report["errors"],
+             &(&1["path"] == "$.recommendations[0].deferred_contact_ids" and
+                 String.starts_with?(&1["message"], "must not contain duplicate IDs:"))
+           )
   end
 
   test "carries contact feedback evidence into contention policy, review, and import rows" do

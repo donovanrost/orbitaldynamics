@@ -34,6 +34,7 @@ defmodule OrbitalDynamics.Schema.ContactContentionReportContracts do
 
   import OrbitalDynamics.Schema.StableIdValidation,
     only: [
+      reject_duplicate_ids: 3,
       validate_optional_stable_id_list: 4,
       validate_stable_id_list: 3,
       validate_stable_ids: 4
@@ -427,6 +428,7 @@ defmodule OrbitalDynamics.Schema.ContactContentionReportContracts do
     |> expect_optional_type(path, recommendation, "policy_warnings", :list)
     |> validate_string_list_items(path, recommendation, "policy_warnings")
     |> validate_recommendation_counts(path, recommendation)
+    |> validate_recommendation_identity(path, recommendation)
     |> validate_recommendation_duplicate_evidence(path, recommendation)
   end
 
@@ -832,6 +834,46 @@ defmodule OrbitalDynamics.Schema.ContactContentionReportContracts do
       selected_deferred_candidate_count(recommendation),
       "must equal selected plus deferred contact count"
     )
+  end
+
+  defp validate_recommendation_identity(
+         issues,
+         path,
+         %{
+           "selected_contact_id" => selected_contact_id,
+           "deferred_contact_ids" => deferred_contact_ids,
+           "source_contact_candidates" => source_contact_candidates
+         }
+       )
+       when is_binary(selected_contact_id) and is_list(deferred_contact_ids) and
+              is_list(source_contact_candidates) do
+    decision_ids = [selected_contact_id | deferred_contact_ids]
+
+    candidate_ids =
+      Enum.map(source_contact_candidates, fn
+        %{} = candidate -> Map.get(candidate, "id")
+        _candidate -> nil
+      end)
+
+    issues
+    |> reject_duplicate_ids(path <> ".deferred_contact_ids", decision_ids)
+    |> validate_recommendation_candidate_ids(path, decision_ids, candidate_ids)
+  end
+
+  defp validate_recommendation_identity(issues, _path, _recommendation), do: issues
+
+  defp validate_recommendation_candidate_ids(issues, path, decision_ids, candidate_ids) do
+    if Enum.sort(decision_ids) == Enum.sort(candidate_ids) do
+      issues
+    else
+      [
+        error(
+          path <> ".source_contact_candidates",
+          "contact IDs must match selected_contact_id plus deferred_contact_ids"
+        )
+        | issues
+      ]
+    end
   end
 
   defp selected_deferred_candidate_count(%{
