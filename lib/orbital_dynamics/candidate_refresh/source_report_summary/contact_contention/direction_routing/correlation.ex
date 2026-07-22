@@ -54,6 +54,12 @@ defmodule OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactContention
 
   def positive_counts(_counts), do: %{}
 
+  def positive_counts_or_nil(counts) do
+    counts
+    |> positive_counts()
+    |> non_empty_map()
+  end
+
   def map_or_empty(%{} = map), do: map
   def map_or_empty(_map), do: %{}
 

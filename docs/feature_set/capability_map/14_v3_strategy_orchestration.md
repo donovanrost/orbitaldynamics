@@ -1182,7 +1182,8 @@ mutating contact allocation, selecting candidates, or approving imports.
 Preserved contention direction contact maps are limited to positive direction
 counts and positive contention contact-ID counts, and direction routing is
 rebuilt from those correlated fields at flattened-source and replay boundaries.
-Raw direction counts remain conservative review pressure.
+Raw direction counts with positive integer evidence remain conservative review
+pressure.
 Preserved invalid-input IDs likewise require a matching positive invalid-input
 count at source aggregation, flattened-source, and replay boundaries. Compact
 CandidateRefresh schema validation rejects count/list mismatches, while runtime
@@ -1202,7 +1203,10 @@ validation and cannot create replay station-specific pressure.
 Compact contention contact-ID counts and direction contact lists are mutually
 correlated. Contact IDs must appear in positive direction evidence, contact
 totals cannot exceed positive direction counts, and raw direction counts remain
-pressure when uncorrelated contact identities are removed.
+pressure when uncorrelated contact identities are removed. Zero and negative
+direction entries are discarded at raw aggregation and compact replay
+boundaries, so map presence without positive direction evidence cannot create
+branch pressure.
 Branch-generated CandidateRefresh requests preserve direct mission-state and
 result-artifact-wrapped raw `source_contact_contention_report` /
 `contact_contention_report` inputs with wrapper-qualified request paths and

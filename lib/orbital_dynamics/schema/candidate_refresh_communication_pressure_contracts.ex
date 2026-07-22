@@ -23,6 +23,7 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshCommunicationPressureContracts 
     |> validate_contact_contention_required_actions(path, summary)
     |> validate_contact_contention_resource_scopes(path, summary)
     |> validate_contact_contention_ground_stations(path, summary)
+    |> validate_contact_contention_direction_counts(path, summary)
     |> validate_contact_contention_contact_ids(path, summary)
     |> validate_count_maps(path, summary, [
       "contact_contention_ground_station_counts",
@@ -274,6 +275,32 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshCommunicationPressureContracts 
   end
 
   defp validate_contact_contention_ground_stations(issues, _path, _summary), do: issues
+
+  defp validate_contact_contention_direction_counts(
+         issues,
+         path,
+         %{
+           "contract" => "contact_contention_report.v1",
+           "direction_counts" => counts
+         }
+       )
+       when is_map(counts) do
+    Enum.reduce(counts, issues, fn {direction, count}, acc ->
+      if is_integer(count) and count > 0 do
+        acc
+      else
+        [
+          error(
+            path <> ".direction_counts.#{direction}",
+            "must be a positive integer direction count"
+          )
+          | acc
+        ]
+      end
+    end)
+  end
+
+  defp validate_contact_contention_direction_counts(issues, _path, _summary), do: issues
 
   defp validate_contact_contention_contact_ids(
          issues,

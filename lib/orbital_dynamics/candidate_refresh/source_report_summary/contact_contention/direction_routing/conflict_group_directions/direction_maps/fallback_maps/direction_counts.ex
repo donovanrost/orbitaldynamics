@@ -9,9 +9,18 @@ defmodule OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactContention
     counts
     |> Enum.reduce(%{}, fn {direction, count}, acc ->
       case {ContactPairs.normalize_direction(direction), NumericValue.value(count)} do
-        {nil, _count} -> acc
-        {_direction, nil} -> acc
-        {direction, count} -> Map.update(acc, direction, trunc(count), &(&1 + trunc(count)))
+        {nil, _count} ->
+          acc
+
+        {_direction, nil} ->
+          acc
+
+        {direction, count} ->
+          count = trunc(count)
+
+          if count > 0,
+            do: Map.update(acc, direction, count, &(&1 + count)),
+            else: acc
       end
     end)
     |> non_empty_map()

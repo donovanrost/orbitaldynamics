@@ -18,6 +18,7 @@ defmodule OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactContention
       report_fields
       |> Enum.map(&elem(&1, 0))
       |> merge_count_maps()
+      |> Correlation.positive_counts_or_nil()
 
     contact_ids_by_direction =
       report_fields
@@ -33,7 +34,10 @@ defmodule OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactContention
   end
 
   defp report_fields(report) do
-    direction_counts = ConflictGroupDirections.direction_counts(report)
+    direction_counts =
+      report
+      |> ConflictGroupDirections.direction_counts()
+      |> Correlation.positive_counts_or_nil()
 
     raw_contact_id_counts =
       ConflictGroups.contact_id_counts(report) ||

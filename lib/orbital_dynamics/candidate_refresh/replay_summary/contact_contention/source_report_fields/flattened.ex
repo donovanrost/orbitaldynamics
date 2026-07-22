@@ -51,7 +51,9 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.ContactContention.Sourc
       )
 
     direction_counts =
-      source_report_family_merge_count_maps(source_reports, "direction_counts")
+      source_reports
+      |> source_report_family_merge_count_maps("direction_counts")
+      |> Correlation.positive_counts_or_nil()
 
     raw_contact_id_counts =
       source_report_family_merge_count_maps(

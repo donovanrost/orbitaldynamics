@@ -60,6 +60,44 @@ defmodule OrbitalDynamics.CandidateRefresh.ContactContentionReplaySummaryTest do
     assert mismatched_summary["branch_local_invalid_contact_input_pressure"]
   end
 
+  test "contact contention replay drops non-positive fallback direction pressure" do
+    refresh = %{
+      "source_contact_contention_report" => %{
+        "schema_contract" => "contact_contention_report.v1",
+        "conflict_groups" => [],
+        "invalid_contact_inputs" => [],
+        "direction_counts" => %{"negative_direction" => -1, "zero_direction" => 0}
+      }
+    }
+
+    source_summary = CandidateRefresh.source_report_summary(refresh)
+
+    refute Map.has_key?(source_summary, "source_report_contact_contention_direction_counts")
+
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "provenance" => %{"source_reports" => source_summary["source_reports"]}
+    }
+
+    replay_summary = CandidateRefresh.contact_contention_replay_summary(artifact)
+
+    assert replay_summary["direction_counts"] == %{}
+    refute replay_summary["branch_local_contact_contention_pressure"]
+
+    mixed_refresh =
+      put_in(
+        refresh,
+        ["source_contact_contention_report", "direction_counts"],
+        %{"down" => -2, "downlink" => 2}
+      )
+
+    mixed_source_summary = CandidateRefresh.source_report_summary(mixed_refresh)
+
+    assert mixed_source_summary["source_report_contact_contention_direction_counts"] == %{
+             "downlink" => 2
+           }
+  end
+
   test "source report summary aggregates direct contact contention core count maps" do
     refresh = %{
       "source_contact_contention_report" => %{
@@ -522,6 +560,7 @@ defmodule OrbitalDynamics.CandidateRefresh.ContactContentionReplaySummaryTest do
       "direction_counts" => %{
         "downlink" => 1,
         "malformed_direction" => 1,
+        "negative_direction" => -1,
         "zero_direction" => 0
       },
       "contact_ids_by_direction" => %{
@@ -553,8 +592,7 @@ defmodule OrbitalDynamics.CandidateRefresh.ContactContentionReplaySummaryTest do
 
     assert source_summary["source_report_contact_contention_direction_counts"] == %{
              "downlink" => 1,
-             "malformed_direction" => 1,
-             "zero_direction" => 0
+             "malformed_direction" => 1
            }
 
     assert source_summary["source_report_contact_contention_contact_ids_by_direction"] == %{
@@ -574,8 +612,7 @@ defmodule OrbitalDynamics.CandidateRefresh.ContactContentionReplaySummaryTest do
 
     assert replay_summary["direction_counts"] == %{
              "downlink" => 1,
-             "malformed_direction" => 1,
-             "zero_direction" => 0
+             "malformed_direction" => 1
            }
 
     assert replay_summary["contact_ids_by_direction"] == %{

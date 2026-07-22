@@ -2491,6 +2491,28 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshResourceProvenanceContractsTest
                  "$.provenance.source_reports.contact_contention_report.contact_contention_contact_id_counts.dl_primary")
            )
 
+    non_positive_contact_contention_direction =
+      put_in(
+        artifact_with_contact_contention_summary,
+        [
+          "provenance",
+          "source_reports",
+          "contact_contention_report",
+          "direction_counts",
+          "downlink"
+        ],
+        0
+      )
+
+    assert {:error, non_positive_contact_contention_direction_report} =
+             Schema.validate_artifact(non_positive_contact_contention_direction)
+
+    assert Enum.any?(
+             non_positive_contact_contention_direction_report["errors"],
+             &(&1["path"] ==
+                 "$.provenance.source_reports.contact_contention_report.direction_counts.downlink")
+           )
+
     invalid_contact_contention_input_id =
       put_in(
         artifact_with_contact_contention_summary,

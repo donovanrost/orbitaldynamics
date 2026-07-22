@@ -5,58 +5,57 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Correlate contention contact-ID counts.
+Normalize contention direction-count pressure.
 
 Status:
 Verified; ready for mechanical publish.
 
 Selection evidence:
-- Direction contact lists are filtered to positive contention contact-count
-  keys, but compact contact-count maps are not filtered in the reverse direction.
-- Contact IDs absent from positive direction evidence, and contact totals above
-  direction totals, can therefore survive and create branch pressure.
-- Raw conflict/source-candidate rows provide both sides of the correlation.
+- A conflict group can legitimately produce several contact-direction pairs,
+  so conflict-group count is not a valid upper bound for direction totals.
+- Raw fallback and preserved compact direction maps can retain zero or negative
+  counts even though routes already use only positive integer counts.
+- Replay pressure tests map presence, so a non-positive-only direction map can
+  independently create branch pressure without positive direction evidence.
 
 Intended behavior:
-- Retain only positive stable-ID contact counts whose IDs appear in correlated
-  positive direction lists and whose total does not exceed direction counts.
-- Rebuild direction contact lists/routes from the mutually correlated fields at
-  raw aggregation, flattened-source, and replay boundaries.
-- Preserve raw direction counts as pressure while preventing uncorrelated
-  contact-count identities from independently creating pressure.
+- Retain only positive integer direction counts at raw aggregation,
+  flattened-source, and replay boundaries.
+- Keep legitimate multi-contact and multi-direction totals independent of the
+  conflict-group scalar while eliminating non-positive-only pressure.
+- Align compact-summary schema checks, routes, and branch pressure with the same
+  positive direction evidence.
 
 Level 6 pillar advanced:
 Fleet-scale planning decisions and durable reproducible audit handoffs.
 
 Planned files:
-- contention contact-ID aggregation, direction correlation, replay, and
-  compact-summary schema correlation
-- substituted-contact and over-counted-contact challenge tests
+- contention direction aggregation, flattened source fields, replay, and
+  compact-summary schema validation
+- non-positive fallback and compact-direction challenge tests
 - contention artifact documentation and autonomous-loop ledger
 
 Verification:
-- Contact-contention replay and candidate-source focus -> `15 passed`.
+- Contact-contention replay and candidate-source focus -> `16 passed`.
 - CandidateRefresh compact-summary schema focus -> `4 passed`.
-- Corrected passive-wrapper and branch-generated provenance fixtures ->
-  `5 passed`.
+- Checked-in repair golden facade focus -> `1 passed`.
 - `mix test test/orbital_dynamics/**/*contact_contention*.exs --timeout 120000`
-  -> `103 passed`.
+  -> `104 passed`.
 - `mix orbital_dynamics.schema.lint --all` -> `155 passed`, no warnings.
 - `mix format --check-formatted` and `git diff --check` passed.
-- `mix test --timeout 120000` -> `3806 passed`.
+- `mix test --timeout 120000` -> `3807 passed`.
 
 Review:
-- Contact counts are normalized to positive stable IDs, intersected with
-  positive-direction contact lists, and bounded by the positive direction total.
-- Direction lists and routes rebuild from the retained contact counts per raw
-  report and at compact flattened/replay boundaries; direction counts remain
-  conservative scalar pressure when identities are discarded.
-- Runtime and schema challenge fixtures cover orphan identities, zero counts,
-  over-counted compact maps, and legacy provenance fixtures with explicit
-  direction evidence. No unresolved findings.
+- Non-positive fallback entries are discarded before provider-alias aggregation,
+  so they cannot cancel legitimate positive counts.
+- Raw aggregation and flattened/replay boundaries retain only positive integer
+  counts; compact schema validation rejects zero and negative direction entries.
+- Valid multi-contact/direction totals remain independent of conflict-group
+  count, and absent direction evidence remains absent to preserve golden artifact
+  identity. No unresolved findings.
 
 Last published slice:
-- `c15a31d9` Correlate contention station counts (`3806 passed`).
+- `c7ca9fa3` Correlate contention contact identities (`3806 passed`).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions while preserving explicit
@@ -67,8 +66,8 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-After publish, audit contention direction-count totals against conflict-group
-evidence for preserved compact summaries.
+After publish, audit contention direction-key identity normalization for
+preserved compact summaries.
 
 Blocked:
 None.
