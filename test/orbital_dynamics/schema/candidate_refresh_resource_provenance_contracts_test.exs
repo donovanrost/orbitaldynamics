@@ -2456,6 +2456,10 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshResourceProvenanceContractsTest
         "resource_scope_counts" => %{"ground_station" => 1},
         "contact_contention_ground_station_counts" => %{"equator_prime" => 1},
         "contact_contention_contact_id_counts" => %{"dl_primary" => 1, "dl_backup" => 1},
+        "direction_counts" => %{"downlink" => 2},
+        "contact_ids_by_direction" => %{
+          "downlink" => ["dl_primary", "dl_backup"]
+        },
         "required_operator_action_counts" => %{
           "review_contact_contention" => 1,
           "review_invalid_contact_contention_input" => 1
@@ -2594,6 +2598,28 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshResourceProvenanceContractsTest
              overcounted_contact_contention_station_report["errors"],
              &(&1["path"] ==
                  "$.provenance.source_reports.contact_contention_report.contact_contention_ground_station_counts")
+           )
+
+    overcounted_contact_contention_contact =
+      put_in(
+        artifact_with_contact_contention_summary,
+        [
+          "provenance",
+          "source_reports",
+          "contact_contention_report",
+          "contact_contention_contact_id_counts",
+          "dl_primary"
+        ],
+        3
+      )
+
+    assert {:error, overcounted_contact_contention_contact_report} =
+             Schema.validate_artifact(overcounted_contact_contention_contact)
+
+    assert Enum.any?(
+             overcounted_contact_contention_contact_report["errors"],
+             &(&1["path"] ==
+                 "$.provenance.source_reports.contact_contention_report.contact_contention_contact_id_counts")
            )
 
     artifact_with_candidate_rejection_summary =

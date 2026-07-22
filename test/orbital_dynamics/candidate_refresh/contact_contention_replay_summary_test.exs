@@ -515,6 +515,7 @@ defmodule OrbitalDynamics.CandidateRefresh.ContactContentionReplaySummaryTest do
       "conflict_group_count" => 0,
       "invalid_contact_input_count" => 0,
       "contact_contention_contact_id_counts" => %{
+        "orphan_contact" => 1,
         "real_contact" => 1,
         "zero_contact" => 0
       },
@@ -547,8 +548,7 @@ defmodule OrbitalDynamics.CandidateRefresh.ContactContentionReplaySummaryTest do
     source_summary = CandidateRefresh.source_report_summary(artifact)
 
     assert source_summary["source_report_contact_contention_contact_id_counts"] == %{
-             "real_contact" => 1,
-             "zero_contact" => 0
+             "real_contact" => 1
            }
 
     assert source_summary["source_report_contact_contention_direction_counts"] == %{
@@ -569,8 +569,7 @@ defmodule OrbitalDynamics.CandidateRefresh.ContactContentionReplaySummaryTest do
     replay_summary = CandidateRefresh.contact_contention_replay_summary(artifact)
 
     assert replay_summary["contact_contention_contact_id_counts"] == %{
-             "real_contact" => 1,
-             "zero_contact" => 0
+             "real_contact" => 1
            }
 
     assert replay_summary["direction_counts"] == %{

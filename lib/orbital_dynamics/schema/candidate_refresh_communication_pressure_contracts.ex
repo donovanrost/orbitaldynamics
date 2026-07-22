@@ -23,6 +23,7 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshCommunicationPressureContracts 
     |> validate_contact_contention_required_actions(path, summary)
     |> validate_contact_contention_resource_scopes(path, summary)
     |> validate_contact_contention_ground_stations(path, summary)
+    |> validate_contact_contention_contact_ids(path, summary)
     |> validate_count_maps(path, summary, [
       "contact_contention_ground_station_counts",
       "contact_contention_contact_id_counts"
@@ -273,4 +274,106 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshCommunicationPressureContracts 
   end
 
   defp validate_contact_contention_ground_stations(issues, _path, _summary), do: issues
+
+  defp validate_contact_contention_contact_ids(
+         issues,
+         path,
+         %{
+           "contract" => "contact_contention_report.v1"
+         } = summary
+       ) do
+    counts = Map.get(summary, "contact_contention_contact_id_counts")
+    direction_counts = Map.get(summary, "direction_counts")
+    contact_ids_by_direction = Map.get(summary, "contact_ids_by_direction")
+
+    if is_map(counts) or is_map(contact_ids_by_direction) do
+      counts = if is_map(counts), do: counts, else: %{}
+
+      positive_directions =
+        if is_map(direction_counts) do
+          direction_counts
+          |> Enum.filter(fn {_direction, count} -> is_integer(count) and count > 0 end)
+          |> Map.new()
+        else
+          %{}
+        end
+
+      allowed_contact_ids =
+        if is_map(contact_ids_by_direction) do
+          positive_directions
+          |> Map.keys()
+          |> Enum.flat_map(fn direction ->
+            case Map.get(contact_ids_by_direction, direction) do
+              ids when is_list(ids) -> ids
+              _ids -> []
+            end
+          end)
+          |> MapSet.new()
+        else
+          MapSet.new()
+        end
+
+      issues =
+        Enum.reduce(counts, issues, fn {contact_id, count}, acc ->
+          if StableIdValidation.valid?(contact_id) and is_integer(count) and count > 0 and
+               MapSet.member?(allowed_contact_ids, contact_id) do
+            acc
+          else
+            [
+              error(
+                path <> ".contact_contention_contact_id_counts.#{contact_id}",
+                "must use a positive stable contact ID present in positive direction evidence"
+              )
+              | acc
+            ]
+          end
+        end)
+
+      counted_contact_ids = Map.keys(counts) |> MapSet.new()
+
+      issues =
+        if is_map(contact_ids_by_direction) do
+          Enum.reduce(contact_ids_by_direction, issues, fn {direction, ids}, acc ->
+            if Map.has_key?(positive_directions, direction) and is_list(ids) and
+                 Enum.all?(ids, &MapSet.member?(counted_contact_ids, &1)) do
+              acc
+            else
+              [
+                error(
+                  path <> ".contact_ids_by_direction.#{direction}",
+                  "must correlate positive-direction contact IDs to positive contact counts"
+                )
+                | acc
+              ]
+            end
+          end)
+        else
+          issues
+        end
+
+      contact_count =
+        counts
+        |> Map.values()
+        |> Enum.filter(&(is_integer(&1) and &1 > 0))
+        |> Enum.sum()
+
+      direction_count = Enum.sum(Map.values(positive_directions))
+
+      if contact_count <= direction_count do
+        issues
+      else
+        [
+          error(
+            path <> ".contact_contention_contact_id_counts",
+            "contact-ID counts must not exceed positive direction counts"
+          )
+          | issues
+        ]
+      end
+    else
+      issues
+    end
+  end
+
+  defp validate_contact_contention_contact_ids(issues, _path, _summary), do: issues
 end

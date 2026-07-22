@@ -7,6 +7,10 @@ defmodule OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactContention
 
   alias OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactContention.CountFields.ConflictGroups
 
+  alias OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactContention.DirectionRouting.ConflictGroupDirections
+
+  alias OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactContention.DirectionRouting.Correlation
+
   import OrbitalDynamics.CandidateRefresh.SourceReportSummary.Common,
     only: [
       merge_count_maps: 1
@@ -51,7 +55,16 @@ defmodule OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactContention
 
   defp contact_id_counts(reports) do
     reports
-    |> Enum.map(&ConflictGroups.contact_id_counts/1)
+    |> Enum.map(fn report ->
+      direction_counts = ConflictGroupDirections.direction_counts(report)
+      contact_ids_by_direction = ConflictGroupDirections.contact_ids_by_direction(report)
+
+      Correlation.contact_id_counts(
+        direction_counts,
+        contact_ids_by_direction,
+        ConflictGroups.contact_id_counts(report)
+      )
+    end)
     |> merge_count_maps()
   end
 end

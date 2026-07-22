@@ -38,7 +38,7 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.ContactContention.Summa
         Map.get(contention_summary, "contact_contention_ground_station_counts")
       ) || %{}
 
-    contact_id_counts =
+    raw_contact_id_counts =
       contention_summary
       |> Map.get("contact_contention_contact_id_counts")
       |> Correlation.map_or_empty()
@@ -53,10 +53,19 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.ContactContention.Summa
     direction_counts =
       contention_summary |> Map.get("direction_counts") |> Correlation.map_or_empty()
 
+    raw_contact_ids_by_direction = Map.get(contention_summary, "contact_ids_by_direction")
+
+    contact_id_counts =
+      Correlation.contact_id_counts(
+        direction_counts,
+        raw_contact_ids_by_direction,
+        raw_contact_id_counts
+      ) || %{}
+
     contact_ids_by_direction =
       Correlation.contact_ids_by_direction(
         direction_counts,
-        Map.get(contention_summary, "contact_ids_by_direction"),
+        raw_contact_ids_by_direction,
         contact_id_counts
       ) || %{}
 

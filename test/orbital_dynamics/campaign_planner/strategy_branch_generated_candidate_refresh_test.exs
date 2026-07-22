@@ -650,6 +650,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyBranchGeneratedCandidateRefres
             "id" => "branch_contention_equator",
             "resource_scope" => "ground_station",
             "ground_station_id" => "equator_prime",
+            "direction" => "downlink",
             "contact_ids" => ["dl_branch_primary", "dl_branch_backup"],
             "required_operator_action" => "review_contact_contention"
           }

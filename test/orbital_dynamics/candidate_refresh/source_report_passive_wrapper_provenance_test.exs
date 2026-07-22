@@ -64,6 +64,7 @@ defmodule OrbitalDynamics.CandidateRefresh.SourceReportPassiveWrapperProvenanceT
             "id" => "station:equator_prime:contention:1",
             "ground_station_id" => "equator_prime",
             "resource_scope" => "ground_station",
+            "direction" => "downlink",
             "contact_ids" => ["dl_primary", "dl_backup"],
             "required_operator_action" => "review_contact_contention"
           }

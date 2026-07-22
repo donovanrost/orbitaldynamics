@@ -35,14 +35,23 @@ defmodule OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactContention
   defp report_fields(report) do
     direction_counts = ConflictGroupDirections.direction_counts(report)
 
-    contact_id_counts =
+    raw_contact_id_counts =
       ConflictGroups.contact_id_counts(report) ||
         Map.get(report, "contact_contention_contact_id_counts")
+
+    raw_contact_ids_by_direction = ConflictGroupDirections.contact_ids_by_direction(report)
+
+    contact_id_counts =
+      Correlation.contact_id_counts(
+        direction_counts,
+        raw_contact_ids_by_direction,
+        raw_contact_id_counts
+      )
 
     contact_ids_by_direction =
       Correlation.contact_ids_by_direction(
         direction_counts,
-        ConflictGroupDirections.contact_ids_by_direction(report),
+        raw_contact_ids_by_direction,
         contact_id_counts
       )
 

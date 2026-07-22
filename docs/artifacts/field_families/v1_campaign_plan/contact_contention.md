@@ -195,8 +195,8 @@ independently authorized identity.
 For preserved compact contention summaries, CandidateRefresh filters direction
 contact maps to positive direction-count keys and contact IDs with positive
 contention contact counts. It rebuilds the route map from those correlated
-fields at flattened-source and replay boundaries while retaining the raw count
-maps as conservative review evidence.
+fields at flattened-source and replay boundaries while retaining raw direction
+counts as conservative review evidence.
 Invalid-input ID lists from preserved compact summaries are retained only when
 their normalized length matches a positive `invalid_contact_input_count`.
 CandidateRefresh reapplies that correlation at flattened-source and replay
@@ -219,6 +219,11 @@ combined total does not exceed correlated `ground_station` resource-scope
 evidence. CandidateRefresh enforces the relationship per raw report and again
 at compact flattened-source and replay boundaries; malformed, zero-evidence,
 and over-counted station maps do not create station-specific pressure.
+Contact-ID count maps and direction contact lists are mutually correlated:
+positive contact counts retain only stable IDs present in positive direction
+evidence, their total cannot exceed positive direction counts, and direction
+lists are then rebuilt from those counts. Raw direction counts remain pressure
+when uncorrelated contact identities are removed.
 Its exported JSON Schema includes the nested row and `timeline_identity` field
 shape used by executable validation. Rows also carry artifact-only operational
 kind, required operator action, operator-action reason, execution boundary,

@@ -21,6 +21,27 @@ defmodule OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactContention
     |> non_empty_map()
   end
 
+  def contact_id_counts(direction_counts, contact_ids_by_direction, contact_id_counts) do
+    positive_direction_counts = positive_counts(direction_counts)
+
+    allowed_contact_ids =
+      direction_counts
+      |> contact_ids_by_direction(contact_ids_by_direction, contact_id_counts)
+      |> map_or_empty()
+      |> Map.values()
+      |> List.flatten()
+      |> MapSet.new()
+
+    correlated =
+      contact_id_counts
+      |> positive_counts()
+      |> Map.take(MapSet.to_list(allowed_contact_ids))
+
+    if Enum.sum(Map.values(correlated)) <= Enum.sum(Map.values(positive_direction_counts)),
+      do: non_empty_map(correlated),
+      else: nil
+  end
+
   def positive_counts(%{} = counts) do
     Enum.reduce(counts, %{}, fn {key, count}, positive ->
       if is_integer(count) and count > 0 do
