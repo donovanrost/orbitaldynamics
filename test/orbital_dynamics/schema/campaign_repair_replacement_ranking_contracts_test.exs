@@ -235,6 +235,11 @@ defmodule OrbitalDynamics.Schema.CampaignRepairReplacementRankingContractsTest d
        context.artifact
        |> put_in_path(row_path <> ".link_capacity_pressure_penalty", -1.0)
        |> put_in_path(row_path <> ".ranking_score", -95.0)},
+      {row_path <> ".link_capacity_pressure_penalty",
+       context.artifact
+       |> put_in_path(row_path <> ".link_capacity_pressure_penalty", -2.0)
+       |> put_in_path(row_path <> ".link_capacity_pressure_shortfall_mb", 1.0)
+       |> put_in_path(row_path <> ".ranking_score", -96.0)},
       {row_path <> ".resource_projection_pressure_risk_indicators",
        context.artifact
        |> put_in_path(row_path <> ".resource_projection_pressure_penalty", -1.0)

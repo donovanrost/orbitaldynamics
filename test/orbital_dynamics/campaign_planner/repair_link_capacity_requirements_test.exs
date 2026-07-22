@@ -184,6 +184,25 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairLinkCapacityRequirementsTest do
 
     assert {:ok, %{"schema_contract" => "campaign_repair.v2", "status" => "pass"}} =
              Schema.validate_artifact(shortfall_artifact)
+
+    invalid_ranking =
+      update_in(
+        shortfall_artifact,
+        ["activities", Access.at(0), "repair", "replacement_ranking", "rows", Access.at(0)],
+        fn row ->
+          row
+          |> Map.put("link_capacity_pressure_penalty", -0.5)
+          |> Map.update!("ranking_score", &(&1 - 0.25))
+        end
+      )
+
+    assert {:error, report} = Schema.validate_artifact(invalid_ranking)
+
+    assert Enum.any?(
+             report["errors"],
+             &(&1["path"] ==
+                 "$.activities[0].repair.replacement_ranking.rows[0].link_capacity_pressure_penalty")
+           )
   end
 
   test "repair link capacity uses mission-state downlink data volume requirement" do

@@ -274,9 +274,11 @@ schema-type their stable IDs, invalid-input flags, and protected/change counts.
   During greedy replacement ranking, each alternative is projected with already
   repaired and not-yet-processed planned activities; a projected selected
   shortfall subtracts the same calibrated `risk_weight` unit within the
-  candidate's semantic-diff priority tier. The final report is recomputed after
-  all repairs and remains authoritative rather than claiming global contact
-  optimization.
+  candidate's semantic-diff priority tier. Executable V2 validation requires
+  exactly that one negative weight unit when the row carries positive shortfall
+  evidence, and zero link pressure when the evidence is absent. The final report
+  is recomputed after all repairs and remains authoritative rather than claiming
+  global contact optimization.
 - `link_capacity_report.v1` over repaired downlink activities, preserving the
   same fixed-rate throughput summary shape used by V1 campaign artifacts.
 - `source_contact_filter_report`, `source_contact_allocation_report`, and
