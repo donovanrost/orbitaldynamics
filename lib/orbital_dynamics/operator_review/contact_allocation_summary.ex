@@ -144,9 +144,10 @@ defmodule OrbitalDynamics.OperatorReview.ContactAllocationSummary do
       reports,
       "calendar_entry_trust_boundary_status_counts"
     )
-    |> put_contact_allocation_count_summary(
+    |> put_correlated_id_count_map_summary(
       reports,
-      "station_reservation_match_status_counts"
+      "station_reservation_match_status_counts",
+      "station_reservation_contact_ids_by_match_status"
     )
     |> put_contact_allocation_count_summary(
       reports,
@@ -223,10 +224,6 @@ defmodule OrbitalDynamics.OperatorReview.ContactAllocationSummary do
     |> put_contact_allocation_list_summary(reports, "station_reservation_statuses")
     |> put_contact_allocation_list_summary(reports, "reduced_capacity_packed_contact_ids")
     |> put_contact_allocation_list_summary(reports, "reduced_capacity_deferred_contact_ids")
-    |> put_contact_allocation_id_map_summary(
-      reports,
-      "station_reservation_contact_ids_by_match_status"
-    )
     |> put_contact_allocation_id_map_summary(
       reports,
       "station_reservation_contact_ids_by_status"

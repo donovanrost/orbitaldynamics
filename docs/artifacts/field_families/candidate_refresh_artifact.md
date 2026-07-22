@@ -513,6 +513,8 @@ It preserves the following for audit **without changing refresh selection**:
 - contact-allocation blocked/deferred row counts
 - contact-allocation reservation-conflict count/contact-ID maps, direction
   routing maps, and reservation IDs by match status
+- contact-allocation station-reservation match-status counts with canonical
+  contact-ID routes at operator-review and Cadence-import handoff boundaries
 - contact-allocation reduced-capacity pack status and contact-status count maps
 - contact-allocation capacity-pack required-capacity demand totals plus
   selected/deferred per-station demand maps

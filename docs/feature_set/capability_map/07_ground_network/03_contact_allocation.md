@@ -490,6 +490,10 @@ so adapters can route contact queues without recounting rows.
   station contact-ID maps, required-capacity source counts/contact-ID maps,
   reduced-capacity pack group counts/statuses/IDs, and packed/deferred contact
   IDs at their own top-level adapter boundary.
+- Station-reservation contact IDs by match status are canonical and fix the
+  corresponding match-status contact count; match-status keys without contact
+  identity retain additive fallback. Reservation-ID routes remain separate
+  evidence and do not define contact cardinality.
 - Capacity-pack group IDs form a canonical top-level union across direct and
   status-routed identity evidence and fix the exact group count. Each supplied
   status route likewise fixes its status count; count-only keys and top-absent
