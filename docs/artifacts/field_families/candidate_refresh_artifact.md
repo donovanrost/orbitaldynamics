@@ -1205,6 +1205,11 @@ operator-review packages and Cadence import manifests also expose the
 provider-reservation request counts, request-status counts, contact-ID sets,
 station/direction/match-status contact-ID maps, and match-status
 reservation-ID maps as top-level handoff fields.
+Provider-reservation review contact IDs form one sorted unique top-level union
+across direct, station, direction, nested direction/station, and match-status
+routing. Any supplied review identity fixes the exact review-contact count,
+including explicit-empty zero; count-only legacy inputs retain additive fallback,
+and top-absent legacy routed artifacts remain valid.
 The same operator-review handoff accepts contact-allocation reports inside
 candidate-refresh `source_result_artifact` / `result_artifact` wrappers,
 preserving wrapper-qualified source paths and stable review IDs.

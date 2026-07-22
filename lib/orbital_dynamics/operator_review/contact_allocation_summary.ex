@@ -12,6 +12,13 @@ defmodule OrbitalDynamics.OperatorReview.ContactAllocationSummary do
      "station_pressure_contact_ids_by_precedence_rank"},
     {"station_pressure_contact_counts_by_status", "station_pressure_contact_ids_by_status"}
   ]
+  @provider_reservation_review_contact_id_fields [
+    "provider_reservation_review_contact_ids",
+    "provider_reservation_review_contact_ids_by_ground_station_id",
+    "provider_reservation_review_contact_ids_by_direction",
+    "provider_reservation_review_contact_ids_by_direction_and_ground_station_id",
+    "provider_reservation_review_contact_ids_by_match_status"
+  ]
 
   def put_from_paths(package, artifact, paths) do
     artifact = stringify_keys(artifact || %{})
@@ -178,10 +185,7 @@ defmodule OrbitalDynamics.OperatorReview.ContactAllocationSummary do
       reports,
       "provider_reservation_request_contact_count"
     )
-    |> put_contact_allocation_scalar_count_summary(
-      reports,
-      "provider_reservation_review_contact_count"
-    )
+    |> put_provider_reservation_review_identity_summary(reports)
     |> put_contact_allocation_scalar_count_summary(
       reports,
       "provider_reservation_no_request_contact_count"
@@ -219,7 +223,6 @@ defmodule OrbitalDynamics.OperatorReview.ContactAllocationSummary do
     |> put_contact_allocation_list_summary(reports, "reduced_capacity_packed_contact_ids")
     |> put_contact_allocation_list_summary(reports, "reduced_capacity_deferred_contact_ids")
     |> put_contact_allocation_list_summary(reports, "provider_reservation_request_contact_ids")
-    |> put_contact_allocation_list_summary(reports, "provider_reservation_review_contact_ids")
     |> put_contact_allocation_list_summary(reports, "provider_reservation_no_request_contact_ids")
     |> put_contact_allocation_id_map_summary(
       reports,
@@ -493,6 +496,34 @@ defmodule OrbitalDynamics.OperatorReview.ContactAllocationSummary do
         package
         |> Map.put("station_pressure_review_contact_count", length(contact_ids))
         |> Map.put("station_pressure_review_contact_ids", contact_ids)
+    end
+  end
+
+  defp put_provider_reservation_review_identity_summary(package, reports) do
+    identity_lists =
+      Enum.flat_map(reports, fn report ->
+        Enum.flat_map(@provider_reservation_review_contact_id_fields, fn field ->
+          collect_identity_lists(Map.get(report, field))
+        end)
+      end)
+
+    case identity_lists do
+      [] ->
+        put_contact_allocation_scalar_count_summary(
+          package,
+          reports,
+          "provider_reservation_review_contact_count"
+        )
+
+      identity_lists ->
+        contact_ids =
+          identity_lists
+          |> List.flatten()
+          |> canonical_stable_ids()
+
+        package
+        |> Map.put("provider_reservation_review_contact_count", length(contact_ids))
+        |> Map.put("provider_reservation_review_contact_ids", contact_ids)
     end
   end
 

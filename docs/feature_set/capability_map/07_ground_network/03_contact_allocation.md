@@ -490,6 +490,10 @@ so adapters can route contact queues without recounting rows.
   station contact-ID maps, required-capacity source counts/contact-ID maps,
   reduced-capacity pack group counts/statuses/IDs, and packed/deferred contact
   IDs at their own top-level adapter boundary.
+- Provider-reservation review contact identity is a canonical top-level union
+  across direct, station, direction, nested direction/station, and match-status
+  routes, and fixes the exact review count whenever identity evidence is
+  supplied. Count-only and top-absent routed legacy handoffs remain compatible.
 - Derived operator-review/import artifacts preserve station-pressure contact
   counts, canonical top-level contact IDs, and contact-ID maps by ground station,
   availability, precedence availability, and precedence rank, plus

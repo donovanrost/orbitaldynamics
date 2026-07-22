@@ -1533,6 +1533,96 @@ defmodule OrbitalDynamics.OperatorReview.ContactAllocationEmbeddedSummaryTest do
     end
   end
 
+  test "correlates provider-reservation review identity across routed summaries" do
+    repair =
+      OperatorReview.from_repair_artifact(%{
+        "repair_metadata" => %{"repair_id" => "repair:provider_review_overlap"},
+        "source_contact_allocation_report" => %{
+          "provider_reservation_review_contact_count" => 2,
+          "provider_reservation_review_contact_ids" => ["contact_source", "contact_shared"],
+          "provider_reservation_review_contact_ids_by_ground_station_id" => %{
+            "gs_a" => ["contact_station"]
+          },
+          "provider_reservation_review_contact_ids_by_direction" => %{
+            "downlink" => ["contact_direction"]
+          }
+        },
+        "contact_allocation_report" => %{
+          "provider_reservation_review_contact_count" => 2,
+          "provider_reservation_review_contact_ids" => ["contact_shared", "contact_result"],
+          "provider_reservation_review_contact_ids_by_direction_and_ground_station_id" => %{
+            "downlink" => %{"gs_b" => ["contact_nested"]}
+          },
+          "provider_reservation_review_contact_ids_by_match_status" => %{
+            "overlap" => ["contact_match"]
+          }
+        }
+      })
+
+    explicit_empty =
+      OperatorReview.from_campaign_artifact(%{
+        "plan_id" => "plan:provider_review_empty",
+        "contact_allocation_report" => %{
+          "provider_reservation_review_contact_count" => 9,
+          "provider_reservation_review_contact_ids_by_ground_station_id" => %{
+            "gs_empty" => []
+          }
+        }
+      })
+
+    scalar_only =
+      OperatorReview.from_campaign_artifact(%{
+        "plan_id" => "plan:provider_review_scalar",
+        "contact_allocation_report" => %{
+          "provider_reservation_review_contact_count" => 2
+        }
+      })
+
+    expected_review_ids = [
+      "contact_direction",
+      "contact_match",
+      "contact_nested",
+      "contact_result",
+      "contact_shared",
+      "contact_source",
+      "contact_station"
+    ]
+
+    assert repair["provider_reservation_review_contact_count"] == 7
+    assert repair["provider_reservation_review_contact_ids"] == expected_review_ids
+
+    assert repair["provider_reservation_review_contact_ids_by_ground_station_id"] == %{
+             "gs_a" => ["contact_station"]
+           }
+
+    assert repair["provider_reservation_review_contact_ids_by_direction"] == %{
+             "downlink" => ["contact_direction"]
+           }
+
+    assert repair[
+             "provider_reservation_review_contact_ids_by_direction_and_ground_station_id"
+           ] == %{"downlink" => %{"gs_b" => ["contact_nested"]}}
+
+    assert repair["provider_reservation_review_contact_ids_by_match_status"] == %{
+             "overlap" => ["contact_match"]
+           }
+
+    assert explicit_empty["provider_reservation_review_contact_count"] == 0
+    assert explicit_empty["provider_reservation_review_contact_ids"] == []
+
+    assert explicit_empty["provider_reservation_review_contact_ids_by_ground_station_id"] == %{
+             "gs_empty" => []
+           }
+
+    assert scalar_only["provider_reservation_review_contact_count"] == 2
+    refute Map.has_key?(scalar_only, "provider_reservation_review_contact_ids")
+
+    for package <- [repair, explicit_empty, scalar_only] do
+      assert {:ok, %{"schema_contract" => "operator_review_package.v1"}} =
+               Schema.validate_artifact(package)
+    end
+  end
+
   defp contact_allocation_summary(counts, summary) do
     %{
       "schema_contract" => "contact_allocation_report.v1",

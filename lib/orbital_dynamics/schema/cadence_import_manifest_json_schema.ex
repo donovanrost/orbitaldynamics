@@ -596,6 +596,12 @@ defmodule OrbitalDynamics.Schema.CadenceImportManifestJsonSchema do
     "station_pressure_contact_ids_by_status",
     "station_pressure_contact_ids_by_direction"
   ]
+  @canonical_id_map_fields @correlated_station_pressure_id_map_fields ++
+                             [
+                               "provider_reservation_review_contact_ids_by_ground_station_id",
+                               "provider_reservation_review_contact_ids_by_direction",
+                               "provider_reservation_review_contact_ids_by_match_status"
+                             ]
 
   @nested_stable_id_array_map_fields [
     "provider_reservation_no_request_contact_ids_by_direction_and_ground_station_id",
@@ -722,7 +728,11 @@ defmodule OrbitalDynamics.Schema.CadenceImportManifestJsonSchema do
   end
 
   def property(field, opts)
-      when field in ["station_pressure_contact_ids", "station_pressure_review_contact_ids"] do
+      when field in [
+             "station_pressure_contact_ids",
+             "station_pressure_review_contact_ids",
+             "provider_reservation_review_contact_ids"
+           ] do
     opts
     |> Keyword.fetch!(:stable_id_pattern)
     |> CommonJsonSchema.stable_id_array()
@@ -735,7 +745,7 @@ defmodule OrbitalDynamics.Schema.CadenceImportManifestJsonSchema do
     |> CommonJsonSchema.stable_id_array()
   end
 
-  def property(field, opts) when field in @correlated_station_pressure_id_map_fields do
+  def property(field, opts) when field in @canonical_id_map_fields do
     opts
     |> Keyword.fetch!(:stable_id_pattern)
     |> CommonJsonSchema.stable_id_array_map()
@@ -748,7 +758,11 @@ defmodule OrbitalDynamics.Schema.CadenceImportManifestJsonSchema do
     |> CommonJsonSchema.stable_id_array_map()
   end
 
-  def property("station_pressure_contact_ids_by_direction_and_ground_station_id", opts) do
+  def property(field, opts)
+      when field in [
+             "station_pressure_contact_ids_by_direction_and_ground_station_id",
+             "provider_reservation_review_contact_ids_by_direction_and_ground_station_id"
+           ] do
     opts
     |> Keyword.fetch!(:stable_id_pattern)
     |> CommonJsonSchema.nested_stable_id_array_map()

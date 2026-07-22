@@ -931,6 +931,113 @@ defmodule OrbitalDynamics.Schema.OperatorReviewSchemaContractsTest do
       assert Enum.any?(invalid_routes_report["errors"], &(&1["path"] == error_path))
     end
 
+    provider_review_map_fields = [
+      "provider_reservation_review_contact_ids_by_ground_station_id",
+      "provider_reservation_review_contact_ids_by_direction",
+      "provider_reservation_review_contact_ids_by_match_status"
+    ]
+
+    assert get_in(schema, [
+             "properties",
+             "provider_reservation_review_contact_ids",
+             "uniqueItems"
+           ]) == true
+
+    for field <- provider_review_map_fields do
+      assert get_in(schema, ["properties", field, "additionalProperties", "uniqueItems"]) ==
+               true
+    end
+
+    provider_review_nested_field =
+      "provider_reservation_review_contact_ids_by_direction_and_ground_station_id"
+
+    assert get_in(schema, [
+             "properties",
+             provider_review_nested_field,
+             "additionalProperties",
+             "additionalProperties",
+             "uniqueItems"
+           ]) == true
+
+    routed_provider_review_identity =
+      Map.merge(package, %{
+        "provider_reservation_review_contact_ids_by_ground_station_id" => %{
+          "gs_a" => ["contact_station"]
+        },
+        "provider_reservation_review_contact_ids_by_direction" => %{
+          "downlink" => ["contact_direction"]
+        },
+        provider_review_nested_field => %{
+          "downlink" => %{"gs_a" => ["contact_nested"]}
+        },
+        "provider_reservation_review_contact_ids_by_match_status" => %{
+          "overlap" => ["contact_match"]
+        }
+      })
+
+    assert {:ok, _package} = Schema.validate_artifact(routed_provider_review_identity)
+
+    valid_provider_review_identity =
+      Map.merge(routed_provider_review_identity, %{
+        "provider_reservation_review_contact_count" => 4,
+        "provider_reservation_review_contact_ids" => [
+          "contact_direction",
+          "contact_match",
+          "contact_nested",
+          "contact_station"
+        ]
+      })
+
+    assert {:ok, _package} = Schema.validate_artifact(valid_provider_review_identity)
+
+    incomplete_provider_review_identity =
+      Map.merge(routed_provider_review_identity, %{
+        "provider_reservation_review_contact_count" => 1,
+        "provider_reservation_review_contact_ids" => ["contact_station"]
+      })
+
+    assert {:error, incomplete_provider_review_identity_report} =
+             Schema.validate_artifact(incomplete_provider_review_identity)
+
+    assert Enum.any?(
+             incomplete_provider_review_identity_report["errors"],
+             &(&1["path"] == "$.provider_reservation_review_contact_ids")
+           )
+
+    invalid_provider_review_route =
+      Map.put(package, "provider_reservation_review_contact_ids_by_direction", %{
+        "downlink" => ["contact_b", "contact_a"]
+      })
+
+    assert {:error, invalid_provider_review_route_report} =
+             Schema.validate_artifact(invalid_provider_review_route)
+
+    assert Enum.any?(
+             invalid_provider_review_route_report["errors"],
+             &(&1["path"] ==
+                 "$.provider_reservation_review_contact_ids_by_direction.downlink")
+           )
+
+    for {contact_count, contact_ids, error_path} <- [
+          {2, ["contact_b", "contact_a"], "$.provider_reservation_review_contact_ids"},
+          {1, ["contact_a", "contact_a"], "$.provider_reservation_review_contact_ids"},
+          {2, ["contact_a"], "$.provider_reservation_review_contact_count"}
+        ] do
+      invalid_provider_review_identity =
+        Map.merge(package, %{
+          "provider_reservation_review_contact_count" => contact_count,
+          "provider_reservation_review_contact_ids" => contact_ids
+        })
+
+      assert {:error, invalid_provider_review_identity_report} =
+               Schema.validate_artifact(invalid_provider_review_identity)
+
+      assert Enum.any?(
+               invalid_provider_review_identity_report["errors"],
+               &(&1["path"] == error_path)
+             )
+    end
+
     invalid_station_pressure_ids =
       Map.put(package, "station_pressure_contact_ids", ["bad id"])
 
