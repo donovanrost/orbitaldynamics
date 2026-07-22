@@ -8,6 +8,7 @@ defmodule OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactAllocation
     DirectionRouting,
     PressureConflictSummary,
     ProviderReservationSummary,
+    RowCountCorrelation,
     SourceFields,
     StationReservationSummary
   }
@@ -27,6 +28,7 @@ defmodule OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactAllocation
     |> Map.merge(ProviderReservationSummary.fields(reports))
     |> correlate_direction_fields()
     |> CountMapCorrelation.fields()
+    |> RowCountCorrelation.fields()
     |> compact_map()
   end
 

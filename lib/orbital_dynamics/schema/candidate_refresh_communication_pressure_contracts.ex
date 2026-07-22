@@ -15,6 +15,9 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshCommunicationPressureContracts 
   alias OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactAllocation.CountMapCorrelation,
     as: ContactAllocationCountMapCorrelation
 
+  alias OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactAllocation.RowCountCorrelation,
+    as: ContactAllocationRowCountCorrelation
+
   alias OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactAllocation.DirectionRouting.Correlation,
     as: ContactAllocationDirectionCorrelation
 
@@ -63,10 +66,41 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshCommunicationPressureContracts 
       )
 
     issues
+    |> validate_contact_allocation_row_counts(path, summary)
     |> validate_contact_allocation_count_maps(path, summary)
     |> validate_contact_allocation_direction_fields(path, summary)
     |> validate_contact_allocation_direction_routing(path, summary)
   end
+
+  defp validate_contact_allocation_row_counts(
+         issues,
+         path,
+         %{"contract" => "contact_allocation_report.v1"} = summary
+       ) do
+    canonical_counts =
+      ContactAllocationRowCountCorrelation.correlated_counts(
+        Map.get(summary, "row_count"),
+        Map.get(summary, "blocked_row_count", 0),
+        Map.get(summary, "deferred_row_count", 0)
+      )
+
+    Enum.reduce(ContactAllocationRowCountCorrelation.count_fields(), issues, fn field, acc ->
+      if Map.has_key?(summary, field) and
+           Map.get(summary, field) != Map.fetch!(canonical_counts, field) do
+        [
+          error(
+            path <> ".#{field}",
+            "must be a nonnegative blocked/deferred row count within row_count"
+          )
+          | acc
+        ]
+      else
+        acc
+      end
+    end)
+  end
+
+  defp validate_contact_allocation_row_counts(issues, _path, _summary), do: issues
 
   defp validate_contact_allocation_count_maps(
          issues,

@@ -4,17 +4,26 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.ContactAllocation.Summa
   alias OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactAllocation.DirectionRouting
 
   alias OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactAllocation.CountMapCorrelation
+  alias OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactAllocation.RowCountCorrelation
 
   import OrbitalDynamics.CandidateRefresh.ReplaySummary.ContactAllocation.Summary.Normalization,
     only: [summary_integer: 2]
 
   def fields(allocation_summary) do
     row_count = summary_integer(allocation_summary, "row_count")
+
+    row_counts =
+      RowCountCorrelation.correlated_counts(
+        row_count,
+        summary_integer(allocation_summary, "blocked_row_count"),
+        summary_integer(allocation_summary, "deferred_row_count")
+      )
+
     direction_fields = DirectionRouting.direction_fields_from_summary(allocation_summary)
 
     %{
-      blocked_row_count: summary_integer(allocation_summary, "blocked_row_count"),
-      deferred_row_count: summary_integer(allocation_summary, "deferred_row_count"),
+      blocked_row_count: Map.fetch!(row_counts, "blocked_row_count"),
+      deferred_row_count: Map.fetch!(row_counts, "deferred_row_count"),
       review_contact_ids: Map.get(allocation_summary, "review_contact_ids"),
       allocation_status_counts:
         allocation_summary

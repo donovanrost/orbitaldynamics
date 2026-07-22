@@ -4,6 +4,7 @@ defmodule OrbitalDynamics.CandidateRefresh.ContactAllocationPressureMapReplaySum
   alias OrbitalDynamics.CandidateRefresh
 
   alias OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactAllocation.CountMapCorrelation
+  alias OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactAllocation.RowCountCorrelation
 
   test "allocation count maps merge string-equivalent positive entries" do
     counts = %{
@@ -18,6 +19,30 @@ defmodule OrbitalDynamics.CandidateRefresh.ContactAllocationPressureMapReplaySum
     assert CountMapCorrelation.correlated_counts(counts, 3) == %{"allocated" => 3}
     assert CountMapCorrelation.correlated_counts(counts, 2) == nil
     assert CountMapCorrelation.correlated_counts(counts, nil) == nil
+  end
+
+  test "blocked and deferred row counts form a bounded pair" do
+    assert RowCountCorrelation.correlated_counts(2, 1, 1) == %{
+             "blocked_row_count" => 1,
+             "deferred_row_count" => 1
+           }
+
+    assert RowCountCorrelation.correlated_counts(nil, 0, 0) == %{
+             "blocked_row_count" => 0,
+             "deferred_row_count" => 0
+           }
+
+    assert RowCountCorrelation.correlated_counts_or_nil(nil, nil, nil) == nil
+
+    assert RowCountCorrelation.correlated_counts(2, 2, 1) == %{
+             "blocked_row_count" => 0,
+             "deferred_row_count" => 0
+           }
+
+    assert RowCountCorrelation.correlated_counts(2, -1, 0) == %{
+             "blocked_row_count" => 0,
+             "deferred_row_count" => 0
+           }
   end
 
   test "contact allocation replay preserves pressure maps with partial identity" do
@@ -293,6 +318,34 @@ defmodule OrbitalDynamics.CandidateRefresh.ContactAllocationPressureMapReplaySum
     assert replay_summary["allocation_status_counts"] == %{}
     assert replay_summary["effective_allocation_status_counts"] == %{}
     assert replay_summary["allocation_reason_counts"] == %{}
+    refute replay_summary["branch_local_contact_allocation_pressure"]
+  end
+
+  test "contact allocation replay drops contradictory row-pressure scalars" do
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "provenance" => %{
+        "source_reports" => %{
+          "contact_allocation_report" => %{
+            "contract" => "contact_allocation_report.v1",
+            "count" => 1,
+            "row_count" => 2,
+            "blocked_row_count" => 2,
+            "deferred_row_count" => 1
+          }
+        }
+      }
+    }
+
+    source_summary = CandidateRefresh.source_report_summary(artifact)
+    replay_summary = CandidateRefresh.contact_allocation_replay_summary(artifact)
+
+    assert source_summary["source_report_contact_allocation_blocked_row_count"] == 0
+    assert source_summary["source_report_contact_allocation_deferred_row_count"] == 0
+    assert replay_summary["blocked_row_count"] == 0
+    assert replay_summary["deferred_row_count"] == 0
+    refute replay_summary["branch_local_blocked_allocation_pressure"]
+    refute replay_summary["branch_local_deferred_allocation_pressure"]
     refute replay_summary["branch_local_contact_allocation_pressure"]
   end
 

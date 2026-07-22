@@ -534,6 +534,8 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshResourceProvenanceContractsTest
         "contract" => "contact_allocation_report.v1",
         "count" => 1,
         "row_count" => 2,
+        "blocked_row_count" => 1,
+        "deferred_row_count" => 1,
         "allocation_status_counts" => %{"allocated" => 2},
         "effective_allocation_status_counts" => %{"allocated" => 2},
         "allocation_reason_counts" => %{"selected" => 2},
@@ -556,6 +558,29 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshResourceProvenanceContractsTest
 
     assert {:ok, %{"schema_contract" => "candidate_refresh.v1"}} =
              Schema.validate_artifact(artifact_with_allocation_direction_summary)
+
+    contradictory_allocation_row_counts =
+      put_in(
+        artifact_with_allocation_direction_summary,
+        [
+          "provenance",
+          "source_reports",
+          "contact_allocation_report",
+          "blocked_row_count"
+        ],
+        2
+      )
+
+    assert {:error, contradictory_allocation_row_count_report} =
+             Schema.validate_artifact(contradictory_allocation_row_counts)
+
+    for field <- ["blocked_row_count", "deferred_row_count"] do
+      assert Enum.any?(
+               contradictory_allocation_row_count_report["errors"],
+               &(&1["path"] ==
+                   "$.provenance.source_reports.contact_allocation_report.#{field}")
+             )
+    end
 
     noncanonical_allocation_count_maps =
       artifact_with_allocation_direction_summary
@@ -642,6 +667,14 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshResourceProvenanceContractsTest
           "effective_allocation_status_counts",
           "allocation_reason_counts"
         ] do
+      assert Enum.any?(
+               allocation_maps_without_row_count_report["errors"],
+               &(&1["path"] ==
+                   "$.provenance.source_reports.contact_allocation_report.#{field}")
+             )
+    end
+
+    for field <- ["blocked_row_count", "deferred_row_count"] do
       assert Enum.any?(
                allocation_maps_without_row_count_report["errors"],
                &(&1["path"] ==

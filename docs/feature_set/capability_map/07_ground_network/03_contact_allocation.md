@@ -75,7 +75,9 @@ The contact-filter, contact-contention, contact-intent, and command-window repor
 - allocation-reason contact-ID maps, preserved through candidate-refresh
   contact-allocation replay for branch-local triage queues
 - row-derived scalar allocation/contact counters, including declared
-  blocked/deferred counts for candidate-refresh replay
+  blocked/deferred counts for candidate-refresh replay; blocked/deferred row
+  counts remain mutually exclusive, nonnegative, and jointly bounded by
+  positive allocation row identity before they can create branch-local pressure
 - allocated, returned-allocated, deferred, blocked, and policy-blocked contact
   IDs plus allocated/returned/policy-blocked counts and station maps, preserved
   through candidate-refresh contact-allocation replay for branch-local

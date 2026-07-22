@@ -256,6 +256,12 @@ allocation pressure. Each independently preserved map must also total no more
 occurrences than a positive allocation row count; partial reason maps and custom
 status keys remain valid within that bound. Compact schema validation enforces
 the same canonical correlation.
+Blocked and deferred row scalars are also correlated as mutually exclusive
+effective states: both must be nonnegative and their sum cannot exceed the
+allocation row count. An all-zero pair remains valid without positive row
+identity, but positive scalar pressure requires a positive row total. Invalid
+pairs collapse to zero before branch-local pressure evaluation, and compact
+schema validation rejects the contradictory source values.
 Allocation row duplicate-contact and station-calendar overlap/reservation count
 fields are also executable integer counts, duplicate-contact collision rows must
 preserve candidate count, ID, and source-candidate evidence, and contention

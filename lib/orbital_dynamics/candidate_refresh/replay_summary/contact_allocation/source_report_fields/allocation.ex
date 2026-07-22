@@ -6,11 +6,19 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.ContactAllocation.Sourc
   alias OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactAllocation.DirectionRouting
 
   alias OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactAllocation.CountMapCorrelation
+  alias OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactAllocation.RowCountCorrelation
 
   import Aggregation
 
   def source_report_allocation_fields(source_reports) do
     row_count = source_report_family_identity_count(source_reports, "row_count")
+
+    row_counts =
+      RowCountCorrelation.correlated_counts_or_nil(
+        row_count,
+        source_report_family_count(source_reports, "blocked_row_count"),
+        source_report_family_count(source_reports, "deferred_row_count")
+      ) || %{}
 
     direction_fields =
       source_reports
@@ -19,9 +27,9 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.ContactAllocation.Sourc
 
     %{
       "source_report_contact_allocation_blocked_row_count" =>
-        source_report_family_count(source_reports, "blocked_row_count"),
+        Map.get(row_counts, "blocked_row_count"),
       "source_report_contact_allocation_deferred_row_count" =>
-        source_report_family_count(source_reports, "deferred_row_count"),
+        Map.get(row_counts, "deferred_row_count"),
       "source_report_contact_allocation_allocation_status_counts" =>
         source_reports
         |> source_report_family_merge_count_maps("allocation_status_counts")
