@@ -114,11 +114,30 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshCommunicationPressureContracts 
          path,
          %{"contract" => "contact_allocation_report.v1"} = summary
        ) do
-    field_pairs =
-      ContactAllocationOutcomeIdentityCorrelation.field_pairs() ++
-        ContactAllocationBlockedInputIdentityCorrelation.field_pairs()
+    issues
+    |> validate_contact_allocation_outcome_identities(path, summary)
+    |> validate_contact_allocation_blocked_input_identities(path, summary)
+  end
 
-    Enum.reduce(field_pairs, issues, fn
+  defp validate_contact_allocation_contact_identities(issues, _path, _summary), do: issues
+
+  defp validate_contact_allocation_outcome_identities(issues, path, summary) do
+    canonical = ContactAllocationOutcomeIdentityCorrelation.fields(summary)
+
+    Enum.reduce(
+      ContactAllocationOutcomeIdentityCorrelation.field_specs(),
+      issues,
+      fn {count_field, ids_field, routes_field}, acc ->
+        acc
+        |> validate_canonical_supplied_field(path, summary, canonical, ids_field)
+        |> validate_canonical_supplied_field(path, summary, canonical, routes_field)
+        |> validate_canonical_supplied_field(path, summary, canonical, count_field)
+      end
+    )
+  end
+
+  defp validate_contact_allocation_blocked_input_identities(issues, path, summary) do
+    Enum.reduce(ContactAllocationBlockedInputIdentityCorrelation.field_pairs(), issues, fn
       {count_field, ids_field}, acc ->
         count = Map.get(summary, count_field)
         contact_ids = Map.get(summary, ids_field)
@@ -153,7 +172,13 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshCommunicationPressureContracts 
     end)
   end
 
-  defp validate_contact_allocation_contact_identities(issues, _path, _summary), do: issues
+  defp validate_canonical_supplied_field(issues, path, summary, canonical, field) do
+    if Map.has_key?(summary, field) and Map.get(summary, field) != Map.get(canonical, field) do
+      [error(path <> ".#{field}", "must equal canonical allocation identity routing") | issues]
+    else
+      issues
+    end
+  end
 
   defp validate_contact_allocation_count_maps(
          issues,

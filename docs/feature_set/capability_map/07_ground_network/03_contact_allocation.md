@@ -83,7 +83,9 @@ The contact-filter, contact-contention, contact-intent, and command-window repor
   through candidate-refresh contact-allocation replay for branch-local
   allocation queues; top-level identity lists are canonical sorted unique stable
   IDs, and paired occurrence counts cannot be smaller than de-duplicated
-  identity cardinality while count-only or identity-only evidence remains usable
+  identity cardinality while count-only or identity-only evidence remains
+  usable. Station maps canonicalize stable stations/IDs, contribute to the
+  top-level identity union, and require counts to cover routed memberships
 - row-derived direction counts/contact-ID maps plus station-pressure and
   reservation-conflict direction and direction/ground-station routing,
   preserved through candidate-refresh contact-allocation replay for branch-local

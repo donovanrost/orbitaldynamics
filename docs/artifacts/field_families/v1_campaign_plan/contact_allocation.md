@@ -269,6 +269,12 @@ when both are present, an occurrence count may exceed de-duplicated identity
 cardinality but cannot be smaller. Replay drops only an undersized scalar while
 preserving valid identity pressure, and compact schema validation rejects the
 stale count/list pair.
+Primary outcome station maps canonicalize stable station keys and sorted unique
+stable contact IDs, then rebuild each top-level identity union from direct plus
+routed evidence. Route-only compact evidence therefore remains usable. A
+supplied occurrence count must cover both unique identities and routed
+memberships; replay drops an undersized scalar, while compact validation rejects
+noncanonical routes or count/route mismatches.
 Invalid-input, status-blocked, and resource-blocked count/ID pairs use the same
 identity-first rule. Their top-level lists remain canonical review evidence when
 a compact scalar is absent or undersized; valid occurrence counts may exceed

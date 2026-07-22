@@ -538,6 +538,9 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshResourceProvenanceContractsTest
         "deferred_row_count" => 1,
         "allocated_contact_count" => 2,
         "allocated_contact_ids" => ["dl_backup", "dl_primary"],
+        "allocated_contact_ids_by_ground_station" => %{
+          "equator_prime" => ["dl_backup", "dl_primary"]
+        },
         "allocation_status_counts" => %{"allocated" => 2},
         "effective_allocation_status_counts" => %{"allocated" => 2},
         "allocation_reason_counts" => %{"selected" => 2},
@@ -601,6 +604,30 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshResourceProvenanceContractsTest
              noncanonical_allocation_outcome_ids_report["errors"],
              &(&1["path"] ==
                  "$.provenance.source_reports.contact_allocation_report.allocated_contact_ids")
+           )
+
+    noncanonical_allocation_outcome_routes =
+      put_in(
+        artifact_with_allocation_direction_summary,
+        [
+          "provenance",
+          "source_reports",
+          "contact_allocation_report",
+          "allocated_contact_ids_by_ground_station"
+        ],
+        %{
+          "equator_prime" => ["dl_primary", "dl_backup", "dl_backup"],
+          "invalid station" => ["orphan_contact"]
+        }
+      )
+
+    assert {:error, noncanonical_allocation_outcome_routes_report} =
+             Schema.validate_artifact(noncanonical_allocation_outcome_routes)
+
+    assert Enum.any?(
+             noncanonical_allocation_outcome_routes_report["errors"],
+             &(&1["path"] ==
+                 "$.provenance.source_reports.contact_allocation_report.allocated_contact_ids_by_ground_station")
            )
 
     undersized_blocked_input_count =

@@ -5,51 +5,51 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Correlate blocked-input allocation identities.
+Correlate allocation outcome station routing.
 
 Status:
 Verified; ready to publish.
 
 Selection evidence:
-- Compact invalid-input, status-blocked, and resource-blocked count/ID pairs
-  retain the same stale-count and noncanonical-list gap as primary outcomes.
-- Existing replay deliberately preserves these identity-only review signals even
-  when explicit compact counts are zero.
-- Raw row-derived occurrence counts can exceed de-duplicated blocked identities.
+- Five primary outcome station maps currently bypass stable station/ID
+  canonicalization and count/list correlation.
+- Station-scoped maps are first-class compact identity evidence and must remain
+  usable when a top-level ID list is absent.
+- Raw row-derived routes provide canonical station membership evidence.
 
 Intended behavior:
-- Canonicalize the three blocked-input ID lists as sorted unique stable IDs.
-- Preserve identity-only evidence and count-only evidence independently.
-- Retain an occurrence count alongside IDs only when it is at least the unique
-  ID cardinality; compact schema validation rejects stale count/list pairs.
+- Canonicalize outcome station maps with stable station keys and stable IDs.
+- Rebuild each top-level outcome ID list from direct plus routed identities.
+- Preserve route-only evidence; retain a supplied occurrence count only when it
+  covers unique IDs and routed memberships, with matching compact validation.
 
 Level 6 pillar advanced:
 Fleet-scale planning decisions and durable reproducible audit handoffs.
 
 Planned files:
-- blocked-input allocation count/ID correlation across raw/flattened/replay
-- stale-count and noncanonical-ID compact schema/replay challenges
+- primary outcome station routing correlation across raw/flattened/replay
+- route-only, stale-count, and noncanonical-route compact challenges
 - allocation artifact documentation and autonomous-loop ledger
 
 Verification:
-- Focused replay/routing/schema challenges: `17 passed`.
-- Contact-allocation family: `186 passed`.
+- Focused replay/schema routing challenges: `17 passed`.
+- Contact-allocation family: `187 passed`.
 - Golden artifacts: `12 passed`.
 - Schema lint: `155` artifacts, no errors or warnings.
-- Full suite: `3816 passed`.
+- Full suite: `3817 passed`.
 - `mix format` and `git diff --check` passed.
 
 Review:
-- Raw, flattened, and replay paths now canonicalize invalid-input,
-  status-blocked, and resource-blocked identity pairs with the same
-  identity-first rule as primary outcomes.
-- Zero/stale counts cannot suppress valid review identities; undersized counts
-  are removed and rejected by compact schema validation.
-- Resource dimension/spacecraft routing, duplicate counting, and execution
-  boundaries remain unchanged and separately scoped.
+- Raw, flattened, and replay boundaries canonicalize the five selected station
+  maps and rebuild top-level outcome identities from direct plus routed evidence.
+- Route-only evidence remains usable; supplied counts must cover unique IDs and
+  routed memberships, while larger occurrence counts remain valid.
+- Compact validation rejects noncanonical routes and count/route mismatches.
+- Allocation-reason/resource routing and all execution boundaries remain
+  unchanged and separately scoped.
 
 Last published slice:
-- `a48eab50` Correlate allocation outcome identities (`3814 passed`).
+- `063ededc` Correlate blocked allocation identities (`3816 passed`).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions while preserving explicit
@@ -60,7 +60,7 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-After publish, audit allocation outcome station routing correlation.
+After publish, audit allocation reason identity routing correlation.
 
 Blocked:
 None.

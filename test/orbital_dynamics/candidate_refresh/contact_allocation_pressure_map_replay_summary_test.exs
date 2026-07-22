@@ -385,6 +385,44 @@ defmodule OrbitalDynamics.CandidateRefresh.ContactAllocationPressureMapReplaySum
     assert replay_summary["branch_local_contact_allocation_pressure"]
   end
 
+  test "contact allocation replay rebuilds identities from station routes" do
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "provenance" => %{
+        "source_reports" => %{
+          "contact_allocation_report" => %{
+            "contract" => "contact_allocation_report.v1",
+            "count" => 1,
+            "allocated_contact_ids_by_ground_station" => %{
+              "equator_prime" => ["allocated_b", "allocated_a", "allocated_a"],
+              "invalid station" => ["orphan_contact"]
+            }
+          }
+        }
+      }
+    }
+
+    source_summary = CandidateRefresh.source_report_summary(artifact)
+    replay_summary = CandidateRefresh.contact_allocation_replay_summary(artifact)
+
+    assert source_summary["source_report_contact_allocation_allocated_contact_ids"] == [
+             "allocated_a",
+             "allocated_b"
+           ]
+
+    assert source_summary[
+             "source_report_contact_allocation_allocated_contact_ids_by_ground_station"
+           ] == %{"equator_prime" => ["allocated_a", "allocated_b"]}
+
+    assert replay_summary["allocated_contact_ids"] == ["allocated_a", "allocated_b"]
+
+    assert replay_summary["allocated_contact_ids_by_ground_station"] == %{
+             "equator_prime" => ["allocated_a", "allocated_b"]
+           }
+
+    assert replay_summary["branch_local_contact_allocation_pressure"]
+  end
+
   test "contact allocation replay preserves blocked identities but drops undersized counts" do
     artifact = %{
       "schema_contract" => "candidate_refresh.v1",
