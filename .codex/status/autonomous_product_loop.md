@@ -5,32 +5,32 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Preserve selected-row station-calendar identity in provider pressure.
+Preserve selected-row operational window in provider pressure.
 
 Status:
 Verified; ready to publish.
 
 Selection evidence:
-- Provider-reservation review rows can carry station-calendar entry, provider,
-  and provider-entry IDs tied to the selected contact.
-- Provider-pressure event/risk construction currently drops all three IDs.
-- Branch comparison already exposes canonical station-calendar identity lists,
-  but they remain empty on this path because the event loses the row evidence.
+- Provider-reservation review rows can carry `source_window_id`, `starts_at_s`,
+  and `ends_at_s` tied to the selected contact.
+- Provider-pressure event/risk construction currently drops the operational
+  window, leaving the review risk without time-bounded source evidence.
+- Branch comparison has no versioned source-window/time fields yet; this slice
+  keeps that separate rather than emitting uncontracted comparison fields.
 
 Intended behavior:
-- Carry selected-row station-calendar entry/provider/provider-entry IDs through
-  the provider-pressure event, review risk, metadata, and comparison row.
-- Keep the identity canonical and contact-scoped without consulting aggregate
-  station-calendar maps.
-- Preserve request/review classification, scoring, approval, and execution
-  boundaries.
+- Carry selected-row source-window identity and normalized start/end times
+  through the provider-pressure event, review risk, and provenance metadata.
+- Keep the evidence contact-scoped without consulting aggregate windows.
+- Preserve comparison contracts, request/review classification, scoring,
+  approval, and execution boundaries.
 
 Level 6 pillar advanced:
 Fleet-scale planning decisions and durable reproducible audit handoffs.
 
 Planned files:
-- provider-pressure event/risk station-calendar identity
-- selected-row identity/comparison proof, docs, and loop ledger
+- provider-pressure event/risk operational-window evidence
+- selected-row window proof, docs, and loop ledger
 
 Verification:
 - Focused provider-pressure branch handoff: `9 passed`.
@@ -42,21 +42,20 @@ Verification:
 
 Review:
 - Provider-pressure events, review risks, and provenance metadata retain the
-  selected contact's station-calendar entry, provider, and provider-entry IDs.
-- Branch comparison exposes each identity as a canonical list for review/import
-  adapters without reopening source or aggregate calendar evidence.
+  selected contact's source-window ID and normalized start/end times.
+- The window remains selected-row and contact-scoped; no aggregate window map
+  creates a branch, score, or approval effect.
 - Existing provider and expiration risk counts, score terms, policy blocking,
-  and approval behavior remain unchanged; generated schemas and golden
-  artifacts do not change.
-- The trace is selected-row and contact-scoped; aggregate station-calendar maps
-  still cannot create a branch or planner effect.
+  and approval behavior remain unchanged.
+- Branch comparison emits no ad hoc window fields; generated schemas and golden
+  artifacts do not change ahead of a dedicated versioned comparison slice.
 - All no-provider-request, no-reservation, no-schedule-mutation,
   no-Cadence-write, no-operator-authority, and no-autonomous-execution
   boundaries remain intact.
 - Local review found no publish blocker.
 
 Last published slice:
-- `f946e386` Apply provider reservation expiration pressure (`3883 passed`).
+- `6edb85ab` Preserve provider pressure calendar identity (`3883 passed`).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions while preserving explicit
@@ -67,8 +66,8 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-Audit selected-row contact timing/source-window context loss in
-provider-pressure branches.
+Add versioned branch-comparison source-window/time context before carrying the
+selected window into review/import comparison rows.
 
 Blocked:
 None.

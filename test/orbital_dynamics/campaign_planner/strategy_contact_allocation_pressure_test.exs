@@ -762,6 +762,9 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyContactAllocationPressureTest 
           "station_calendar_entry_id" => "summary_provider_calendar_entry",
           "station_calendar_provider_id" => "summary_provider_calendar",
           "station_calendar_provider_entry_id" => "summary_provider_calendar_source_entry",
+          "source_window_id" => "summary_provider_source_window",
+          "starts_at_s" => 820.0,
+          "ends_at_s" => 880.0,
           "station_reservation_expires_at_s" => 360.0,
           "station_reservation_expiration_status" => "expired"
         })
@@ -1092,6 +1095,9 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyContactAllocationPressureTest 
     assert %{
              "type" => "provider_reservation_request_pressure",
              "contact_id" => "summary_provider_dl_review_overlap",
+             "source_window_id" => "summary_provider_source_window",
+             "starts_at_s" => 820.0,
+             "ends_at_s" => 880.0,
              "ground_station_id" => "equator_prime",
              "station_calendar_entry_id" => "summary_provider_calendar_entry",
              "station_calendar_provider_id" => "summary_provider_calendar",
@@ -1130,6 +1136,8 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyContactAllocationPressureTest 
              provider_branch["risk_indicators"],
              &(&1["type"] == "provider_reservation_request_review" and
                  &1["station_reservation_match_status"] == "overlap" and
+                 &1["source_window_id"] == "summary_provider_source_window" and
+                 &1["starts_at_s"] == 820.0 and &1["ends_at_s"] == 880.0 and
                  &1["station_calendar_reservation_ids"] == [
                    "summary_provider_reservation_review",
                    "summary_provider_reservation_review_backup"
@@ -1143,6 +1151,18 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyContactAllocationPressureTest 
                  &1["station_reservation_expires_at_s"] == 360.0 and
                  &1["station_reservation_expiration_status"] == "expired")
            )
+
+    assert get_in(provider_branch, [
+             "provenance",
+             "branch_metadata",
+             "source_window_id"
+           ]) == "summary_provider_source_window"
+
+    assert get_in(provider_branch, ["provenance", "branch_metadata", "starts_at_s"]) ==
+             820.0
+
+    assert get_in(provider_branch, ["provenance", "branch_metadata", "ends_at_s"]) ==
+             880.0
 
     assert get_in(provider_branch, [
              "provenance",
