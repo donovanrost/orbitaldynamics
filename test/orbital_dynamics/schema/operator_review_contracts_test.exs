@@ -1235,6 +1235,66 @@ defmodule OrbitalDynamics.Schema.OperatorReviewContractsTest do
     end
   end
 
+  test "preserves multi-window bounds on strategy comparison handoffs" do
+    package = read_json!("study_results/operator_review_package_v1.json")
+
+    source_window_bounds = [
+      %{"source_window_id" => "window_a", "earliest_starts_at_s" => 100.0},
+      %{"source_window_id" => "window_b", "latest_ends_at_s" => 200.0}
+    ]
+
+    strategy_tradeoff_row =
+      package["rows"]
+      |> hd()
+      |> Map.merge(%{
+        "review_type" => "strategy_tradeoff",
+        "branch_source_window_ids" => ["window_a", "window_b"],
+        "branch_source_window_bounds" => source_window_bounds,
+        "source_branch_comparison" => %{
+          "branch_source_window_ids" => ["window_a", "window_b"],
+          "branch_source_window_bounds" => source_window_bounds
+        }
+      })
+
+    strategy_package =
+      package
+      |> put_in(["rows", Access.at(0)], strategy_tradeoff_row)
+      |> Map.put("approval_requirement_count", 0)
+      |> Map.delete("tradeoff_count")
+      |> Map.delete("review_type_counts")
+
+    assert {:ok, _strategy_package} = Schema.validate_artifact(strategy_package)
+
+    missing_window_bounds =
+      update_in(
+        strategy_package,
+        ["rows", Access.at(0)],
+        &Map.delete(&1, "branch_source_window_bounds")
+      )
+
+    assert {:error, missing_window_bounds_report} =
+             Schema.validate_artifact(missing_window_bounds)
+
+    assert Enum.any?(
+             missing_window_bounds_report["errors"],
+             &(&1["path"] == "$.rows[0].branch_source_window_bounds")
+           )
+
+    stale_window_bounds =
+      put_in(
+        strategy_package,
+        ["rows", Access.at(0), "branch_source_window_bounds", Access.at(1), "latest_ends_at_s"],
+        201.0
+      )
+
+    assert {:error, stale_window_bounds_report} = Schema.validate_artifact(stale_window_bounds)
+
+    assert Enum.any?(
+             stale_window_bounds_report["errors"],
+             &(&1["path"] == "$.rows[0].branch_source_window_bounds")
+           )
+  end
+
   defp read_json!(path) do
     path
     |> File.read!()

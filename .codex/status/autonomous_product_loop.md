@@ -5,60 +5,54 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Correlate branch source-window timing by identity.
+Challenge multi-window source-copy preservation.
 
 Status:
 Verified; ready to publish.
 
 Selection evidence:
-- Aggregate earliest/latest fields intentionally summarize every timed branch
-  event, while source-window IDs are a separate sorted list.
-- A branch with multiple source windows cannot associate each ID with its own
-  timing, so review adapters must reopen event provenance.
-- A canonical per-window bounds row can add that audit correlation without
-  changing the existing aggregate window semantics.
+- Derivation proves duplicate-ID aggregation, but the integrated handoff proof
+  carries only one fully bounded source window.
+- Recommendation/tradeoff source-review challenges cover aggregate fields, not
+  the new correlated list.
+- Exact list equality and conditional presence should reject stale or omitted
+  multi-window copies without rejecting valid partial rows.
 
 Intended behavior:
-- Derive sorted unique source-window bound rows from source-window-bearing
-  events, using the earliest start and latest end per ID with partial support.
-- Preserve the versioned rows through operator-review and Cadence handoffs;
-  validate stable IDs, canonical order, bounds, source-ID correlation, and
-  source-copy consistency.
-- Keep the new context optional for legacy artifacts and preserve aggregate
-  timing, scoring, approval, and execution boundaries.
+- Prove a sorted multi-window list with independent partial endpoints survives
+  operator-review source comparison and Cadence recommendation handoffs.
+- Reject omitted or stale correlated lists at exact derived/source-review paths
+  for recommendation and tradeoff rows.
+- Keep this a proof-only compatibility slice unless a real adapter gap appears.
 
 Level 6 pillar advanced:
 Fleet-scale planning decisions and durable reproducible audit handoffs.
 
 Planned files:
-- branch comparison context, shared schema/validation, and adapters
-- multi-window provider/contract proofs, generated schemas, docs, and ledger
+- operator-review and Cadence source-copy challenge proofs
+- capability docs and loop ledger
 
 Verification:
-- Focused derivation/schema/handoff proofs: `52 passed`.
+- Focused operator/Cadence source-copy proofs: `26 passed`.
 - Contact-allocation family: `213 passed`.
 - Golden artifacts: `12 passed`.
 - Schema lint: `155` artifacts passed with zero errors or warnings.
-- Full suite: `3885 passed`.
+- Full suite: `3886 passed`.
 
 Review:
-- Per-ID bounds aggregate duplicate source-window events with minimum starts and
-  maximum ends, retain partial timing, sort canonically, and ignore timed events
-  with no source-window identity; existing all-event aggregate bounds are unchanged.
-- Executable validation enforces stable IDs, sorted uniqueness, at least one
-  endpoint, ordered endpoints, and membership in `branch_source_window_ids`.
-- Operator-review, Cadence comparison/recommendation/tradeoff rows, and shared
-  source-consistency checks preserve the correlated list.
-- The optional schema property reached twelve direct/dependent generated
-  schemas, including the bundle and study manifest. The canonical public V3
-  strategy artifact was regenerated through the runner and remained byte-stable.
-- Existing scoring, approval, and planner effects are unchanged. All
-  no-provider-request, no-reservation, no-schedule-mutation, no-Cadence-write,
-  no-operator-authority, and no-autonomous-execution boundaries remain intact.
-- Local review found no publish blocker.
+- A sorted two-window list with independent start-only/end-only rows validates
+  through an operator-review strategy comparison source copy.
+- Operator omission/conflict challenges fail at the derived bounds path;
+  Cadence recommendation and tradeoff stale copies fail at their exact nested
+  source-review paths, and tradeoff omission fails at the derived path.
+- This proof/docs-only slice found no adapter gap and changed no production
+  module, schema, golden artifact, scoring, approval, or execution behavior.
+- All no-provider-request, no-reservation, no-schedule-mutation,
+  no-Cadence-write, no-operator-authority, and no-autonomous-execution
+  boundaries remain intact; local review found no publish blocker.
 
 Last published slice:
-- `cbd55637` Prove partial strategy window handoffs (`3884 passed`).
+- `d1a8081e` Correlate branch window timing by identity (`3885 passed`).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions while preserving explicit
@@ -69,7 +63,7 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-Challenge multi-window bound preservation and stale source copies.
+Audit source-window bound coverage in selected-recommendation output.
 
 Blocked:
 None.

@@ -3486,16 +3486,23 @@ defmodule OrbitalDynamics.Schema.CadenceImportContractsTest do
   test "preserves partial branch windows on strategy source-review handoffs" do
     manifest = read_json!("study_results/cadence_import_manifest_v1.json")
 
+    recommendation_window_bounds = [
+      %{"source_window_id" => "window_a", "earliest_starts_at_s" => 100.0},
+      %{"source_window_id" => "window_b", "latest_ends_at_s" => 200.0}
+    ]
+
     recommendation_row =
       manifest["rows"]
       |> hd()
       |> Map.merge(%{
         "source_review_type" => "strategy_recommendation",
-        "branch_source_window_ids" => ["window_a"],
+        "branch_source_window_ids" => ["window_a", "window_b"],
+        "branch_source_window_bounds" => recommendation_window_bounds,
         "branch_earliest_starts_at_s" => 100.0,
         "source_review_row" => %{
           "review_type" => "strategy_recommendation",
-          "branch_source_window_ids" => ["window_a"],
+          "branch_source_window_ids" => ["window_a", "window_b"],
+          "branch_source_window_bounds" => recommendation_window_bounds,
           "branch_earliest_starts_at_s" => 100.0
         }
       })
@@ -3535,14 +3542,37 @@ defmodule OrbitalDynamics.Schema.CadenceImportContractsTest do
              &(&1["path"] == "$.rows[0].source_review_row.branch_earliest_starts_at_s")
            )
 
+    stale_recommendation_bounds =
+      put_in(
+        recommendation_manifest,
+        ["rows", Access.at(0), "branch_source_window_bounds", Access.at(1), "latest_ends_at_s"],
+        201.0
+      )
+
+    assert {:error, stale_recommendation_bounds_report} =
+             Schema.validate_artifact(stale_recommendation_bounds)
+
+    assert Enum.any?(
+             stale_recommendation_bounds_report["errors"],
+             &(&1["path"] == "$.rows[0].source_review_row.branch_source_window_bounds")
+           )
+
+    tradeoff_window_bounds = [
+      %{"source_window_id" => "window_c", "latest_ends_at_s" => 200.0}
+    ]
+
     tradeoff_row =
       manifest["rows"]
       |> hd()
       |> Map.merge(%{
         "source_review_type" => "strategy_tradeoff",
+        "branch_source_window_ids" => ["window_c"],
+        "branch_source_window_bounds" => tradeoff_window_bounds,
         "branch_latest_ends_at_s" => 200.0,
         "source_review_row" => %{
           "review_type" => "strategy_tradeoff",
+          "branch_source_window_ids" => ["window_c"],
+          "branch_source_window_bounds" => tradeoff_window_bounds,
           "branch_latest_ends_at_s" => 200.0
         }
       })
@@ -3579,6 +3609,36 @@ defmodule OrbitalDynamics.Schema.CadenceImportContractsTest do
     assert Enum.any?(
              stale_tradeoff_window_report["errors"],
              &(&1["path"] == "$.rows[0].source_review_row.branch_latest_ends_at_s")
+           )
+
+    missing_tradeoff_bounds =
+      update_in(
+        tradeoff_manifest,
+        ["rows", Access.at(0)],
+        &Map.delete(&1, "branch_source_window_bounds")
+      )
+
+    assert {:error, missing_tradeoff_bounds_report} =
+             Schema.validate_artifact(missing_tradeoff_bounds)
+
+    assert Enum.any?(
+             missing_tradeoff_bounds_report["errors"],
+             &(&1["path"] == "$.rows[0].branch_source_window_bounds")
+           )
+
+    stale_tradeoff_bounds =
+      put_in(
+        tradeoff_manifest,
+        ["rows", Access.at(0), "branch_source_window_bounds", Access.at(0), "latest_ends_at_s"],
+        201.0
+      )
+
+    assert {:error, stale_tradeoff_bounds_report} =
+             Schema.validate_artifact(stale_tradeoff_bounds)
+
+    assert Enum.any?(
+             stale_tradeoff_bounds_report["errors"],
+             &(&1["path"] == "$.rows[0].source_review_row.branch_source_window_bounds")
            )
   end
 
