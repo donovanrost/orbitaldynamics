@@ -1,6 +1,8 @@
 defmodule OrbitalDynamics.Schema.OperatorReviewPackageContracts do
   @moduledoc false
 
+  alias OrbitalDynamics.Schema.ContactAllocationHandoffContracts
+
   import OrbitalDynamics.Schema.CollectionValidation, only: [validate_rows: 4]
 
   import OrbitalDynamics.Schema.PrimitiveValidation,
@@ -108,6 +110,7 @@ defmodule OrbitalDynamics.Schema.OperatorReviewPackageContracts do
     |> validate_optional_stable_id_list(path, package, "station_reservation_ids")
     |> expect_optional_type(path, package, "station_pressure_contact_ids", :list)
     |> validate_optional_stable_id_list(path, package, "station_pressure_contact_ids")
+    |> ContactAllocationHandoffContracts.validate_station_pressure_identity_summary(path, package)
     |> expect_optional_type(path, package, "station_reserved_bys", :list)
     |> validate_string_list_items(path, package, "station_reserved_bys")
     |> expect_optional_type(path, package, "station_reservation_statuses", :list)

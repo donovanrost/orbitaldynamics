@@ -1151,7 +1151,9 @@ payloads, allocation summary counts, and reduced-capacity pack direction
 routing maps without selecting contacts or mutating allocations.
 The packages also expose canonical top-level station-pressure contact IDs
 alongside their counts and routing maps, and Cadence-import manifests preserve
-that same review identity.
+that same review identity. When top-level identity is present, both handoffs
+derive the count from the sorted unique ID union, including explicit-empty zero;
+scalar-only inputs retain their summed fallback count.
 Direct/list and result-artifact-wrapped `source_contact_allocation_summary` /
 `contact_allocation_summary` inputs lift through the same OperatorReview and
 CadenceImport handoff. Their validated compact

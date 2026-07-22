@@ -203,6 +203,42 @@ defmodule OrbitalDynamics.Schema.ContactAllocationHandoffContracts do
                                                             end
                                                           )
 
+  def validate_station_pressure_identity_summary(issues, path, artifact) do
+    case Map.get(artifact, "station_pressure_contact_ids") do
+      contact_ids when is_list(contact_ids) ->
+        canonical_contact_ids = contact_ids |> Enum.uniq() |> Enum.sort()
+
+        issues =
+          if contact_ids == canonical_contact_ids do
+            issues
+          else
+            [
+              error(
+                path <> ".station_pressure_contact_ids",
+                "must equal sorted unique station-pressure contact IDs"
+              )
+              | issues
+            ]
+          end
+
+        if Map.get(artifact, "station_pressure_contact_count") ==
+             length(canonical_contact_ids) do
+          issues
+        else
+          [
+            error(
+              path <> ".station_pressure_contact_count",
+              "must equal canonical station_pressure_contact_ids count"
+            )
+            | issues
+          ]
+        end
+
+      _contact_ids ->
+        issues
+    end
+  end
+
   def validate_expiration_summary(issues, path, artifact) do
     issues
     |> expect_optional_type(

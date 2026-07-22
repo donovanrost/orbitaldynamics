@@ -143,10 +143,7 @@ defmodule OrbitalDynamics.OperatorReview.ContactAllocationSummary do
       reports,
       "station_pressure_contact_counts_by_status"
     )
-    |> put_contact_allocation_scalar_count_summary(
-      reports,
-      "station_pressure_contact_count"
-    )
+    |> put_station_pressure_identity_summary(reports)
     |> put_contact_allocation_scalar_count_summary(
       reports,
       "station_pressure_review_contact_count"
@@ -231,7 +228,6 @@ defmodule OrbitalDynamics.OperatorReview.ContactAllocationSummary do
     |> put_contact_allocation_list_summary(reports, "capacity_pack_group_ids")
     |> put_contact_allocation_list_summary(reports, "reduced_capacity_packed_contact_ids")
     |> put_contact_allocation_list_summary(reports, "reduced_capacity_deferred_contact_ids")
-    |> put_contact_allocation_stable_id_list_summary(reports, "station_pressure_contact_ids")
     |> put_contact_allocation_list_summary(reports, "station_pressure_review_contact_ids")
     |> put_contact_allocation_list_summary(reports, "provider_reservation_request_contact_ids")
     |> put_contact_allocation_list_summary(reports, "provider_reservation_review_contact_ids")
@@ -486,22 +482,32 @@ defmodule OrbitalDynamics.OperatorReview.ContactAllocationSummary do
     end
   end
 
-  defp put_contact_allocation_stable_id_list_summary(package, reports, field) do
-    values =
-      reports
-      |> Enum.flat_map(fn report ->
-        case Map.get(report, field) do
-          values when is_list(values) -> values
-          _values -> []
-        end
-      end)
-      |> Enum.filter(&(is_binary(&1) and &1 != ""))
-      |> Enum.uniq()
-      |> Enum.sort()
+  defp put_station_pressure_identity_summary(package, reports) do
+    identity_supplied? =
+      Enum.any?(reports, &is_list(Map.get(&1, "station_pressure_contact_ids")))
 
-    case values do
-      [] -> package
-      values -> Map.put(package, field, values)
+    if identity_supplied? do
+      contact_ids =
+        reports
+        |> Enum.flat_map(fn report ->
+          case Map.get(report, "station_pressure_contact_ids") do
+            values when is_list(values) -> values
+            _values -> []
+          end
+        end)
+        |> Enum.filter(&(is_binary(&1) and &1 != ""))
+        |> Enum.uniq()
+        |> Enum.sort()
+
+      package
+      |> Map.put("station_pressure_contact_count", length(contact_ids))
+      |> Map.put("station_pressure_contact_ids", contact_ids)
+    else
+      put_contact_allocation_scalar_count_summary(
+        package,
+        reports,
+        "station_pressure_contact_count"
+      )
     end
   end
 

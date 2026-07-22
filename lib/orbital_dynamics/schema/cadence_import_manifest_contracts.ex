@@ -20,7 +20,7 @@ defmodule OrbitalDynamics.Schema.CadenceImportManifestContracts do
   import OrbitalDynamics.Schema.StableIdValidation,
     only: [validate_optional_stable_id_list: 4, validate_stable_ids: 4]
 
-  alias OrbitalDynamics.Schema.QualityGateHandoffContracts
+  alias OrbitalDynamics.Schema.{ContactAllocationHandoffContracts, QualityGateHandoffContracts}
 
   @optional_count_maps [
     "import_action_counts",
@@ -64,6 +64,10 @@ defmodule OrbitalDynamics.Schema.CadenceImportManifestContracts do
     |> validate_optional_stable_id_list(path, manifest, "station_reservation_ids")
     |> expect_optional_type(path, manifest, "station_pressure_contact_ids", :list)
     |> validate_optional_stable_id_list(path, manifest, "station_pressure_contact_ids")
+    |> ContactAllocationHandoffContracts.validate_station_pressure_identity_summary(
+      path,
+      manifest
+    )
     |> expect_optional_type(path, manifest, "station_reserved_bys", :list)
     |> validate_string_list_items(path, manifest, "station_reserved_bys")
     |> expect_optional_type(path, manifest, "station_reservation_statuses", :list)
