@@ -5,35 +5,36 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Correlate grouped station-pressure handoff routes.
+Canonicalize station-pressure direction handoffs.
 
 Status:
 Verified; ready to publish.
 
 Selection evidence:
-- Top-level review/import station-pressure identity and count now correlate.
-- Grouped ID maps already deduplicate overlapping source/replacement contacts,
-  while their paired count maps remain additive.
-- A live same-station probe produced `gs_shared: 4` beside three canonical IDs
-  in both OperatorReview and CadenceImport, and validation accepted the mismatch.
+- Grouped station-pressure count/ID pairs now correlate across handoffs.
+- Multi-report direction maps happen to deduplicate during merge, but one-report
+  flat and nested routes preserve duplicates and arbitrary order.
+- A live probe also showed mutually disjoint flat/nested direction IDs passing
+  validation; nested direction/station routing is absent from exported schemas.
 
 Intended behavior:
-- Correlate per-key counts and sorted unique IDs for station, availability,
-  precedence availability, precedence rank, and status maps.
-- Preserve additive per-key count fallback wherever grouped identity is absent,
-  including mixed legacy/identity-bearing maps.
-- Reject mismatched counts and noncanonical grouped IDs at both handoff schemas.
+- Canonicalize flat and nested direction routes across all embedded reports.
+- Include each nested direction/station ID in its flat direction union while
+  preserving direct flat-only evidence.
+- Reject noncanonical routes and nested IDs missing from a supplied flat route;
+  expose both maps with unique ID items in schemas and registries.
 
 Level 6 pillar advanced:
 Fleet-scale planning decisions and durable reproducible audit handoffs.
 
 Planned files:
-- operator-review grouped count/identity aggregation
-- shared review/import grouped correlation and exported schemas
-- overlap, explicit-empty, fallback, and schema challenge proofs plus docs/ledger
+- operator-review direction route aggregation
+- shared review/import direction correlation, schemas, and registries
+- direct/nested/overlap challenge proofs, regenerated strategy artifact, docs/ledger
 
 Verification:
 - Focused review/import/schema/strategy proofs: `124 passed`.
+- Validation-reference/report sync proofs: `7 passed`.
 - Contact-allocation family: `196 passed`.
 - Golden artifact suite: `12 passed`.
 - Schema lint: `155` artifacts, `0` errors, `0` warnings.
@@ -41,21 +42,22 @@ Verification:
 - `mix format` and `git diff --check` passed.
 
 Review:
-- Station, availability, precedence-availability, precedence-rank, and status
-  routes now derive exact per-key counts from sorted unique ID unions.
-- Explicit-empty grouped identity yields zero; keys without identity retain their
-  prior additive count fallback, including mixed legacy maps.
-- Shared handoff contracts reject noncanonical IDs and per-key count mismatch;
-  exported schemas declare unique ID arrays and now expose the status pair.
-- The deterministic strategy golden artifact was regenerated from its checked-in
-  request, replacing stale branch totals with exact routed-contact counts.
-- Cadence no longer invokes the same handoff validator twice, avoiding duplicate
-  diagnostics without changing validation coverage.
-- Direction routing and provider, schedule, planner-effect, and no-execution-
-  authority boundaries are unchanged.
+- Direct and nested station-pressure direction routes now merge into sorted
+  unique maps; nested station IDs populate the matching flat direction union.
+- Flat-only evidence remains valid, and nested-only legacy artifacts remain
+  schema-compatible while newly produced handoffs synthesize the flat route.
+- Executable contracts reject noncanonical routes and nested IDs omitted from a
+  supplied flat route; JSON schemas and registries now expose both route shapes.
+- The deterministic plan, repair, and strategy chain was regenerated in order;
+  the public strategy hash, request-lint SHA, and validation-reference byte
+  observation were updated from those exact generated artifacts.
+- Golden, schema, reference-fixture, and broad gates confirm the artifact cascade
+  is synchronized rather than unrelated fixture drift.
+- Provider, schedule, planner-effect, and no-execution-authority boundaries are
+  unchanged.
 
 Last published slice:
-- `ac17eadc` Correlate station pressure handoff counts (`3827 passed`).
+- `e598a19b` Correlate station pressure handoff routes (`3827 passed`).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions while preserving explicit
@@ -66,7 +68,7 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-After publish, audit direction-route correlation across overlapping handoffs.
+After publish, audit top-level identity coverage of grouped handoff routes.
 
 Blocked:
 None.

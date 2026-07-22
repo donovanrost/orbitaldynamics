@@ -1157,6 +1157,9 @@ scalar-only inputs retain their summed fallback count.
 Station, availability, precedence-availability, precedence-rank, and status maps
 apply that correlation per key while retaining additive fallback for keys without
 grouped identity evidence.
+Direction routes are canonical sorted unique maps; nested direction/station IDs
+are also lifted into the matching flat direction while direct flat-only evidence
+remains available.
 Direct/list and result-artifact-wrapped `source_contact_allocation_summary` /
 `contact_allocation_summary` inputs lift through the same OperatorReview and
 CadenceImport handoff. Their validated compact

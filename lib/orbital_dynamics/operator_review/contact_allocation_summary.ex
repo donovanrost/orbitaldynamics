@@ -249,10 +249,7 @@ defmodule OrbitalDynamics.OperatorReview.ContactAllocationSummary do
       reports,
       "station_reservation_ids_by_reserved_by"
     )
-    |> put_contact_allocation_id_map_summary(
-      reports,
-      "station_pressure_contact_ids_by_direction"
-    )
+    |> put_station_pressure_direction_routes(reports)
     |> put_contact_allocation_id_map_summary(reports, "capacity_pack_contact_ids_by_status")
     |> put_contact_allocation_id_map_summary(reports, "capacity_pack_contact_ids_by_direction")
     |> put_contact_allocation_id_map_summary(
@@ -354,10 +351,6 @@ defmodule OrbitalDynamics.OperatorReview.ContactAllocationSummary do
     |> put_contact_allocation_id_map_summary(
       reports,
       "resource_blocked_contact_ids_by_spacecraft_id"
-    )
-    |> put_contact_allocation_nested_id_map_summary(
-      reports,
-      "station_pressure_contact_ids_by_direction_and_ground_station_id"
     )
   end
 
@@ -489,6 +482,41 @@ defmodule OrbitalDynamics.OperatorReview.ContactAllocationSummary do
     end)
   end
 
+  defp put_station_pressure_direction_routes(package, reports) do
+    direct_ids_by_direction =
+      reports
+      |> Enum.map(&Map.get(&1, "station_pressure_contact_ids_by_direction"))
+      |> Enum.filter(&is_map/1)
+      |> merge_canonical_id_maps()
+
+    ids_by_direction_and_ground_station_id =
+      reports
+      |> Enum.map(&Map.get(&1, "station_pressure_contact_ids_by_direction_and_ground_station_id"))
+      |> Enum.filter(&is_map/1)
+      |> merge_canonical_nested_id_maps()
+
+    nested_ids_by_direction =
+      Map.new(ids_by_direction_and_ground_station_id, fn {direction, ids_by_station} ->
+        contact_ids =
+          ids_by_station
+          |> Map.values()
+          |> List.flatten()
+          |> canonical_stable_ids()
+
+        {direction, contact_ids}
+      end)
+
+    ids_by_direction =
+      merge_canonical_id_maps([direct_ids_by_direction, nested_ids_by_direction])
+
+    package
+    |> put_merged_id_map("station_pressure_contact_ids_by_direction", ids_by_direction)
+    |> put_merged_id_map(
+      "station_pressure_contact_ids_by_direction_and_ground_station_id",
+      ids_by_direction_and_ground_station_id
+    )
+  end
+
   defp put_correlated_id_count_map_summary(package, reports, count_field, id_field) do
     fallback_counts =
       reports
@@ -534,6 +562,36 @@ defmodule OrbitalDynamics.OperatorReview.ContactAllocationSummary do
     |> Enum.filter(&(is_binary(&1) and &1 != ""))
     |> Enum.uniq()
     |> Enum.sort()
+  end
+
+  defp merge_canonical_id_maps(maps) do
+    Enum.reduce(maps, %{}, fn map, acc ->
+      Enum.reduce(map, acc, fn
+        {key, contact_ids}, acc when is_list(contact_ids) ->
+          Map.update(acc, key, canonical_stable_ids(contact_ids), fn current ->
+            canonical_stable_ids(current ++ contact_ids)
+          end)
+
+        {_key, _contact_ids}, acc ->
+          acc
+      end)
+    end)
+  end
+
+  defp merge_canonical_nested_id_maps(maps) do
+    Enum.reduce(maps, %{}, fn map, acc ->
+      Enum.reduce(map, acc, fn
+        {direction, ids_by_station}, acc when is_map(ids_by_station) ->
+          canonical_ids_by_station = merge_canonical_id_maps([ids_by_station])
+
+          Map.update(acc, direction, canonical_ids_by_station, fn current ->
+            merge_canonical_id_maps([current, canonical_ids_by_station])
+          end)
+
+        {_direction, _ids_by_station}, acc ->
+          acc
+      end)
+    end)
   end
 
   defp put_merged_id_map(package, _field, values) when values == %{}, do: package

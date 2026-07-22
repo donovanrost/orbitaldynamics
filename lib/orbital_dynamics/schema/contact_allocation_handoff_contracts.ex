@@ -303,6 +303,94 @@ defmodule OrbitalDynamics.Schema.ContactAllocationHandoffContracts do
     end
   end
 
+  defp validate_station_pressure_direction_routes(issues, path, artifact) do
+    flat_field = "station_pressure_contact_ids_by_direction"
+    nested_field = "station_pressure_contact_ids_by_direction_and_ground_station_id"
+    ids_by_direction = Map.get(artifact, flat_field)
+    ids_by_direction_and_station = Map.get(artifact, nested_field)
+
+    issues = validate_canonical_id_map(issues, path, ids_by_direction, flat_field)
+
+    issues =
+      validate_canonical_nested_id_map(
+        issues,
+        path,
+        ids_by_direction_and_station,
+        nested_field
+      )
+
+    if is_map(ids_by_direction) and is_map(ids_by_direction_and_station) do
+      Enum.reduce(ids_by_direction_and_station, issues, fn {direction, ids_by_station}, acc ->
+        nested_ids =
+          if is_map(ids_by_station) do
+            ids_by_station
+            |> Map.values()
+            |> Enum.filter(&is_list/1)
+            |> List.flatten()
+            |> MapSet.new()
+          else
+            MapSet.new()
+          end
+
+        case Map.get(ids_by_direction, direction) do
+          flat_ids when is_list(flat_ids) ->
+            if MapSet.subset?(nested_ids, MapSet.new(flat_ids)) do
+              acc
+            else
+              [
+                error(
+                  "#{path}.#{flat_field}.#{direction}",
+                  "must include all nested direction/station contact IDs"
+                )
+                | acc
+              ]
+            end
+
+          _flat_ids ->
+            [
+              error(
+                "#{path}.#{flat_field}.#{direction}",
+                "must include the nested direction route"
+              )
+              | acc
+            ]
+        end
+      end)
+    else
+      issues
+    end
+  end
+
+  defp validate_canonical_id_map(issues, path, id_map, field) when is_map(id_map) do
+    Enum.reduce(id_map, issues, fn {key, contact_ids}, acc ->
+      cond do
+        not is_list(contact_ids) ->
+          [error("#{path}.#{field}.#{key}", "must be a list of stable IDs") | acc]
+
+        contact_ids != Enum.sort(Enum.uniq(contact_ids)) ->
+          [error("#{path}.#{field}.#{key}", "must equal sorted unique contact IDs") | acc]
+
+        true ->
+          acc
+      end
+    end)
+  end
+
+  defp validate_canonical_id_map(issues, _path, _id_map, _field), do: issues
+
+  defp validate_canonical_nested_id_map(issues, path, nested_id_map, field)
+       when is_map(nested_id_map) do
+    Enum.reduce(nested_id_map, issues, fn
+      {outer_key, %{} = id_map}, acc ->
+        validate_canonical_id_map(acc, "#{path}.#{field}", id_map, outer_key)
+
+      {outer_key, _id_map}, acc ->
+        [error("#{path}.#{field}.#{outer_key}", "must be a station-to-ID map") | acc]
+    end)
+  end
+
+  defp validate_canonical_nested_id_map(issues, _path, _nested_id_map, _field), do: issues
+
   def validate_expiration_summary(issues, path, artifact) do
     issues
     |> expect_optional_type(
@@ -426,11 +514,17 @@ defmodule OrbitalDynamics.Schema.ContactAllocationHandoffContracts do
       artifact,
       "station_pressure_contact_ids_by_status"
     )
+    |> validate_optional_stable_id_array_map(
+      path,
+      artifact,
+      "station_pressure_contact_ids_by_direction"
+    )
     |> validate_optional_nested_stable_id_array_map(
       path,
       artifact,
       "station_pressure_contact_ids_by_direction_and_ground_station_id"
     )
+    |> validate_station_pressure_direction_routes(path, artifact)
     |> validate_station_pressure_grouped_identity_summaries(path, artifact)
     |> expect_optional_non_negative_number(
       path,

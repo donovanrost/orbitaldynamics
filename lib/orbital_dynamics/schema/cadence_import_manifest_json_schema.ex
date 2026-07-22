@@ -593,14 +593,16 @@ defmodule OrbitalDynamics.Schema.CadenceImportManifestJsonSchema do
     "station_pressure_contact_ids_by_availability",
     "station_pressure_contact_ids_by_precedence_availability",
     "station_pressure_contact_ids_by_precedence_rank",
-    "station_pressure_contact_ids_by_status"
+    "station_pressure_contact_ids_by_status",
+    "station_pressure_contact_ids_by_direction"
   ]
 
   @nested_stable_id_array_map_fields [
     "provider_reservation_no_request_contact_ids_by_direction_and_ground_station_id",
     "provider_reservation_request_contact_ids_by_direction_and_ground_station_id",
     "provider_reservation_review_contact_ids_by_direction_and_ground_station_id",
-    "reservation_conflict_contact_ids_by_direction_and_ground_station_id"
+    "reservation_conflict_contact_ids_by_direction_and_ground_station_id",
+    "station_pressure_contact_ids_by_direction_and_ground_station_id"
   ]
 
   @string_array_fields [
@@ -743,6 +745,15 @@ defmodule OrbitalDynamics.Schema.CadenceImportManifestJsonSchema do
     opts
     |> Keyword.fetch!(:stable_id_pattern)
     |> CommonJsonSchema.stable_id_array_map()
+  end
+
+  def property("station_pressure_contact_ids_by_direction_and_ground_station_id", opts) do
+    opts
+    |> Keyword.fetch!(:stable_id_pattern)
+    |> CommonJsonSchema.nested_stable_id_array_map()
+    |> Map.update!("additionalProperties", fn id_map_schema ->
+      Map.update!(id_map_schema, "additionalProperties", &Map.put(&1, "uniqueItems", true))
+    end)
   end
 
   def property(field, opts) when field in @nested_stable_id_array_map_fields do

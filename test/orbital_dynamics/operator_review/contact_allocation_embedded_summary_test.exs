@@ -1304,6 +1304,12 @@ defmodule OrbitalDynamics.OperatorReview.ContactAllocationEmbeddedSummaryTest do
           "station_pressure_contact_counts_by_status" => %{"reservation_hold" => 2},
           "station_pressure_contact_ids_by_status" => %{
             "reservation_hold" => ["contact_source", "contact_shared"]
+          },
+          "station_pressure_contact_ids_by_direction" => %{
+            "downlink" => ["contact_source", "contact_shared"]
+          },
+          "station_pressure_contact_ids_by_direction_and_ground_station_id" => %{
+            "downlink" => %{"gs_shared" => ["contact_source", "contact_shared"]}
           }
         },
         "contact_allocation_report" => %{
@@ -1328,6 +1334,12 @@ defmodule OrbitalDynamics.OperatorReview.ContactAllocationEmbeddedSummaryTest do
           "station_pressure_contact_counts_by_status" => %{"reservation_hold" => 2},
           "station_pressure_contact_ids_by_status" => %{
             "reservation_hold" => ["contact_shared", "contact_result"]
+          },
+          "station_pressure_contact_ids_by_direction" => %{
+            "downlink" => ["contact_shared", "contact_result"]
+          },
+          "station_pressure_contact_ids_by_direction_and_ground_station_id" => %{
+            "downlink" => %{"gs_shared" => ["contact_shared", "contact_result"]}
           }
         }
       })
@@ -1339,7 +1351,10 @@ defmodule OrbitalDynamics.OperatorReview.ContactAllocationEmbeddedSummaryTest do
           "station_pressure_contact_count" => 9,
           "station_pressure_contact_ids" => [],
           "station_pressure_contact_counts_by_ground_station_id" => %{"gs_empty" => 9},
-          "station_pressure_contact_ids_by_ground_station_id" => %{"gs_empty" => []}
+          "station_pressure_contact_ids_by_ground_station_id" => %{"gs_empty" => []},
+          "station_pressure_contact_ids_by_direction_and_ground_station_id" => %{
+            "downlink" => %{"gs_empty" => []}
+          }
         }
       })
 
@@ -1378,6 +1393,14 @@ defmodule OrbitalDynamics.OperatorReview.ContactAllocationEmbeddedSummaryTest do
       assert repair[id_field] == %{key => expected_group_ids}
     end
 
+    assert repair["station_pressure_contact_ids_by_direction"] == %{
+             "downlink" => expected_group_ids
+           }
+
+    assert repair["station_pressure_contact_ids_by_direction_and_ground_station_id"] == %{
+             "downlink" => %{"gs_shared" => expected_group_ids}
+           }
+
     assert explicit_empty["station_pressure_contact_count"] == 0
     assert explicit_empty["station_pressure_contact_ids"] == []
 
@@ -1387,6 +1410,12 @@ defmodule OrbitalDynamics.OperatorReview.ContactAllocationEmbeddedSummaryTest do
 
     assert explicit_empty["station_pressure_contact_ids_by_ground_station_id"] == %{
              "gs_empty" => []
+           }
+
+    assert explicit_empty["station_pressure_contact_ids_by_direction"] == %{"downlink" => []}
+
+    assert explicit_empty["station_pressure_contact_ids_by_direction_and_ground_station_id"] == %{
+             "downlink" => %{"gs_empty" => []}
            }
 
     assert scalar_only["station_pressure_contact_count"] == 2

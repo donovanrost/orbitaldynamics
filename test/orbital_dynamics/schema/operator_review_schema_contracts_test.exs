@@ -799,6 +799,51 @@ defmodule OrbitalDynamics.Schema.OperatorReviewSchemaContractsTest do
       end
     end
 
+    flat_direction_field = "station_pressure_contact_ids_by_direction"
+    nested_direction_field = "station_pressure_contact_ids_by_direction_and_ground_station_id"
+
+    assert get_in(schema, [
+             "properties",
+             flat_direction_field,
+             "additionalProperties",
+             "uniqueItems"
+           ]) == true
+
+    assert get_in(schema, [
+             "properties",
+             nested_direction_field,
+             "additionalProperties",
+             "additionalProperties",
+             "uniqueItems"
+           ]) == true
+
+    valid_direction_routes =
+      package
+      |> Map.put(flat_direction_field, %{"downlink" => ["contact_a", "contact_b"]})
+      |> Map.put(nested_direction_field, %{"downlink" => %{"gs_a" => ["contact_b"]}})
+
+    assert {:ok, _package} = Schema.validate_artifact(valid_direction_routes)
+
+    nested_only_direction_route =
+      Map.put(package, nested_direction_field, %{"downlink" => %{"gs_a" => ["contact_b"]}})
+
+    assert {:ok, _package} = Schema.validate_artifact(nested_only_direction_route)
+
+    for {flat_ids, nested_ids, error_path} <- [
+          {["contact_b", "contact_a"], ["contact_b"], "$.#{flat_direction_field}.downlink"},
+          {["contact_a", "contact_b"], ["contact_b", "contact_b"],
+           "$.#{nested_direction_field}.downlink.gs_a"},
+          {["contact_a"], ["contact_b"], "$.#{flat_direction_field}.downlink"}
+        ] do
+      invalid_routes =
+        package
+        |> Map.put(flat_direction_field, %{"downlink" => flat_ids})
+        |> Map.put(nested_direction_field, %{"downlink" => %{"gs_a" => nested_ids}})
+
+      assert {:error, invalid_routes_report} = Schema.validate_artifact(invalid_routes)
+      assert Enum.any?(invalid_routes_report["errors"], &(&1["path"] == error_path))
+    end
+
     invalid_station_pressure_ids =
       Map.put(package, "station_pressure_contact_ids", ["bad id"])
 
