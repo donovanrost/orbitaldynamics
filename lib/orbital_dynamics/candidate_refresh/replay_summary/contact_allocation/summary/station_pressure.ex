@@ -3,10 +3,14 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.ContactAllocation.Summa
 
   alias OrbitalDynamics.CandidateRefresh.ReplaySummary.ContactAllocation.SourceReportFields
 
-  alias OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactAllocation.StationPressureReviewCorrelation
+  alias OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactAllocation.{
+    StationPressureReviewCorrelation,
+    StationPressureRoutingCorrelation
+  }
 
   def fields(allocation_summary) do
     review_fields = StationPressureReviewCorrelation.fields(allocation_summary)
+    routing_fields = StationPressureRoutingCorrelation.fields(allocation_summary)
 
     %{
       "station_pressure_contact_count" =>
@@ -16,9 +20,9 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.ContactAllocation.Summa
       "station_pressure_review_contact_ids" =>
         Map.get(review_fields, "station_pressure_review_contact_ids"),
       "station_pressure_ground_station_counts" =>
-        Map.get(allocation_summary, "station_pressure_ground_station_counts", %{}),
+        Map.get(routing_fields, "station_pressure_ground_station_counts", %{}),
       "station_pressure_contact_ids_by_ground_station" =>
-        Map.get(allocation_summary, "station_pressure_contact_ids_by_ground_station", %{}),
+        Map.get(routing_fields, "station_pressure_contact_ids_by_ground_station", %{}),
       "station_pressure_availability_counts" =>
         Map.get(allocation_summary, "station_pressure_availability_counts", %{}),
       "station_pressure_contact_ids_by_availability" =>
@@ -40,12 +44,12 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.ContactAllocation.Summa
       "station_pressure_contact_ids_by_status" =>
         Map.get(allocation_summary, "station_pressure_contact_ids_by_status", %{}),
       "station_pressure_direction_counts" =>
-        Map.get(allocation_summary, "station_pressure_direction_counts"),
+        Map.get(routing_fields, "station_pressure_direction_counts"),
       "station_pressure_contact_ids_by_direction" =>
-        Map.get(allocation_summary, "station_pressure_contact_ids_by_direction"),
+        Map.get(routing_fields, "station_pressure_contact_ids_by_direction"),
       "station_pressure_contact_ids_by_direction_and_ground_station" =>
         Map.get(
-          allocation_summary,
+          routing_fields,
           "station_pressure_contact_ids_by_direction_and_ground_station"
         )
     }

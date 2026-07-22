@@ -36,6 +36,9 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshCommunicationPressureContracts 
   alias OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactAllocation.StationPressureReviewCorrelation,
     as: ContactAllocationStationPressureReviewCorrelation
 
+  alias OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactAllocation.StationPressureRoutingCorrelation,
+    as: ContactAllocationStationPressureRoutingCorrelation
+
   alias OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactAllocation.ReservationConflictCorrelation,
     as: ContactAllocationReservationConflictCorrelation
 
@@ -92,6 +95,7 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshCommunicationPressureContracts 
     |> validate_contact_allocation_resource_blocking(path, summary)
     |> validate_contact_allocation_contact_identities(path, summary)
     |> validate_contact_allocation_station_pressure_review(path, summary)
+    |> validate_contact_allocation_station_pressure_routing(path, summary)
     |> validate_contact_allocation_reservation_conflict(path, summary)
     |> validate_contact_allocation_reason_identities(path, summary)
     |> validate_contact_allocation_direction_fields(path, summary)
@@ -276,6 +280,21 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshCommunicationPressureContracts 
   end
 
   defp validate_contact_allocation_station_pressure_review(issues, _path, _summary), do: issues
+
+  defp validate_contact_allocation_station_pressure_routing(
+         issues,
+         path,
+         %{"contract" => "contact_allocation_report.v1"} = summary
+       ) do
+    canonical = ContactAllocationStationPressureRoutingCorrelation.fields(summary)
+
+    Enum.reduce(ContactAllocationStationPressureRoutingCorrelation.fields(), issues, fn field,
+                                                                                        acc ->
+      validate_canonical_supplied_field(acc, path, summary, canonical, field)
+    end)
+  end
+
+  defp validate_contact_allocation_station_pressure_routing(issues, _path, _summary), do: issues
 
   defp validate_contact_allocation_reservation_conflict(
          issues,

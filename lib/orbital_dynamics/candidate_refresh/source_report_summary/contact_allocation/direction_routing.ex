@@ -5,6 +5,8 @@ defmodule OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactAllocation
 
   alias OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactAllocation.ReservationConflictCorrelation
 
+  alias OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactAllocation.StationPressureRoutingCorrelation
+
   def fields(reports) do
     reports
     |> InputFields.values()
@@ -22,6 +24,7 @@ defmodule OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactAllocation
   def direction_fields_from_summary(summary) when is_map(summary) do
     fields =
       summary
+      |> StationPressureRoutingCorrelation.fields()
       |> ReservationConflictCorrelation.fields()
       |> compact_fields_from_summary()
 
@@ -63,6 +66,9 @@ defmodule OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactAllocation
   end
 
   defp compact_field_value(:reservation_conflict_direction_counts, explicit_value, _derived),
+    do: explicit_value
+
+  defp compact_field_value(:station_pressure_direction_counts, explicit_value, _derived),
     do: explicit_value
 
   defp compact_field_value(_field, %{} = explicit_value, _derived), do: explicit_value

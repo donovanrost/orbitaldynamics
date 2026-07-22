@@ -92,9 +92,12 @@ The contact-filter, contact-contention, contact-intent, and command-window repor
 - row-derived direction counts/contact-ID maps plus station-pressure and
   reservation-conflict direction and direction/ground-station routing,
   preserved through candidate-refresh contact-allocation replay for branch-local
-  direction-scoped review queues. Reservation-conflict direct and routed stable
-  IDs form one canonical top-level identity union and exact unique-contact count,
-  with direction aliases and nested station keys normalized before replay
+  direction-scoped review queues. Station-pressure nested routes roll into
+  canonical direction/station parents and aggregate direction routing, with
+  positive local counts bounding identity cardinality. Reservation-conflict
+  direct and routed stable IDs form one canonical top-level identity union and
+  exact unique-contact count, with direction aliases and nested station keys
+  normalized before replay
   and match-status/direction count maps retained only when positive canonical
   local counts bound their routed contact and reservation identities. Nested
   station routes roll up into the aggregate direction-routing review identity

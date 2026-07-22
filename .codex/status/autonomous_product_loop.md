@@ -5,59 +5,59 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Correlate reservation-conflict aggregate direction routing.
+Correlate station-pressure hierarchical routing.
 
 Status:
 Verified; ready to publish.
 
 Selection evidence:
-- Nested direction/station conflict IDs contribute to exact top-level identity
-  but do not roll into the canonical IDs-by-direction map.
-- Aggregate `direction_routing` only consumes IDs-by-direction, so a nested-only
-  conflict direction can disappear from that review surface.
-- The shared correlation boundary already has both canonical route levels and
-  is the narrowest place to establish hierarchical parity.
+- Nested station-pressure direction/station IDs do not roll into either parent
+  direction or station identity map.
+- Aggregate `direction_routing` only consumes the direction parent, so a
+  nested-only pressure direction can disappear from that review surface.
+- Direction/station counts and identities currently bypass a shared canonical
+  key and local-cardinality boundary in compact replay.
 
 Intended behavior:
-- Rebuild IDs-by-direction as the union of direct and nested station-routed
-  conflict IDs for each canonical direction.
-- Feed that canonical union into aggregate `direction_routing`, including
-  nested-only directions without synthesizing absent local count evidence.
-- Reject compact reports whose supplied direct direction rollup omits or drifts
-  from nested routed identity.
+- Canonicalize station-pressure direction/station keys, IDs, and supported
+  nested route aliases in one shared boundary.
+- Roll nested identities into both direction and station parent maps, preserving
+  count-only and route-only evidence without synthesizing absent counts.
+- Keep only positive local counts that bound their canonical parent identities;
+  reject compact parent omissions, undersized counts, or aggregate route drift.
 
 Level 6 pillar advanced:
 Fleet-scale planning decisions and durable reproducible audit handoffs.
 
 Planned files:
-- shared reservation-conflict hierarchical direction correlation
-- nested-only, direct+nested union, compact replay, and schema parity tests
+- shared station-pressure routing correlation across raw/flattened/replay/schema
+- nested-only, parent-union, count-bound, aggregate, and schema challenge tests
 - allocation artifact documentation and autonomous-loop ledger
 
 Verification:
-- Focused reservation-conflict replay/planner/schema proofs: `31 passed`.
-- Contact-allocation family: `193 passed`.
+- Focused station-pressure replay/planner/schema proofs: `31 passed`.
+- Contact-allocation family: `195 passed`.
 - Golden artifact suite: `12 passed`.
 - Schema lint: `155` artifacts, `0` errors, `0` warnings.
-- Full suite: `3823 passed`.
+- Full suite: `3825 passed`.
 - `mix format` and `git diff --check` passed.
 
 Review:
-- Canonical nested station routes now merge both supported station-field aliases
-  and roll their unique IDs into the parent direction route.
-- Direct and nested identities union deterministically, preserving exact
-  top-level conflict identity and the previously correlated local count bound.
-- Shared direction-routing preparation now consumes that canonical hierarchy,
-  so flattened source fields, compact replay, and schema expected routes agree.
-- A nested-only direction carries aggregate conflict IDs without deriving an
-  absent specialized direction count; raw-row paths still retain their derived
-  explicit counts before aggregate routing.
-- Focused testing exposed the independent flattened/replay assembly boundary;
-  moving canonical preparation into shared direction routing closed both paths.
+- One shared correlation boundary now canonicalizes station and direction counts,
+  parent identity maps, and both nested route aliases across all replay layers.
+- Nested identities roll into both parent maps with deterministic stable-ID
+  ordering; multi-source planner evidence changed order only, not membership.
+- Positive count-only keys and route-only identities remain, while undersized
+  local counts disappear without suppressing canonical direct+nested routes.
+- Shared aggregate direction routing consumes the canonical direction parent and
+  does not synthesize a compact count that was absent from specialized evidence.
+- Focused fallback proof caught empty canonical unions being emitted as supplied
+  empty maps; returning nil restores scalar-only fallback while explicit source
+  empty maps continue to represent zero identity.
 - Provider, schedule, Cadence, and planner-effect boundaries are unchanged.
 
 Last published slice:
-- `0c8796d5` Correlate reservation conflict counts (`3823 passed`).
+- `acddcf25` Align reservation conflict direction routing (`3823 passed`).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions while preserving explicit
@@ -68,7 +68,7 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-After publish, audit station-pressure direction/station routing parity.
+After publish, audit station-pressure nonhierarchical route/count correlation.
 
 Blocked:
 None.

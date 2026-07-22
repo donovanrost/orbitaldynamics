@@ -164,11 +164,211 @@ defmodule OrbitalDynamics.CandidateRefresh.ContactAllocationStationPressureRepla
     assert source_summary["source_report_contact_allocation_station_pressure_contact_count"] == 2
 
     assert source_summary[
+             "source_report_contact_allocation_station_pressure_contact_ids_by_ground_station"
+           ] == %{"equator_prime" => ["station_pressure_a", "station_pressure_b"]}
+
+    assert source_summary[
+             "source_report_contact_allocation_station_pressure_contact_ids_by_direction"
+           ] == %{"downlink" => ["station_pressure_a", "station_pressure_b"]}
+
+    assert source_summary[
+             "source_report_contact_allocation_station_pressure_ground_station_counts"
+           ] == nil
+
+    assert source_summary[
+             "source_report_contact_allocation_station_pressure_direction_counts"
+           ] == nil
+
+    assert get_in(
+             source_summary,
+             [
+               "source_report_contact_allocation_direction_routing",
+               "downlink",
+               "station_pressure_contact_ids"
+             ]
+           ) == ["station_pressure_a", "station_pressure_b"]
+
+    assert source_summary[
              "source_report_contact_allocation_station_pressure_review_contact_count"
            ] == 1
 
     assert replay_summary["station_pressure_contact_count"] == 2
     assert replay_summary["station_pressure_review_contact_count"] == 1
+
+    assert replay_summary["station_pressure_contact_ids_by_ground_station"] == %{
+             "equator_prime" => ["station_pressure_a", "station_pressure_b"]
+           }
+
+    assert replay_summary["station_pressure_contact_ids_by_direction"] == %{
+             "downlink" => ["station_pressure_a", "station_pressure_b"]
+           }
+
+    assert replay_summary["station_pressure_ground_station_counts"] == %{}
+    assert replay_summary["station_pressure_direction_counts"] == nil
+
+    assert get_in(replay_summary, [
+             "direction_routing",
+             "downlink",
+             "station_pressure_contact_ids"
+           ]) == ["station_pressure_a", "station_pressure_b"]
+
+    refute get_in(replay_summary, [
+             "direction_routing",
+             "downlink",
+             "station_pressure_contact_count"
+           ])
+  end
+
+  test "station-pressure replay correlates parent routes and local counts" do
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "provenance" => %{
+        "source_reports" => %{
+          "contact_allocation_report" => %{
+            "contract" => "contact_allocation_report.v1",
+            "count" => 1,
+            "row_count" => 0,
+            "station_pressure_contact_count" => 99,
+            "station_pressure_ground_station_counts" => %{
+              "equator_prime" => 2,
+              "station_count_only" => 3,
+              "invalid station" => 4
+            },
+            "station_pressure_contact_ids_by_ground_station" => %{
+              "equator_prime" => ["direct_pressure"]
+            },
+            "station_pressure_direction_counts" => %{
+              "Down Link" => 1,
+              "dl" => 1,
+              "tracking" => 3,
+              "nil" => 4
+            },
+            "station_pressure_contact_ids_by_direction" => %{
+              "Down Link" => ["direct_pressure"]
+            },
+            "station_pressure_contact_ids_by_direction_and_ground_station" => %{
+              "dl" => %{"equator_prime" => ["nested_pressure"]}
+            },
+            "station_pressure_contact_ids_by_direction_and_ground_station_id" => %{
+              "downlink" => %{
+                "equator_prime" => ["nested_pressure"],
+                "invalid station" => ["orphan_pressure"]
+              }
+            }
+          }
+        }
+      }
+    }
+
+    source_summary = CandidateRefresh.source_report_summary(artifact)
+    replay_summary = CandidateRefresh.contact_allocation_replay_summary(artifact)
+    expected_ids = ["direct_pressure", "nested_pressure"]
+
+    assert source_summary[
+             "source_report_contact_allocation_station_pressure_ground_station_counts"
+           ] == %{"equator_prime" => 2, "station_count_only" => 3}
+
+    assert source_summary[
+             "source_report_contact_allocation_station_pressure_contact_ids_by_ground_station"
+           ] == %{"equator_prime" => expected_ids}
+
+    assert source_summary[
+             "source_report_contact_allocation_station_pressure_direction_counts"
+           ] == %{"downlink" => 2, "tracking" => 3}
+
+    assert source_summary[
+             "source_report_contact_allocation_station_pressure_contact_ids_by_direction"
+           ] == %{"downlink" => expected_ids}
+
+    assert source_summary[
+             "source_report_contact_allocation_station_pressure_contact_ids_by_direction_and_ground_station"
+           ] == %{"downlink" => %{"equator_prime" => ["nested_pressure"]}}
+
+    assert replay_summary["station_pressure_ground_station_counts"] == %{
+             "equator_prime" => 2,
+             "station_count_only" => 3
+           }
+
+    assert replay_summary["station_pressure_contact_ids_by_ground_station"] == %{
+             "equator_prime" => expected_ids
+           }
+
+    assert replay_summary["station_pressure_direction_counts"] == %{
+             "downlink" => 2,
+             "tracking" => 3
+           }
+
+    assert replay_summary["station_pressure_contact_ids_by_direction"] == %{
+             "downlink" => expected_ids
+           }
+
+    assert get_in(replay_summary, [
+             "direction_routing",
+             "downlink",
+             "station_pressure_contact_ids"
+           ]) == expected_ids
+
+    assert get_in(replay_summary, [
+             "direction_routing",
+             "downlink",
+             "station_pressure_contact_count"
+           ]) == 2
+  end
+
+  test "undersized station-pressure counts do not suppress parent identity routes" do
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "provenance" => %{
+        "source_reports" => %{
+          "contact_allocation_report" => %{
+            "contract" => "contact_allocation_report.v1",
+            "count" => 1,
+            "station_pressure_ground_station_counts" => %{"equator_prime" => 1},
+            "station_pressure_contact_ids_by_ground_station" => %{
+              "equator_prime" => ["pressure_a"]
+            },
+            "station_pressure_direction_counts" => %{"downlink" => 1},
+            "station_pressure_contact_ids_by_direction" => %{
+              "downlink" => ["pressure_a"]
+            },
+            "station_pressure_contact_ids_by_direction_and_ground_station" => %{
+              "downlink" => %{"equator_prime" => ["pressure_b"]}
+            }
+          }
+        }
+      }
+    }
+
+    source_summary = CandidateRefresh.source_report_summary(artifact)
+    replay_summary = CandidateRefresh.contact_allocation_replay_summary(artifact)
+    expected_ids = ["pressure_a", "pressure_b"]
+
+    assert source_summary[
+             "source_report_contact_allocation_station_pressure_ground_station_counts"
+           ] == nil
+
+    assert source_summary[
+             "source_report_contact_allocation_station_pressure_direction_counts"
+           ] == nil
+
+    assert source_summary[
+             "source_report_contact_allocation_station_pressure_contact_ids_by_ground_station"
+           ] == %{"equator_prime" => expected_ids}
+
+    assert source_summary[
+             "source_report_contact_allocation_station_pressure_contact_ids_by_direction"
+           ] == %{"downlink" => expected_ids}
+
+    assert replay_summary["station_pressure_ground_station_counts"] == %{}
+    assert replay_summary["station_pressure_direction_counts"] == nil
+
+    assert replay_summary["station_pressure_contact_ids_by_ground_station"] == %{
+             "equator_prime" => expected_ids
+           }
+
+    assert replay_summary["station_pressure_contact_ids_by_direction"] == %{
+             "downlink" => expected_ids
+           }
   end
 
   test "contact allocation replay treats explicit empty station-pressure maps as zero counts" do

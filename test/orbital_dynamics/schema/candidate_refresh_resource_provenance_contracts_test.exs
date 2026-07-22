@@ -548,8 +548,22 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshResourceProvenanceContractsTest
           "selected" => ["dl_backup", "dl_primary"]
         },
         "review_contact_ids" => ["review_a", "review_b"],
+        "station_pressure_contact_count" => 2,
         "station_pressure_review_contact_count" => 2,
         "station_pressure_review_contact_ids" => ["station_review_a", "station_review_b"],
+        "station_pressure_ground_station_counts" => %{"equator_prime" => 2},
+        "station_pressure_contact_ids_by_ground_station" => %{
+          "equator_prime" => ["station_pressure_a", "station_pressure_b"]
+        },
+        "station_pressure_direction_counts" => %{"downlink" => 2},
+        "station_pressure_contact_ids_by_direction" => %{
+          "downlink" => ["station_pressure_a", "station_pressure_b"]
+        },
+        "station_pressure_contact_ids_by_direction_and_ground_station" => %{
+          "downlink" => %{
+            "equator_prime" => ["station_pressure_a", "station_pressure_b"]
+          }
+        },
         "reservation_conflict_contact_count" => 2,
         "reservation_conflict_contact_ids" => ["conflict_a", "conflict_b"],
         "reservation_conflict_match_status_counts" => %{"overlap" => 2},
@@ -588,7 +602,8 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshResourceProvenanceContractsTest
             "provider_reservation_review_contact_ids" => [],
             "reservation_conflict_contact_count" => 2,
             "reservation_conflict_contact_ids" => ["conflict_a", "conflict_b"],
-            "station_pressure_contact_ids" => []
+            "station_pressure_contact_count" => 2,
+            "station_pressure_contact_ids" => ["station_pressure_a", "station_pressure_b"]
           }
         }
       })
@@ -723,6 +738,48 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshResourceProvenanceContractsTest
              noncanonical_station_pressure_review_ids_report["errors"],
              &(&1["path"] ==
                  "$.provenance.source_reports.contact_allocation_report.station_pressure_review_contact_ids")
+           )
+
+    incomplete_station_pressure_direction_rollup =
+      put_in(
+        artifact_with_allocation_direction_summary,
+        [
+          "provenance",
+          "source_reports",
+          "contact_allocation_report",
+          "station_pressure_contact_ids_by_direction"
+        ],
+        %{"downlink" => ["station_pressure_a"]}
+      )
+
+    assert {:error, incomplete_station_pressure_direction_rollup_report} =
+             Schema.validate_artifact(incomplete_station_pressure_direction_rollup)
+
+    assert Enum.any?(
+             incomplete_station_pressure_direction_rollup_report["errors"],
+             &(&1["path"] ==
+                 "$.provenance.source_reports.contact_allocation_report.station_pressure_contact_ids_by_direction")
+           )
+
+    undersized_station_pressure_ground_station_counts =
+      put_in(
+        artifact_with_allocation_direction_summary,
+        [
+          "provenance",
+          "source_reports",
+          "contact_allocation_report",
+          "station_pressure_ground_station_counts"
+        ],
+        %{"equator_prime" => 1}
+      )
+
+    assert {:error, undersized_station_pressure_ground_station_counts_report} =
+             Schema.validate_artifact(undersized_station_pressure_ground_station_counts)
+
+    assert Enum.any?(
+             undersized_station_pressure_ground_station_counts_report["errors"],
+             &(&1["path"] ==
+                 "$.provenance.source_reports.contact_allocation_report.station_pressure_ground_station_counts")
            )
 
     contradictory_reservation_conflict_count =

@@ -16,6 +16,7 @@ defmodule OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactAllocation
     ResourceBlockingCorrelation,
     RowCountCorrelation,
     SourceFields,
+    StationPressureRoutingCorrelation,
     StationPressureReviewCorrelation,
     StationReservationSummary
   }
@@ -32,6 +33,7 @@ defmodule OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactAllocation
     |> Map.merge(AllocationReportSummary.fields(reports))
     |> Map.merge(CapacityPackSummary.fields(reports))
     |> Map.merge(PressureConflictSummary.fields(reports))
+    |> StationPressureRoutingCorrelation.fields()
     |> ReservationConflictCorrelation.fields()
     |> Map.merge(ProviderReservationSummary.fields(reports))
     |> correlate_direction_fields()

@@ -105,9 +105,9 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyStationPressureSourceReportTes
              "station_pressure_review_contact_count" => 3,
              "station_pressure_contact_ids_by_ground_station" => %{
                "equator_prime" => [
+                 "canonical_dl_station_pressure",
                  "direct_dl_station_pressure",
-                 "wrapped_dl_station_pressure",
-                 "canonical_dl_station_pressure"
+                 "wrapped_dl_station_pressure"
                ]
              },
              "station_pressure_availability_counts" => %{"reserved" => 4},

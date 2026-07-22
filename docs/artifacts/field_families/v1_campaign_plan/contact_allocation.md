@@ -288,6 +288,11 @@ Station-pressure review identity has an exact unique-contact count: when its ID
 list is present, replay canonicalizes stable IDs and derives the count from that
 list; scalar-only summaries retain their fallback count. Compact validation
 rejects noncanonical IDs or a contradictory supplied count.
+Station-pressure direction/station routing canonicalizes direction aliases,
+station keys, and stable IDs, then rolls nested routes into both parent maps and
+aggregate `direction_routing`. Positive local counts must cover their parent
+identity cardinality; count-only and route-only evidence remain usable without
+synthesizing an absent count, while compact validation rejects hierarchy drift.
 Reservation-conflict identity similarly unifies direct IDs with match-status,
 direction, and direction/station routes. Replay canonicalizes stable contact,
 reservation, and station IDs plus direction aliases, rebuilds top-level contact
