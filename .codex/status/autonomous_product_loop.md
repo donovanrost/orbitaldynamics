@@ -5,52 +5,53 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Constrain provider-counteroffer pressure to canonical contract rows.
+Constrain contact-allocation pressure to contract-owned row families.
 
 Status:
 Complete; ready to publish.
 
 Selection evidence:
-- Provider-counteroffer reports, import-readiness summaries, and plan-impact
-  summaries declare distinct canonical row collections.
-- CampaignPlanner currently selects `impact_rows`, `import_readiness_rows`, or
-  `rows` by field presence rather than the declared schema contract.
-- A shadow `impact_rows` field can override a raw report or import-readiness
-  summary and create a provider-counteroffer review branch.
-- Full schema gating would unnecessarily remove canonical-row recovery from
-  summaries whose redundant aggregate maps are stale.
+- Five contact-allocation summary contracts own different base and derived row
+  collections, but CampaignPlanner currently unions all six possible fields.
+- A station-pressure summary can inject `reservation_conflict_rows`, while a
+  provider-request summary can inject generic `review_rows`; either can create
+  a contact-scoped branch when the shadow row carries a contact ID and status.
+- Aggregate routing maps already remain context-only and should not authorize
+  branches without an accepted row family.
 
 Implemented behavior:
-- Select `rows`, `import_readiness_rows`, or `impact_rows` from the declared
-  provider-counteroffer contract only.
-- Ignore shadow collections and unsupported contracts at the pressure boundary.
-- Preserve authoritative-row recovery when redundant aggregates are stale.
+- Map each contact-allocation summary contract to its owned row collections.
+- Ignore cross-family shadow collections and unsupported contracts.
+- Preserve established base/subset row recovery and aggregate context for
+  accepted contact-scoped rows.
 
 Level 6 pillar advanced:
 Fleet-scale planning decisions and durable reproducible audit handoffs.
 
 Files changed:
-- provider-counteroffer pressure-row dispatcher
-- raw-report and import-readiness shadow-row strategy challenges
+- contact-allocation compact-summary pressure-row extractor
+- station-pressure and provider-request cross-family challenge tests
 - V3 strategy capability documentation and autonomous-loop ledger
 
 Verification:
-- All CampaignPlanner provider-counteroffer tests: `7 passed`.
+- Focused contact-allocation/provider-request tests: `10 passed`.
+- Related allocation/station-pressure planner matrix: `21 passed`.
 - Full checked-artifact lint: `155/155 passed`, zero warnings.
-- Full suite with a 120-second per-test ceiling: `3790 passed`.
+- Full suite with a 120-second per-test ceiling: `3792 passed`.
 - `mix format --check-formatted`, `mix compile --warnings-as-errors`, and
   `git diff --check` passed.
 - No public artifact shape or checked-in schema export changed.
 
 Review:
-- Raw reports read only `rows`, import-readiness summaries read only
-  `import_readiness_rows`, and plan-impact summaries read only `impact_rows`.
-- Correct-contract rows keep their established normalization and source paths;
-  stale redundant aggregate fields remain non-authoritative.
-- Direct and result-artifact-wrapped inputs converge on this dispatcher.
+- Each of the five compact contracts accepts only its documented base/subset
+  row fields; cross-family fields and unsupported contracts yield no rows.
+- Accepted rows still require their existing contact identity and status gates
+  before allocation, reservation, or suppression branches can be created.
+- Aggregate capacity/station maps remain context-only and direct, wrapped, and
+  prior-plan paths converge on the same extractor.
 
 Last published slice:
-- `308aeca1` Constrain station reservation pressure rows (`3788 passed`).
+- `49a4cccc` Constrain counteroffer pressure rows (`3790 passed`).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions while preserving explicit

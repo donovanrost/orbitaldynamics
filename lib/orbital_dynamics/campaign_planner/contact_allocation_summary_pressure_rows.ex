@@ -1,17 +1,27 @@
 defmodule OrbitalDynamics.CampaignPlanner.ContactAllocationSummaryPressureRows do
   @moduledoc false
 
-  def rows(summary) do
-    summary_trust_boundary = trust_boundary(summary)
-
-    [
+  @row_fields_by_contract %{
+    "contact_allocation_summary.v1" => ["rows", "review_rows"],
+    "contact_allocation_station_pressure_summary.v1" => ["rows", "review_rows"],
+    "contact_allocation_reservation_conflict_summary.v1" => [
       "rows",
-      "review_rows",
       "reservation_conflict_rows",
-      "reservation_review_rows",
+      "reservation_review_rows"
+    ],
+    "contact_allocation_capacity_pack_summary.v1" => ["rows", "review_rows"],
+    "contact_allocation_provider_reservation_request_summary.v1" => [
+      "rows",
       "provider_reservation_request_rows",
       "provider_reservation_review_rows"
     ]
+  }
+
+  def rows(summary) do
+    summary_trust_boundary = trust_boundary(summary)
+
+    @row_fields_by_contract
+    |> Map.get(summary["schema_contract"], [])
     |> Enum.flat_map(fn field ->
       summary
       |> Map.get(field, [])

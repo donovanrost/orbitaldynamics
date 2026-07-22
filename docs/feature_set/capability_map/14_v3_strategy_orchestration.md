@@ -1079,6 +1079,10 @@ Branch-generated CandidateRefresh requests also carry mission-state
 	`contact_allocation_provider_reservation_request_summary` inputs, including
 	copies extracted from mission-state `source_result_artifact` /
 	`result_artifact` wrappers.
+CampaignPlanner maps each summary contract to its owned base and derived row
+collections before producing allocation pressure. Cross-family shadow rows and
+unsupported contracts cannot authorize branches; aggregate station/capacity
+routing maps remain context attached to accepted contact-scoped rows.
 Candidate-source audit paths and generated request input paths retain the
 wrapper-qualified summary path while the replay summary preserves the validated
 allocation, station-pressure,

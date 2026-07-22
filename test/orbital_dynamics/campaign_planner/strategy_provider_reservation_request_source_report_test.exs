@@ -194,6 +194,45 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyProviderReservationRequestSour
     end
   end
 
+  test "strategy ignores generic review rows on provider-reservation summaries" do
+    summary = %{
+      "schema_contract" => "contact_allocation_provider_reservation_request_summary.v1",
+      "model" => "artifact_only_contact_allocation_provider_reservation_request_summary",
+      "source_artifact_type" => "contact_allocation_report.v1",
+      "rows" => [],
+      "provider_reservation_request_rows" => [],
+      "provider_reservation_review_rows" => [],
+      "review_rows" => [
+        %{
+          "contact_id" => "shadow_provider_review_contact",
+          "allocation_status" => "deferred",
+          "effective_allocation_status" => "deferred",
+          "allocation_reason" => "same_station_contention",
+          "ground_station_id" => "shadow_station",
+          "direction" => "downlink"
+        }
+      ]
+    }
+
+    artifact =
+      strategy(base_plan(%{}),
+        mission_state:
+          mission_state_with_refresh_inputs()
+          |> Map.put(
+            "source_contact_allocation_provider_reservation_request_summary",
+            summary
+          ),
+        derive_branches?: true,
+        branches: [%{id: "baseline"}],
+        current_epoch_s: 0.0
+      )
+
+    refute branch(
+             artifact,
+             "derived_contact_allocation_pressure_deferred_shadow_provider_review_contact"
+           )
+  end
+
   defp contact_allocation_provider_reservation_request_summary_fixture(prefix) do
     request_row = %{
       "contact_id" => "#{prefix}_dl_reserved_owner",
