@@ -82,7 +82,7 @@ defmodule OrbitalDynamics.CadenceImport.ApprovalRequirementManifestRow do
     |> Map.put("invalidated_candidate_ids", candidate_diff["invalidated_candidate_ids"])
     |> Map.put("replacement_candidate_id", candidate_diff["replacement_candidate_id"])
     |> Map.put("invalidated_reason", candidate_diff["invalidated_reason"])
-    |> Map.put("semantic_change_reasons", candidate_diff["semantic_change_reasons"])
+    |> Map.put("semantic_change_reasons", semantic_change_reasons(candidate_diff))
     |> Map.put("semantic_change_details", candidate_diff["semantic_change_details"])
     |> put_candidate_diff_changed_fields(candidate_diff, callbacks)
     |> Map.put("candidate_diff_match_status", candidate_diff["candidate_diff_match_status"])
@@ -93,6 +93,28 @@ defmodule OrbitalDynamics.CadenceImport.ApprovalRequirementManifestRow do
     |> Map.put("candidate_budget_match_status", candidate_diff["candidate_budget_match_status"])
     |> Map.put("candidate_budget_match_count", candidate_diff["candidate_budget_match_count"])
     |> Map.put("budget_dropped_candidate_ids", candidate_diff["budget_dropped_candidate_ids"])
+  end
+
+  defp semantic_change_reasons(candidate_diff) do
+    detail_reasons =
+      candidate_diff
+      |> Map.get("semantic_change_details")
+      |> List.wrap()
+      |> Enum.filter(&is_map/1)
+      |> Enum.map(&Map.get(&1, "reason"))
+      |> Enum.filter(&is_binary/1)
+
+    case detail_reasons do
+      [] ->
+        candidate_diff
+        |> Map.get("semantic_change_reasons")
+        |> List.wrap()
+        |> Enum.filter(&is_binary/1)
+        |> Enum.uniq()
+
+      reasons ->
+        reasons
+    end
   end
 
   defp put_candidate_diff_changed_fields(row, candidate_diff, callbacks) do

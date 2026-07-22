@@ -65,5 +65,6 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyContracts do
       Map.get(artifact, "strategy_metadata", %{}),
       ["strategy_id", "baseline_branch_id"]
     )
+    |> OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts.validate(artifact)
   end
 end

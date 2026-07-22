@@ -47,6 +47,16 @@ the same combined semantic validator used by manifest lint:
 `OrbitalDynamics.Study.Manifest.from_map/1 +
 OrbitalDynamics.StudyRunner.validate_run_inputs/2`.
 
+`campaign_strategy.v3` declares its complete produced top-level surface.
+Source-repair identity, score-term, objective-tradeoff, Pareto-frontier,
+operational-feedback provenance, and Cadence-import fields remain optional for
+older artifacts; the four report fields embed their direct V1 contracts.
+Executable validation applies those nested contracts at their strategy paths
+and rejects stale feedback-provenance source counts, undeclared source
+references, or input keys that no longer match the nonempty operational
+feedback fields. The checked V3 strategy must have no top-level producer key
+outside the generated schema property set.
+
 Run artifact linting against the examples before treating a generated artifact
 as a compatibility example:
 

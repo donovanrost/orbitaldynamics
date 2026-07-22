@@ -164,7 +164,6 @@ defmodule OrbitalDynamics.CadenceImport.CandidateDiffManifestRow do
     |> List.wrap()
     |> Enum.map(&Map.get(&1, "reason"))
     |> Enum.filter(&is_binary/1)
-    |> Enum.uniq()
   end
 
   defp candidate_diff_changed_fields(callbacks, row),

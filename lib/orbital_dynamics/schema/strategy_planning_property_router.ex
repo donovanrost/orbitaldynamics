@@ -175,19 +175,6 @@ defmodule OrbitalDynamics.Schema.StrategyPlanningPropertyRouter do
     )
   end
 
-  def property(field, "campaign_strategy.v3" = contract_name, contract, context) do
-    OrbitalDynamics.Schema.StrategyArtifactPropertyDispatch.campaign_strategy(
-      field,
-      contract_name,
-      contract,
-      fn arg1, arg2, arg3 -> fallback(arg1, arg2, arg3, context) end,
-      {fn -> provider(context, :strategy_branch_json_schema, []) end,
-       fn -> provider(context, :strategy_recommendation_json_schema, []) end,
-       fn -> provider(context, :operational_feedback_json_schema, []) end,
-       fn -> provider(context, :policy_action_rule_json_schema, []) end}
-    )
-  end
-
   def property(field, "planned_activity.v1", contract, context) do
     OrbitalDynamics.Schema.PlannedActivityJsonSchema.dispatch_property(field, contract,
       focused_property:
@@ -224,6 +211,26 @@ defmodule OrbitalDynamics.Schema.StrategyPlanningPropertyRouter do
       default_property: fn field, contract ->
         fallback(field, "plan_delta.v1", contract, context)
       end
+    )
+  end
+
+  def property(
+        field,
+        "campaign_strategy.v3" = contract_name,
+        contract,
+        context,
+        embedded_contract
+      ) do
+    OrbitalDynamics.Schema.StrategyArtifactPropertyDispatch.campaign_strategy(
+      field,
+      contract_name,
+      contract,
+      fn arg1, arg2, arg3 -> fallback(arg1, arg2, arg3, context) end,
+      {fn -> provider(context, :strategy_branch_json_schema, []) end,
+       fn -> provider(context, :strategy_recommendation_json_schema, []) end,
+       fn -> provider(context, :operational_feedback_json_schema, []) end,
+       fn -> provider(context, :policy_action_rule_json_schema, []) end, embedded_contract,
+       context_value(context, :stable_id_pattern)}
     )
   end
 end

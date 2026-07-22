@@ -510,7 +510,13 @@ defmodule OrbitalDynamics.Schema.JsonSchemaPropertyRouter do
   end
 
   def property(field, "campaign_strategy.v3" = contract_name, contract, context) do
-    StrategyPlanningPropertyRouter.property(field, contract_name, contract, context)
+    StrategyPlanningPropertyRouter.property(
+      field,
+      contract_name,
+      contract,
+      context,
+      fn embedded_contract_name -> embedded(embedded_contract_name, context) end
+    )
   end
 
   def property(field, "planned_activity.v1", contract, context) do

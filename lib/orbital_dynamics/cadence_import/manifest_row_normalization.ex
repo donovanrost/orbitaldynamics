@@ -1,9 +1,11 @@
 defmodule OrbitalDynamics.CadenceImport.ManifestRowNormalization do
   @moduledoc false
 
-  alias OrbitalDynamics.CadenceImport.JsonNormalization
+  alias OrbitalDynamics.CadenceImport.{CandidateDiffFields, JsonNormalization}
 
   def normalize(%{} = row, accepted_statuses) do
+    row = CandidateDiffFields.reconcile_semantic_change_reasons(row)
+
     case Map.fetch(row, "cadence_import_status") do
       {:ok, status} ->
         normalize_status(row, status, accepted_statuses)

@@ -3037,6 +3037,36 @@ defmodule OrbitalDynamics.CadenceImportTest do
            )
   end
 
+  test "derives approval requirement semantic reasons from change details" do
+    requirement = %{
+      "schema_contract" => "approval_requirement.v1",
+      "activity_id" => "obs_diff_replacement",
+      "activity_type" => "observe",
+      "action" => "approve_strategic_addition",
+      "reason" => "candidate diff replacement requires approval",
+      "candidate_diff" => %{
+        "invalidated_candidate_id" => "obs_old",
+        "replacement_candidate_id" => "obs_diff_replacement",
+        "semantic_change_reasons" => [],
+        "semantic_change_details" => [
+          %{
+            "field" => "target_priority",
+            "reason" => "target_priority_changed",
+            "prior_value" => 2.0,
+            "refreshed_value" => 6.5
+          }
+        ]
+      }
+    }
+
+    manifest = CadenceImport.from_approval_requirement(requirement)
+
+    assert [%{"semantic_change_reasons" => ["target_priority_changed"]}] = manifest["rows"]
+
+    assert {:ok, %{"schema_contract" => "cadence_import_manifest.v1"}} =
+             Schema.validate_artifact(manifest)
+  end
+
   test "normalizes unsupported source cadence import statuses to invalid review rows" do
     package = %{
       "schema_contract" => "operator_review_package.v1",

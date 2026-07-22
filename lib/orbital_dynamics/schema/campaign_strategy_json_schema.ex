@@ -21,8 +21,21 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyJsonSchema do
     "approval_policy",
     "branches",
     "recommendation",
-    "operational_feedback"
+    "operational_feedback",
+    "source_repair_id",
+    "score_term_report",
+    "objective_tradeoff_report",
+    "pareto_frontier_report",
+    "operational_feedback_provenance",
+    "cadence_import_manifest"
   ]
+
+  @embedded_report_contracts %{
+    "score_term_report" => "score_term_report.v1",
+    "objective_tradeoff_report" => "objective_tradeoff_report.v1",
+    "pareto_frontier_report" => "pareto_frontier_report.v1",
+    "cadence_import_manifest" => "cadence_import_manifest.v1"
+  }
 
   def property_field?(field) when field in @property_fields, do: true
   def property_field?(_field), do: false
@@ -41,6 +54,17 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyJsonSchema do
 
   def property_opts("operational_feedback", deps) do
     [operational_feedback_schema: fetch_dep!(deps, :operational_feedback_schema)]
+  end
+
+  def property_opts("source_repair_id", deps) do
+    [stable_id_pattern: fetch_dep!(deps, :stable_id_pattern)]
+  end
+
+  def property_opts(field, deps) when is_map_key(@embedded_report_contracts, field) do
+    [
+      embedded_contract: fetch_dep!(deps, :embedded_contract),
+      embedded_contract_name: Map.fetch!(@embedded_report_contracts, field)
+    ]
   end
 
   def property_opts(_field, _deps), do: []
@@ -78,6 +102,23 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyJsonSchema do
 
   def property("operational_feedback", opts) do
     Keyword.fetch!(opts, :operational_feedback_schema)
+  end
+
+  def property("source_repair_id", opts) do
+    %{
+      "type" => ["string", "null"],
+      "pattern" => Keyword.fetch!(opts, :stable_id_pattern)
+    }
+  end
+
+  def property(field, opts) when is_map_key(@embedded_report_contracts, field) do
+    opts
+    |> Keyword.fetch!(:embedded_contract)
+    |> apply([Keyword.fetch!(opts, :embedded_contract_name)])
+  end
+
+  def property("operational_feedback_provenance", _opts) do
+    OrbitalDynamics.Schema.OperationalFeedbackJsonSchema.strategy_provenance()
   end
 
   defp fetch_dep!(deps, key) do

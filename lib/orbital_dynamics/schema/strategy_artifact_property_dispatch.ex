@@ -99,7 +99,9 @@ defmodule OrbitalDynamics.Schema.StrategyArtifactPropertyDispatch do
           strategy_branch_schema,
           strategy_recommendation_schema,
           operational_feedback_schema,
-          policy_action_rule_schema
+          policy_action_rule_schema,
+          embedded_contract,
+          stable_id_pattern
         }
       ) do
     dispatch(
@@ -111,7 +113,9 @@ defmodule OrbitalDynamics.Schema.StrategyArtifactPropertyDispatch do
         strategy_branch_schema: strategy_branch_schema,
         strategy_recommendation_schema: strategy_recommendation_schema,
         operational_feedback_schema: operational_feedback_schema,
-        policy_action_rule_schema: policy_action_rule_schema
+        policy_action_rule_schema: policy_action_rule_schema,
+        embedded_contract: embedded_contract,
+        stable_id_pattern: stable_id_pattern
       ),
       default_property
     )

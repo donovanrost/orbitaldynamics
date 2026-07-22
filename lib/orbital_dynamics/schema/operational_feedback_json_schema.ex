@@ -54,6 +54,49 @@ defmodule OrbitalDynamics.Schema.OperationalFeedbackJsonSchema do
     }
   end
 
+  def strategy_provenance do
+    string_array = OrbitalDynamics.Schema.CommonJsonSchema.string_array()
+
+    %{
+      "type" => "object",
+      "additionalProperties" => true,
+      "required" => [
+        "model",
+        "merge_order",
+        "input_keys",
+        "effective_sources",
+        "overridden_sources",
+        "source_count",
+        "sources",
+        "explicit_request_override"
+      ],
+      "properties" => %{
+        "model" => %{
+          "type" => "string",
+          "const" => "deterministic_merge_explicit_overrides_mission_state_overrides_prior_plan"
+        },
+        "merge_order" => string_array,
+        "input_keys" => string_array,
+        "effective_sources" => OrbitalDynamics.Schema.CommonJsonSchema.string_value_map(),
+        "overridden_sources" => OrbitalDynamics.Schema.CommonJsonSchema.string_list_map(),
+        "source_count" => %{"type" => "integer", "minimum" => 0},
+        "sources" => %{
+          "type" => "array",
+          "items" => %{
+            "type" => "object",
+            "additionalProperties" => true,
+            "required" => ["source", "input_keys"],
+            "properties" => %{
+              "source" => %{"type" => "string"},
+              "input_keys" => string_array
+            }
+          }
+        },
+        "explicit_request_override" => %{"type" => "boolean"}
+      }
+    }
+  end
+
   defp timeline_feedback_provenance_source(timeline_feedback_report, schemas) do
     %{
       "type" => "object",

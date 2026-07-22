@@ -186,15 +186,25 @@ defmodule OrbitalDynamics.Schema.CampaignRegistryContracts do
         "optional_fields" => [
           "branch_comparison_report",
           "ranking_comparison_report",
-          "operator_review_package"
+          "operator_review_package",
+          "source_repair_id",
+          "score_term_report",
+          "objective_tradeoff_report",
+          "pareto_frontier_report",
+          "operational_feedback_provenance",
+          "cadence_import_manifest"
         ],
         "nested_contracts" => [
           "strategy_branch.v1",
           "strategy_recommendation.v1",
           "branch_comparison_report.v1",
           "ranking_comparison_report.v1",
+          "score_term_report.v1",
+          "objective_tradeoff_report.v1",
+          "pareto_frontier_report.v1",
           "approval_requirement.v1",
-          "operator_review_package.v1"
+          "operator_review_package.v1",
+          "cadence_import_manifest.v1"
         ]
       },
       "strategy_branch.v1" => %{

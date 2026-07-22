@@ -1844,6 +1844,17 @@ readiness pressure without reopening `source_recommendation.explanation`.
 
 ## Executable validation
 
+The exported `campaign_strategy.v3` surface now declares every top-level field
+emitted by the public V3 producer. Optional `source_repair_id`,
+`score_term_report`, `objective_tradeoff_report`, `pareto_frontier_report`,
+`operational_feedback_provenance`, and `cadence_import_manifest` fields preserve
+older-strategy compatibility, while the four report fields embed their direct
+V1 contracts instead of opaque object types. Runtime validation applies those
+standalone report contracts at their strategy paths, validates optional repair
+identity, and reconciles feedback-provenance source counts, source references,
+and input keys with the effective operational-feedback map. The checked V3
+artifact has no produced top-level keys outside the generated property surface.
+
 Executable validation now enforces those operational-feedback number maps,
 resource-margin overrides, and resource-availability override aliases across
 top-level feedback and nested provenance source feedback instead of treating the

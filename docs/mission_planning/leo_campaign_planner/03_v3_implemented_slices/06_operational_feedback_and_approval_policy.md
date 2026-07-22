@@ -83,6 +83,12 @@ without importing the whole strategy artifact. The exported schema bundle also
 declares a compatibility policy for the top-level required fields, exported
 types, and schema contract/version identifiers, plus a stable public-ID policy
 that rejects blank or whitespace-containing artifact identifiers during linting.
+The V3 schema also covers every field emitted by the strategy producer:
+optional source-repair identity and operational-feedback provenance are typed
+directly, while score-term, objective-tradeoff, Pareto-frontier, and Cadence
+import outputs embed their standalone V1 contracts. Runtime validation keeps
+those fields optional for older strategies but validates and reconciles them
+when present, including provenance source counts and effective input routing.
 
 Example V3 inputs and outputs are checked into:
 
