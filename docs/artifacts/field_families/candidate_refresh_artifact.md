@@ -1149,6 +1149,9 @@ reduced-capacity pack groups into `contact_allocation_review` and
 allocation status/reason, station/resource/capacity evidence, source row
 payloads, allocation summary counts, and reduced-capacity pack direction
 routing maps without selecting contacts or mutating allocations.
+The packages also expose canonical top-level station-pressure contact IDs
+alongside their counts and routing maps, and Cadence-import manifests preserve
+that same review identity.
 Direct/list and result-artifact-wrapped `source_contact_allocation_summary` /
 `contact_allocation_summary` inputs lift through the same OperatorReview and
 CadenceImport handoff. Their validated compact

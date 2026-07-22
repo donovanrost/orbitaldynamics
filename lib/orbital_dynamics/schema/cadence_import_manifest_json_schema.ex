@@ -534,6 +534,7 @@ defmodule OrbitalDynamics.Schema.CadenceImportManifestJsonSchema do
 
   @stable_id_array_fields [
     "station_reservation_ids",
+    "station_pressure_contact_ids",
     "station_pressure_review_contact_ids",
     "capacity_pack_group_ids",
     "provider_reservation_request_contact_ids",

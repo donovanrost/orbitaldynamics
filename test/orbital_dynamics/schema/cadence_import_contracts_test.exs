@@ -813,6 +813,17 @@ defmodule OrbitalDynamics.Schema.CadenceImportContractsTest do
              &(&1["path"] == "$.resource_blocked_contact_ids_by_spacecraft_id.sat_resource[0]")
            )
 
+    invalid_station_pressure_top_ids =
+      Map.put(manifest, "station_pressure_contact_ids", ["bad id"])
+
+    assert {:error, station_pressure_top_ids_report} =
+             Schema.validate_artifact(invalid_station_pressure_top_ids)
+
+    assert Enum.any?(
+             station_pressure_top_ids_report["errors"],
+             &(&1["path"] == "$.station_pressure_contact_ids[0]")
+           )
+
     invalid_station_pressure_ids =
       Map.put(manifest, "station_pressure_contact_ids_by_ground_station_id", %{
         "gs_capacity_pack" => ["bad id"]

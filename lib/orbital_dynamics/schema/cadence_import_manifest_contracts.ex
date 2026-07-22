@@ -62,6 +62,8 @@ defmodule OrbitalDynamics.Schema.CadenceImportManifestContracts do
     |> validate_optional_count_map_types(path, manifest)
     |> expect_optional_type(path, manifest, "station_reservation_ids", :list)
     |> validate_optional_stable_id_list(path, manifest, "station_reservation_ids")
+    |> expect_optional_type(path, manifest, "station_pressure_contact_ids", :list)
+    |> validate_optional_stable_id_list(path, manifest, "station_pressure_contact_ids")
     |> expect_optional_type(path, manifest, "station_reserved_bys", :list)
     |> validate_string_list_items(path, manifest, "station_reserved_bys")
     |> expect_optional_type(path, manifest, "station_reservation_statuses", :list)

@@ -31,6 +31,7 @@ defmodule OrbitalDynamics.CadenceImport.ReviewSummaryContext do
     "resource_blocked_contact_ids_by_blocking_dimension",
     "resource_blocked_contact_ids_by_spacecraft_id",
     "station_pressure_contact_count",
+    "station_pressure_contact_ids",
     "station_pressure_review_contact_count",
     "station_pressure_review_contact_ids",
     "station_pressure_contact_counts_by_ground_station_id",

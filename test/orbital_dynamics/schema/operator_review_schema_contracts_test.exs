@@ -718,6 +718,24 @@ defmodule OrbitalDynamics.Schema.OperatorReviewSchemaContractsTest do
              invalid_count_report["errors"],
              &(&1["path"] == "$.candidate_diff_review_count")
            )
+
+    assert get_in(schema, [
+             "properties",
+             "station_pressure_contact_ids",
+             "items",
+             "pattern"
+           ]) == Schema.identity_policy()["stable_id_pattern"]
+
+    invalid_station_pressure_ids =
+      Map.put(package, "station_pressure_contact_ids", ["bad id"])
+
+    assert {:error, station_pressure_ids_report} =
+             Schema.validate_artifact(invalid_station_pressure_ids)
+
+    assert Enum.any?(
+             station_pressure_ids_report["errors"],
+             &(&1["path"] == "$.station_pressure_contact_ids[0]")
+           )
   end
 
   defp read_json!(path) do

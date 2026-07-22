@@ -69,6 +69,7 @@ defmodule OrbitalDynamics.CadenceImport.ManifestBuilder do
       "resource_blocked_contact_ids_by_spacecraft_id" =>
         context["resource_blocked_contact_ids_by_spacecraft_id"],
       "station_pressure_contact_count" => context["station_pressure_contact_count"],
+      "station_pressure_contact_ids" => context["station_pressure_contact_ids"],
       "station_pressure_review_contact_count" => context["station_pressure_review_contact_count"],
       "station_pressure_review_contact_ids" => context["station_pressure_review_contact_ids"],
       "station_pressure_contact_counts_by_ground_station_id" =>

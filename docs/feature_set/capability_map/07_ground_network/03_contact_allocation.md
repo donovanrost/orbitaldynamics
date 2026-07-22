@@ -491,9 +491,9 @@ so adapters can route contact queues without recounting rows.
   reduced-capacity pack group counts/statuses/IDs, and packed/deferred contact
   IDs at their own top-level adapter boundary.
 - Derived operator-review/import artifacts preserve station-pressure contact
-  counts and contact-ID maps by ground station, availability, precedence
-  availability, and precedence rank, plus station-pressure review contact IDs,
-  at their own top-level adapter boundary.
+  counts, canonical top-level contact IDs, and contact-ID maps by ground station,
+  availability, precedence availability, and precedence rank, plus
+  station-pressure review contact IDs, at their own top-level adapter boundary.
 - Derived operator-review/import artifacts preserve those reservation summaries,
   expiration routing maps/counters, reservation contact/reservation ID maps by
   match status, reservation status, and reserved-by owner, and the lifted count

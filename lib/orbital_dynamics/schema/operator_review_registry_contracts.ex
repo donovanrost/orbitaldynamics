@@ -93,6 +93,7 @@ defmodule OrbitalDynamics.Schema.OperatorReviewRegistryContracts do
           "station_reservation_missing_expiration_contact_count",
           "earliest_station_reservation_expires_at_s",
           "station_pressure_contact_count",
+          "station_pressure_contact_ids",
           "station_pressure_review_contact_count",
           "station_pressure_review_contact_ids",
           "station_pressure_contact_counts_by_ground_station_id",

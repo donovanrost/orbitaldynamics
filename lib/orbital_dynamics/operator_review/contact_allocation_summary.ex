@@ -231,6 +231,7 @@ defmodule OrbitalDynamics.OperatorReview.ContactAllocationSummary do
     |> put_contact_allocation_list_summary(reports, "capacity_pack_group_ids")
     |> put_contact_allocation_list_summary(reports, "reduced_capacity_packed_contact_ids")
     |> put_contact_allocation_list_summary(reports, "reduced_capacity_deferred_contact_ids")
+    |> put_contact_allocation_stable_id_list_summary(reports, "station_pressure_contact_ids")
     |> put_contact_allocation_list_summary(reports, "station_pressure_review_contact_ids")
     |> put_contact_allocation_list_summary(reports, "provider_reservation_request_contact_ids")
     |> put_contact_allocation_list_summary(reports, "provider_reservation_review_contact_ids")
@@ -478,6 +479,25 @@ defmodule OrbitalDynamics.OperatorReview.ContactAllocationSummary do
       end)
       |> Enum.reject(&is_nil/1)
       |> Enum.uniq()
+
+    case values do
+      [] -> package
+      values -> Map.put(package, field, values)
+    end
+  end
+
+  defp put_contact_allocation_stable_id_list_summary(package, reports, field) do
+    values =
+      reports
+      |> Enum.flat_map(fn report ->
+        case Map.get(report, field) do
+          values when is_list(values) -> values
+          _values -> []
+        end
+      end)
+      |> Enum.filter(&(is_binary(&1) and &1 != ""))
+      |> Enum.uniq()
+      |> Enum.sort()
 
     case values do
       [] -> package

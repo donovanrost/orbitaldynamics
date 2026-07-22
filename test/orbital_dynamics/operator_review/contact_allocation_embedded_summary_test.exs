@@ -34,6 +34,7 @@ defmodule OrbitalDynamics.OperatorReview.ContactAllocationEmbeddedSummaryTest do
           "sat_campaign" => ["dl_campaign_resource"]
         },
         "station_pressure_contact_count" => 1,
+        "station_pressure_contact_ids" => ["dl_campaign_station"],
         "station_pressure_review_contact_count" => 1,
         "station_pressure_review_contact_ids" => ["dl_campaign_station"],
         "station_pressure_contact_counts_by_ground_station_id" => %{"gs_campaign" => 1},
@@ -134,6 +135,7 @@ defmodule OrbitalDynamics.OperatorReview.ContactAllocationEmbeddedSummaryTest do
           "sat_refresh" => ["dl_refresh_resource_a", "dl_refresh_resource_b"]
         },
         "station_pressure_contact_count" => 2,
+        "station_pressure_contact_ids" => ["dl_refresh_station_a", "dl_refresh_station_b"],
         "station_pressure_review_contact_count" => 1,
         "station_pressure_review_contact_ids" => ["dl_refresh_station_a"],
         "station_pressure_contact_counts_by_ground_station_id" => %{"gs_refresh" => 2},
@@ -265,6 +267,7 @@ defmodule OrbitalDynamics.OperatorReview.ContactAllocationEmbeddedSummaryTest do
           "sat_source" => ["dl_source_resource"]
         },
         "station_pressure_contact_count" => 1,
+        "station_pressure_contact_ids" => ["dl_source_station", "dl_source_station"],
         "station_pressure_review_contact_count" => 1,
         "station_pressure_review_contact_ids" => ["dl_source_station"],
         "station_pressure_contact_counts_by_ground_station_id" => %{"gs_source" => 1},
@@ -371,6 +374,7 @@ defmodule OrbitalDynamics.OperatorReview.ContactAllocationEmbeddedSummaryTest do
           "sat_result" => ["dl_result_resource_a", "dl_result_resource_b"]
         },
         "station_pressure_contact_count" => 2,
+        "station_pressure_contact_ids" => ["dl_result_station_b", "dl_result_station_a"],
         "station_pressure_review_contact_count" => 0,
         "station_pressure_review_contact_ids" => [],
         "station_pressure_contact_counts_by_ground_station_id" => %{"gs_result" => 2},
@@ -530,6 +534,7 @@ defmodule OrbitalDynamics.OperatorReview.ContactAllocationEmbeddedSummaryTest do
            }
 
     assert campaign["station_pressure_contact_count"] == 1
+    assert campaign["station_pressure_contact_ids"] == ["dl_campaign_station"]
     assert campaign["station_pressure_review_contact_count"] == 1
     assert campaign["station_pressure_review_contact_ids"] == ["dl_campaign_station"]
 
@@ -670,6 +675,12 @@ defmodule OrbitalDynamics.OperatorReview.ContactAllocationEmbeddedSummaryTest do
            }
 
     assert refresh["station_pressure_contact_count"] == 2
+
+    assert refresh["station_pressure_contact_ids"] == [
+             "dl_refresh_station_a",
+             "dl_refresh_station_b"
+           ]
+
     assert refresh["station_pressure_review_contact_count"] == 1
     assert refresh["station_pressure_review_contact_ids"] == ["dl_refresh_station_a"]
 
@@ -872,6 +883,13 @@ defmodule OrbitalDynamics.OperatorReview.ContactAllocationEmbeddedSummaryTest do
            }
 
     assert repair["station_pressure_contact_count"] == 3
+
+    assert repair["station_pressure_contact_ids"] == [
+             "dl_result_station_a",
+             "dl_result_station_b",
+             "dl_source_station"
+           ]
+
     assert repair["station_pressure_review_contact_count"] == 1
     assert repair["station_pressure_review_contact_ids"] == ["dl_source_station"]
 
@@ -1101,6 +1119,13 @@ defmodule OrbitalDynamics.OperatorReview.ContactAllocationEmbeddedSummaryTest do
            }
 
     assert strategy["station_pressure_contact_count"] == 3
+
+    assert strategy["station_pressure_contact_ids"] == [
+             "dl_result_station_a",
+             "dl_result_station_b",
+             "dl_source_station"
+           ]
+
     assert strategy["station_pressure_review_contact_count"] == 1
     assert strategy["station_pressure_review_contact_ids"] == ["dl_source_station"]
 

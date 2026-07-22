@@ -5,37 +5,37 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Correlate station-pressure top-level identity.
+Preserve station-pressure identity in review/import handoffs.
 
 Status:
 Verified; ready to publish.
 
 Selection evidence:
-- Contact-allocation reports may carry direct `station_pressure_contact_ids`,
-  but preserved-summary extraction and fallback counting ignore that field.
-- Compact replay retains canonical grouped routes and a scalar count without a
-  durable top-level union of the direct and routed contact identities.
-- Reservation-conflict replay already establishes the compatible contract:
-  identity evidence determines an exact count; scalar-only input remains valid.
+- Nested source-report, flattened summary, campaign-request, and compact replay
+  counts now agree on the canonical station-pressure identity union.
+- Operator-review and Cadence-import handoffs retain the scalar count and
+  grouped routes but currently drop `station_pressure_contact_ids`.
+- Both adapters already preserve stable ID lists and remain artifact-only, so
+  the identity can cross those boundaries without adding execution authority.
 
 Intended behavior:
-- Canonicalize one stable `station_pressure_contact_ids` union from direct IDs
-  and every hierarchical or review-dimension route map.
-- Derive the exact top-level count whenever identity evidence is supplied;
-  preserve nonnegative scalar-only fallback and explicit-empty zero semantics.
-- Apply identical raw, flattened, compact replay, and schema behavior, rejecting
-  noncanonical or contradictory supplied compact identity/count pairs.
+- Aggregate canonical station-pressure contact IDs into operator-review
+  packages across campaign, refresh, repair, and strategy source summaries.
+- Carry the same list through Cadence-import context and manifests.
+- Publish both fields as optional stable-ID arrays in executable schemas and
+  registries while preserving artifact-only/no-authority boundaries.
 
 Level 6 pillar advanced:
 Fleet-scale planning decisions and durable reproducible audit handoffs.
 
 Planned files:
-- extend shared station-pressure correlation and direct-ID preservation
-- raw/flattened/replay/schema identity, scalar-only, and explicit-empty tests
-- allocation artifact documentation and autonomous-loop ledger
+- operator-review aggregation and Cadence-import pass-through
+- operator-review/Cadence schemas, registries, and exported artifacts
+- campaign/refresh/repair/strategy adapter proofs, docs, and loop ledger
 
 Verification:
-- Focused station-pressure replay/planner/schema proofs: `31 passed`.
+- Focused review/import/schema proofs: `113 passed`.
+- Study-manifest schema sync proof: `45 passed`.
 - Contact-allocation family: `195 passed`.
 - Golden artifact suite: `12 passed`.
 - Schema lint: `155` artifacts, `0` errors, `0` warnings.
@@ -43,20 +43,21 @@ Verification:
 - `mix format` and `git diff --check` passed.
 
 Review:
-- Raw row summaries and compact no-row reports now expose a canonical top-level
-  station-pressure contact-ID list through flattened and replay surfaces.
-- Direct, station, availability, precedence, status, direction, and nested
-  route identities form one stable unique union and exact cardinality.
-- Missing identity remains distinct from explicit empty identity, preserving
-  scalar-only fallback while exact-empty input overrides stale scalar counts.
-- Schema challenges reject contradictory counts and noncanonical top-level IDs;
-  direct and provenance replay paths remain byte-for-byte map equivalent.
-- Existing route-local counts, direction routing, planner membership, and broad
-  artifact gates remain unchanged.
-- Provider, schedule, Cadence, and planner-effect boundaries are unchanged.
+- Operator-review packages aggregate station-pressure contact IDs across
+  campaign, refresh, repair, and strategy summaries into one sorted unique list.
+- Cadence-import contexts and manifests retain that same stable-ID evidence
+  alongside existing counts and grouped routes.
+- Generated schemas, capability registries, and executable validators classify
+  the field consistently; malformed stable IDs are rejected at both boundaries.
+- Nested schema propagation is regenerated, including the derived study
+  manifest that the first broad run identified as stale.
+- Existing scalar counts and route maps remain unchanged; identity/count
+  correlation across overlapping embedded reports is reserved for the next audit.
+- Provider, schedule, planner-effect, and no-execution-authority boundaries are
+  unchanged.
 
 Last published slice:
-- `2e3740e1` Correlate station pressure review maps (`3825 passed`).
+- `2229df54` Correlate station pressure identity (`3825 passed`).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions while preserving explicit
@@ -67,7 +68,7 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-After publish, audit station-pressure count provenance parity.
+After publish, audit review/import station-pressure identity-count correlation.
 
 Blocked:
 None.
