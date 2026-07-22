@@ -9780,6 +9780,97 @@ defmodule OrbitalDynamics.CadenceImportTest do
     end
   end
 
+  test "correlates provider-reservation request identity across routed summaries" do
+    repair =
+      CadenceImport.from_repair_artifact(%{
+        "repair_metadata" => %{"repair_id" => "repair:provider_request_overlap"},
+        "source_plan_id" => "plan:provider_request_overlap",
+        "source_contact_allocation_report" => %{
+          "provider_reservation_request_contact_count" => 2,
+          "provider_reservation_request_contact_ids" => ["contact_source", "contact_shared"],
+          "provider_reservation_request_contact_ids_by_ground_station_id" => %{
+            "gs_a" => ["contact_station"]
+          },
+          "provider_reservation_request_contact_ids_by_direction" => %{
+            "downlink" => ["contact_direction"]
+          }
+        },
+        "contact_allocation_report" => %{
+          "provider_reservation_request_contact_count" => 2,
+          "provider_reservation_request_contact_ids" => ["contact_shared", "contact_result"],
+          "provider_reservation_request_contact_ids_by_direction_and_ground_station_id" => %{
+            "downlink" => %{"gs_b" => ["contact_nested"]}
+          },
+          "provider_reservation_request_contact_ids_by_match_status" => %{
+            "matched" => ["contact_match"]
+          }
+        }
+      })
+
+    explicit_empty =
+      CadenceImport.from_campaign_artifact(%{
+        "plan_id" => "plan:provider_request_empty",
+        "contact_allocation_report" => %{
+          "provider_reservation_request_contact_count" => 9,
+          "provider_reservation_request_contact_ids_by_ground_station_id" => %{
+            "gs_empty" => []
+          }
+        }
+      })
+
+    scalar_only =
+      CadenceImport.from_campaign_artifact(%{
+        "plan_id" => "plan:provider_request_scalar",
+        "contact_allocation_report" => %{
+          "provider_reservation_request_contact_count" => 2
+        }
+      })
+
+    expected_request_ids = [
+      "contact_direction",
+      "contact_match",
+      "contact_nested",
+      "contact_result",
+      "contact_shared",
+      "contact_source",
+      "contact_station"
+    ]
+
+    assert repair["provider_reservation_request_contact_count"] == 7
+    assert repair["provider_reservation_request_contact_ids"] == expected_request_ids
+
+    assert repair["provider_reservation_request_contact_ids_by_ground_station_id"] == %{
+             "gs_a" => ["contact_station"]
+           }
+
+    assert repair["provider_reservation_request_contact_ids_by_direction"] == %{
+             "downlink" => ["contact_direction"]
+           }
+
+    assert repair[
+             "provider_reservation_request_contact_ids_by_direction_and_ground_station_id"
+           ] == %{"downlink" => %{"gs_b" => ["contact_nested"]}}
+
+    assert repair["provider_reservation_request_contact_ids_by_match_status"] == %{
+             "matched" => ["contact_match"]
+           }
+
+    assert explicit_empty["provider_reservation_request_contact_count"] == 0
+    assert explicit_empty["provider_reservation_request_contact_ids"] == []
+
+    assert explicit_empty["provider_reservation_request_contact_ids_by_ground_station_id"] == %{
+             "gs_empty" => []
+           }
+
+    assert scalar_only["provider_reservation_request_contact_count"] == 2
+    refute Map.has_key?(scalar_only, "provider_reservation_request_contact_ids")
+
+    for manifest <- [repair, explicit_empty, scalar_only] do
+      assert {:ok, %{"schema_contract" => "cadence_import_manifest.v1"}} =
+               Schema.validate_artifact(manifest)
+    end
+  end
+
   test "builds deterministic import manifest rows from plan-delta reviews" do
     package = %{
       "schema_contract" => "operator_review_package.v1",

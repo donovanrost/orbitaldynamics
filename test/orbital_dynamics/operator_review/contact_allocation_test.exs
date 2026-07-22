@@ -676,7 +676,7 @@ defmodule OrbitalDynamics.OperatorReview.ContactAllocationTest do
     assert %{
              "contact_allocation_review_count" => 6,
              "provider_reservation_candidate_contact_count" => 6,
-             "provider_reservation_request_contact_count" => 3,
+             "provider_reservation_request_contact_count" => 1,
              "provider_reservation_review_contact_count" => 1,
              "provider_reservation_no_request_contact_count" => 3,
              "provider_reservation_request_status_counts" => %{"review_required" => 3},
@@ -687,6 +687,8 @@ defmodule OrbitalDynamics.OperatorReview.ContactAllocationTest do
 
     assert import["provider_reservation_review_contact_count"] == 1
     assert import["provider_reservation_review_contact_ids"] == ["dl_review_overlap"]
+    assert import["provider_reservation_request_contact_count"] == 1
+    assert import["provider_reservation_request_contact_ids"] == ["dl_reserved_owner"]
 
     assert Enum.frequencies_by(provider_rows, & &1["required_operator_action"]) == %{
              "review_contact_allocation" => 3,

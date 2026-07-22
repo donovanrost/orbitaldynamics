@@ -134,6 +134,9 @@ defmodule OrbitalDynamics.Schema.OperatorReviewPackageJsonSchema do
   ]
   @canonical_id_map_fields @correlated_station_pressure_id_map_fields ++
                              [
+                               "provider_reservation_request_contact_ids_by_ground_station_id",
+                               "provider_reservation_request_contact_ids_by_direction",
+                               "provider_reservation_request_contact_ids_by_match_status",
                                "provider_reservation_review_contact_ids_by_ground_station_id",
                                "provider_reservation_review_contact_ids_by_direction",
                                "provider_reservation_review_contact_ids_by_match_status"
@@ -267,6 +270,7 @@ defmodule OrbitalDynamics.Schema.OperatorReviewPackageJsonSchema do
       when field in [
              "station_pressure_contact_ids",
              "station_pressure_review_contact_ids",
+             "provider_reservation_request_contact_ids",
              "provider_reservation_review_contact_ids"
            ] do
     opts
@@ -297,6 +301,7 @@ defmodule OrbitalDynamics.Schema.OperatorReviewPackageJsonSchema do
   def property(field, opts)
       when field in [
              "station_pressure_contact_ids_by_direction_and_ground_station_id",
+             "provider_reservation_request_contact_ids_by_direction_and_ground_station_id",
              "provider_reservation_review_contact_ids_by_direction_and_ground_station_id"
            ] do
     opts

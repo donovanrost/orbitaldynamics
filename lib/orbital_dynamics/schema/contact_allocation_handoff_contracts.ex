@@ -39,12 +39,28 @@ defmodule OrbitalDynamics.Schema.ContactAllocationHandoffContracts do
      "station_pressure_contact_ids_by_precedence_rank"},
     {"station_pressure_contact_counts_by_status", "station_pressure_contact_ids_by_status"}
   ]
-  @provider_reservation_review_contact_id_map_fields [
-    "provider_reservation_review_contact_ids_by_ground_station_id",
-    "provider_reservation_review_contact_ids_by_direction",
-    "provider_reservation_review_contact_ids_by_match_status"
-  ]
-  @provider_reservation_review_nested_contact_id_field "provider_reservation_review_contact_ids_by_direction_and_ground_station_id"
+  @provider_reservation_contact_identity_fields %{
+    "request" => %{
+      count_field: "provider_reservation_request_contact_count",
+      identity_field: "provider_reservation_request_contact_ids",
+      map_fields: [
+        "provider_reservation_request_contact_ids_by_ground_station_id",
+        "provider_reservation_request_contact_ids_by_direction",
+        "provider_reservation_request_contact_ids_by_match_status"
+      ],
+      nested_field: "provider_reservation_request_contact_ids_by_direction_and_ground_station_id"
+    },
+    "review" => %{
+      count_field: "provider_reservation_review_contact_count",
+      identity_field: "provider_reservation_review_contact_ids",
+      map_fields: [
+        "provider_reservation_review_contact_ids_by_ground_station_id",
+        "provider_reservation_review_contact_ids_by_direction",
+        "provider_reservation_review_contact_ids_by_match_status"
+      ],
+      nested_field: "provider_reservation_review_contact_ids_by_direction_and_ground_station_id"
+    }
+  }
   @allocation_source_field_pairs [
     {"activity_type", "type"}
     | Enum.map(
@@ -331,9 +347,11 @@ defmodule OrbitalDynamics.Schema.ContactAllocationHandoffContracts do
 
   defp collect_identity_lists(_values), do: []
 
-  defp validate_provider_reservation_review_identity_summary(issues, path, artifact) do
+  defp validate_provider_reservation_contact_identity_summary(issues, path, artifact, status) do
+    fields = Map.fetch!(@provider_reservation_contact_identity_fields, status)
+
     issues =
-      Enum.reduce(@provider_reservation_review_contact_id_map_fields, issues, fn field, acc ->
+      Enum.reduce(fields.map_fields, issues, fn field, acc ->
         validate_canonical_id_map(acc, path, Map.get(artifact, field), field)
       end)
 
@@ -341,11 +359,11 @@ defmodule OrbitalDynamics.Schema.ContactAllocationHandoffContracts do
       validate_canonical_nested_id_map(
         issues,
         path,
-        Map.get(artifact, @provider_reservation_review_nested_contact_id_field),
-        @provider_reservation_review_nested_contact_id_field
+        Map.get(artifact, fields.nested_field),
+        fields.nested_field
       )
 
-    case Map.get(artifact, "provider_reservation_review_contact_ids") do
+    case Map.get(artifact, fields.identity_field) do
       contact_ids when is_list(contact_ids) ->
         canonical_contact_ids = contact_ids |> Enum.uniq() |> Enum.sort()
 
@@ -355,30 +373,28 @@ defmodule OrbitalDynamics.Schema.ContactAllocationHandoffContracts do
           else
             [
               error(
-                path <> ".provider_reservation_review_contact_ids",
-                "must equal sorted unique provider-reservation review contact IDs"
+                path <> ".#{fields.identity_field}",
+                "must equal sorted unique provider-reservation #{status} contact IDs"
               )
               | issues
             ]
           end
 
         issues =
-          if Map.get(artifact, "provider_reservation_review_contact_count") ==
-               length(canonical_contact_ids) do
+          if Map.get(artifact, fields.count_field) == length(canonical_contact_ids) do
             issues
           else
             [
               error(
-                path <> ".provider_reservation_review_contact_count",
-                "must equal canonical provider_reservation_review_contact_ids count"
+                path <> ".#{fields.count_field}",
+                "must equal canonical #{fields.identity_field} count"
               )
               | issues
             ]
           end
 
         routed_contact_ids =
-          (@provider_reservation_review_contact_id_map_fields ++
-             [@provider_reservation_review_nested_contact_id_field])
+          (fields.map_fields ++ [fields.nested_field])
           |> Enum.flat_map(&collect_identity_lists(Map.get(artifact, &1)))
           |> List.flatten()
 
@@ -387,8 +403,8 @@ defmodule OrbitalDynamics.Schema.ContactAllocationHandoffContracts do
         else
           [
             error(
-              path <> ".provider_reservation_review_contact_ids",
-              "must include all routed provider-reservation review contact IDs"
+              path <> ".#{fields.identity_field}",
+              "must include all routed provider-reservation #{status} contact IDs"
             )
             | issues
           ]
@@ -868,7 +884,8 @@ defmodule OrbitalDynamics.Schema.ContactAllocationHandoffContracts do
       artifact,
       "provider_reservation_review_ids_by_match_status"
     )
-    |> validate_provider_reservation_review_identity_summary(path, artifact)
+    |> validate_provider_reservation_contact_identity_summary(path, artifact, "request")
+    |> validate_provider_reservation_contact_identity_summary(path, artifact, "review")
     |> expect_optional_non_negative_integer(
       path,
       artifact,
