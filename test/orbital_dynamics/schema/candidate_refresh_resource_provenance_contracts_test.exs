@@ -772,6 +772,54 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshResourceProvenanceContractsTest
                  "$.provenance.source_reports.contact_allocation_report.reservation_conflict_contact_ids_by_direction_and_ground_station")
            )
 
+    incomplete_reservation_conflict_direction_rollup =
+      put_in(
+        artifact_with_allocation_direction_summary,
+        [
+          "provenance",
+          "source_reports",
+          "contact_allocation_report",
+          "reservation_conflict_contact_ids_by_direction"
+        ],
+        %{"downlink" => ["conflict_a"]}
+      )
+
+    assert {:error, incomplete_reservation_conflict_direction_rollup_report} =
+             Schema.validate_artifact(incomplete_reservation_conflict_direction_rollup)
+
+    assert Enum.any?(
+             incomplete_reservation_conflict_direction_rollup_report["errors"],
+             &(&1["path"] ==
+                 "$.provenance.source_reports.contact_allocation_report.reservation_conflict_contact_ids_by_direction")
+           )
+
+    nested_only_reservation_conflict_missing_aggregate_route =
+      artifact_with_allocation_direction_summary
+      |> update_in(
+        ["provenance", "source_reports", "contact_allocation_report"],
+        &Map.delete(&1, "reservation_conflict_contact_ids_by_direction")
+      )
+      |> put_in(
+        [
+          "provenance",
+          "source_reports",
+          "contact_allocation_report",
+          "direction_routing",
+          "downlink",
+          "reservation_conflict_contact_ids"
+        ],
+        []
+      )
+
+    assert {:error, nested_only_reservation_conflict_missing_aggregate_route_report} =
+             Schema.validate_artifact(nested_only_reservation_conflict_missing_aggregate_route)
+
+    assert Enum.any?(
+             nested_only_reservation_conflict_missing_aggregate_route_report["errors"],
+             &(&1["path"] ==
+                 "$.provenance.source_reports.contact_allocation_report.direction_routing")
+           )
+
     noncanonical_reservation_conflict_direction_counts =
       put_in(
         artifact_with_allocation_direction_summary,

@@ -599,7 +599,7 @@ defmodule OrbitalDynamics.CandidateRefresh.ContactAllocationPressureMapReplaySum
 
     assert source_summary[
              "source_report_contact_allocation_reservation_conflict_contact_ids_by_direction"
-           ] == %{"downlink" => ["direction_only"]}
+           ] == %{"downlink" => ["direction_only", "nested_only"]}
 
     assert source_summary[
              "source_report_contact_allocation_reservation_conflict_direction_counts"
@@ -608,6 +608,24 @@ defmodule OrbitalDynamics.CandidateRefresh.ContactAllocationPressureMapReplaySum
     assert source_summary[
              "source_report_contact_allocation_reservation_conflict_contact_ids_by_direction_and_ground_station"
            ] == %{"downlink" => %{"equator_prime" => ["nested_only"]}}
+
+    assert get_in(
+             source_summary,
+             [
+               "source_report_contact_allocation_direction_routing",
+               "downlink",
+               "reservation_conflict_contact_ids"
+             ]
+           ) == ["direction_only", "nested_only"]
+
+    assert get_in(
+             source_summary,
+             [
+               "source_report_contact_allocation_direction_routing",
+               "downlink",
+               "reservation_conflict_contact_count"
+             ]
+           ) == 2
 
     assert replay_summary["reservation_conflict_contact_count"] == 5
     assert replay_summary["reservation_conflict_contact_ids"] == expected_ids
@@ -626,7 +644,7 @@ defmodule OrbitalDynamics.CandidateRefresh.ContactAllocationPressureMapReplaySum
            }
 
     assert replay_summary["reservation_conflict_contact_ids_by_direction"] == %{
-             "downlink" => ["direction_only"]
+             "downlink" => ["direction_only", "nested_only"]
            }
 
     assert replay_summary["reservation_conflict_direction_counts"] == %{
@@ -637,6 +655,18 @@ defmodule OrbitalDynamics.CandidateRefresh.ContactAllocationPressureMapReplaySum
     assert replay_summary[
              "reservation_conflict_contact_ids_by_direction_and_ground_station"
            ] == %{"downlink" => %{"equator_prime" => ["nested_only"]}}
+
+    assert get_in(replay_summary, [
+             "direction_routing",
+             "downlink",
+             "reservation_conflict_contact_ids"
+           ]) == ["direction_only", "nested_only"]
+
+    assert get_in(replay_summary, [
+             "direction_routing",
+             "downlink",
+             "reservation_conflict_contact_count"
+           ]) == 2
 
     assert replay_summary["branch_local_reservation_conflict_pressure"]
   end

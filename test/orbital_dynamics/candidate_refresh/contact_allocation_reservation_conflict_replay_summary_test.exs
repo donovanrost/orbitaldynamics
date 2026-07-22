@@ -206,7 +206,13 @@ defmodule OrbitalDynamics.CandidateRefresh.ContactAllocationReservationConflictR
              "source_report_contact_allocation_reservation_conflict_contact_ids_by_match_status" =>
                %{"overlap" => ["match_status_conflict"]},
              "source_report_contact_allocation_reservation_conflict_contact_ids_by_direction" =>
-               %{"downlink" => ["direction_conflict"]},
+               %{
+                 "downlink" => [
+                   "direction_conflict",
+                   "nested_conflict",
+                   "nested_id_conflict"
+                 ]
+               },
              "source_report_contact_allocation_reservation_conflict_contact_ids_by_direction_and_ground_station" =>
                %{
                  "downlink" => %{
@@ -233,7 +239,11 @@ defmodule OrbitalDynamics.CandidateRefresh.ContactAllocationReservationConflictR
                "overlap" => ["match_status_conflict"]
              },
              "reservation_conflict_contact_ids_by_direction" => %{
-               "downlink" => ["direction_conflict"]
+               "downlink" => [
+                 "direction_conflict",
+                 "nested_conflict",
+                 "nested_id_conflict"
+               ]
              },
              "reservation_conflict_contact_ids_by_direction_and_ground_station" => %{
                "downlink" => %{
@@ -273,6 +283,10 @@ defmodule OrbitalDynamics.CandidateRefresh.ContactAllocationReservationConflictR
 
     assert %{
              "source_report_contact_allocation_reservation_conflict_contact_count" => 1,
+             "source_report_contact_allocation_reservation_conflict_contact_ids_by_direction" =>
+               %{
+                 "downlink" => ["raw_alias_conflict"]
+               },
              "source_report_contact_allocation_reservation_conflict_contact_ids_by_direction_and_ground_station" =>
                %{
                  "downlink" => %{"polar_prime" => ["raw_alias_conflict"]}
@@ -281,11 +295,26 @@ defmodule OrbitalDynamics.CandidateRefresh.ContactAllocationReservationConflictR
 
     assert %{
              "reservation_conflict_contact_count" => 1,
+             "reservation_conflict_contact_ids_by_direction" => %{
+               "downlink" => ["raw_alias_conflict"]
+             },
              "reservation_conflict_contact_ids_by_direction_and_ground_station" => %{
                "downlink" => %{"polar_prime" => ["raw_alias_conflict"]}
              },
              "branch_local_reservation_conflict_pressure" => true
-           } = CandidateRefresh.contact_allocation_replay_summary(artifact)
+           } = replay_summary = CandidateRefresh.contact_allocation_replay_summary(artifact)
+
+    assert get_in(replay_summary, [
+             "direction_routing",
+             "downlink",
+             "reservation_conflict_contact_ids"
+           ]) == ["raw_alias_conflict"]
+
+    refute get_in(replay_summary, [
+             "direction_routing",
+             "downlink",
+             "reservation_conflict_contact_count"
+           ])
   end
 
   test "reservation-conflict local counts cannot suppress stronger routed identity" do
@@ -346,7 +375,7 @@ defmodule OrbitalDynamics.CandidateRefresh.ContactAllocationReservationConflictR
     assert source_summary[
              "source_report_contact_allocation_reservation_conflict_contact_ids_by_direction"
            ] == %{
-             "command" => ["command_a"],
+             "command" => ["command_a", "command_b"],
              "uplink" => ["direction_route_only"]
            }
 

@@ -15,6 +15,7 @@ defmodule OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactAllocation
   @direction_counts_field "reservation_conflict_direction_counts"
   @direction_routes_field "reservation_conflict_contact_ids_by_direction"
   @nested_routes_field "reservation_conflict_contact_ids_by_direction_and_ground_station"
+  @nested_routes_alias_field "reservation_conflict_contact_ids_by_direction_and_ground_station_id"
 
   @contact_identity_fields [
     @ids_field,
@@ -39,8 +40,13 @@ defmodule OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactAllocation
   def fields(%{} = summary) do
     match_routes = canonical_routes(Map.get(summary, @match_routes_field))
     reservation_routes = canonical_routes(Map.get(summary, @reservation_routes_field))
-    direction_routes = canonical_direction_routes(Map.get(summary, @direction_routes_field))
-    nested_routes = canonical_nested_direction_routes(Map.get(summary, @nested_routes_field))
+    nested_routes = canonical_nested_direction_routes(summary)
+
+    direction_routes =
+      summary
+      |> Map.get(@direction_routes_field)
+      |> canonical_direction_routes()
+      |> union_nested_direction_routes(nested_routes)
 
     match_counts =
       summary
@@ -127,7 +133,19 @@ defmodule OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactAllocation
 
   defp canonical_direction_routes(_routes), do: nil
 
-  defp canonical_nested_direction_routes(%{} = routes) do
+  defp canonical_nested_direction_routes(%{} = summary) do
+    [Map.get(summary, @nested_routes_field), Map.get(summary, @nested_routes_alias_field)]
+    |> Enum.map(&canonical_nested_direction_route_map/1)
+    |> Enum.filter(&is_map/1)
+    |> Enum.reduce(%{}, fn routes, merged ->
+      Map.merge(merged, routes, fn _direction, left_routes, right_routes ->
+        merge_routes(left_routes, right_routes)
+      end)
+    end)
+    |> non_empty_map()
+  end
+
+  defp canonical_nested_direction_route_map(%{} = routes) do
     routes
     |> Enum.reduce(%{}, fn {direction, station_routes}, normalized ->
       direction = canonical_direction(direction)
@@ -142,7 +160,29 @@ defmodule OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactAllocation
     |> non_empty_map()
   end
 
-  defp canonical_nested_direction_routes(_routes), do: nil
+  defp canonical_nested_direction_route_map(_routes), do: nil
+
+  defp union_nested_direction_routes(direction_routes, nested_routes) do
+    nested_direction_routes =
+      case nested_routes do
+        %{} = routes ->
+          Map.new(routes, fn {direction, station_routes} ->
+            {direction, route_ids(station_routes)}
+          end)
+
+        _routes ->
+          %{}
+      end
+
+    [direction_routes, nested_direction_routes]
+    |> Enum.filter(&is_map/1)
+    |> Enum.reduce(%{}, fn routes, merged ->
+      Map.merge(merged, routes, fn _direction, left_ids, right_ids ->
+        merge_ids(left_ids, right_ids)
+      end)
+    end)
+    |> non_empty_map()
+  end
 
   defp canonical_direction(direction) do
     direction

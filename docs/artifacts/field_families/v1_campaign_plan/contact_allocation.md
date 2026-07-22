@@ -297,6 +297,9 @@ Its match-status and direction count maps also use canonical positive keys.
 Count-only and route-only evidence remain available, while a local count smaller
 than its routed contact or reservation identity cardinality is discarded during
 replay and rejected in a supplied compact source report.
+Nested station-routed conflict IDs also roll up into the canonical direction ID
+map, so nested-only conflicts remain visible in aggregate `direction_routing`
+without manufacturing an absent local direction count.
 Invalid-input, status-blocked, and resource-blocked count/ID pairs use the same
 identity-first rule. Their top-level lists remain canonical review evidence when
 a compact scalar is absent or undersized; valid occurrence counts may exceed
