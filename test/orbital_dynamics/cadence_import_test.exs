@@ -9513,6 +9513,23 @@ defmodule OrbitalDynamics.CadenceImportTest do
         }
       })
 
+    routed_identity =
+      CadenceImport.from_campaign_artifact(%{
+        "plan_id" => "plan:station_pressure_routed_identity",
+        "contact_allocation_report" => %{
+          "station_pressure_contact_count" => 99,
+          "station_pressure_review_contact_count" => 1,
+          "station_pressure_review_contact_ids" => ["contact_review"],
+          "station_pressure_contact_counts_by_ground_station_id" => %{"gs_route" => 1},
+          "station_pressure_contact_ids_by_ground_station_id" => %{
+            "gs_route" => ["contact_group"]
+          },
+          "station_pressure_contact_ids_by_direction_and_ground_station_id" => %{
+            "downlink" => %{"gs_route" => ["contact_nested"]}
+          }
+        }
+      })
+
     scalar_only =
       CadenceImport.from_campaign_artifact(%{
         "plan_id" => "plan:station_pressure_scalar",
@@ -9573,6 +9590,35 @@ defmodule OrbitalDynamics.CadenceImportTest do
              "downlink" => %{"gs_empty" => []}
            }
 
+    assert routed_identity["station_pressure_contact_count"] == 3
+
+    assert routed_identity["station_pressure_contact_ids"] == [
+             "contact_group",
+             "contact_nested",
+             "contact_review"
+           ]
+
+    assert routed_identity["station_pressure_review_contact_count"] == 1
+    assert routed_identity["station_pressure_review_contact_ids"] == ["contact_review"]
+
+    assert routed_identity["station_pressure_contact_counts_by_ground_station_id"] == %{
+             "gs_route" => 1
+           }
+
+    assert routed_identity["station_pressure_contact_ids_by_ground_station_id"] == %{
+             "gs_route" => ["contact_group"]
+           }
+
+    assert routed_identity["station_pressure_contact_ids_by_direction"] == %{
+             "downlink" => ["contact_nested"]
+           }
+
+    assert routed_identity[
+             "station_pressure_contact_ids_by_direction_and_ground_station_id"
+           ] == %{
+             "downlink" => %{"gs_route" => ["contact_nested"]}
+           }
+
     assert scalar_only["station_pressure_contact_count"] == 2
 
     assert scalar_only["station_pressure_contact_counts_by_ground_station_id"] == %{
@@ -9582,7 +9628,7 @@ defmodule OrbitalDynamics.CadenceImportTest do
     refute Map.has_key?(scalar_only, "station_pressure_contact_ids")
     refute Map.has_key?(scalar_only, "station_pressure_contact_ids_by_ground_station_id")
 
-    for manifest <- [repair, explicit_empty, scalar_only] do
+    for manifest <- [repair, explicit_empty, routed_identity, scalar_only] do
       assert {:ok, %{"schema_contract" => "cadence_import_manifest.v1"}} =
                Schema.validate_artifact(manifest)
     end

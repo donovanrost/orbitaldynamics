@@ -449,31 +449,49 @@ defmodule OrbitalDynamics.OperatorReview.ContactAllocationSummary do
   end
 
   defp put_station_pressure_identity_summary(package, reports) do
-    identity_supplied? =
-      Enum.any?(reports, &is_list(Map.get(&1, "station_pressure_contact_ids")))
+    identity_lists = Enum.flat_map(reports, &station_pressure_identity_lists/1)
 
-    if identity_supplied? do
-      contact_ids =
-        reports
-        |> Enum.flat_map(fn report ->
-          case Map.get(report, "station_pressure_contact_ids") do
-            values when is_list(values) -> values
-            _values -> []
-          end
-        end)
-        |> canonical_stable_ids()
+    case identity_lists do
+      [] ->
+        put_contact_allocation_scalar_count_summary(
+          package,
+          reports,
+          "station_pressure_contact_count"
+        )
 
-      package
-      |> Map.put("station_pressure_contact_count", length(contact_ids))
-      |> Map.put("station_pressure_contact_ids", contact_ids)
-    else
-      put_contact_allocation_scalar_count_summary(
-        package,
-        reports,
-        "station_pressure_contact_count"
-      )
+      identity_lists ->
+        contact_ids =
+          identity_lists
+          |> List.flatten()
+          |> canonical_stable_ids()
+
+        package
+        |> Map.put("station_pressure_contact_count", length(contact_ids))
+        |> Map.put("station_pressure_contact_ids", contact_ids)
     end
   end
+
+  defp station_pressure_identity_lists(report) do
+    fields =
+      ["station_pressure_contact_ids", "station_pressure_review_contact_ids"] ++
+        Enum.map(@station_pressure_grouped_summary_fields, &elem(&1, 1)) ++
+        [
+          "station_pressure_contact_ids_by_direction",
+          "station_pressure_contact_ids_by_direction_and_ground_station_id"
+        ]
+
+    Enum.flat_map(fields, &collect_identity_lists(Map.get(report, &1)))
+  end
+
+  defp collect_identity_lists(values) when is_list(values), do: [values]
+
+  defp collect_identity_lists(%{} = values) do
+    values
+    |> Map.values()
+    |> Enum.flat_map(&collect_identity_lists/1)
+  end
+
+  defp collect_identity_lists(_values), do: []
 
   defp put_station_pressure_grouped_summaries(package, reports) do
     Enum.reduce(@station_pressure_grouped_summary_fields, package, fn

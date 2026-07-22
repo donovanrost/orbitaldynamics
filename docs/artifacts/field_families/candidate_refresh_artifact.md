@@ -1079,9 +1079,10 @@ Compact no-row station-pressure handoffs derive station-pressure contact and
 review-contact counts from present station, direction, nested direction/station,
 and review contact-ID maps before falling back to duplicated scalar counters.
 They also publish one canonical top-level `station_pressure_contact_ids` union
-across direct identity, station, availability, precedence, status, direction,
-and nested direction/station routes; whenever any such identity evidence is
-present, its unique cardinality is the exact station-pressure contact count.
+across direct identity, review identity, station, availability, precedence,
+status, direction, and nested direction/station routes; whenever any such
+identity evidence is present, its unique cardinality is the exact
+station-pressure contact count.
 Direct or result-artifact-wrapped
 `source_contact_allocation_reservation_conflict_summary` /
 `contact_allocation_reservation_conflict_summary` inputs replay through the same
@@ -1152,8 +1153,9 @@ routing maps without selecting contacts or mutating allocations.
 The packages also expose canonical top-level station-pressure contact IDs
 alongside their counts and routing maps, and Cadence-import manifests preserve
 that same review identity. When top-level identity is present, both handoffs
-derive the count from the sorted unique ID union, including explicit-empty zero;
-scalar-only inputs retain their summed fallback count.
+derive the count from the sorted unique ID union and require that union to cover
+every review, grouped, direction, and nested direction/station route, including
+explicit-empty zero; scalar-only inputs retain their summed fallback count.
 Station, availability, precedence-availability, precedence-rank, and status maps
 apply that correlation per key while retaining additive fallback for keys without
 grouped identity evidence.

@@ -829,6 +829,48 @@ defmodule OrbitalDynamics.Schema.OperatorReviewSchemaContractsTest do
 
     assert {:ok, _package} = Schema.validate_artifact(nested_only_direction_route)
 
+    routed_station_pressure_identity =
+      Map.merge(package, %{
+        "station_pressure_review_contact_count" => 1,
+        "station_pressure_review_contact_ids" => ["contact_review"],
+        "station_pressure_contact_counts_by_ground_station_id" => %{"gs_a" => 1},
+        "station_pressure_contact_ids_by_ground_station_id" => %{
+          "gs_a" => ["contact_group"]
+        },
+        flat_direction_field => %{"downlink" => ["contact_nested"]},
+        nested_direction_field => %{
+          "downlink" => %{"gs_a" => ["contact_nested"]}
+        }
+      })
+
+    assert {:ok, _package} = Schema.validate_artifact(routed_station_pressure_identity)
+
+    valid_routed_top_identity =
+      Map.merge(routed_station_pressure_identity, %{
+        "station_pressure_contact_count" => 3,
+        "station_pressure_contact_ids" => [
+          "contact_group",
+          "contact_nested",
+          "contact_review"
+        ]
+      })
+
+    assert {:ok, _package} = Schema.validate_artifact(valid_routed_top_identity)
+
+    incomplete_routed_top_identity =
+      Map.merge(routed_station_pressure_identity, %{
+        "station_pressure_contact_count" => 1,
+        "station_pressure_contact_ids" => ["contact_group"]
+      })
+
+    assert {:error, incomplete_routed_top_identity_report} =
+             Schema.validate_artifact(incomplete_routed_top_identity)
+
+    assert Enum.any?(
+             incomplete_routed_top_identity_report["errors"],
+             &(&1["path"] == "$.station_pressure_contact_ids")
+           )
+
     for {flat_ids, nested_ids, error_path} <- [
           {["contact_b", "contact_a"], ["contact_b"], "$.#{flat_direction_field}.downlink"},
           {["contact_a", "contact_b"], ["contact_b", "contact_b"],

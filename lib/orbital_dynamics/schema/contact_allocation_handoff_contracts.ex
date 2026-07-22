@@ -232,14 +232,29 @@ defmodule OrbitalDynamics.Schema.ContactAllocationHandoffContracts do
             ]
           end
 
-        if Map.get(artifact, "station_pressure_contact_count") ==
-             length(canonical_contact_ids) do
+        issues =
+          if Map.get(artifact, "station_pressure_contact_count") ==
+               length(canonical_contact_ids) do
+            issues
+          else
+            [
+              error(
+                path <> ".station_pressure_contact_count",
+                "must equal canonical station_pressure_contact_ids count"
+              )
+              | issues
+            ]
+          end
+
+        routed_contact_ids = station_pressure_routed_identity_lists(artifact) |> List.flatten()
+
+        if MapSet.subset?(MapSet.new(routed_contact_ids), MapSet.new(canonical_contact_ids)) do
           issues
         else
           [
             error(
-              path <> ".station_pressure_contact_count",
-              "must equal canonical station_pressure_contact_ids count"
+              path <> ".station_pressure_contact_ids",
+              "must include all review and routed station-pressure contact IDs"
             )
             | issues
           ]
@@ -249,6 +264,28 @@ defmodule OrbitalDynamics.Schema.ContactAllocationHandoffContracts do
         issues
     end
   end
+
+  defp station_pressure_routed_identity_lists(artifact) do
+    fields =
+      ["station_pressure_review_contact_ids"] ++
+        Enum.map(@station_pressure_grouped_summary_fields, &elem(&1, 1)) ++
+        [
+          "station_pressure_contact_ids_by_direction",
+          "station_pressure_contact_ids_by_direction_and_ground_station_id"
+        ]
+
+    Enum.flat_map(fields, &collect_station_pressure_identity_lists(Map.get(artifact, &1)))
+  end
+
+  defp collect_station_pressure_identity_lists(values) when is_list(values), do: [values]
+
+  defp collect_station_pressure_identity_lists(%{} = values) do
+    values
+    |> Map.values()
+    |> Enum.flat_map(&collect_station_pressure_identity_lists/1)
+  end
+
+  defp collect_station_pressure_identity_lists(_values), do: []
 
   defp validate_station_pressure_grouped_identity_summaries(issues, path, artifact) do
     Enum.reduce(@station_pressure_grouped_summary_fields, issues, fn

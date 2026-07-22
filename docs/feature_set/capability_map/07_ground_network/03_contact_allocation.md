@@ -494,10 +494,12 @@ so adapters can route contact queues without recounting rows.
   counts, canonical top-level contact IDs, and contact-ID maps by ground station,
   availability, precedence availability, and precedence rank, plus
   station-pressure review contact IDs, at their own top-level adapter boundary.
-  Top-level identity fixes the exact unique contact count across overlapping
-  embedded reports; each grouped ID route likewise fixes its per-key count, while
-  keys without identity evidence retain additive legacy fallback. Nested
-  direction/station IDs also populate canonical flat direction routes.
+  Top-level identity is the canonical union across direct, review, grouped,
+  direction, and nested direction/station evidence and fixes the exact unique
+  contact count across overlapping embedded reports. Each grouped ID route
+  likewise fixes its per-key count, while keys without identity evidence retain
+  additive legacy fallback. Nested direction/station IDs also populate canonical
+  flat direction routes.
 - Derived operator-review/import artifacts preserve those reservation summaries,
   expiration routing maps/counters, reservation contact/reservation ID maps by
   match status, reservation status, and reserved-by owner, and the lifted count
