@@ -45,8 +45,10 @@ defmodule OrbitalDynamics.Schema.JsonSchemaExportContractsTest do
 
     scalar_field = "station_reservation_expiration_status"
 
-    aggregate_field =
-      "provider_reservation_request_station_reservation_expiration_statuses"
+    aggregate_fields = [
+      "provider_reservation_request_station_reservation_expiration_statuses",
+      "station_reservation_conflict_expiration_statuses"
+    ]
 
     assert get_in(strategy_schema, [
              "properties",
@@ -70,37 +72,39 @@ defmodule OrbitalDynamics.Schema.JsonSchemaExportContractsTest do
              "type"
            ]) == "string"
 
-    assert get_in(review_schema, [
-             "properties",
-             "rows",
-             "items",
-             "properties",
-             aggregate_field,
-             "items",
-             "type"
-           ]) == "string"
+    Enum.each(aggregate_fields, fn aggregate_field ->
+      assert get_in(review_schema, [
+               "properties",
+               "rows",
+               "items",
+               "properties",
+               aggregate_field,
+               "items",
+               "type"
+             ]) == "string"
 
-    assert get_in(import_schema, [
-             "properties",
-             "rows",
-             "items",
-             "properties",
-             aggregate_field,
-             "items",
-             "type"
-           ]) == "string"
+      assert get_in(import_schema, [
+               "properties",
+               "rows",
+               "items",
+               "properties",
+               aggregate_field,
+               "items",
+               "type"
+             ]) == "string"
 
-    assert get_in(import_schema, [
-             "properties",
-             "rows",
-             "items",
-             "properties",
-             "source_review_row",
-             "properties",
-             aggregate_field,
-             "items",
-             "type"
-           ]) == "string"
+      assert get_in(import_schema, [
+               "properties",
+               "rows",
+               "items",
+               "properties",
+               "source_review_row",
+               "properties",
+               aggregate_field,
+               "items",
+               "type"
+             ]) == "string"
+    end)
   end
 
   test "exports nested branch comparison report row schema" do

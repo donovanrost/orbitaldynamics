@@ -8,6 +8,7 @@ defmodule OrbitalDynamics.RecommendationRiskContext.StationReservationConflict d
     "station_reservation_conflict_reservation_ids",
     "station_reservation_conflict_reserved_by",
     "station_reservation_conflict_statuses",
+    "station_reservation_conflict_expiration_statuses",
     "station_reservation_conflict_match_statuses",
     "station_reservation_conflict_expires_at_values_s",
     "station_reservation_conflict_derivation_reasons",
@@ -44,6 +45,11 @@ defmodule OrbitalDynamics.RecommendationRiskContext.StationReservationConflict d
         risk_context_values(station_reservation_conflict_risks, "station_reserved_by"),
       "station_reservation_conflict_statuses" =>
         risk_context_values(station_reservation_conflict_risks, "station_reservation_status"),
+      "station_reservation_conflict_expiration_statuses" =>
+        risk_context_values(
+          station_reservation_conflict_risks,
+          "station_reservation_expiration_status"
+        ),
       "station_reservation_conflict_match_statuses" =>
         risk_context_values(
           station_reservation_conflict_risks,

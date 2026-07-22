@@ -1641,6 +1641,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureExpected
         "station_reservation_conflict_reservation_ids" => ["reservation_conflict_1"],
         "station_reservation_conflict_reserved_by" => ["ops_team_b"],
         "station_reservation_conflict_statuses" => ["confirmed"],
+        "station_reservation_conflict_expiration_statuses" => ["active"],
         "station_reservation_conflict_match_statuses" => ["overlap"],
         "station_reservation_conflict_expires_at_values_s" => [360.0],
         "station_reservation_conflict_derivation_reasons" => [

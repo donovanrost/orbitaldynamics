@@ -52,6 +52,7 @@ defmodule OrbitalDynamics.Schema.CadenceSourceReviewRowJsonSchema do
           "branch_station_reservation_expiration_statuses" => schema.(:string_array_schema),
           "provider_reservation_request_station_reservation_expiration_statuses" =>
             schema.(:string_array_schema),
+          "station_reservation_conflict_expiration_statuses" => schema.(:string_array_schema),
           "branch_image_quality_min_score" => %{
             "type" => "number",
             "minimum" => 0.0,

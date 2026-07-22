@@ -1374,6 +1374,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureEventsFi
                 station_reservation_id: "reservation_conflict_1",
                 station_reserved_by: "ops_team_b",
                 station_reservation_status: "confirmed",
+                station_reservation_expiration_status: "active",
                 station_reservation_match_status: "overlap",
                 station_reservation_expires_at_s: 360.0,
                 station_calendar_entry_id: "calendar_allocation_deferred",

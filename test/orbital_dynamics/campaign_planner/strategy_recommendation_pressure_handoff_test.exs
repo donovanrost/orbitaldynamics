@@ -227,9 +227,22 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
   end
 
   test "provider request expiration risk context remains source exact across handoffs" do
-    artifact = StrategyRecommendationPressureEventsFixture.artifact()
-    field = "provider_reservation_request_station_reservation_expiration_statuses"
+    assert_risk_expiration_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "provider_reservation_request_station_reservation_expiration_statuses",
+      "dl_provider_review"
+    )
+  end
 
+  test "station conflict expiration risk context remains source exact across handoffs" do
+    assert_risk_expiration_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "station_reservation_conflict_expiration_statuses",
+      "dl_reservation_conflict"
+    )
+  end
+
+  defp assert_risk_expiration_context_contract(artifact, field, contact_id) do
     recommendation_review_row =
       Enum.find(
         artifact["operator_review_package"]["rows"],
@@ -285,7 +298,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
           |> Map.delete(field)
           |> update_in(["source_recommendation", "risks_remaining"], fn risks ->
             Enum.map(risks, fn
-              %{"type" => "provider_reservation_request_review"} = risk ->
+              %{"contact_id" => ^contact_id} = risk ->
                 Map.delete(risk, "station_reservation_expiration_status")
 
               other ->
@@ -294,7 +307,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
           end)
           |> update_in(["source_recommendation", "explanation"], fn explanation ->
             Enum.map(explanation, fn
-              %{"risk_type" => "provider_reservation_request_review"} = risk_driver ->
+              %{"contact_id" => ^contact_id} = risk_driver ->
                 Map.delete(risk_driver, "station_reservation_expiration_status")
 
               other ->
