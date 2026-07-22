@@ -223,7 +223,7 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
              )
 
     assert %{
-             "operational_readiness_review_count" => 1,
+             "operational_readiness_review_count" => 2,
              "quality_gate_review_count" => 1
            } = artifact["operator_review_package"]
 
@@ -598,7 +598,7 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
              &(&1["import_action"] == "review_refresh_freshness")
            )
 
-    assert artifact["score_terms"]["operational_readiness_pressure_penalty"] == -1.0
+    assert artifact["score_terms"]["operational_readiness_pressure_penalty"] == -2.0
 
     assert "operational_readiness_pressure_penalty" in artifact["score_term_report"][
              "score_term_keys"
@@ -607,7 +607,7 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
     assert [
              %{
                "term_key" => "operational_readiness_pressure_penalty",
-               "value" => -1.0,
+               "value" => -2.0,
                "selected" => true
              }
            ] =
@@ -1281,26 +1281,7 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
         "kept_candidate_count" => 1,
         "dropped_candidate_count" => 0
       },
-      "source_operational_readiness_report" => %{
-        "schema_contract" => "operational_readiness_report.v1",
-        "schema_version" => 1,
-        "model" => "OrbitalDynamics.OperationalReadiness.V1",
-        "report_id" => "operational_readiness:planned_activity.v1:passive_source",
-        "source_artifact_type" => "planned_activity.v1",
-        "source_artifact_id" => "passive_source",
-        "readiness_level" => "operator_review",
-        "import_classification" => "review_only",
-        "status" => "review_required",
-        "gate_count" => 4,
-        "passed_gate_count" => 2,
-        "review_gate_count" => 2,
-        "analysis_gate_count" => 0,
-        "blocked_gate_count" => 0,
-        "gates" => [],
-        "evidence" => %{},
-        "assumptions" => %{},
-        "model_limits" => ["artifact_only"]
-      },
+      "source_operational_readiness_report" => passive_readiness_report(),
       "source_provider_counteroffer_report" => %{
         "schema_contract" => "provider_counteroffer_report.v1",
         "source" => "station_calendar_report.affected_contacts",
@@ -1453,13 +1434,17 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
   end
 
   defp passive_quality_gate_report do
+    OrbitalDynamics.operational_quality_gate_report(passive_readiness_report())
+  end
+
+  defp passive_readiness_report do
     %{
-      "schema_contract" => "quality_gate_report.v1",
-      "model" => "artifact_only_operational_quality_gate_report",
-      "report_id" => "quality_gate:planned_activity.v1:passive_source",
+      "schema_contract" => "operational_readiness_report.v1",
+      "schema_version" => 1,
+      "model" => "artifact_only_operational_readiness_classifier",
+      "report_id" => "operational_readiness:planned_activity.v1:passive_source",
       "source_artifact_type" => "planned_activity.v1",
       "source_artifact_id" => "passive_source",
-      "source_readiness_report_id" => "operational_readiness:planned_activity.v1:passive_source",
       "readiness_level" => "operator_review",
       "import_classification" => "review_only",
       "status" => "review_required",
@@ -1468,20 +1453,26 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
       "review_gate_count" => 1,
       "analysis_gate_count" => 0,
       "blocked_gate_count" => 0,
-      "gate_status_counts" => %{"review_required" => 1},
-      "gate_classification_counts" => %{"review_only" => 1},
-      "rows" => [
+      "gates" => [
         %{
-          "id" => "quality_gate:passive_source:operator_review:1",
-          "rank" => 1,
-          "gate_id" => "operator_review",
+          "id" => "operator_review",
           "status" => "review_required",
           "classification" => "review_only",
           "reason" => "operator review required"
         }
       ],
-      "assumptions" => %{"source" => "test.quality_gate_report"},
-      "model_limits" => ["artifact_only"]
+      "evidence" => %{},
+      "assumptions" => [
+        "classification_uses_declared_operator_review_and_cadence_import_manifest_evidence",
+        "cadence_import_manifest_rows_are_adapter_handoff_not_external_import_writes"
+      ],
+      "model_limits" => [
+        "artifact_only",
+        "does_not_write_cadence",
+        "does_not_approve_operator_actions",
+        "does_not_execute_commands",
+        "uses_declared_review_and_import_evidence"
+      ]
     }
   end
 end

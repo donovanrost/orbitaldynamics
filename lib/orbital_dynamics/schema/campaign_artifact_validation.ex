@@ -221,6 +221,10 @@ defmodule OrbitalDynamics.Schema.CampaignArtifactValidation do
         &OperatorReviewValidation.validate_optional_package/2,
       validate_optional_cadence_import_manifest:
         &CadenceImportValidation.validate_optional_manifest/2,
+      validate_optional_operational_readiness_report:
+        &OperationalReadinessValidation.validate_optional_operational_readiness_report/3,
+      validate_optional_quality_gate_report:
+        &OperationalReadinessValidation.validate_optional_quality_gate_report/3,
       validate_optional_objective_tradeoff_report:
         &DecisionSupportValidation.validate_optional_objective_tradeoff_report/2,
       validate_optional_constraint_report:

@@ -47,7 +47,7 @@ defmodule OrbitalDynamics.Schema.CampaignRepairSourceHandoffContractsTest do
            }
 
     assert %{
-             "operational_readiness_review_count" => 1,
+             "operational_readiness_review_count" => 2,
              "quality_gate_review_count" => 1
            } = fixture["operator_review_package"]
 
@@ -78,17 +78,21 @@ defmodule OrbitalDynamics.Schema.CampaignRepairSourceHandoffContractsTest do
                &(&1["review_type"] == "quality_gate_review")
              )
 
-    assert [
-             %{
-               "import_action" => "review_operational_readiness",
-               "source_review_type" => "operational_readiness_review",
-               "source" => "campaign_repair.source_operational_readiness_report"
-             }
-           ] =
-             Enum.filter(
-               fixture["cadence_import_manifest"]["rows"],
-               &(&1["import_action"] == "review_operational_readiness")
-             )
+    readiness_import_rows =
+      Enum.filter(
+        fixture["cadence_import_manifest"]["rows"],
+        &(&1["import_action"] == "review_operational_readiness")
+      )
+
+    assert Enum.map(readiness_import_rows, & &1["source"]) == [
+             "campaign_repair.source_operational_readiness_report",
+             "campaign_repair.source_operational_readiness_report.gates"
+           ]
+
+    assert Enum.all?(
+             readiness_import_rows,
+             &(&1["source_review_type"] == "operational_readiness_review")
+           )
 
     assert [
              %{
@@ -228,34 +232,10 @@ defmodule OrbitalDynamics.Schema.CampaignRepairSourceHandoffContractsTest do
     %{
       "schema_contract" => "operational_readiness_report.v1",
       "schema_version" => 1,
-      "model" => "OrbitalDynamics.OperationalReadiness.V1",
+      "model" => "artifact_only_operational_readiness_classifier",
       "report_id" => "operational_readiness:planned_activity.v1:repair_source_fixture",
       "source_artifact_type" => "planned_activity.v1",
       "source_artifact_id" => "repair_source_fixture",
-      "readiness_level" => "operator_review",
-      "import_classification" => "review_only",
-      "status" => "review_required",
-      "gate_count" => 4,
-      "passed_gate_count" => 2,
-      "review_gate_count" => 2,
-      "analysis_gate_count" => 0,
-      "blocked_gate_count" => 0,
-      "gates" => [],
-      "evidence" => %{},
-      "assumptions" => %{},
-      "model_limits" => ["artifact_only"]
-    }
-  end
-
-  defp repair_source_quality_gate_report do
-    %{
-      "schema_contract" => "quality_gate_report.v1",
-      "model" => "artifact_only_operational_quality_gate_report",
-      "report_id" => "quality_gate:planned_activity.v1:repair_source_fixture",
-      "source_artifact_type" => "planned_activity.v1",
-      "source_artifact_id" => "repair_source_fixture",
-      "source_readiness_report_id" =>
-        "operational_readiness:planned_activity.v1:repair_source_fixture",
       "readiness_level" => "operator_review",
       "import_classification" => "review_only",
       "status" => "review_required",
@@ -264,20 +244,30 @@ defmodule OrbitalDynamics.Schema.CampaignRepairSourceHandoffContractsTest do
       "review_gate_count" => 1,
       "analysis_gate_count" => 0,
       "blocked_gate_count" => 0,
-      "gate_status_counts" => %{"review_required" => 1},
-      "gate_classification_counts" => %{"review_only" => 1},
-      "rows" => [
+      "gates" => [
         %{
-          "id" => "quality_gate:repair_source_fixture:operator_review:1",
-          "rank" => 1,
-          "gate_id" => "operator_review",
+          "id" => "operator_review",
           "status" => "review_required",
           "classification" => "review_only",
           "reason" => "operator review required"
         }
       ],
-      "assumptions" => %{"source" => "test.quality_gate_report"},
-      "model_limits" => ["artifact_only"]
+      "evidence" => %{},
+      "assumptions" => [
+        "classification_uses_declared_operator_review_and_cadence_import_manifest_evidence",
+        "cadence_import_manifest_rows_are_adapter_handoff_not_external_import_writes"
+      ],
+      "model_limits" => [
+        "artifact_only",
+        "does_not_write_cadence",
+        "does_not_approve_operator_actions",
+        "does_not_execute_commands",
+        "uses_declared_review_and_import_evidence"
+      ]
     }
+  end
+
+  defp repair_source_quality_gate_report do
+    OrbitalDynamics.operational_quality_gate_report(repair_source_readiness_report())
   end
 end

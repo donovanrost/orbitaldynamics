@@ -273,6 +273,11 @@ work, a **partial** executable-schema track, and **near-term** / **later** /
   validation pins the source to the containing repair ID and requires its row
   count, provenance count, and ordered source-review row IDs to match the
   enclosing `operator_review_package.v1`.
+- Optional V2 source `operational_readiness_report.v1` and
+  `quality_gate_report.v1` evidence is declared as direct nested contracts and
+  runs both standalone validators. Executable repair validation also requires
+  the quality-gate report's readiness-report ID and source artifact identity to
+  match the paired readiness report when both are present.
 - `realized_state_snapshot.v1` and `timeline_feedback_report.v1` export nested
   operational-feedback rows plus command/contact feedback, throughput-delta,
   success fields, and source planned/realized activity context.

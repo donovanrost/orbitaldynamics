@@ -41,6 +41,12 @@ Status: **implemented** (with a **partial** semantic-depth area, plus **near-ter
   - top-level operator-review packages and Cadence import manifests derived
     directly from `operational_readiness_report.v1`
   - exposed alongside the public `OrbitalDynamics.operational_readiness_report/2` facade
+- `campaign_repair.v2` declares optional source readiness and quality-gate
+  reports as direct nested contracts, applies their complete standalone
+  validators, and reconciles the quality-gate source report ID/type/identity to
+  its paired operational-readiness report. The checked repair handoff uses the
+  current artifact-only models, exact no-authority limits, row-derived counts,
+  and explicit review-gate rows rather than legacy partial report shapes.
 
 **Readiness facades.**
 

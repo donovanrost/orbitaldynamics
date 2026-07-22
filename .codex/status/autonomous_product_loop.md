@@ -5,66 +5,71 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Declare and reconcile nested V2 Cadence import manifests.
+Validate V2 readiness source handoffs.
 
 Status:
 Complete; ready to publish.
 
 Selection evidence:
-- V2 always derives `cadence_import_manifest.v1` from its embedded
-  `operator_review_package.v1`, but the repair registry declares neither the
-  field nor its nested contract.
-- Repair runtime validation therefore does not apply the standalone manifest's
-  row, derived-count, model-limit, and no-write boundary checks.
-- Both checked V2 manifests pass standalone validation and preserve their
-  enclosing repair ID, review count, and ordered operator-review row IDs.
+- V2 carries source `operational_readiness_report.v1` and
+  `quality_gate_report.v1` evidence into repair ranking, operator review, and
+  Cadence import, but declares and validates neither top-level source field.
+- The checked readiness handoff still used legacy partial report shapes that
+  failed their current standalone contracts despite the enclosing repair
+  validating successfully.
+- Readiness and quality-gate source identity is consumed as a pair, but no V2
+  cross-field rule prevents a valid gate report from pointing to another
+  readiness report.
 
 Intended behavior:
-- Declare the optional Cadence import manifest and V1 nested contract in the V2
+- Refresh the checked V2 readiness handoff with current artifact-only report
+  models, assumptions, model limits, execution boundary, and row-derived
+  review gates.
+- Declare both optional source reports and direct nested contracts in the V2
   registry and generated JSON Schema.
-- Run the complete standalone Cadence import validator inside repair validation.
-- Pin manifest source type/ID and row-source assumption to the enclosing repair
-  and operator-review package.
-- Reconcile manifest/provenance review counts and ordered source-review row IDs
-  against the enclosing review package.
-- Keep the field optional for compatible older V2 artifacts.
-- Add checked-fixture, standalone, source/join, optional-manifest, and
-  schema-export coverage; document the executable guarantee.
+- Run both complete standalone validators inside repair validation.
+- Reconcile quality-gate readiness-report ID and source artifact identity to the
+  paired readiness report when both fields are present.
+- Keep both fields optional for compatible older V2 artifacts.
+- Add standalone, linkage, optional-field, checked-fixture, and schema-export
+  coverage; document the executable guarantee.
 
 Level 6 pillar advanced:
-Versioned, traceable V2 Cadence handoffs with executable nested validation.
+Versioned, self-validating readiness evidence at the V2 repair boundary.
 
 Last published slice:
-- `1fe471a9` Validate nested V2 command windows (`3745 passed`).
+- `a29f0795` Reconcile V2 Cadence import manifests (`3750 passed`).
 
 Likely files:
-- V2 registry/runtime Cadence import contracts
-- focused Cadence import and schema-export tests
-- checked-in schema exports and V2 capability docs
+- V2 registry/runtime readiness source contracts
+- refreshed checked readiness handoff fixture and focused tests
+- checked-in schema exports and readiness capability docs
 
 Verification:
-- Focused Cadence import contract tests: `5 passed`.
-- Campaign-repair schema fixtures: `52 passed`.
-- Schema suite plus schema-lint/export task tests: `439 passed`.
+- Focused readiness source contracts: `6 passed`.
+- Campaign-repair schema fixtures: `57 passed`.
+- Repair-source and generated-candidate planner coverage: `41 passed`.
+- Schema suite plus schema-lint/export task tests: `444 passed`.
 - Campaign-planner suite: `761 passed`.
 - Full checked-artifact lint: `155/155 passed`, zero warnings.
-- Full suite: `3750 passed`.
+- Full suite: `3755 passed`.
 - `mix format --check-formatted`, `mix compile --warnings-as-errors`, and
   `git diff --check` passed.
 - Full schema export refreshed the V2 repair schema and aggregate bundle only.
 
 Review:
-- The V2 registry now declares optional `cadence_import_manifest` and its V1
-  nested contract; generated schemas expose the complete manifest definition
-  without requiring the field from compatible older V2 artifacts.
-- Runtime repair validation now applies the standalone manifest contract,
-  including row shapes and identities, derived counts/maps, supported source
-  types, exact model limits, and artifact-only no-write assumptions.
-- Repair-specific validation pins source type and source ID to the enclosing
-  repair, requires the operator-review package named by the row-source
-  assumption, and reconciles review counts plus ordered row IDs across the
-  handoff.
-- Both checked V2 repairs, all checked artifacts, and existing V1 Cadence import
+- The V2 registry now declares both optional readiness source fields and their
+  direct nested contracts without requiring them from older repair artifacts.
+- Runtime repair validation applies the full standalone readiness and
+  quality-gate contracts, including exact artifact-only models/limits,
+  no-authority execution boundaries, gate/row identities, and row-derived
+  status/count summaries.
+- Cross-report validation rejects a quality gate whose source readiness-report
+  ID or source artifact identity differs from the paired readiness report.
+- The checked repair handoff and planner fixtures now use current canonical
+  readiness evidence. Its explicit review gate correctly contributes a second
+  readiness review/pressure row, while quality-gate pressure remains one row.
+- Both checked V2 repairs, all checked artifacts, and existing readiness/Cadence
   consumers remain valid.
 
 Remaining maturity gaps:

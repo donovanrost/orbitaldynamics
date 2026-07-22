@@ -339,7 +339,7 @@ defmodule OrbitalDynamics.Schema.CampaignRepairScoreContractsTest do
     numeric_string_policy =
       artifact
       |> put_in(["scoring_policy", "risk_weight"], "0.25")
-      |> put_score_term("operational_readiness_pressure_penalty", -0.25)
+      |> put_score_term("operational_readiness_pressure_penalty", -0.5)
       |> put_score_term("quality_gate_pressure_penalty", -0.25)
 
     assert [] == CampaignRepairScoreContracts.validate([], numeric_string_policy)
