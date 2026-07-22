@@ -217,6 +217,10 @@ defmodule OrbitalDynamics.CandidateRefresh.QualityGateUnavailableResourceReplayS
         }
       })
 
+    assert {:ok,
+            %{"schema_contract" => "operational_quality_gate_unavailable_resource_summary.v1"}} =
+             Schema.validate_artifact(unavailable_resource_summary)
+
     prior_contact = %{
       "id" => blocked_contact_id,
       "type" => "downlink",
@@ -320,6 +324,76 @@ defmodule OrbitalDynamics.CandidateRefresh.QualityGateUnavailableResourceReplayS
 
     assert {:ok, %{"schema_contract" => "cadence_import_manifest.v1"}} =
              Schema.validate_artifact(import)
+  end
+
+  test "stale unavailable-resource summary lineage remains provenance-only" do
+    blocked_contact_id = "leo_1_downlink_equator_prime_1"
+
+    stale_summary =
+      quality_gate_unavailable_resource_summary_fixture()
+      |> Map.put(
+        "source_quality_gate_report_id",
+        "quality_gate:contact_filter_report.v1:stale_filter"
+      )
+      |> put_in(
+        ["blocked_contact_ids_by_blocking_dimension"],
+        %{"payload" => [blocked_contact_id]}
+      )
+      |> put_in(
+        ["blocked_contact_ids_by_spacecraft_id"],
+        %{"sat_1" => [blocked_contact_id]}
+      )
+      |> put_in(
+        ["blocked_contact_ids_by_status"],
+        %{"review_required" => [blocked_contact_id]}
+      )
+
+    assert {:error, %{"errors" => errors}} = Schema.validate_artifact(stale_summary)
+
+    assert Enum.any?(
+             errors,
+             &(&1["path"] == "$.source_quality_gate_report_id" and
+                 &1["message"] == "must match source artifact identity")
+           )
+
+    prior_contact = %{
+      "id" => blocked_contact_id,
+      "type" => "downlink",
+      "scenario_id" => "leo_1",
+      "ground_station_id" => "equator_prime",
+      "starts_at_s" => 300.0,
+      "ends_at_s" => 420.0,
+      "source_window_id" => "window:leo_1:ground_station_access:equator_prime:1"
+    }
+
+    artifact =
+      result_set()
+      |> CandidateRefresh.build(
+        candidate_refresh:
+          refresh_request()
+          |> put_in(
+            ["accepted_planning_state", "operational_quality_gate_unavailable_resource_summary"],
+            stale_summary
+          )
+          |> Map.put("prior_candidate_activities", [prior_contact]),
+        generated_at: ~U[2026-05-14 00:00:00Z]
+      )
+
+    assert Enum.map(artifact["candidate_activities"], & &1["id"]) == [
+             "leo_1_observe_target_a_1",
+             blocked_contact_id
+           ]
+
+    refute Map.has_key?(artifact, "candidate_rejection_report")
+
+    assert %{
+             "source_summary_schema_contract_counts" => %{
+               "operational_quality_gate_unavailable_resource_summary.v1" => 1
+             }
+           } = get_in(artifact, ["provenance", "source_reports", "quality_gate_report"])
+
+    assert {:ok, %{"schema_contract" => "candidate_refresh.v1", "status" => "pass"}} =
+             Schema.validate_artifact(artifact)
   end
 
   test "aggregate pressure and contact ids under another spacecraft do not filter candidates" do
@@ -620,8 +694,10 @@ defmodule OrbitalDynamics.CandidateRefresh.QualityGateUnavailableResourceReplayS
       "source" => "quality_gate_report.v1",
       "source_artifact_type" => "contact_filter_report.v1",
       "source_artifact_id" => "contact_filter:payload_blocked",
-      "source_quality_gate_report_id" => "quality_gate:contact_filter:payload_blocked",
-      "source_readiness_report_id" => "operational_readiness:contact_filter:payload_blocked",
+      "source_quality_gate_report_id" =>
+        "quality_gate:contact_filter_report.v1:contact_filter:payload_blocked",
+      "source_readiness_report_id" =>
+        "operational_readiness:contact_filter_report.v1:contact_filter:payload_blocked",
       "resource_availability_row_count" => 1,
       "unavailable_resource_row_count" => 1,
       "unavailable_resource_pressure_count" => 1,
@@ -655,6 +731,10 @@ defmodule OrbitalDynamics.CandidateRefresh.QualityGateUnavailableResourceReplayS
         "cadence_write" => "not_performed_by_summary",
         "command_execution" => "not_performed_by_summary"
       },
+      "model_limits" => [
+        "quality_gate_unavailable_resource_summary_routes_only",
+        "quality_gate_unavailable_resource_summary_does_not_approve_or_import"
+      ],
       "provenance" => %{"trust_boundary" => "unavailable_resource_summary_fixture"}
     }
   end

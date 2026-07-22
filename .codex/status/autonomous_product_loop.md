@@ -5,52 +5,56 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Reconcile standalone quality-gate row identity.
+Reconcile quality-gate summary lineage at the candidate-selection boundary.
 
 Status:
 Complete; ready to publish.
 
 Selection evidence:
-- Quality-gate envelope lineage is exact, but row IDs were only shape-checked.
-- A stale row ID plus compensating status/classification ID maps could pass all
-  semantic and aggregate validation.
-- Aggregate station-pressure contact maps were assessed and remain provenance-
-  only because they do not identify the selected branch candidate.
+- All five `operational_quality_gate_*summary.v1` runtime contracts required
+  stable source IDs but did not derive them from the source artifact identity.
+- CandidateRefresh converted unavailable-resource summaries into internal
+  reports and authorized contact rejection from schema/model labels without
+  validating the original summary.
 
 Implemented behavior:
-- Every `quality_gate_report.v1` row ID is derived from the enclosing source
-  artifact type/ID plus its gate ID and rank.
-- Identity replay waits for valid enclosing and row inputs so malformed-field
-  errors remain authoritative and are not obscured by derived-ID noise.
-- A compensating stale row-ID/map mutation now fails at the exact row ID.
+- One shared validator now derives source quality-gate and readiness report IDs
+  for the generic summary and all four specialized summary contracts.
+- Unavailable-resource replay normalization preserves the original summary's
+  standalone validation status; only a passing summary may filter candidates.
+- Invalid summaries remain observable in replay provenance but cannot reject an
+  explicitly scoped contact.
+- Curated validation and CampaignPlanner fixtures now use producer-canonical
+  summary lineage rather than pre-contract shorthand IDs.
 
 Level 6 pillar advanced:
 Durable schema-versioned artifacts and reproducible audit handoffs.
 
 Files changed:
-- quality-gate report runtime contract validator
-- focused operational-readiness identity test
+- shared quality-gate summary lineage validator and five contract validators
+- unavailable-resource replay normalization and candidate filter
+- focused readiness, CandidateRefresh, planner, and validation fixtures/tests
 - operational-readiness and reproducibility documentation
 
 Verification:
-- Focused operational-readiness tests: `31 passed`.
-- Related readiness/quality/schema/replay tests: `102 passed`.
+- Focused readiness/unavailable-resource tests: `39 passed`.
+- Expanded quality-gate/schema-export replay set: `69 passed`.
+- Affected planner/validation/reference/readiness set: `56 passed`.
 - Full checked-artifact lint: `155/155 passed`, zero warnings.
-- Full suite with a 120-second per-test ceiling: `3784 passed`.
+- Full suite with a 120-second per-test ceiling: `3786 passed`.
 - `mix format --check-formatted`, `mix compile --warnings-as-errors`, and
   `git diff --check` passed.
 - No public artifact shape or checked-in schema export changed.
 
 Review:
-- The validator reuses producer `SourceIdentity.quality_gate_row_id/4`, avoiding
-  drift between production and runtime validation.
-- Exact row paths use zero-based JSON-array indices consistent with existing
-  validation errors.
-- Current checked artifacts, compact summaries, CandidateRefresh replay, and
-  adapter handoffs all remain compatible.
+- The first full run exposed seven stale test fixtures at the new identity
+  boundary; canonicalizing their IDs restored all intended fixture behavior.
+- Candidate selection consumes only the internal validation status; replay
+  summaries and public CandidateRefresh artifact shapes remain unchanged.
+- Shared derivation reuses producer `SourceIdentity` functions to avoid drift.
 
 Last published slice:
-- `208b66d0` Reconcile readiness report identity (`3784 passed`).
+- `1b9c3ad0` Reconcile quality gate row identity (`3784 passed`).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions while preserving explicit
@@ -61,8 +65,8 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-Audit the specialized quality/readiness summary lineage or another versioned
-handoff family for one concrete compensating identity contradiction.
+Audit CampaignPlanner quality-gate summary branch derivation for the same
+standalone-validation boundary and one concrete stale-lineage challenge.
 
 Blocked:
 None.

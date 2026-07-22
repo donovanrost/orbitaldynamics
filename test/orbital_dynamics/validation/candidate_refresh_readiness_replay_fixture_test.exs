@@ -234,7 +234,7 @@ defmodule OrbitalDynamics.Validation.CandidateRefreshReadinessReplayFixtureTest 
                      "blocked_spacecraft_ids" => ["sat_1"],
                      "source_artifact_ids" => ["quality-gate-selection-challenge"],
                      "source_quality_gate_report_ids" => [
-                       "quality_gate:unavailable_resource_selection_challenge"
+                       "quality_gate:contact_allocation_report.v1:quality-gate-selection-challenge"
                      ],
                      "trust_boundaries" => [
                        "generated_quality_gate_selection_challenge"

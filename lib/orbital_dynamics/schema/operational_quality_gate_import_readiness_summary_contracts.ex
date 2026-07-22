@@ -3,6 +3,9 @@ defmodule OrbitalDynamics.Schema.OperationalQualityGateImportReadinessSummaryCon
 
   alias OrbitalDynamics.Schema.CollectionAggregation
 
+  alias OrbitalDynamics.Schema.OperationalQualityGateSummaryLineageValidation,
+    as: SummaryLineage
+
   import OrbitalDynamics.Schema.PrimitiveValidation,
     only: [
       error: 2,
@@ -53,6 +56,7 @@ defmodule OrbitalDynamics.Schema.OperationalQualityGateImportReadinessSummaryCon
       "source_quality_gate_report_id",
       "source_readiness_report_id"
     ])
+    |> SummaryLineage.validate(path, summary)
     |> expect_non_negative_integer(path, summary, "import_readiness_row_count")
     |> expect_non_negative_integer(path, summary, "ready_for_import_count")
     |> expect_non_negative_integer(path, summary, "manifest_review_required_count")

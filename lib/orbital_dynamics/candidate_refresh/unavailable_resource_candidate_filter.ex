@@ -160,7 +160,8 @@ defmodule OrbitalDynamics.CandidateRefresh.UnavailableResourceCandidateFilter do
     reports
     |> Enum.filter(fn {_path, report} ->
       report["source_summary_schema_contract"] == @quality_summary_contract and
-        report["source_summary_model"] == @quality_summary_model
+        report["source_summary_model"] == @quality_summary_model and
+        report["source_summary_validation_status"] == "pass"
     end)
     |> Enum.map(fn {path, report} ->
       %{

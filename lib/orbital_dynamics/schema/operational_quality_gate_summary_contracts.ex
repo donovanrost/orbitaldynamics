@@ -4,6 +4,9 @@ defmodule OrbitalDynamics.Schema.OperationalQualityGateSummaryContracts do
   alias OrbitalDynamics.Schema.OperationalReadinessClassificationContracts,
     as: ReadinessClassification
 
+  alias OrbitalDynamics.Schema.OperationalQualityGateSummaryLineageValidation,
+    as: SummaryLineage
+
   import OrbitalDynamics.Schema.CollectionValidation, only: [validate_rows: 4]
 
   import OrbitalDynamics.Schema.PrimitiveValidation,
@@ -46,6 +49,7 @@ defmodule OrbitalDynamics.Schema.OperationalQualityGateSummaryContracts do
       "source_quality_gate_report_id",
       "source_readiness_report_id"
     ])
+    |> SummaryLineage.validate(path, summary)
     |> expect_one_of(path, summary, "readiness_level", capability.readiness_levels)
     |> expect_one_of(
       path,

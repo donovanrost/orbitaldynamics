@@ -138,6 +138,10 @@ Current implementation:
   without Cadence writes, command execution, or operator authority. Runtime
   validation and JSON Schema export pin the summary's artifact-only model-limit
   list so handoff queues cannot accept stale quality-gate triage declarations.
+  The generic summary and every specialized quality-gate summary also derive
+  both source report IDs from their declared source artifact type and ID, so a
+  well-formed but stale quality-gate or readiness report ID cannot be relabeled
+  as current summary lineage.
 - `OperationalReadiness.quality_gate_unavailable_resource_summary/2` and
   `OrbitalDynamics.operational_quality_gate_unavailable_resource_summary/2`
   publish the validated
@@ -148,7 +152,9 @@ Current implementation:
   quality-gate row IDs by status, and artifact-only no-authority assumptions
   for review/import routing. Runtime validation and JSON Schema export pin the
   summary's artifact-only model-limit list so adapter queues cannot accept stale
-  unavailable-resource trust-boundary declarations.
+  unavailable-resource trust-boundary declarations. Candidate refresh replay
+  keeps invalid summaries observable as provenance, but only a summary that
+  passes this standalone contract may exclude explicitly scoped contacts.
 - `OperationalReadiness.quality_gate_schema_validation_summary/2` and
   `OrbitalDynamics.operational_quality_gate_schema_validation_summary/2`
   publish the validated

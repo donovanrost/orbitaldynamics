@@ -200,8 +200,10 @@ defmodule OrbitalDynamics.Validation.CandidateRefreshReadinessReplayFixtures do
       "source" => "quality_gate_report.v1",
       "source_artifact_type" => "contact_allocation_report.v1",
       "source_artifact_id" => "quality-gate-selection-challenge",
-      "source_quality_gate_report_id" => "quality_gate:unavailable_resource_selection_challenge",
-      "source_readiness_report_id" => "operational_readiness:quality_gate_selection_challenge",
+      "source_quality_gate_report_id" =>
+        "quality_gate:contact_allocation_report.v1:quality-gate-selection-challenge",
+      "source_readiness_report_id" =>
+        "operational_readiness:contact_allocation_report.v1:quality-gate-selection-challenge",
       "resource_blocking_dimension_counts" => %{"antenna" => 1},
       "blocked_contact_ids_by_blocking_dimension" => %{
         "antenna" => blocked_contact_ids

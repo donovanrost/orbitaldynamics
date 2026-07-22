@@ -3,6 +3,9 @@ defmodule OrbitalDynamics.Schema.OperationalQualityGateSchemaValidationSummaryCo
 
   alias OrbitalDynamics.Schema.CollectionAggregation
 
+  alias OrbitalDynamics.Schema.OperationalQualityGateSummaryLineageValidation,
+    as: SummaryLineage
+
   import OrbitalDynamics.Schema.PrimitiveValidation,
     only: [
       error: 2,
@@ -47,6 +50,7 @@ defmodule OrbitalDynamics.Schema.OperationalQualityGateSchemaValidationSummaryCo
       "source_quality_gate_report_id",
       "source_readiness_report_id"
     ])
+    |> SummaryLineage.validate(path, summary)
     |> expect_non_negative_integer(path, summary, "schema_validation_row_count")
     |> expect_non_negative_integer(path, summary, "schema_validation_pass_count")
     |> expect_non_negative_integer(path, summary, "schema_validation_fail_count")

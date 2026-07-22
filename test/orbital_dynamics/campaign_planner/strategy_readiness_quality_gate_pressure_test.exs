@@ -5,6 +5,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyReadinessQualityGatePressureTe
 
   import OrbitalDynamics.CampaignPlanner.TestSupport
 
+  alias OrbitalDynamics.OperationalReadiness.SourceIdentity
   alias OrbitalDynamics.Schema
 
   test "strategy derives branch refresh from mission-state operational readiness reports" do
@@ -389,6 +390,8 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyReadinessQualityGatePressureTe
     quality_gate_summary = fn prefix, status, classification ->
       gate_row_id = "quality_gate:#{prefix}:resource_availability:1"
       gate_id = "resource_availability"
+      source_artifact_type = "resource_projection_report.v1"
+      source_artifact_id = "#{prefix}_resource_projection"
 
       non_passed_row = %{
         "id" => gate_row_id,
@@ -415,10 +418,12 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyReadinessQualityGatePressureTe
         "schema_contract" => "operational_quality_gate_summary.v1",
         "model" => "artifact_only_quality_gate_summary",
         "source" => "quality_gate_report.v1",
-        "source_artifact_type" => "resource_projection_report.v1",
-        "source_artifact_id" => "#{prefix}_resource_projection",
-        "source_quality_gate_report_id" => "quality_gate:#{prefix}",
-        "source_readiness_report_id" => "operational_readiness:#{prefix}",
+        "source_artifact_type" => source_artifact_type,
+        "source_artifact_id" => source_artifact_id,
+        "source_quality_gate_report_id" =>
+          SourceIdentity.quality_gate_report_id(source_artifact_type, source_artifact_id),
+        "source_readiness_report_id" =>
+          SourceIdentity.readiness_report_id(source_artifact_type, source_artifact_id),
         "readiness_level" =>
           case classification do
             "blocked" -> "blocked"
@@ -514,7 +519,8 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyReadinessQualityGatePressureTe
              "type" => "quality_gate_pressure",
              "source_artifact_type" => "resource_projection_report.v1",
              "source_artifact_id" => "direct_resource_projection",
-             "source_readiness_report_id" => "operational_readiness:direct",
+             "source_readiness_report_id" =>
+               "operational_readiness:resource_projection_report.v1:direct_resource_projection",
              "readiness_level" => "operator_review",
              "import_classification" => "review_only",
              "quality_gate_status" => "review_required",
@@ -592,6 +598,8 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyReadinessQualityGatePressureTe
   test "strategy derives branch refresh from mission-state quality gate unavailable resource summaries" do
     unavailable_resource_summary = fn prefix, status, classification, reason_kind ->
       blocked_contact_id = "#{prefix}_dl_resource_blocked"
+      source_artifact_type = "contact_allocation_report.v1"
+      source_artifact_id = "#{prefix}_resource_projection"
 
       reason_id =
         case reason_kind do
@@ -620,10 +628,12 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyReadinessQualityGatePressureTe
       quality_gate_report = %{
         "schema_contract" => "quality_gate_report.v1",
         "model" => "artifact_only_operational_quality_gate_report",
-        "report_id" => "quality_gate:#{prefix}",
-        "source_artifact_type" => "contact_allocation_report.v1",
-        "source_artifact_id" => "#{prefix}_resource_projection",
-        "source_readiness_report_id" => "operational_readiness:#{prefix}",
+        "report_id" =>
+          SourceIdentity.quality_gate_report_id(source_artifact_type, source_artifact_id),
+        "source_artifact_type" => source_artifact_type,
+        "source_artifact_id" => source_artifact_id,
+        "source_readiness_report_id" =>
+          SourceIdentity.readiness_report_id(source_artifact_type, source_artifact_id),
         "readiness_level" => if(status == "blocked", do: "blocked", else: "operator_review"),
         "import_classification" => classification,
         "status" => status,
@@ -721,7 +731,8 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyReadinessQualityGatePressureTe
              "type" => "quality_gate_pressure",
              "source_artifact_type" => "contact_allocation_report.v1",
              "source_artifact_id" => "direct_resource_projection",
-             "source_readiness_report_id" => "operational_readiness:direct",
+             "source_readiness_report_id" =>
+               "operational_readiness:contact_allocation_report.v1:direct_resource_projection",
              "readiness_level" => "operator_review",
              "import_classification" => "review_only",
              "quality_gate_status" => "review_required",
@@ -826,13 +837,18 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyReadinessQualityGatePressureTe
 
   test "strategy derives branch refresh from mission-state quality gate operator training summaries" do
     operator_training_summary = fn prefix, status, classification ->
+      source_artifact_type = "planned_activity.v1"
+      source_artifact_id = "#{prefix}_activity"
+
       quality_gate_report = %{
         "schema_contract" => "quality_gate_report.v1",
         "model" => "artifact_only_operational_quality_gate_report",
-        "report_id" => "quality_gate:#{prefix}",
-        "source_artifact_type" => "planned_activity.v1",
-        "source_artifact_id" => "#{prefix}_activity",
-        "source_readiness_report_id" => "operational_readiness:#{prefix}",
+        "report_id" =>
+          SourceIdentity.quality_gate_report_id(source_artifact_type, source_artifact_id),
+        "source_artifact_type" => source_artifact_type,
+        "source_artifact_id" => source_artifact_id,
+        "source_readiness_report_id" =>
+          SourceIdentity.readiness_report_id(source_artifact_type, source_artifact_id),
         "readiness_level" =>
           case classification do
             "blocked" -> "blocked"
@@ -931,7 +947,8 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyReadinessQualityGatePressureTe
              "type" => "quality_gate_pressure",
              "source_artifact_type" => "planned_activity.v1",
              "source_artifact_id" => "direct_activity",
-             "source_readiness_report_id" => "operational_readiness:direct",
+             "source_readiness_report_id" =>
+               "operational_readiness:planned_activity.v1:direct_activity",
              "readiness_level" => "operator_review",
              "import_classification" => "review_only",
              "quality_gate_status" => "review_required",
@@ -1045,6 +1062,9 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyReadinessQualityGatePressureTe
 
   test "strategy derives branch refresh from mission-state quality gate schema validation summaries" do
     schema_validation_summary = fn prefix, status, classification, validation_status ->
+      source_artifact_type = "planned_activity.v1"
+      source_artifact_id = "#{prefix}_schema_payload"
+
       counts =
         case validation_status do
           "fail" -> %{"fail" => 1}
@@ -1055,10 +1075,12 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyReadinessQualityGatePressureTe
       quality_gate_report = %{
         "schema_contract" => "quality_gate_report.v1",
         "model" => "artifact_only_operational_quality_gate_report",
-        "report_id" => "quality_gate:#{prefix}",
-        "source_artifact_type" => "planned_activity.v1",
-        "source_artifact_id" => "#{prefix}_schema_payload",
-        "source_readiness_report_id" => "operational_readiness:#{prefix}",
+        "report_id" =>
+          SourceIdentity.quality_gate_report_id(source_artifact_type, source_artifact_id),
+        "source_artifact_type" => source_artifact_type,
+        "source_artifact_id" => source_artifact_id,
+        "source_readiness_report_id" =>
+          SourceIdentity.readiness_report_id(source_artifact_type, source_artifact_id),
         "readiness_level" =>
           case classification do
             "blocked" -> "blocked"
@@ -1157,7 +1179,8 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyReadinessQualityGatePressureTe
              "type" => "quality_gate_pressure",
              "source_artifact_type" => "planned_activity.v1",
              "source_artifact_id" => "direct_schema_payload",
-             "source_readiness_report_id" => "operational_readiness:direct",
+             "source_readiness_report_id" =>
+               "operational_readiness:planned_activity.v1:direct_schema_payload",
              "readiness_level" => "blocked",
              "import_classification" => "blocked",
              "quality_gate_status" => "blocked",
@@ -1275,6 +1298,8 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyReadinessQualityGatePressureTe
                                   freshness_status,
                                   import_status,
                                   cadence_status ->
+      source_artifact_type = "planned_activity.v1"
+      source_artifact_id = "#{prefix}_import_payload"
       freshness_counts = %{freshness_status => 1}
       import_counts = %{import_status => 1}
       cadence_counts = %{cadence_status => 1}
@@ -1282,10 +1307,12 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyReadinessQualityGatePressureTe
       quality_gate_report = %{
         "schema_contract" => "quality_gate_report.v1",
         "model" => "artifact_only_operational_quality_gate_report",
-        "report_id" => "quality_gate:#{prefix}",
-        "source_artifact_type" => "planned_activity.v1",
-        "source_artifact_id" => "#{prefix}_import_payload",
-        "source_readiness_report_id" => "operational_readiness:#{prefix}",
+        "report_id" =>
+          SourceIdentity.quality_gate_report_id(source_artifact_type, source_artifact_id),
+        "source_artifact_type" => source_artifact_type,
+        "source_artifact_id" => source_artifact_id,
+        "source_readiness_report_id" =>
+          SourceIdentity.readiness_report_id(source_artifact_type, source_artifact_id),
         "readiness_level" =>
           case classification do
             "blocked" -> "blocked"
@@ -1410,7 +1437,8 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyReadinessQualityGatePressureTe
              "type" => "quality_gate_pressure",
              "source_artifact_type" => "planned_activity.v1",
              "source_artifact_id" => "direct_import_payload",
-             "source_readiness_report_id" => "operational_readiness:direct",
+             "source_readiness_report_id" =>
+               "operational_readiness:planned_activity.v1:direct_import_payload",
              "readiness_level" => "blocked",
              "import_classification" => "blocked",
              "quality_gate_status" => "blocked",

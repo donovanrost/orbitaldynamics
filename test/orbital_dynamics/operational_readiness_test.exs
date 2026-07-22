@@ -3851,6 +3851,34 @@ defmodule OrbitalDynamics.OperationalReadinessTest do
     end
   end
 
+  test "quality-gate summaries require canonical source report lineage" do
+    quality_gate_report =
+      ready_manifest()
+      |> OperationalReadiness.report()
+      |> OperationalReadiness.quality_gate_report()
+
+    summaries = [
+      OperationalReadiness.quality_gate_summary(quality_gate_report),
+      OperationalReadiness.quality_gate_unavailable_resource_summary(quality_gate_report),
+      OperationalReadiness.quality_gate_operator_training_summary(quality_gate_report),
+      OperationalReadiness.quality_gate_schema_validation_summary(quality_gate_report),
+      OperationalReadiness.quality_gate_import_readiness_summary(quality_gate_report)
+    ]
+
+    for summary <- summaries,
+        field <- ["source_quality_gate_report_id", "source_readiness_report_id"] do
+      stale_summary = Map.put(summary, field, "#{field}:stale")
+
+      assert {:error, %{"errors" => errors}} = Schema.validate_artifact(stale_summary)
+
+      assert Enum.any?(
+               errors,
+               &(&1["path"] == "$.#{field}" and
+                   &1["message"] == "must match source artifact identity")
+             )
+    end
+  end
+
   defp ready_manifest do
     %{
       "schema_contract" => "cadence_import_manifest.v1",

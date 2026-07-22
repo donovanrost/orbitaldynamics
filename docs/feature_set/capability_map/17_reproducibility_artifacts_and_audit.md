@@ -94,6 +94,9 @@ work, a **partial** executable-schema track, and **near-term** / **later** /
 - `operational_quality_gate_summary` provides a compact row-derived routing view
   over standalone quality-gate rows, preserving status/classification counts,
   gate IDs, row IDs, and non-passed rows without approving or importing work.
+  Runtime validation derives the source quality-gate and readiness report IDs
+  from the declared source artifact identity for this summary and all four
+  specialized quality-gate summaries.
 - Derived operator-review packages and Cadence import manifests preserve
   quality-gate gate counts, status/classification count maps, gate-ID maps,
   quality-gate row-ID maps, and gate ID sets at their top-level adapter
@@ -104,7 +107,10 @@ work, a **partial** executable-schema track, and **near-term** / **later** /
 - `operational_quality_gate_unavailable_resource_summary` provides the compact
   row-derived unavailable-resource routing view over quality-gate rows,
   preserving reason counts, blocked contact-ID maps, status-grouped row IDs, and
-  no-authority artifact-only assumptions.
+  no-authority artifact-only assumptions. CandidateRefresh may retain an
+  invalid or stale summary in replay provenance, but requires the original
+  summary to pass standalone validation before its contact maps affect
+  candidate selection.
 - `operational_quality_gate_schema_validation_summary.v1` provides the
   validated row-derived schema-validation routing view over Cadence-import
   quality-gate rows, preserving pass/fail and issue counts, blocked row IDs,

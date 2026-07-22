@@ -8,6 +8,8 @@ defmodule OrbitalDynamics.CandidateRefresh.SourceReports.QualityGateOperationalS
 
   alias OrbitalDynamics.CandidateRefresh.SourceReports.QualityGateOperationalSummaryReportFields
 
+  alias OrbitalDynamics.Schema
+
   def unavailable_resource_summary?(%{} = summary) do
     schema_contract = Map.get(summary, "schema_contract") || Map.get(summary, :schema_contract)
     model = Map.get(summary, "model") || Map.get(summary, :model)
@@ -33,6 +35,7 @@ defmodule OrbitalDynamics.CandidateRefresh.SourceReports.QualityGateOperationalS
 
     summary
     |> QualityGateOperationalSummaryReportFields.unavailable_resource_fields()
+    |> Map.put("source_summary_validation_status", summary_validation_status(summary))
     |> maybe_put("provenance", summary["provenance"])
     |> compact_map()
   end
@@ -48,6 +51,13 @@ defmodule OrbitalDynamics.CandidateRefresh.SourceReports.QualityGateOperationalS
 
   defp maybe_put(map, _key, nil), do: map
   defp maybe_put(map, key, value), do: Map.put(map, key, value)
+
+  defp summary_validation_status(summary) do
+    case Schema.validate_artifact(summary) do
+      {:ok, %{"status" => "pass"}} -> "pass"
+      _validation -> "fail"
+    end
+  end
 
   defp stringify_keys(value), do: QualityGateEncoding.stringify_keys(value)
 end
