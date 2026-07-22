@@ -1984,6 +1984,89 @@ defmodule OrbitalDynamics.OperatorReview.ContactAllocationEmbeddedSummaryTest do
     end
   end
 
+  test "correlates station-reservation expiration contact identity and counts" do
+    status = "declared"
+    scalar_count_field = "station_reservation_declared_expiration_contact_count"
+
+    repair =
+      OperatorReview.from_repair_artifact(%{
+        "repair_metadata" => %{"repair_id" => "repair:reservation_expiration_overlap"},
+        "source_contact_allocation_report" => %{
+          "station_reservation_expiration_status_counts" => %{status => 7},
+          scalar_count_field => 7,
+          "station_reservation_contact_ids_by_expiration_status" => %{
+            status => ["contact_source", "contact_shared"]
+          },
+          "station_reservation_ids_by_expiration_status" => %{
+            status => ["reservation_shared"]
+          }
+        },
+        "contact_allocation_report" => %{
+          "station_reservation_expiration_status_counts" => %{status => 7},
+          scalar_count_field => 7,
+          "station_reservation_contact_ids_by_expiration_status" => %{
+            status => ["contact_result", "contact_routed", "contact_shared"]
+          },
+          "station_reservation_ids_by_expiration_status" => %{
+            status => ["reservation_result", "reservation_shared"]
+          }
+        }
+      })
+
+    explicit_empty =
+      OperatorReview.from_campaign_artifact(%{
+        "plan_id" => "plan:reservation_expiration_empty",
+        "contact_allocation_report" => %{
+          "station_reservation_expiration_status_counts" => %{status => 9},
+          scalar_count_field => 9,
+          "station_reservation_contact_ids_by_expiration_status" => %{status => []}
+        }
+      })
+
+    count_only =
+      OperatorReview.from_campaign_artifact(%{
+        "plan_id" => "plan:reservation_expiration_count",
+        "contact_allocation_report" => %{
+          "station_reservation_expiration_status_counts" => %{status => 2},
+          scalar_count_field => 2
+        }
+      })
+
+    expected_contact_ids = [
+      "contact_result",
+      "contact_routed",
+      "contact_shared",
+      "contact_source"
+    ]
+
+    assert repair["station_reservation_expiration_status_counts"] == %{status => 4}
+    assert repair[scalar_count_field] == 4
+
+    assert repair["station_reservation_contact_ids_by_expiration_status"] == %{
+             status => expected_contact_ids
+           }
+
+    assert repair["station_reservation_ids_by_expiration_status"] == %{
+             status => ["reservation_result", "reservation_shared"]
+           }
+
+    assert explicit_empty["station_reservation_expiration_status_counts"] == %{status => 0}
+    assert explicit_empty[scalar_count_field] == 0
+
+    assert explicit_empty["station_reservation_contact_ids_by_expiration_status"] == %{
+             status => []
+           }
+
+    assert count_only["station_reservation_expiration_status_counts"] == %{status => 2}
+    assert count_only[scalar_count_field] == 2
+    refute Map.has_key?(count_only, "station_reservation_contact_ids_by_expiration_status")
+
+    for package <- [repair, explicit_empty, count_only] do
+      assert {:ok, %{"schema_contract" => "operator_review_package.v1"}} =
+               Schema.validate_artifact(package)
+    end
+  end
+
   test "correlates required-capacity source identity and counts" do
     source = "capacity_model"
 

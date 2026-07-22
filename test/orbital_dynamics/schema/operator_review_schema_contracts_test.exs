@@ -1493,6 +1493,94 @@ defmodule OrbitalDynamics.Schema.OperatorReviewSchemaContractsTest do
     end
   end
 
+  test "correlates station-reservation contact IDs with expiration counts" do
+    scalar_count_field = "station_reservation_declared_expiration_contact_count"
+
+    fields = [
+      "station_reservation_expiration_status_counts",
+      "station_reservation_contact_ids_by_expiration_status",
+      scalar_count_field
+    ]
+
+    package =
+      "study_results/operator_review_resource_pressure_v1.json"
+      |> read_json!()
+      |> Map.drop(fields)
+
+    schema = read_json!("schemas/operator_review_package.v1.schema.json")
+    status = "declared"
+
+    assert get_in(schema, [
+             "properties",
+             "station_reservation_contact_ids_by_expiration_status",
+             "additionalProperties",
+             "uniqueItems"
+           ]) == true
+
+    valid_identity =
+      Map.merge(package, %{
+        "station_reservation_expiration_status_counts" => %{status => 2},
+        scalar_count_field => 2,
+        "station_reservation_contact_ids_by_expiration_status" => %{
+          status => ["contact_a", "contact_b"]
+        }
+      })
+
+    assert {:ok, _package} = Schema.validate_artifact(valid_identity)
+
+    count_only =
+      Map.merge(package, %{
+        "station_reservation_expiration_status_counts" => %{status => 2},
+        scalar_count_field => 2
+      })
+
+    assert {:ok, _package} = Schema.validate_artifact(count_only)
+
+    assert {:ok, _package} =
+             valid_identity
+             |> Map.delete(scalar_count_field)
+             |> Schema.validate_artifact()
+
+    invalid_route =
+      put_in(
+        valid_identity,
+        ["station_reservation_contact_ids_by_expiration_status", status],
+        ["contact_b", "contact_a"]
+      )
+
+    assert {:error, invalid_route_report} = Schema.validate_artifact(invalid_route)
+
+    assert Enum.any?(
+             invalid_route_report["errors"],
+             &(&1["path"] ==
+                 "$.station_reservation_contact_ids_by_expiration_status.#{status}")
+           )
+
+    for count <- [nil, 1] do
+      invalid_count =
+        put_in(
+          valid_identity,
+          ["station_reservation_expiration_status_counts"],
+          if(count == nil, do: %{}, else: %{status => count})
+        )
+
+      assert {:error, invalid_count_report} = Schema.validate_artifact(invalid_count)
+
+      assert Enum.any?(
+               invalid_count_report["errors"],
+               &(&1["path"] == "$.station_reservation_expiration_status_counts.#{status}")
+             )
+    end
+
+    invalid_scalar_count = Map.put(valid_identity, scalar_count_field, 1)
+    assert {:error, invalid_scalar_report} = Schema.validate_artifact(invalid_scalar_count)
+
+    assert Enum.any?(
+             invalid_scalar_report["errors"],
+             &(&1["path"] == "$.#{scalar_count_field}")
+           )
+  end
+
   test "correlates required-capacity contact IDs with source counts" do
     fields = [
       "required_capacity_fraction_source_counts",

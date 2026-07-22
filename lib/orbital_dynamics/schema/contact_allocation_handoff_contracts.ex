@@ -39,6 +39,10 @@ defmodule OrbitalDynamics.Schema.ContactAllocationHandoffContracts do
      "station_pressure_contact_ids_by_precedence_rank"},
     {"station_pressure_contact_counts_by_status", "station_pressure_contact_ids_by_status"}
   ]
+  @station_reservation_expiration_scalar_count_fields %{
+    "declared" => "station_reservation_declared_expiration_contact_count",
+    "missing" => "station_reservation_missing_expiration_contact_count"
+  }
   @provider_reservation_contact_identity_fields %{
     "no_request" => %{
       count_field: "provider_reservation_no_request_contact_count",
@@ -1066,6 +1070,7 @@ defmodule OrbitalDynamics.Schema.ContactAllocationHandoffContracts do
       artifact,
       "station_reservation_contact_ids_by_expiration_status"
     )
+    |> validate_station_reservation_expiration_identity_summary(path, artifact)
     |> validate_optional_stable_id_array_map(
       path,
       artifact,
@@ -1107,6 +1112,45 @@ defmodule OrbitalDynamics.Schema.ContactAllocationHandoffContracts do
       artifact,
       "station_reservation_ids_by_reserved_by"
     )
+  end
+
+  defp validate_station_reservation_expiration_identity_summary(issues, path, artifact) do
+    count_field = "station_reservation_expiration_status_counts"
+    id_field = "station_reservation_contact_ids_by_expiration_status"
+    issues = validate_correlated_id_count_map(issues, path, artifact, count_field, id_field)
+
+    case Map.get(artifact, id_field) do
+      %{} = contact_ids_by_status ->
+        Enum.reduce(
+          @station_reservation_expiration_scalar_count_fields,
+          issues,
+          fn {status, scalar_count_field}, acc ->
+            case Map.fetch(contact_ids_by_status, status) do
+              {:ok, contact_ids} when is_list(contact_ids) ->
+                canonical_contact_count = contact_ids |> Enum.uniq() |> length()
+
+                if not Map.has_key?(artifact, scalar_count_field) or
+                     Map.get(artifact, scalar_count_field) == canonical_contact_count do
+                  acc
+                else
+                  [
+                    error(
+                      "#{path}.#{scalar_count_field}",
+                      "must equal canonical #{id_field}.#{status} count"
+                    )
+                    | acc
+                  ]
+                end
+
+              _contact_ids ->
+                acc
+            end
+          end
+        )
+
+      _contact_ids_by_status ->
+        issues
+    end
   end
 
   def validate_allocation_fields(issues, path, row),

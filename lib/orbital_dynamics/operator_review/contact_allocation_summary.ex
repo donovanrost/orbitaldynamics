@@ -12,6 +12,10 @@ defmodule OrbitalDynamics.OperatorReview.ContactAllocationSummary do
      "station_pressure_contact_ids_by_precedence_rank"},
     {"station_pressure_contact_counts_by_status", "station_pressure_contact_ids_by_status"}
   ]
+  @station_reservation_expiration_scalar_count_fields %{
+    "declared" => "station_reservation_declared_expiration_contact_count",
+    "missing" => "station_reservation_missing_expiration_contact_count"
+  }
   @provider_reservation_contact_id_fields %{
     "no_request" => [
       "provider_reservation_no_request_contact_ids",
@@ -149,10 +153,7 @@ defmodule OrbitalDynamics.OperatorReview.ContactAllocationSummary do
       "station_reservation_match_status_counts",
       "station_reservation_contact_ids_by_match_status"
     )
-    |> put_contact_allocation_count_summary(
-      reports,
-      "station_reservation_expiration_status_counts"
-    )
+    |> put_station_reservation_expiration_identity_summary(reports)
     |> put_contact_allocation_count_summary(
       reports,
       "resource_blocking_dimension_counts"
@@ -206,14 +207,6 @@ defmodule OrbitalDynamics.OperatorReview.ContactAllocationSummary do
       "provider_reservation_request_status_counts"
     )
     |> put_capacity_pack_group_identity_summary(reports)
-    |> put_contact_allocation_scalar_count_summary(
-      reports,
-      "station_reservation_declared_expiration_contact_count"
-    )
-    |> put_contact_allocation_scalar_count_summary(
-      reports,
-      "station_reservation_missing_expiration_contact_count"
-    )
     |> put_contact_allocation_min_number_summary(
       reports,
       "earliest_station_reservation_expires_at_s"
@@ -326,10 +319,6 @@ defmodule OrbitalDynamics.OperatorReview.ContactAllocationSummary do
     |> put_contact_allocation_nested_id_map_summary(
       reports,
       "reservation_conflict_contact_ids_by_direction_and_ground_station_id"
-    )
-    |> put_contact_allocation_id_map_summary(
-      reports,
-      "station_reservation_contact_ids_by_expiration_status"
     )
     |> put_contact_allocation_id_map_summary(
       reports,
@@ -583,6 +572,31 @@ defmodule OrbitalDynamics.OperatorReview.ContactAllocationSummary do
       {count_field, id_field}, acc ->
         put_correlated_id_count_map_summary(acc, reports, count_field, id_field)
     end)
+  end
+
+  defp put_station_reservation_expiration_identity_summary(package, reports) do
+    id_field = "station_reservation_contact_ids_by_expiration_status"
+
+    package =
+      put_correlated_id_count_map_summary(
+        package,
+        reports,
+        "station_reservation_expiration_status_counts",
+        id_field
+      )
+
+    Enum.reduce(
+      @station_reservation_expiration_scalar_count_fields,
+      package,
+      fn {status, count_field}, acc ->
+        acc = put_contact_allocation_scalar_count_summary(acc, reports, count_field)
+
+        case get_in(acc, [id_field, status]) do
+          contact_ids when is_list(contact_ids) -> Map.put(acc, count_field, length(contact_ids))
+          _contact_ids -> acc
+        end
+      end
+    )
   end
 
   defp put_station_pressure_direction_routes(package, reports) do

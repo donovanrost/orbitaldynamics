@@ -515,6 +515,8 @@ It preserves the following for audit **without changing refresh selection**:
   routing maps, and reservation IDs by match status
 - contact-allocation station-reservation match-status counts with canonical
   contact-ID routes at operator-review and Cadence-import handoff boundaries
+- contact-allocation reservation-expiration status and declared/missing contact
+  counts with canonical contact-ID routes at those handoff boundaries
 - contact-allocation reduced-capacity pack status and contact-status count maps
 - contact-allocation capacity-pack required-capacity demand totals plus
   selected/deferred per-station demand maps

@@ -494,6 +494,10 @@ so adapters can route contact queues without recounting rows.
   corresponding match-status contact count; match-status keys without contact
   identity retain additive fallback. Reservation-ID routes remain separate
   evidence and do not define contact cardinality.
+- Station-reservation contact IDs by expiration status likewise fix each routed
+  expiration-status count and the dedicated declared/missing contact count when
+  applicable; status keys without contact identity retain additive fallback,
+  and reservation-ID routes do not define contact cardinality.
 - Capacity-pack group IDs form a canonical top-level union across direct and
   status-routed identity evidence and fix the exact group count. Each supplied
   status route likewise fixes its status count; count-only keys and top-absent
