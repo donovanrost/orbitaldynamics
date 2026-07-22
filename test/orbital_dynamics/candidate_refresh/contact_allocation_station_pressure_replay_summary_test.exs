@@ -237,6 +237,33 @@ defmodule OrbitalDynamics.CandidateRefresh.ContactAllocationStationPressureRepla
             "station_pressure_contact_ids_by_ground_station" => %{
               "equator_prime" => ["direct_pressure"]
             },
+            "station_pressure_availability_counts" => %{
+              "reserved" => 2,
+              "availability_count_only" => 3,
+              "invalid status" => 4
+            },
+            "station_pressure_contact_ids_by_availability" => %{
+              "reserved" => ["nested_pressure", "direct_pressure", "direct_pressure"],
+              "availability_route_only" => ["availability_route"],
+              "invalid status" => ["orphan_pressure"]
+            },
+            "station_pressure_precedence_availability_counts" => %{
+              "reduced_capacity" => 1
+            },
+            "station_pressure_contact_ids_by_precedence_availability" => %{
+              "reduced_capacity" => ["direct_pressure", "nested_pressure"]
+            },
+            "station_pressure_precedence_rank_counts" => %{"2" => 2},
+            "station_pressure_contact_ids_by_precedence_rank" => %{
+              "2" => ["nested_pressure", "direct_pressure"]
+            },
+            "station_pressure_status_counts" => %{
+              "maintenance" => 0,
+              "status_count_only" => 2
+            },
+            "station_pressure_contact_ids_by_status" => %{
+              "maintenance" => ["status_route_only"]
+            },
             "station_pressure_direction_counts" => %{
               "Down Link" => 1,
               "dl" => 1,
@@ -273,6 +300,41 @@ defmodule OrbitalDynamics.CandidateRefresh.ContactAllocationStationPressureRepla
            ] == %{"equator_prime" => expected_ids}
 
     assert source_summary[
+             "source_report_contact_allocation_station_pressure_availability_counts"
+           ] == %{"availability_count_only" => 3, "reserved" => 2}
+
+    assert source_summary[
+             "source_report_contact_allocation_station_pressure_contact_ids_by_availability"
+           ] == %{
+             "availability_route_only" => ["availability_route"],
+             "reserved" => expected_ids
+           }
+
+    assert source_summary[
+             "source_report_contact_allocation_station_pressure_precedence_availability_counts"
+           ] == nil
+
+    assert source_summary[
+             "source_report_contact_allocation_station_pressure_contact_ids_by_precedence_availability"
+           ] == %{"reduced_capacity" => expected_ids}
+
+    assert source_summary[
+             "source_report_contact_allocation_station_pressure_precedence_rank_counts"
+           ] == %{"2" => 2}
+
+    assert source_summary[
+             "source_report_contact_allocation_station_pressure_contact_ids_by_precedence_rank"
+           ] == %{"2" => expected_ids}
+
+    assert source_summary[
+             "source_report_contact_allocation_station_pressure_status_counts"
+           ] == %{"status_count_only" => 2}
+
+    assert source_summary[
+             "source_report_contact_allocation_station_pressure_contact_ids_by_status"
+           ] == %{"maintenance" => ["status_route_only"]}
+
+    assert source_summary[
              "source_report_contact_allocation_station_pressure_direction_counts"
            ] == %{"downlink" => 2, "tracking" => 3}
 
@@ -291,6 +353,34 @@ defmodule OrbitalDynamics.CandidateRefresh.ContactAllocationStationPressureRepla
 
     assert replay_summary["station_pressure_contact_ids_by_ground_station"] == %{
              "equator_prime" => expected_ids
+           }
+
+    assert replay_summary["station_pressure_availability_counts"] == %{
+             "availability_count_only" => 3,
+             "reserved" => 2
+           }
+
+    assert replay_summary["station_pressure_contact_ids_by_availability"] == %{
+             "availability_route_only" => ["availability_route"],
+             "reserved" => expected_ids
+           }
+
+    assert replay_summary["station_pressure_precedence_availability_counts"] == %{}
+
+    assert replay_summary["station_pressure_contact_ids_by_precedence_availability"] == %{
+             "reduced_capacity" => expected_ids
+           }
+
+    assert replay_summary["station_pressure_precedence_rank_counts"] == %{"2" => 2}
+
+    assert replay_summary["station_pressure_contact_ids_by_precedence_rank"] == %{
+             "2" => expected_ids
+           }
+
+    assert replay_summary["station_pressure_status_counts"] == %{"status_count_only" => 2}
+
+    assert replay_summary["station_pressure_contact_ids_by_status"] == %{
+             "maintenance" => ["status_route_only"]
            }
 
     assert replay_summary["station_pressure_direction_counts"] == %{

@@ -15,13 +15,24 @@ defmodule OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactAllocation
   @nested_routes_field "station_pressure_contact_ids_by_direction_and_ground_station"
   @nested_routes_alias_field "station_pressure_contact_ids_by_direction_and_ground_station_id"
 
-  @fields [
+  @dimension_specs [
+    {"station_pressure_availability_counts", "station_pressure_contact_ids_by_availability"},
+    {"station_pressure_precedence_availability_counts",
+     "station_pressure_contact_ids_by_precedence_availability"},
+    {"station_pressure_precedence_rank_counts",
+     "station_pressure_contact_ids_by_precedence_rank"},
+    {"station_pressure_status_counts", "station_pressure_contact_ids_by_status"}
+  ]
+
+  @routing_fields [
     @station_counts_field,
     @station_routes_field,
     @direction_counts_field,
     @direction_routes_field,
     @nested_routes_field
   ]
+
+  @fields @routing_fields ++ Enum.flat_map(@dimension_specs, &Tuple.to_list/1)
 
   def fields, do: @fields
 
@@ -59,6 +70,26 @@ defmodule OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactAllocation
     |> put_or_delete(@direction_counts_field, direction_counts)
     |> put_or_delete(@direction_routes_field, direction_routes)
     |> put_or_delete(@nested_routes_field, nested_routes)
+    |> correlate_dimension_fields()
+  end
+
+  defp correlate_dimension_fields(summary) do
+    Enum.reduce(@dimension_specs, summary, fn {count_field, routes_field}, correlated ->
+      routes =
+        correlated
+        |> Map.get(routes_field)
+        |> canonical_routes(&StableIds.stable_id_or_nil/1)
+
+      counts =
+        correlated
+        |> Map.get(count_field)
+        |> canonical_counts(&StableIds.stable_id_or_nil/1)
+        |> correlate_counts(routes)
+
+      correlated
+      |> put_or_delete(count_field, counts)
+      |> put_or_delete(routes_field, routes)
+    end)
   end
 
   defp canonical_station_routes(summary) do

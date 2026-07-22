@@ -293,6 +293,9 @@ station keys, and stable IDs, then rolls nested routes into both parent maps and
 aggregate `direction_routing`. Positive local counts must cover their parent
 identity cardinality; count-only and route-only evidence remain usable without
 synthesizing an absent count, while compact validation rejects hierarchy drift.
+Availability, precedence-availability, precedence-rank, and status review maps
+use the same canonical positive-count/stable-ID rule, preserving count-only or
+route-only dimensions while rejecting undersized or noncanonical compact pairs.
 Reservation-conflict identity similarly unifies direct IDs with match-status,
 direction, and direction/station routes. Replay canonicalizes stable contact,
 reservation, and station IDs plus direction aliases, rebuilds top-level contact

@@ -24,25 +24,25 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.ContactAllocation.Summa
       "station_pressure_contact_ids_by_ground_station" =>
         Map.get(routing_fields, "station_pressure_contact_ids_by_ground_station", %{}),
       "station_pressure_availability_counts" =>
-        Map.get(allocation_summary, "station_pressure_availability_counts", %{}),
+        Map.get(routing_fields, "station_pressure_availability_counts", %{}),
       "station_pressure_contact_ids_by_availability" =>
-        Map.get(allocation_summary, "station_pressure_contact_ids_by_availability", %{}),
+        Map.get(routing_fields, "station_pressure_contact_ids_by_availability", %{}),
       "station_pressure_precedence_availability_counts" =>
-        Map.get(allocation_summary, "station_pressure_precedence_availability_counts", %{}),
+        Map.get(routing_fields, "station_pressure_precedence_availability_counts", %{}),
       "station_pressure_contact_ids_by_precedence_availability" =>
         Map.get(
-          allocation_summary,
+          routing_fields,
           "station_pressure_contact_ids_by_precedence_availability",
           %{}
         ),
       "station_pressure_precedence_rank_counts" =>
-        Map.get(allocation_summary, "station_pressure_precedence_rank_counts", %{}),
+        Map.get(routing_fields, "station_pressure_precedence_rank_counts", %{}),
       "station_pressure_contact_ids_by_precedence_rank" =>
-        Map.get(allocation_summary, "station_pressure_contact_ids_by_precedence_rank", %{}),
+        Map.get(routing_fields, "station_pressure_contact_ids_by_precedence_rank", %{}),
       "station_pressure_status_counts" =>
-        Map.get(allocation_summary, "station_pressure_status_counts", %{}),
+        Map.get(routing_fields, "station_pressure_status_counts", %{}),
       "station_pressure_contact_ids_by_status" =>
-        Map.get(allocation_summary, "station_pressure_contact_ids_by_status", %{}),
+        Map.get(routing_fields, "station_pressure_contact_ids_by_status", %{}),
       "station_pressure_direction_counts" =>
         Map.get(routing_fields, "station_pressure_direction_counts"),
       "station_pressure_contact_ids_by_direction" =>

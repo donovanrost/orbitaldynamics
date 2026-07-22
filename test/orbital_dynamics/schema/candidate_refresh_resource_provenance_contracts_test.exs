@@ -555,6 +555,22 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshResourceProvenanceContractsTest
         "station_pressure_contact_ids_by_ground_station" => %{
           "equator_prime" => ["station_pressure_a", "station_pressure_b"]
         },
+        "station_pressure_availability_counts" => %{"reserved" => 2},
+        "station_pressure_contact_ids_by_availability" => %{
+          "reserved" => ["station_pressure_a", "station_pressure_b"]
+        },
+        "station_pressure_precedence_availability_counts" => %{"reserved" => 2},
+        "station_pressure_contact_ids_by_precedence_availability" => %{
+          "reserved" => ["station_pressure_a", "station_pressure_b"]
+        },
+        "station_pressure_precedence_rank_counts" => %{"2" => 2},
+        "station_pressure_contact_ids_by_precedence_rank" => %{
+          "2" => ["station_pressure_a", "station_pressure_b"]
+        },
+        "station_pressure_status_counts" => %{"reserved" => 2},
+        "station_pressure_contact_ids_by_status" => %{
+          "reserved" => ["station_pressure_a", "station_pressure_b"]
+        },
         "station_pressure_direction_counts" => %{"downlink" => 2},
         "station_pressure_contact_ids_by_direction" => %{
           "downlink" => ["station_pressure_a", "station_pressure_b"]
@@ -780,6 +796,48 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshResourceProvenanceContractsTest
              undersized_station_pressure_ground_station_counts_report["errors"],
              &(&1["path"] ==
                  "$.provenance.source_reports.contact_allocation_report.station_pressure_ground_station_counts")
+           )
+
+    noncanonical_station_pressure_availability_ids =
+      put_in(
+        artifact_with_allocation_direction_summary,
+        [
+          "provenance",
+          "source_reports",
+          "contact_allocation_report",
+          "station_pressure_contact_ids_by_availability"
+        ],
+        %{"reserved" => ["station_pressure_b", "station_pressure_a", "station_pressure_a"]}
+      )
+
+    assert {:error, noncanonical_station_pressure_availability_ids_report} =
+             Schema.validate_artifact(noncanonical_station_pressure_availability_ids)
+
+    assert Enum.any?(
+             noncanonical_station_pressure_availability_ids_report["errors"],
+             &(&1["path"] ==
+                 "$.provenance.source_reports.contact_allocation_report.station_pressure_contact_ids_by_availability")
+           )
+
+    undersized_station_pressure_precedence_rank_counts =
+      put_in(
+        artifact_with_allocation_direction_summary,
+        [
+          "provenance",
+          "source_reports",
+          "contact_allocation_report",
+          "station_pressure_precedence_rank_counts"
+        ],
+        %{"2" => 1}
+      )
+
+    assert {:error, undersized_station_pressure_precedence_rank_counts_report} =
+             Schema.validate_artifact(undersized_station_pressure_precedence_rank_counts)
+
+    assert Enum.any?(
+             undersized_station_pressure_precedence_rank_counts_report["errors"],
+             &(&1["path"] ==
+                 "$.provenance.source_reports.contact_allocation_report.station_pressure_precedence_rank_counts")
            )
 
     contradictory_reservation_conflict_count =
