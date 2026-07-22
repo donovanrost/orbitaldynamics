@@ -5,62 +5,60 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Constrain provider-reservation request-route roles.
+Correlate provider-reservation status observations with contact evidence.
 
 Status:
 Verified; ready to publish.
 
 Selection evidence:
-- Provider request readiness requires `matched` or `owner_matched` plus at least
-  one reservation ID, so producer request routes cannot contain `overlap`.
-- The compact-summary and handoff schemas currently allow all three capability
-  values on both request route maps, and paired `overlap` request routes validate
-  at handoff boundaries.
-- Review routes cannot be narrowed to overlap: a live matched/no-ID producer
-  probe emitted a valid matched review-contact route with no reservation route.
+- Each `request_ready` summary observation has at least one request contact;
+  each `review_required` observation has at least one review contact.
+- Distinct embedded paths may mix statuses, but their aggregate corresponding
+  request/review evidence cannot be explicitly zero when those observations are
+  positive.
+- Live operator-review and Cadence probes accept positive `request_ready` or
+  `review_required` counts beside an explicit zero matching contact count.
 
 Intended behavior:
-- Restrict request contact/reservation route keys to `matched` and
-  `owner_matched` in the compact summary and both handoffs.
-- Keep review routes on the full `matched`/`owner_matched`/`overlap` vocabulary
-  for missing-reservation-ID review cases.
-- Preserve canonical arrays, paired vocabularies, optional legacy omission,
-  observation counts, cardinality independence, and execution boundaries.
+- Reject positive `request_ready` observations when a supplied aggregate request
+  contact count is zero, and positive `review_required` observations when a
+  supplied aggregate review contact count is zero.
+- Keep missing legacy contact counts optional and allow mixed status maps across
+  distinct embedded source paths.
+- Preserve clear-status semantics, observation counting, identity-derived
+  counts, canonical routes, and execution boundaries.
 
 Level 6 pillar advanced:
 Fleet-scale planning decisions and durable reproducible audit handoffs.
 
 Planned files:
-- compact-summary and shared handoff request-route role validation/schema rules
-- overlap-request and matched-review proofs, generated schemas, docs, and ledger
+- shared review/import status-evidence validation
+- zero-evidence and legacy-omission challenge proofs, docs, and loop ledger
 
 Verification:
-- Focused producer/review/import/schema role proofs: `26 passed`.
+- Focused review/import status-evidence proofs: `24 passed`.
 - Contact-allocation family: `213 passed`.
 - Golden artifacts: `12 passed`.
 - Schema lint: `155` artifacts passed with zero errors or warnings.
-- Full suite: `3881 passed`.
+- Full suite: `3883 passed`.
 
 Review:
-- Producer and shared handoff validation reject `overlap` keys on request
-  contact/reservation routes while keeping paired-map checks intact.
-- Compact-summary, operator-review, and Cadence schemas restrict only the two
-  request route maps to `matched`/`owner_matched`; review route maps retain the
-  full three-status capability vocabulary.
-- A matched review row with no reservation ID remains valid and produces a
-  matched review-contact route with an empty reservation route, preserving the
-  producer's deliberate review classification.
-- Three direct schemas, seven dependent embedding/bundle schemas, and the
-  separately exported study manifest carry the narrow enum update; golden
-  artifacts did not change.
-- Canonical arrays, paired vocabularies, embedded path observation counts,
-  optional legacy omission, cardinality independence, and all
-  no-provider-request, no-reservation, no-schedule-mutation, no-Cadence-write,
-  no-operator-authority, and no-planner-effect boundaries remain unchanged.
+- Shared operator-review and Cadence validation rejects an explicit zero request
+  contact count beside positive `request_ready` observations and an explicit
+  zero review contact count beside positive `review_required` observations.
+- Missing legacy contact counts remain valid; mixed `clear` plus request/review
+  observations across distinct embedded paths remain valid when matching
+  supplied contact evidence is positive.
+- This adds semantic validation only; generated schemas and golden artifacts do
+  not change.
+- Identity-derived counts, canonical routes, embedded path observation counts,
+  and all no-provider-request, no-reservation, no-schedule-mutation,
+  no-Cadence-write, no-operator-authority, and no-planner-effect boundaries
+  remain unchanged.
 - Local review found no publish blocker.
 
 Last published slice:
-- `f63028f9` Constrain provider reservation route statuses (`3881 passed`).
+- `1698cfcc` Constrain provider reservation request routes (`3881 passed`).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions while preserving explicit
@@ -71,8 +69,8 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-Audit request-status observation counts against request/review evidence without
-collapsing distinct embedded source paths.
+Audit whether positive `clear` observations need any additional aggregate
+evidence or remain intentionally provenance-only across mixed source paths.
 
 Blocked:
 None.

@@ -1203,6 +1203,38 @@ defmodule OrbitalDynamics.Schema.OperatorReviewContractsTest do
            )
   end
 
+  test "correlates provider-reservation status observations with contact evidence" do
+    package = read_json!("study_results/operator_review_package_v1.json")
+
+    for {status, contact_count_field} <- [
+          {"request_ready", "provider_reservation_request_contact_count"},
+          {"review_required", "provider_reservation_review_contact_count"}
+        ] do
+      legacy_status_only =
+        Map.put(package, "provider_reservation_request_status_counts", %{
+          "clear" => 1,
+          status => 1
+        })
+
+      assert {:ok, _package} = Schema.validate_artifact(legacy_status_only)
+
+      assert {:ok, _package} =
+               legacy_status_only
+               |> Map.put(contact_count_field, 1)
+               |> Schema.validate_artifact()
+
+      invalid_zero_evidence = Map.put(legacy_status_only, contact_count_field, 0)
+
+      assert {:error, invalid_zero_evidence_report} =
+               Schema.validate_artifact(invalid_zero_evidence)
+
+      assert Enum.any?(
+               invalid_zero_evidence_report["errors"],
+               &(&1["path"] == "$.#{contact_count_field}")
+             )
+    end
+  end
+
   defp read_json!(path) do
     path
     |> File.read!()

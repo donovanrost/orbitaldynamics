@@ -1009,6 +1009,7 @@ defmodule OrbitalDynamics.Schema.ContactAllocationHandoffContracts do
     |> validate_provider_reservation_contact_identity_summary(path, artifact, "request")
     |> validate_provider_reservation_contact_identity_summary(path, artifact, "review")
     |> validate_provider_reservation_contact_identity_summary(path, artifact, "no_request")
+    |> validate_provider_reservation_status_observation_evidence(path, artifact)
     |> expect_optional_non_negative_integer(
       path,
       artifact,
@@ -1314,6 +1315,34 @@ defmodule OrbitalDynamics.Schema.ContactAllocationHandoffContracts do
       _counts ->
         issues
     end
+  end
+
+  defp validate_provider_reservation_status_observation_evidence(issues, path, artifact) do
+    counts = Map.get(artifact, "provider_reservation_request_status_counts")
+
+    Enum.reduce(
+      [
+        {"request_ready", "provider_reservation_request_contact_count"},
+        {"review_required", "provider_reservation_review_contact_count"}
+      ],
+      issues,
+      fn {status, contact_count_field}, acc ->
+        status_count = if is_map(counts), do: Map.get(counts, status), else: nil
+
+        if is_integer(status_count) and status_count > 0 and
+             Map.get(artifact, contact_count_field) == 0 do
+          [
+            error(
+              "#{path}.#{contact_count_field}",
+              "must be positive when provider_reservation_request_status_counts.#{status} is positive"
+            )
+            | acc
+          ]
+        else
+          acc
+        end
+      end
+    )
   end
 
   defp validate_station_reservation_expiration_identity_summary(issues, path, artifact) do
