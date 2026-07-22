@@ -5,55 +5,56 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Correlate contention direction routing identity.
+Correlate contention invalid-input identities.
 
 Status:
 Verified; ready for mechanical publish.
 
 Selection evidence:
-- Raw contention rows derive direction/contact identity, but preserved compact
-  summaries replay direction contact maps and carried route payloads unchanged.
-- Missing or zero-count direction keys and contact IDs absent from positive
-  contention contact-count entries can therefore surface as branch pressure.
-- Direction and contact count maps provide direct conservative authority while
-  remaining review evidence themselves.
+- The raw contention contract requires invalid-input counts and ID lists to
+  match invalid-input rows.
+- Source aggregation, flattened preserved fields, and replay currently retain
+  compact invalid-input IDs independently of the scalar count.
+- A preserved zero-count or mismatched list can therefore create identity and
+  branch pressure that raw report validation would reject.
 
 Intended behavior:
-- Filter direction contact maps per report to positive direction-count keys and
-  positive contention contact-count IDs.
-- Reapply the correlation for flattened preserved source fields and replay.
-- Rebuild direction routing from correlated counts and IDs while retaining raw
-  direction/contact counts as conservative review pressure.
+- Retain invalid-input IDs per report only when a positive scalar count matches
+  the normalized stable-ID list length.
+- Reapply the count/list correlation for flattened preserved fields and replay.
+- Preserve a mismatched positive scalar count as conservative pressure while
+  preventing uncorrelated IDs from driving identity-specific pressure.
 
 Level 6 pillar advanced:
 Fleet-scale planning decisions and durable reproducible audit handoffs.
 
 Planned files:
-- contention direction correlation, flattened source fields, and replay summary
-- zero-count/substituted direction-routing challenge tests
+- contention invalid-input aggregation, flattened source fields, replay, and
+  compact-summary schema correlation
+- zero-count and mismatched-count invalid-ID challenge tests
 - contention artifact documentation and autonomous-loop ledger
 
 Verification:
-- `mix test test/orbital_dynamics/candidate_refresh/contact_contention_replay_summary_test.exs --timeout 120000`
-  -> `10 passed`.
+- Contact-contention replay focus -> `10 passed`.
+- CandidateRefresh compact-summary schema focus -> `4 passed`.
+- Broader source-report summary proof -> `1 passed`.
 - `mix test test/orbital_dynamics/**/*contact_contention*.exs --timeout 120000`
   -> `103 passed`.
-- Focused golden repair facade check -> `1 passed` (`11 excluded`).
 - `mix orbital_dynamics.schema.lint --all` -> `155 passed`, no warnings.
 - `mix format --check-formatted` and `git diff --check` passed.
 - `mix test --timeout 120000` -> `3806 passed`.
 
 Review:
-- Direction/contact identities are filtered per raw or compact report before
-  aggregation, then correlated again at flattened-source and replay boundaries.
-- Raw direction/contact count maps remain unchanged; only identity maps and the
-  derived route are constrained, preserving conservative review evidence.
-- Absent families retain the established nil flattened shape, and malformed
-  non-list direction identities are ignored without suppressing positive count
-  evidence. No unresolved findings.
+- Raw and compact sources normalize IDs before exact positive count matching;
+  raw numeric count shapes and compact integer shapes follow the same rule.
+- Flattened and replay boundaries reapply correlation, while a mismatched
+  positive scalar still supplies branch pressure without identity authority.
+- Schema correlation is scoped to `contact_contention_report.v1`, uses unique
+  normalized ID count, and does not constrain adjacent report families. No
+  unresolved findings.
 
 Last published slice:
-- `2b41dec7` Correlate resolution capacity maps (`3805 passed`).
+- `600958e0` Correlate contention direction routing (`3806 passed`).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions while preserving explicit
@@ -64,8 +65,8 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-After publish, audit contention invalid-input identity counts/lists for replay
-correlation when preserved summaries bypass report validation.
+After publish, audit contention required-action count totals and action-key
+authority for preserved compact summaries.
 
 Blocked:
 None.

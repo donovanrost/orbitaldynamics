@@ -8,7 +8,18 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.ContactContention.Sourc
     RouteMap
   }
 
+  alias OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactContention.CountFields.InvalidInputs
+
   def source_report_fields(source_reports) do
+    invalid_contact_input_count =
+      source_report_family_count(source_reports, "invalid_contact_input_count")
+
+    invalid_contact_input_ids =
+      InvalidInputs.correlated_ids(
+        invalid_contact_input_count,
+        source_report_family_merge_string_lists(source_reports, "invalid_contact_input_ids")
+      )
+
     direction_counts =
       source_report_family_merge_count_maps(source_reports, "direction_counts")
 
@@ -37,7 +48,7 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.ContactContention.Sourc
       "source_report_contact_contention_conflict_group_count" =>
         source_report_family_count(source_reports, "conflict_group_count"),
       "source_report_contact_contention_invalid_contact_input_count" =>
-        source_report_family_count(source_reports, "invalid_contact_input_count"),
+        invalid_contact_input_count,
       "source_report_contact_contention_resource_scope_counts" =>
         source_report_family_merge_count_maps(source_reports, "resource_scope_counts"),
       "source_report_contact_contention_ground_station_counts" =>
@@ -50,8 +61,7 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.ContactContention.Sourc
       "source_report_contact_contention_contact_ids_by_direction" => contact_ids_by_direction,
       "source_report_contact_contention_direction_routing" =>
         RouteMap.field(Correlation.positive_counts(direction_counts), contact_ids_by_direction),
-      "source_report_contact_contention_invalid_contact_input_ids" =>
-        source_report_family_merge_string_lists(source_reports, "invalid_contact_input_ids"),
+      "source_report_contact_contention_invalid_contact_input_ids" => invalid_contact_input_ids,
       "source_report_contact_contention_required_operator_action_counts" =>
         source_report_family_merge_count_maps(source_reports, "required_operator_action_counts")
     }

@@ -3,6 +3,7 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshCommunicationPressureContracts 
 
   import OrbitalDynamics.Schema.PrimitiveValidation,
     only: [
+      error: 2,
       expect_optional_non_negative_integer: 4,
       validate_non_negative_integer_count_map: 3
     ]
@@ -14,7 +15,9 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshCommunicationPressureContracts 
     ]
 
   def validate_contact_contention(issues, path, summary) do
-    validate_count_maps(issues, path, summary, [
+    issues
+    |> validate_contact_contention_invalid_inputs(path, summary)
+    |> validate_count_maps(path, summary, [
       "contact_contention_ground_station_counts",
       "contact_contention_contact_id_counts"
     ])
@@ -68,4 +71,41 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshCommunicationPressureContracts 
       validate_non_negative_integer_count_map(acc, path <> ".#{field}", Map.get(summary, field))
     end)
   end
+
+  defp validate_invalid_contact_input_identity_count(issues, path, summary) do
+    ids = Map.get(summary, "invalid_contact_input_ids")
+    count = Map.get(summary, "invalid_contact_input_count")
+
+    normalized_id_count = if is_list(ids), do: ids |> Enum.uniq() |> length()
+
+    if is_list(ids) and (not is_integer(count) or count != normalized_id_count) do
+      [
+        error(
+          path <> ".invalid_contact_input_ids",
+          "must have length equal to invalid_contact_input_count"
+        )
+        | issues
+      ]
+    else
+      issues
+    end
+  end
+
+  defp validate_contact_contention_invalid_inputs(
+         issues,
+         path,
+         %{
+           "contract" => "contact_contention_report.v1"
+         } = summary
+       ) do
+    issues
+    |> expect_optional_non_negative_integer(path, summary, "invalid_contact_input_count")
+    |> validate_stable_id_list(
+      path <> ".invalid_contact_input_ids",
+      Map.get(summary, "invalid_contact_input_ids")
+    )
+    |> validate_invalid_contact_input_identity_count(path, summary)
+  end
+
+  defp validate_contact_contention_invalid_inputs(issues, _path, _summary), do: issues
 end

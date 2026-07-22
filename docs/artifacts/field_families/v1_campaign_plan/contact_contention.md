@@ -197,6 +197,12 @@ contact maps to positive direction-count keys and contact IDs with positive
 contention contact counts. It rebuilds the route map from those correlated
 fields at flattened-source and replay boundaries while retaining the raw count
 maps as conservative review evidence.
+Invalid-input ID lists from preserved compact summaries are retained only when
+their normalized length matches a positive `invalid_contact_input_count`.
+CandidateRefresh reapplies that correlation at flattened-source and replay
+boundaries, and its compact-summary contract reports mismatches during schema
+validation. A mismatched positive scalar count remains conservative pressure
+without authorizing the uncorrelated IDs.
 Its exported JSON Schema includes the nested row and `timeline_identity` field
 shape used by executable validation. Rows also carry artifact-only operational
 kind, required operator action, operator-action reason, execution boundary,

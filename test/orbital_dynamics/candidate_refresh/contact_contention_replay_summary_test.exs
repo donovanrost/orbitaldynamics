@@ -3,7 +3,7 @@ defmodule OrbitalDynamics.CandidateRefresh.ContactContentionReplaySummaryTest do
 
   alias OrbitalDynamics.{CadenceImport, CandidateRefresh, OperatorReview}
 
-  test "contact contention replay treats preserved invalid contact IDs as pressure" do
+  test "contact contention replay filters invalid contact IDs that do not match the count" do
     artifact = %{
       "schema_contract" => "candidate_refresh.v1",
       "provenance" => %{
@@ -21,15 +21,43 @@ defmodule OrbitalDynamics.CandidateRefresh.ContactContentionReplaySummaryTest do
       }
     }
 
+    source_summary = CandidateRefresh.source_report_summary(artifact)
+
+    assert source_summary["source_report_contact_contention_invalid_contact_input_count"] == 0
+
+    refute Map.has_key?(
+             source_summary,
+             "source_report_contact_contention_invalid_contact_input_ids"
+           )
+
     summary = CandidateRefresh.contact_contention_replay_summary(artifact)
 
     assert summary["conflict_group_count"] == 0
     assert summary["invalid_contact_input_count"] == 0
-    assert summary["invalid_contact_input_ids"] == ["bad_contact"]
-    assert summary["branch_local_contact_contention_pressure"]
-    assert summary["branch_local_invalid_contact_input_pressure"]
+    refute Map.has_key?(summary, "invalid_contact_input_ids")
+    refute summary["branch_local_contact_contention_pressure"]
+    refute summary["branch_local_invalid_contact_input_pressure"]
     refute summary["branch_local_contact_contention_conflict_pressure"]
     refute summary["branch_local_contact_contention_review_pressure"]
+
+    mismatched_artifact =
+      put_in(
+        artifact,
+        [
+          "provenance",
+          "source_reports",
+          "contact_contention_report",
+          "invalid_contact_input_count"
+        ],
+        2
+      )
+
+    mismatched_summary = CandidateRefresh.contact_contention_replay_summary(mismatched_artifact)
+
+    assert mismatched_summary["invalid_contact_input_count"] == 2
+    refute Map.has_key?(mismatched_summary, "invalid_contact_input_ids")
+    assert mismatched_summary["branch_local_contact_contention_pressure"]
+    assert mismatched_summary["branch_local_invalid_contact_input_pressure"]
   end
 
   test "source report summary aggregates direct contact contention core count maps" do
@@ -370,9 +398,10 @@ defmodule OrbitalDynamics.CandidateRefresh.ContactContentionReplaySummaryTest do
     refute Map.has_key?(source_summary, "source_report_contact_contention_row_count")
     refute Map.has_key?(source_summary, "source_report_contact_contention_paths")
 
-    assert source_summary["source_report_contact_contention_invalid_contact_input_ids"] == [
-             "bad_contact"
-           ]
+    refute Map.has_key?(
+             source_summary,
+             "source_report_contact_contention_invalid_contact_input_ids"
+           )
 
     assert source_summary["source_report_contact_contention_resource_scope_counts"] == %{
              "ground_station" => 1
@@ -404,7 +433,7 @@ defmodule OrbitalDynamics.CandidateRefresh.ContactContentionReplaySummaryTest do
 
     assert summary["branch_local_contact_contention_pressure"]
     refute summary["branch_local_contact_contention_conflict_pressure"]
-    assert summary["branch_local_invalid_contact_input_pressure"]
+    refute summary["branch_local_invalid_contact_input_pressure"]
     assert summary["branch_local_contact_contention_review_pressure"]
   end
 
