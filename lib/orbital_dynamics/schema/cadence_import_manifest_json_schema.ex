@@ -495,6 +495,7 @@ defmodule OrbitalDynamics.Schema.CadenceImportManifestJsonSchema do
     "gate_status_counts",
     "gate_classification_counts",
     "required_capacity_fraction_source_counts",
+    "capacity_pack_status_counts",
     "provider_reservation_request_status_counts",
     "reduced_capacity_pack_status_counts",
     "station_pressure_contact_counts_by_ground_station_id",
@@ -598,6 +599,7 @@ defmodule OrbitalDynamics.Schema.CadenceImportManifestJsonSchema do
   ]
   @canonical_id_map_fields @correlated_station_pressure_id_map_fields ++
                              [
+                               "capacity_pack_contact_ids_by_status",
                                "capacity_pack_group_ids_by_status",
                                "provider_reservation_no_request_contact_ids_by_direction",
                                "provider_reservation_request_contact_ids_by_ground_station_id",

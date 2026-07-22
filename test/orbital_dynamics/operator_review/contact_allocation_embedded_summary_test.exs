@@ -1856,6 +1856,63 @@ defmodule OrbitalDynamics.OperatorReview.ContactAllocationEmbeddedSummaryTest do
     end
   end
 
+  test "correlates capacity-pack contact identity and status counts" do
+    status = "deferred_by_reduced_station_capacity_pack"
+
+    repair =
+      OperatorReview.from_repair_artifact(%{
+        "repair_metadata" => %{"repair_id" => "repair:capacity_pack_contact_overlap"},
+        "source_contact_allocation_report" => %{
+          "capacity_pack_status_counts" => %{status => 7},
+          "capacity_pack_contact_ids_by_status" => %{
+            status => ["contact_source", "contact_shared"]
+          }
+        },
+        "contact_allocation_report" => %{
+          "capacity_pack_status_counts" => %{status => 7},
+          "capacity_pack_contact_ids_by_status" => %{
+            status => ["contact_result", "contact_routed", "contact_shared"]
+          }
+        }
+      })
+
+    explicit_empty =
+      OperatorReview.from_campaign_artifact(%{
+        "plan_id" => "plan:capacity_pack_contact_empty",
+        "contact_allocation_report" => %{
+          "capacity_pack_status_counts" => %{status => 9},
+          "capacity_pack_contact_ids_by_status" => %{status => []}
+        }
+      })
+
+    count_only =
+      OperatorReview.from_campaign_artifact(%{
+        "plan_id" => "plan:capacity_pack_contact_count",
+        "contact_allocation_report" => %{
+          "capacity_pack_status_counts" => %{status => 2}
+        }
+      })
+
+    expected_contact_ids = [
+      "contact_result",
+      "contact_routed",
+      "contact_shared",
+      "contact_source"
+    ]
+
+    assert repair["capacity_pack_status_counts"] == %{status => 4}
+    assert repair["capacity_pack_contact_ids_by_status"] == %{status => expected_contact_ids}
+    assert explicit_empty["capacity_pack_status_counts"] == %{status => 0}
+    assert explicit_empty["capacity_pack_contact_ids_by_status"] == %{status => []}
+    assert count_only["capacity_pack_status_counts"] == %{status => 2}
+    refute Map.has_key?(count_only, "capacity_pack_contact_ids_by_status")
+
+    for package <- [repair, explicit_empty, count_only] do
+      assert {:ok, %{"schema_contract" => "operator_review_package.v1"}} =
+               Schema.validate_artifact(package)
+    end
+  end
+
   defp contact_allocation_summary(counts, summary) do
     %{
       "schema_contract" => "contact_allocation_report.v1",

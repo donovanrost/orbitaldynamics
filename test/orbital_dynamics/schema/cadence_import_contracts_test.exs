@@ -2674,6 +2674,76 @@ defmodule OrbitalDynamics.Schema.CadenceImportContractsTest do
     end
   end
 
+  test "correlates capacity-pack contact IDs with status counts" do
+    fields = ["capacity_pack_status_counts", "capacity_pack_contact_ids_by_status"]
+
+    manifest =
+      "study_results/cadence_import_manifest_v1.json"
+      |> read_json!()
+      |> Map.drop(fields)
+
+    schema = read_json!("schemas/cadence_import_manifest.v1.schema.json")
+    status = "deferred_by_reduced_station_capacity_pack"
+
+    assert get_in(schema, [
+             "properties",
+             "capacity_pack_contact_ids_by_status",
+             "additionalProperties",
+             "uniqueItems"
+           ]) == true
+
+    assert get_in(schema, [
+             "properties",
+             "capacity_pack_status_counts",
+             "additionalProperties",
+             "minimum"
+           ]) == 0
+
+    valid_identity =
+      Map.merge(manifest, %{
+        "capacity_pack_status_counts" => %{status => 2},
+        "capacity_pack_contact_ids_by_status" => %{
+          status => ["contact_a", "contact_b"]
+        }
+      })
+
+    assert {:ok, _manifest} = Schema.validate_artifact(valid_identity)
+
+    count_only = Map.put(manifest, "capacity_pack_status_counts", %{status => 2})
+    assert {:ok, _manifest} = Schema.validate_artifact(count_only)
+
+    invalid_route =
+      Map.merge(manifest, %{
+        "capacity_pack_status_counts" => %{status => 2},
+        "capacity_pack_contact_ids_by_status" => %{
+          status => ["contact_b", "contact_a"]
+        }
+      })
+
+    assert {:error, invalid_route_report} = Schema.validate_artifact(invalid_route)
+
+    assert Enum.any?(
+             invalid_route_report["errors"],
+             &(&1["path"] == "$.capacity_pack_contact_ids_by_status.#{status}")
+           )
+
+    for status_count <- [nil, 1] do
+      invalid_count =
+        Map.merge(manifest, %{
+          "capacity_pack_status_counts" =>
+            if(status_count == nil, do: %{}, else: %{status => status_count}),
+          "capacity_pack_contact_ids_by_status" => %{status => ["contact_a", "contact_b"]}
+        })
+
+      assert {:error, invalid_count_report} = Schema.validate_artifact(invalid_count)
+
+      assert Enum.any?(
+               invalid_count_report["errors"],
+               &(&1["path"] == "$.capacity_pack_status_counts.#{status}")
+             )
+    end
+  end
+
   defp read_json!(path) do
     path
     |> File.read!()

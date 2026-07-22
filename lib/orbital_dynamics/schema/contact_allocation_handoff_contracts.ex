@@ -987,9 +987,20 @@ defmodule OrbitalDynamics.Schema.ContactAllocationHandoffContracts do
       "capacity_pack_group_ids_by_status"
     )
     |> validate_capacity_pack_group_identity_summary(path, artifact)
+    |> expect_optional_type(path, artifact, "capacity_pack_status_counts", :map)
+    |> validate_non_negative_integer_count_map(
+      path <> ".capacity_pack_status_counts",
+      Map.get(artifact, "capacity_pack_status_counts")
+    )
     |> validate_optional_stable_id_array_map(
       path,
       artifact,
+      "capacity_pack_contact_ids_by_status"
+    )
+    |> validate_correlated_id_count_map(
+      path,
+      artifact,
+      "capacity_pack_status_counts",
       "capacity_pack_contact_ids_by_status"
     )
     |> validate_optional_stable_id_array_map(

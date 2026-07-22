@@ -5,56 +5,53 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Correlate capacity-pack group identity/count at handoff top level.
+Correlate capacity-pack contact status identity/count at handoff top level.
 
 Status:
 Verified; ready to publish.
 
 Selection evidence:
-- Provider request/review/no-request identities are exact and schema-enforced.
-- Capacity-pack group IDs still use insertion-order deduplication while the
-  scalar and per-status counts sum independently of unique group identity.
-- A live probe produced scalar/status count `14`, three direct IDs, and four
-  status-routed IDs in both handoffs; both contradictory artifacts validated.
+- Capacity-pack group identity/count correlation is exact and schema-enforced.
+- Source reports carry `capacity_pack_status_counts` beside contact IDs by
+  status, but both derived handoffs currently drop that count map.
+- A live probe supplied additive status count `14` and four unique status-routed
+  contact IDs; both handoffs emitted only the IDs and validated.
 
 Intended behavior:
-- Build one sorted unique capacity-pack group union from direct and status-routed
-  identity evidence and derive its exact count whenever identity is supplied.
-- Derive each status count from its supplied sorted unique group IDs while
-  preserving scalar/count-map fallback where identity evidence is absent.
-- Reject noncanonical top/routes, mismatched counts, or routed IDs omitted from a
-  supplied top union; preserve top-absent legacy compatibility and export
-  uniqueness.
+- Preserve capacity-pack contact status counts beside their status-routed IDs.
+- Derive each supplied status count from its sorted unique contact IDs, including
+  explicit-empty zero; retain additive fallback for statuses without identity.
+- Reject noncanonical status routes or mismatched counts and export route
+  uniqueness in both handoff schemas.
 
 Level 6 pillar advanced:
 Fleet-scale planning decisions and durable reproducible audit handoffs.
 
 Planned files:
-- operator-review capacity-pack group identity/count aggregation
-- shared review/import top/status correlation and generated schemas
-- direct/routed/empty/fallback challenge proofs, docs, and loop ledger
+- operator-review capacity-pack contact status count/identity aggregation
+- shared review/import field registry, correlation, and generated schemas
+- overlap/empty/fallback challenge proofs, docs, and loop ledger
 
 Verification:
 - Focused producer/schema proofs: `4 passed`.
-- Contact-allocation family: `201 passed`.
+- Contact-allocation family: `202 passed`.
 - Golden artifact suite: `12 passed`.
 - Schema lint: `155` artifacts, `0` errors, `0` warnings.
-- Full suite: `3839 passed`.
+- Full suite: `3843 passed`.
 - `mix format --check-formatted` and `git diff --check` passed.
 
 Review:
-- Capacity-pack group identity now merges direct and status-routed evidence into
-  one sorted unique top-level union and exact total group count.
-- Supplied per-status IDs fix each status count, including explicit-empty zero;
-  scalar/count-map keys without identity retain additive fallback.
-- Routes and top IDs are canonical; a supplied top union must cover every routed
-  group while top-absent legacy route artifacts remain valid.
-- Both handoff schemas and study-manifest embeddings export top/route uniqueness.
+- `capacity_pack_status_counts` now crosses the review/import registries,
+  summary context, and Cadence manifest builder beside status-routed contact IDs.
+- Supplied status IDs are merged as sorted unique lists and fix each exact count,
+  including explicit-empty zero; count-only status keys retain additive fallback.
+- Both handoff validators reject noncanonical routes and missing/mismatched counts,
+  while generated schemas export the optional count map and route uniqueness.
 - Golden artifacts remain unchanged, and provider execution, schedule mutation,
   planner effects, and Cadence write authority remain out of scope.
 
 Last published slice:
-- `03b2dd15` Correlate provider no-request identity (`3835 passed`).
+- `d983da07` Correlate capacity-pack group identity (`3839 passed`).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions while preserving explicit
@@ -65,7 +62,7 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-After publish, audit capacity-pack contact status identity/count correlation.
+After publish, audit required-capacity source identity/count correlation.
 
 Blocked:
 None.

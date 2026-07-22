@@ -53,6 +53,7 @@ defmodule OrbitalDynamics.CadenceImport.ReviewSummaryContext do
     "capacity_pack_required_capacity_fraction_by_ground_station_id",
     "capacity_pack_selected_required_capacity_fraction_by_ground_station_id",
     "capacity_pack_deferred_required_capacity_fraction_by_ground_station_id",
+    "capacity_pack_status_counts",
     "capacity_pack_contact_ids_by_status",
     "capacity_pack_contact_ids_by_direction",
     "capacity_pack_selected_contact_ids_by_direction",

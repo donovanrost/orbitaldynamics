@@ -494,6 +494,8 @@ so adapters can route contact queues without recounting rows.
   status-routed identity evidence and fix the exact group count. Each supplied
   status route likewise fixes its status count; count-only keys and top-absent
   routed legacy handoffs remain compatible.
+- Capacity-pack contact IDs by status are canonical and fix the corresponding
+  contact-status count; status keys without identity retain additive fallback.
 - Provider-reservation request, review, and no-request contact identities are
   independent canonical top-level unions across their available direct and
   routed evidence. Request/review include station, direction, nested

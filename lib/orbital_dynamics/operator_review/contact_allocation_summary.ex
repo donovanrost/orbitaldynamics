@@ -247,7 +247,11 @@ defmodule OrbitalDynamics.OperatorReview.ContactAllocationSummary do
       "station_reservation_ids_by_reserved_by"
     )
     |> put_station_pressure_direction_routes(reports)
-    |> put_contact_allocation_id_map_summary(reports, "capacity_pack_contact_ids_by_status")
+    |> put_correlated_id_count_map_summary(
+      reports,
+      "capacity_pack_status_counts",
+      "capacity_pack_contact_ids_by_status"
+    )
     |> put_contact_allocation_id_map_summary(reports, "capacity_pack_contact_ids_by_direction")
     |> put_contact_allocation_id_map_summary(
       reports,
