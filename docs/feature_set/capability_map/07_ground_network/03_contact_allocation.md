@@ -91,7 +91,9 @@ The contact-filter, contact-contention, contact-intent, and command-window repor
 - invalid-input, duplicate-contact-ID, status-blocked, and resource-blocked
   counts/contact IDs plus resource-blocked maps by blocking dimension and
   spacecraft, preserved through candidate-refresh contact-allocation replay for
-  branch-local blocked-input queues
+  branch-local blocked-input queues; invalid-input, status-blocked, and
+  resource-blocked top-level IDs remain canonical identity-first evidence whose
+  paired occurrence counts cannot be smaller than unique ID cardinality
 - capacity-pack contact counts, required-capacity demand totals,
   selected/deferred demand totals, per-station/per-status demand maps, and
   all-contact plus selected/deferred station contact-ID routing, plus contact IDs and counts by capacity-pack

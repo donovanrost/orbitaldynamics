@@ -21,6 +21,9 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshCommunicationPressureContracts 
   alias OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactAllocation.OutcomeIdentityCorrelation,
     as: ContactAllocationOutcomeIdentityCorrelation
 
+  alias OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactAllocation.BlockedInputIdentityCorrelation,
+    as: ContactAllocationBlockedInputIdentityCorrelation
+
   alias OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactAllocation.DirectionRouting.Correlation,
     as: ContactAllocationDirectionCorrelation
 
@@ -71,7 +74,7 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshCommunicationPressureContracts 
     issues
     |> validate_contact_allocation_row_counts(path, summary)
     |> validate_contact_allocation_count_maps(path, summary)
-    |> validate_contact_allocation_outcome_identities(path, summary)
+    |> validate_contact_allocation_contact_identities(path, summary)
     |> validate_contact_allocation_direction_fields(path, summary)
     |> validate_contact_allocation_direction_routing(path, summary)
   end
@@ -106,12 +109,16 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshCommunicationPressureContracts 
 
   defp validate_contact_allocation_row_counts(issues, _path, _summary), do: issues
 
-  defp validate_contact_allocation_outcome_identities(
+  defp validate_contact_allocation_contact_identities(
          issues,
          path,
          %{"contract" => "contact_allocation_report.v1"} = summary
        ) do
-    Enum.reduce(ContactAllocationOutcomeIdentityCorrelation.field_pairs(), issues, fn
+    field_pairs =
+      ContactAllocationOutcomeIdentityCorrelation.field_pairs() ++
+        ContactAllocationBlockedInputIdentityCorrelation.field_pairs()
+
+    Enum.reduce(field_pairs, issues, fn
       {count_field, ids_field}, acc ->
         count = Map.get(summary, count_field)
         contact_ids = Map.get(summary, ids_field)
@@ -146,7 +153,7 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshCommunicationPressureContracts 
     end)
   end
 
-  defp validate_contact_allocation_outcome_identities(issues, _path, _summary), do: issues
+  defp validate_contact_allocation_contact_identities(issues, _path, _summary), do: issues
 
   defp validate_contact_allocation_count_maps(
          issues,

@@ -4,6 +4,7 @@ defmodule OrbitalDynamics.CandidateRefresh.ContactAllocationPressureMapReplaySum
   alias OrbitalDynamics.CandidateRefresh
 
   alias OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactAllocation.{
+    BlockedInputIdentityCorrelation,
     CountMapCorrelation,
     OutcomeIdentityCorrelation,
     RowCountCorrelation
@@ -38,6 +39,17 @@ defmodule OrbitalDynamics.CandidateRefresh.ContactAllocationPressureMapReplaySum
              3,
              ["allocated_a", "allocated_b"]
            ) == 3
+  end
+
+  test "blocked-input counts allow de-duplicated identity cardinality" do
+    fields = %{
+      "resource_blocked_contact_count" => 1,
+      "resource_blocked_contact_ids" => ["resource_b", "resource_a"]
+    }
+
+    assert BlockedInputIdentityCorrelation.fields(fields) == %{
+             "resource_blocked_contact_ids" => ["resource_a", "resource_b"]
+           }
   end
 
   test "blocked and deferred row counts form a bounded pair" do
@@ -370,6 +382,39 @@ defmodule OrbitalDynamics.CandidateRefresh.ContactAllocationPressureMapReplaySum
 
     assert replay_summary["allocated_contact_count"] == nil
     assert replay_summary["allocated_contact_ids"] == ["allocated_a", "allocated_b"]
+    assert replay_summary["branch_local_contact_allocation_pressure"]
+  end
+
+  test "contact allocation replay preserves blocked identities but drops undersized counts" do
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "provenance" => %{
+        "source_reports" => %{
+          "contact_allocation_report" => %{
+            "contract" => "contact_allocation_report.v1",
+            "count" => 1,
+            "resource_blocked_contact_count" => 1,
+            "resource_blocked_contact_ids" => ["resource_b", "resource_a"]
+          }
+        }
+      }
+    }
+
+    source_summary = CandidateRefresh.source_report_summary(artifact)
+    replay_summary = CandidateRefresh.contact_allocation_replay_summary(artifact)
+
+    refute Map.has_key?(
+             source_summary,
+             "source_report_contact_allocation_resource_blocked_contact_count"
+           )
+
+    assert source_summary["source_report_contact_allocation_resource_blocked_contact_ids"] == [
+             "resource_a",
+             "resource_b"
+           ]
+
+    assert replay_summary["resource_blocked_contact_count"] == nil
+    assert replay_summary["resource_blocked_contact_ids"] == ["resource_a", "resource_b"]
     assert replay_summary["branch_local_contact_allocation_pressure"]
   end
 

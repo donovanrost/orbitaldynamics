@@ -2,6 +2,7 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.ContactAllocation.Summa
   @moduledoc false
 
   alias OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactAllocation.{
+    BlockedInputIdentityCorrelation,
     CountMapCorrelation,
     DirectionRouting,
     OutcomeIdentityCorrelation,
@@ -22,6 +23,7 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.ContactAllocation.Summa
       )
 
     outcome_fields = primary_outcome_fields(allocation_summary)
+    blocked_input_fields = blocked_input_fields(allocation_summary)
 
     direction_fields = DirectionRouting.direction_fields_from_summary(allocation_summary)
 
@@ -66,17 +68,15 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.ContactAllocation.Summa
       policy_blocked_contact_ids: Map.get(outcome_fields, "policy_blocked_contact_ids"),
       policy_blocked_contact_ids_by_station:
         Map.get(allocation_summary, "policy_blocked_contact_ids_by_ground_station"),
-      invalid_contact_input_count:
-        non_zero_summary_integer(allocation_summary, "invalid_contact_input_count"),
+      invalid_contact_input_count: Map.get(blocked_input_fields, "invalid_contact_input_count"),
       duplicate_contact_id_count:
         non_zero_summary_integer(allocation_summary, "duplicate_contact_id_count"),
-      invalid_contact_input_ids: Map.get(allocation_summary, "invalid_contact_input_ids"),
-      status_blocked_contact_count:
-        non_zero_summary_integer(allocation_summary, "status_blocked_contact_count"),
-      status_blocked_contact_ids: Map.get(allocation_summary, "status_blocked_contact_ids"),
+      invalid_contact_input_ids: Map.get(blocked_input_fields, "invalid_contact_input_ids"),
+      status_blocked_contact_count: Map.get(blocked_input_fields, "status_blocked_contact_count"),
+      status_blocked_contact_ids: Map.get(blocked_input_fields, "status_blocked_contact_ids"),
       resource_blocked_contact_count:
-        non_zero_summary_integer(allocation_summary, "resource_blocked_contact_count"),
-      resource_blocked_contact_ids: Map.get(allocation_summary, "resource_blocked_contact_ids"),
+        Map.get(blocked_input_fields, "resource_blocked_contact_count"),
+      resource_blocked_contact_ids: Map.get(blocked_input_fields, "resource_blocked_contact_ids"),
       resource_blocking_dimension_counts:
         Map.get(allocation_summary, "resource_blocking_dimension_counts"),
       resource_blocked_contact_ids_by_blocking_dimension:
@@ -152,5 +152,15 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.ContactAllocation.Summa
       |> Map.put(ids_field, Map.get(allocation_summary, ids_field))
     end)
     |> OutcomeIdentityCorrelation.fields()
+  end
+
+  defp blocked_input_fields(allocation_summary) do
+    BlockedInputIdentityCorrelation.field_pairs()
+    |> Enum.reduce(%{}, fn {count_field, ids_field}, fields ->
+      fields
+      |> Map.put(count_field, non_zero_summary_integer(allocation_summary, count_field))
+      |> Map.put(ids_field, Map.get(allocation_summary, ids_field))
+    end)
+    |> BlockedInputIdentityCorrelation.fields()
   end
 end

@@ -3,6 +3,7 @@ defmodule OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactAllocation
 
   alias OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactAllocation.{
     AllocationReportSummary,
+    BlockedInputIdentityCorrelation,
     CapacityPackSummary,
     CountMapCorrelation,
     DirectionRouting,
@@ -31,6 +32,7 @@ defmodule OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactAllocation
     |> CountMapCorrelation.fields()
     |> RowCountCorrelation.fields()
     |> OutcomeIdentityCorrelation.fields()
+    |> BlockedInputIdentityCorrelation.fields()
     |> compact_map()
   end
 

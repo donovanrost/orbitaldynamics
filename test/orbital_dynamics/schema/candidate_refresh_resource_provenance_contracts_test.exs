@@ -603,6 +603,48 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshResourceProvenanceContractsTest
                  "$.provenance.source_reports.contact_allocation_report.allocated_contact_ids")
            )
 
+    undersized_blocked_input_count =
+      update_in(
+        artifact_with_allocation_direction_summary,
+        ["provenance", "source_reports", "contact_allocation_report"],
+        fn summary ->
+          Map.merge(summary, %{
+            "resource_blocked_contact_count" => 1,
+            "resource_blocked_contact_ids" => ["resource_a", "resource_b"]
+          })
+        end
+      )
+
+    assert {:error, undersized_blocked_input_count_report} =
+             Schema.validate_artifact(undersized_blocked_input_count)
+
+    assert Enum.any?(
+             undersized_blocked_input_count_report["errors"],
+             &(&1["path"] ==
+                 "$.provenance.source_reports.contact_allocation_report.resource_blocked_contact_count")
+           )
+
+    noncanonical_blocked_input_ids =
+      update_in(
+        artifact_with_allocation_direction_summary,
+        ["provenance", "source_reports", "contact_allocation_report"],
+        fn summary ->
+          Map.merge(summary, %{
+            "status_blocked_contact_count" => 2,
+            "status_blocked_contact_ids" => ["status_b", "status_a", "status_a"]
+          })
+        end
+      )
+
+    assert {:error, noncanonical_blocked_input_ids_report} =
+             Schema.validate_artifact(noncanonical_blocked_input_ids)
+
+    assert Enum.any?(
+             noncanonical_blocked_input_ids_report["errors"],
+             &(&1["path"] ==
+                 "$.provenance.source_reports.contact_allocation_report.status_blocked_contact_ids")
+           )
+
     contradictory_allocation_row_counts =
       put_in(
         artifact_with_allocation_direction_summary,

@@ -5,20 +5,20 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Correlate primary allocation outcome identities.
+Correlate blocked-input allocation identities.
 
 Status:
 Verified; ready to publish.
 
 Selection evidence:
-- Compact allocated, returned, deferred, blocked, and policy-blocked count/ID
-  pairs currently accept counts below unique identity cardinality.
-- Existing replay deliberately preserves identity-only evidence when a scalar is
-  absent or stale, so identities must not be discarded or force equality.
-- Raw occurrence counts can validly exceed de-duplicated contact-ID lists.
+- Compact invalid-input, status-blocked, and resource-blocked count/ID pairs
+  retain the same stale-count and noncanonical-list gap as primary outcomes.
+- Existing replay deliberately preserves these identity-only review signals even
+  when explicit compact counts are zero.
+- Raw row-derived occurrence counts can exceed de-duplicated blocked identities.
 
 Intended behavior:
-- Canonicalize the five primary outcome ID lists as sorted unique stable IDs.
+- Canonicalize the three blocked-input ID lists as sorted unique stable IDs.
 - Preserve identity-only evidence and count-only evidence independently.
 - Retain an occurrence count alongside IDs only when it is at least the unique
   ID cardinality; compact schema validation rejects stale count/list pairs.
@@ -27,30 +27,29 @@ Level 6 pillar advanced:
 Fleet-scale planning decisions and durable reproducible audit handoffs.
 
 Planned files:
-- primary allocation outcome count/ID correlation across raw/flattened/replay
+- blocked-input allocation count/ID correlation across raw/flattened/replay
 - stale-count and noncanonical-ID compact schema/replay challenges
 - allocation artifact documentation and autonomous-loop ledger
 
 Verification:
-- Focused replay/schema challenges: `14 passed`.
-- Contact-allocation family: `184 passed`.
+- Focused replay/routing/schema challenges: `17 passed`.
+- Contact-allocation family: `186 passed`.
 - Golden artifacts: `12 passed`.
 - Schema lint: `155` artifacts, no errors or warnings.
-- Full suite: `3814 passed`.
+- Full suite: `3816 passed`.
 - `mix format` and `git diff --check` passed.
 
 Review:
-- Raw, flattened, and replay boundaries share canonical sorted unique stable
-  identity normalization for the five selected outcome pairs.
-- Identity-only and count-only pressure remain usable; only a supplied scalar
-  below canonical ID cardinality is removed, while larger occurrence counts
-  preserve duplicate-event evidence.
-- Compact schema rejects undersized scalars and noncanonical identity lists.
-- Station routing, blocked-input identities, and execution boundaries are
-  unchanged and remain separately scoped.
+- Raw, flattened, and replay paths now canonicalize invalid-input,
+  status-blocked, and resource-blocked identity pairs with the same
+  identity-first rule as primary outcomes.
+- Zero/stale counts cannot suppress valid review identities; undersized counts
+  are removed and rejected by compact schema validation.
+- Resource dimension/spacecraft routing, duplicate counting, and execution
+  boundaries remain unchanged and separately scoped.
 
 Last published slice:
-- `d4c1f7ad` Correlate allocation row pressure counts (`3812 passed`).
+- `a48eab50` Correlate allocation outcome identities (`3814 passed`).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions while preserving explicit
@@ -61,7 +60,7 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-After publish, audit blocked-input allocation identity correlation.
+After publish, audit allocation outcome station routing correlation.
 
 Blocked:
 None.

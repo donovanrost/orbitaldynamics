@@ -269,6 +269,11 @@ when both are present, an occurrence count may exceed de-duplicated identity
 cardinality but cannot be smaller. Replay drops only an undersized scalar while
 preserving valid identity pressure, and compact schema validation rejects the
 stale count/list pair.
+Invalid-input, status-blocked, and resource-blocked count/ID pairs use the same
+identity-first rule. Their top-level lists remain canonical review evidence when
+a compact scalar is absent or undersized; valid occurrence counts may exceed
+de-duplicated identity cardinality, and compact schema validation rejects stale
+counts or noncanonical blocked-input lists.
 Allocation row duplicate-contact and station-calendar overlap/reservation count
 fields are also executable integer counts, duplicate-contact collision rows must
 preserve candidate count, ID, and source-candidate evidence, and contention
