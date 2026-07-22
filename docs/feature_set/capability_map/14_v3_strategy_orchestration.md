@@ -442,6 +442,12 @@ calendars.
 Branch-generated refresh requests preserve direct and result-artifact-wrapped
 station-reservation hold import-readiness summaries with wrapper-qualified
 request input paths and inherited trust-boundary evidence.
+Planner pressure reconstruction reads `review_rows` only from reservation-review
+and hold summaries and `import_readiness_rows` only from hold import-readiness
+summaries. It derives branches only for the declared `affected_contact` and
+`provider_calendar_contention_group` row types, so shadow collections or unknown
+row kinds cannot become station-reservation decisions while canonical rows can
+still recover from stale redundant aggregates.
 
 Also surfaced:
 

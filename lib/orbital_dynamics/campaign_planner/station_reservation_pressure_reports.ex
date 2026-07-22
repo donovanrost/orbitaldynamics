@@ -1,6 +1,13 @@
 defmodule OrbitalDynamics.CampaignPlanner.StationReservationPressureReports do
   @moduledoc false
 
+  @review_summary_contract "station_reservation_review_summary.v1"
+  @hold_summary_contract "station_reservation_hold_summary.v1"
+  @hold_import_readiness_summary_contract "station_reservation_hold_import_readiness_summary.v1"
+
+  @affected_contact_row_type "affected_contact"
+  @provider_contention_row_type "provider_calendar_contention_group"
+
   alias OrbitalDynamics.CampaignPlanner.{
     BranchRefreshSourceInputs,
     ScalarValues,
@@ -149,15 +156,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StationReservationPressureReports do
     stringify_keys = Keyword.fetch!(callbacks, :stringify_keys)
     summary = stringify_keys.(summary)
 
-    {affected_rows, provider_rows} =
-      summary
-      |> Map.get("review_rows", [])
-      |> List.wrap()
-      |> Enum.filter(&is_map/1)
-      |> Enum.map(fn row -> stringify_keys.(row) end)
-      |> Enum.split_with(fn row ->
-        row["reservation_review_row_type"] != "provider_calendar_contention_group"
-      end)
+    {affected_rows, provider_rows} = station_reservation_summary_pressure_rows(summary, callbacks)
 
     %{
       "schema_contract" => "station_reservation_report.v1",
@@ -185,14 +184,33 @@ defmodule OrbitalDynamics.CampaignPlanner.StationReservationPressureReports do
     stringify_keys = Keyword.fetch!(callbacks, :stringify_keys)
 
     summary
-    |> Map.get("review_rows", Map.get(summary, "import_readiness_rows", []))
+    |> canonical_pressure_rows()
     |> List.wrap()
     |> Enum.filter(&is_map/1)
     |> Enum.map(fn row -> stringify_keys.(row) end)
+    |> Enum.filter(fn row ->
+      row["reservation_review_row_type"] in [
+        @affected_contact_row_type,
+        @provider_contention_row_type
+      ]
+    end)
     |> Enum.split_with(fn row ->
-      row["reservation_review_row_type"] != "provider_calendar_contention_group"
+      row["reservation_review_row_type"] == @affected_contact_row_type
     end)
   end
+
+  defp canonical_pressure_rows(%{"schema_contract" => @review_summary_contract} = summary),
+    do: Map.get(summary, "review_rows", [])
+
+  defp canonical_pressure_rows(%{"schema_contract" => @hold_summary_contract} = summary),
+    do: Map.get(summary, "review_rows", [])
+
+  defp canonical_pressure_rows(
+         %{"schema_contract" => @hold_import_readiness_summary_contract} = summary
+       ),
+       do: Map.get(summary, "import_readiness_rows", [])
+
+  defp canonical_pressure_rows(_summary), do: []
 
   defp station_reservation_review_summary_affected_pressure_row(row, summary, callbacks) do
     reservation_id = first_string([row["station_reservation_id"], row["reservation_ids"]])

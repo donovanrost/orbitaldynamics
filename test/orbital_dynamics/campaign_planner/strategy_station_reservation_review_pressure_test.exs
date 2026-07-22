@@ -443,6 +443,47 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyStationReservationReviewPressu
              Schema.validate_artifact(artifact)
   end
 
+  test "strategy ignores station-reservation rows with undeclared row types" do
+    summary = %{
+      "schema_contract" => "station_reservation_review_summary.v1",
+      "model" => "artifact_only_station_reservation_review_summary",
+      "source_artifact_type" => "station_reservation_report.v1",
+      "source" => "station_calendar_report.reservation_evidence",
+      "review_rows" => [
+        %{
+          "reservation_review_row_type" => "candidate_contact",
+          "contact_id" => "unknown_type_contact",
+          "ground_station_id" => "unknown_type_station",
+          "direction" => "downlink",
+          "reservation_ids" => ["unknown_type_reservation"],
+          "reservation_statuses" => ["held"],
+          "required_operator_action" => "review_station_reservation_overlap"
+        }
+      ]
+    }
+
+    artifact =
+      strategy(base_plan(%{}),
+        mission_state:
+          mission_state_with_refresh_inputs()
+          |> Map.put("source_station_reservation_review_summary", summary),
+        derive_branches?: true,
+        branches: [%{id: "baseline"}],
+        current_epoch_s: 0.0
+      )
+
+    branch_ids = Enum.map(artifact["branches"], & &1["branch_id"])
+
+    refute "derived_station_calendar_pressure_reserved_unknown_type_contact" in branch_ids
+
+    refute Enum.any?(artifact["branches"], fn branch ->
+             Enum.any?(
+               branch["events"],
+               &(&1["station_reservation_id"] == "unknown_type_reservation")
+             )
+           end)
+  end
+
   defp assert_candidate_source_report_path(branch, expected_path) do
     assert %{"type" => "candidate_refresh.v1", "scope" => "branch_generated"} =
              candidate_source = branch["assumptions"]["candidate_source"]

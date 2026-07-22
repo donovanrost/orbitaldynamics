@@ -293,4 +293,45 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyStationReservationHoldImportRe
     assert {:ok, %{"schema_contract" => "campaign_strategy.v3", "status" => "pass"}} =
              Schema.validate_artifact(artifact)
   end
+
+  test "strategy ignores shadow review rows on hold import-readiness summaries" do
+    summary = %{
+      "schema_contract" => "station_reservation_hold_import_readiness_summary.v1",
+      "model" => "artifact_only_station_reservation_hold_import_readiness_summary",
+      "source_artifact_type" => "station_reservation_report.v1",
+      "source" => "station_calendar_report.reservation_evidence",
+      "review_rows" => [
+        %{
+          "reservation_review_row_type" => "affected_contact",
+          "contact_id" => "shadow_contact",
+          "ground_station_id" => "shadow_station",
+          "direction" => "downlink",
+          "reservation_ids" => ["shadow_reservation"],
+          "reservation_statuses" => ["held"],
+          "station_reservation_expiration_status" => "expired",
+          "station_reservation_hold_import_status" => "review_required_before_import",
+          "required_operator_action" => "review_station_reservation_overlap"
+        }
+      ],
+      "import_readiness_rows" => []
+    }
+
+    artifact =
+      strategy(base_plan(%{}),
+        mission_state:
+          mission_state_with_refresh_inputs()
+          |> Map.put("source_station_reservation_hold_import_readiness_summary", summary),
+        derive_branches?: true,
+        branches: [%{id: "baseline"}],
+        current_epoch_s: 0.0
+      )
+
+    branch_ids = Enum.map(artifact["branches"], & &1["branch_id"])
+
+    refute "derived_station_calendar_pressure_reserved_shadow_contact" in branch_ids
+
+    refute Enum.any?(artifact["branches"], fn branch ->
+             Enum.any?(branch["events"], &(&1["station_reservation_id"] == "shadow_reservation"))
+           end)
+  end
 end

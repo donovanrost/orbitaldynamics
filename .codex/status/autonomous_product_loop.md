@@ -5,56 +5,53 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Gate CampaignPlanner quality-summary pressure by canonical lineage.
+Constrain station-reservation planner pressure to canonical typed rows.
 
 Status:
 Complete; ready to publish.
 
 Selection evidence:
-- CampaignPlanner ingested all five `operational_quality_gate_*summary.v1`
-  families and derived pressure rows without checking source report lineage.
-- A summary rejected by its standalone contract for stale source quality-gate
-  or readiness IDs could still create strategy branches and risk terms.
-- Full schema gating would incorrectly remove intentional row-derived recovery
-  from stale redundant aggregate arrays.
+- `station_reservation_report.v1` has no durable report ID, so its three compact
+  descendants cannot support an exact lineage gate without a schema redesign.
+- CampaignPlanner currently classifies every non-provider compact row as an
+  affected contact, including rows with undeclared or missing row types.
+- Hold-import readiness reconstruction prefers an unregistered shadow
+  `review_rows` field over canonical `import_readiness_rows` when both exist.
+- Full schema gating would unnecessarily remove row-derived recovery from
+  otherwise usable summaries whose redundant aggregate maps are stale.
 
 Implemented behavior:
-- The shared quality-summary lineage helper now exposes an exact predicate using
-  the same producer `SourceIdentity` derivations as runtime validation.
-- All five quality-summary families must pass that predicate before
-  CampaignPlanner can derive pressure rows, branches, or downstream risk terms.
-- A stale unavailable-resource summary produces no matching pressure branch.
-- Canonically identified import-readiness summaries still recompute pressure
-  from authoritative row/status maps when redundant top-level arrays are stale.
+- Select the row collection from the declared compact summary contract.
+- Derive pressure only from exact `affected_contact` or
+  `provider_calendar_contention_group` row types.
+- Preserve authoritative-row recovery when redundant aggregates are stale.
 
 Level 6 pillar advanced:
 Fleet-scale planning decisions and durable reproducible audit handoffs.
 
 Files changed:
-- shared quality-gate summary lineage helper
-- CampaignPlanner quality-summary pressure-row dispatcher
-- focused strategy pressure tests
-- planning/readiness and reproducibility documentation
+- CampaignPlanner station-reservation compact-summary pressure reconstruction
+- focused review and hold import-readiness strategy challenge tests
+- V3 strategy capability documentation and autonomous-loop ledger
 
 Verification:
-- Focused strategy summary and row-context pressure tests: `17 passed`.
-- Related CampaignPlanner quality/readiness/repair tests: `24 passed`.
+- Focused review/import-readiness strategy tests: `5 passed`.
+- All CampaignPlanner station-reservation tests: `11 passed`.
 - Full checked-artifact lint: `155/155 passed`, zero warnings.
-- Full suite with a 120-second per-test ceiling: `3786 passed`.
+- Full suite with a 120-second per-test ceiling: `3788 passed`.
 - `mix format --check-formatted`, `mix compile --warnings-as-errors`, and
   `git diff --check` passed.
 - No public artifact shape or checked-in schema export changed.
 
 Review:
-- The gate is limited to the five compact summary contracts; raw quality-gate
-  report row recovery is unchanged.
-- Exact lineage is the authorization boundary, while row/status maps remain the
-  authoritative pressure source for canonically identified summaries.
-- Mission-state, prior-plan, and wrapped-result inputs converge on the same
-  dispatcher, so the identity rule applies consistently to every input path.
+- Review/hold summaries read only `review_rows`; hold import-readiness reads
+  only `import_readiness_rows` even if an unregistered shadow field is present.
+- Unknown or missing row types are ignored rather than treated as affected
+  contacts; both declared row types retain their established transformations.
+- The change is shared by direct and wrapped mission-state collection paths.
 
 Last published slice:
-- `32dda46c` Reconcile quality gate summary lineage (`3786 passed`).
+- `722e7214` Gate planner quality pressure by lineage (`3786 passed`).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions while preserving explicit
@@ -65,8 +62,8 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-Audit another planner-affecting compact handoff family for exact source identity
-or selected-candidate scope before adding new station/allocation effects.
+After publish, audit the next planner-affecting compact handoff for exact source
+identity or selected-candidate scope.
 
 Blocked:
 None.
