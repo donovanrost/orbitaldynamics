@@ -348,6 +348,17 @@ defmodule OrbitalDynamics.Schema.BranchEventContracts do
       row,
       "branch_station_reservation_conflict_match_statuses"
     )
+    |> expect_optional_type(
+      path,
+      row,
+      "branch_station_reservation_expiration_statuses",
+      :list
+    )
+    |> validate_string_list_items(
+      path,
+      row,
+      "branch_station_reservation_expiration_statuses"
+    )
     |> expect_optional_number(path, row, "branch_image_quality_min_score")
     |> expect_optional_type(path, row, "branch_image_quality_statuses", :list)
     |> validate_string_list_items(path, row, "branch_image_quality_statuses")

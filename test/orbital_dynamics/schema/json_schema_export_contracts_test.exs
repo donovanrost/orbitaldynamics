@@ -312,6 +312,13 @@ defmodule OrbitalDynamics.Schema.JsonSchemaExportContractsTest do
              "type"
            ]) == "string"
 
+    assert get_in(row_schema, [
+             "properties",
+             "branch_station_reservation_expiration_statuses",
+             "items",
+             "type"
+           ]) == "string"
+
     assert get_in(row_schema, ["properties", "repair_score_term_keys", "items", "type"]) ==
              "string"
 

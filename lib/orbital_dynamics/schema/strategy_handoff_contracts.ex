@@ -28,6 +28,10 @@ defmodule OrbitalDynamics.Schema.StrategyHandoffContracts do
     {"branch_earliest_starts_at_s", "branch_earliest_starts_at_s"},
     {"branch_latest_ends_at_s", "branch_latest_ends_at_s"}
   ]
+  @branch_reservation_expiration_context_field_pairs [
+    {"branch_station_reservation_expiration_statuses",
+     "branch_station_reservation_expiration_statuses"}
+  ]
   @strategy_recommendation_source_review_fields Enum.map(
                                                   [
                                                     "subject_id",
@@ -117,6 +121,8 @@ defmodule OrbitalDynamics.Schema.StrategyHandoffContracts do
      "branch_source_window_timing_coverage_status"},
     {"branch_earliest_starts_at_s", "branch_earliest_starts_at_s"},
     {"branch_latest_ends_at_s", "branch_latest_ends_at_s"},
+    {"branch_station_reservation_expiration_statuses",
+     "branch_station_reservation_expiration_statuses"},
     {"capacity_pack_statuses", "capacity_pack_statuses"},
     {"repair_score", "repair_score"},
     {"repair_constraint_status", "repair_constraint_status"}
@@ -149,6 +155,8 @@ defmodule OrbitalDynamics.Schema.StrategyHandoffContracts do
      "branch_source_window_timing_coverage_status"},
     {"branch_earliest_starts_at_s", "branch_earliest_starts_at_s"},
     {"branch_latest_ends_at_s", "branch_latest_ends_at_s"},
+    {"branch_station_reservation_expiration_statuses",
+     "branch_station_reservation_expiration_statuses"},
     {"branch_actual_downlink_completion_ratio", "branch_actual_downlink_completion_ratio"},
     {"resource_risk_types", "resource_risk_types"},
     {"projected_storage_remaining_mb", "projected_storage_remaining_mb"},
@@ -183,6 +191,7 @@ defmodule OrbitalDynamics.Schema.StrategyHandoffContracts do
                                               "branch_source_window_timing_coverage_status",
                                               "branch_earliest_starts_at_s",
                                               "branch_latest_ends_at_s",
+                                              "branch_station_reservation_expiration_statuses",
                                               "capacity_pack_statuses",
                                               "repair_score",
                                               "repair_constraint_status",
@@ -331,6 +340,13 @@ defmodule OrbitalDynamics.Schema.StrategyHandoffContracts do
         @branch_window_context_field_pairs,
         "source_review_row"
       )
+      |> validate_required_source_pairs(
+        path,
+        row,
+        source_review_row,
+        @branch_reservation_expiration_context_field_pairs,
+        "source_review_row"
+      )
     else
       issues
     end
@@ -358,6 +374,13 @@ defmodule OrbitalDynamics.Schema.StrategyHandoffContracts do
         row,
         source_row,
         @branch_window_context_field_pairs,
+        "source_branch_comparison"
+      )
+      |> validate_required_source_pairs(
+        path,
+        row,
+        source_row,
+        @branch_reservation_expiration_context_field_pairs,
         "source_branch_comparison"
       )
     else
@@ -537,6 +560,13 @@ defmodule OrbitalDynamics.Schema.StrategyHandoffContracts do
       row,
       source_row,
       @branch_window_context_field_pairs,
+      "source_branch_comparison"
+    )
+    |> validate_required_source_pairs(
+      path,
+      row,
+      source_row,
+      @branch_reservation_expiration_context_field_pairs,
       "source_branch_comparison"
     )
   end

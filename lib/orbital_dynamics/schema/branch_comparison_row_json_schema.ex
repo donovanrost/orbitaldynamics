@@ -224,6 +224,7 @@ defmodule OrbitalDynamics.Schema.BranchComparisonRowJsonSchema do
           "branch_station_reservation_conflict_contact_ids" => stable_id_array_schema,
           "branch_station_reservation_conflict_reservation_ids" => stable_id_array_schema,
           "branch_station_reservation_conflict_match_statuses" => string_array_schema,
+          "branch_station_reservation_expiration_statuses" => string_array_schema,
           "branch_image_quality_min_score" => %{
             "type" => "number",
             "minimum" => 0.0,

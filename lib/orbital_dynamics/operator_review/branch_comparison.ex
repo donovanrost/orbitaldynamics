@@ -310,7 +310,8 @@ defmodule OrbitalDynamics.OperatorReview.BranchComparison do
       "branch_contact_allocation_policy_classifications",
       "branch_station_reservation_conflict_contact_ids",
       "branch_station_reservation_conflict_reservation_ids",
-      "branch_station_reservation_conflict_match_statuses"
+      "branch_station_reservation_conflict_match_statuses",
+      "branch_station_reservation_expiration_statuses"
     ]
   end
 

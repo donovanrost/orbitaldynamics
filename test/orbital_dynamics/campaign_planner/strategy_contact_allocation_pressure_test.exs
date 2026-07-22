@@ -1339,6 +1339,11 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyContactAllocationPressureTest 
     assert provider_review_row["branch_earliest_starts_at_s"] == 820.0
     assert provider_review_row["branch_latest_ends_at_s"] == 880.0
 
+    assert provider_review_row["branch_station_reservation_expiration_statuses"] == [
+             "expired",
+             "missing"
+           ]
+
     assert get_in(provider_review_row, [
              "source_branch_comparison",
              "branch_source_window_ids"
@@ -1372,6 +1377,11 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyContactAllocationPressureTest 
     assert provider_import_row["branch_earliest_starts_at_s"] == 820.0
     assert provider_import_row["branch_latest_ends_at_s"] == 880.0
 
+    assert provider_import_row["branch_station_reservation_expiration_statuses"] == [
+             "expired",
+             "missing"
+           ]
+
     assert get_in(provider_import_row, [
              "source_branch_comparison",
              "branch_latest_ends_at_s"
@@ -1396,6 +1406,38 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyContactAllocationPressureTest 
         artifact["operator_review_package"]["rows"],
         &(&1["id"] == provider_review_row["id"])
       )
+
+    missing_review_expiration =
+      update_in(
+        artifact["operator_review_package"],
+        ["rows", Access.at(provider_review_index)],
+        &Map.delete(&1, "branch_station_reservation_expiration_statuses")
+      )
+
+    assert {:error, missing_review_expiration_report} =
+             Schema.validate_artifact(missing_review_expiration)
+
+    assert Enum.any?(
+             missing_review_expiration_report["errors"],
+             &(&1["path"] ==
+                 "$.rows[#{provider_review_index}].branch_station_reservation_expiration_statuses")
+           )
+
+    legacy_review_expiration =
+      update_in(
+        artifact["operator_review_package"],
+        ["rows", Access.at(provider_review_index)],
+        fn row ->
+          row
+          |> Map.delete("branch_station_reservation_expiration_statuses")
+          |> Map.update!(
+            "source_branch_comparison",
+            &Map.delete(&1, "branch_station_reservation_expiration_statuses")
+          )
+        end
+      )
+
+    assert {:ok, _legacy_review_expiration} = Schema.validate_artifact(legacy_review_expiration)
 
     missing_review_window =
       update_in(
@@ -1430,6 +1472,22 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyContactAllocationPressureTest 
         artifact["cadence_import_manifest"]["rows"],
         &(&1["id"] == provider_import_row["id"])
       )
+
+    stale_import_expiration =
+      update_in(
+        artifact["cadence_import_manifest"],
+        ["rows", Access.at(provider_import_index)],
+        &Map.put(&1, "branch_station_reservation_expiration_statuses", ["active"])
+      )
+
+    assert {:error, stale_import_expiration_report} =
+             Schema.validate_artifact(stale_import_expiration)
+
+    assert Enum.any?(
+             stale_import_expiration_report["errors"],
+             &(&1["path"] ==
+                 "$.rows[#{provider_import_index}].branch_station_reservation_expiration_statuses")
+           )
 
     missing_import_window =
       update_in(
