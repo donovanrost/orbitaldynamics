@@ -125,7 +125,8 @@ Current implementation:
   Generated quality-gate reports, runtime validation, and JSON Schema export pin
   the artifact-only report `model_limits`. Runtime validation derives both the
   quality-gate report ID and its source-readiness report ID from the declared
-  source artifact identity, so stale lineage cannot pass as a current gate.
+  source artifact identity, and derives each row ID from that identity plus its
+  gate ID and rank, so stale lineage cannot pass as a current gate or queue row.
   Existing `quality_gate_report.v1` artifacts are accepted as idempotent handoff
   inputs when downstream queues already hold the compact gate artifact.
 - `OperationalReadiness.quality_gate_summary/2` and

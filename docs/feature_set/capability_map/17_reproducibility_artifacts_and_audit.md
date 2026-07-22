@@ -90,7 +90,7 @@ work, a **partial** executable-schema track, and **near-term** / **later** /
   `OperationalReadiness.quality_gate_report/2` for row-oriented gate routing with
   explicit **handoff-only execution-boundary** fields. Runtime validation pins
   both report identity and source-readiness lineage to the declared source
-  artifact identity.
+  artifact identity, then pins every row ID to that source plus gate ID and rank.
 - `operational_quality_gate_summary` provides a compact row-derived routing view
   over standalone quality-gate rows, preserving status/classification counts,
   gate IDs, row IDs, and non-passed rows without approving or importing work.

@@ -82,6 +82,7 @@ defmodule OrbitalDynamics.Schema.QualityGateReportContracts do
     |> validate_rows(path <> ".rows", rows, fn acc, row_path, row ->
       row_validator.(acc, row_path, row)
     end)
+    |> validate_row_identities(path, report, rows)
     |> expect_type(path, report, "assumptions", :map)
     |> expect_type(path, report, "model_limits", :list)
     |> validate_string_list_items(path, report, "model_limits")
@@ -121,6 +122,41 @@ defmodule OrbitalDynamics.Schema.QualityGateReportContracts do
         issues
     end
   end
+
+  defp validate_row_identities(issues, path, report, rows) when is_list(rows) do
+    source_artifact_type = report["source_artifact_type"]
+    source_artifact_id = report["source_artifact_id"]
+
+    if is_binary(source_artifact_type) and source_artifact_type != "" and
+         is_binary(source_artifact_id) and source_artifact_id != "" do
+      rows
+      |> Enum.with_index()
+      |> Enum.reduce(issues, fn
+        {%{"gate_id" => gate_id, "rank" => rank} = row, index}, acc
+        when is_binary(gate_id) and gate_id != "" and is_integer(rank) and rank >= 0 ->
+          expect_field_equals(
+            acc,
+            "#{path}.rows[#{index}]",
+            row,
+            "id",
+            SourceIdentity.quality_gate_row_id(
+              source_artifact_type,
+              source_artifact_id,
+              gate_id,
+              rank
+            ),
+            "must match source artifact, gate, and rank identity"
+          )
+
+        {_row, _index}, acc ->
+          acc
+      end)
+    else
+      issues
+    end
+  end
+
+  defp validate_row_identities(issues, _path, _report, _rows), do: issues
 
   defp validate_aggregate_maps(issues, path, report, rows) do
     issues

@@ -1509,6 +1509,20 @@ defmodule OrbitalDynamics.OperationalReadinessTest do
     invalid_quality_gate_row_classification_id_map =
       put_in(report, ["quality_gate_row_ids_by_classification", "review_only"], [])
 
+    stale_row_id = "quality_gate:planned_activity.v1:stale_activity:mission_policy:4"
+
+    stale_row_identity =
+      report
+      |> put_in(["rows", Access.at(3), "id"], stale_row_id)
+      |> put_in(
+        ["quality_gate_row_ids_by_status", "review_required"],
+        [stale_row_id]
+      )
+      |> put_in(
+        ["quality_gate_row_ids_by_classification", "review_only"],
+        [stale_row_id]
+      )
+
     invalid_model_limits =
       Map.put(report, "model_limits", ["quality_gate_report_does_not_approve_or_import"])
 
@@ -1605,6 +1619,15 @@ defmodule OrbitalDynamics.OperationalReadinessTest do
     assert Enum.any?(
              invalid_quality_gate_row_classification_id_map_report["errors"],
              &(&1["path"] == "$.quality_gate_row_ids_by_classification")
+           )
+
+    assert {:error, stale_row_identity_report} = Schema.validate_artifact(stale_row_identity)
+
+    assert Enum.any?(
+             stale_row_identity_report["errors"],
+             &(&1["path"] == "$.rows[3].id" and
+                 &1["message"] ==
+                   "must match source artifact, gate, and rank identity")
            )
 
     assert {:ok, schema} = Schema.json_schema("quality_gate_report.v1")
