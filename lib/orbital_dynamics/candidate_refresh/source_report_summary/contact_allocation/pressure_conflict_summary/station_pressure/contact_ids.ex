@@ -13,6 +13,8 @@ defmodule OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactAllocation
 
   def fields(reports) do
     %{
+      "station_pressure_contact_ids" =>
+        string_list_merge(reports, &AllocationStationPressure.contact_ids/1),
       "station_pressure_review_contact_ids" =>
         string_list_merge(reports, &AllocationStationPressure.review_contact_ids/1)
     }

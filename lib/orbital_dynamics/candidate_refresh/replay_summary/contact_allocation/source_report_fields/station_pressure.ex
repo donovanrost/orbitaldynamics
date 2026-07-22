@@ -24,6 +24,10 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.ContactAllocation.Sourc
 
     routing_fields =
       StationPressureRoutingCorrelation.fields(%{
+        "station_pressure_contact_count" =>
+          source_report_station_pressure_contact_count(source_reports),
+        "station_pressure_contact_ids" =>
+          source_report_family_merge_string_lists(source_reports, "station_pressure_contact_ids"),
         "station_pressure_ground_station_counts" =>
           source_report_family_merge_count_maps(
             source_reports,
@@ -93,7 +97,9 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.ContactAllocation.Sourc
 
     %{
       "source_report_contact_allocation_station_pressure_contact_count" =>
-        source_report_station_pressure_contact_count(source_reports),
+        Map.get(routing_fields, "station_pressure_contact_count"),
+      "source_report_contact_allocation_station_pressure_contact_ids" =>
+        Map.get(routing_fields, "station_pressure_contact_ids"),
       "source_report_contact_allocation_station_pressure_ground_station_counts" =>
         Map.get(routing_fields, "station_pressure_ground_station_counts"),
       "source_report_contact_allocation_station_pressure_contact_ids_by_ground_station" =>

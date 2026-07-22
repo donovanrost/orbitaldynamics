@@ -1078,6 +1078,10 @@ no-allocation/no candidate-selection boundary.
 Compact no-row station-pressure handoffs derive station-pressure contact and
 review-contact counts from present station, direction, nested direction/station,
 and review contact-ID maps before falling back to duplicated scalar counters.
+They also publish one canonical top-level `station_pressure_contact_ids` union
+across direct identity, station, availability, precedence, status, direction,
+and nested direction/station routes; whenever any such identity evidence is
+present, its unique cardinality is the exact station-pressure contact count.
 Direct or result-artifact-wrapped
 `source_contact_allocation_reservation_conflict_summary` /
 `contact_allocation_reservation_conflict_summary` inputs replay through the same

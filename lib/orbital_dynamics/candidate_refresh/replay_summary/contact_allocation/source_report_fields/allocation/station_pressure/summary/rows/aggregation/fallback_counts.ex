@@ -9,6 +9,7 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.ContactAllocation.Sourc
   def fallback_contact_count(report) do
     report
     |> unique_contact_count(
+      ["station_pressure_contact_ids"],
       [
         "station_pressure_contact_ids_by_ground_station_id",
         "station_pressure_contact_ids_by_ground_station",
@@ -37,7 +38,12 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.ContactAllocation.Sourc
     end
   end
 
-  defp unique_contact_count(report, flat_fields, nested_fields, fallback_field) do
+  defp unique_contact_count(report, list_fields, flat_fields, nested_fields, fallback_field) do
+    contact_id_lists =
+      list_fields
+      |> Enum.map(&Map.get(report, &1))
+      |> Enum.filter(&is_list/1)
+
     flat_contact_id_maps =
       flat_fields
       |> Enum.map(&Map.get(report, &1))
@@ -49,7 +55,9 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.ContactAllocation.Sourc
       |> Enum.filter(&is_map/1)
 
     cond do
-      flat_contact_id_maps != [] or nested_contact_id_maps != [] ->
+      contact_id_lists != [] or flat_contact_id_maps != [] or nested_contact_id_maps != [] ->
+        direct_contact_ids = List.flatten(contact_id_lists)
+
         flat_contact_ids =
           flat_contact_id_maps
           |> Enum.flat_map(&ContactIntent.string_list_map_contact_ids/1)
@@ -58,7 +66,8 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.ContactAllocation.Sourc
           nested_contact_id_maps
           |> Enum.flat_map(&ContactIntent.nested_string_list_map_contact_ids/1)
 
-        flat_contact_ids
+        direct_contact_ids
+        |> Kernel.++(flat_contact_ids)
         |> Kernel.++(nested_contact_ids)
         |> ContactIntent.count_unique_contact_ids()
 

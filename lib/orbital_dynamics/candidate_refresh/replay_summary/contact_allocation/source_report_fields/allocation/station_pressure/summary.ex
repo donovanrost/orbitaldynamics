@@ -23,6 +23,21 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.ContactAllocation.Sourc
     end
   end
 
+  def contact_ids(report) do
+    case rows(report) do
+      [] ->
+        report
+        |> Map.get("station_pressure_contact_ids", [])
+        |> List.wrap()
+        |> sorted_non_empty_values()
+
+      rows ->
+        rows
+        |> Enum.map(&summary_contact_id/1)
+        |> sorted_non_empty_values()
+    end
+  end
+
   def review_contact_count(report) do
     case rows(report) do
       [] -> fallback_review_contact_count(report)

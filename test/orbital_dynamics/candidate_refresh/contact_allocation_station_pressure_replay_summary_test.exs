@@ -15,6 +15,9 @@ defmodule OrbitalDynamics.CandidateRefresh.ContactAllocationStationPressureRepla
              "source_report_row_count" => 2,
              "source_report_counts_by_family" => %{"contact_allocation_report" => 1},
              "source_report_contact_allocation_station_pressure_contact_count" => 1,
+             "source_report_contact_allocation_station_pressure_contact_ids" => [
+               "dl_station_pressure"
+             ],
              "source_report_contact_allocation_station_pressure_review_contact_count" => 1,
              "source_report_contact_allocation_station_pressure_ground_station_counts" => %{
                "equator_prime" => 1
@@ -38,6 +41,7 @@ defmodule OrbitalDynamics.CandidateRefresh.ContactAllocationStationPressureRepla
              "source_report_count" => 1,
              "source_report_row_count" => 2,
              "station_pressure_contact_count" => 1,
+             "station_pressure_contact_ids" => ["dl_station_pressure"],
              "station_pressure_review_contact_count" => 1,
              "station_pressure_contact_ids_by_ground_station" => %{
                "equator_prime" => ["dl_station_pressure"]
@@ -73,6 +77,9 @@ defmodule OrbitalDynamics.CandidateRefresh.ContactAllocationStationPressureRepla
 
     assert %{
              "source_report_contact_allocation_station_pressure_contact_count" => 1,
+             "source_report_contact_allocation_station_pressure_contact_ids" => [
+               "dl_station_pressure"
+             ],
              "source_report_contact_allocation_station_pressure_review_contact_count" => 1,
              "source_report_contact_allocation_station_pressure_contact_ids_by_precedence_availability" =>
                %{"reserved" => ["dl_station_pressure"]},
@@ -109,6 +116,7 @@ defmodule OrbitalDynamics.CandidateRefresh.ContactAllocationStationPressureRepla
 
     assert %{
              "station_pressure_contact_count" => 1,
+             "station_pressure_contact_ids" => ["dl_station_pressure"],
              "station_pressure_review_contact_count" => 1,
              "station_pressure_contact_ids_by_precedence_availability" => %{
                "reserved" => ["dl_station_pressure"]
@@ -164,6 +172,10 @@ defmodule OrbitalDynamics.CandidateRefresh.ContactAllocationStationPressureRepla
     assert source_summary["source_report_contact_allocation_station_pressure_contact_count"] == 2
 
     assert source_summary[
+             "source_report_contact_allocation_station_pressure_contact_ids"
+           ] == ["station_pressure_a", "station_pressure_b"]
+
+    assert source_summary[
              "source_report_contact_allocation_station_pressure_contact_ids_by_ground_station"
            ] == %{"equator_prime" => ["station_pressure_a", "station_pressure_b"]}
 
@@ -193,6 +205,12 @@ defmodule OrbitalDynamics.CandidateRefresh.ContactAllocationStationPressureRepla
            ] == 1
 
     assert replay_summary["station_pressure_contact_count"] == 2
+
+    assert replay_summary["station_pressure_contact_ids"] == [
+             "station_pressure_a",
+             "station_pressure_b"
+           ]
+
     assert replay_summary["station_pressure_review_contact_count"] == 1
 
     assert replay_summary["station_pressure_contact_ids_by_ground_station"] == %{
@@ -229,6 +247,12 @@ defmodule OrbitalDynamics.CandidateRefresh.ContactAllocationStationPressureRepla
             "count" => 1,
             "row_count" => 0,
             "station_pressure_contact_count" => 99,
+            "station_pressure_contact_ids" => [
+              "direct_top_pressure",
+              "direct_pressure",
+              "direct_top_pressure",
+              "invalid contact"
+            ],
             "station_pressure_ground_station_counts" => %{
               "equator_prime" => 2,
               "station_count_only" => 3,
@@ -291,6 +315,20 @@ defmodule OrbitalDynamics.CandidateRefresh.ContactAllocationStationPressureRepla
     replay_summary = CandidateRefresh.contact_allocation_replay_summary(artifact)
     expected_ids = ["direct_pressure", "nested_pressure"]
 
+    expected_top_ids = [
+      "availability_route",
+      "direct_pressure",
+      "direct_top_pressure",
+      "nested_pressure",
+      "status_route_only"
+    ]
+
+    assert source_summary["source_report_contact_allocation_station_pressure_contact_count"] == 5
+
+    assert source_summary[
+             "source_report_contact_allocation_station_pressure_contact_ids"
+           ] == expected_top_ids
+
     assert source_summary[
              "source_report_contact_allocation_station_pressure_ground_station_counts"
            ] == %{"equator_prime" => 2, "station_count_only" => 3}
@@ -350,6 +388,9 @@ defmodule OrbitalDynamics.CandidateRefresh.ContactAllocationStationPressureRepla
              "equator_prime" => 2,
              "station_count_only" => 3
            }
+
+    assert replay_summary["station_pressure_contact_count"] == 5
+    assert replay_summary["station_pressure_contact_ids"] == expected_top_ids
 
     assert replay_summary["station_pressure_contact_ids_by_ground_station"] == %{
              "equator_prime" => expected_ids
@@ -433,6 +474,12 @@ defmodule OrbitalDynamics.CandidateRefresh.ContactAllocationStationPressureRepla
     replay_summary = CandidateRefresh.contact_allocation_replay_summary(artifact)
     expected_ids = ["pressure_a", "pressure_b"]
 
+    assert source_summary["source_report_contact_allocation_station_pressure_contact_count"] == 2
+
+    assert source_summary[
+             "source_report_contact_allocation_station_pressure_contact_ids"
+           ] == expected_ids
+
     assert source_summary[
              "source_report_contact_allocation_station_pressure_ground_station_counts"
            ] == nil
@@ -456,6 +503,9 @@ defmodule OrbitalDynamics.CandidateRefresh.ContactAllocationStationPressureRepla
              "equator_prime" => expected_ids
            }
 
+    assert replay_summary["station_pressure_contact_count"] == 2
+    assert replay_summary["station_pressure_contact_ids"] == expected_ids
+
     assert replay_summary["station_pressure_contact_ids_by_direction"] == %{
              "downlink" => expected_ids
            }
@@ -471,6 +521,7 @@ defmodule OrbitalDynamics.CandidateRefresh.ContactAllocationStationPressureRepla
             "count" => 1,
             "row_count" => 0,
             "station_pressure_contact_count" => 99,
+            "station_pressure_contact_ids" => [],
             "station_pressure_review_contact_count" => 99,
             "station_pressure_contact_ids_by_ground_station" => %{},
             "station_pressure_contact_ids_by_direction" => %{},
@@ -491,6 +542,7 @@ defmodule OrbitalDynamics.CandidateRefresh.ContactAllocationStationPressureRepla
            ] == 0
 
     assert replay_summary["station_pressure_contact_count"] == 0
+    assert replay_summary["station_pressure_contact_ids"] == nil
     assert replay_summary["station_pressure_review_contact_count"] == 0
     refute replay_summary["branch_local_station_pressure"]
   end
@@ -501,6 +553,7 @@ defmodule OrbitalDynamics.CandidateRefresh.ContactAllocationStationPressureRepla
       |> Map.put("rows", [])
       |> Map.put("review_rows", [])
       |> Map.put("station_pressure_contact_count", 99)
+      |> Map.delete("station_pressure_contact_ids")
       |> Map.put("station_pressure_contact_ids_by_ground_station_id", %{})
       |> Map.delete("station_pressure_contact_ids_by_availability")
       |> Map.delete("station_pressure_contact_ids_by_status")
@@ -537,6 +590,7 @@ defmodule OrbitalDynamics.CandidateRefresh.ContactAllocationStationPressureRepla
       |> Map.put("review_rows", [])
       |> Map.put("station_pressure_contact_count", 2)
       |> Map.put("station_pressure_review_contact_count", 1)
+      |> Map.delete("station_pressure_contact_ids")
       |> Map.delete("station_pressure_review_contact_ids")
       |> Map.delete("station_pressure_contact_ids_by_ground_station_id")
       |> Map.delete("station_pressure_contact_ids_by_availability")

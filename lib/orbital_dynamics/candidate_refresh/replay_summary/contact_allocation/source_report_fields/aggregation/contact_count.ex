@@ -26,8 +26,9 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.ContactAllocation.Sourc
   end
 
   def station_pressure_contact_count(summary) do
-    UniqueIds.count_from_string_and_nested_list_maps(
+    UniqueIds.count_from_lists_string_and_nested_list_maps(
       summary,
+      ["station_pressure_contact_ids"],
       [
         "station_pressure_contact_ids_by_ground_station_id",
         "station_pressure_contact_ids_by_ground_station",

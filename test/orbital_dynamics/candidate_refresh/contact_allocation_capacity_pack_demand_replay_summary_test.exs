@@ -358,6 +358,9 @@ defmodule OrbitalDynamics.CandidateRefresh.ContactAllocationCapacityPackDemandRe
                "station_pressure_contact"
              ],
              "source_report_contact_allocation_station_pressure_contact_count" => 1,
+             "source_report_contact_allocation_station_pressure_contact_ids" => [
+               "station_pressure_contact"
+             ],
              "source_report_contact_allocation_station_pressure_ground_station_counts" => %{
                "polar_prime" => 1
              },
@@ -705,6 +708,7 @@ defmodule OrbitalDynamics.CandidateRefresh.ContactAllocationCapacityPackDemandRe
         "station_pressure_contact"
       ],
       "station_pressure_contact_count" => 1,
+      "station_pressure_contact_ids" => ["station_pressure_contact"],
       "station_pressure_review_contact_count" => 1,
       "station_pressure_review_contact_ids" => ["station_pressure_contact"],
       "station_pressure_ground_station_counts" => %{"polar_prime" => 1},
@@ -866,6 +870,9 @@ defmodule OrbitalDynamics.CandidateRefresh.ContactAllocationCapacityPackDemandRe
              ],
              "source_report_contact_allocation_policy_blocked_allocated_contact_count" => 1,
              "source_report_contact_allocation_station_pressure_contact_count" => 1,
+             "source_report_contact_allocation_station_pressure_contact_ids" => [
+               "station_pressure_contact"
+             ],
              "source_report_contact_allocation_review_contact_ids" => [
                "blocked_contact",
                "deferred_contact",

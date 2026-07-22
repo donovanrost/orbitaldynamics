@@ -5,32 +5,33 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Correlate station-pressure review dimensions.
+Correlate station-pressure top-level identity.
 
 Status:
 Verified; ready to publish.
 
 Selection evidence:
-- Availability, precedence-availability, precedence-rank, and status count/ID
-  maps are copied independently through compact replay.
-- Current schema checks their shapes and nonnegative counts but not canonical
-  keys, stable ID ordering, or count-to-local-identity cardinality.
-- These review dimensions fit the shared station-pressure correlation boundary
-  without changing station hierarchy or aggregate direction semantics.
+- Contact-allocation reports may carry direct `station_pressure_contact_ids`,
+  but preserved-summary extraction and fallback counting ignore that field.
+- Compact replay retains canonical grouped routes and a scalar count without a
+  durable top-level union of the direct and routed contact identities.
+- Reservation-conflict replay already establishes the compatible contract:
+  identity evidence determines an exact count; scalar-only input remains valid.
 
 Intended behavior:
-- Canonicalize all four review-dimension keys and stable contact-ID lists.
-- Preserve count-only and route-only dimensions independently; remove an
-  undersized or invalid local count without suppressing routed identity.
+- Canonicalize one stable `station_pressure_contact_ids` union from direct IDs
+  and every hierarchical or review-dimension route map.
+- Derive the exact top-level count whenever identity evidence is supplied;
+  preserve nonnegative scalar-only fallback and explicit-empty zero semantics.
 - Apply identical raw, flattened, compact replay, and schema behavior, rejecting
-  noncanonical or contradictory supplied compact pairs.
+  noncanonical or contradictory supplied compact identity/count pairs.
 
 Level 6 pillar advanced:
 Fleet-scale planning decisions and durable reproducible audit handoffs.
 
 Planned files:
-- extend shared station-pressure correlation across raw/flattened/replay/schema
-- alias/key, count-only, route-only, invalid, and undersized-count tests
+- extend shared station-pressure correlation and direct-ID preservation
+- raw/flattened/replay/schema identity, scalar-only, and explicit-empty tests
 - allocation artifact documentation and autonomous-loop ledger
 
 Verification:
@@ -42,20 +43,20 @@ Verification:
 - `mix format` and `git diff --check` passed.
 
 Review:
-- The shared station-pressure correlation boundary now covers availability,
-  precedence availability, precedence rank, and status count/identity pairs.
-- Review keys and IDs canonicalize deterministically; invalid keys, nonpositive
-  counts, duplicate IDs, and unstable ordering cannot leak into compact replay.
-- Count-only and route-only review dimensions remain independently usable. A
-  valid occurrence count may exceed deduplicated IDs but cannot be smaller.
-- Adversarial replay retained route-only IDs after removing an undersized local
-  count; schema challenges reject the original pair and noncanonical ID order.
-- Existing hierarchical routing, aggregate direction fields, scalar fallback,
-  and planner membership remain unchanged through the broad gates.
+- Raw row summaries and compact no-row reports now expose a canonical top-level
+  station-pressure contact-ID list through flattened and replay surfaces.
+- Direct, station, availability, precedence, status, direction, and nested
+  route identities form one stable unique union and exact cardinality.
+- Missing identity remains distinct from explicit empty identity, preserving
+  scalar-only fallback while exact-empty input overrides stale scalar counts.
+- Schema challenges reject contradictory counts and noncanonical top-level IDs;
+  direct and provenance replay paths remain byte-for-byte map equivalent.
+- Existing route-local counts, direction routing, planner membership, and broad
+  artifact gates remain unchanged.
 - Provider, schedule, Cadence, and planner-effect boundaries are unchanged.
 
 Last published slice:
-- `741762ea` Correlate station pressure routing (`3825 passed`).
+- `2e3740e1` Correlate station pressure review maps (`3825 passed`).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions while preserving explicit
@@ -66,7 +67,7 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-After publish, audit station-pressure top-level contact identity correlation.
+After publish, audit station-pressure count provenance parity.
 
 Blocked:
 None.

@@ -7,6 +7,8 @@ defmodule OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactAllocation
 
   alias OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactAllocation.OutcomeIdentityCorrelation
 
+  @count_field "station_pressure_contact_count"
+  @ids_field "station_pressure_contact_ids"
   @station_counts_field "station_pressure_ground_station_counts"
   @station_routes_field "station_pressure_contact_ids_by_ground_station"
   @station_routes_alias_field "station_pressure_contact_ids_by_ground_station_id"
@@ -24,6 +26,8 @@ defmodule OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactAllocation
     {"station_pressure_status_counts", "station_pressure_contact_ids_by_status"}
   ]
 
+  @dimension_route_fields Enum.map(@dimension_specs, &elem(&1, 1))
+
   @routing_fields [
     @station_counts_field,
     @station_routes_field,
@@ -32,7 +36,17 @@ defmodule OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactAllocation
     @nested_routes_field
   ]
 
-  @fields @routing_fields ++ Enum.flat_map(@dimension_specs, &Tuple.to_list/1)
+  @contact_identity_fields [
+                             @ids_field,
+                             @station_routes_field,
+                             @station_routes_alias_field,
+                             @direction_routes_field,
+                             @nested_routes_field,
+                             @nested_routes_alias_field
+                           ] ++ @dimension_route_fields
+
+  @fields [@count_field, @ids_field] ++
+            @routing_fields ++ Enum.flat_map(@dimension_specs, &Tuple.to_list/1)
 
   def fields, do: @fields
 
@@ -64,13 +78,38 @@ defmodule OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactAllocation
       |> canonical_counts(&canonical_direction/1)
       |> correlate_counts(direction_routes)
 
-    summary
-    |> put_or_delete(@station_counts_field, station_counts)
-    |> put_or_delete(@station_routes_field, station_routes)
-    |> put_or_delete(@direction_counts_field, direction_counts)
-    |> put_or_delete(@direction_routes_field, direction_routes)
-    |> put_or_delete(@nested_routes_field, nested_routes)
-    |> correlate_dimension_fields()
+    correlated =
+      summary
+      |> put_or_delete(@station_counts_field, station_counts)
+      |> put_or_delete(@station_routes_field, station_routes)
+      |> put_or_delete(@direction_counts_field, direction_counts)
+      |> put_or_delete(@direction_routes_field, direction_routes)
+      |> put_or_delete(@nested_routes_field, nested_routes)
+      |> correlate_dimension_fields()
+
+    contact_ids =
+      [
+        Map.get(summary, @ids_field),
+        route_ids(station_routes),
+        route_ids(direction_routes),
+        nested_route_ids(nested_routes)
+        | Enum.map(@dimension_route_fields, fn routes_field ->
+            correlated |> Map.get(routes_field) |> route_ids()
+          end)
+      ]
+      |> List.flatten()
+      |> OutcomeIdentityCorrelation.contact_ids()
+
+    count =
+      if contact_identity_supplied?(summary) do
+        contact_ids |> List.wrap() |> length()
+      else
+        non_negative_integer(Map.get(summary, @count_field))
+      end
+
+    correlated
+    |> put_or_delete(@count_field, count)
+    |> put_or_delete(@ids_field, contact_ids)
   end
 
   defp correlate_dimension_fields(summary) do
@@ -91,6 +130,16 @@ defmodule OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactAllocation
       |> put_or_delete(routes_field, routes)
     end)
   end
+
+  defp contact_identity_supplied?(summary) do
+    Enum.any?(@contact_identity_fields, fn field ->
+      value = Map.get(summary, field)
+      is_list(value) or is_map(value)
+    end)
+  end
+
+  defp non_negative_integer(count) when is_integer(count) and count >= 0, do: count
+  defp non_negative_integer(_count), do: nil
 
   defp canonical_station_routes(summary) do
     [Map.get(summary, @station_routes_field), Map.get(summary, @station_routes_alias_field)]
@@ -209,6 +258,12 @@ defmodule OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactAllocation
     do: routes |> Map.values() |> List.flatten() |> Enum.uniq() |> Enum.sort()
 
   defp route_ids(_routes), do: []
+
+  defp nested_route_ids(%{} = routes) do
+    routes |> Map.values() |> Enum.flat_map(&route_ids/1)
+  end
+
+  defp nested_route_ids(_routes), do: []
 
   defp put_or_delete(map, field, nil), do: Map.delete(map, field)
   defp put_or_delete(map, field, value), do: Map.put(map, field, value)

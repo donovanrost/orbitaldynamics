@@ -1,8 +1,6 @@
 defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.ContactAllocation.Summary.StationPressure do
   @moduledoc false
 
-  alias OrbitalDynamics.CandidateRefresh.ReplaySummary.ContactAllocation.SourceReportFields
-
   alias OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactAllocation.{
     StationPressureReviewCorrelation,
     StationPressureRoutingCorrelation
@@ -14,7 +12,8 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.ContactAllocation.Summa
 
     %{
       "station_pressure_contact_count" =>
-        SourceReportFields.contact_allocation_station_pressure_contact_count(allocation_summary),
+        Map.get(routing_fields, "station_pressure_contact_count"),
+      "station_pressure_contact_ids" => Map.get(routing_fields, "station_pressure_contact_ids"),
       "station_pressure_review_contact_count" =>
         Map.get(review_fields, "station_pressure_review_contact_count"),
       "station_pressure_review_contact_ids" =>
@@ -57,6 +56,7 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.ContactAllocation.Summa
 
   def pressure?(replay) do
     (replay["station_pressure_contact_count"] || 0) > 0 or
+      (replay["station_pressure_contact_ids"] || []) != [] or
       (replay["station_pressure_review_contact_count"] || 0) > 0 or
       (replay["station_pressure_review_contact_ids"] || []) != [] or
       Enum.any?(

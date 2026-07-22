@@ -7,6 +7,10 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.ContactAllocation.Sourc
     Summary.contact_count(report)
   end
 
+  def contact_ids(report) do
+    Summary.contact_ids(report)
+  end
+
   def review_contact_count(report) do
     Summary.review_contact_count(report)
   end
