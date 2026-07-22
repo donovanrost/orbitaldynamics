@@ -380,7 +380,7 @@ defmodule OrbitalDynamics.CandidateRefresh.ContactContentionReplaySummaryTest do
             "conflict_group_count" => 0,
             "invalid_contact_input_count" => 0,
             "invalid_contact_input_ids" => ["bad_contact"],
-            "resource_scope_counts" => %{"ground_station" => 1},
+            "resource_scope_counts" => %{"ground_station" => 1, "stale_scope" => 99},
             "contact_contention_ground_station_counts" => %{"equator_prime" => 1},
             "contact_contention_contact_id_counts" => %{"contention_contact_a" => 1},
             "direction_counts" => %{"downlink" => 1},
@@ -406,9 +406,10 @@ defmodule OrbitalDynamics.CandidateRefresh.ContactContentionReplaySummaryTest do
              "source_report_contact_contention_invalid_contact_input_ids"
            )
 
-    assert source_summary["source_report_contact_contention_resource_scope_counts"] == %{
-             "ground_station" => 1
-           }
+    refute Map.has_key?(
+             source_summary,
+             "source_report_contact_contention_resource_scope_counts"
+           )
 
     assert source_summary["source_report_contact_contention_ground_station_counts"] == %{
              "equator_prime" => 1
@@ -436,6 +437,7 @@ defmodule OrbitalDynamics.CandidateRefresh.ContactContentionReplaySummaryTest do
 
     summary = CandidateRefresh.contact_contention_replay_summary(artifact)
 
+    assert summary["resource_scope_counts"] == %{}
     assert summary["branch_local_contact_contention_pressure"]
     refute summary["branch_local_contact_contention_conflict_pressure"]
     refute summary["branch_local_invalid_contact_input_pressure"]

@@ -1191,6 +1191,10 @@ Compact contention required-action maps are limited to canonical conflict and
 invalid-input review actions whose positive counts do not exceed the matching
 scalar evidence. Unknown or over-counted action keys are rejected by compact
 schema validation and cannot create replay review-action pressure.
+Compact contention resource scopes are limited to positive `ground_station`
+and `spacecraft` counts whose combined total is bounded by the conflict-group
+scalar. Unknown or over-counted scopes are rejected by compact schema
+validation and do not create replay contention pressure.
 Branch-generated CandidateRefresh requests preserve direct mission-state and
 result-artifact-wrapped raw `source_contact_contention_report` /
 `contact_contention_report` inputs with wrapper-qualified request paths and

@@ -277,6 +277,7 @@ defmodule OrbitalDynamics.CandidateRefresh.ContactContentionCandidateSourceRepla
               "paths" => [
                 "candidate_source.candidate_refresh_request.source_contact_contention_report"
               ],
+              "conflict_group_count" => 1,
               "resource_scope_counts" => %{"ground_station" => 1}
             }
           }
@@ -308,10 +309,10 @@ defmodule OrbitalDynamics.CandidateRefresh.ContactContentionCandidateSourceRepla
              "candidate_source.candidate_refresh_request.source_contact_contention_report"
            ]
 
-    assert summary["conflict_group_count"] == 0
+    assert summary["conflict_group_count"] == 1
     assert summary["resource_scope_counts"] == %{"ground_station" => 1}
     assert summary["branch_local_contact_contention_pressure"]
-    refute summary["branch_local_contact_contention_conflict_pressure"]
+    assert summary["branch_local_contact_contention_conflict_pressure"]
     refute summary["branch_local_invalid_contact_input_pressure"]
 
     assert summary["assumptions"]["replay_scope"] ==

@@ -5,33 +5,33 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Correlate contention required-action counts.
+Correlate contention resource-scope counts.
 
 Status:
 Verified; ready for mechanical publish.
 
 Selection evidence:
-- Raw contention producers derive `review_contact_contention` once per conflict
-  group and `review_invalid_contact_contention_input` once per invalid row.
-- Preserved compact summaries currently replay arbitrary required-action keys
-  and counts without relating them to conflict/invalid scalar evidence.
-- Unknown, zero-evidence, or over-counted actions can therefore create branch
-  review pressure after raw rows have been removed.
+- Raw contention producers assign conflict groups only to `ground_station` or
+  `spacecraft` resource scope.
+- Preserved compact summaries currently replay arbitrary resource-scope keys
+  and counts independently of the conflict-group scalar.
+- Unknown, zero-evidence, or over-counted scopes can therefore create branch
+  pressure after raw conflict rows have been removed.
 
 Intended behavior:
-- Retain only the two canonical contention review actions when their positive
-  counts do not exceed the corresponding conflict or invalid-input scalar.
+- Retain only canonical positive `ground_station` and `spacecraft` scope counts
+  whose combined total does not exceed the conflict-group scalar.
 - Apply correlation per report and again at flattened-source/replay boundaries.
-- Keep mismatched scalar conflict/invalid counts as pressure while preventing
-  uncorrelated action keys from creating review-action pressure.
+- Keep the conflict-group scalar as pressure while preventing uncorrelated scope
+  keys from independently creating branch pressure.
 
 Level 6 pillar advanced:
 Fleet-scale planning decisions and durable reproducible audit handoffs.
 
 Planned files:
-- contention required-action aggregation, flattened source fields, replay, and
+- contention resource-scope aggregation, flattened source fields, replay, and
   compact-summary schema correlation
-- unknown-action and mismatched-action-count challenge tests
+- unknown-scope and over-counted-scope challenge tests
 - contention artifact documentation and autonomous-loop ledger
 
 Verification:
@@ -44,16 +44,17 @@ Verification:
 - `mix test --timeout 120000` -> `3806 passed`.
 
 Review:
-- Correlation is applied per raw report before aggregation and again at compact
-  flattened/replay boundaries; scalar conflict/invalid evidence is unchanged.
-- A heterogeneous four-report campaign fixture confirmed canonical action
-  counts may be partial, so they are bounded by rather than forced equal to the
-  matching scalar; partner-specific keys are not granted compact authority.
-- Schema/runtime both reject unknown, zero-evidence, non-positive, and
-  over-counted actions. No unresolved findings.
+- Canonical scopes are filtered per raw report before aggregation and again at
+  compact flattened/replay boundaries; conflict scalar pressure is unchanged.
+- Combined canonical counts are bounded by the conflict-group scalar, allowing
+  partial scope evidence while rejecting ambiguous over-counted maps.
+- A branch-selection fixture was made internally correlated without changing
+  its branch-over-provenance purpose; schema/runtime agree on unknown,
+  non-positive, zero-evidence, and over-counted scope handling. No unresolved
+  findings.
 
 Last published slice:
-- `177d5805` Correlate contention invalid identities (`3806 passed`).
+- `af5bcf50` Correlate contention review actions (`3806 passed`).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions while preserving explicit
@@ -64,8 +65,8 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-After publish, audit contention resource-scope count totals for preserved
-compact summaries.
+After publish, audit contention ground-station count totals and station identity
+authority for preserved compact summaries.
 
 Blocked:
 None.

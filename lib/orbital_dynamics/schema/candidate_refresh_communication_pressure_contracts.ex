@@ -1,6 +1,8 @@
 defmodule OrbitalDynamics.Schema.CandidateRefreshCommunicationPressureContracts do
   @moduledoc false
 
+  alias OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactContention.CountFields.CountMaps.ResourceScopes
+
   import OrbitalDynamics.Schema.PrimitiveValidation,
     only: [
       error: 2,
@@ -18,6 +20,7 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshCommunicationPressureContracts 
     issues
     |> validate_contact_contention_invalid_inputs(path, summary)
     |> validate_contact_contention_required_actions(path, summary)
+    |> validate_contact_contention_resource_scopes(path, summary)
     |> validate_count_maps(path, summary, [
       "contact_contention_ground_station_counts",
       "contact_contention_contact_id_counts"
@@ -155,4 +158,58 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshCommunicationPressureContracts 
   end
 
   defp validate_contact_contention_required_actions(issues, _path, _summary), do: issues
+
+  defp validate_contact_contention_resource_scopes(
+         issues,
+         path,
+         %{
+           "contract" => "contact_contention_report.v1"
+         } = summary
+       ) do
+    counts = Map.get(summary, "resource_scope_counts")
+
+    issues =
+      validate_non_negative_integer_count_map(issues, path <> ".resource_scope_counts", counts)
+
+    if is_map(counts) do
+      issues =
+        Enum.reduce(counts, issues, fn {scope, count}, acc ->
+          if scope in ResourceScopes.canonical_scopes() and is_integer(count) and count > 0 do
+            acc
+          else
+            [
+              error(
+                path <> ".resource_scope_counts.#{scope}",
+                "must be a canonical contention resource scope with a positive count"
+              )
+              | acc
+            ]
+          end
+        end)
+
+      conflict_group_count = Map.get(summary, "conflict_group_count")
+
+      scope_count =
+        counts
+        |> Map.values()
+        |> Enum.filter(&(is_integer(&1) and &1 > 0))
+        |> Enum.sum()
+
+      if is_integer(conflict_group_count) and scope_count <= conflict_group_count do
+        issues
+      else
+        [
+          error(
+            path <> ".resource_scope_counts",
+            "canonical scope counts must not exceed conflict_group_count"
+          )
+          | issues
+        ]
+      end
+    else
+      issues
+    end
+  end
+
+  defp validate_contact_contention_resource_scopes(issues, _path, _summary), do: issues
 end

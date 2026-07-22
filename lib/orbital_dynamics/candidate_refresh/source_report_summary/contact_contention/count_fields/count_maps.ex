@@ -2,6 +2,7 @@ defmodule OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactContention
   @moduledoc false
 
   alias __MODULE__.RequiredOperatorActions
+  alias __MODULE__.ResourceScopes
 
   alias OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactContention.CountFields.ConflictGroups
 
@@ -21,7 +22,12 @@ defmodule OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactContention
 
   defp resource_scope_counts(reports) do
     reports
-    |> Enum.map(&ConflictGroups.resource_scope_counts/1)
+    |> Enum.map(fn report ->
+      ResourceScopes.correlated_counts(
+        ConflictGroups.count(report),
+        ConflictGroups.resource_scope_counts(report)
+      )
+    end)
     |> merge_count_maps()
   end
 
