@@ -160,7 +160,8 @@ defmodule OrbitalDynamics.Schema.OperatorReviewRegistryContracts do
           "station_reservation_ids_by_reserved_by",
           "station_reserved_bys",
           "station_reservation_statuses",
-          "station_reservation_match_status_counts"
+          "station_reservation_match_status_counts",
+          "station_reservation_status_counts"
         ],
         "nested_contracts" => ["approval_requirement.v1", "strategy_recommendation.v1"]
       }

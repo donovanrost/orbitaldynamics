@@ -1493,6 +1493,74 @@ defmodule OrbitalDynamics.Schema.OperatorReviewSchemaContractsTest do
     end
   end
 
+  test "correlates station-reservation contact IDs with status counts" do
+    fields = [
+      "station_reservation_status_counts",
+      "station_reservation_contact_ids_by_status"
+    ]
+
+    package =
+      "study_results/operator_review_resource_pressure_v1.json"
+      |> read_json!()
+      |> Map.drop(fields)
+
+    schema = read_json!("schemas/operator_review_package.v1.schema.json")
+    status = "confirmed"
+
+    assert get_in(schema, [
+             "properties",
+             "station_reservation_contact_ids_by_status",
+             "additionalProperties",
+             "uniqueItems"
+           ]) == true
+
+    valid_identity =
+      Map.merge(package, %{
+        "station_reservation_status_counts" => %{status => 2},
+        "station_reservation_contact_ids_by_status" => %{
+          status => ["contact_a", "contact_b"]
+        }
+      })
+
+    assert {:ok, _package} = Schema.validate_artifact(valid_identity)
+
+    count_only = Map.put(package, "station_reservation_status_counts", %{status => 2})
+    assert {:ok, _package} = Schema.validate_artifact(count_only)
+
+    invalid_route =
+      Map.merge(package, %{
+        "station_reservation_status_counts" => %{status => 2},
+        "station_reservation_contact_ids_by_status" => %{
+          status => ["contact_b", "contact_a"]
+        }
+      })
+
+    assert {:error, invalid_route_report} = Schema.validate_artifact(invalid_route)
+
+    assert Enum.any?(
+             invalid_route_report["errors"],
+             &(&1["path"] == "$.station_reservation_contact_ids_by_status.#{status}")
+           )
+
+    for status_count <- [nil, 1] do
+      invalid_count =
+        Map.merge(package, %{
+          "station_reservation_status_counts" =>
+            if(status_count == nil, do: %{}, else: %{status => status_count}),
+          "station_reservation_contact_ids_by_status" => %{
+            status => ["contact_a", "contact_b"]
+          }
+        })
+
+      assert {:error, invalid_count_report} = Schema.validate_artifact(invalid_count)
+
+      assert Enum.any?(
+               invalid_count_report["errors"],
+               &(&1["path"] == "$.station_reservation_status_counts.#{status}")
+             )
+    end
+  end
+
   test "correlates station-reservation contact IDs with expiration counts" do
     scalar_count_field = "station_reservation_declared_expiration_contact_count"
 

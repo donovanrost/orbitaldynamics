@@ -203,6 +203,7 @@ defmodule OrbitalDynamics.CadenceImport.ManifestBuilder do
       "station_reservation_statuses" => context["station_reservation_statuses"],
       "station_reservation_match_status_counts" =>
         context["station_reservation_match_status_counts"],
+      "station_reservation_status_counts" => context["station_reservation_status_counts"],
       "rows" => rows,
       "provenance" => ManifestMapNormalization.compact(provenance),
       "model_limits" => ManifestStatistics.model_limits(capability),

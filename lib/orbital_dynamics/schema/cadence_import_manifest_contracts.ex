@@ -30,7 +30,8 @@ defmodule OrbitalDynamics.Schema.CadenceImportManifestContracts do
     "source_review_action_counts",
     "source_review_queue_counts",
     "calendar_entry_trust_boundary_status_counts",
-    "station_reservation_match_status_counts"
+    "station_reservation_match_status_counts",
+    "station_reservation_status_counts"
   ]
 
   @assumption_expectations [

@@ -1092,6 +1092,12 @@ defmodule OrbitalDynamics.Schema.ContactAllocationHandoffContracts do
       artifact,
       "station_reservation_contact_ids_by_status"
     )
+    |> validate_correlated_id_count_map(
+      path,
+      artifact,
+      "station_reservation_status_counts",
+      "station_reservation_contact_ids_by_status"
+    )
     |> validate_optional_stable_id_array_map(
       path,
       artifact,

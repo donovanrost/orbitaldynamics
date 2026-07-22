@@ -10146,6 +10146,78 @@ defmodule OrbitalDynamics.CadenceImportTest do
     end
   end
 
+  test "lifts and correlates station-reservation status contact identity and counts" do
+    status = "confirmed"
+
+    repair =
+      CadenceImport.from_repair_artifact(%{
+        "repair_metadata" => %{"repair_id" => "repair:reservation_status_overlap"},
+        "source_plan_id" => "plan:reservation_status_overlap",
+        "source_contact_allocation_report" => %{
+          "station_reservation_status_counts" => %{status => 7},
+          "station_reservation_contact_ids_by_status" => %{
+            status => ["contact_source", "contact_shared"]
+          },
+          "station_reservation_ids_by_status" => %{
+            status => ["reservation_shared"]
+          }
+        },
+        "contact_allocation_report" => %{
+          "station_reservation_status_counts" => %{status => 7},
+          "station_reservation_contact_ids_by_status" => %{
+            status => ["contact_result", "contact_routed", "contact_shared"]
+          },
+          "station_reservation_ids_by_status" => %{
+            status => ["reservation_result", "reservation_shared"]
+          }
+        }
+      })
+
+    explicit_empty =
+      CadenceImport.from_campaign_artifact(%{
+        "plan_id" => "plan:reservation_status_empty",
+        "contact_allocation_report" => %{
+          "station_reservation_status_counts" => %{status => 9},
+          "station_reservation_contact_ids_by_status" => %{status => []}
+        }
+      })
+
+    count_only =
+      CadenceImport.from_campaign_artifact(%{
+        "plan_id" => "plan:reservation_status_count",
+        "contact_allocation_report" => %{
+          "station_reservation_status_counts" => %{status => 2}
+        }
+      })
+
+    expected_contact_ids = [
+      "contact_result",
+      "contact_routed",
+      "contact_shared",
+      "contact_source"
+    ]
+
+    assert repair["station_reservation_status_counts"] == %{status => 4}
+
+    assert repair["station_reservation_contact_ids_by_status"] == %{
+             status => expected_contact_ids
+           }
+
+    assert repair["station_reservation_ids_by_status"] == %{
+             status => ["reservation_result", "reservation_shared"]
+           }
+
+    assert explicit_empty["station_reservation_status_counts"] == %{status => 0}
+    assert explicit_empty["station_reservation_contact_ids_by_status"] == %{status => []}
+    assert count_only["station_reservation_status_counts"] == %{status => 2}
+    refute Map.has_key?(count_only, "station_reservation_contact_ids_by_status")
+
+    for manifest <- [repair, explicit_empty, count_only] do
+      assert {:ok, %{"schema_contract" => "cadence_import_manifest.v1"}} =
+               Schema.validate_artifact(manifest)
+    end
+  end
+
   test "correlates station-reservation expiration contact identity and counts" do
     status = "missing"
     scalar_count_field = "station_reservation_missing_expiration_contact_count"

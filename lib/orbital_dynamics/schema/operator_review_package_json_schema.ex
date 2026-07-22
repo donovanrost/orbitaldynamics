@@ -26,6 +26,7 @@ defmodule OrbitalDynamics.Schema.OperatorReviewPackageJsonSchema do
   @review_import_count_map_fields [
     "calendar_entry_trust_boundary_status_counts",
     "station_reservation_match_status_counts",
+    "station_reservation_status_counts",
     "station_reservation_expiration_status_counts",
     "resource_blocking_dimension_counts",
     "gate_status_counts",
@@ -140,6 +141,7 @@ defmodule OrbitalDynamics.Schema.OperatorReviewPackageJsonSchema do
                                "required_capacity_fraction_contact_ids_by_source",
                                "station_reservation_contact_ids_by_match_status",
                                "station_reservation_contact_ids_by_expiration_status",
+                               "station_reservation_contact_ids_by_status",
                                "provider_reservation_no_request_contact_ids_by_direction",
                                "provider_reservation_request_contact_ids_by_ground_station_id",
                                "provider_reservation_request_contact_ids_by_direction",
