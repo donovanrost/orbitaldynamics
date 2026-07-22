@@ -7,6 +7,7 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.ContactAllocation.Summa
     DirectionRouting,
     OutcomeIdentityCorrelation,
     ReasonIdentityCorrelation,
+    ResourceBlockingCorrelation,
     RowCountCorrelation
   }
 
@@ -24,7 +25,13 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.ContactAllocation.Summa
       )
 
     outcome_fields = primary_outcome_fields(allocation_summary)
-    blocked_input_fields = blocked_input_fields(allocation_summary)
+
+    resource_fields =
+      allocation_summary
+      |> ResourceBlockingCorrelation.fields()
+      |> Map.take(ResourceBlockingCorrelation.fields())
+
+    blocked_input_fields = blocked_input_fields(allocation_summary, resource_fields)
 
     reason_fields =
       ReasonIdentityCorrelation.fields(%{
@@ -86,11 +93,11 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.ContactAllocation.Summa
         Map.get(blocked_input_fields, "resource_blocked_contact_count"),
       resource_blocked_contact_ids: Map.get(blocked_input_fields, "resource_blocked_contact_ids"),
       resource_blocking_dimension_counts:
-        Map.get(allocation_summary, "resource_blocking_dimension_counts"),
+        Map.get(resource_fields, "resource_blocking_dimension_counts"),
       resource_blocked_contact_ids_by_blocking_dimension:
-        Map.get(allocation_summary, "resource_blocked_contact_ids_by_blocking_dimension"),
+        Map.get(resource_fields, "resource_blocked_contact_ids_by_blocking_dimension"),
       resource_blocked_contact_ids_by_spacecraft:
-        Map.get(allocation_summary, "resource_blocked_contact_ids_by_spacecraft"),
+        Map.get(resource_fields, "resource_blocked_contact_ids_by_spacecraft"),
       contact_ids_by_allocation_reason: Map.get(reason_fields, "contact_ids_by_allocation_reason")
     }
   end
@@ -162,13 +169,14 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.ContactAllocation.Summa
     |> OutcomeIdentityCorrelation.fields()
   end
 
-  defp blocked_input_fields(allocation_summary) do
+  defp blocked_input_fields(allocation_summary, resource_fields) do
     BlockedInputIdentityCorrelation.field_pairs()
     |> Enum.reduce(%{}, fn {count_field, ids_field}, fields ->
       fields
       |> Map.put(count_field, non_zero_summary_integer(allocation_summary, count_field))
       |> Map.put(ids_field, Map.get(allocation_summary, ids_field))
     end)
+    |> Map.merge(resource_fields)
     |> BlockedInputIdentityCorrelation.fields()
   end
 end

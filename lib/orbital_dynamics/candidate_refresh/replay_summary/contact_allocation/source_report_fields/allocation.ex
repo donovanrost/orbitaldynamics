@@ -9,6 +9,7 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.ContactAllocation.Sourc
     DirectionRouting,
     OutcomeIdentityCorrelation,
     ReasonIdentityCorrelation,
+    ResourceBlockingCorrelation,
     RowCountCorrelation
   }
 
@@ -17,7 +18,8 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.ContactAllocation.Sourc
   def source_report_allocation_fields(source_reports) do
     row_count = source_report_family_identity_count(source_reports, "row_count")
     outcome_fields = primary_outcome_fields(source_reports)
-    blocked_input_fields = blocked_input_fields(source_reports)
+    resource_fields = resource_fields(source_reports)
+    blocked_input_fields = blocked_input_fields(source_reports, resource_fields)
 
     reason_fields =
       ReasonIdentityCorrelation.fields(%{
@@ -110,20 +112,11 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.ContactAllocation.Sourc
       "source_report_contact_allocation_resource_blocked_contact_ids" =>
         Map.get(blocked_input_fields, "resource_blocked_contact_ids"),
       "source_report_contact_allocation_resource_blocking_dimension_counts" =>
-        source_report_family_merge_count_maps(
-          source_reports,
-          "resource_blocking_dimension_counts"
-        ),
+        Map.get(resource_fields, "resource_blocking_dimension_counts"),
       "source_report_contact_allocation_resource_blocked_contact_ids_by_blocking_dimension" =>
-        source_report_family_merge_string_list_maps(
-          source_reports,
-          "resource_blocked_contact_ids_by_blocking_dimension"
-        ),
+        Map.get(resource_fields, "resource_blocked_contact_ids_by_blocking_dimension"),
       "source_report_contact_allocation_resource_blocked_contact_ids_by_spacecraft" =>
-        source_report_family_merge_string_list_maps(
-          source_reports,
-          "resource_blocked_contact_ids_by_spacecraft"
-        ),
+        Map.get(resource_fields, "resource_blocked_contact_ids_by_spacecraft"),
       "source_report_contact_allocation_contact_ids_by_allocation_reason" =>
         Map.get(reason_fields, "contact_ids_by_allocation_reason"),
       "source_report_contact_allocation_review_contact_ids" =>
@@ -145,13 +138,37 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.ContactAllocation.Sourc
     |> OutcomeIdentityCorrelation.fields()
   end
 
-  defp blocked_input_fields(source_reports) do
+  defp blocked_input_fields(source_reports, resource_fields) do
     BlockedInputIdentityCorrelation.field_pairs()
     |> Enum.reduce(%{}, fn {count_field, ids_field}, fields ->
       fields
       |> Map.put(count_field, source_report_family_count(source_reports, count_field))
       |> Map.put(ids_field, source_report_family_merge_string_lists(source_reports, ids_field))
     end)
+    |> Map.merge(resource_fields)
     |> BlockedInputIdentityCorrelation.fields()
+  end
+
+  defp resource_fields(source_reports) do
+    %{
+      "resource_blocking_dimension_counts" =>
+        source_report_family_merge_count_maps(
+          source_reports,
+          "resource_blocking_dimension_counts"
+        ),
+      "resource_blocked_contact_ids_by_blocking_dimension" =>
+        source_report_family_merge_string_list_maps(
+          source_reports,
+          "resource_blocked_contact_ids_by_blocking_dimension"
+        ),
+      "resource_blocked_contact_ids_by_spacecraft" =>
+        source_report_family_merge_string_list_maps(
+          source_reports,
+          "resource_blocked_contact_ids_by_spacecraft"
+        ),
+      "resource_blocked_contact_ids" =>
+        source_report_family_merge_string_lists(source_reports, "resource_blocked_contact_ids")
+    }
+    |> ResourceBlockingCorrelation.fields()
   end
 end

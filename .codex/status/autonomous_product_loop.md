@@ -5,51 +5,55 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Correlate allocation reason identity routing.
+Correlate allocation resource-blocking routing.
 
 Status:
 Verified; ready to publish.
 
 Selection evidence:
-- Reason-scoped contact-ID maps currently bypass stable reason/ID
-  canonicalization and local reason-count cardinality.
-- Reason routes are first-class compact identity evidence and must remain usable
-  without fabricating row totals or missing count-map entries.
-- Raw row-derived reason counts/routes provide canonical correlated evidence.
+- Resource dimension counts and dimension/spacecraft ID maps currently feed
+  replay pressure independently without canonical correlation.
+- Routed blocked identities must remain usable when direct top-level identity is
+  absent, without fabricating missing dimension counts.
+- Raw row-derived resource-blocking fields provide canonical correlated evidence.
 
 Intended behavior:
-- Canonicalize stable reason keys and sorted unique stable contact IDs.
-- Preserve count-only and route-only evidence independently.
-- Retain routed IDs for a counted reason only when local cardinality does not
-  exceed its positive occurrence count, with matching compact validation.
+- Canonicalize positive dimension counts plus stable dimension/spacecraft keys
+  and sorted unique stable contact IDs.
+- Preserve count-only and route-only evidence; bound counted dimension routes by
+  local occurrence count.
+- Rebuild canonical resource-blocked top-level identity from direct and routed
+  evidence before count/identity correlation, with matching compact validation.
 
 Level 6 pillar advanced:
 Fleet-scale planning decisions and durable reproducible audit handoffs.
 
 Planned files:
-- allocation reason routing correlation across raw/flattened/replay/schema
-- route-only, over-cardinality, and noncanonical-route challenges
+- resource-blocking routing correlation across raw/flattened/replay/schema
+- route-only, zero-count, over-cardinality, and noncanonical-route challenges
 - allocation artifact documentation and autonomous-loop ledger
 
 Verification:
-- Focused replay/schema reason-routing challenges: `17 passed`.
-- Contact-allocation family: `188 passed`.
+- Focused replay/schema plus idempotence regression challenges: `19 passed`.
+- Contact-allocation family: `189 passed`.
 - Golden artifacts: `12 passed`.
 - Schema lint: `155` artifacts, no errors or warnings.
-- Full suite: `3818 passed`.
+- Full suite: `3819 passed`.
 - `mix format` and `git diff --check` passed.
 
 Review:
-- Raw, flattened, and replay paths canonicalize stable reason keys and sorted
-  unique stable IDs.
-- Count-only and route-only reasons remain usable independently; counted routes
-  cannot exceed their local positive occurrence count.
-- Compact validation rejects noncanonical or over-cardinality reason routing.
-- Resource-blocking routing and all execution boundaries remain separately
-  scoped and unchanged.
+- Raw, flattened, and replay paths canonicalize positive dimension counts,
+  stable dimension/spacecraft keys, and sorted unique stable IDs.
+- Counted dimension routes stay within local counts; route-only evidence remains
+  usable and all canonical routed IDs rebuild top-level blocked identity.
+- Compact validation rejects stale counts/routes and correlates the resulting
+  identity union before accepting a resource-blocked count.
+- Family testing caught and fixed an over-broad replay merge that reintroduced
+  unrelated zero counters; the narrowed field-set merge is idempotent.
+- Provider, schedule, Cadence-write, and planner-effect boundaries are unchanged.
 
 Last published slice:
-- `c5d62715` Correlate allocation outcome station routes (`3817 passed`).
+- `36ccb494` Correlate allocation reason identities (`3818 passed`).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions while preserving explicit
@@ -60,7 +64,7 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-After publish, audit allocation resource-blocking routing correlation.
+After publish, audit allocation review-contact identity correlation.
 
 Blocked:
 None.

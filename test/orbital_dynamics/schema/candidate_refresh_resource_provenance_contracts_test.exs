@@ -547,6 +547,15 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshResourceProvenanceContractsTest
         "contact_ids_by_allocation_reason" => %{
           "selected" => ["dl_backup", "dl_primary"]
         },
+        "resource_blocked_contact_count" => 2,
+        "resource_blocked_contact_ids" => ["resource_a", "resource_b"],
+        "resource_blocking_dimension_counts" => %{"antenna" => 2},
+        "resource_blocked_contact_ids_by_blocking_dimension" => %{
+          "antenna" => ["resource_a", "resource_b"]
+        },
+        "resource_blocked_contact_ids_by_spacecraft" => %{
+          "leo_1" => ["resource_a", "resource_b"]
+        },
         "direction_counts" => %{"downlink" => 2},
         "contact_ids_by_direction" => %{
           "downlink" => ["dl_backup", "dl_primary"]
@@ -695,6 +704,52 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshResourceProvenanceContractsTest
              noncanonical_blocked_input_ids_report["errors"],
              &(&1["path"] ==
                  "$.provenance.source_reports.contact_allocation_report.status_blocked_contact_ids")
+           )
+
+    over_cardinality_resource_dimension_route =
+      put_in(
+        artifact_with_allocation_direction_summary,
+        [
+          "provenance",
+          "source_reports",
+          "contact_allocation_report",
+          "resource_blocking_dimension_counts",
+          "antenna"
+        ],
+        1
+      )
+
+    assert {:error, over_cardinality_resource_dimension_route_report} =
+             Schema.validate_artifact(over_cardinality_resource_dimension_route)
+
+    assert Enum.any?(
+             over_cardinality_resource_dimension_route_report["errors"],
+             &(&1["path"] ==
+                 "$.provenance.source_reports.contact_allocation_report.resource_blocked_contact_ids_by_blocking_dimension")
+           )
+
+    noncanonical_resource_spacecraft_route =
+      put_in(
+        artifact_with_allocation_direction_summary,
+        [
+          "provenance",
+          "source_reports",
+          "contact_allocation_report",
+          "resource_blocked_contact_ids_by_spacecraft"
+        ],
+        %{
+          "leo_1" => ["resource_b", "resource_a", "resource_a"],
+          "invalid spacecraft" => ["orphan_contact"]
+        }
+      )
+
+    assert {:error, noncanonical_resource_spacecraft_route_report} =
+             Schema.validate_artifact(noncanonical_resource_spacecraft_route)
+
+    assert Enum.any?(
+             noncanonical_resource_spacecraft_route_report["errors"],
+             &(&1["path"] ==
+                 "$.provenance.source_reports.contact_allocation_report.resource_blocked_contact_ids_by_spacecraft")
            )
 
     contradictory_allocation_row_counts =

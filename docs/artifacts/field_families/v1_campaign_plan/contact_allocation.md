@@ -284,7 +284,11 @@ Invalid-input, status-blocked, and resource-blocked count/ID pairs use the same
 identity-first rule. Their top-level lists remain canonical review evidence when
 a compact scalar is absent or undersized; valid occurrence counts may exceed
 de-duplicated identity cardinality, and compact schema validation rejects stale
-counts or noncanonical blocked-input lists.
+counts or noncanonical blocked-input lists. Resource dimension counts retain
+only positive canonical entries. Counted dimension routes cannot exceed their
+local occurrence count, while route-only dimension evidence remains usable;
+canonical dimension and spacecraft routes contribute to the top-level
+resource-blocked identity union before its count is correlated.
 Allocation row duplicate-contact and station-calendar overlap/reservation count
 fields are also executable integer counts, duplicate-contact collision rows must
 preserve candidate count, ID, and source-candidate evidence, and contention

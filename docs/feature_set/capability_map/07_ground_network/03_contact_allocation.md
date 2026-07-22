@@ -97,7 +97,10 @@ The contact-filter, contact-contention, contact-intent, and command-window repor
   spacecraft, preserved through candidate-refresh contact-allocation replay for
   branch-local blocked-input queues; invalid-input, status-blocked, and
   resource-blocked top-level IDs remain canonical identity-first evidence whose
-  paired occurrence counts cannot be smaller than unique ID cardinality
+  paired occurrence counts cannot be smaller than unique ID cardinality.
+  Resource dimension counts and dimension/spacecraft routes are canonicalized;
+  counted dimension routes stay within local counts, route-only evidence remains
+  usable, and routed IDs contribute to top-level resource-blocked identity.
 - capacity-pack contact counts, required-capacity demand totals,
   selected/deferred demand totals, per-station/per-status demand maps, and
   all-contact plus selected/deferred station contact-ID routing, plus contact IDs and counts by capacity-pack
