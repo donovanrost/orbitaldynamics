@@ -231,6 +231,10 @@ normalization at raw aggregation and compact replay boundaries. Equivalent keys
 such as `Down Link`, `down`, and `downlink` merge into `downlink` before contact
 correlation and route rebuilding; compact schema validation requires canonical
 stable direction keys while preserving canonical custom direction tokens.
+Each correlated direction list must also contain no more unique contact IDs than
+that direction's positive count. Over-cardinality lists are removed rather than
+arbitrarily selecting identities, while the scalar direction count remains
+conservative pressure; compact schema validation enforces the same local bound.
 Its exported JSON Schema includes the nested row and `timeline_identity` field
 shape used by executable validation. Rows also carry artifact-only operational
 kind, required operator action, operator-action reason, execution boundary,

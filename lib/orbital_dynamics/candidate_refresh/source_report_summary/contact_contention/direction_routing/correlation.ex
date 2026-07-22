@@ -11,7 +11,7 @@ defmodule OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactContention
     contact_ids_by_direction = normalize_direction_string_list_map(contact_ids_by_direction)
 
     positive_direction_counts
-    |> Enum.reduce(%{}, fn {direction, _count}, filtered ->
+    |> Enum.reduce(%{}, fn {direction, count}, filtered ->
       contact_ids =
         contact_ids_by_direction
         |> Map.get(direction, [])
@@ -19,7 +19,8 @@ defmodule OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactContention
 
       case contact_ids do
         [] -> filtered
-        contact_ids -> Map.put(filtered, direction, contact_ids)
+        contact_ids when length(contact_ids) <= count -> Map.put(filtered, direction, contact_ids)
+        _contact_ids -> filtered
       end
     end)
     |> non_empty_map()

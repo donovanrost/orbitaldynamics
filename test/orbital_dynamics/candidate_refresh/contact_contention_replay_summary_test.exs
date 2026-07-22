@@ -556,6 +556,8 @@ defmodule OrbitalDynamics.CandidateRefresh.ContactContentionReplaySummaryTest do
         "orphan_contact" => 1,
         "real_contact" => 1,
         "real_contact_backup" => 1,
+        "shifted_uplink_a" => 1,
+        "shifted_uplink_b" => 1,
         "zero_contact" => 0
       },
       "direction_counts" => %{
@@ -564,6 +566,8 @@ defmodule OrbitalDynamics.CandidateRefresh.ContactContentionReplaySummaryTest do
         "down" => 1,
         "malformed_direction" => 1,
         "negative_direction" => -1,
+        "tracking" => 1,
+        "uplink" => 1,
         "zero_direction" => 0
       },
       "contact_ids_by_direction" => %{
@@ -572,6 +576,7 @@ defmodule OrbitalDynamics.CandidateRefresh.ContactContentionReplaySummaryTest do
         "down" => ["real_contact_backup"],
         "malformed_direction" => %{"unexpected" => "shape"},
         "missing_direction" => ["real_contact"],
+        "uplink" => ["shifted_uplink_a", "shifted_uplink_b"],
         "zero_direction" => ["real_contact"]
       },
       "direction_routing" => %{
@@ -598,7 +603,9 @@ defmodule OrbitalDynamics.CandidateRefresh.ContactContentionReplaySummaryTest do
 
     assert source_summary["source_report_contact_contention_direction_counts"] == %{
              "downlink" => 2,
-             "malformed_direction" => 1
+             "malformed_direction" => 1,
+             "tracking" => 1,
+             "uplink" => 1
            }
 
     assert source_summary["source_report_contact_contention_contact_ids_by_direction"] == %{
@@ -610,7 +617,9 @@ defmodule OrbitalDynamics.CandidateRefresh.ContactContentionReplaySummaryTest do
                "contact_count" => 2,
                "contact_ids" => ["real_contact", "real_contact_backup"]
              },
-             "malformed_direction" => %{"contact_count" => 1, "contact_ids" => []}
+             "malformed_direction" => %{"contact_count" => 1, "contact_ids" => []},
+             "tracking" => %{"contact_count" => 1, "contact_ids" => []},
+             "uplink" => %{"contact_count" => 1, "contact_ids" => []}
            }
 
     replay_summary = CandidateRefresh.contact_contention_replay_summary(artifact)
@@ -622,7 +631,9 @@ defmodule OrbitalDynamics.CandidateRefresh.ContactContentionReplaySummaryTest do
 
     assert replay_summary["direction_counts"] == %{
              "downlink" => 2,
-             "malformed_direction" => 1
+             "malformed_direction" => 1,
+             "tracking" => 1,
+             "uplink" => 1
            }
 
     assert replay_summary["contact_ids_by_direction"] == %{
@@ -634,7 +645,9 @@ defmodule OrbitalDynamics.CandidateRefresh.ContactContentionReplaySummaryTest do
                "contact_count" => 2,
                "contact_ids" => ["real_contact", "real_contact_backup"]
              },
-             "malformed_direction" => %{"contact_count" => 1, "contact_ids" => []}
+             "malformed_direction" => %{"contact_count" => 1, "contact_ids" => []},
+             "tracking" => %{"contact_count" => 1, "contact_ids" => []},
+             "uplink" => %{"contact_count" => 1, "contact_ids" => []}
            }
 
     assert replay_summary["branch_local_contact_contention_pressure"]

@@ -367,14 +367,17 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshCommunicationPressureContracts 
       issues =
         if is_map(contact_ids_by_direction) do
           Enum.reduce(contact_ids_by_direction, issues, fn {direction, ids}, acc ->
-            if Map.has_key?(positive_directions, direction) and is_list(ids) and
+            direction_count = Map.get(positive_directions, direction)
+
+            if is_integer(direction_count) and is_list(ids) and ids == Enum.uniq(ids) and
+                 length(ids) <= direction_count and
                  Enum.all?(ids, &MapSet.member?(counted_contact_ids, &1)) do
               acc
             else
               [
                 error(
                   path <> ".contact_ids_by_direction.#{direction}",
-                  "must correlate positive-direction contact IDs to positive contact counts"
+                  "must correlate unique counted contact IDs within the positive direction count"
                 )
                 | acc
               ]

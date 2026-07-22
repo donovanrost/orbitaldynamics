@@ -2534,6 +2534,38 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshResourceProvenanceContractsTest
                  "$.provenance.source_reports.contact_contention_report.direction_counts.Down Link")
            )
 
+    over_cardinality_contact_contention_direction =
+      artifact_with_contact_contention_summary
+      |> put_in(
+        [
+          "provenance",
+          "source_reports",
+          "contact_contention_report",
+          "direction_counts",
+          "downlink"
+        ],
+        1
+      )
+      |> put_in(
+        [
+          "provenance",
+          "source_reports",
+          "contact_contention_report",
+          "direction_counts",
+          "uplink"
+        ],
+        1
+      )
+
+    assert {:error, over_cardinality_contact_contention_direction_report} =
+             Schema.validate_artifact(over_cardinality_contact_contention_direction)
+
+    assert Enum.any?(
+             over_cardinality_contact_contention_direction_report["errors"],
+             &(&1["path"] ==
+                 "$.provenance.source_reports.contact_contention_report.contact_ids_by_direction.downlink")
+           )
+
     invalid_contact_contention_input_id =
       put_in(
         artifact_with_contact_contention_summary,
