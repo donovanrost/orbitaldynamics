@@ -25,6 +25,7 @@ defmodule OrbitalDynamics.Schema.CampaignArtifactValidation do
     ResourceValidation,
     StationReservationValidation,
     StrategyManeuverRegistryContracts,
+    TimelineArtifactValidation,
     TimelineContextValidation,
     TimelineSourceValidation,
     TimelineTransitionValidation
@@ -212,6 +213,8 @@ defmodule OrbitalDynamics.Schema.CampaignArtifactValidation do
         &ResourceValidation.validate_optional_resource_filter_report/3,
       validate_optional_resource_projection_report:
         &ResourceValidation.validate_optional_resource_projection_report/3,
+      validate_optional_timeline_feedback_report:
+        &TimelineArtifactValidation.validate_optional_timeline_feedback_report/3,
       validate_optional_operational_timeline_report:
         &OperationalTimelineValidation.validate_optional_report/2,
       validate_optional_timeline_transition_application_report:

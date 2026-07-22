@@ -13,6 +13,14 @@ defmodule OrbitalDynamics.Schema.OperatorReviewValidation do
   def validate_optional_package(issues, _package),
     do: [error("$.operator_review_package", "must be an object") | issues]
 
+  def validate_optional_package_at(issues, _path, nil), do: issues
+
+  def validate_optional_package_at(issues, path, %{} = package),
+    do: validate_package(issues, path, package)
+
+  def validate_optional_package_at(issues, path, _package),
+    do: [error(path, "must be an object") | issues]
+
   def validate_optional_package(issues, nil, _validate_contract), do: issues
 
   def validate_optional_package(issues, %{} = package, validate_contract),

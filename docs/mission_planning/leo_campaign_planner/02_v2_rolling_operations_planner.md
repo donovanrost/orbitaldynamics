@@ -368,6 +368,10 @@ schema-type their stable IDs, invalid-input flags, and protected/change counts.
   contracts. Their existing standalone validators keep suppression and
   projected-resource pressure tied to typed rows, counts, trust context, and
   exact thin-model limits.
+- `source_timeline_feedback_report` is an optional direct nested
+  `timeline_feedback_report.v1` contract. V2 validates its row-derived counts,
+  exact model limits, operational feedback, and nested operator-review package
+  before accepting realized-feedback provenance at the repair boundary.
 - `approval_requirements` for moved contacts, reassigned observations, delayed
   maneuver impacts, cancellations, and degraded-mode suppressions.
 - Approval requirements include machine-readable `requirement_type` values so

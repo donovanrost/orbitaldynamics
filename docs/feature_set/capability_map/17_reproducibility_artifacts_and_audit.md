@@ -292,6 +292,10 @@ work, a **partial** executable-schema track, and **near-term** / **later** /
   runtime validators enforce suppression rows/counts, trust and resource
   context, projected-resource evidence, and exact model limits before V2
   derives filter or projection pressure.
+- V2 source `timeline_feedback_report.v1` evidence is declared directly and
+  runs its complete standalone validator at the embedded source path, including
+  row-derived counts, exact model limits, operational feedback, and nested
+  operator-review validation.
 - `realized_state_snapshot.v1` and `timeline_feedback_report.v1` export nested
   operational-feedback rows plus command/contact feedback, throughput-delta,
   success fields, and source planned/realized activity context.

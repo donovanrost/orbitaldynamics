@@ -1,7 +1,7 @@
 defmodule OrbitalDynamics.Schema.TimelineArtifactValidation do
   @moduledoc false
 
-  import OrbitalDynamics.Schema.PrimitiveValidation, only: [require_fields: 4]
+  import OrbitalDynamics.Schema.PrimitiveValidation, only: [error: 2, require_fields: 4]
 
   alias OrbitalDynamics.Schema.{
     OperationalTimelineValidation,
@@ -11,6 +11,14 @@ defmodule OrbitalDynamics.Schema.TimelineArtifactValidation do
   }
 
   @operational_timeline_report "operational_timeline_report.v1"
+
+  def validate_optional_timeline_feedback_report(issues, _path, nil), do: issues
+
+  def validate_optional_timeline_feedback_report(issues, path, %{} = report),
+    do: validate(issues, path, report, "timeline_feedback_report.v1")
+
+  def validate_optional_timeline_feedback_report(issues, path, _report),
+    do: [error(path, "must be an object") | issues]
 
   def validate(issues, path, artifact, @operational_timeline_report),
     do: OperationalTimelineValidation.validate_report(issues, path, artifact)
@@ -27,7 +35,13 @@ defmodule OrbitalDynamics.Schema.TimelineArtifactValidation do
       path,
       artifact,
       TimelineCapabilityContext.timeline_feedback_report_model_limits(),
-      &OperatorReviewValidation.validate_optional_package/2
+      fn acc, package ->
+        OperatorReviewValidation.validate_optional_package_at(
+          acc,
+          path <> ".operator_review_package",
+          package
+        )
+      end
     )
   end
 

@@ -176,6 +176,10 @@ Malformed non-object realized `cadence_import` context is preserved as `review_i
 
 - Completed contacts with realized throughput shortfalls are routed to contact-variance review instead of record-only completion.
 - V2 repair and V3 branch-repair artifacts embed timeline-feedback reconciliation when realized activities are supplied. Matched/realized-only feedback rows are lifted into repair/strategy operator-review packages and Cadence import manifests with reusable source and realized activity-context maps, including the same match-correlation fields.
+- V2 declares its optional `source_timeline_feedback_report` as a direct nested
+  `timeline_feedback_report.v1` contract and runs the complete standalone
+  count, row, model-limit, operational-feedback, and operator-review validator
+  at the source-report path before accepting the repair artifact.
 - Realized-only command-directed contact feedback is classified with command semantics while retaining its contact/station context.
 - CandidateRefresh timeline-feedback source and replay summaries preserve row-derived Cadence-import status counts before stale aggregate fields, so branch-local import-review pressure remains visible without reopening full timeline-feedback rows.
 - CandidateRefresh operational-timeline source summaries lift row-derived operational-kind, activity-status, approval-status, required-action, and Cadence-import-status maps alongside the replay helper, so stale operational-timeline aggregate maps cannot steer source-report routing.
