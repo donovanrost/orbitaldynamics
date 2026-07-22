@@ -3,6 +3,7 @@ defmodule OrbitalDynamics.Schema.CampaignRepairContracts do
 
   alias OrbitalDynamics.Schema.{
     CampaignRepairCandidateValueContracts,
+    CampaignRepairCandidateDiffRankingContracts,
     CampaignRepairCadenceImportContracts,
     CampaignRepairCommandWindowContracts,
     CampaignRepairConstraintContracts,
@@ -154,6 +155,7 @@ defmodule OrbitalDynamics.Schema.CampaignRepairContracts do
     ])
     |> CampaignRepairScoreContracts.validate(artifact)
     |> OrbitalDynamics.Schema.CampaignRepairObjectiveTradeoffContracts.validate(artifact)
+    |> CampaignRepairCandidateDiffRankingContracts.validate(artifact)
     |> CampaignRepairCandidateValueContracts.validate(artifact)
     |> CampaignRepairContactIntentPressureContracts.validate(artifact)
     |> CampaignRepairLinkCapacityPressureContracts.validate(artifact)

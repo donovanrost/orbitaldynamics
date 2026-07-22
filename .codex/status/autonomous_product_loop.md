@@ -5,43 +5,43 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Reconcile V2 replacement-ranking schedule costs.
+Reconcile V2 replacement-ranking semantic diff priority.
 
 Status:
 Complete; ready to publish.
 
 Selection evidence:
-- The V2 replacement producer derives `schedule_churn_s` from source/candidate
-  starts, applies one fixed negative churn-cost weight, and multiplies churn by
-  the negative schedule-move weight.
-- Runtime currently requires numeric fields and reconciles their sum into
-  `ranking_score`, but does not pin the timing delta or either policy formula.
-- The embedded source activity context, unique source candidate, and scoring
-  policy already contain enough evidence for exact replay without new fields.
+- The V2 replacement producer marks a semantic match only when the embedded
+  candidate-diff report links the row candidate to the repair source ID or
+  source-window identity.
+- Runtime currently pins priority to the row boolean but does not recompute that
+  boolean from the source report, so both fields can drift together.
+- The repair source ID/context, candidate ID, and optional source diff report
+  already contain the exact producer predicate without requiring new fields.
 
 Intended behavior:
-- Recompute ranking-row churn seconds from source and candidate start times when
-  both are present and uniquely identifiable.
-- Pin the fixed churn penalty and churn-times-move penalty to the enclosing
-  scoring policy with producer-equivalent numeric/default handling.
-- Preserve older rows that lack replayable source timing while still checking
-  their penalty formulas against embedded churn.
-- Add focused timing, default/nondefault-weight, and compensating-drift coverage;
-  update the V2 ranking documentation.
+- Recompute every ranking-row semantic-match boolean from embedded candidate-
+  diff replacement rows using the exact source ID/window and candidate ID rule.
+- Let the existing priority contract continue deriving zero/one priority from
+  the now source-reconciled boolean.
+- Preserve repairs with no source diff report by requiring every row to remain
+  a nonmatch.
+- Add positive, negative, missing-source, and drift coverage; update the V2
+  ranking documentation.
 
 Level 6 pillar advanced:
-Reproducible V2 branch ranking with replayable schedule-cost terms.
+Reproducible V2 branch ranking with source-replayable semantic priority.
 
 Last published slice:
-- `0f9ba0fd` Reconcile V2 ranking link pressure (`3784 passed`).
+- `6b6a7b91` Reconcile V2 ranking schedule costs (`3784 passed`).
 
 Likely files:
 - V2 replacement-ranking semantic validator wiring
-- focused replacement-ranking/schedule-policy planner tests
+- focused replacement-ranking/candidate-diff planner tests
 - resource/communications capability documentation
 
 Verification:
-- Focused ranking/schedule-policy contract tests: `12 passed`.
+- Focused ranking/candidate-diff contract tests: `5 passed`.
 - Related V2 repair/schema coverage: `150 passed`.
 - Full checked-artifact lint: `155/155 passed`, zero warnings.
 - Full suite with a 120-second per-test ceiling: `3784 passed`.
@@ -50,22 +50,22 @@ Verification:
 - No artifact shape or checked-in schema export changed.
 
 Review:
-- Runtime now replays `schedule_churn_s` from the exact unique embedded source
-  candidate and source-activity start time when both are available.
-- Every ranking row pins its fixed churn penalty and churn-times-move penalty to
-  the enclosing scoring policy with producer-equivalent numeric/default logic.
-- Compensating timing and cost mutations keep legacy `ranking_score` arithmetic
-  valid but fail at the exact churn or penalty path.
-- Older rows without source timing skip only timing replay; policy formulas
-  remain enforced, preventing the compatibility fallback from becoming a
-  semantic bypass.
-- The nondefault move-cost planner case now uses a canonical refreshed contact
-  and exercises the full schema boundary; all checked artifacts and existing V2
-  repair/planner consumers remain valid.
+- Runtime now applies the producer's exact semantic-match predicate over source
+  activity ID, optional source-window identity, and replacement candidate ID.
+- A real planner artifact validates both the linked match and unrelated
+  nonmatch; deleting its source diff report now rejects the stale match at the
+  exact ranking-row path.
+- The existing priority check derives zero/one priority from the source-
+  reconciled boolean, closing the prior paired-field mutation gap.
+- Repairs without a source diff report remain compatible only with nonmatch
+  rows, matching producer behavior.
+- Malformed diff rows are ignored by this replay layer and remain errors for the
+  standalone source-report validator rather than crashing artifact validation;
+  all checked artifacts and existing V2 consumers remain valid.
 
 Remaining maturity gaps:
-- Reconcile V2 replacement-ranking semantic diff match/priority to embedded
-  candidate-diff source evidence.
+- Reassess the remaining V2 replacement-ranking envelope for selected-candidate
+  handoff identity and candidate-specific replay gaps.
 - Continue fleet-scale station/allocation decisions while preserving explicit
   provider and Cadence execution boundaries.
 - Continue broader schema/versioned compatibility discipline and stale-input

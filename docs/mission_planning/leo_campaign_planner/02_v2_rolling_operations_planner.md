@@ -370,8 +370,10 @@ schema-type their stable IDs, invalid-input flags, and protected/change counts.
   resource contributions, the resulting greedy ranking score, and selected
   flag. Executable validation replays source-to-candidate start-time churn from
   the embedded source context and unique source candidate, then pins fixed churn
-  and churn-times-move penalties to the enclosing scoring policy. The evidence
-  does not copy candidate payloads or claim global optimization.
+  and churn-times-move penalties to the enclosing scoring policy. It also
+  recomputes semantic-diff priority from exact source ID/window and replacement-
+  candidate links in the embedded source diff report. The evidence does not copy
+  candidate payloads or claim global optimization.
 - `source_contact_intents` and `source_resource_summaries` are optional typed
   source arrays backed by direct `contact_intent.v1` and `resource_summary.v1`
   definitions. Their existing standalone row validators run before V2 uses the

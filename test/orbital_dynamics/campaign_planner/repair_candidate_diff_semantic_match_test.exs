@@ -148,6 +148,17 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateDiffSemanticMatchTest d
 
     assert {:ok, %{"schema_contract" => "campaign_repair.v2"}} =
              Schema.validate_artifact(artifact)
+
+    assert {:error, report} =
+             artifact
+             |> Map.delete("source_candidate_diff_report")
+             |> Schema.validate_artifact()
+
+    assert Enum.any?(
+             report["errors"],
+             &(&1["path"] ==
+                 "$.activities[0].repair.replacement_ranking.rows[0].semantic_candidate_diff_match")
+           )
   end
 
   defp candidate_refresh_artifact(candidates, opts) do
