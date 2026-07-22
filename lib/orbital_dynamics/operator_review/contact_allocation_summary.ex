@@ -57,6 +57,10 @@ defmodule OrbitalDynamics.OperatorReview.ContactAllocationSummary do
       "provider_reservation_review_contact_ids_by_match_status"
     ]
   }
+  @provider_reservation_id_map_fields [
+    "provider_reservation_request_ids_by_match_status",
+    "provider_reservation_review_ids_by_match_status"
+  ]
 
   def put_from_paths(package, artifact, paths) do
     artifact = stringify_keys(artifact || %{})
@@ -309,14 +313,7 @@ defmodule OrbitalDynamics.OperatorReview.ContactAllocationSummary do
       reports,
       "provider_reservation_review_contact_ids_by_match_status"
     )
-    |> put_contact_allocation_id_map_summary(
-      reports,
-      "provider_reservation_request_ids_by_match_status"
-    )
-    |> put_contact_allocation_id_map_summary(
-      reports,
-      "provider_reservation_review_ids_by_match_status"
-    )
+    |> put_provider_reservation_id_map_summaries(reports)
     |> put_contact_allocation_id_map_summary(
       reports,
       "reservation_conflict_contact_ids_by_direction"
@@ -499,6 +496,18 @@ defmodule OrbitalDynamics.OperatorReview.ContactAllocationSummary do
         |> Map.put(count_field, length(contact_ids))
         |> Map.put(identity_field, contact_ids)
     end
+  end
+
+  defp put_provider_reservation_id_map_summaries(package, reports) do
+    Enum.reduce(@provider_reservation_id_map_fields, package, fn field, acc ->
+      values =
+        reports
+        |> Enum.map(&Map.get(&1, field))
+        |> Enum.filter(&is_map/1)
+        |> merge_canonical_id_maps()
+
+      put_merged_id_map(acc, field, values)
+    end)
   end
 
   defp put_capacity_pack_group_identity_summary(package, reports) do

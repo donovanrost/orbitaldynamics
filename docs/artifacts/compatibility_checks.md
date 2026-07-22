@@ -1452,6 +1452,11 @@ direction maps from the checked-in summary. Schema export pins the
 artifact-only model constant, string source boundary, and exact `model_limits`,
 so provider-reservation handoff summaries are not treated as provider-write,
 schedule-mutation, or operator-authority artifacts.
+Operator-review and Cadence-import adapters additionally canonicalize embedded
+request/review reservation IDs into sorted unique arrays per match-status route,
+preserve keyed empty routes, and publish `uniqueItems` for those route arrays.
+Executable validation rejects noncanonical supplied routes while keeping them
+independent of provider-reservation contact counts and provider execution.
 `study_results/station_calendar_precedence_summary_v1.json` is observed for
 applied/overlap availability routing, reserved-under-higher-precedence contact
 IDs, unavailable/reserved/reduced-capacity contact ID sets, and artifact-only

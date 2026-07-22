@@ -1006,6 +1006,20 @@ defmodule OrbitalDynamics.Schema.OperatorReviewContractsTest do
              &(&1["path"] == "$.provider_reservation_request_ids_by_match_status.matched[0]")
            )
 
+    noncanonical_provider_reservation_routing_ids =
+      Map.put(package, "provider_reservation_review_ids_by_match_status", %{
+        "overlap" => ["reservation_z", "reservation_a", "reservation_z"]
+      })
+
+    assert {:error, noncanonical_provider_reservation_routing_ids_report} =
+             Schema.validate_artifact(noncanonical_provider_reservation_routing_ids)
+
+    assert Enum.any?(
+             noncanonical_provider_reservation_routing_ids_report["errors"],
+             &(&1["path"] ==
+                 "$.provider_reservation_review_ids_by_match_status.overlap")
+           )
+
     invalid_provider_reservation_direction_station_ids =
       Map.put(
         package,

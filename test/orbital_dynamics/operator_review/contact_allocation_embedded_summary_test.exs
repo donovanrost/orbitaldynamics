@@ -2175,6 +2175,53 @@ defmodule OrbitalDynamics.OperatorReview.ContactAllocationEmbeddedSummaryTest do
     end
   end
 
+  test "canonicalizes provider-reservation request and review reservation-ID routes" do
+    package =
+      OperatorReview.from_repair_artifact(%{
+        "repair_metadata" => %{"repair_id" => "repair:provider_reservation_routes"},
+        "source_contact_allocation_report" => %{
+          "provider_reservation_request_ids_by_match_status" => %{
+            "matched" => ["reservation_z", "reservation_shared", "reservation_z"],
+            "not_matched" => []
+          },
+          "provider_reservation_review_ids_by_match_status" => %{
+            "overlap" => ["reservation_review_z", "reservation_review_shared"]
+          }
+        },
+        "contact_allocation_report" => %{
+          "provider_reservation_request_ids_by_match_status" => %{
+            "matched" => ["reservation_shared", "reservation_a"]
+          },
+          "provider_reservation_review_ids_by_match_status" => %{
+            "overlap" => [
+              "reservation_review_shared",
+              "reservation_review_a",
+              "reservation_review_shared"
+            ]
+          }
+        }
+      })
+
+    assert package["provider_reservation_request_ids_by_match_status"] == %{
+             "matched" => ["reservation_a", "reservation_shared", "reservation_z"],
+             "not_matched" => []
+           }
+
+    assert package["provider_reservation_review_ids_by_match_status"] == %{
+             "overlap" => [
+               "reservation_review_a",
+               "reservation_review_shared",
+               "reservation_review_z"
+             ]
+           }
+
+    refute Map.has_key?(package, "provider_reservation_request_contact_count")
+    refute Map.has_key?(package, "provider_reservation_review_contact_count")
+
+    assert {:ok, %{"schema_contract" => "operator_review_package.v1"}} =
+             Schema.validate_artifact(package)
+  end
+
   test "lifts and correlates station-reservation owner contact identity and counts" do
     owner = "mission_ops"
 

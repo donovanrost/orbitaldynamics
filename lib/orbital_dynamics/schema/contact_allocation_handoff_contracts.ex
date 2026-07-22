@@ -94,6 +94,10 @@ defmodule OrbitalDynamics.Schema.ContactAllocationHandoffContracts do
       nested_field: "provider_reservation_review_contact_ids_by_direction_and_ground_station_id"
     }
   }
+  @provider_reservation_id_map_fields [
+    "provider_reservation_request_ids_by_match_status",
+    "provider_reservation_review_ids_by_match_status"
+  ]
   @allocation_source_field_pairs [
     {"activity_type", "type"}
     | Enum.map(
@@ -991,6 +995,7 @@ defmodule OrbitalDynamics.Schema.ContactAllocationHandoffContracts do
       artifact,
       "provider_reservation_review_ids_by_match_status"
     )
+    |> validate_provider_reservation_id_maps(path, artifact)
     |> validate_provider_reservation_contact_identity_summary(path, artifact, "request")
     |> validate_provider_reservation_contact_identity_summary(path, artifact, "review")
     |> validate_provider_reservation_contact_identity_summary(path, artifact, "no_request")
@@ -1573,6 +1578,12 @@ defmodule OrbitalDynamics.Schema.ContactAllocationHandoffContracts do
       path <> ".#{field}",
       Map.get(artifact, field)
     )
+  end
+
+  defp validate_provider_reservation_id_maps(issues, path, artifact) do
+    Enum.reduce(@provider_reservation_id_map_fields, issues, fn field, acc ->
+      validate_canonical_id_map(acc, path, Map.get(artifact, field), field)
+    end)
   end
 
   defp station_calendar_source_handoff_row?(row) do

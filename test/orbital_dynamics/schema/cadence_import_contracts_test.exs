@@ -3001,6 +3001,64 @@ defmodule OrbitalDynamics.Schema.CadenceImportContractsTest do
            )
   end
 
+  test "canonicalizes provider-reservation request and review reservation-ID routes" do
+    fields = [
+      "provider_reservation_request_ids_by_match_status",
+      "provider_reservation_review_ids_by_match_status"
+    ]
+
+    manifest =
+      "study_results/cadence_import_manifest_v1.json"
+      |> read_json!()
+      |> Map.drop(fields)
+
+    schema = read_json!("schemas/cadence_import_manifest.v1.schema.json")
+
+    for field <- fields do
+      assert get_in(schema, ["properties", field, "additionalProperties", "uniqueItems"]) ==
+               true
+    end
+
+    valid_routes =
+      Map.merge(manifest, %{
+        "provider_reservation_request_ids_by_match_status" => %{
+          "matched" => ["reservation_a", "reservation_z"],
+          "not_matched" => []
+        },
+        "provider_reservation_review_ids_by_match_status" => %{
+          "overlap" => ["reservation_review_a", "reservation_review_z"]
+        }
+      })
+
+    assert {:ok, _manifest} = Schema.validate_artifact(valid_routes)
+
+    invalid_request_order =
+      Map.put(manifest, "provider_reservation_request_ids_by_match_status", %{
+        "matched" => ["reservation_z", "reservation_a"]
+      })
+
+    assert {:error, invalid_request_order_report} =
+             Schema.validate_artifact(invalid_request_order)
+
+    assert Enum.any?(
+             invalid_request_order_report["errors"],
+             &(&1["path"] == "$.provider_reservation_request_ids_by_match_status.matched")
+           )
+
+    invalid_review_duplicates =
+      Map.put(manifest, "provider_reservation_review_ids_by_match_status", %{
+        "overlap" => ["reservation_review_a", "reservation_review_a"]
+      })
+
+    assert {:error, invalid_review_duplicates_report} =
+             Schema.validate_artifact(invalid_review_duplicates)
+
+    assert Enum.any?(
+             invalid_review_duplicates_report["errors"],
+             &(&1["path"] == "$.provider_reservation_review_ids_by_match_status.overlap")
+           )
+  end
+
   test "correlates station-reservation contact IDs with owner counts" do
     fields = [
       "station_reserved_by_counts",

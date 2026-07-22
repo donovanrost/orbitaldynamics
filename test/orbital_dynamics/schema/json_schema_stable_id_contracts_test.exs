@@ -103,6 +103,28 @@ defmodule OrbitalDynamics.Schema.JsonSchemaStableIdContractsTest do
 
     Enum.each(
       [
+        "provider_reservation_request_ids_by_match_status",
+        "provider_reservation_review_ids_by_match_status"
+      ],
+      fn field ->
+        assert get_in(cadence_schema, [
+                 "properties",
+                 field,
+                 "additionalProperties",
+                 "uniqueItems"
+               ]) == true
+
+        assert get_in(operator_review_schema, [
+                 "properties",
+                 field,
+                 "additionalProperties",
+                 "uniqueItems"
+               ]) == true
+      end
+    )
+
+    Enum.each(
+      [
         "provider_reservation_no_request_contact_ids_by_direction_and_ground_station_id",
         "provider_reservation_request_contact_ids_by_direction_and_ground_station_id",
         "provider_reservation_review_contact_ids_by_direction_and_ground_station_id",

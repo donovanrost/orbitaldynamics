@@ -154,7 +154,9 @@ defmodule OrbitalDynamics.Schema.OperatorReviewPackageJsonSchema do
                                "provider_reservation_request_contact_ids_by_match_status",
                                "provider_reservation_review_contact_ids_by_ground_station_id",
                                "provider_reservation_review_contact_ids_by_direction",
-                               "provider_reservation_review_contact_ids_by_match_status"
+                               "provider_reservation_review_contact_ids_by_match_status",
+                               "provider_reservation_request_ids_by_match_status",
+                               "provider_reservation_review_ids_by_match_status"
                              ]
 
   @nested_stable_id_array_map_fields [
