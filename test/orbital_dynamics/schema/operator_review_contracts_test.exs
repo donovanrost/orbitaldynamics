@@ -1248,11 +1248,19 @@ defmodule OrbitalDynamics.Schema.OperatorReviewContractsTest do
       |> hd()
       |> Map.merge(%{
         "review_type" => "strategy_tradeoff",
-        "branch_source_window_ids" => ["window_a", "window_b"],
+        "branch_source_window_ids" => ["window_a", "window_b", "window_c"],
+        "branch_source_window_count" => 3,
         "branch_source_window_bounds" => source_window_bounds,
+        "branch_source_window_bound_count" => 2,
+        "branch_untimed_source_window_ids" => ["window_c"],
+        "branch_untimed_source_window_count" => 1,
         "source_branch_comparison" => %{
-          "branch_source_window_ids" => ["window_a", "window_b"],
-          "branch_source_window_bounds" => source_window_bounds
+          "branch_source_window_ids" => ["window_a", "window_b", "window_c"],
+          "branch_source_window_count" => 3,
+          "branch_source_window_bounds" => source_window_bounds,
+          "branch_source_window_bound_count" => 2,
+          "branch_untimed_source_window_ids" => ["window_c"],
+          "branch_untimed_source_window_count" => 1
         }
       })
 
@@ -1264,6 +1272,28 @@ defmodule OrbitalDynamics.Schema.OperatorReviewContractsTest do
       |> Map.delete("review_type_counts")
 
     assert {:ok, _strategy_package} = Schema.validate_artifact(strategy_package)
+
+    for field <- [
+          "branch_source_window_count",
+          "branch_source_window_bound_count",
+          "branch_untimed_source_window_ids",
+          "branch_untimed_source_window_count"
+        ] do
+      missing_coverage_field =
+        update_in(
+          strategy_package,
+          ["rows", Access.at(0)],
+          &Map.delete(&1, field)
+        )
+
+      assert {:error, missing_coverage_field_report} =
+               Schema.validate_artifact(missing_coverage_field)
+
+      assert Enum.any?(
+               missing_coverage_field_report["errors"],
+               &(&1["path"] == "$.rows[0].#{field}")
+             )
+    end
 
     missing_window_bounds =
       update_in(

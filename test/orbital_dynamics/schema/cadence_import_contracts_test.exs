@@ -3496,13 +3496,21 @@ defmodule OrbitalDynamics.Schema.CadenceImportContractsTest do
       |> hd()
       |> Map.merge(%{
         "source_review_type" => "strategy_recommendation",
-        "branch_source_window_ids" => ["window_a", "window_b"],
+        "branch_source_window_ids" => ["window_a", "window_b", "window_c"],
+        "branch_source_window_count" => 3,
         "branch_source_window_bounds" => recommendation_window_bounds,
+        "branch_source_window_bound_count" => 2,
+        "branch_untimed_source_window_ids" => ["window_c"],
+        "branch_untimed_source_window_count" => 1,
         "branch_earliest_starts_at_s" => 100.0,
         "source_review_row" => %{
           "review_type" => "strategy_recommendation",
-          "branch_source_window_ids" => ["window_a", "window_b"],
+          "branch_source_window_ids" => ["window_a", "window_b", "window_c"],
+          "branch_source_window_count" => 3,
           "branch_source_window_bounds" => recommendation_window_bounds,
+          "branch_source_window_bound_count" => 2,
+          "branch_untimed_source_window_ids" => ["window_c"],
+          "branch_untimed_source_window_count" => 1,
           "branch_earliest_starts_at_s" => 100.0
         }
       })
@@ -3511,6 +3519,28 @@ defmodule OrbitalDynamics.Schema.CadenceImportContractsTest do
 
     assert {:ok, _recommendation_manifest} =
              Schema.validate_artifact(recommendation_manifest)
+
+    for field <- [
+          "branch_source_window_count",
+          "branch_source_window_bound_count",
+          "branch_untimed_source_window_ids",
+          "branch_untimed_source_window_count"
+        ] do
+      missing_recommendation_coverage =
+        update_in(
+          recommendation_manifest,
+          ["rows", Access.at(0)],
+          &Map.delete(&1, field)
+        )
+
+      assert {:error, missing_recommendation_coverage_report} =
+               Schema.validate_artifact(missing_recommendation_coverage)
+
+      assert Enum.any?(
+               missing_recommendation_coverage_report["errors"],
+               &(&1["path"] == "$.rows[0].#{field}")
+             )
+    end
 
     missing_recommendation_window =
       update_in(
@@ -3558,7 +3588,7 @@ defmodule OrbitalDynamics.Schema.CadenceImportContractsTest do
            )
 
     tradeoff_window_bounds = [
-      %{"source_window_id" => "window_c", "latest_ends_at_s" => 200.0}
+      %{"source_window_id" => "window_d", "latest_ends_at_s" => 200.0}
     ]
 
     tradeoff_row =
@@ -3566,13 +3596,21 @@ defmodule OrbitalDynamics.Schema.CadenceImportContractsTest do
       |> hd()
       |> Map.merge(%{
         "source_review_type" => "strategy_tradeoff",
-        "branch_source_window_ids" => ["window_c"],
+        "branch_source_window_ids" => ["window_d", "window_e"],
+        "branch_source_window_count" => 2,
         "branch_source_window_bounds" => tradeoff_window_bounds,
+        "branch_source_window_bound_count" => 1,
+        "branch_untimed_source_window_ids" => ["window_e"],
+        "branch_untimed_source_window_count" => 1,
         "branch_latest_ends_at_s" => 200.0,
         "source_review_row" => %{
           "review_type" => "strategy_tradeoff",
-          "branch_source_window_ids" => ["window_c"],
+          "branch_source_window_ids" => ["window_d", "window_e"],
+          "branch_source_window_count" => 2,
           "branch_source_window_bounds" => tradeoff_window_bounds,
+          "branch_source_window_bound_count" => 1,
+          "branch_untimed_source_window_ids" => ["window_e"],
+          "branch_untimed_source_window_count" => 1,
           "branch_latest_ends_at_s" => 200.0
         }
       })
@@ -3580,6 +3618,28 @@ defmodule OrbitalDynamics.Schema.CadenceImportContractsTest do
     tradeoff_manifest = put_in(manifest, ["rows", Access.at(0)], tradeoff_row)
 
     assert {:ok, _tradeoff_manifest} = Schema.validate_artifact(tradeoff_manifest)
+
+    for field <- [
+          "branch_source_window_count",
+          "branch_source_window_bound_count",
+          "branch_untimed_source_window_ids",
+          "branch_untimed_source_window_count"
+        ] do
+      missing_tradeoff_coverage =
+        update_in(
+          tradeoff_manifest,
+          ["rows", Access.at(0)],
+          &Map.delete(&1, field)
+        )
+
+      assert {:error, missing_tradeoff_coverage_report} =
+               Schema.validate_artifact(missing_tradeoff_coverage)
+
+      assert Enum.any?(
+               missing_tradeoff_coverage_report["errors"],
+               &(&1["path"] == "$.rows[0].#{field}")
+             )
+    end
 
     missing_tradeoff_window =
       update_in(
