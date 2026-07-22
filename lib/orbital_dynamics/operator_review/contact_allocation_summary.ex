@@ -137,10 +137,7 @@ defmodule OrbitalDynamics.OperatorReview.ContactAllocationSummary do
     )
     |> put_station_pressure_grouped_summaries(reports)
     |> put_station_pressure_identity_summary(reports)
-    |> put_contact_allocation_scalar_count_summary(
-      reports,
-      "station_pressure_review_contact_count"
-    )
+    |> put_station_pressure_review_identity_summary(reports)
     |> put_contact_allocation_number_summary(
       reports,
       "capacity_pack_required_capacity_fraction"
@@ -221,7 +218,6 @@ defmodule OrbitalDynamics.OperatorReview.ContactAllocationSummary do
     |> put_contact_allocation_list_summary(reports, "capacity_pack_group_ids")
     |> put_contact_allocation_list_summary(reports, "reduced_capacity_packed_contact_ids")
     |> put_contact_allocation_list_summary(reports, "reduced_capacity_deferred_contact_ids")
-    |> put_contact_allocation_list_summary(reports, "station_pressure_review_contact_ids")
     |> put_contact_allocation_list_summary(reports, "provider_reservation_request_contact_ids")
     |> put_contact_allocation_list_summary(reports, "provider_reservation_review_contact_ids")
     |> put_contact_allocation_list_summary(reports, "provider_reservation_no_request_contact_ids")
@@ -468,6 +464,35 @@ defmodule OrbitalDynamics.OperatorReview.ContactAllocationSummary do
         package
         |> Map.put("station_pressure_contact_count", length(contact_ids))
         |> Map.put("station_pressure_contact_ids", contact_ids)
+    end
+  end
+
+  defp put_station_pressure_review_identity_summary(package, reports) do
+    review_identity_lists =
+      Enum.flat_map(reports, fn report ->
+        case Map.get(report, "station_pressure_review_contact_ids") do
+          contact_ids when is_list(contact_ids) -> [contact_ids]
+          _contact_ids -> []
+        end
+      end)
+
+    case review_identity_lists do
+      [] ->
+        put_contact_allocation_scalar_count_summary(
+          package,
+          reports,
+          "station_pressure_review_contact_count"
+        )
+
+      review_identity_lists ->
+        contact_ids =
+          review_identity_lists
+          |> List.flatten()
+          |> canonical_stable_ids()
+
+        package
+        |> Map.put("station_pressure_review_contact_count", length(contact_ids))
+        |> Map.put("station_pressure_review_contact_ids", contact_ids)
     end
   end
 

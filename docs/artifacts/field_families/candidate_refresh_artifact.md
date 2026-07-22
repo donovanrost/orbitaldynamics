@@ -1078,6 +1078,9 @@ no-allocation/no candidate-selection boundary.
 Compact no-row station-pressure handoffs derive station-pressure contact and
 review-contact counts from present station, direction, nested direction/station,
 and review contact-ID maps before falling back to duplicated scalar counters.
+Supplied review contact-ID lists merge into a sorted unique review identity and
+fix the exact review-contact count, including explicit-empty zero; scalar-only
+review inputs retain their additive fallback.
 They also publish one canonical top-level `station_pressure_contact_ids` union
 across direct identity, review identity, station, availability, precedence,
 status, direction, and nested direction/station routes; whenever any such
@@ -1156,6 +1159,8 @@ that same review identity. When top-level identity is present, both handoffs
 derive the count from the sorted unique ID union and require that union to cover
 every review, grouped, direction, and nested direction/station route, including
 explicit-empty zero; scalar-only inputs retain their summed fallback count.
+The canonical review-contact ID union independently fixes the exact review count
+when supplied, while review-count-only legacy inputs retain the same fallback.
 Station, availability, precedence-availability, precedence-rank, and status maps
 apply that correlation per key while retaining additive fallback for keys without
 grouped identity evidence.

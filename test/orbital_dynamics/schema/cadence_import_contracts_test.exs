@@ -832,6 +832,12 @@ defmodule OrbitalDynamics.Schema.CadenceImportContractsTest do
              "uniqueItems"
            ]) == true
 
+    assert get_in(cadence_schema, [
+             "properties",
+             "station_pressure_review_contact_ids",
+             "uniqueItems"
+           ]) == true
+
     valid_station_pressure_identity =
       Map.merge(manifest, %{
         "station_pressure_contact_count" => 2,
@@ -854,6 +860,45 @@ defmodule OrbitalDynamics.Schema.CadenceImportContractsTest do
       assert {:error, invalid_identity_report} = Schema.validate_artifact(invalid_identity)
 
       assert Enum.any?(invalid_identity_report["errors"], &(&1["path"] == error_path))
+    end
+
+    valid_station_pressure_review_identity =
+      Map.merge(manifest, %{
+        "station_pressure_review_contact_count" => 2,
+        "station_pressure_review_contact_ids" => ["contact_a", "contact_b"]
+      })
+
+    assert {:ok, _manifest} = Schema.validate_artifact(valid_station_pressure_review_identity)
+
+    explicit_empty_station_pressure_review_identity =
+      Map.merge(manifest, %{
+        "station_pressure_review_contact_count" => 0,
+        "station_pressure_review_contact_ids" => []
+      })
+
+    assert {:ok, _manifest} =
+             Schema.validate_artifact(explicit_empty_station_pressure_review_identity)
+
+    assert {:ok, _manifest} =
+             manifest
+             |> Map.put("station_pressure_review_contact_count", 2)
+             |> Schema.validate_artifact()
+
+    for {contact_count, contact_ids, error_path} <- [
+          {2, ["contact_b", "contact_a"], "$.station_pressure_review_contact_ids"},
+          {1, ["contact_a", "contact_a"], "$.station_pressure_review_contact_ids"},
+          {2, ["contact_a"], "$.station_pressure_review_contact_count"}
+        ] do
+      invalid_review_identity =
+        Map.merge(manifest, %{
+          "station_pressure_review_contact_count" => contact_count,
+          "station_pressure_review_contact_ids" => contact_ids
+        })
+
+      assert {:error, invalid_review_identity_report} =
+               Schema.validate_artifact(invalid_review_identity)
+
+      assert Enum.any?(invalid_review_identity_report["errors"], &(&1["path"] == error_path))
     end
 
     grouped_station_pressure_fields = [

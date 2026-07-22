@@ -9634,6 +9634,61 @@ defmodule OrbitalDynamics.CadenceImportTest do
     end
   end
 
+  test "correlates station-pressure review identity across overlapping review summaries" do
+    repair =
+      CadenceImport.from_repair_artifact(%{
+        "repair_metadata" => %{"repair_id" => "repair:station_pressure_review_overlap"},
+        "source_plan_id" => "plan:station_pressure_review_overlap",
+        "source_contact_allocation_report" => %{
+          "station_pressure_review_contact_count" => 2,
+          "station_pressure_review_contact_ids" => ["contact_source", "contact_shared"]
+        },
+        "contact_allocation_report" => %{
+          "station_pressure_review_contact_count" => 2,
+          "station_pressure_review_contact_ids" => ["contact_shared", "contact_result"]
+        }
+      })
+
+    explicit_empty =
+      CadenceImport.from_campaign_artifact(%{
+        "plan_id" => "plan:station_pressure_review_empty",
+        "contact_allocation_report" => %{
+          "station_pressure_review_contact_count" => 9,
+          "station_pressure_review_contact_ids" => []
+        }
+      })
+
+    scalar_only =
+      CadenceImport.from_campaign_artifact(%{
+        "plan_id" => "plan:station_pressure_review_scalar",
+        "contact_allocation_report" => %{
+          "station_pressure_review_contact_count" => 2
+        }
+      })
+
+    expected_review_ids = ["contact_result", "contact_shared", "contact_source"]
+
+    assert repair["station_pressure_review_contact_count"] == 3
+    assert repair["station_pressure_review_contact_ids"] == expected_review_ids
+    assert repair["station_pressure_contact_count"] == 3
+    assert repair["station_pressure_contact_ids"] == expected_review_ids
+
+    assert explicit_empty["station_pressure_review_contact_count"] == 0
+    assert explicit_empty["station_pressure_review_contact_ids"] == []
+    assert explicit_empty["station_pressure_contact_count"] == 0
+    assert explicit_empty["station_pressure_contact_ids"] == []
+
+    assert scalar_only["station_pressure_review_contact_count"] == 2
+    refute Map.has_key?(scalar_only, "station_pressure_review_contact_ids")
+    refute Map.has_key?(scalar_only, "station_pressure_contact_count")
+    refute Map.has_key?(scalar_only, "station_pressure_contact_ids")
+
+    for manifest <- [repair, explicit_empty, scalar_only] do
+      assert {:ok, %{"schema_contract" => "cadence_import_manifest.v1"}} =
+               Schema.validate_artifact(manifest)
+    end
+  end
+
   test "builds deterministic import manifest rows from plan-delta reviews" do
     package = %{
       "schema_contract" => "operator_review_package.v1",

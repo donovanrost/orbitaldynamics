@@ -215,6 +215,8 @@ defmodule OrbitalDynamics.Schema.ContactAllocationHandoffContracts do
                                                           )
 
   def validate_station_pressure_identity_summary(issues, path, artifact) do
+    issues = validate_station_pressure_review_identity_summary(issues, path, artifact)
+
     case Map.get(artifact, "station_pressure_contact_ids") do
       contact_ids when is_list(contact_ids) ->
         canonical_contact_ids = contact_ids |> Enum.uniq() |> Enum.sort()
@@ -255,6 +257,42 @@ defmodule OrbitalDynamics.Schema.ContactAllocationHandoffContracts do
             error(
               path <> ".station_pressure_contact_ids",
               "must include all review and routed station-pressure contact IDs"
+            )
+            | issues
+          ]
+        end
+
+      _contact_ids ->
+        issues
+    end
+  end
+
+  defp validate_station_pressure_review_identity_summary(issues, path, artifact) do
+    case Map.get(artifact, "station_pressure_review_contact_ids") do
+      contact_ids when is_list(contact_ids) ->
+        canonical_contact_ids = contact_ids |> Enum.uniq() |> Enum.sort()
+
+        issues =
+          if contact_ids == canonical_contact_ids do
+            issues
+          else
+            [
+              error(
+                path <> ".station_pressure_review_contact_ids",
+                "must equal sorted unique station-pressure review contact IDs"
+              )
+              | issues
+            ]
+          end
+
+        if Map.get(artifact, "station_pressure_review_contact_count") ==
+             length(canonical_contact_ids) do
+          issues
+        else
+          [
+            error(
+              path <> ".station_pressure_review_contact_count",
+              "must equal canonical station_pressure_review_contact_ids count"
             )
             | issues
           ]

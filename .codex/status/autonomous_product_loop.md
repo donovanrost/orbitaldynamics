@@ -5,56 +5,56 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Cover routed station-pressure identity at handoff top level.
+Correlate station-pressure review identity at handoff top level.
 
 Status:
 Verified; ready to publish.
 
 Selection evidence:
-- Review/import grouped and direction routes are now canonical.
-- Top-level aggregation still reads only direct `station_pressure_contact_ids`,
-  ignoring review IDs and every grouped or direction identity map.
-- A live probe retained count/IDs `1/contact_top` beside three additional routed
-  contacts, and both OperatorReview and CadenceImport validation accepted it.
+- Top-level station-pressure identity now covers every routed and review source.
+- Review IDs still merge with insertion-order deduplication while review counts
+  sum independently across embedded reports.
+- A live overlapping-report probe produced count `4` beside three unique IDs in
+  both handoffs, and both contradictory artifacts passed schema validation.
 
 Intended behavior:
-- Build the top-level sorted unique union from direct, review, grouped, flat
-  direction, and nested direction/station identity evidence.
-- Derive the exact top-level count whenever any such identity list is supplied,
-  including explicit-empty routes; preserve scalar-only fallback otherwise.
-- Reject routed or review IDs omitted from a supplied top-level handoff union.
+- Merge supplied review ID lists into one sorted unique handoff identity.
+- Derive the exact review count whenever any review ID list is supplied,
+  including explicit empty; preserve scalar-only fallback otherwise.
+- Reject noncanonical review IDs or a mismatched supplied review count and
+  expose uniqueness in both generated handoff schemas.
 
 Level 6 pillar advanced:
 Fleet-scale planning decisions and durable reproducible audit handoffs.
 
 Planned files:
-- operator-review top-level identity aggregation
-- shared review/import top-level coverage contract
-- routed/review/empty/fallback proofs, docs, and loop ledger
+- operator-review review identity aggregation
+- shared review/import review correlation and generated schemas
+- overlap/empty/fallback challenge proofs, docs, and loop ledger
 
 Verification:
-- Focused review/import and boundary proofs: `85 passed`.
-- Golden and validation-reference proofs: `22 passed`.
-- Contact-allocation family: `196 passed`.
+- Focused review/import and boundary proofs: `87 passed`.
+- Study-manifest schema synchronization proofs: `45 passed`.
+- Contact-allocation family: `197 passed`.
+- Golden artifact suite: `12 passed`.
 - Schema lint: `155` artifacts, `0` errors, `0` warnings.
-- Full suite: `3827 passed`.
+- Full suite: `3829 passed`.
 - `mix format` and `git diff --check` passed.
 
 Review:
-- Handoff aggregation now derives one sorted unique top identity from direct,
-  review, grouped, flat-direction, and nested direction/station evidence.
-- Any supplied identity list, including an explicit-empty routed list, fixes the
-  exact top count; scalar-only legacy inputs retain their additive fallback.
-- Shared OperatorReview/Cadence contracts reject review or routed IDs omitted
-  from a supplied top union while preserving top-absent legacy artifacts.
-- The deterministic plan, repair, and strategy chain was regenerated in order;
-  the strategy ID is now `964bc85d`, and validation evidence observes the
-  regenerated campaign payload at `323980` bytes.
+- Supplied review ID lists now merge into a sorted unique identity and derive the
+  exact review count across overlapping reports; the top union includes it.
+- Explicit-empty review identity publishes zero, while scalar-only legacy input
+  retains the prior additive count without inventing an ID list.
+- Shared runtime contracts reject noncanonical review IDs and count mismatch;
+  both handoff schemas export review-ID uniqueness.
+- General and study-manifest schema exports are synchronized, and the unchanged
+  golden artifact chain confirms current product data was already canonical.
 - Provider, schedule, planner-effect, and no-execution-authority boundaries are
   unchanged.
 
 Last published slice:
-- `f4c83902` Canonicalize station pressure direction handoffs (`3827 passed`).
+- `8937053f` Cover routed station pressure identity (`3827 passed`).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions while preserving explicit
@@ -65,7 +65,7 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-After publish, audit station-pressure review identity/count correlation.
+After publish, audit provider-reservation review identity/count correlation.
 
 Blocked:
 None.

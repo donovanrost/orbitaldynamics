@@ -499,7 +499,8 @@ so adapters can route contact queues without recounting rows.
   contact count across overlapping embedded reports. Each grouped ID route
   likewise fixes its per-key count, while keys without identity evidence retain
   additive legacy fallback. Nested direction/station IDs also populate canonical
-  flat direction routes.
+  flat direction routes. Supplied review IDs separately form a canonical union
+  that fixes the exact review-contact count, with count-only legacy fallback.
 - Derived operator-review/import artifacts preserve those reservation summaries,
   expiration routing maps/counters, reservation contact/reservation ID maps by
   match status, reservation status, and reserved-by owner, and the lifted count

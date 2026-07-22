@@ -721,7 +721,8 @@ defmodule OrbitalDynamics.Schema.CadenceImportManifestJsonSchema do
     %{"type" => "number"}
   end
 
-  def property("station_pressure_contact_ids", opts) do
+  def property(field, opts)
+      when field in ["station_pressure_contact_ids", "station_pressure_review_contact_ids"] do
     opts
     |> Keyword.fetch!(:stable_id_pattern)
     |> CommonJsonSchema.stable_id_array()
