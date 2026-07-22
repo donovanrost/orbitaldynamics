@@ -715,9 +715,9 @@ defmodule OrbitalDynamics.Communications.ContactAllocation.AllocationSummary do
       "provider_reservation_review_contact_ids_by_match_status" =>
         contact_ids_by_field(review_rows, "station_reservation_match_status"),
       "provider_reservation_request_ids_by_match_status" =>
-        ids_by_field(request_rows, "station_reservation_match_status", "station_reservation_id"),
+        reservation_ids_by_match_status(request_rows),
       "provider_reservation_review_ids_by_match_status" =>
-        ids_by_field(review_rows, "station_reservation_match_status", "station_reservation_id"),
+        reservation_ids_by_match_status(review_rows),
       "rows" => rows,
       "provider_reservation_request_rows" => request_rows,
       "provider_reservation_review_rows" => review_rows,
@@ -977,6 +977,21 @@ defmodule OrbitalDynamics.Communications.ContactAllocation.AllocationSummary do
       is_nil(field_value) or Enum.all?(ids, &is_nil/1)
     end)
     |> Map.new(fn {field_value, ids} -> {field_value, sorted_stable_ids(ids)} end)
+  end
+
+  defp reservation_ids_by_match_status(rows) do
+    Enum.reduce(rows, %{}, fn row, acc ->
+      match_status = row["station_reservation_match_status"]
+      reservation_ids = station_reservation_summary_ids(row)
+
+      if station_pressure_value?(match_status) and reservation_ids != [] do
+        Map.update(acc, match_status, sorted_stable_ids(reservation_ids), fn current ->
+          sorted_stable_ids(current ++ reservation_ids)
+        end)
+      else
+        acc
+      end
+    end)
   end
 
   defp contact_ids_by_direction_and_ground_station_id(rows) do

@@ -5,59 +5,62 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Canonicalize provider-reservation request/review reservation-ID routes.
+Preserve provider-reservation list identities and align route vocabularies.
 
 Status:
 Verified; ready to publish.
 
 Selection evidence:
-- Station-reservation expiration values are now canonical and schema-enforced
-  across both handoffs.
-- Request/review reservation-ID match-status maps use the generic ID-map merge,
-  which leaves a single report's arrays in source order with duplicates.
-- A live probe preserved duplicate unsorted reservation IDs, both shared
-  handoff validations returned no issues, and neither public schema declared
-  the routed arrays unique.
+- Provider-reservation request/review reservation-ID routes are now canonical
+  and schema-enforced across both handoffs.
+- Request readiness considers both scalar `station_reservation_id` and
+  `station_calendar_reservation_ids`, but the public match-status route reads
+  only the scalar identity.
+- A live list-only probe emitted a `matched` request contact route beside an
+  empty reservation-ID route and validated; independently contradictory
+  contact/reservation route vocabularies also validated at handoff boundaries.
 
 Intended behavior:
-- Merge request/review reservation IDs into sorted unique arrays per
-  match-status route, preserving keyed empty evidence.
-- Reject supplied noncanonical route arrays in both handoffs and expose
-  `uniqueItems` in their generated schemas.
-- Keep reservation identities independent of provider-reservation contact
-  counts and preserve the artifact-only execution boundary.
+- Derive request/review reservation routes from scalar and list reservation
+  identity evidence, without assuming one reservation per contact.
+- When both contact and reservation route maps are present, preserve their
+  combined match-status vocabulary with explicit empty counterpart routes.
+- Reject supplied paired route maps with different vocabularies while keeping
+  missing legacy counterpart fields optional and preserving execution bounds.
 
 Level 6 pillar advanced:
 Fleet-scale planning decisions and durable reproducible audit handoffs.
 
 Planned files:
-- operator-review provider-reservation route aggregation
-- shared review/import validation and generated schemas
-- overlap/duplicate/empty challenge proofs, docs, and loop ledger
+- provider-reservation compact-summary route derivation and validation
+- operator-review route aggregation and shared review/import validation
+- list-only/mismatched/empty challenge proofs, docs, and loop ledger
 
 Verification:
-- Focused producer/review/import/schema proofs: `4 passed`.
-- Contact-allocation family: `211 passed`.
+- Focused producer/review/import challenge proofs: `4 passed`.
+- Contact-allocation family: `213 passed`.
 - Golden artifacts: `12 passed`.
 - Schema lint: `155` artifacts passed with zero errors or warnings.
-- Full suite: `3877 passed` after exporting the separately generated study
-  manifest schema.
+- Full suite: `3881 passed`.
 
 Review:
-- Request/review reservation-ID match-status maps now merge as sorted unique
-  stable-ID arrays while preserving keyed empty routes.
-- Reservation-ID routes remain independent of provider-reservation contact
-  identities and counts; route-only evidence does not synthesize either count.
-- Both handoff validators reject duplicate or unsorted supplied routes, and
-  generated review/import schemas expose `uniqueItems` for each route array.
-- General and study-manifest schema exports captured every embedding surface;
-  generated changes are limited to the expected review/import dependents.
+- Compact request/review reservation routes now derive sorted unique IDs from
+  both scalar and list station-calendar identity evidence.
+- Multiple reservation IDs per contact and a shared reservation across contacts
+  remain valid; reservation cardinality is not coupled to contact counts.
+- When both paired maps are present, adapters preserve the union of their
+  match-status keys with explicit empty counterparts; a missing legacy field
+  remains omitted and valid.
+- Shared handoff validation rejects paired maps with different route keys while
+  retaining the existing canonical stable-ID checks.
+- No generated schema or golden fixture changed; the executable behavior and
+  validation contracts remain within their published optional map shapes.
 - No provider request, reservation, schedule mutation, Cadence write, operator
   authority, candidate selection, or planner-effect boundary changed.
 - Local review found no publish blocker.
 
 Last published slice:
-- `03d9c6cb` Correlate reservation expiration values (`3875 passed`).
+- `e487d226` Canonicalize provider reservation ID routes (`3877 passed`).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions while preserving explicit
@@ -68,8 +71,8 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-Audit provider-reservation match-status vocabulary consistency across contact
-and reservation-ID routes.
+Audit provider-reservation request-status vocabulary/count correlation across
+embedded reports.
 
 Blocked:
 None.

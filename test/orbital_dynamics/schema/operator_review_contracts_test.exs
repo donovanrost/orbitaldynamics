@@ -1103,6 +1103,48 @@ defmodule OrbitalDynamics.Schema.OperatorReviewContractsTest do
            )
   end
 
+  test "correlates provider-reservation contact and reservation match-status routes" do
+    package = read_json!("study_results/operator_review_package_v1.json")
+
+    contact_only =
+      Map.put(package, "provider_reservation_request_contact_ids_by_match_status", %{
+        "matched" => ["contact_a"]
+      })
+
+    assert {:ok, _package} = Schema.validate_artifact(contact_only)
+
+    aligned_routes =
+      Map.merge(package, %{
+        "provider_reservation_request_contact_ids_by_match_status" => %{
+          "matched" => ["contact_a"],
+          "owner_matched" => []
+        },
+        "provider_reservation_request_ids_by_match_status" => %{
+          "matched" => ["reservation_a"],
+          "owner_matched" => ["reservation_owner"]
+        }
+      })
+
+    assert {:ok, _package} = Schema.validate_artifact(aligned_routes)
+
+    mismatched_routes =
+      Map.merge(package, %{
+        "provider_reservation_request_contact_ids_by_match_status" => %{
+          "matched" => ["contact_a"]
+        },
+        "provider_reservation_request_ids_by_match_status" => %{
+          "owner_matched" => ["reservation_owner"]
+        }
+      })
+
+    assert {:error, mismatched_routes_report} = Schema.validate_artifact(mismatched_routes)
+
+    assert Enum.any?(
+             mismatched_routes_report["errors"],
+             &(&1["path"] == "$.provider_reservation_request_ids_by_match_status")
+           )
+  end
+
   defp read_json!(path) do
     path
     |> File.read!()

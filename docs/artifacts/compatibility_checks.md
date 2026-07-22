@@ -1457,6 +1457,12 @@ request/review reservation IDs into sorted unique arrays per match-status route,
 preserve keyed empty routes, and publish `uniqueItems` for those route arrays.
 Executable validation rejects noncanonical supplied routes while keeping them
 independent of provider-reservation contact counts and provider execution.
+The compact provider-reservation summary derives those routes from scalar and
+list-valued station-calendar reservation identities, so list-only or shared
+reservation IDs are not lost. When both contact and reservation route maps are
+present, adapters preserve their combined match-status key set with explicit
+empty counterparts; handoff validation rejects mismatched key vocabularies but
+continues to accept a missing legacy counterpart field.
 `study_results/station_calendar_precedence_summary_v1.json` is observed for
 applied/overlap availability routing, reserved-under-higher-precedence contact
 IDs, unavailable/reserved/reduced-capacity contact ID sets, and artifact-only

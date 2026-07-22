@@ -3164,6 +3164,64 @@ defmodule OrbitalDynamics.Communications.ContactAllocationTest do
              Schema.validate_artifact(summary)
   end
 
+  test "provider reservation routes preserve scalar and list reservation identities" do
+    summary =
+      ContactAllocation.provider_reservation_request_summary(%{
+        "schema_contract" => "contact_allocation_report.v1",
+        "source" => "unit_test.provider_reservation_list_identities",
+        "rows" => [
+          %{
+            "id" => "contact_allocation:request_a",
+            "contact_id" => "request_a",
+            "allocation_status" => "allocated",
+            "effective_allocation_status" => "allocated",
+            "station_reservation_match_status" => "matched",
+            "station_reservation_id" => "reservation_shared",
+            "station_calendar_reservation_ids" => [
+              "reservation_extra",
+              "reservation_shared"
+            ]
+          },
+          %{
+            "id" => "contact_allocation:request_b",
+            "contact_id" => "request_b",
+            "allocation_status" => "allocated",
+            "effective_allocation_status" => "allocated",
+            "station_reservation_match_status" => "matched",
+            "station_calendar_reservation_ids" => ["reservation_shared"]
+          },
+          %{
+            "id" => "contact_allocation:review_a",
+            "contact_id" => "review_a",
+            "allocation_status" => "allocated",
+            "effective_allocation_status" => "allocated",
+            "station_reservation_match_status" => "overlap",
+            "station_calendar_reservation_ids" => ["reservation_review"]
+          }
+        ]
+      })
+
+    assert summary["provider_reservation_request_contact_ids_by_match_status"] == %{
+             "matched" => ["request_a", "request_b"]
+           }
+
+    assert summary["provider_reservation_request_ids_by_match_status"] == %{
+             "matched" => ["reservation_extra", "reservation_shared"]
+           }
+
+    assert summary["provider_reservation_review_contact_ids_by_match_status"] == %{
+             "overlap" => ["review_a"]
+           }
+
+    assert summary["provider_reservation_review_ids_by_match_status"] == %{
+             "overlap" => ["reservation_review"]
+           }
+
+    assert {:ok,
+            %{"schema_contract" => "contact_allocation_provider_reservation_request_summary.v1"}} =
+             Schema.validate_artifact(summary)
+  end
+
   test "provider reservation request summary normalizes legacy allocated rows" do
     summary =
       ContactAllocation.provider_reservation_request_summary(%{

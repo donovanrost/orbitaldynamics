@@ -2222,6 +2222,57 @@ defmodule OrbitalDynamics.OperatorReview.ContactAllocationEmbeddedSummaryTest do
              Schema.validate_artifact(package)
   end
 
+  test "aligns provider-reservation contact and reservation route vocabularies" do
+    package =
+      OperatorReview.from_repair_artifact(%{
+        "repair_metadata" => %{"repair_id" => "repair:provider_reservation_route_keys"},
+        "source_contact_allocation_report" => %{
+          "provider_reservation_request_contact_ids_by_match_status" => %{
+            "matched" => ["contact_matched"]
+          },
+          "provider_reservation_request_ids_by_match_status" => %{
+            "owner_matched" => ["reservation_owner"]
+          },
+          "provider_reservation_review_contact_ids_by_match_status" => %{
+            "overlap" => ["contact_review"]
+          },
+          "provider_reservation_review_ids_by_match_status" => %{}
+        },
+        "contact_allocation_report" => %{
+          "provider_reservation_request_contact_ids_by_match_status" => %{
+            "owner_matched" => ["contact_owner"]
+          },
+          "provider_reservation_request_ids_by_match_status" => %{
+            "matched" => ["reservation_matched"]
+          }
+        }
+      })
+
+    assert package["provider_reservation_request_contact_ids_by_match_status"] == %{
+             "matched" => ["contact_matched"],
+             "owner_matched" => ["contact_owner"]
+           }
+
+    assert package["provider_reservation_request_ids_by_match_status"] == %{
+             "matched" => ["reservation_matched"],
+             "owner_matched" => ["reservation_owner"]
+           }
+
+    assert package["provider_reservation_review_contact_ids_by_match_status"] == %{
+             "overlap" => ["contact_review"]
+           }
+
+    assert package["provider_reservation_review_ids_by_match_status"] == %{
+             "overlap" => []
+           }
+
+    assert package["provider_reservation_request_contact_count"] == 2
+    assert package["provider_reservation_review_contact_count"] == 1
+
+    assert {:ok, %{"schema_contract" => "operator_review_package.v1"}} =
+             Schema.validate_artifact(package)
+  end
+
   test "lifts and correlates station-reservation owner contact identity and counts" do
     owner = "mission_ops"
 

@@ -57,9 +57,11 @@ defmodule OrbitalDynamics.OperatorReview.ContactAllocationSummary do
       "provider_reservation_review_contact_ids_by_match_status"
     ]
   }
-  @provider_reservation_id_map_fields [
-    "provider_reservation_request_ids_by_match_status",
-    "provider_reservation_review_ids_by_match_status"
+  @provider_reservation_match_status_route_field_pairs [
+    {"provider_reservation_request_contact_ids_by_match_status",
+     "provider_reservation_request_ids_by_match_status"},
+    {"provider_reservation_review_contact_ids_by_match_status",
+     "provider_reservation_review_ids_by_match_status"}
   ]
 
   def put_from_paths(package, artifact, paths) do
@@ -305,15 +307,7 @@ defmodule OrbitalDynamics.OperatorReview.ContactAllocationSummary do
       reports,
       "provider_reservation_review_contact_ids_by_direction_and_ground_station_id"
     )
-    |> put_contact_allocation_id_map_summary(
-      reports,
-      "provider_reservation_request_contact_ids_by_match_status"
-    )
-    |> put_contact_allocation_id_map_summary(
-      reports,
-      "provider_reservation_review_contact_ids_by_match_status"
-    )
-    |> put_provider_reservation_id_map_summaries(reports)
+    |> put_provider_reservation_match_status_routes(reports)
     |> put_contact_allocation_id_map_summary(
       reports,
       "reservation_conflict_contact_ids_by_direction"
@@ -498,17 +492,55 @@ defmodule OrbitalDynamics.OperatorReview.ContactAllocationSummary do
     end
   end
 
-  defp put_provider_reservation_id_map_summaries(package, reports) do
-    Enum.reduce(@provider_reservation_id_map_fields, package, fn field, acc ->
-      values =
-        reports
-        |> Enum.map(&Map.get(&1, field))
-        |> Enum.filter(&is_map/1)
-        |> merge_canonical_id_maps()
+  defp put_provider_reservation_match_status_routes(package, reports) do
+    Enum.reduce(@provider_reservation_match_status_route_field_pairs, package, fn
+      {contact_field, reservation_field}, acc ->
+        contact_maps = report_maps(reports, contact_field)
+        reservation_maps = report_maps(reports, reservation_field)
+        contact_routes = merge_canonical_id_maps(contact_maps)
+        reservation_routes = merge_canonical_id_maps(reservation_maps)
 
-      put_merged_id_map(acc, field, values)
+        {contact_routes, reservation_routes} =
+          align_present_route_vocabularies(
+            contact_routes,
+            reservation_routes,
+            contact_maps != [],
+            reservation_maps != []
+          )
+
+        acc
+        |> put_merged_id_map(contact_field, contact_routes)
+        |> put_merged_id_map(reservation_field, reservation_routes)
     end)
   end
+
+  defp report_maps(reports, field) do
+    reports
+    |> Enum.map(&Map.get(&1, field))
+    |> Enum.filter(&is_map/1)
+  end
+
+  defp align_present_route_vocabularies(
+         contact_routes,
+         reservation_routes,
+         true,
+         true
+       ) do
+    route_keys = (Map.keys(contact_routes) ++ Map.keys(reservation_routes)) |> Enum.uniq()
+
+    {
+      Enum.reduce(route_keys, contact_routes, &Map.put_new(&2, &1, [])),
+      Enum.reduce(route_keys, reservation_routes, &Map.put_new(&2, &1, []))
+    }
+  end
+
+  defp align_present_route_vocabularies(
+         contact_routes,
+         reservation_routes,
+         _contact_routes_present?,
+         _reservation_routes_present?
+       ),
+       do: {contact_routes, reservation_routes}
 
   defp put_capacity_pack_group_identity_summary(package, reports) do
     count_field = "reduced_capacity_pack_group_count"

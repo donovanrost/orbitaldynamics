@@ -440,18 +440,14 @@ defmodule OrbitalDynamics.Schema.ContactAllocationProviderReservationRequestSumm
       path,
       summary,
       "provider_reservation_request_ids_by_match_status",
-      row_ids_by_field(
-        request_rows,
-        "station_reservation_match_status",
-        "station_reservation_id"
-      ),
+      row_reservation_ids_by_match_status(request_rows),
       "must equal row-derived provider_reservation_request_ids_by_match_status"
     )
     |> expect_field_equals(
       path,
       summary,
       "provider_reservation_review_ids_by_match_status",
-      row_ids_by_field(review_rows, "station_reservation_match_status", "station_reservation_id"),
+      row_reservation_ids_by_match_status(review_rows),
       "must equal row-derived provider_reservation_review_ids_by_match_status"
     )
     |> expect_field_equals(
@@ -496,6 +492,27 @@ defmodule OrbitalDynamics.Schema.ContactAllocationProviderReservationRequestSumm
     |> Enum.reject(fn {group, ids} -> is_nil(group) or Enum.all?(ids, &is_nil/1) end)
     |> Map.new(fn {group, ids} ->
       {group, ids |> Enum.reject(&is_nil/1) |> Enum.uniq() |> Enum.sort()}
+    end)
+  end
+
+  defp row_reservation_ids_by_match_status(rows) do
+    Enum.reduce(rows, %{}, fn row, acc ->
+      match_status = Map.get(row, "station_reservation_match_status")
+
+      reservation_ids =
+        [Map.get(row, "station_reservation_id"), Map.get(row, "station_calendar_reservation_ids")]
+        |> List.flatten()
+        |> Enum.filter(&(is_binary(&1) and &1 != ""))
+        |> Enum.uniq()
+        |> Enum.sort()
+
+      if is_binary(match_status) and match_status != "" and reservation_ids != [] do
+        Map.update(acc, match_status, reservation_ids, fn current ->
+          (current ++ reservation_ids) |> Enum.uniq() |> Enum.sort()
+        end)
+      else
+        acc
+      end
     end)
   end
 

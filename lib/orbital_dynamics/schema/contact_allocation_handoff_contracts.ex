@@ -94,9 +94,11 @@ defmodule OrbitalDynamics.Schema.ContactAllocationHandoffContracts do
       nested_field: "provider_reservation_review_contact_ids_by_direction_and_ground_station_id"
     }
   }
-  @provider_reservation_id_map_fields [
-    "provider_reservation_request_ids_by_match_status",
-    "provider_reservation_review_ids_by_match_status"
+  @provider_reservation_match_status_route_field_pairs [
+    {"provider_reservation_request_contact_ids_by_match_status",
+     "provider_reservation_request_ids_by_match_status"},
+    {"provider_reservation_review_contact_ids_by_match_status",
+     "provider_reservation_review_ids_by_match_status"}
   ]
   @allocation_source_field_pairs [
     {"activity_type", "type"}
@@ -996,6 +998,7 @@ defmodule OrbitalDynamics.Schema.ContactAllocationHandoffContracts do
       "provider_reservation_review_ids_by_match_status"
     )
     |> validate_provider_reservation_id_maps(path, artifact)
+    |> validate_provider_reservation_route_vocabularies(path, artifact)
     |> validate_provider_reservation_contact_identity_summary(path, artifact, "request")
     |> validate_provider_reservation_contact_identity_summary(path, artifact, "review")
     |> validate_provider_reservation_contact_identity_summary(path, artifact, "no_request")
@@ -1581,8 +1584,37 @@ defmodule OrbitalDynamics.Schema.ContactAllocationHandoffContracts do
   end
 
   defp validate_provider_reservation_id_maps(issues, path, artifact) do
-    Enum.reduce(@provider_reservation_id_map_fields, issues, fn field, acc ->
-      validate_canonical_id_map(acc, path, Map.get(artifact, field), field)
+    Enum.reduce(@provider_reservation_match_status_route_field_pairs, issues, fn
+      {_contact_field, reservation_field}, acc ->
+        validate_canonical_id_map(
+          acc,
+          path,
+          Map.get(artifact, reservation_field),
+          reservation_field
+        )
+    end)
+  end
+
+  defp validate_provider_reservation_route_vocabularies(issues, path, artifact) do
+    Enum.reduce(@provider_reservation_match_status_route_field_pairs, issues, fn
+      {contact_field, reservation_field}, acc ->
+        case {Map.get(artifact, contact_field), Map.get(artifact, reservation_field)} do
+          {%{} = contact_routes, %{} = reservation_routes} ->
+            if Enum.sort(Map.keys(contact_routes)) == Enum.sort(Map.keys(reservation_routes)) do
+              acc
+            else
+              [
+                error(
+                  "#{path}.#{reservation_field}",
+                  "must use the same match-status routes as #{contact_field}"
+                )
+                | acc
+              ]
+            end
+
+          {_contact_routes, _reservation_routes} ->
+            acc
+        end
     end)
   end
 

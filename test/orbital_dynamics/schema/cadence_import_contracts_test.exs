@@ -3351,6 +3351,48 @@ defmodule OrbitalDynamics.Schema.CadenceImportContractsTest do
     end
   end
 
+  test "correlates provider-reservation contact and reservation match-status routes" do
+    manifest = read_json!("study_results/cadence_import_manifest_v1.json")
+
+    review_contact_only =
+      Map.put(manifest, "provider_reservation_review_contact_ids_by_match_status", %{
+        "overlap" => ["contact_review"]
+      })
+
+    assert {:ok, _manifest} = Schema.validate_artifact(review_contact_only)
+
+    aligned_routes =
+      Map.merge(manifest, %{
+        "provider_reservation_review_contact_ids_by_match_status" => %{
+          "overlap" => ["contact_review"],
+          "provider_review" => []
+        },
+        "provider_reservation_review_ids_by_match_status" => %{
+          "overlap" => ["reservation_review"],
+          "provider_review" => []
+        }
+      })
+
+    assert {:ok, _manifest} = Schema.validate_artifact(aligned_routes)
+
+    mismatched_routes =
+      Map.merge(manifest, %{
+        "provider_reservation_review_contact_ids_by_match_status" => %{
+          "overlap" => ["contact_review"]
+        },
+        "provider_reservation_review_ids_by_match_status" => %{
+          "matched" => ["reservation_review"]
+        }
+      })
+
+    assert {:error, mismatched_routes_report} = Schema.validate_artifact(mismatched_routes)
+
+    assert Enum.any?(
+             mismatched_routes_report["errors"],
+             &(&1["path"] == "$.provider_reservation_review_ids_by_match_status")
+           )
+  end
+
   defp read_json!(path) do
     path
     |> File.read!()
