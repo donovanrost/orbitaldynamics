@@ -10,6 +10,8 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.ContactContention.Sourc
 
   alias OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactContention.CountFields.InvalidInputs
 
+  alias OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactContention.CountFields.CountMaps.GroundStations
+
   alias OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactContention.CountFields.CountMaps.RequiredOperatorActions
 
   alias OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactContention.CountFields.CountMaps.ResourceScopes
@@ -37,6 +39,15 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.ContactContention.Sourc
       ResourceScopes.correlated_counts(
         conflict_group_count,
         source_report_family_merge_count_maps(source_reports, "resource_scope_counts")
+      )
+
+    ground_station_counts =
+      GroundStations.correlated_counts(
+        resource_scope_counts,
+        source_report_family_merge_count_maps(
+          source_reports,
+          "contact_contention_ground_station_counts"
+        )
       )
 
     direction_counts =
@@ -68,11 +79,7 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.ContactContention.Sourc
       "source_report_contact_contention_invalid_contact_input_count" =>
         invalid_contact_input_count,
       "source_report_contact_contention_resource_scope_counts" => resource_scope_counts,
-      "source_report_contact_contention_ground_station_counts" =>
-        source_report_family_merge_count_maps(
-          source_reports,
-          "contact_contention_ground_station_counts"
-        ),
+      "source_report_contact_contention_ground_station_counts" => ground_station_counts,
       "source_report_contact_contention_contact_id_counts" => contact_id_counts,
       "source_report_contact_contention_direction_counts" => direction_counts,
       "source_report_contact_contention_contact_ids_by_direction" => contact_ids_by_direction,

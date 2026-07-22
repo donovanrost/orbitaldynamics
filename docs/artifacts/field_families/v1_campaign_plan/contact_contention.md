@@ -214,6 +214,11 @@ Resource-scope count maps from compact summaries retain only positive
 `conflict_group_count`. The correlation is applied per report and again at
 flattened-source and replay boundaries; unknown, zero-evidence, and
 over-counted scopes cannot independently create contention pressure.
+Ground-station count maps retain only stable-ID keys with positive counts whose
+combined total does not exceed correlated `ground_station` resource-scope
+evidence. CandidateRefresh enforces the relationship per raw report and again
+at compact flattened-source and replay boundaries; malformed, zero-evidence,
+and over-counted station maps do not create station-specific pressure.
 Its exported JSON Schema includes the nested row and `timeline_identity` field
 shape used by executable validation. Rows also carry artifact-only operational
 kind, required operator action, operator-action reason, execution boundary,

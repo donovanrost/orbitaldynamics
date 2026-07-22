@@ -5,33 +5,33 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Correlate contention resource-scope counts.
+Correlate contention ground-station counts.
 
 Status:
 Verified; ready for mechanical publish.
 
 Selection evidence:
-- Raw contention producers assign conflict groups only to `ground_station` or
-  `spacecraft` resource scope.
-- Preserved compact summaries currently replay arbitrary resource-scope keys
-  and counts independently of the conflict-group scalar.
-- Unknown, zero-evidence, or over-counted scopes can therefore create branch
-  pressure after raw conflict rows have been removed.
+- Raw contention rows derive ground-station count keys as stable IDs from
+  conflict groups, and `ground_station` scope count bounds the station total.
+- Preserved compact summaries currently replay arbitrary station keys and
+  counts independently of correlated resource-scope evidence.
+- Malformed, zero-evidence, or over-counted station identities can
+  therefore create branch pressure after raw rows have been removed.
 
 Intended behavior:
-- Retain only canonical positive `ground_station` and `spacecraft` scope counts
-  whose combined total does not exceed the conflict-group scalar.
+- Retain only stable-ID station keys with positive counts whose combined total
+  does not exceed correlated `ground_station` resource-scope evidence.
 - Apply correlation per report and again at flattened-source/replay boundaries.
-- Keep the conflict-group scalar as pressure while preventing uncorrelated scope
-  keys from independently creating branch pressure.
+- Preserve scope/conflict scalar pressure while preventing uncorrelated station
+  identities from independently creating branch pressure.
 
 Level 6 pillar advanced:
 Fleet-scale planning decisions and durable reproducible audit handoffs.
 
 Planned files:
-- contention resource-scope aggregation, flattened source fields, replay, and
+- contention ground-station aggregation, flattened source fields, replay, and
   compact-summary schema correlation
-- unknown-scope and over-counted-scope challenge tests
+- malformed-station and over-counted-station challenge tests
 - contention artifact documentation and autonomous-loop ledger
 
 Verification:
@@ -44,17 +44,16 @@ Verification:
 - `mix test --timeout 120000` -> `3806 passed`.
 
 Review:
-- Canonical scopes are filtered per raw report before aggregation and again at
-  compact flattened/replay boundaries; conflict scalar pressure is unchanged.
-- Combined canonical counts are bounded by the conflict-group scalar, allowing
-  partial scope evidence while rejecting ambiguous over-counted maps.
-- A branch-selection fixture was made internally correlated without changing
-  its branch-over-provenance purpose; schema/runtime agree on unknown,
-  non-positive, zero-evidence, and over-counted scope handling. No unresolved
+- Station keys are normalized through the shared stable-ID rules, positive
+  duplicate-normalized keys merge, and malformed/non-positive entries drop.
+- Station totals are bounded by already-correlated `ground_station` scope
+  evidence per raw report and at compact flattened/replay boundaries.
+- Schema/runtime agree on stable-key, positive-count, scope-authority, and total
+  bounds; conflict/scope scalar pressure remains independent. No unresolved
   findings.
 
 Last published slice:
-- `af5bcf50` Correlate contention review actions (`3806 passed`).
+- `7e1553ef` Correlate contention resource scopes (`3806 passed`).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions while preserving explicit
@@ -65,8 +64,8 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-After publish, audit contention ground-station count totals and station identity
-authority for preserved compact summaries.
+After publish, audit contention contact-ID count identity against correlated
+direction evidence for preserved compact summaries.
 
 Blocked:
 None.

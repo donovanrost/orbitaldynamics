@@ -2,6 +2,7 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshCommunicationPressureContracts 
   @moduledoc false
 
   alias OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactContention.CountFields.CountMaps.ResourceScopes
+  alias OrbitalDynamics.Schema.StableIdValidation
 
   import OrbitalDynamics.Schema.PrimitiveValidation,
     only: [
@@ -21,6 +22,7 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshCommunicationPressureContracts 
     |> validate_contact_contention_invalid_inputs(path, summary)
     |> validate_contact_contention_required_actions(path, summary)
     |> validate_contact_contention_resource_scopes(path, summary)
+    |> validate_contact_contention_ground_stations(path, summary)
     |> validate_count_maps(path, summary, [
       "contact_contention_ground_station_counts",
       "contact_contention_contact_id_counts"
@@ -212,4 +214,63 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshCommunicationPressureContracts 
   end
 
   defp validate_contact_contention_resource_scopes(issues, _path, _summary), do: issues
+
+  defp validate_contact_contention_ground_stations(
+         issues,
+         path,
+         %{
+           "contract" => "contact_contention_report.v1"
+         } = summary
+       ) do
+    counts = Map.get(summary, "contact_contention_ground_station_counts")
+
+    if is_map(counts) do
+      issues =
+        Enum.reduce(counts, issues, fn {ground_station_id, count}, acc ->
+          if StableIdValidation.valid?(ground_station_id) and is_integer(count) and count > 0 do
+            acc
+          else
+            [
+              error(
+                path <> ".contact_contention_ground_station_counts.#{ground_station_id}",
+                "must use a stable ground-station ID with a positive count"
+              )
+              | acc
+            ]
+          end
+        end)
+
+      if map_size(counts) == 0 do
+        issues
+      else
+        ground_station_scope_count =
+          summary
+          |> Map.get("resource_scope_counts", %{})
+          |> Map.get("ground_station")
+
+        station_count =
+          counts
+          |> Map.values()
+          |> Enum.filter(&(is_integer(&1) and &1 > 0))
+          |> Enum.sum()
+
+        if is_integer(ground_station_scope_count) and ground_station_scope_count > 0 and
+             station_count <= ground_station_scope_count do
+          issues
+        else
+          [
+            error(
+              path <> ".contact_contention_ground_station_counts",
+              "station counts must not exceed positive ground_station resource-scope evidence"
+            )
+            | issues
+          ]
+        end
+      end
+    else
+      issues
+    end
+  end
+
+  defp validate_contact_contention_ground_stations(issues, _path, _summary), do: issues
 end

@@ -1,6 +1,7 @@
 defmodule OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactContention.CountFields.CountMaps do
   @moduledoc false
 
+  alias __MODULE__.GroundStations
   alias __MODULE__.RequiredOperatorActions
   alias __MODULE__.ResourceScopes
 
@@ -33,7 +34,18 @@ defmodule OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactContention
 
   defp ground_station_counts(reports) do
     reports
-    |> Enum.map(&ConflictGroups.ground_station_counts/1)
+    |> Enum.map(fn report ->
+      resource_scope_counts =
+        ResourceScopes.correlated_counts(
+          ConflictGroups.count(report),
+          ConflictGroups.resource_scope_counts(report)
+        )
+
+      GroundStations.correlated_counts(
+        resource_scope_counts,
+        ConflictGroups.ground_station_counts(report)
+      )
+    end)
     |> merge_count_maps()
   end
 

@@ -1195,6 +1195,10 @@ Compact contention resource scopes are limited to positive `ground_station`
 and `spacecraft` counts whose combined total is bounded by the conflict-group
 scalar. Unknown or over-counted scopes are rejected by compact schema
 validation and do not create replay contention pressure.
+Compact contention ground-station maps require positive stable-ID counts whose
+combined total is bounded by correlated `ground_station` scope evidence.
+Malformed or over-counted station maps are rejected by compact schema
+validation and cannot create replay station-specific pressure.
 Branch-generated CandidateRefresh requests preserve direct mission-state and
 result-artifact-wrapped raw `source_contact_contention_report` /
 `contact_contention_report` inputs with wrapper-qualified request paths and

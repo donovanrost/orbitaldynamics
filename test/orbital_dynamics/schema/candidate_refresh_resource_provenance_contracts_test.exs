@@ -2574,6 +2574,28 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshResourceProvenanceContractsTest
                  "$.provenance.source_reports.contact_contention_report.resource_scope_counts")
            )
 
+    overcounted_contact_contention_station =
+      put_in(
+        artifact_with_contact_contention_summary,
+        [
+          "provenance",
+          "source_reports",
+          "contact_contention_report",
+          "contact_contention_ground_station_counts",
+          "equator_prime"
+        ],
+        2
+      )
+
+    assert {:error, overcounted_contact_contention_station_report} =
+             Schema.validate_artifact(overcounted_contact_contention_station)
+
+    assert Enum.any?(
+             overcounted_contact_contention_station_report["errors"],
+             &(&1["path"] ==
+                 "$.provenance.source_reports.contact_contention_report.contact_contention_ground_station_counts")
+           )
+
     artifact_with_candidate_rejection_summary =
       put_in(artifact, ["provenance", "source_reports", "candidate_rejection_report"], %{
         "paths" => ["source_candidate_rejection_report"],
