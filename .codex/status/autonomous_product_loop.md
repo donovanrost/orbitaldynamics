@@ -5,53 +5,52 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Constrain contact-allocation pressure to contract-owned row families.
+Prefer canonical allocation rows over stale same-contract subsets.
 
 Status:
 Complete; ready to publish.
 
 Selection evidence:
-- Five contact-allocation summary contracts own different base and derived row
-  collections, but CampaignPlanner currently unions all six possible fields.
-- A station-pressure summary can inject `reservation_conflict_rows`, while a
-  provider-request summary can inject generic `review_rows`; either can create
-  a contact-scoped branch when the shadow row carries a contact ID and status.
-- Aggregate routing maps already remain context-only and should not authorize
-  branches without an accepted row family.
+- The five summary contracts derive their subset collections from canonical
+  `rows`, but CampaignPlanner currently unions base and subset rows.
+- When `rows` is present, a stale same-contract `review_rows` or conflict/request
+  subset can add a second contact decision not represented by canonical rows.
+- Older partial planner fixtures omit `rows`, so subset-only compatibility must
+  remain explicit rather than overriding a present canonical collection.
 
 Implemented behavior:
-- Map each contact-allocation summary contract to its owned row collections.
-- Ignore cross-family shadow collections and unsupported contracts.
-- Preserve established base/subset row recovery and aggregate context for
-  accepted contact-scoped rows.
+- Treat present canonical `rows`, including an empty list, as authoritative.
+- Use contract-owned subset rows only when the base field is absent.
+- For provider-request scope, accept only subset rows that occur in canonical
+  rows while retaining subset-only fallback for partial handoffs.
 
 Level 6 pillar advanced:
 Fleet-scale planning decisions and durable reproducible audit handoffs.
 
 Files changed:
-- contact-allocation compact-summary pressure-row extractor
-- station-pressure and provider-request cross-family challenge tests
+- contact-allocation compact-summary row precedence
+- station-pressure and provider-request stale-subset challenge tests
 - V3 strategy capability documentation and autonomous-loop ledger
 
 Verification:
-- Focused contact-allocation/provider-request tests: `10 passed`.
-- Related allocation/station-pressure planner matrix: `21 passed`.
+- Focused contact-allocation/provider-request tests: `12 passed`.
+- Related allocation/station-pressure planner matrix: `23 passed`.
 - Full checked-artifact lint: `155/155 passed`, zero warnings.
-- Full suite with a 120-second per-test ceiling: `3792 passed`.
+- Full suite with a 120-second per-test ceiling: `3794 passed`.
 - `mix format --check-formatted`, `mix compile --warnings-as-errors`, and
   `git diff --check` passed.
 - No public artifact shape or checked-in schema export changed.
 
 Review:
-- Each of the five compact contracts accepts only its documented base/subset
-  row fields; cross-family fields and unsupported contracts yield no rows.
-- Accepted rows still require their existing contact identity and status gates
-  before allocation, reservation, or suppression branches can be created.
-- Aggregate capacity/station maps remain context-only and direct, wrapped, and
-  prior-plan paths converge on the same extractor.
+- A present canonical row collection always wins, including an intentional
+  empty list; stale derived subsets cannot add planner decisions.
+- Provider request/review subsets are intersected by exact canonical row value
+  before scope metadata can create a provider-reservation branch.
+- Subset-only compatibility remains for handoffs that omit `rows`, while direct,
+  wrapped, and prior-plan paths converge on the same precedence rule.
 
 Last published slice:
-- `49a4cccc` Constrain counteroffer pressure rows (`3790 passed`).
+- `d41b3629` Constrain allocation pressure row families (`3792 passed`).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions while preserving explicit

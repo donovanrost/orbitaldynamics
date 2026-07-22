@@ -233,6 +233,47 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyProviderReservationRequestSour
            )
   end
 
+  test "strategy rejects provider-review subset rows absent from canonical rows" do
+    summary = %{
+      "schema_contract" => "contact_allocation_provider_reservation_request_summary.v1",
+      "model" => "artifact_only_contact_allocation_provider_reservation_request_summary",
+      "source_artifact_type" => "contact_allocation_report.v1",
+      "provider_reservation_request_status" => "review_required",
+      "rows" => [],
+      "provider_reservation_request_rows" => [],
+      "provider_reservation_review_rows" => [
+        %{
+          "contact_id" => "stale_provider_subset_contact",
+          "allocation_status" => "allocated",
+          "effective_allocation_status" => "allocated",
+          "allocation_reason" => "selected_by_contention_resolution",
+          "ground_station_id" => "stale_station",
+          "direction" => "downlink",
+          "station_reservation_id" => "stale_reservation",
+          "station_reservation_match_status" => "overlap"
+        }
+      ]
+    }
+
+    artifact =
+      strategy(base_plan(%{}),
+        mission_state:
+          mission_state_with_refresh_inputs()
+          |> Map.put(
+            "source_contact_allocation_provider_reservation_request_summary",
+            summary
+          ),
+        derive_branches?: true,
+        branches: [%{id: "baseline"}],
+        current_epoch_s: 0.0
+      )
+
+    refute branch(
+             artifact,
+             "derived_contact_allocation_pressure_provider_reservation_review_required_stale_provider_subset_contact"
+           )
+  end
+
   defp contact_allocation_provider_reservation_request_summary_fixture(prefix) do
     request_row = %{
       "contact_id" => "#{prefix}_dl_reserved_owner",

@@ -1509,6 +1509,40 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyContactAllocationPressureTest 
            )
   end
 
+  test "strategy treats present station-pressure rows as authoritative over review rows" do
+    summary = %{
+      "schema_contract" => "contact_allocation_station_pressure_summary.v1",
+      "model" => "artifact_only_contact_allocation_station_pressure_summary",
+      "source_artifact_type" => "contact_allocation_report.v1",
+      "rows" => [],
+      "review_rows" => [
+        %{
+          "contact_id" => "stale_station_review_contact",
+          "allocation_status" => "deferred",
+          "effective_allocation_status" => "deferred",
+          "allocation_reason" => "same_station_contention",
+          "ground_station_id" => "stale_station",
+          "direction" => "downlink"
+        }
+      ]
+    }
+
+    artifact =
+      strategy(base_plan(%{}),
+        mission_state:
+          mission_state_with_refresh_inputs()
+          |> Map.put("source_contact_allocation_station_pressure_summary", summary),
+        derive_branches?: true,
+        branches: [%{id: "baseline"}],
+        current_epoch_s: 0.0
+      )
+
+    refute branch(
+             artifact,
+             "derived_contact_allocation_pressure_deferred_stale_station_review_contact"
+           )
+  end
+
   defp assert_contact_allocation_pressure_score_terms(
          branch,
          artifact,

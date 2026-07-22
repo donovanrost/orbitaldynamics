@@ -1083,6 +1083,10 @@ CampaignPlanner maps each summary contract to its owned base and derived row
 collections before producing allocation pressure. Cross-family shadow rows and
 unsupported contracts cannot authorize branches; aggregate station/capacity
 routing maps remain context attached to accepted contact-scoped rows.
+When canonical `rows` is present, it is authoritative over derived subsets;
+provider-request subset rows must also occur in the canonical collection.
+Subset-only pressure remains available for older partial handoffs that omit the
+base field rather than declaring an empty or contradictory base collection.
 Candidate-source audit paths and generated request input paths retain the
 wrapper-qualified summary path while the replay summary preserves the validated
 allocation, station-pressure,

@@ -20,13 +20,11 @@ defmodule OrbitalDynamics.CampaignPlanner.ContactAllocationSummaryPressureRows d
   def rows(summary) do
     summary_trust_boundary = trust_boundary(summary)
 
-    @row_fields_by_contract
-    |> Map.get(summary["schema_contract"], [])
+    summary
+    |> pressure_row_fields()
     |> Enum.flat_map(fn field ->
       summary
-      |> Map.get(field, [])
-      |> List.wrap()
-      |> Enum.filter(&is_map/1)
+      |> pressure_rows_for_field(field)
       |> Enum.map(fn row ->
         provider_scope = provider_reservation_row_scope(field)
 
@@ -40,6 +38,48 @@ defmodule OrbitalDynamics.CampaignPlanner.ContactAllocationSummaryPressureRows d
       end)
     end)
     |> Enum.uniq()
+  end
+
+  defp pressure_row_fields(summary) do
+    fields = Map.get(@row_fields_by_contract, summary["schema_contract"], [])
+
+    cond do
+      not Map.has_key?(summary, "rows") ->
+        fields
+
+      summary["schema_contract"] ==
+          "contact_allocation_provider_reservation_request_summary.v1" ->
+        fields
+
+      true ->
+        Enum.filter(fields, &(&1 == "rows"))
+    end
+  end
+
+  defp pressure_rows_for_field(summary, field) do
+    rows =
+      summary
+      |> Map.get(field, [])
+      |> List.wrap()
+      |> Enum.filter(&is_map/1)
+
+    if provider_subset_requires_canonical_row?(summary, field) do
+      canonical_rows =
+        summary
+        |> Map.get("rows", [])
+        |> List.wrap()
+        |> Enum.filter(&is_map/1)
+
+      Enum.filter(rows, &(&1 in canonical_rows))
+    else
+      rows
+    end
+  end
+
+  defp provider_subset_requires_canonical_row?(summary, field) do
+    summary["schema_contract"] ==
+      "contact_allocation_provider_reservation_request_summary.v1" and
+      Map.has_key?(summary, "rows") and field != "rows"
   end
 
   defp maybe_put_provider_reservation_request_status(row, nil, _request_status), do: row
