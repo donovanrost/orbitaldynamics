@@ -9,6 +9,7 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.ContactAllocation.Sourc
     DirectionRouting,
     OutcomeIdentityCorrelation,
     ReasonIdentityCorrelation,
+    ReviewIdentityCorrelation,
     ResourceBlockingCorrelation,
     RowCountCorrelation
   }
@@ -20,6 +21,12 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.ContactAllocation.Sourc
     outcome_fields = primary_outcome_fields(source_reports)
     resource_fields = resource_fields(source_reports)
     blocked_input_fields = blocked_input_fields(source_reports, resource_fields)
+
+    review_fields =
+      ReviewIdentityCorrelation.fields(%{
+        "review_contact_ids" =>
+          source_report_family_merge_string_lists(source_reports, "review_contact_ids")
+      })
 
     reason_fields =
       ReasonIdentityCorrelation.fields(%{
@@ -120,7 +127,7 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.ContactAllocation.Sourc
       "source_report_contact_allocation_contact_ids_by_allocation_reason" =>
         Map.get(reason_fields, "contact_ids_by_allocation_reason"),
       "source_report_contact_allocation_review_contact_ids" =>
-        source_report_family_merge_string_lists(source_reports, "review_contact_ids")
+        Map.get(review_fields, "review_contact_ids")
     }
   end
 

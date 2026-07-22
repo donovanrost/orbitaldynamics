@@ -30,6 +30,9 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshCommunicationPressureContracts 
   alias OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactAllocation.ResourceBlockingCorrelation,
     as: ContactAllocationResourceBlockingCorrelation
 
+  alias OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactAllocation.ReviewIdentityCorrelation,
+    as: ContactAllocationReviewIdentityCorrelation
+
   alias OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactAllocation.DirectionRouting.Correlation,
     as: ContactAllocationDirectionCorrelation
 
@@ -125,6 +128,7 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshCommunicationPressureContracts 
     issues
     |> validate_contact_allocation_outcome_identities(path, summary)
     |> validate_contact_allocation_blocked_input_identities(path, summary)
+    |> validate_contact_allocation_review_identity(path, summary)
   end
 
   defp validate_contact_allocation_contact_identities(issues, _path, _summary), do: issues
@@ -156,6 +160,16 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshCommunicationPressureContracts 
         |> validate_canonical_supplied_field(path, summary, canonical, ids_field)
         |> validate_canonical_supplied_field(path, summary, canonical, count_field)
     end)
+  end
+
+  defp validate_contact_allocation_review_identity(issues, path, summary) do
+    validate_canonical_supplied_field(
+      issues,
+      path,
+      summary,
+      ContactAllocationReviewIdentityCorrelation.fields(summary),
+      ContactAllocationReviewIdentityCorrelation.field()
+    )
   end
 
   defp validate_canonical_supplied_field(issues, path, summary, canonical, field) do

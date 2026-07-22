@@ -7,6 +7,7 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.ContactAllocation.Summa
     DirectionRouting,
     OutcomeIdentityCorrelation,
     ReasonIdentityCorrelation,
+    ReviewIdentityCorrelation,
     ResourceBlockingCorrelation,
     RowCountCorrelation
   }
@@ -25,6 +26,7 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.ContactAllocation.Summa
       )
 
     outcome_fields = primary_outcome_fields(allocation_summary)
+    review_fields = ReviewIdentityCorrelation.fields(allocation_summary)
 
     resource_fields =
       allocation_summary
@@ -48,7 +50,7 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.ContactAllocation.Summa
     %{
       blocked_row_count: Map.fetch!(row_counts, "blocked_row_count"),
       deferred_row_count: Map.fetch!(row_counts, "deferred_row_count"),
-      review_contact_ids: Map.get(allocation_summary, "review_contact_ids"),
+      review_contact_ids: Map.get(review_fields, "review_contact_ids"),
       allocation_status_counts:
         allocation_summary
         |> Map.get("allocation_status_counts")

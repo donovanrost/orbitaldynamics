@@ -280,6 +280,10 @@ sorted unique stable contact IDs. Count-only and route-only reasons remain
 usable independently; when a positive local reason count is present, routed
 identity cardinality cannot exceed it. Replay removes only the over-cardinality
 route, and compact schema validation rejects the stale reason map.
+Review contact IDs likewise remain identity-only evidence through raw,
+flattened, and replay summaries, canonicalized as sorted unique stable IDs;
+compact validation rejects duplicate, out-of-order, or invalid supplied review
+identity instead of fabricating a paired review count.
 Invalid-input, status-blocked, and resource-blocked count/ID pairs use the same
 identity-first rule. Their top-level lists remain canonical review evidence when
 a compact scalar is absent or undersized; valid occurrence counts may exceed

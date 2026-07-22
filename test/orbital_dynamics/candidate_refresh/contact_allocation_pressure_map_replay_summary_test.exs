@@ -456,6 +456,32 @@ defmodule OrbitalDynamics.CandidateRefresh.ContactAllocationPressureMapReplaySum
     assert replay_summary["branch_local_contact_allocation_pressure"]
   end
 
+  test "contact allocation replay canonicalizes identity-only review contacts" do
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "provenance" => %{
+        "source_reports" => %{
+          "contact_allocation_report" => %{
+            "contract" => "contact_allocation_report.v1",
+            "count" => 1,
+            "review_contact_ids" => ["review_b", "review_a", "review_a", "invalid id"]
+          }
+        }
+      }
+    }
+
+    source_summary = CandidateRefresh.source_report_summary(artifact)
+    replay_summary = CandidateRefresh.contact_allocation_replay_summary(artifact)
+
+    assert source_summary["source_report_contact_allocation_review_contact_ids"] == [
+             "review_a",
+             "review_b"
+           ]
+
+    assert replay_summary["review_contact_ids"] == ["review_a", "review_b"]
+    assert replay_summary["branch_local_contact_allocation_pressure"]
+  end
+
   test "contact allocation replay correlates resource-blocking routes" do
     artifact = %{
       "schema_contract" => "candidate_refresh.v1",

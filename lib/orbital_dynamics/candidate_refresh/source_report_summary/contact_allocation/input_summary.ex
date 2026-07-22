@@ -11,6 +11,7 @@ defmodule OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactAllocation
     PressureConflictSummary,
     ProviderReservationSummary,
     ReasonIdentityCorrelation,
+    ReviewIdentityCorrelation,
     ResourceBlockingCorrelation,
     RowCountCorrelation,
     SourceFields,
@@ -37,6 +38,7 @@ defmodule OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactAllocation
     |> ResourceBlockingCorrelation.fields()
     |> BlockedInputIdentityCorrelation.fields()
     |> ReasonIdentityCorrelation.fields()
+    |> ReviewIdentityCorrelation.fields()
     |> compact_map()
   end
 

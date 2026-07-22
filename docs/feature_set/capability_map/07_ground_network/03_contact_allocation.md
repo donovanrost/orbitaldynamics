@@ -65,7 +65,8 @@ The contact-filter, contact-contention, contact-intent, and command-window repor
 
 - returned allocated IDs
 - review contact IDs/rows, preserved through candidate-refresh contact-allocation
-  replay for branch-local operator-review queues
+  replay for branch-local operator-review queues; compact review identity is a
+  sorted unique stable-ID list and remains usable without a fabricated count
 - declared allocation-status counts and effective-status counts, preserved
   separately through candidate-refresh contact-allocation replay, with
   string-equivalent keys merged and only positive integer entries retained so

@@ -547,6 +547,7 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshResourceProvenanceContractsTest
         "contact_ids_by_allocation_reason" => %{
           "selected" => ["dl_backup", "dl_primary"]
         },
+        "review_contact_ids" => ["review_a", "review_b"],
         "resource_blocked_contact_count" => 2,
         "resource_blocked_contact_ids" => ["resource_a", "resource_b"],
         "resource_blocking_dimension_counts" => %{"antenna" => 2},
@@ -640,6 +641,27 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshResourceProvenanceContractsTest
              noncanonical_allocation_outcome_routes_report["errors"],
              &(&1["path"] ==
                  "$.provenance.source_reports.contact_allocation_report.allocated_contact_ids_by_ground_station")
+           )
+
+    noncanonical_allocation_review_ids =
+      put_in(
+        artifact_with_allocation_direction_summary,
+        [
+          "provenance",
+          "source_reports",
+          "contact_allocation_report",
+          "review_contact_ids"
+        ],
+        ["review_b", "review_a", "review_a"]
+      )
+
+    assert {:error, noncanonical_allocation_review_ids_report} =
+             Schema.validate_artifact(noncanonical_allocation_review_ids)
+
+    assert Enum.any?(
+             noncanonical_allocation_review_ids_report["errors"],
+             &(&1["path"] ==
+                 "$.provenance.source_reports.contact_allocation_report.review_contact_ids")
            )
 
     over_cardinality_allocation_reason_ids =
