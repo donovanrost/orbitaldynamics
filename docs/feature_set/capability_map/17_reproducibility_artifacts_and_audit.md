@@ -283,6 +283,10 @@ work, a **partial** executable-schema track, and **near-term** / **later** /
   three run their standalone row/count/model-limit validators at the repair
   boundary while remaining optional for repairs that did not consume refresh
   evidence.
+- Source `contact_allocation_report.v1` and `station_calendar_report.v1`
+  evidence is likewise declared directly and validated before V2 uses its
+  station availability, allocation, reservation, and capacity context in
+  replacement ranking and pressure scoring.
 - `realized_state_snapshot.v1` and `timeline_feedback_report.v1` export nested
   operational-feedback rows plus command/contact feedback, throughput-delta,
   success fields, and source planned/realized activity context.

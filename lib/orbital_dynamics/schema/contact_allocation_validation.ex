@@ -56,6 +56,14 @@ defmodule OrbitalDynamics.Schema.ContactAllocationValidation do
   def validate_optional_report(issues, _report, _callbacks),
     do: [error("$.contact_allocation_report", "must be an object") | issues]
 
+  def validate_optional_report_at(issues, _path, nil), do: issues
+
+  def validate_optional_report_at(issues, path, %{} = report),
+    do: validate_report(issues, path, report)
+
+  def validate_optional_report_at(issues, path, _report),
+    do: [error(path, "must be an object") | issues]
+
   def validate_report(issues, path, report),
     do: validate_report(issues, path, report, default_callbacks())
 

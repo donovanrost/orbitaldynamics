@@ -359,6 +359,10 @@ schema-type their stable IDs, invalid-input flags, and protected/change counts.
   resource contributions, the resulting greedy ranking score, and selected
   flag. The evidence does not copy candidate payloads or claim global
   optimization.
+- `source_contact_allocation_report` and `source_station_calendar_report` are
+  optional direct nested V1 contracts. Their standalone validators run before
+  V2 consumes station availability, capacity, reservation, allocation, and
+  deferral evidence in station-pressure scoring and replacement ranking.
 - `approval_requirements` for moved contacts, reassigned observations, delayed
   maneuver impacts, cancellations, and degraded-mode suppressions.
 - Approval requirements include machine-readable `requirement_type` values so
