@@ -36,6 +36,9 @@ defmodule OrbitalDynamics.CampaignPlanner.ProviderReservationPressureBranches do
               "station_calendar_reserved_by" => event["station_calendar_reserved_by"],
               "station_calendar_reservation_statuses" =>
                 event["station_calendar_reservation_statuses"],
+              "station_reservation_expires_at_s" => event["station_reservation_expires_at_s"],
+              "station_reservation_expiration_status" =>
+                event["station_reservation_expiration_status"],
               "station_reservation_match_status" => event["station_reservation_match_status"]
             }
             |> compact_map.()
@@ -76,6 +79,9 @@ defmodule OrbitalDynamics.CampaignPlanner.ProviderReservationPressureBranches do
           "station_reserved_by" => row["station_reserved_by"],
           "station_reservation_status" =>
             normalized_status_token.(row["station_reservation_status"]),
+          "station_reservation_expires_at_s" => row["station_reservation_expires_at_s"],
+          "station_reservation_expiration_status" =>
+            normalized_status_token.(row["station_reservation_expiration_status"]),
           "station_reservation_match_status" => match_status,
           "provider_reservation_request_status" => request_status,
           "provider_reservation_row_scope" => row_scope,

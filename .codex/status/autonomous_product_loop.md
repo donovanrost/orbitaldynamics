@@ -5,34 +5,34 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Preserve list-valued reservation owner/status evidence in provider pressure.
+Apply selected-row reservation-expiration pressure to provider branches.
 
 Status:
 Verified; ready to publish.
 
 Selection evidence:
-- Provider-reservation rows preserve list-valued `station_calendar_reserved_by`
-  and `station_calendar_reservation_statuses` evidence beside scalar owner and
-  status fields.
-- Branch event normalization already supports both lists, but provider-pressure
-  construction and review-risk mapping omit them.
-- Branch comparison owner/status summaries currently inspect only scalar fields,
-  dropping additional selected-contact evidence.
+- Provider-reservation review rows can carry a reservation expiration deadline
+  and `expired`/`missing` classification tied to the selected contact ID.
+- Provider-pressure event/risk construction currently drops both fields, so the
+  existing reservation-expiration risk penalty cannot see that selected-row
+  evidence.
+- Branch comparison already summarizes event expiration statuses; it remains
+  empty on this path because the provider event omits the classification.
 
 Intended behavior:
-- Carry list-valued reservation owners and statuses through the selected
-  contact's provider-pressure event, risk indicator, and branch metadata.
-- Merge scalar and list-valued evidence into canonical branch comparison owner
-  and status lists without inventing aggregate planner effects.
-- Preserve request/review classification, scoring, approval, and execution
-  boundaries.
+- Carry the selected contact's expiration deadline and status through the
+  provider-pressure event, review risk, metadata, and comparison status list.
+- Let the existing expiration penalty count `expired`/`missing` selected-row
+  risks while retaining the independent provider-request penalty.
+- Do not derive planner effects from aggregate expiration counts or routes;
+  preserve request/review classification, approval, and execution boundaries.
 
 Level 6 pillar advanced:
 Fleet-scale planning decisions and durable reproducible audit handoffs.
 
 Planned files:
-- provider-pressure event/risk and branch-comparison evidence extraction
-- multi-owner/status branch proof, docs, and loop ledger
+- provider-pressure event/risk expiration evidence
+- selected-row expiration scoring/comparison proof, docs, and loop ledger
 
 Verification:
 - Focused provider-pressure branch handoff: `9 passed`.
@@ -43,21 +43,22 @@ Verification:
 - Full suite: `3883 passed`.
 
 Review:
-- Provider-pressure events and their high-severity review risks retain the
-  selected row's list-valued reservation owners and statuses beside the scalar
-  owner and status.
-- Branch provenance metadata retains both lists; branch comparison merges their
-  scalar/list evidence into canonical owner and status lists.
-- The multi-owner/status proof preserves request/review classification, policy
-  blocking, risk scoring, and the existing comparison schema; generated schemas
-  and golden artifacts do not change.
-- No aggregate reservation evidence creates a planner effect, and all
-  no-provider-request, no-reservation, no-schedule-mutation, no-Cadence-write,
-  no-operator-authority, and no-autonomous-execution boundaries remain intact.
+- Provider-pressure events, review risks, and provenance metadata retain the
+  selected contact's reservation expiration deadline and classification.
+- Branch comparison exposes the selected provider row's expiration status;
+  exactly one expiration risk is attributed to that contact in the challenge.
+- Existing scoring counts each distinct `expired`/`missing` risk once and keeps
+  the provider-request and reservation-expiration penalties independently
+  auditable in the score-term report.
+- Aggregate expiration counts/routes still cannot create a branch or planner
+  effect; generated schemas and golden artifacts do not change.
+- All no-provider-request, no-reservation, no-schedule-mutation,
+  no-Cadence-write, no-operator-authority, and no-autonomous-execution
+  boundaries remain intact.
 - Local review found no publish blocker.
 
 Last published slice:
-- `239d2570` Preserve provider pressure reservation identities (`3883 passed`).
+- `dc0875a5` Preserve provider pressure reservation context (`3883 passed`).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions while preserving explicit
@@ -68,8 +69,8 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-Audit selected-row reservation-expiration context for provider-pressure branch
-loss before broadening any planner effect.
+Audit selected-row station-calendar entry/provider identity loss in
+provider-pressure branches.
 
 Blocked:
 None.

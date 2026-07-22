@@ -758,7 +758,9 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyContactAllocationPressureTest 
         &Map.merge(&1, %{
           "station_reserved_by" => "ops_primary",
           "station_calendar_reserved_by" => ["ops_backup", "ops_primary"],
-          "station_calendar_reservation_statuses" => ["confirmed", "tentative"]
+          "station_calendar_reservation_statuses" => ["confirmed", "tentative"],
+          "station_reservation_expires_at_s" => 360.0,
+          "station_reservation_expiration_status" => "expired"
         })
       )
 
@@ -1096,6 +1098,8 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyContactAllocationPressureTest 
              "station_reserved_by" => "ops_primary",
              "station_calendar_reserved_by" => ["ops_backup", "ops_primary"],
              "station_calendar_reservation_statuses" => ["confirmed", "tentative"],
+             "station_reservation_expires_at_s" => 360.0,
+             "station_reservation_expiration_status" => "expired",
              "station_reservation_match_status" => "overlap",
              "provider_reservation_request_status" => "review_required",
              "provider_reservation_row_scope" => "review",
@@ -1125,7 +1129,9 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyContactAllocationPressureTest 
                    "summary_provider_reservation_review_backup"
                  ] and
                  &1["station_calendar_reserved_by"] == ["ops_backup", "ops_primary"] and
-                 &1["station_calendar_reservation_statuses"] == ["confirmed", "tentative"])
+                 &1["station_calendar_reservation_statuses"] == ["confirmed", "tentative"] and
+                 &1["station_reservation_expires_at_s"] == 360.0 and
+                 &1["station_reservation_expiration_status"] == "expired")
            )
 
     assert get_in(provider_branch, [
@@ -1149,6 +1155,18 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyContactAllocationPressureTest 
              "station_calendar_reservation_statuses"
            ]) == ["confirmed", "tentative"]
 
+    assert get_in(provider_branch, [
+             "provenance",
+             "branch_metadata",
+             "station_reservation_expires_at_s"
+           ]) == 360.0
+
+    assert get_in(provider_branch, [
+             "provenance",
+             "branch_metadata",
+             "station_reservation_expiration_status"
+           ]) == "expired"
+
     assert_provider_reservation_request_pressure_score_terms(provider_branch, artifact)
 
     provider_row =
@@ -1171,6 +1189,35 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyContactAllocationPressureTest 
              "confirmed",
              "tentative"
            ]
+
+    assert provider_row["branch_station_reservation_expiration_statuses"] == ["expired"]
+
+    risk_weight =
+      get_in(artifact, ["score_term_report", "assumptions", "policy", "risk_weight"])
+
+    assert Enum.count(
+             provider_branch["risk_indicators"],
+             &(&1["contact_id"] == "summary_provider_dl_review_overlap" and
+                 &1["station_reservation_expiration_status"] == "expired")
+           ) == 1
+
+    expiration_pressure_count =
+      Enum.count(
+        provider_branch["risk_indicators"],
+        &(&1["station_reservation_expiration_status"] in ["expired", "missing"])
+      )
+
+    provider_expiration_penalty =
+      provider_branch["score_terms"]["station_reservation_expiration_pressure_penalty"]
+
+    assert provider_expiration_penalty == -expiration_pressure_count * risk_weight
+
+    assert Enum.any?(
+             artifact["score_term_report"]["rows"],
+             &(&1["branch_id"] == provider_branch["branch_id"] and
+                 &1["term_key"] == "station_reservation_expiration_pressure_penalty" and
+                 &1["value"] == provider_expiration_penalty)
+           )
 
     refute Enum.any?(
              artifact["branch_comparison_report"]["rows"],
