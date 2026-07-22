@@ -134,7 +134,7 @@ defmodule OrbitalDynamics.Validation.CandidateRefreshStationAllocationReplayFixt
                "contact_allocation_provider_reservation_request_summary.v1" => 1,
                "contact_allocation_reservation_conflict_summary.v1" => 1
              },
-             "source_contact_allocation_reservation_conflict_contact_count" => 3,
+             "source_contact_allocation_reservation_conflict_contact_count" => 2,
              "source_contact_allocation_reservation_conflict_contact_ids_by_direction_and_ground_station" =>
                %{
                  "command" => %{"equator_prime" => ["dl_review_overlap"]},

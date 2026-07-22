@@ -523,6 +523,95 @@ defmodule OrbitalDynamics.CandidateRefresh.ContactAllocationPressureMapReplaySum
     assert replay_summary["branch_local_station_pressure"]
   end
 
+  test "contact allocation replay correlates reservation-conflict identity routing" do
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "provenance" => %{
+        "source_reports" => %{
+          "contact_allocation_report" => %{
+            "contract" => "contact_allocation_report.v1",
+            "count" => 1,
+            "reservation_conflict_contact_count" => 99,
+            "reservation_conflict_contact_ids" => ["direct_conflict"],
+            "reservation_conflict_contact_ids_by_match_status" => %{
+              "overlap" => ["match_b", "match_a", "match_a"],
+              "invalid status" => ["orphan_contact"]
+            },
+            "reservation_conflict_reservation_ids_by_match_status" => %{
+              "overlap" => ["reservation_b", "reservation_a"],
+              "invalid status" => ["orphan_reservation"]
+            },
+            "reservation_conflict_contact_ids_by_direction" => %{
+              "Down Link" => ["direction_only"],
+              "nil" => ["orphan_contact"]
+            },
+            "reservation_conflict_contact_ids_by_direction_and_ground_station" => %{
+              "dl" => %{
+                "equator_prime" => ["nested_only"],
+                "invalid station" => ["orphan_contact"]
+              }
+            }
+          }
+        }
+      }
+    }
+
+    source_summary = CandidateRefresh.source_report_summary(artifact)
+    replay_summary = CandidateRefresh.contact_allocation_replay_summary(artifact)
+
+    expected_ids = [
+      "direct_conflict",
+      "direction_only",
+      "match_a",
+      "match_b",
+      "nested_only"
+    ]
+
+    assert source_summary[
+             "source_report_contact_allocation_reservation_conflict_contact_count"
+           ] == 5
+
+    assert source_summary["source_report_contact_allocation_reservation_conflict_contact_ids"] ==
+             expected_ids
+
+    assert source_summary[
+             "source_report_contact_allocation_reservation_conflict_contact_ids_by_match_status"
+           ] == %{"overlap" => ["match_a", "match_b"]}
+
+    assert source_summary[
+             "source_report_contact_allocation_reservation_conflict_reservation_ids_by_match_status"
+           ] == %{"overlap" => ["reservation_a", "reservation_b"]}
+
+    assert source_summary[
+             "source_report_contact_allocation_reservation_conflict_contact_ids_by_direction"
+           ] == %{"downlink" => ["direction_only"]}
+
+    assert source_summary[
+             "source_report_contact_allocation_reservation_conflict_contact_ids_by_direction_and_ground_station"
+           ] == %{"downlink" => %{"equator_prime" => ["nested_only"]}}
+
+    assert replay_summary["reservation_conflict_contact_count"] == 5
+    assert replay_summary["reservation_conflict_contact_ids"] == expected_ids
+
+    assert replay_summary["reservation_conflict_contact_ids_by_match_status"] == %{
+             "overlap" => ["match_a", "match_b"]
+           }
+
+    assert replay_summary["reservation_conflict_reservation_ids_by_match_status"] == %{
+             "overlap" => ["reservation_a", "reservation_b"]
+           }
+
+    assert replay_summary["reservation_conflict_contact_ids_by_direction"] == %{
+             "downlink" => ["direction_only"]
+           }
+
+    assert replay_summary[
+             "reservation_conflict_contact_ids_by_direction_and_ground_station"
+           ] == %{"downlink" => %{"equator_prime" => ["nested_only"]}}
+
+    assert replay_summary["branch_local_reservation_conflict_pressure"]
+  end
+
   test "contact allocation replay correlates resource-blocking routes" do
     artifact = %{
       "schema_contract" => "candidate_refresh.v1",

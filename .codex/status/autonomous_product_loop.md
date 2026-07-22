@@ -5,51 +5,58 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Correlate station-pressure review identity and count.
+Correlate reservation-conflict identity and routing.
 
 Status:
 Verified; ready to publish.
 
 Selection evidence:
-- Station-pressure review IDs currently accept arbitrary strings, and their
-  derived unique-contact count can include invalid identity.
-- When review IDs are present they are authoritative for the exact unique review
-  count; scalar-only summaries must retain their fallback count.
-- Raw station-pressure review rows already provide authoritative identity.
+- Reservation-conflict count currently unions direct and routed arbitrary
+  strings, while the emitted top-level IDs and routes remain uncorrelated.
+- Direct, match-status, direction, and direction/station identity are all compact
+  evidence for the same exact unique conflict-contact count.
+- Raw reservation-conflict rows already provide authoritative routing identity.
 
 Intended behavior:
-- Canonicalize station-pressure review IDs as sorted unique stable identity.
-- Derive the exact unique review count when an ID list is present; preserve a
-  valid scalar fallback when identity is absent.
-- Reject noncanonical or contradictory supplied compact identity/count pairs.
+- Canonicalize direct and routed conflict contact IDs plus match-status
+  reservation IDs, direction aliases, and station keys.
+- Rebuild top-level conflict identity from all contact routes and derive its
+  exact unique count; retain scalar-only fallback evidence.
+- Reject noncanonical or contradictory supplied compact conflict routing.
 
 Level 6 pillar advanced:
 Fleet-scale planning decisions and durable reproducible audit handoffs.
 
 Planned files:
-- station-pressure review correlation across raw/flattened/replay/schema
-- invalid-ID, duplicate, ordering, contradictory-count, and scalar-only tests
+- reservation-conflict correlation across raw/flattened/replay/schema
+- route-only, invalid-ID, alias, contradictory-count, and scalar-only tests
 - allocation artifact documentation and autonomous-loop ledger
 
 Verification:
-- Focused station-pressure replay/schema challenges: `26 passed`.
-- Contact-allocation family: `191 passed`.
-- Golden artifacts: `12 passed`.
-- Schema lint: `155` artifacts, no errors or warnings.
-- Full suite: `3821 passed`.
+- Focused reservation-conflict replay/schema proofs: `27 passed`.
+- Validation fixture/rollup proofs: `5 passed`.
+- Contact-allocation family: `192 passed`.
+- Golden artifact suite: `12 passed`.
+- Schema lint: `155` artifacts, `0` errors, `0` warnings.
+- Full suite: `3822 passed`.
 - `mix format` and `git diff --check` passed.
 
 Review:
-- One shared correlation boundary governs raw, flattened, replay, and schema.
-- Explicit review IDs are stable, sorted, unique, and define the exact count;
-  scalar-only summaries retain a valid nonnegative fallback.
-- Compact validation rejects noncanonical IDs and contradictory counts.
-- Focused proof corrected an over-broad pressure assertion: station-review
-  evidence intentionally sets station pressure, not generic allocation pressure.
-- Provider, schedule, Cadence-write, and planner-effect boundaries are unchanged.
+- One shared correlation boundary now serves raw summaries, flattened source
+  fields, compact replay, and schema validation.
+- Direct, match-status, direction, and nested direction/station routes rebuild
+  one canonical top-level identity union and exact unique-contact count;
+  reservation IDs remain routing evidence rather than contact identity.
+- Direction aliases, status/station keys, and stable IDs canonicalize before
+  merge. Scalar-only count evidence and compact replay zero elision remain.
+- The family gate exposed correlation ordering after aggregate direction
+  rebuilding; moving correlation before that rebuild keeps both views aligned.
+- Full validation exposed three routed memberships for two unique contacts; the
+  reference expectation and generated rollup now record the exact count of two.
+- Provider, schedule, Cadence, and planner-effect boundaries are unchanged.
 
 Last published slice:
-- `b9e7d4a7` Canonicalize allocation review identities (`3820 passed`).
+- `17deccde` Correlate station pressure review identity (`3821 passed`).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions while preserving explicit
@@ -60,7 +67,7 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-After publish, audit reservation-conflict identity/count correlation.
+After publish, audit reservation-conflict local count-map correlation.
 
 Blocked:
 None.

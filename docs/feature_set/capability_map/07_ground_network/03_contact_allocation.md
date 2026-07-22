@@ -92,7 +92,9 @@ The contact-filter, contact-contention, contact-intent, and command-window repor
 - row-derived direction counts/contact-ID maps plus station-pressure and
   reservation-conflict direction and direction/ground-station routing,
   preserved through candidate-refresh contact-allocation replay for branch-local
-  direction-scoped review queues
+  direction-scoped review queues. Reservation-conflict direct and routed stable
+  IDs form one canonical top-level identity union and exact unique-contact count,
+  with direction aliases and nested station keys normalized before replay
 - invalid-input, duplicate-contact-ID, status-blocked, and resource-blocked
   counts/contact IDs plus resource-blocked maps by blocking dimension and
   spacecraft, preserved through candidate-refresh contact-allocation replay for

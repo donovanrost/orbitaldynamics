@@ -288,6 +288,11 @@ Station-pressure review identity has an exact unique-contact count: when its ID
 list is present, replay canonicalizes stable IDs and derives the count from that
 list; scalar-only summaries retain their fallback count. Compact validation
 rejects noncanonical IDs or a contradictory supplied count.
+Reservation-conflict identity similarly unifies direct IDs with match-status,
+direction, and direction/station routes. Replay canonicalizes stable contact,
+reservation, and station IDs plus direction aliases, rebuilds top-level contact
+identity from every route, and derives the exact unique conflict count while
+retaining scalar-only fallback evidence; compact validation rejects drift.
 Invalid-input, status-blocked, and resource-blocked count/ID pairs use the same
 identity-first rule. Their top-level lists remain canonical review evidence when
 a compact scalar is absent or undersized; valid occurrence counts may exceed

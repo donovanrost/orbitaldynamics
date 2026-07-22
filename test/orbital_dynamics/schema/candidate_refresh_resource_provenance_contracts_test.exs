@@ -550,6 +550,20 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshResourceProvenanceContractsTest
         "review_contact_ids" => ["review_a", "review_b"],
         "station_pressure_review_contact_count" => 2,
         "station_pressure_review_contact_ids" => ["station_review_a", "station_review_b"],
+        "reservation_conflict_contact_count" => 2,
+        "reservation_conflict_contact_ids" => ["conflict_a", "conflict_b"],
+        "reservation_conflict_contact_ids_by_match_status" => %{
+          "overlap" => ["conflict_a", "conflict_b"]
+        },
+        "reservation_conflict_reservation_ids_by_match_status" => %{
+          "overlap" => ["reservation_a", "reservation_b"]
+        },
+        "reservation_conflict_contact_ids_by_direction" => %{
+          "downlink" => ["conflict_a", "conflict_b"]
+        },
+        "reservation_conflict_contact_ids_by_direction_and_ground_station" => %{
+          "downlink" => %{"equator_prime" => ["conflict_a", "conflict_b"]}
+        },
         "resource_blocked_contact_count" => 2,
         "resource_blocked_contact_ids" => ["resource_a", "resource_b"],
         "resource_blocking_dimension_counts" => %{"antenna" => 2},
@@ -570,7 +584,8 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshResourceProvenanceContractsTest
             "provider_reservation_no_request_contact_ids" => [],
             "provider_reservation_request_contact_ids" => [],
             "provider_reservation_review_contact_ids" => [],
-            "reservation_conflict_contact_ids" => [],
+            "reservation_conflict_contact_count" => 2,
+            "reservation_conflict_contact_ids" => ["conflict_a", "conflict_b"],
             "station_pressure_contact_ids" => []
           }
         }
@@ -706,6 +721,53 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshResourceProvenanceContractsTest
              noncanonical_station_pressure_review_ids_report["errors"],
              &(&1["path"] ==
                  "$.provenance.source_reports.contact_allocation_report.station_pressure_review_contact_ids")
+           )
+
+    contradictory_reservation_conflict_count =
+      put_in(
+        artifact_with_allocation_direction_summary,
+        [
+          "provenance",
+          "source_reports",
+          "contact_allocation_report",
+          "reservation_conflict_contact_count"
+        ],
+        1
+      )
+
+    assert {:error, contradictory_reservation_conflict_count_report} =
+             Schema.validate_artifact(contradictory_reservation_conflict_count)
+
+    assert Enum.any?(
+             contradictory_reservation_conflict_count_report["errors"],
+             &(&1["path"] ==
+                 "$.provenance.source_reports.contact_allocation_report.reservation_conflict_contact_count")
+           )
+
+    noncanonical_reservation_conflict_nested_route =
+      put_in(
+        artifact_with_allocation_direction_summary,
+        [
+          "provenance",
+          "source_reports",
+          "contact_allocation_report",
+          "reservation_conflict_contact_ids_by_direction_and_ground_station"
+        ],
+        %{
+          "Down Link" => %{
+            "equator_prime" => ["conflict_b", "conflict_a", "conflict_a"],
+            "invalid station" => ["orphan_contact"]
+          }
+        }
+      )
+
+    assert {:error, noncanonical_reservation_conflict_nested_route_report} =
+             Schema.validate_artifact(noncanonical_reservation_conflict_nested_route)
+
+    assert Enum.any?(
+             noncanonical_reservation_conflict_nested_route_report["errors"],
+             &(&1["path"] ==
+                 "$.provenance.source_reports.contact_allocation_report.reservation_conflict_contact_ids_by_direction_and_ground_station")
            )
 
     over_cardinality_allocation_reason_ids =
