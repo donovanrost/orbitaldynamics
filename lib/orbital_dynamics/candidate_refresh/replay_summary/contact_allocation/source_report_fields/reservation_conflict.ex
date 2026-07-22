@@ -17,6 +17,11 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.ContactAllocation.Sourc
             source_reports,
             "reservation_conflict_contact_ids"
           ),
+        "reservation_conflict_match_status_counts" =>
+          source_report_family_merge_count_maps(
+            source_reports,
+            "reservation_conflict_match_status_counts"
+          ),
         "reservation_conflict_contact_ids_by_match_status" =>
           source_report_family_merge_string_list_maps(
             source_reports,
@@ -26,6 +31,11 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.ContactAllocation.Sourc
           source_report_family_merge_string_list_maps(
             source_reports,
             "reservation_conflict_reservation_ids_by_match_status"
+          ),
+        "reservation_conflict_direction_counts" =>
+          source_report_family_merge_count_maps(
+            source_reports,
+            "reservation_conflict_direction_counts"
           ),
         "reservation_conflict_contact_ids_by_direction" =>
           source_report_family_merge_string_list_maps(
@@ -45,19 +55,13 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.ContactAllocation.Sourc
       "source_report_contact_allocation_reservation_conflict_contact_ids" =>
         Map.get(conflict_fields, "reservation_conflict_contact_ids"),
       "source_report_contact_allocation_reservation_conflict_match_status_counts" =>
-        source_report_family_merge_count_maps(
-          source_reports,
-          "reservation_conflict_match_status_counts"
-        ),
+        Map.get(conflict_fields, "reservation_conflict_match_status_counts"),
       "source_report_contact_allocation_reservation_conflict_contact_ids_by_match_status" =>
         Map.get(conflict_fields, "reservation_conflict_contact_ids_by_match_status"),
       "source_report_contact_allocation_reservation_conflict_reservation_ids_by_match_status" =>
         Map.get(conflict_fields, "reservation_conflict_reservation_ids_by_match_status"),
       "source_report_contact_allocation_reservation_conflict_direction_counts" =>
-        source_report_family_merge_count_maps(
-          source_reports,
-          "reservation_conflict_direction_counts"
-        ),
+        Map.get(conflict_fields, "reservation_conflict_direction_counts"),
       "source_report_contact_allocation_reservation_conflict_contact_ids_by_direction" =>
         Map.get(conflict_fields, "reservation_conflict_contact_ids_by_direction"),
       "source_report_contact_allocation_reservation_conflict_contact_ids_by_direction_and_ground_station" =>

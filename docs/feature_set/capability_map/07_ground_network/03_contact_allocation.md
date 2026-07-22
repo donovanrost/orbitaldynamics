@@ -95,6 +95,8 @@ The contact-filter, contact-contention, contact-intent, and command-window repor
   direction-scoped review queues. Reservation-conflict direct and routed stable
   IDs form one canonical top-level identity union and exact unique-contact count,
   with direction aliases and nested station keys normalized before replay
+  and match-status/direction count maps retained only when positive canonical
+  local counts bound their routed contact and reservation identities
 - invalid-input, duplicate-contact-ID, status-blocked, and resource-blocked
   counts/contact IDs plus resource-blocked maps by blocking dimension and
   spacecraft, preserved through candidate-refresh contact-allocation replay for

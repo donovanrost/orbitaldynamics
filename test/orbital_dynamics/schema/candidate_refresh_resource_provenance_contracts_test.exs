@@ -552,12 +552,14 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshResourceProvenanceContractsTest
         "station_pressure_review_contact_ids" => ["station_review_a", "station_review_b"],
         "reservation_conflict_contact_count" => 2,
         "reservation_conflict_contact_ids" => ["conflict_a", "conflict_b"],
+        "reservation_conflict_match_status_counts" => %{"overlap" => 2},
         "reservation_conflict_contact_ids_by_match_status" => %{
           "overlap" => ["conflict_a", "conflict_b"]
         },
         "reservation_conflict_reservation_ids_by_match_status" => %{
           "overlap" => ["reservation_a", "reservation_b"]
         },
+        "reservation_conflict_direction_counts" => %{"downlink" => 2},
         "reservation_conflict_contact_ids_by_direction" => %{
           "downlink" => ["conflict_a", "conflict_b"]
         },
@@ -768,6 +770,48 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshResourceProvenanceContractsTest
              noncanonical_reservation_conflict_nested_route_report["errors"],
              &(&1["path"] ==
                  "$.provenance.source_reports.contact_allocation_report.reservation_conflict_contact_ids_by_direction_and_ground_station")
+           )
+
+    noncanonical_reservation_conflict_direction_counts =
+      put_in(
+        artifact_with_allocation_direction_summary,
+        [
+          "provenance",
+          "source_reports",
+          "contact_allocation_report",
+          "reservation_conflict_direction_counts"
+        ],
+        %{"Down Link" => 2}
+      )
+
+    assert {:error, noncanonical_reservation_conflict_direction_counts_report} =
+             Schema.validate_artifact(noncanonical_reservation_conflict_direction_counts)
+
+    assert Enum.any?(
+             noncanonical_reservation_conflict_direction_counts_report["errors"],
+             &(&1["path"] ==
+                 "$.provenance.source_reports.contact_allocation_report.reservation_conflict_direction_counts")
+           )
+
+    undersized_reservation_conflict_match_status_counts =
+      put_in(
+        artifact_with_allocation_direction_summary,
+        [
+          "provenance",
+          "source_reports",
+          "contact_allocation_report",
+          "reservation_conflict_match_status_counts"
+        ],
+        %{"overlap" => 1}
+      )
+
+    assert {:error, undersized_reservation_conflict_match_status_counts_report} =
+             Schema.validate_artifact(undersized_reservation_conflict_match_status_counts)
+
+    assert Enum.any?(
+             undersized_reservation_conflict_match_status_counts_report["errors"],
+             &(&1["path"] ==
+                 "$.provenance.source_reports.contact_allocation_report.reservation_conflict_match_status_counts")
            )
 
     over_cardinality_allocation_reason_ids =

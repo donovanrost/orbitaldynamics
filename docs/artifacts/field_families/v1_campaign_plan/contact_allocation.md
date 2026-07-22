@@ -293,6 +293,10 @@ direction, and direction/station routes. Replay canonicalizes stable contact,
 reservation, and station IDs plus direction aliases, rebuilds top-level contact
 identity from every route, and derives the exact unique conflict count while
 retaining scalar-only fallback evidence; compact validation rejects drift.
+Its match-status and direction count maps also use canonical positive keys.
+Count-only and route-only evidence remain available, while a local count smaller
+than its routed contact or reservation identity cardinality is discarded during
+replay and rejected in a supplied compact source report.
 Invalid-input, status-blocked, and resource-blocked count/ID pairs use the same
 identity-first rule. Their top-level lists remain canonical review evidence when
 a compact scalar is absent or undersized; valid occurrence counts may exceed

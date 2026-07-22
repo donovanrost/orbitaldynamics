@@ -533,6 +533,11 @@ defmodule OrbitalDynamics.CandidateRefresh.ContactAllocationPressureMapReplaySum
             "count" => 1,
             "reservation_conflict_contact_count" => 99,
             "reservation_conflict_contact_ids" => ["direct_conflict"],
+            "reservation_conflict_match_status_counts" => %{
+              "overlap" => 2,
+              "count_only" => 3,
+              "invalid status" => 4
+            },
             "reservation_conflict_contact_ids_by_match_status" => %{
               "overlap" => ["match_b", "match_a", "match_a"],
               "invalid status" => ["orphan_contact"]
@@ -540,6 +545,12 @@ defmodule OrbitalDynamics.CandidateRefresh.ContactAllocationPressureMapReplaySum
             "reservation_conflict_reservation_ids_by_match_status" => %{
               "overlap" => ["reservation_b", "reservation_a"],
               "invalid status" => ["orphan_reservation"]
+            },
+            "reservation_conflict_direction_counts" => %{
+              "Down Link" => 1,
+              "dl" => 1,
+              "tracking" => 2,
+              "nil" => 4
             },
             "reservation_conflict_contact_ids_by_direction" => %{
               "Down Link" => ["direction_only"],
@@ -579,6 +590,10 @@ defmodule OrbitalDynamics.CandidateRefresh.ContactAllocationPressureMapReplaySum
            ] == %{"overlap" => ["match_a", "match_b"]}
 
     assert source_summary[
+             "source_report_contact_allocation_reservation_conflict_match_status_counts"
+           ] == %{"count_only" => 3, "overlap" => 2}
+
+    assert source_summary[
              "source_report_contact_allocation_reservation_conflict_reservation_ids_by_match_status"
            ] == %{"overlap" => ["reservation_a", "reservation_b"]}
 
@@ -587,11 +602,20 @@ defmodule OrbitalDynamics.CandidateRefresh.ContactAllocationPressureMapReplaySum
            ] == %{"downlink" => ["direction_only"]}
 
     assert source_summary[
+             "source_report_contact_allocation_reservation_conflict_direction_counts"
+           ] == %{"downlink" => 2, "tracking" => 2}
+
+    assert source_summary[
              "source_report_contact_allocation_reservation_conflict_contact_ids_by_direction_and_ground_station"
            ] == %{"downlink" => %{"equator_prime" => ["nested_only"]}}
 
     assert replay_summary["reservation_conflict_contact_count"] == 5
     assert replay_summary["reservation_conflict_contact_ids"] == expected_ids
+
+    assert replay_summary["reservation_conflict_match_status_counts"] == %{
+             "count_only" => 3,
+             "overlap" => 2
+           }
 
     assert replay_summary["reservation_conflict_contact_ids_by_match_status"] == %{
              "overlap" => ["match_a", "match_b"]
@@ -603,6 +627,11 @@ defmodule OrbitalDynamics.CandidateRefresh.ContactAllocationPressureMapReplaySum
 
     assert replay_summary["reservation_conflict_contact_ids_by_direction"] == %{
              "downlink" => ["direction_only"]
+           }
+
+    assert replay_summary["reservation_conflict_direction_counts"] == %{
+             "downlink" => 2,
+             "tracking" => 2
            }
 
     assert replay_summary[
