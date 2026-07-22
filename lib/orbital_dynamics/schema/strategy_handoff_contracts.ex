@@ -16,6 +16,7 @@ defmodule OrbitalDynamics.Schema.StrategyHandoffContracts do
   ]
   @branch_window_context_field_pairs [
     {"branch_source_window_ids", "branch_source_window_ids"},
+    {"branch_source_window_bounds", "branch_source_window_bounds"},
     {"branch_earliest_starts_at_s", "branch_earliest_starts_at_s"},
     {"branch_latest_ends_at_s", "branch_latest_ends_at_s"}
   ]
@@ -63,6 +64,7 @@ defmodule OrbitalDynamics.Schema.StrategyHandoffContracts do
                                                     "quality_gate_resource_availability_reason_ids",
                                                     "quality_gate_unavailable_resource_reason_ids",
                                                     "branch_source_window_ids",
+                                                    "branch_source_window_bounds",
                                                     "branch_earliest_starts_at_s",
                                                     "branch_latest_ends_at_s",
                                                     "source_recommendation"
@@ -89,6 +91,7 @@ defmodule OrbitalDynamics.Schema.StrategyHandoffContracts do
     {"branch_target_ids", "branch_target_ids"},
     {"branch_source_activity_ids", "branch_source_activity_ids"},
     {"branch_source_window_ids", "branch_source_window_ids"},
+    {"branch_source_window_bounds", "branch_source_window_bounds"},
     {"branch_earliest_starts_at_s", "branch_earliest_starts_at_s"},
     {"branch_latest_ends_at_s", "branch_latest_ends_at_s"},
     {"capacity_pack_statuses", "capacity_pack_statuses"},
@@ -112,6 +115,7 @@ defmodule OrbitalDynamics.Schema.StrategyHandoffContracts do
     {"branch_target_ids", "branch_target_ids"},
     {"branch_source_activity_ids", "branch_source_activity_ids"},
     {"branch_source_window_ids", "branch_source_window_ids"},
+    {"branch_source_window_bounds", "branch_source_window_bounds"},
     {"branch_earliest_starts_at_s", "branch_earliest_starts_at_s"},
     {"branch_latest_ends_at_s", "branch_latest_ends_at_s"},
     {"branch_actual_downlink_completion_ratio", "branch_actual_downlink_completion_ratio"},
@@ -138,6 +142,7 @@ defmodule OrbitalDynamics.Schema.StrategyHandoffContracts do
                                               "branch_target_ids",
                                               "branch_source_activity_ids",
                                               "branch_source_window_ids",
+                                              "branch_source_window_bounds",
                                               "branch_earliest_starts_at_s",
                                               "branch_latest_ends_at_s",
                                               "capacity_pack_statuses",

@@ -3,7 +3,8 @@ defmodule OrbitalDynamics.Schema.BranchEventContracts do
 
   alias OrbitalDynamics.Schema.CandidateDiffContracts
 
-  import OrbitalDynamics.Schema.CollectionValidation, only: [validate_numeric_map: 3]
+  import OrbitalDynamics.Schema.CollectionValidation,
+    only: [validate_numeric_map: 3, validate_rows: 4]
 
   import OrbitalDynamics.Schema.PrimitiveValidation,
     only: [
@@ -552,6 +553,8 @@ defmodule OrbitalDynamics.Schema.BranchEventContracts do
     |> expect_optional_type(path, row, "branch_source_window_ids", :list)
     |> validate_optional_stable_id_list(path, row, "branch_source_window_ids")
     |> validate_canonical_branch_source_window_ids(path, row)
+    |> expect_optional_type(path, row, "branch_source_window_bounds", :list)
+    |> validate_branch_source_window_bounds(path, row)
     |> expect_optional_number(path, row, "branch_earliest_starts_at_s")
     |> expect_optional_number(path, row, "branch_latest_ends_at_s")
     |> validate_branch_window_bounds(path, row)
@@ -587,6 +590,101 @@ defmodule OrbitalDynamics.Schema.BranchEventContracts do
         issues
     end
   end
+
+  defp validate_branch_source_window_bounds(issues, path, row) do
+    bounds = Map.get(row, "branch_source_window_bounds")
+    bounds_path = "#{path}.branch_source_window_bounds"
+
+    issues
+    |> validate_rows(bounds_path, bounds, &validate_branch_source_window_bound/3)
+    |> validate_canonical_branch_source_window_bounds(bounds_path, bounds)
+    |> validate_branch_source_window_bound_ids(path, row, bounds)
+  end
+
+  defp validate_branch_source_window_bound(issues, path, bound) do
+    issues
+    |> require_fields(path, bound, ["source_window_id"])
+    |> expect_type(path, bound, "source_window_id", :binary)
+    |> validate_stable_ids(path, bound, ["source_window_id"])
+    |> expect_optional_number(path, bound, "earliest_starts_at_s")
+    |> expect_optional_number(path, bound, "latest_ends_at_s")
+    |> validate_branch_source_window_bound_value(path, bound)
+    |> validate_branch_source_window_bound_order(path, bound)
+  end
+
+  defp validate_branch_source_window_bound_value(issues, path, bound) do
+    if Map.has_key?(bound, "earliest_starts_at_s") or
+         Map.has_key?(bound, "latest_ends_at_s") do
+      issues
+    else
+      [error(path, "must include earliest_starts_at_s or latest_ends_at_s") | issues]
+    end
+  end
+
+  defp validate_branch_source_window_bound_order(issues, path, bound) do
+    earliest_starts_at_s = Map.get(bound, "earliest_starts_at_s")
+    latest_ends_at_s = Map.get(bound, "latest_ends_at_s")
+
+    if is_number(earliest_starts_at_s) and is_number(latest_ends_at_s) and
+         latest_ends_at_s < earliest_starts_at_s do
+      [
+        error(
+          "#{path}.latest_ends_at_s",
+          "must be greater than or equal to earliest_starts_at_s"
+        )
+        | issues
+      ]
+    else
+      issues
+    end
+  end
+
+  defp validate_canonical_branch_source_window_bounds(issues, path, bounds)
+       when is_list(bounds) do
+    source_window_ids =
+      Enum.map(bounds, fn
+        %{} = bound -> Map.get(bound, "source_window_id")
+        _bound -> nil
+      end)
+
+    if Enum.all?(source_window_ids, &is_binary/1) and
+         source_window_ids == source_window_ids |> Enum.uniq() |> Enum.sort() do
+      issues
+    else
+      [error(path, "must be sorted by unique source_window_id") | issues]
+    end
+  end
+
+  defp validate_canonical_branch_source_window_bounds(issues, _path, _bounds), do: issues
+
+  defp validate_branch_source_window_bound_ids(issues, path, row, bounds)
+       when is_list(bounds) and bounds != [] do
+    source_window_ids = Map.get(row, "branch_source_window_ids")
+
+    bound_source_window_ids =
+      Enum.flat_map(bounds, fn
+        %{"source_window_id" => source_window_id} when is_binary(source_window_id) ->
+          [source_window_id]
+
+        _bound ->
+          []
+      end)
+
+    if is_list(source_window_ids) and
+         Enum.all?(bound_source_window_ids, &(&1 in source_window_ids)) do
+      issues
+    else
+      [
+        error(
+          "#{path}.branch_source_window_bounds",
+          "must reference branch_source_window_ids"
+        )
+        | issues
+      ]
+    end
+  end
+
+  defp validate_branch_source_window_bound_ids(issues, _path, _row, _bounds), do: issues
 
   defp validate_branch_window_bounds(issues, path, row) do
     earliest_starts_at_s = Map.get(row, "branch_earliest_starts_at_s")

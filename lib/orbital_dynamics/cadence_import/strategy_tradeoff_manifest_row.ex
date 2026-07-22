@@ -55,6 +55,7 @@ defmodule OrbitalDynamics.CadenceImport.StrategyTradeoffManifestRow do
       "branch_missed_downlink_activity_ids" => row["branch_missed_downlink_activity_ids"],
       "branch_source_activity_ids" => row["branch_source_activity_ids"],
       "branch_source_window_ids" => row["branch_source_window_ids"],
+      "branch_source_window_bounds" => row["branch_source_window_bounds"],
       "branch_earliest_starts_at_s" => row["branch_earliest_starts_at_s"],
       "branch_latest_ends_at_s" => row["branch_latest_ends_at_s"],
       "branch_directions" => row["branch_directions"],

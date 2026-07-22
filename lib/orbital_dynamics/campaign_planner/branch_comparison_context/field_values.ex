@@ -25,6 +25,37 @@ defmodule OrbitalDynamics.CampaignPlanner.BranchComparisonContext.FieldValues do
     |> Enum.sort()
   end
 
+  def branch_source_window_bounds(events) do
+    events
+    |> Enum.reduce(%{}, fn event, bounds_by_id ->
+      source_window_ids =
+        branch_event_unique_values([event], ["source_window_id", "source_window_ids"])
+
+      earliest_starts_at_s = numeric_or_nil(Map.get(event, "starts_at_s"))
+      latest_ends_at_s = numeric_or_nil(Map.get(event, "ends_at_s"))
+
+      if source_window_ids == [] or
+           (is_nil(earliest_starts_at_s) and is_nil(latest_ends_at_s)) do
+        bounds_by_id
+      else
+        Enum.reduce(source_window_ids, bounds_by_id, fn source_window_id, acc ->
+          Map.update(
+            acc,
+            source_window_id,
+            source_window_bound(source_window_id, earliest_starts_at_s, latest_ends_at_s),
+            fn bound ->
+              bound
+              |> put_minimum("earliest_starts_at_s", earliest_starts_at_s)
+              |> put_maximum("latest_ends_at_s", latest_ends_at_s)
+            end
+          )
+        end)
+      end
+    end)
+    |> Map.values()
+    |> Enum.sort_by(& &1["source_window_id"])
+  end
+
   def branch_event_map_keys(events, field) do
     events
     |> Enum.flat_map(fn event ->
@@ -298,6 +329,24 @@ defmodule OrbitalDynamics.CampaignPlanner.BranchComparisonContext.FieldValues do
   end
 
   defp json_boolean_value(_value), do: nil
+
+  defp source_window_bound(source_window_id, earliest_starts_at_s, latest_ends_at_s) do
+    %{"source_window_id" => source_window_id}
+    |> put_minimum("earliest_starts_at_s", earliest_starts_at_s)
+    |> put_maximum("latest_ends_at_s", latest_ends_at_s)
+  end
+
+  defp put_minimum(bound, _field, nil), do: bound
+
+  defp put_minimum(bound, field, value) do
+    Map.update(bound, field, value, &min(&1, value))
+  end
+
+  defp put_maximum(bound, _field, nil), do: bound
+
+  defp put_maximum(bound, field, value) do
+    Map.update(bound, field, value, &max(&1, value))
+  end
 
   defp numeric_or_nil(nil), do: nil
   defp numeric_or_nil(value) when is_integer(value) or is_float(value), do: value

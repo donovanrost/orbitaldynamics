@@ -129,6 +129,23 @@ defmodule OrbitalDynamics.Schema.ScopedDownlinkContextJsonSchema do
         CommonJsonSchema.stable_id_array(stable_id_pattern),
       "branch_source_activity_ids" => CommonJsonSchema.stable_id_array(stable_id_pattern),
       "branch_source_window_ids" => CommonJsonSchema.stable_id_array(stable_id_pattern),
+      "branch_source_window_bounds" => %{
+        "type" => "array",
+        "items" => %{
+          "type" => "object",
+          "additionalProperties" => false,
+          "required" => ["source_window_id"],
+          "anyOf" => [
+            %{"required" => ["earliest_starts_at_s"]},
+            %{"required" => ["latest_ends_at_s"]}
+          ],
+          "properties" => %{
+            "source_window_id" => %{"type" => "string", "pattern" => stable_id_pattern},
+            "earliest_starts_at_s" => %{"type" => "number"},
+            "latest_ends_at_s" => %{"type" => "number"}
+          }
+        }
+      },
       "branch_earliest_starts_at_s" => %{"type" => "number"},
       "branch_latest_ends_at_s" => %{"type" => "number"},
       "branch_max_latency_s" => %{"type" => "number"},

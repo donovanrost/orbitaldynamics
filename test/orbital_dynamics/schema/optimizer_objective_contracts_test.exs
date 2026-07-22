@@ -627,6 +627,51 @@ defmodule OrbitalDynamics.Schema.OptimizerObjectiveContractsTest do
                Schema.validate_artifact(partial_branch_window_context)
     end
 
+    invalid_source_window_bounds =
+      branch_comparison_report
+      |> put_in(
+        ["rows", Access.at(0), "branch_source_window_ids"],
+        ["window_a", "window_b"]
+      )
+      |> put_in(
+        ["rows", Access.at(0), "branch_source_window_bounds"],
+        [
+          %{
+            "source_window_id" => "window_b",
+            "earliest_starts_at_s" => 200.0,
+            "latest_ends_at_s" => 100.0
+          },
+          %{"source_window_id" => "window_a"}
+        ]
+      )
+
+    assert {:error, source_window_bounds_report} =
+             Schema.validate_artifact(invalid_source_window_bounds)
+
+    for path <- [
+          "$.rows[0].branch_source_window_bounds",
+          "$.rows[0].branch_source_window_bounds[0].latest_ends_at_s",
+          "$.rows[0].branch_source_window_bounds[1]"
+        ] do
+      assert Enum.any?(source_window_bounds_report["errors"], &(&1["path"] == path))
+    end
+
+    unreferenced_source_window_bound =
+      branch_comparison_report
+      |> put_in(["rows", Access.at(0), "branch_source_window_ids"], ["window_a"])
+      |> put_in(
+        ["rows", Access.at(0), "branch_source_window_bounds"],
+        [%{"source_window_id" => "window_b", "earliest_starts_at_s" => 100.0}]
+      )
+
+    assert {:error, unreferenced_source_window_bound_report} =
+             Schema.validate_artifact(unreferenced_source_window_bound)
+
+    assert Enum.any?(
+             unreferenced_source_window_bound_report["errors"],
+             &(&1["path"] == "$.rows[0].branch_source_window_bounds")
+           )
+
     invalid_capacity_pack_pressure =
       branch_comparison_report
       |> put_in(["rows", Access.at(0), "capacity_pack_max_required_capacity_fraction"], 1.1)

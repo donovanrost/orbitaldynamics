@@ -1227,6 +1227,15 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyContactAllocationPressureTest 
     assert "provider_reservation_request_review" in provider_row["risk_types"]
 
     assert provider_row["branch_source_window_ids"] == ["summary_provider_source_window"]
+
+    assert provider_row["branch_source_window_bounds"] == [
+             %{
+               "source_window_id" => "summary_provider_source_window",
+               "earliest_starts_at_s" => 820.0,
+               "latest_ends_at_s" => 880.0
+             }
+           ]
+
     assert provider_row["branch_earliest_starts_at_s"] == 820.0
     assert provider_row["branch_latest_ends_at_s"] == 880.0
 
@@ -1270,6 +1279,9 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyContactAllocationPressureTest 
              "summary_provider_source_window"
            ]
 
+    assert provider_review_row["branch_source_window_bounds"] ==
+             provider_row["branch_source_window_bounds"]
+
     assert provider_review_row["branch_earliest_starts_at_s"] == 820.0
     assert provider_review_row["branch_latest_ends_at_s"] == 880.0
 
@@ -1289,6 +1301,9 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyContactAllocationPressureTest 
              "summary_provider_source_window"
            ]
 
+    assert provider_import_row["branch_source_window_bounds"] ==
+             provider_row["branch_source_window_bounds"]
+
     assert provider_import_row["branch_earliest_starts_at_s"] == 820.0
     assert provider_import_row["branch_latest_ends_at_s"] == 880.0
 
@@ -1299,6 +1314,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyContactAllocationPressureTest 
 
     branch_window_fields = [
       "branch_source_window_ids",
+      "branch_source_window_bounds",
       "branch_earliest_starts_at_s",
       "branch_latest_ends_at_s"
     ]
@@ -1313,7 +1329,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyContactAllocationPressureTest 
       update_in(
         artifact,
         ["operator_review_package", "rows", Access.at(provider_review_index)],
-        &Map.delete(&1, "branch_source_window_ids")
+        &Map.delete(&1, "branch_source_window_bounds")
       )
 
     assert {:error, missing_review_window_report} =
@@ -1321,7 +1337,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyContactAllocationPressureTest 
 
     assert Enum.any?(
              missing_review_window_report["errors"],
-             &(&1["path"] == "$.rows[#{provider_review_index}].branch_source_window_ids")
+             &(&1["path"] == "$.rows[#{provider_review_index}].branch_source_window_bounds")
            )
 
     legacy_review_package =

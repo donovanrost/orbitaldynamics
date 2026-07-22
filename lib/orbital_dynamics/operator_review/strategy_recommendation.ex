@@ -104,6 +104,7 @@ defmodule OrbitalDynamics.OperatorReview.StrategyRecommendation do
           "branch_exclusivity_violation_groups",
           "branch_source_activity_ids",
           "branch_source_window_ids",
+          "branch_source_window_bounds",
           "branch_earliest_starts_at_s",
           "branch_latest_ends_at_s",
           "branch_directions",
