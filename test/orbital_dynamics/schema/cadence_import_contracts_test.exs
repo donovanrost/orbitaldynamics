@@ -3483,6 +3483,105 @@ defmodule OrbitalDynamics.Schema.CadenceImportContractsTest do
     end
   end
 
+  test "preserves partial branch windows on strategy source-review handoffs" do
+    manifest = read_json!("study_results/cadence_import_manifest_v1.json")
+
+    recommendation_row =
+      manifest["rows"]
+      |> hd()
+      |> Map.merge(%{
+        "source_review_type" => "strategy_recommendation",
+        "branch_source_window_ids" => ["window_a"],
+        "branch_earliest_starts_at_s" => 100.0,
+        "source_review_row" => %{
+          "review_type" => "strategy_recommendation",
+          "branch_source_window_ids" => ["window_a"],
+          "branch_earliest_starts_at_s" => 100.0
+        }
+      })
+
+    recommendation_manifest = put_in(manifest, ["rows", Access.at(0)], recommendation_row)
+
+    assert {:ok, _recommendation_manifest} =
+             Schema.validate_artifact(recommendation_manifest)
+
+    missing_recommendation_window =
+      update_in(
+        recommendation_manifest,
+        ["rows", Access.at(0)],
+        &Map.delete(&1, "branch_source_window_ids")
+      )
+
+    assert {:error, missing_recommendation_window_report} =
+             Schema.validate_artifact(missing_recommendation_window)
+
+    assert Enum.any?(
+             missing_recommendation_window_report["errors"],
+             &(&1["path"] == "$.rows[0].branch_source_window_ids")
+           )
+
+    stale_recommendation_window =
+      put_in(
+        recommendation_manifest,
+        ["rows", Access.at(0), "branch_earliest_starts_at_s"],
+        101.0
+      )
+
+    assert {:error, stale_recommendation_window_report} =
+             Schema.validate_artifact(stale_recommendation_window)
+
+    assert Enum.any?(
+             stale_recommendation_window_report["errors"],
+             &(&1["path"] == "$.rows[0].source_review_row.branch_earliest_starts_at_s")
+           )
+
+    tradeoff_row =
+      manifest["rows"]
+      |> hd()
+      |> Map.merge(%{
+        "source_review_type" => "strategy_tradeoff",
+        "branch_latest_ends_at_s" => 200.0,
+        "source_review_row" => %{
+          "review_type" => "strategy_tradeoff",
+          "branch_latest_ends_at_s" => 200.0
+        }
+      })
+
+    tradeoff_manifest = put_in(manifest, ["rows", Access.at(0)], tradeoff_row)
+
+    assert {:ok, _tradeoff_manifest} = Schema.validate_artifact(tradeoff_manifest)
+
+    missing_tradeoff_window =
+      update_in(
+        tradeoff_manifest,
+        ["rows", Access.at(0)],
+        &Map.delete(&1, "branch_latest_ends_at_s")
+      )
+
+    assert {:error, missing_tradeoff_window_report} =
+             Schema.validate_artifact(missing_tradeoff_window)
+
+    assert Enum.any?(
+             missing_tradeoff_window_report["errors"],
+             &(&1["path"] == "$.rows[0].branch_latest_ends_at_s")
+           )
+
+    stale_tradeoff_window =
+      put_in(
+        tradeoff_manifest,
+        ["rows", Access.at(0), "branch_latest_ends_at_s"],
+        201.0
+      )
+
+    assert {:error, stale_tradeoff_window_report} =
+             Schema.validate_artifact(stale_tradeoff_window)
+
+    assert Enum.any?(
+             stale_tradeoff_window_report["errors"],
+             &(&1["path"] == "$.rows[0].source_review_row.branch_latest_ends_at_s")
+           )
+  end
+
   defp read_json!(path) do
     path
     |> File.read!()

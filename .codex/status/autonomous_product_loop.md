@@ -5,55 +5,55 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Require derived handoffs to preserve source comparison windows.
+Prove partial and strategy-review window handoffs.
 
 Status:
 Verified; ready to publish.
 
 Selection evidence:
-- Equality validation rejects conflicting window copies only when source and
-  derived values are both present.
-- An operator-review or Cadence row can silently omit window context supplied
-  by its source comparison/review row.
-- Legacy handoffs with no source window context must remain valid.
+- Branch events and comparison aggregation independently preserve optional
+  start/end evidence, but partial-bound compatibility is not explicit in tests.
+- The integrated provider proof exercises comparison-source handoffs only; the
+  recommendation and tradeoff Cadence source-review paths remain unchallenged.
+- Shared validation is intended to require each supplied field independently,
+  not invent missing endpoints or reject useful partial evidence.
 
 Intended behavior:
-- Require all three window fields when a source comparison or source review row
-  supplies them, and reject stale conflicting copies.
-- Extend selected-recommendation Cadence source-review consistency to the same
-  window fields.
-- Allow legacy source and derived rows that both omit the optional context;
-  preserve scoring, approval, and execution boundaries.
+- Prove earliest-only and latest-only branch bounds remain valid.
+- Prove recommendation/tradeoff Cadence source-review rows preserve every
+  supplied window field and reject omissions or conflicts.
+- Keep schemas, production adapters, scoring, approval, and execution behavior
+  unchanged unless the executable audit exposes a real gap.
 
 Level 6 pillar advanced:
 Fleet-scale planning decisions and durable reproducible audit handoffs.
 
 Planned files:
-- strategy handoff source-presence validation
-- omission/conflict/legacy challenge proofs, docs, and loop ledger
+- branch-window and Cadence source-review contract proofs
+- capability docs and loop ledger
 
 Verification:
-- Focused handoff/provider challenge proofs: `34 passed`.
+- Focused branch-window/Cadence contract proofs: `24 passed`.
 - Contact-allocation family: `213 passed`.
 - Golden artifacts: `12 passed`.
 - Schema lint: `155` artifacts passed with zero errors or warnings.
-- Full suite: `3883 passed`.
+- Full suite: `3884 passed`.
 
 Review:
-- Shared source-presence validation now requires each non-null window field on
-  a source comparison/review row to survive on its derived strategy handoff.
-- Existing equality checks still reject stale values; executable challenges
-  cover operator omission, Cadence omission/conflict, and legacy both-omit
-  compatibility on the integrated provider-pressure path.
-- Recommendation and tradeoff Cadence source-review comparisons share the same
-  conditional preservation rule; no schema or golden regeneration was needed.
-- Scoring, approval, and selected-row planner effects are unchanged, and all
-  no-provider-request, no-reservation, no-schedule-mutation, no-Cadence-write,
-  no-operator-authority, and no-autonomous-execution boundaries remain intact.
-- Local review found no publish blocker.
+- Executable branch validation accepts earliest-only and latest-only bounds, as
+  intended for independently available event evidence.
+- Strategy-recommendation source-review challenges cover a partial ID/start
+  handoff plus exact-path omission and conflict rejection.
+- Strategy-tradeoff source-review challenges cover a latest-end-only handoff
+  plus exact-path omission and conflict rejection.
+- This is a proof/docs-only compatibility slice: production adapters, schemas,
+  golden artifacts, scoring, approval, and execution behavior are unchanged.
+- All no-provider-request, no-reservation, no-schedule-mutation,
+  no-Cadence-write, no-operator-authority, and no-autonomous-execution
+  boundaries remain intact; local review found no publish blocker.
 
 Last published slice:
-- `1464245d` Version branch comparison operational windows (`3883 passed`).
+- `572358fa` Require provider window handoff preservation (`3883 passed`).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions while preserving explicit
@@ -64,7 +64,7 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-Audit partial source-window bounds and recommendation-path coverage.
+Correlate source-window identity with supplied branch bounds.
 
 Blocked:
 None.

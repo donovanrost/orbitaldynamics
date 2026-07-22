@@ -616,6 +616,17 @@ defmodule OrbitalDynamics.Schema.OptimizerObjectiveContractsTest do
              &(&1["path"] == "$.rows[0].branch_latest_ends_at_s")
            )
 
+    for {field, value} <- [
+          {"branch_earliest_starts_at_s", 100.0},
+          {"branch_latest_ends_at_s", 200.0}
+        ] do
+      partial_branch_window_context =
+        put_in(branch_comparison_report, ["rows", Access.at(0), field], value)
+
+      assert {:ok, _partial_branch_window_context} =
+               Schema.validate_artifact(partial_branch_window_context)
+    end
+
     invalid_capacity_pack_pressure =
       branch_comparison_report
       |> put_in(["rows", Access.at(0), "capacity_pack_max_required_capacity_fraction"], 1.1)
