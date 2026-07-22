@@ -800,6 +800,19 @@ defmodule OrbitalDynamics.Schema.CadenceImportContractsTest do
              )
     end
 
+    invalid_provider_request_status =
+      Map.put(manifest, "provider_reservation_request_status_counts", %{
+        "request_dispatched" => 1
+      })
+
+    assert {:error, invalid_provider_request_status_report} =
+             Schema.validate_artifact(invalid_provider_request_status)
+
+    assert Enum.any?(
+             invalid_provider_request_status_report["errors"],
+             &(&1["path"] == "$.provider_reservation_request_status_counts")
+           )
+
     invalid_resource_blocked_ids =
       Map.put(manifest, "resource_blocked_contact_ids_by_spacecraft_id", %{
         "sat_resource" => ["bad id"]

@@ -1,6 +1,7 @@
 defmodule OrbitalDynamics.Schema.ContactAllocationHandoffContracts do
   @moduledoc false
 
+  alias OrbitalDynamics.Schema.ContactAllocationCapabilityContext
   alias OrbitalDynamics.Schema.PriorityOverrideContracts
 
   import OrbitalDynamics.Schema.PrimitiveValidation,
@@ -904,6 +905,7 @@ defmodule OrbitalDynamics.Schema.ContactAllocationHandoffContracts do
       path <> ".provider_reservation_request_status_counts",
       Map.get(artifact, "provider_reservation_request_status_counts")
     )
+    |> validate_provider_reservation_request_status_counts(path, artifact)
     |> expect_optional_type(
       path,
       artifact,
@@ -1284,6 +1286,29 @@ defmodule OrbitalDynamics.Schema.ContactAllocationHandoffContracts do
             acc
         end
     end)
+  end
+
+  defp validate_provider_reservation_request_status_counts(issues, path, artifact) do
+    case Map.get(artifact, "provider_reservation_request_status_counts") do
+      %{} = counts ->
+        allowed =
+          ContactAllocationCapabilityContext.contact_allocation_provider_reservation_request_statuses()
+
+        if Enum.all?(Map.keys(counts), &(&1 in allowed)) do
+          issues
+        else
+          [
+            error(
+              "#{path}.provider_reservation_request_status_counts",
+              "keys must be one of #{inspect(allowed)}"
+            )
+            | issues
+          ]
+        end
+
+      _counts ->
+        issues
+    end
   end
 
   defp validate_station_reservation_expiration_identity_summary(issues, path, artifact) do

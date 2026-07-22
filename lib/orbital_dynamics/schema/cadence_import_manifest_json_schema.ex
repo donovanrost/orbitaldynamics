@@ -1,7 +1,11 @@
 defmodule OrbitalDynamics.Schema.CadenceImportManifestJsonSchema do
   @moduledoc false
 
-  alias OrbitalDynamics.Schema.{CommonJsonSchema, LazyProviderResolver}
+  alias OrbitalDynamics.Schema.{
+    CommonJsonSchema,
+    ContactAllocationCapabilityContext,
+    LazyProviderResolver
+  }
 
   def row(opts) do
     capability = Keyword.fetch!(opts, :capability)
@@ -728,6 +732,11 @@ defmodule OrbitalDynamics.Schema.CadenceImportManifestJsonSchema do
       "type" => "string",
       "enum" => Keyword.fetch!(opts, :readiness_capability).gate_statuses
     }
+  end
+
+  def property("provider_reservation_request_status_counts", _opts) do
+    ContactAllocationCapabilityContext.contact_allocation_provider_reservation_request_statuses()
+    |> CommonJsonSchema.enum_count_map()
   end
 
   def property(field, _opts) when field in @review_import_count_map_fields do

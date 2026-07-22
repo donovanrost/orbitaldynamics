@@ -101,6 +101,19 @@ defmodule OrbitalDynamics.Schema.JsonSchemaStableIdContractsTest do
       end
     )
 
+    provider_reservation_request_statuses =
+      OrbitalDynamics.Communications.ContactAllocation.capabilities()
+      |> Map.fetch!(:provider_reservation_request_statuses)
+
+    for schema <- [cadence_schema, operator_review_schema] do
+      assert get_in(schema, [
+               "properties",
+               "provider_reservation_request_status_counts",
+               "propertyNames",
+               "enum"
+             ]) == provider_reservation_request_statuses
+    end
+
     Enum.each(
       [
         "provider_reservation_request_ids_by_match_status",

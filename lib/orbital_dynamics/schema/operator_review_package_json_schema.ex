@@ -1,7 +1,7 @@
 defmodule OrbitalDynamics.Schema.OperatorReviewPackageJsonSchema do
   @moduledoc false
 
-  alias OrbitalDynamics.Schema.CommonJsonSchema
+  alias OrbitalDynamics.Schema.{CommonJsonSchema, ContactAllocationCapabilityContext}
 
   @enum_count_fields [
     "review_type_counts",
@@ -264,6 +264,11 @@ defmodule OrbitalDynamics.Schema.OperatorReviewPackageJsonSchema do
       "type" => "string",
       "enum" => Keyword.fetch!(opts, :readiness_capability).gate_statuses
     }
+  end
+
+  def property("provider_reservation_request_status_counts", _opts) do
+    ContactAllocationCapabilityContext.contact_allocation_provider_reservation_request_statuses()
+    |> CommonJsonSchema.enum_count_map()
   end
 
   def property(field, _opts) when field in @review_import_count_map_fields do

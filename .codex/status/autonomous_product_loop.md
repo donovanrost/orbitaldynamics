@@ -5,62 +5,59 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Preserve provider-reservation list identities and align route vocabularies.
+Constrain provider-reservation request-status count vocabularies.
 
 Status:
 Verified; ready to publish.
 
 Selection evidence:
-- Provider-reservation request/review reservation-ID routes are now canonical
-  and schema-enforced across both handoffs.
-- Request readiness considers both scalar `station_reservation_id` and
-  `station_calendar_reservation_ids`, but the public match-status route reads
-  only the scalar identity.
-- A live list-only probe emitted a `matched` request contact route beside an
-  empty reservation-ID route and validated; independently contradictory
-  contact/reservation route vocabularies also validated at handoff boundaries.
+- Compact provider-reservation summaries publish exactly `clear`,
+  `request_ready`, or `review_required` from the capability contract.
+- Lifted review/import `provider_reservation_request_status_counts` currently
+  accepts arbitrary keys in executable validation and generated JSON Schemas.
+- Embedded source/canonical summaries are deliberately counted as separate
+  observations today; this slice will not redefine that aggregation semantic.
 
 Intended behavior:
-- Derive request/review reservation routes from scalar and list reservation
-  identity evidence, without assuming one reservation per contact.
-- When both contact and reservation route maps are present, preserve their
-  combined match-status vocabulary with explicit empty counterpart routes.
-- Reject supplied paired route maps with different vocabularies while keeping
-  missing legacy counterpart fields optional and preserving execution bounds.
+- Bind lifted request-status count keys to the producer's published
+  three-status capability vocabulary in review and Cadence handoffs.
+- Export the same property-name enum in both generated JSON Schemas.
+- Preserve non-negative counts, optional legacy omission, embedded-report
+  observation counting, and all execution boundaries.
 
 Level 6 pillar advanced:
 Fleet-scale planning decisions and durable reproducible audit handoffs.
 
 Planned files:
-- provider-reservation compact-summary route derivation and validation
-- operator-review route aggregation and shared review/import validation
-- list-only/mismatched/empty challenge proofs, docs, and loop ledger
+- shared review/import handoff validation and JSON Schema property dispatch
+- unsupported-status challenge proofs, generated schemas, docs, and loop ledger
 
 Verification:
-- Focused producer/review/import challenge proofs: `4 passed`.
+- Focused review/import/schema challenge proofs: `25 passed`.
 - Contact-allocation family: `213 passed`.
 - Golden artifacts: `12 passed`.
 - Schema lint: `155` artifacts passed with zero errors or warnings.
-- Full suite: `3881 passed`.
+- Full suite: `3881 passed` after refreshing the separately exported study
+  manifest schema.
 
 Review:
-- Compact request/review reservation routes now derive sorted unique IDs from
-  both scalar and list station-calendar identity evidence.
-- Multiple reservation IDs per contact and a shared reservation across contacts
-  remain valid; reservation cardinality is not coupled to contact counts.
-- When both paired maps are present, adapters preserve the union of their
-  match-status keys with explicit empty counterparts; a missing legacy field
-  remains omitted and valid.
-- Shared handoff validation rejects paired maps with different route keys while
-  retaining the existing canonical stable-ID checks.
-- No generated schema or golden fixture changed; the executable behavior and
-  validation contracts remain within their published optional map shapes.
-- No provider request, reservation, schedule mutation, Cadence write, operator
-  authority, candidate selection, or planner-effect boundary changed.
+- Executable review/import validation rejects request-status count keys outside
+  `clear`, `request_ready`, and `review_required`.
+- Both generated handoff schemas use the capability-derived vocabulary as a
+  `propertyNames` enum while retaining non-negative integer values.
+- Seven dependent embedding/bundle schemas plus the separately exported study
+  manifest carry the same mechanical schema change; golden artifacts did not
+  require changes.
+- Existing aggregation remains explicit observation counting across embedded
+  source/canonical summaries; no deduplication or count reinterpretation was
+  introduced.
+- Optional field omission and all no-provider-request, no-reservation,
+  no-schedule-mutation, no-Cadence-write, no-operator-authority, and
+  no-planner-effect boundaries remain unchanged.
 - Local review found no publish blocker.
 
 Last published slice:
-- `e487d226` Canonicalize provider reservation ID routes (`3877 passed`).
+- `d0ddfa2f` Preserve provider reservation route identities (`3881 passed`).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions while preserving explicit
@@ -71,8 +68,8 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-Audit provider-reservation request-status vocabulary/count correlation across
-embedded reports.
+Audit whether repeated equivalent embedded reports should retain observation
+counts or gain explicit source-family deduplication semantics.
 
 Blocked:
 None.

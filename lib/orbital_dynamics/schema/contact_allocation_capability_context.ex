@@ -90,7 +90,7 @@ defmodule OrbitalDynamics.Schema.ContactAllocationCapabilityContext do
     |> Map.fetch!(:station_reservation_expiration_statuses)
   end
 
-  defp contact_allocation_provider_reservation_request_statuses do
+  def contact_allocation_provider_reservation_request_statuses do
     OrbitalDynamics.Communications.ContactAllocation.capabilities()
     |> Map.fetch!(:provider_reservation_request_statuses)
   end
