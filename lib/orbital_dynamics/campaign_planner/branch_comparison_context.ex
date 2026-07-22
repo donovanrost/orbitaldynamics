@@ -44,6 +44,12 @@ defmodule OrbitalDynamics.CampaignPlanner.BranchComparisonContext do
     source_window_bound_count =
       if source_window_ids == [], do: nil, else: length(source_window_bounds)
 
+    complete_source_window_bound_count =
+      Enum.count(source_window_bounds, fn bound ->
+        is_number(bound["earliest_starts_at_s"]) and
+          is_number(bound["latest_ends_at_s"])
+      end)
+
     untimed_source_window_count =
       if source_window_ids == [], do: nil, else: length(untimed_source_window_ids)
 
@@ -51,7 +57,7 @@ defmodule OrbitalDynamics.CampaignPlanner.BranchComparisonContext do
       cond do
         source_window_ids == [] -> nil
         source_window_bounds == [] -> "untimed"
-        length(source_window_bounds) == length(source_window_ids) -> "complete"
+        complete_source_window_bound_count == length(source_window_ids) -> "complete"
         true -> "partial"
       end
 

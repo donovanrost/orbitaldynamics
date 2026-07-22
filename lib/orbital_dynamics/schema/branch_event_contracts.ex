@@ -739,10 +739,16 @@ defmodule OrbitalDynamics.Schema.BranchEventContracts do
 
       untimed_source_window_ids = source_window_ids -- bounded_source_window_ids
 
+      complete_source_window_bound_count =
+        Enum.count(source_window_bounds, fn bound ->
+          is_number(bound["earliest_starts_at_s"]) and
+            is_number(bound["latest_ends_at_s"])
+        end)
+
       timing_coverage_status =
         cond do
           source_window_bounds == [] -> "untimed"
-          length(source_window_bounds) == length(source_window_ids) -> "complete"
+          complete_source_window_bound_count == length(source_window_ids) -> "complete"
           true -> "partial"
         end
 

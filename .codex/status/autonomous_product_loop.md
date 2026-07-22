@@ -5,54 +5,59 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Challenge source-window timing status copies.
+Tighten source-window timing status semantics.
 
 Status:
 Verified; ready to publish.
 
 Selection evidence:
-- The status now propagates on real output paths, but the focused operator and
-  Cadence source-copy omission loops cover only the preceding count/ID fields.
-- Because the field remains optional for compatibility, deleting it from a
-  derived row is row-locally valid unless source preservation is challenged.
-- Existing partial-coverage comparison/recommendation/tradeoff fixtures can pin
-  this behavior without production changes.
+- `complete` currently means every source-window ID has a bounds row, even when
+  each row supplies only a start or only an end.
+- The contract deliberately preserves partial endpoint evidence, so row
+  presence is not equivalent to complete timing.
+- Risk indicators feed scoring; incomplete timing must stay provenance-only
+  rather than becoming a new planner risk.
 
 Intended behavior:
-- Add the derived `partial` status to operator and Cadence source copies.
-- Prove omission from the derived row fails at the exact status path when the
-  source supplies it, while legacy source/derived pairs may omit it together.
-- Keep this a proof-only slice unless a live contract gap appears.
+- Classify `complete` only when every source-window ID has both numeric timing
+  endpoints.
+- Classify any nonzero but incomplete endpoint evidence as `partial`, and keep
+  zero timing evidence `untimed`.
+- Preserve the existing enum, adapters, compatibility, scoring, and authority
+  boundaries.
 
 Level 6 pillar advanced:
 Fleet-scale planning decisions and durable reproducible audit handoffs.
 
 Planned files:
-- operator-review and Cadence source-copy challenge proofs
-- loop ledger
+- branch comparison derivation and semantic validator
+- focused endpoint challenge proofs, capability docs, and ledger
 
 Verification:
-- Focused operator/Cadence source-copy proofs: `26 passed`.
+- Focused producer/semantic endpoint proofs: `14 passed`.
 - Contact-allocation family: `213 passed`.
 - Golden artifacts: `12 passed`.
 - Schema lint: `155` artifacts passed with zero errors or warnings.
-- Full suite: `3886 passed`.
+- Full suite: `3887 passed`.
 
 Review:
-- Valid partial-coverage operator comparison, Cadence recommendation, and
-  Cadence tradeoff fixtures carry the status on source and derived rows.
-- Removing only the derived status is rejected at its exact row path because
-  the source still supplies it.
-- Legacy source/derived pairs that jointly omit the optional status remain
-  covered and valid.
-- This proof-only slice changed no production module, schema, golden artifact,
-  scoring, approval, or execution behavior.
-- All no-provider-request, no-reservation, no-schedule-mutation,
-  no-Cadence-write, no-operator-authority, and no-autonomous-execution
-  boundaries remain intact; local review found no publish blocker.
+- `complete` now requires both numeric endpoints on every source-window ID;
+  all-ID start-only/end-only evidence remains `partial` even when bounded-row
+  count equals total identity count.
+- Provider full timing remains `complete`, selected recommendation timing
+  remains `partial`, and zero-bound identity remains `untimed`.
+- Runtime semantic validation rejects a stale `complete` copy for partial
+  endpoints. The existing enum, adapters, and generated schemas did not change.
+- The public V3 campaign was regenerated through the runner and remained
+  byte-stable.
+- Incomplete timing did not become a risk indicator because risks feed scoring;
+  this slice preserves provenance-only behavior and all no-provider-request,
+  no-reservation, no-schedule-mutation, no-Cadence-write,
+  no-operator-authority, and no-autonomous-execution boundaries. Local review
+  found no publish blocker.
 
 Last published slice:
-- `1a0736e0` Expose source window timing status (`3886 passed`).
+- `901afcd2` Challenge source window timing status copies (`3886 passed`).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions while preserving explicit
@@ -63,7 +68,7 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-Evaluate source-window timing evidence in operator risk context.
+Expose complete versus partial endpoint counts only if consumers need them.
 
 Blocked:
 None.

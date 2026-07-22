@@ -748,6 +748,42 @@ defmodule OrbitalDynamics.Schema.OptimizerObjectiveContractsTest do
     assert {:ok, _untimed_source_window_coverage} =
              Schema.validate_artifact(untimed_source_window_coverage)
 
+    partial_endpoint_coverage =
+      branch_comparison_report
+      |> put_in(["rows", Access.at(0), "branch_source_window_ids"], ["window_a", "window_b"])
+      |> put_in(["rows", Access.at(0), "branch_source_window_count"], 2)
+      |> put_in(
+        ["rows", Access.at(0), "branch_source_window_bounds"],
+        [
+          %{"source_window_id" => "window_a", "earliest_starts_at_s" => 100.0},
+          %{"source_window_id" => "window_b", "latest_ends_at_s" => 200.0}
+        ]
+      )
+      |> put_in(["rows", Access.at(0), "branch_source_window_bound_count"], 2)
+      |> put_in(["rows", Access.at(0), "branch_untimed_source_window_count"], 0)
+      |> put_in(
+        ["rows", Access.at(0), "branch_source_window_timing_coverage_status"],
+        "partial"
+      )
+
+    assert {:ok, _partial_endpoint_coverage} =
+             Schema.validate_artifact(partial_endpoint_coverage)
+
+    stale_complete_endpoint_coverage =
+      put_in(
+        partial_endpoint_coverage,
+        ["rows", Access.at(0), "branch_source_window_timing_coverage_status"],
+        "complete"
+      )
+
+    assert {:error, stale_complete_endpoint_coverage_report} =
+             Schema.validate_artifact(stale_complete_endpoint_coverage)
+
+    assert Enum.any?(
+             stale_complete_endpoint_coverage_report["errors"],
+             &(&1["path"] == "$.rows[0].branch_source_window_timing_coverage_status")
+           )
+
     invalid_capacity_pack_pressure =
       branch_comparison_report
       |> put_in(["rows", Access.at(0), "capacity_pack_max_required_capacity_fraction"], 1.1)
