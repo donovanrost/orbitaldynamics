@@ -5,55 +5,56 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Constrain resolution categorical-map contact identity.
+Correlate resolution capacity-source contact routing.
 
 Status:
 Complete; verified and ready to publish.
 
 Selection evidence:
-- Resource-scope, selection-reason, and review-action keys are correlated to
-  positive count entries, but aggregation and replay preserve their values.
-- A count-authorized category can therefore carry a contact ID absent from the
-  same report's selected, deferred, or review identity when validation is
-  bypassed.
-- Each categorical map has a direct corresponding flattened contact-ID list.
+- Standalone validation matches capacity-source counts to map-list lengths but
+  does not require positive source counts or selected/deferred contact identity.
+- CandidateRefresh aggregates and replays capacity-source contact maps without
+  either correlation when standalone validation is bypassed.
+- Capacity demand is producer-derived only from selected/deferred contacts;
+  raw counts can remain conservative review evidence without authorizing IDs.
 
 Intended behavior:
-- Filter resource-scope, selection-reason, and review-action map values against
-  each report's corresponding flattened contact IDs before aggregation.
-- Reapply value filtering during preserved replay after positive-count key
-  correlation.
-- Retain flattened IDs, counts, and legitimate partial category maps as review
-  evidence.
+- Require capacity-source map keys to reference positive source-count entries
+  and values to reference selected/deferred IDs in executable validation.
+- Apply the same per-report key and value filter during source aggregation and
+  again during preserved replay.
+- Retain flattened IDs and the raw source-count map as conservative review
+  evidence when a capacity-source route is rejected.
 
 Level 6 pillar advanced:
 Fleet-scale planning decisions and durable reproducible audit handoffs.
 
 Planned files:
-- resolution categorical source aggregation and replay fields
-- count-authorized substituted-ID aggregation/replay challenge tests
+- resolution schema, capacity-source aggregation, and replay fields
+- zero-count/substituted capacity-source challenge tests
 - contention artifact documentation and autonomous-loop ledger
 
 Verification:
-- `6 passed` focused resolution-summary replay tests.
-- `26 passed` targeted contention-resolution CandidateRefresh/planner tests.
-- `100 passed` contention-family regression sweep.
-- `90 passed` related schema, export, validation, and replay tests.
+- `43 passed` focused schema and capacity-routing replay tests.
+- `27 passed` targeted contention-resolution CandidateRefresh/planner tests.
+- `101 passed` contention-family regression sweep.
+- `91 passed` related schema, export, validation, and replay tests.
 - `mix orbital_dynamics.schema.lint --all`: `155` artifacts passed.
-- `mix test --timeout 120000`: `3803 passed`.
+- `mix test --timeout 120000`: `3804 passed`.
 - `mix format --check-formatted` and `git diff --check` passed.
 
 Review:
-- Resource-scope and selection-reason maps now filter values against each
-  report's selected, deferred, or review IDs after positive-count key filtering.
-- Review-action maps apply the same per-report review-ID constraint.
-- Preserved replay reapplies both count-key and contact-value correlation, so a
-  shared category cannot borrow another report's legitimate flat identity.
-- Flattened IDs, count maps, and valid partial category routing remain visible;
-  no execution, allocation, reservation, or provider authority was added.
+- Executable validation now requires positive capacity-source counts and
+  selected/deferred identity for every source-map contact ID.
+- CandidateRefresh filters source keys and contact IDs per report before
+  aggregation, preventing another report's selected contact from being borrowed.
+- Preserved replay reapplies the same correlation while retaining raw counts,
+  including zero/count-only evidence, as conservative review pressure.
+- No capacity total, contact selection, allocation, reservation, or provider
+  mutation behavior was added or inferred.
 
 Last published slice:
-- `e83c1176` Constrain resolution group map identities (`3802 passed`).
+- `32642c96` Constrain resolution category map identities (`3803 passed`).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions while preserving explicit
@@ -64,8 +65,8 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-After publish, audit capacity-source contact maps for flattened identity and
-count correlation when standalone summary validation is bypassed.
+After publish, audit capacity-pack numeric station/status maps for total and
+status correlation when standalone summary validation is bypassed.
 
 Blocked:
 None.

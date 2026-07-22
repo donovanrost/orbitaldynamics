@@ -1705,6 +1705,44 @@ defmodule OrbitalDynamics.Communications.ContactContentionTest do
                  &1["message"] == "keys must reference positive action_counts entries")
            )
 
+    substituted_capacity_source_contact =
+      summary
+      |> Map.put("required_capacity_fraction_source_counts", %{
+        "substituted_capacity_source" => 1
+      })
+      |> Map.put("required_capacity_fraction_contact_ids_by_source", %{
+        "substituted_capacity_source" => ["substituted_contact"]
+      })
+
+    assert {:error, substituted_capacity_source_contact_report} =
+             Schema.validate_artifact(substituted_capacity_source_contact)
+
+    assert Enum.any?(
+             substituted_capacity_source_contact_report["errors"],
+             &(&1["path"] == "$.required_capacity_fraction_contact_ids_by_source" and
+                 &1["message"] ==
+                   "values must reference selected_contact_ids or deferred_contact_ids")
+           )
+
+    zero_count_capacity_source =
+      summary
+      |> update_in(["required_capacity_fraction_source_counts"], fn counts ->
+        Map.put(counts, "zero_capacity_source", 0)
+      end)
+      |> update_in(["required_capacity_fraction_contact_ids_by_source"], fn values ->
+        Map.put(values, "zero_capacity_source", [])
+      end)
+
+    assert {:error, zero_count_capacity_source_report} =
+             Schema.validate_artifact(zero_count_capacity_source)
+
+    assert Enum.any?(
+             zero_count_capacity_source_report["errors"],
+             &(&1["path"] == "$.required_capacity_fraction_contact_ids_by_source" and
+                 &1["message"] ==
+                   "keys must reference positive required_capacity_fraction_source_counts entries")
+           )
+
     stale_summary_resolution =
       resolution
       |> Map.put("conflict_group_count", 9)

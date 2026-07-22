@@ -23,10 +23,7 @@ defmodule OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactContention
       "required_capacity_fraction_source_counts" =>
         MapFields.count_field(reports, "required_capacity_fraction_source_counts"),
       "required_capacity_fraction_contact_ids_by_source" =>
-        MapFields.string_list_field(
-          reports,
-          "required_capacity_fraction_contact_ids_by_source"
-        )
+        MapFields.capacity_source_contact_ids(reports)
     })
   end
 end

@@ -282,6 +282,13 @@ defmodule OrbitalDynamics.Schema.ContactContentionResolutionSummaryContracts do
       "review_contact_ids_by_action",
       "action_counts"
     )
+    |> validate_positive_count_map_keys(
+      path,
+      summary,
+      "required_capacity_fraction_contact_ids_by_source",
+      "required_capacity_fraction_source_counts"
+    )
+    |> validate_capacity_source_contact_ids(path, summary)
     |> expect_field_equals(
       path,
       summary,
@@ -482,6 +489,34 @@ defmodule OrbitalDynamics.Schema.ContactContentionResolutionSummaryContracts do
       else
         [
           error("#{path}.#{field}", "keys must reference positive #{count_field} entries")
+          | issues
+        ]
+      end
+    else
+      issues
+    end
+  end
+
+  defp validate_capacity_source_contact_ids(issues, path, summary) do
+    values_by_source = Map.get(summary, "required_capacity_fraction_contact_ids_by_source")
+    selected_contact_ids = Map.get(summary, "selected_contact_ids")
+    deferred_contact_ids = Map.get(summary, "deferred_contact_ids")
+
+    if is_map(values_by_source) and is_list(selected_contact_ids) and
+         is_list(deferred_contact_ids) do
+      allowed_contact_ids = MapSet.new(selected_contact_ids ++ deferred_contact_ids)
+
+      if Enum.all?(values_by_source, fn {_source, contact_ids} ->
+           is_list(contact_ids) and
+             Enum.all?(contact_ids, &MapSet.member?(allowed_contact_ids, &1))
+         end) do
+        issues
+      else
+        [
+          error(
+            "#{path}.required_capacity_fraction_contact_ids_by_source",
+            "values must reference selected_contact_ids or deferred_contact_ids"
+          )
           | issues
         ]
       end

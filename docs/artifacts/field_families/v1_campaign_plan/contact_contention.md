@@ -181,6 +181,11 @@ keys, and preserved direction routing is rebuilt from those correlated fields
 instead of trusting a carried route payload. Compact summaries do not declare an
 independent station-count authority, so station keys remain preserved evidence
 while their substituted contact values are removed.
+Capacity-source contact maps require positive entries in
+`required_capacity_fraction_source_counts` and selected/deferred contact
+identity. Candidate-refresh applies the same correlation per source report and
+during preserved replay while retaining the raw count map as conservative
+review evidence when standalone validation was bypassed.
 Its exported JSON Schema includes the nested row and `timeline_identity` field
 shape used by executable validation. Rows also carry artifact-only operational
 kind, required operator action, operator-action reason, execution boundary,

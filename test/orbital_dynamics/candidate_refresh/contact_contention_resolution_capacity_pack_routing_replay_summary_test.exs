@@ -402,4 +402,87 @@ defmodule OrbitalDynamics.CandidateRefresh.ContactContentionResolutionCapacityPa
              "downlink" => %{"contact_count" => 1, "contact_ids" => ["selected_a"]}
            }
   end
+
+  test "capacity-source routing filters zero-count and substituted contact identity" do
+    first_summary = %{
+      "schema_contract" => "contact_contention_resolution_summary.v1",
+      "selected_contact_ids" => ["selected_a"],
+      "deferred_contact_ids" => ["deferred_a"],
+      "required_capacity_fraction_source_counts" => %{
+        "capacity_model" => 3,
+        "zero_source" => 0
+      },
+      "required_capacity_fraction_contact_ids_by_source" => %{
+        "capacity_model" => [
+          "deferred_a",
+          "selected_a",
+          "selected_b",
+          "substituted_contact"
+        ],
+        "zero_source" => ["selected_a"]
+      }
+    }
+
+    second_summary = %{
+      "schema_contract" => "contact_contention_resolution_summary.v1",
+      "selected_contact_ids" => ["selected_b"],
+      "deferred_contact_ids" => ["deferred_b"],
+      "required_capacity_fraction_source_counts" => %{"capacity_model" => 2}
+    }
+
+    refresh = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "source_contact_contention_resolution_summary" => first_summary,
+      "mission_state" => %{
+        "source_contact_contention_resolution_summary" => second_summary
+      }
+    }
+
+    source_summary = CandidateRefresh.source_report_summary(refresh)
+
+    assert source_summary[
+             "source_report_contact_contention_capacity_pack_required_capacity_fraction_source_counts"
+           ] == %{"capacity_model" => 5, "zero_source" => 0}
+
+    assert source_summary[
+             "source_report_contact_contention_capacity_pack_required_capacity_fraction_contact_ids_by_source"
+           ] == %{"capacity_model" => ["deferred_a", "selected_a"]}
+
+    replay_summary = CandidateRefresh.contact_contention_resolution_replay_summary(refresh)
+
+    assert replay_summary["required_capacity_fraction_source_counts"] == %{
+             "capacity_model" => 5,
+             "zero_source" => 0
+           }
+
+    assert replay_summary["required_capacity_fraction_contact_ids_by_source"] == %{
+             "capacity_model" => ["deferred_a", "selected_a"]
+           }
+
+    assert replay_summary["selected_contact_ids"] == ["selected_a", "selected_b"]
+    assert replay_summary["deferred_contact_ids"] == ["deferred_a", "deferred_b"]
+    assert replay_summary["branch_local_capacity_pack_pressure"]
+
+    preserved_artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "provenance" => %{
+        "source_reports" => %{
+          "contact_contention_resolution_report" =>
+            Map.put(first_summary, "contract", "contact_contention_resolution_summary.v1")
+        }
+      }
+    }
+
+    preserved_replay =
+      CandidateRefresh.contact_contention_resolution_replay_summary(preserved_artifact)
+
+    assert preserved_replay["required_capacity_fraction_source_counts"] == %{
+             "capacity_model" => 3,
+             "zero_source" => 0
+           }
+
+    assert preserved_replay["required_capacity_fraction_contact_ids_by_source"] == %{
+             "capacity_model" => ["deferred_a", "selected_a"]
+           }
+  end
 end

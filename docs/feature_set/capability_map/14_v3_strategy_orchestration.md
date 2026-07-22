@@ -1142,6 +1142,10 @@ summary's selected/deferred contact identity. Direction contact routing adds the
 same identity constraint plus positive direction-count key correlation, and its
 compact route map is reconstructed from the correlated counts and contact IDs;
 count-only direction evidence and flattened IDs remain reviewable.
+Capacity-source contact routing is likewise limited to positive source-count
+keys and the same report's selected/deferred contact IDs during executable
+validation, aggregation, and replay. Raw source counts remain conservative
+review evidence when an unvalidated route entry is removed.
 Branch-generated CandidateRefresh requests preserve direct mission-state and
 result-artifact-wrapped raw `source_contact_contention_resolution_report` /
 `contact_contention_resolution_report` inputs with wrapper-qualified request
