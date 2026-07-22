@@ -363,6 +363,11 @@ schema-type their stable IDs, invalid-input flags, and protected/change counts.
   optional direct nested V1 contracts. Their standalone validators run before
   V2 consumes station availability, capacity, reservation, allocation, and
   deferral evidence in station-pressure scoring and replacement ranking.
+- `source_contact_filter_report`, `source_resource_filter_report`, and
+  `source_resource_projection_report` are also optional direct nested V1
+  contracts. Their existing standalone validators keep suppression and
+  projected-resource pressure tied to typed rows, counts, trust context, and
+  exact thin-model limits.
 - `approval_requirements` for moved contacts, reassigned observations, delayed
   maneuver impacts, cancellations, and degraded-mode suppressions.
 - Approval requirements include machine-readable `requirement_type` values so

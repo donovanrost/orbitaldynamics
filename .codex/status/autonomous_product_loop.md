@@ -5,66 +5,60 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Validate V2 station source reports.
+Export V2 feasibility source reports.
 
 Status:
 Complete; ready to publish.
 
 Selection evidence:
-- V2 consumes source contact-allocation and station-calendar reports in
-  station-pressure scoring and replacement ranking, but its registry/export
-  declares neither field nor direct nested contract.
-- Runtime repair validation already applies the station-calendar validator, but
-  source contact-allocation evidence is trusted without running the report's
-  model, row, reservation, capacity, and model-limit checks.
-- Both source reports in the checked candidate-refresh repair pass their current
-  standalone contracts.
+- V2 consumes source contact-filter, resource-filter, and resource-projection
+  reports in pressure scoring and replacement ranking, but its registry/export
+  declares none of the fields or direct nested contracts.
+- Runtime repair validation already applies all three standalone validators, so
+  the executable guarantees are stronger than the machine-readable V2 surface.
+- All three source reports in the checked candidate-refresh repair pass their
+  current standalone contracts.
 
 Intended behavior:
-- Declare both optional source reports and direct nested contracts in the V2
+- Declare all three optional source reports and direct nested contracts in the V2
   registry and generated JSON Schema.
-- Preserve the existing station-calendar validation and add a path-aware source
-  contact-allocation validator.
-- Keep both fields optional for repairs without station source evidence.
+- Preserve the existing runtime validators and pressure semantics unchanged.
+- Keep all three fields optional for repairs without feasibility source evidence.
 - Add checked-fixture, standalone, drift, optional-field, and schema-export
   coverage; document the executable guarantee.
 
 Level 6 pillar advanced:
-Versioned, self-validating station-decision provenance at the V2 boundary.
+Versioned, machine-readable feasibility provenance at the V2 boundary.
 
 Last published slice:
-- `0fe612f9` Validate V2 candidate refresh sources (`3759 passed`).
+- `76134db4` Validate V2 station source reports (`3763 passed`).
 
 Likely files:
-- V2 registry/runtime station source declarations
-- path-aware contact-allocation validation and focused export tests
+- V2 registry feasibility source declarations
+- focused executable/export compatibility tests
 - checked-in schema exports and V2 planner/capability docs
 
 Verification:
-- Focused station source contract tests: `4 passed`.
-- Repair schema and candidate-refresh planner coverage: `81 passed`.
-- Schema suite plus schema-lint/export task tests: `452 passed`.
+- Focused feasibility source contract tests: `4 passed`.
+- Repair schema and candidate-refresh planner coverage: `85 passed`.
+- Schema suite plus schema-lint/export task tests: `456 passed`.
 - Campaign-planner suite: `761 passed`.
 - Full checked-artifact lint: `155/155 passed`, zero warnings.
-- Full suite: `3763 passed` on the unchanged default-timeout rerun.
-- The first full run had one transient schema-export timeout (`3762/3763`);
-  that exact default-timeout test passed alone in `32.4s` before the clean full
-  rerun.
+- Full suite: `3767 passed`.
 - `mix format --check-formatted`, `mix compile --warnings-as-errors`, and
   `git diff --check` passed.
 - Full schema export refreshed the V2 repair schema and aggregate bundle only.
 
 Review:
-- The V2 registry now exposes both optional source properties. The allocation
-  report reuses V2's existing direct `contact_allocation_report.v1` definition;
-  station calendar adds one direct definition, leaving all `20` nested-contract
+- The V2 registry and generated schema expose all three optional source
+  properties and complete direct definitions, with all `23` nested-contract
   names unique.
-- Runtime repair validation now applies the complete source allocation contract
-  at its own JSON path, including model/row/capacity/reservation/model-limit
-  checks, while retaining the existing source station-calendar validator.
-- The older checked repair validates both source reports and the newer readiness
-  fixture remains compatible without them.
-- All checked artifacts and existing station-pressure, replacement-ranking,
+- Runtime already validates suppression rows and counts, trust/resource
+  context, projected-resource evidence, and exact model limits before using
+  the reports; this slice changes no planning or pressure semantics.
+- The older checked repair validates at both the V2 and standalone boundaries;
+  the newer readiness repair remains compatible without these optional fields.
+- All checked artifacts and existing filter-pressure, replacement-ranking,
   operator-review, and Cadence-import consumers remain valid.
 
 Remaining maturity gaps:

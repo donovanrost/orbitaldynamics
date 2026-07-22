@@ -287,6 +287,11 @@ work, a **partial** executable-schema track, and **near-term** / **later** /
   evidence is likewise declared directly and validated before V2 uses its
   station availability, allocation, reservation, and capacity context in
   replacement ranking and pressure scoring.
+- Source `contact_filter_report.v1`, `resource_filter_report.v1`, and
+  `resource_projection_report.v1` evidence is also declared directly. Existing
+  runtime validators enforce suppression rows/counts, trust and resource
+  context, projected-resource evidence, and exact model limits before V2
+  derives filter or projection pressure.
 - `realized_state_snapshot.v1` and `timeline_feedback_report.v1` export nested
   operational-feedback rows plus command/contact feedback, throughput-delta,
   success fields, and source planned/realized activity context.
