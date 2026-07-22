@@ -12,6 +12,9 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshCommunicationPressureContracts 
   alias OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactAllocation.DirectionRouting,
     as: ContactAllocationDirectionRouting
 
+  alias OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactAllocation.CountMapCorrelation,
+    as: ContactAllocationCountMapCorrelation
+
   alias OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactAllocation.DirectionRouting.Correlation,
     as: ContactAllocationDirectionCorrelation
 
@@ -60,9 +63,35 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshCommunicationPressureContracts 
       )
 
     issues
+    |> validate_contact_allocation_count_maps(path, summary)
     |> validate_contact_allocation_direction_fields(path, summary)
     |> validate_contact_allocation_direction_routing(path, summary)
   end
+
+  defp validate_contact_allocation_count_maps(
+         issues,
+         path,
+         %{"contract" => "contact_allocation_report.v1"} = summary
+       ) do
+    Enum.reduce(ContactAllocationCountMapCorrelation.count_fields(), issues, fn field, acc ->
+      counts = Map.get(summary, field)
+
+      if is_map(counts) and
+           counts != ContactAllocationCountMapCorrelation.positive_counts(counts) do
+        [
+          error(
+            path <> ".#{field}",
+            "must use canonical string keys with positive integer counts"
+          )
+          | acc
+        ]
+      else
+        acc
+      end
+    end)
+  end
+
+  defp validate_contact_allocation_count_maps(issues, _path, _summary), do: issues
 
   defp validate_contact_allocation_direction_fields(
          issues,

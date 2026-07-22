@@ -4,6 +4,7 @@ defmodule OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactAllocation
   alias OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactAllocation.{
     AllocationReportSummary,
     CapacityPackSummary,
+    CountMapCorrelation,
     DirectionRouting,
     PressureConflictSummary,
     ProviderReservationSummary,
@@ -25,6 +26,7 @@ defmodule OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactAllocation
     |> Map.merge(PressureConflictSummary.fields(reports))
     |> Map.merge(ProviderReservationSummary.fields(reports))
     |> correlate_direction_fields()
+    |> CountMapCorrelation.fields()
     |> compact_map()
   end
 

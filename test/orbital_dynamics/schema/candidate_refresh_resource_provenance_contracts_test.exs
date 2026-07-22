@@ -534,6 +534,9 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshResourceProvenanceContractsTest
         "contract" => "contact_allocation_report.v1",
         "count" => 1,
         "row_count" => 2,
+        "allocation_status_counts" => %{"allocated" => 2},
+        "effective_allocation_status_counts" => %{"allocated" => 2},
+        "allocation_reason_counts" => %{"selected" => 2},
         "direction_counts" => %{"downlink" => 2},
         "contact_ids_by_direction" => %{
           "downlink" => ["dl_backup", "dl_primary"]
@@ -553,6 +556,54 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshResourceProvenanceContractsTest
 
     assert {:ok, %{"schema_contract" => "candidate_refresh.v1"}} =
              Schema.validate_artifact(artifact_with_allocation_direction_summary)
+
+    noncanonical_allocation_count_maps =
+      artifact_with_allocation_direction_summary
+      |> put_in(
+        [
+          "provenance",
+          "source_reports",
+          "contact_allocation_report",
+          "allocation_status_counts",
+          "stale_status"
+        ],
+        0
+      )
+      |> put_in(
+        [
+          "provenance",
+          "source_reports",
+          "contact_allocation_report",
+          "effective_allocation_status_counts",
+          "stale_effective_status"
+        ],
+        0
+      )
+      |> put_in(
+        [
+          "provenance",
+          "source_reports",
+          "contact_allocation_report",
+          "allocation_reason_counts",
+          "stale_reason"
+        ],
+        0
+      )
+
+    assert {:error, noncanonical_allocation_count_map_report} =
+             Schema.validate_artifact(noncanonical_allocation_count_maps)
+
+    for field <- [
+          "allocation_status_counts",
+          "effective_allocation_status_counts",
+          "allocation_reason_counts"
+        ] do
+      assert Enum.any?(
+               noncanonical_allocation_count_map_report["errors"],
+               &(&1["path"] ==
+                   "$.provenance.source_reports.contact_allocation_report.#{field}")
+             )
+    end
 
     noncanonical_allocation_direction =
       update_in(

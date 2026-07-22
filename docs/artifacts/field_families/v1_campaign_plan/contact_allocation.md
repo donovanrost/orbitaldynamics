@@ -248,6 +248,11 @@ boundaries. Counts require positive integer evidence; each sorted unique stable
 ID list requires a positive local direction count and cannot exceed that
 occurrence count. Count-only directions remain scalar pressure and do not emit
 identity routes, while valid merged counts may exceed de-duplicated ID lists.
+Base allocation status, effective-status, and reason count maps likewise retain
+only positive integer evidence after raw merges and at compact replay
+boundaries. String-equivalent keys merge by occurrence count, including custom
+status and reason values, while zero-only maps cannot create branch-local
+allocation pressure. Compact schema validation enforces the same canonical map.
 Allocation row duplicate-contact and station-calendar overlap/reservation count
 fields are also executable integer counts, duplicate-contact collision rows must
 preserve candidate count, ID, and source-candidate evidence, and contention

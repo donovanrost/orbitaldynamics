@@ -67,7 +67,9 @@ The contact-filter, contact-contention, contact-intent, and command-window repor
 - review contact IDs/rows, preserved through candidate-refresh contact-allocation
   replay for branch-local operator-review queues
 - declared allocation-status counts and effective-status counts, preserved
-  separately through candidate-refresh contact-allocation replay
+  separately through candidate-refresh contact-allocation replay, with
+  string-equivalent keys merged and only positive integer entries retained so
+  zero-only compact maps cannot create branch-local pressure
 - allocation-reason contact-ID maps, preserved through candidate-refresh
   contact-allocation replay for branch-local triage queues
 - row-derived scalar allocation/contact counters, including declared

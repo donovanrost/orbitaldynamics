@@ -5,56 +5,51 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Correlate compact allocation directions.
+Normalize compact allocation count maps.
 
 Status:
-Verified; ready for mechanical publish.
+Verified; ready to publish.
 
 Selection evidence:
-- Contact-allocation routes now rebuild from compact field maps, but explicit
-  `direction_counts` and `contact_ids_by_direction` remain independent inputs.
-- Noncanonical, non-positive, uncounted, or over-cardinality direction lists can
-  therefore authorize freshly rebuilt allocation routes and branch pressure.
-- Valid merged summaries require occurrence counts to remain greater than or
-  equal to their de-duplicated stable contact-ID lists.
+- Allocation replay tests map presence for allocation status, effective status,
+  and reason pressure.
+- Preserved compact maps currently retain zero entries, so zero-only maps can
+  create branch pressure without positive allocation evidence.
+- Raw row-derived maps contain positive integer counts and provide the canonical
+  producer behavior.
 
 Intended behavior:
-- Canonicalize positive direction counts and stable contact-ID lists, merging
-  provider aliases before correlation.
-- Retain each list only when it has a positive local count and no more unique IDs
-  than that occurrence count; do not require equality.
-- Apply the same fields to flattened/replay outputs, rebuilt routes, and compact
-  schema validation.
+- Retain only positive integer entries in the three base allocation count maps
+  after raw merges and at flattened/replay boundaries.
+- Preserve positive custom status/reason keys and merge string-equivalent keys.
+- Require the same canonical positive maps in compact schema validation.
 
 Level 6 pillar advanced:
 Fleet-scale planning decisions and durable reproducible audit handoffs.
 
 Planned files:
-- contact-allocation direction correlation, flattened/replay fields, and schema
-- alias, uncounted-ID, and local-cardinality challenge tests
+- allocation count-map normalization at producer, flattened, replay, and schema
+- zero/non-positive compact count-map challenge tests
 - allocation artifact documentation and autonomous-loop ledger
 
 Verification:
-- Allocation replay, campaign handoff, and compact schema focus -> `8 passed`.
-- `mix test test/orbital_dynamics/**/*contact_allocation*.exs --timeout 120000`
-  -> `177 passed`.
-- Checked-in repair golden facade focus -> `1 passed`.
-- `mix orbital_dynamics.schema.lint --all` -> `155 passed`, no warnings.
-- `mix format --check-formatted` and `git diff --check` passed.
-- `mix test --timeout 120000` -> `3807 passed`.
+- Focused replay/schema challenge tests: `8 passed`.
+- Contact-allocation family: `179 passed`.
+- Golden artifacts: `12 passed`.
+- Schema lint: `155` artifacts, no errors or warnings.
+- Full suite: `3809 passed`.
+- `mix format` and `git diff --check` passed.
 
 Review:
-- Canonicalization runs after raw multi-report aggregation and again at compact
-  flattened/replay boundaries, preserving summed occurrence counts while
-  de-duplicating stable IDs for identity routing.
-- Each retained list has a positive local count and unique-ID cardinality no
-  greater than that count; uncounted/over-cardinality lists drop whole.
-- Count-only directions remain scalar pressure, routes require identity-bearing
-  fields, and compact schema validation enforces the same maps. No unresolved
-  findings.
+- Central positive-count correlation is applied before raw multi-report merges,
+  after the final raw merge, and at flattened/replay boundaries.
+- Zero, negative, and non-integer entries cannot create replay pressure;
+  positive custom keys survive and string-equivalent keys sum deterministically.
+- Compact contract validation rejects stale zero entries for all three maps.
+- No unrelated files changed; documentation states the artifact-only boundary.
 
 Last published slice:
-- `254e03be` Rebuild compact allocation routes (`3807 passed`).
+- `3c11ac52` Correlate compact allocation directions (`3807 passed`).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions while preserving explicit
@@ -65,7 +60,7 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-After publish, audit compact allocation status-count identity correlation.
+After publish, audit compact allocation status-count scalar correlation.
 
 Blocked:
 None.

@@ -3,6 +3,18 @@ defmodule OrbitalDynamics.CandidateRefresh.ContactAllocationPressureMapReplaySum
 
   alias OrbitalDynamics.CandidateRefresh
 
+  alias OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactAllocation.CountMapCorrelation
+
+  test "allocation count maps merge string-equivalent positive entries" do
+    assert CountMapCorrelation.positive_counts(%{
+             :allocated => 2,
+             "allocated" => 1,
+             "negative" => -1,
+             "non_integer" => "1",
+             "zero" => 0
+           }) == %{"allocated" => 3}
+  end
+
   test "contact allocation replay preserves pressure maps with partial identity" do
     artifact = %{
       "schema_contract" => "candidate_refresh.v1",
@@ -25,6 +37,18 @@ defmodule OrbitalDynamics.CandidateRefresh.ContactAllocationPressureMapReplaySum
             "reservation_conflict_contact_ids" => ["reservation_conflict_contact"],
             "invalid_contact_input_ids" => ["invalid_contact"],
             "review_contact_ids" => ["review_contact"],
+            "allocation_status_counts" => %{
+              "allocated" => 3,
+              "zero_status" => 0
+            },
+            "effective_allocation_status_counts" => %{
+              "selected_custom" => 2,
+              "zero_effective_status" => 0
+            },
+            "allocation_reason_counts" => %{
+              "selected_by_policy" => 1,
+              "zero_reason" => 0
+            },
             "direction_counts" => %{
               "Down Link" => 1,
               "tracking" => 1,
@@ -92,6 +116,18 @@ defmodule OrbitalDynamics.CandidateRefresh.ContactAllocationPressureMapReplaySum
              "review_contact"
            ]
 
+    assert source_summary["source_report_contact_allocation_allocation_status_counts"] == %{
+             "allocated" => 3
+           }
+
+    assert source_summary[
+             "source_report_contact_allocation_effective_allocation_status_counts"
+           ] == %{"selected_custom" => 2}
+
+    assert source_summary["source_report_contact_allocation_allocation_reason_counts"] == %{
+             "selected_by_policy" => 1
+           }
+
     assert source_summary["source_report_contact_allocation_direction_counts"] == %{
              "downlink" => 1,
              "tracking" => 1,
@@ -137,6 +173,13 @@ defmodule OrbitalDynamics.CandidateRefresh.ContactAllocationPressureMapReplaySum
     assert replay_summary["reservation_conflict_contact_ids"] == ["reservation_conflict_contact"]
     assert replay_summary["invalid_contact_input_ids"] == ["invalid_contact"]
     assert replay_summary["review_contact_ids"] == ["review_contact"]
+    assert replay_summary["allocation_status_counts"] == %{"allocated" => 3}
+
+    assert replay_summary["effective_allocation_status_counts"] == %{
+             "selected_custom" => 2
+           }
+
+    assert replay_summary["allocation_reason_counts"] == %{"selected_by_policy" => 1}
 
     assert replay_summary["direction_counts"] == %{
              "downlink" => 1,
@@ -163,6 +206,46 @@ defmodule OrbitalDynamics.CandidateRefresh.ContactAllocationPressureMapReplaySum
     assert replay_summary["branch_local_deferred_allocation_pressure"]
     assert replay_summary["branch_local_station_pressure"]
     assert replay_summary["branch_local_reservation_conflict_pressure"]
+  end
+
+  test "contact allocation replay ignores zero-only compact count maps" do
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "provenance" => %{
+        "source_reports" => %{
+          "contact_allocation_report" => %{
+            "contract" => "contact_allocation_report.v1",
+            "count" => 1,
+            "allocation_status_counts" => %{"stale_status" => 0},
+            "effective_allocation_status_counts" => %{"stale_effective_status" => 0},
+            "allocation_reason_counts" => %{"stale_reason" => 0}
+          }
+        }
+      }
+    }
+
+    source_summary = CandidateRefresh.source_report_summary(artifact)
+    replay_summary = CandidateRefresh.contact_allocation_replay_summary(artifact)
+
+    refute Map.has_key?(
+             source_summary,
+             "source_report_contact_allocation_allocation_status_counts"
+           )
+
+    refute Map.has_key?(
+             source_summary,
+             "source_report_contact_allocation_effective_allocation_status_counts"
+           )
+
+    refute Map.has_key?(
+             source_summary,
+             "source_report_contact_allocation_allocation_reason_counts"
+           )
+
+    assert replay_summary["allocation_status_counts"] == %{}
+    assert replay_summary["effective_allocation_status_counts"] == %{}
+    assert replay_summary["allocation_reason_counts"] == %{}
+    refute replay_summary["branch_local_contact_allocation_pressure"]
   end
 
   test "contact allocation replay treats preserved ID maps as pressure" do

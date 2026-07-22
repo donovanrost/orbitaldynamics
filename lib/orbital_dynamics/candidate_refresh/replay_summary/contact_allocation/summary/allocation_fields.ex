@@ -3,6 +3,8 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.ContactAllocation.Summa
 
   alias OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactAllocation.DirectionRouting
 
+  alias OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactAllocation.CountMapCorrelation
+
   import OrbitalDynamics.CandidateRefresh.ReplaySummary.ContactAllocation.Summary.Normalization,
     only: [summary_integer: 2]
 
@@ -13,10 +15,18 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.ContactAllocation.Summa
       blocked_row_count: summary_integer(allocation_summary, "blocked_row_count"),
       deferred_row_count: summary_integer(allocation_summary, "deferred_row_count"),
       review_contact_ids: Map.get(allocation_summary, "review_contact_ids"),
-      allocation_status_counts: Map.get(allocation_summary, "allocation_status_counts", %{}),
+      allocation_status_counts:
+        allocation_summary
+        |> Map.get("allocation_status_counts")
+        |> CountMapCorrelation.positive_counts(),
       effective_allocation_status_counts:
-        Map.get(allocation_summary, "effective_allocation_status_counts", %{}),
-      allocation_reason_counts: Map.get(allocation_summary, "allocation_reason_counts", %{}),
+        allocation_summary
+        |> Map.get("effective_allocation_status_counts")
+        |> CountMapCorrelation.positive_counts(),
+      allocation_reason_counts:
+        allocation_summary
+        |> Map.get("allocation_reason_counts")
+        |> CountMapCorrelation.positive_counts(),
       direction_counts: Map.get(direction_fields, "direction_counts"),
       contact_ids_by_direction: Map.get(direction_fields, "contact_ids_by_direction"),
       direction_routing: Map.get(direction_fields, "direction_routing") || %{},
