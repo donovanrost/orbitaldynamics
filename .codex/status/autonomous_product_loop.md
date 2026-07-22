@@ -5,46 +5,47 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Challenge multi-window source-copy preservation.
+Prove selected-recommendation window output.
 
 Status:
 Verified; ready to publish.
 
 Selection evidence:
-- Derivation proves duplicate-ID aggregation, but the integrated handoff proof
-  carries only one fully bounded source window.
-- Recommendation/tradeoff source-review challenges cover aggregate fields, not
-  the new correlated list.
-- Exact list equality and conditional presence should reject stale or omitted
-  multi-window copies without rejecting valid partial rows.
+- The live pressure fixture's selected branch already emits eleven source-window
+  IDs and ten correlated bounds across recommendation outputs.
+- One source-window ID intentionally has no timing and remains outside the
+  bounds list, exercising the optional correlation semantics.
+- Existing broad handoff expectations omit the new fields, so that real
+  selected-recommendation path could regress without a focused failure.
 
 Intended behavior:
-- Prove a sorted multi-window list with independent partial endpoints survives
-  operator-review source comparison and Cadence recommendation handoffs.
-- Reject omitted or stale correlated lists at exact derived/source-review paths
-  for recommendation and tradeoff rows.
-- Keep this a proof-only compatibility slice unless a real adapter gap appears.
+- Pin the real branch-event summary, operator recommendation, selected Cadence
+  import, and review-derived Cadence import to one identical window context.
+- Prove the untimed source-window ID stays in the canonical ID list but is not
+  fabricated into the correlated bounds list.
+- Keep this a proof-only slice unless the live path exposes an adapter gap.
 
 Level 6 pillar advanced:
 Fleet-scale planning decisions and durable reproducible audit handoffs.
 
 Planned files:
-- operator-review and Cadence source-copy challenge proofs
+- selected-recommendation handoff proof
 - capability docs and loop ledger
 
 Verification:
-- Focused operator/Cadence source-copy proofs: `26 passed`.
+- Focused selected-recommendation handoff proof: `1 passed`.
 - Contact-allocation family: `213 passed`.
 - Golden artifacts: `12 passed`.
 - Schema lint: `155` artifacts passed with zero errors or warnings.
 - Full suite: `3886 passed`.
 
 Review:
-- A sorted two-window list with independent start-only/end-only rows validates
-  through an operator-review strategy comparison source copy.
-- Operator omission/conflict challenges fail at the derived bounds path;
-  Cadence recommendation and tradeoff stale copies fail at their exact nested
-  source-review paths, and tradeoff omission fails at the derived path.
+- The real pressure fixture pins eleven sorted source-window IDs and ten exact
+  per-ID bounds in its selected branch-event summary.
+- The untimed `equator_prime_rejected_window` remains in the ID list but is
+  absent from bounds, proving the adapter does not fabricate timing.
+- Identical context is asserted on the operator recommendation, selected
+  Cadence import, review-derived import, and its nested source review row.
 - This proof/docs-only slice found no adapter gap and changed no production
   module, schema, golden artifact, scoring, approval, or execution behavior.
 - All no-provider-request, no-reservation, no-schedule-mutation,
@@ -52,7 +53,7 @@ Review:
   boundaries remain intact; local review found no publish blocker.
 
 Last published slice:
-- `d1a8081e` Correlate branch window timing by identity (`3885 passed`).
+- `cf9829b2` Challenge multi-window source copies (`3886 passed`).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions while preserving explicit
@@ -63,7 +64,7 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-Audit source-window bound coverage in selected-recommendation output.
+Expose bounded versus untimed source-window coverage counts.
 
 Blocked:
 None.
