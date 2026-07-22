@@ -244,6 +244,9 @@ The following source inputs become branch-local branches:
   schedule mutation, or import approval. Status and required-action maps are
   derived from rows when row evidence is present, preventing stale top-level
   counteroffer aggregates from steering review pressure.
+  CampaignPlanner selects `rows`, `import_readiness_rows`, or `impact_rows`
+  from the matching provider-counteroffer schema contract; shadow row
+  collections and unsupported contracts cannot become review-pressure branches.
   Branch-generated refresh requests preserve direct and `source_result_artifact`
   / `result_artifact`-wrapped plan-impact summaries with wrapper-qualified
   source paths, affected station/provider maps, counteroffer ID sets, timing

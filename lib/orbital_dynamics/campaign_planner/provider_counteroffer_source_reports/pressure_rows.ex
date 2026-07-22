@@ -1,6 +1,10 @@
 defmodule OrbitalDynamics.CampaignPlanner.ProviderCounterofferSourceReports.PressureRows do
   @moduledoc false
 
+  @report_contract "provider_counteroffer_report.v1"
+  @import_readiness_summary_contract "provider_counteroffer_import_readiness_summary.v1"
+  @plan_impact_summary_contract "provider_counteroffer_plan_impact_summary.v1"
+
   def pressure_rows(reports) do
     reports
     |> Enum.flat_map(fn {report, source_path} ->
@@ -19,19 +23,28 @@ defmodule OrbitalDynamics.CampaignPlanner.ProviderCounterofferSourceReports.Pres
     end)
   end
 
-  defp pressure_row_collection(%{"impact_rows" => rows}, source_path),
-    do: {rows, "#{source_path}.impact_rows"}
+  defp pressure_row_collection(
+         %{"schema_contract" => @plan_impact_summary_contract} = summary,
+         source_path
+       ),
+       do: {Map.get(summary, "impact_rows", []), "#{source_path}.impact_rows"}
 
-  defp pressure_row_collection(%{"import_readiness_rows" => rows} = report, source_path) do
+  defp pressure_row_collection(
+         %{"schema_contract" => @import_readiness_summary_contract} = summary,
+         source_path
+       ) do
     rows =
-      rows
+      summary
+      |> Map.get("import_readiness_rows", [])
       |> List.wrap()
-      |> Enum.map(&import_readiness_pressure_row(&1, report))
+      |> Enum.map(&import_readiness_pressure_row(&1, summary))
 
     {rows, "#{source_path}.import_readiness_rows"}
   end
 
-  defp pressure_row_collection(%{"rows" => rows}, source_path), do: {rows, "#{source_path}.rows"}
+  defp pressure_row_collection(%{"schema_contract" => @report_contract} = report, source_path),
+    do: {Map.get(report, "rows", []), "#{source_path}.rows"}
+
   defp pressure_row_collection(_report, source_path), do: {[], source_path}
 
   defp import_readiness_pressure_row(row, report) do

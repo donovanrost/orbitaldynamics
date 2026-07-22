@@ -425,4 +425,33 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyProviderCounterofferImportRead
     assert {:ok, %{"schema_contract" => "campaign_strategy.v3", "status" => "pass"}} =
              Schema.validate_artifact(artifact)
   end
+
+  test "strategy ignores shadow impact rows on counteroffer import-readiness summaries" do
+    summary = %{
+      "schema_contract" => "provider_counteroffer_import_readiness_summary.v1",
+      "model" => "artifact_only_provider_counteroffer_import_readiness_summary",
+      "source_artifact_type" => "provider_counteroffer_report.v1",
+      "import_readiness_rows" => [],
+      "impact_rows" => [
+        %{
+          "provider_counteroffer_id" => "shadow_import_counteroffer",
+          "provider_counteroffer_status" => "proposed",
+          "reviewable" => true,
+          "required_operator_action" => "review_provider_counteroffer"
+        }
+      ]
+    }
+
+    artifact =
+      strategy(base_plan(%{}),
+        mission_state:
+          mission_state_with_refresh_inputs()
+          |> Map.put("source_provider_counteroffer_import_readiness_summary", summary),
+        derive_branches?: true,
+        branches: [%{id: "baseline"}],
+        current_epoch_s: 0.0
+      )
+
+    refute branch(artifact, "derived_provider_counteroffer_pressure_shadow_import_counteroffer")
+  end
 end

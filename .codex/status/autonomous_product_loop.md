@@ -5,53 +5,52 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Constrain station-reservation planner pressure to canonical typed rows.
+Constrain provider-counteroffer pressure to canonical contract rows.
 
 Status:
 Complete; ready to publish.
 
 Selection evidence:
-- `station_reservation_report.v1` has no durable report ID, so its three compact
-  descendants cannot support an exact lineage gate without a schema redesign.
-- CampaignPlanner currently classifies every non-provider compact row as an
-  affected contact, including rows with undeclared or missing row types.
-- Hold-import readiness reconstruction prefers an unregistered shadow
-  `review_rows` field over canonical `import_readiness_rows` when both exist.
-- Full schema gating would unnecessarily remove row-derived recovery from
-  otherwise usable summaries whose redundant aggregate maps are stale.
+- Provider-counteroffer reports, import-readiness summaries, and plan-impact
+  summaries declare distinct canonical row collections.
+- CampaignPlanner currently selects `impact_rows`, `import_readiness_rows`, or
+  `rows` by field presence rather than the declared schema contract.
+- A shadow `impact_rows` field can override a raw report or import-readiness
+  summary and create a provider-counteroffer review branch.
+- Full schema gating would unnecessarily remove canonical-row recovery from
+  summaries whose redundant aggregate maps are stale.
 
 Implemented behavior:
-- Select the row collection from the declared compact summary contract.
-- Derive pressure only from exact `affected_contact` or
-  `provider_calendar_contention_group` row types.
+- Select `rows`, `import_readiness_rows`, or `impact_rows` from the declared
+  provider-counteroffer contract only.
+- Ignore shadow collections and unsupported contracts at the pressure boundary.
 - Preserve authoritative-row recovery when redundant aggregates are stale.
 
 Level 6 pillar advanced:
 Fleet-scale planning decisions and durable reproducible audit handoffs.
 
 Files changed:
-- CampaignPlanner station-reservation compact-summary pressure reconstruction
-- focused review and hold import-readiness strategy challenge tests
+- provider-counteroffer pressure-row dispatcher
+- raw-report and import-readiness shadow-row strategy challenges
 - V3 strategy capability documentation and autonomous-loop ledger
 
 Verification:
-- Focused review/import-readiness strategy tests: `5 passed`.
-- All CampaignPlanner station-reservation tests: `11 passed`.
+- All CampaignPlanner provider-counteroffer tests: `7 passed`.
 - Full checked-artifact lint: `155/155 passed`, zero warnings.
-- Full suite with a 120-second per-test ceiling: `3788 passed`.
+- Full suite with a 120-second per-test ceiling: `3790 passed`.
 - `mix format --check-formatted`, `mix compile --warnings-as-errors`, and
   `git diff --check` passed.
 - No public artifact shape or checked-in schema export changed.
 
 Review:
-- Review/hold summaries read only `review_rows`; hold import-readiness reads
-  only `import_readiness_rows` even if an unregistered shadow field is present.
-- Unknown or missing row types are ignored rather than treated as affected
-  contacts; both declared row types retain their established transformations.
-- The change is shared by direct and wrapped mission-state collection paths.
+- Raw reports read only `rows`, import-readiness summaries read only
+  `import_readiness_rows`, and plan-impact summaries read only `impact_rows`.
+- Correct-contract rows keep their established normalization and source paths;
+  stale redundant aggregate fields remain non-authoritative.
+- Direct and result-artifact-wrapped inputs converge on this dispatcher.
 
 Last published slice:
-- `722e7214` Gate planner quality pressure by lineage (`3786 passed`).
+- `308aeca1` Constrain station reservation pressure rows (`3788 passed`).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions while preserving explicit
