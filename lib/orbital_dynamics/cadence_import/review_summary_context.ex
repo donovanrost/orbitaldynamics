@@ -105,7 +105,8 @@ defmodule OrbitalDynamics.CadenceImport.ReviewSummaryContext do
     "station_reserved_bys",
     "station_reservation_statuses",
     "station_reservation_match_status_counts",
-    "station_reservation_status_counts"
+    "station_reservation_status_counts",
+    "station_reserved_by_counts"
   ]
 
   def build(%{} = package) do

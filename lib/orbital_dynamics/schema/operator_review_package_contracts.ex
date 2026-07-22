@@ -81,7 +81,8 @@ defmodule OrbitalDynamics.Schema.OperatorReviewPackageContracts do
     "replacement_cadence_import_status_counts",
     "calendar_entry_trust_boundary_status_counts",
     "station_reservation_match_status_counts",
-    "station_reservation_status_counts"
+    "station_reservation_status_counts",
+    "station_reserved_by_counts"
   ]
 
   def scalar_count_fields, do: @required_scalar_count_fields ++ @optional_scalar_count_fields

@@ -519,6 +519,8 @@ It preserves the following for audit **without changing refresh selection**:
   counts with canonical contact-ID routes at those handoff boundaries
 - contact-allocation reservation-status counts with canonical contact-ID routes
   at those handoff boundaries
+- contact-allocation reservation-owner counts with canonical contact-ID routes
+  at those handoff boundaries
 - contact-allocation reduced-capacity pack status and contact-status count maps
 - contact-allocation capacity-pack required-capacity demand totals plus
   selected/deferred per-station demand maps

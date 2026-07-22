@@ -1984,6 +1984,75 @@ defmodule OrbitalDynamics.OperatorReview.ContactAllocationEmbeddedSummaryTest do
     end
   end
 
+  test "lifts and correlates station-reservation owner contact identity and counts" do
+    owner = "mission_ops"
+
+    repair =
+      OperatorReview.from_repair_artifact(%{
+        "repair_metadata" => %{"repair_id" => "repair:reservation_owner_overlap"},
+        "source_contact_allocation_report" => %{
+          "station_reserved_by_counts" => %{owner => 7},
+          "station_reservation_contact_ids_by_reserved_by" => %{
+            owner => ["contact_source", "contact_shared"]
+          },
+          "station_reservation_ids_by_reserved_by" => %{
+            owner => ["reservation_shared"]
+          }
+        },
+        "contact_allocation_report" => %{
+          "station_reserved_by_counts" => %{owner => 7},
+          "station_reservation_contact_ids_by_reserved_by" => %{
+            owner => ["contact_result", "contact_routed", "contact_shared"]
+          },
+          "station_reservation_ids_by_reserved_by" => %{
+            owner => ["reservation_result", "reservation_shared"]
+          }
+        }
+      })
+
+    explicit_empty =
+      OperatorReview.from_campaign_artifact(%{
+        "plan_id" => "plan:reservation_owner_empty",
+        "contact_allocation_report" => %{
+          "station_reserved_by_counts" => %{owner => 9},
+          "station_reservation_contact_ids_by_reserved_by" => %{owner => []}
+        }
+      })
+
+    count_only =
+      OperatorReview.from_campaign_artifact(%{
+        "plan_id" => "plan:reservation_owner_count",
+        "contact_allocation_report" => %{"station_reserved_by_counts" => %{owner => 2}}
+      })
+
+    expected_contact_ids = [
+      "contact_result",
+      "contact_routed",
+      "contact_shared",
+      "contact_source"
+    ]
+
+    assert repair["station_reserved_by_counts"] == %{owner => 4}
+
+    assert repair["station_reservation_contact_ids_by_reserved_by"] == %{
+             owner => expected_contact_ids
+           }
+
+    assert repair["station_reservation_ids_by_reserved_by"] == %{
+             owner => ["reservation_result", "reservation_shared"]
+           }
+
+    assert explicit_empty["station_reserved_by_counts"] == %{owner => 0}
+    assert explicit_empty["station_reservation_contact_ids_by_reserved_by"] == %{owner => []}
+    assert count_only["station_reserved_by_counts"] == %{owner => 2}
+    refute Map.has_key?(count_only, "station_reservation_contact_ids_by_reserved_by")
+
+    for package <- [repair, explicit_empty, count_only] do
+      assert {:ok, %{"schema_contract" => "operator_review_package.v1"}} =
+               Schema.validate_artifact(package)
+    end
+  end
+
   test "lifts and correlates station-reservation status contact identity and counts" do
     status = "confirmed"
 

@@ -501,6 +501,9 @@ so adapters can route contact queues without recounting rows.
 - Station-reservation contact IDs by reservation status likewise fix each
   routed status count; count-only status keys remain compatible, and
   reservation-ID routes do not define contact cardinality.
+- Station-reservation contact IDs by reservation owner likewise fix each routed
+  owner count; count-only owner keys remain compatible, and reservation-ID
+  routes do not define contact cardinality.
 - Capacity-pack group IDs form a canonical top-level union across direct and
   status-routed identity evidence and fix the exact group count. Each supplied
   status route likewise fixes its status count; count-only keys and top-absent

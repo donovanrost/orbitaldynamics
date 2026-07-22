@@ -5,26 +5,26 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Lift and correlate station-reservation status contact identity/count at handoff top level.
+Lift and correlate station-reservation owner contact identity/count at handoff top level.
 
 Status:
 Verified; ready to publish.
 
 Selection evidence:
-- Station-reservation expiration contact identity/count correlation is now
+- Station-reservation status contact identity/count correlation is now
   schema-enforced across both handoffs.
-- Station-reservation contact and reservation IDs by reservation status already
-  merge across embedded summaries, but the matching status count is dropped.
+- Station-reservation contact and reservation IDs by owner already merge across
+  embedded summaries, but the matching owner count is dropped.
 - A live probe produced four routed contacts and two reservation IDs under
-  `confirmed` in both handoffs with no `station_reservation_status_counts`.
+  `mission_ops` in both handoffs with no `station_reserved_by_counts`.
 - Reservation IDs can legitimately collapse across contacts, so only the
   contact-ID route defines the contact-row count.
 
 Intended behavior:
-- Lift reservation-status counts into both handoffs and derive each supplied
-  status count from its sorted unique contact IDs, including explicit-empty
+- Lift reservation-owner counts into both handoffs and derive each supplied
+  owner count from its sorted unique contact IDs, including explicit-empty
   zero.
-- Retain additive count-only fallback for status keys without contact identity.
+- Retain additive count-only fallback for owner keys without contact identity.
 - Reject noncanonical contact routes or mismatched counts without treating the
   independently routed reservation IDs as contact-count authority.
 
@@ -32,23 +32,23 @@ Level 6 pillar advanced:
 Fleet-scale planning decisions and durable reproducible audit handoffs.
 
 Planned files:
-- operator-review station-reservation status count/identity aggregation
+- operator-review station-reservation owner count/identity aggregation
 - Cadence context/builder and both handoff registries
 - shared review/import correlation and generated schemas
 - overlap/empty/fallback challenge proofs, docs, and loop ledger
 
 Verification:
 - Focused producer/schema proofs: `4 passed`.
-- Contact-allocation family: `206 passed`.
+- Contact-allocation family: `207 passed`.
 - Golden artifact suite: `12 passed`.
 - Schema lint: `155` artifacts, `0` errors, `0` warnings.
-- Full suite: `3859 passed`.
+- Full suite: `3863 passed`.
 - `mix format --check-formatted` and `git diff --check` passed.
 
 Review:
-- Reservation-status counts now lift through operator review and Cadence context
+- Reservation-owner counts now lift through operator review and Cadence context
   and derive from sorted unique contact IDs, including explicit-empty zero.
-- Count-only status keys retain additive fallback; reservation-ID routing stays
+- Count-only owner keys retain additive fallback; reservation-ID routing stays
   independent of contact cardinality.
 - Both handoff validators reject noncanonical contact routes and missing or
   mismatched counts; generated schemas export count bounds and route uniqueness.
@@ -56,7 +56,7 @@ Review:
   remain out of scope.
 
 Last published slice:
-- `767a82b3` Correlate reservation expiration counts (`3855 passed`).
+- `3047bfe7` Lift reservation status counts (`3859 passed`).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions while preserving explicit
@@ -67,7 +67,7 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-After publish, audit station-reservation owner identity/count correlation.
+After publish, audit station-reservation top-level identity union consistency.
 
 Blocked:
 None.
