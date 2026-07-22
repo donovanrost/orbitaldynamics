@@ -5,57 +5,59 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Correlate resolution-summary categorical routing.
+Constrain resolution station and direction routing identity.
 
 Status:
 Complete; verified and ready to publish.
 
 Selection evidence:
-- Resource-scope, selection-reason, and review-action maps are value-checked
-  against flattened IDs but their category keys are not correlated to counts.
-- A phantom category key can preserve every current value and total-count check
-  while changing downstream routing identity.
-- CandidateRefresh merges and replays those uncorrelated category maps as
-  pressure when standalone validation is bypassed.
+- Preserved station maps can route substituted contact IDs independently of the
+  summary's selected/deferred identity.
+- Direction contact maps can use missing or zero-count keys and substituted
+  contact IDs; preserved `direction_routing` is replayed without reconstruction.
+- Compact summaries do not carry an independent station-count map, so station
+  key validation would erase legitimate legacy evidence rather than correlate
+  it to a trustworthy authority source.
 
 Intended behavior:
-- Require resource-scope, selection-reason, and review-action map keys to
-  reference positive entries in their corresponding count maps.
-- Apply the same per-report filter during source aggregation.
-- Reapply the correlation during preserved replay while retaining flattened IDs
-  and aggregate counts as review evidence.
+- Filter selected/deferred station-map values to each report's corresponding
+  flattened contact IDs without inventing station-key authority.
+- Filter direction-map values to selected/deferred contact IDs and keys to
+  positive direction-count entries before per-report aggregation.
+- Rebuild direction routing from correlated counts and IDs during preserved
+  replay while retaining count and flattened-ID evidence.
 
 Level 6 pillar advanced:
 Fleet-scale planning decisions and durable reproducible audit handoffs.
 
 Planned files:
-- resolution-summary validation and categorical replay filtering
-- schema/source-summary/replay phantom-category challenge tests
+- resolution station/direction source aggregation and replay fields
+- station/direction substituted-ID and zero-count challenge tests
 - contention artifact documentation and autonomous-loop ledger
 
 Verification:
-- `44 passed` focused contact-contention schema and categorical replay tests.
-- `97 passed` contention-family regression sweep.
-- `87 passed` related CandidateRefresh, schema, export, and validation tests.
+- `2 passed` focused capacity-routing replay tests.
+- `24 passed` targeted contention-resolution CandidateRefresh/planner tests.
+- `98 passed` contention-family regression sweep.
+- `88 passed` related schema, export, validation, and replay tests.
 - `mix orbital_dynamics.schema.lint --all`: `155` artifacts passed.
-- `mix test --timeout 120000`: `3800 passed`.
+- `mix test --timeout 120000`: `3801 passed`.
 - `mix format --check-formatted` and `git diff --check` passed.
 
 Review:
-- Schema validation now rejects absent and zero-count resource-scope,
-  selection-reason, and review-action keys even when flattened IDs and totals
-  are unchanged.
-- CandidateRefresh filters keys against each source report before aggregation,
-  preventing one report's counts from authorizing another report's routing.
-- Preserved replay reapplies the positive-count correlation, with summary
-  `action_counts` accepted as the compact-summary source for effective action
-  counts.
-- Flattened contact IDs and aggregate count maps remain conservative review
-  evidence; no contact selection, allocation, reservation, or provider side
-  effect was added.
+- Station-map values are filtered against each report's selected or deferred
+  IDs before aggregation and again at preserved replay.
+- Direction-map keys require positive per-report counts and their values require
+  selected/deferred identity before aggregation, so another report's count
+  cannot authorize a borrowed route entry.
+- Direction routing is reconstructed from correlated counts and IDs; legitimate
+  count-only directions remain explicit with an empty contact-ID list.
+- Flattened IDs, zero/count-only direction evidence, and station keys remain
+  reviewable; no independent station authority or execution side effect was
+  invented.
 
 Last published slice:
-- `a65b08ee` Correlate resolution summary group lineage (`3799 passed`).
+- `ea5c0a14` Correlate resolution categorical routing (`3800 passed`).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions while preserving explicit
@@ -66,8 +68,8 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-After publish, audit resolution-summary station and direction routing maps for
-contact-ID lineage and positive-count correlation.
+After publish, audit resolution group-map values for flattened contact-ID
+lineage when standalone summary validation is bypassed.
 
 Blocked:
 None.

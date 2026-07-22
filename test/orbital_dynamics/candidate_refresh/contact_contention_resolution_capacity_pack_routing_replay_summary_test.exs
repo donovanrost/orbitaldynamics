@@ -271,4 +271,135 @@ defmodule OrbitalDynamics.CandidateRefresh.ContactContentionResolutionCapacityPa
            ) ==
              replay_summary
   end
+
+  test "station and direction routing filters substituted contact identity" do
+    first_summary = %{
+      "schema_contract" => "contact_contention_resolution_summary.v1",
+      "recommendation_count" => 1,
+      "selected_contact_ids" => ["selected_a"],
+      "deferred_contact_ids" => ["deferred_a"],
+      "selected_contact_ids_by_ground_station" => %{
+        "station_a" => ["selected_a", "substituted_contact"],
+        "phantom_station" => ["substituted_contact"]
+      },
+      "deferred_contact_ids_by_ground_station" => %{
+        "station_a" => ["deferred_a", "substituted_contact"]
+      },
+      "direction_counts" => %{"downlink" => 1, "zero_direction" => 0},
+      "contact_ids_by_direction" => %{
+        "downlink" => ["selected_a", "substituted_contact"],
+        "borrowed_direction" => ["selected_a"],
+        "zero_direction" => ["selected_a"]
+      },
+      "direction_routing" => %{
+        "stale_direction" => %{
+          "contact_count" => 99,
+          "contact_ids" => ["substituted_contact"]
+        }
+      }
+    }
+
+    second_summary = %{
+      "schema_contract" => "contact_contention_resolution_summary.v1",
+      "recommendation_count" => 1,
+      "selected_contact_ids" => ["selected_b"],
+      "deferred_contact_ids" => ["deferred_b"],
+      "selected_contact_ids_by_ground_station" => %{"station_b" => ["selected_b"]},
+      "deferred_contact_ids_by_ground_station" => %{"station_b" => ["deferred_b"]},
+      "direction_counts" => %{"borrowed_direction" => 1},
+      "contact_ids_by_direction" => %{}
+    }
+
+    refresh = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "source_contact_contention_resolution_summary" => first_summary,
+      "mission_state" => %{
+        "source_contact_contention_resolution_summary" => second_summary
+      }
+    }
+
+    source_summary = CandidateRefresh.source_report_summary(refresh)
+
+    assert source_summary["source_report_contact_contention_resolution_selected_contact_ids"] ==
+             ["selected_a", "selected_b"]
+
+    assert source_summary["source_report_contact_contention_resolution_deferred_contact_ids"] ==
+             ["deferred_a", "deferred_b"]
+
+    assert source_summary[
+             "source_report_contact_contention_resolution_selected_contact_ids_by_ground_station"
+           ] == %{"station_a" => ["selected_a"], "station_b" => ["selected_b"]}
+
+    assert source_summary[
+             "source_report_contact_contention_resolution_deferred_contact_ids_by_ground_station"
+           ] == %{"station_a" => ["deferred_a"], "station_b" => ["deferred_b"]}
+
+    assert source_summary["source_report_contact_contention_resolution_direction_counts"] == %{
+             "borrowed_direction" => 1,
+             "downlink" => 1,
+             "zero_direction" => 0
+           }
+
+    assert source_summary[
+             "source_report_contact_contention_resolution_contact_ids_by_direction"
+           ] == %{"downlink" => ["selected_a"]}
+
+    assert source_summary["source_report_contact_contention_resolution_direction_routing"] == %{
+             "borrowed_direction" => %{"contact_count" => 1, "contact_ids" => []},
+             "downlink" => %{"contact_count" => 1, "contact_ids" => ["selected_a"]}
+           }
+
+    replay_summary = CandidateRefresh.contact_contention_resolution_replay_summary(refresh)
+
+    assert replay_summary["selected_contact_ids_by_ground_station"] == %{
+             "station_a" => ["selected_a"],
+             "station_b" => ["selected_b"]
+           }
+
+    assert replay_summary["deferred_contact_ids_by_ground_station"] == %{
+             "station_a" => ["deferred_a"],
+             "station_b" => ["deferred_b"]
+           }
+
+    assert replay_summary["contact_ids_by_direction"] == %{"downlink" => ["selected_a"]}
+
+    assert replay_summary["direction_routing"] == %{
+             "borrowed_direction" => %{"contact_count" => 1, "contact_ids" => []},
+             "downlink" => %{"contact_count" => 1, "contact_ids" => ["selected_a"]}
+           }
+
+    preserved_artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "provenance" => %{
+        "source_reports" => %{
+          "contact_contention_resolution_report" =>
+            Map.put(first_summary, "contract", "contact_contention_resolution_summary.v1")
+        }
+      }
+    }
+
+    preserved_replay =
+      CandidateRefresh.contact_contention_resolution_replay_summary(preserved_artifact)
+
+    assert preserved_replay["selected_contact_ids_by_ground_station"] == %{
+             "station_a" => ["selected_a"]
+           }
+
+    assert preserved_replay["deferred_contact_ids_by_ground_station"] == %{
+             "station_a" => ["deferred_a"]
+           }
+
+    assert preserved_replay["direction_counts"] == %{
+             "downlink" => 1,
+             "zero_direction" => 0
+           }
+
+    assert preserved_replay["contact_ids_by_direction"] == %{
+             "downlink" => ["selected_a"]
+           }
+
+    assert preserved_replay["direction_routing"] == %{
+             "downlink" => %{"contact_count" => 1, "contact_ids" => ["selected_a"]}
+           }
+  end
 end

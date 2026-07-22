@@ -1134,6 +1134,11 @@ restricted to positive keys in their corresponding count maps during executable
 validation, per-report aggregation, and preserved replay. Flattened contact IDs
 and aggregate counts remain available as conservative review evidence when a
 categorical key is rejected.
+Station-routing values are constrained per report and during replay to the
+summary's selected/deferred contact identity. Direction contact routing adds the
+same identity constraint plus positive direction-count key correlation, and its
+compact route map is reconstructed from the correlated counts and contact IDs;
+count-only direction evidence and flattened IDs remain reviewable.
 Branch-generated CandidateRefresh requests preserve direct mission-state and
 result-artifact-wrapped raw `source_contact_contention_resolution_report` /
 `contact_contention_resolution_report` inputs with wrapper-qualified request

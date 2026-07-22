@@ -1,6 +1,8 @@
 defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.ContactContentionResolution.Summary.ResolutionFields do
   @moduledoc false
 
+  alias OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactContentionResolution.DirectionRouting
+
   def fields(resolution_summary) do
     selection_reason_counts =
       count_map_or_empty(Map.get(resolution_summary, "selection_reason_counts"))
@@ -12,6 +14,18 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.ContactContentionResolu
       count_map_or_empty(
         Map.get(resolution_summary, "required_operator_action_counts") ||
           Map.get(resolution_summary, "action_counts")
+      )
+
+    selected_contact_ids = list_or_empty(Map.get(resolution_summary, "selected_contact_ids"))
+    deferred_contact_ids = list_or_empty(Map.get(resolution_summary, "deferred_contact_ids"))
+
+    direction_counts = count_map_or_empty(Map.get(resolution_summary, "direction_counts"))
+
+    direction_contact_ids =
+      filter_contact_ids(
+        Map.get(resolution_summary, "contact_ids_by_direction"),
+        Map.keys(positive_counts(direction_counts)),
+        selected_contact_ids ++ deferred_contact_ids
       )
 
     recommendation_group_ids =
@@ -37,8 +51,8 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.ContactContentionResolu
           "ambiguous_duplicate_contact_ids_by_group_id",
           ambiguous_group_ids
         ),
-      "selected_contact_ids" => Map.get(resolution_summary, "selected_contact_ids", []),
-      "deferred_contact_ids" => Map.get(resolution_summary, "deferred_contact_ids", []),
+      "selected_contact_ids" => selected_contact_ids,
+      "deferred_contact_ids" => deferred_contact_ids,
       "review_contact_ids" => Map.get(resolution_summary, "review_contact_ids", []),
       "selected_contact_ids_by_group_id" =>
         take_group_keys(
@@ -61,9 +75,17 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.ContactContentionResolu
           selection_reason_counts
         ),
       "selected_contact_ids_by_ground_station" =>
-        Map.get(resolution_summary, "selected_contact_ids_by_ground_station", %{}),
+        filter_contact_ids(
+          Map.get(resolution_summary, "selected_contact_ids_by_ground_station"),
+          :all_keys,
+          selected_contact_ids
+        ),
       "deferred_contact_ids_by_ground_station" =>
-        Map.get(resolution_summary, "deferred_contact_ids_by_ground_station", %{}),
+        filter_contact_ids(
+          Map.get(resolution_summary, "deferred_contact_ids_by_ground_station"),
+          :all_keys,
+          deferred_contact_ids
+        ),
       "resource_scope_counts" => resource_scope_counts,
       "selected_contact_ids_by_resource_scope" =>
         take_positive_count_keys(
@@ -83,9 +105,10 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.ContactContentionResolu
           "review_contact_ids_by_resource_scope",
           resource_scope_counts
         ),
-      "direction_counts" => Map.get(resolution_summary, "direction_counts", %{}),
-      "contact_ids_by_direction" => Map.get(resolution_summary, "contact_ids_by_direction", %{}),
-      "direction_routing" => Map.get(resolution_summary, "direction_routing", %{}),
+      "direction_counts" => direction_counts,
+      "contact_ids_by_direction" => direction_contact_ids,
+      "direction_routing" =>
+        DirectionRouting.field(positive_counts(direction_counts), direction_contact_ids) || %{},
       "required_operator_action_counts" => required_operator_action_counts,
       "review_contact_ids_by_action" =>
         take_positive_count_keys(
@@ -164,6 +187,29 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.ContactContentionResolu
         %{}
     end
   end
+
+  defp filter_contact_ids(%{} = values_by_key, allowed_keys, allowed_contact_ids) do
+    allowed_contact_ids = MapSet.new(allowed_contact_ids)
+
+    values_by_key
+    |> take_allowed_keys(allowed_keys)
+    |> Enum.reduce(%{}, fn {key, contact_ids}, filtered ->
+      contact_ids = Enum.filter(List.wrap(contact_ids), &MapSet.member?(allowed_contact_ids, &1))
+
+      case contact_ids do
+        [] -> filtered
+        contact_ids -> Map.put(filtered, key, contact_ids)
+      end
+    end)
+  end
+
+  defp filter_contact_ids(_values_by_key, _allowed_keys, _allowed_contact_ids), do: %{}
+
+  defp take_allowed_keys(values_by_key, :all_keys), do: values_by_key
+  defp take_allowed_keys(values_by_key, allowed_keys), do: Map.take(values_by_key, allowed_keys)
+
+  defp positive_counts(%{} = counts),
+    do: Map.filter(counts, fn {_key, count} -> is_integer(count) and count > 0 end)
 
   defp lineage_group_ids(summary, field, allowed_group_ids) when is_list(allowed_group_ids) do
     summary

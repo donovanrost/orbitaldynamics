@@ -169,6 +169,13 @@ require keys backed by positive entries in their corresponding count maps.
 Candidate-refresh filters those category keys per source report and again during
 preserved replay, while retaining flattened contact IDs and aggregate counts as
 review evidence.
+Candidate-refresh also constrains compact resolution station-map values to the
+corresponding selected or deferred contact IDs. Direction contact maps are
+filtered per report to selected/deferred IDs under positive direction-count
+keys, and preserved direction routing is rebuilt from those correlated fields
+instead of trusting a carried route payload. Compact summaries do not declare an
+independent station-count authority, so station keys remain preserved evidence
+while their substituted contact values are removed.
 Its exported JSON Schema includes the nested row and `timeline_identity` field
 shape used by executable validation. Rows also carry artifact-only operational
 kind, required operator action, operator-action reason, execution boundary,
