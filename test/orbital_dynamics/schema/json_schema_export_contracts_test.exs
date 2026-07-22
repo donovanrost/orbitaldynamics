@@ -22,6 +22,22 @@ defmodule OrbitalDynamics.Schema.JsonSchemaExportContractsTest do
            } = schema["x-orbital-dynamics"]
   end
 
+  test "exports selected recommendation reservation expiration context" do
+    assert {:ok, schema} = Schema.json_schema("campaign_strategy.v3")
+
+    assert get_in(schema, [
+             "properties",
+             "recommendation",
+             "properties",
+             "explanation",
+             "items",
+             "properties",
+             "branch_station_reservation_expiration_statuses",
+             "items",
+             "type"
+           ]) == "string"
+  end
+
   test "exports nested branch comparison report row schema" do
     assert {:ok, schema} = Schema.json_schema("branch_comparison_report.v1")
 

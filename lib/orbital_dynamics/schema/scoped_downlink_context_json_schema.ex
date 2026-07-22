@@ -159,6 +159,7 @@ defmodule OrbitalDynamics.Schema.ScopedDownlinkContextJsonSchema do
       },
       "branch_earliest_starts_at_s" => %{"type" => "number"},
       "branch_latest_ends_at_s" => %{"type" => "number"},
+      "branch_station_reservation_expiration_statuses" => CommonJsonSchema.string_array(),
       "branch_max_latency_s" => %{"type" => "number"},
       "branch_planned_latency_s" => %{"type" => "number"},
       "branch_required_contacts" => %{"type" => "number"},

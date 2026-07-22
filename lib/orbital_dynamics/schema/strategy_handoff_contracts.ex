@@ -86,6 +86,7 @@ defmodule OrbitalDynamics.Schema.StrategyHandoffContracts do
                                                     "branch_source_window_timing_coverage_status",
                                                     "branch_earliest_starts_at_s",
                                                     "branch_latest_ends_at_s",
+                                                    "branch_station_reservation_expiration_statuses",
                                                     "source_recommendation"
                                                   ],
                                                   &{&1, &1}
@@ -275,6 +276,7 @@ defmodule OrbitalDynamics.Schema.StrategyHandoffContracts do
         "source_recommendation"
       )
       |> validate_strategy_recommendation_source_count_matches(path, row, source_row)
+      |> validate_strategy_recommendation_branch_event_context(path, row, source_row)
     else
       issues
     end
@@ -300,6 +302,13 @@ defmodule OrbitalDynamics.Schema.StrategyHandoffContracts do
         row,
         source_review_row,
         @branch_window_context_field_pairs,
+        "source_review_row"
+      )
+      |> validate_required_source_pairs(
+        path,
+        row,
+        source_review_row,
+        @branch_reservation_expiration_context_field_pairs,
         "source_review_row"
       )
     else
@@ -523,6 +532,39 @@ defmodule OrbitalDynamics.Schema.StrategyHandoffContracts do
         acc
       end
     end)
+  end
+
+  defp validate_strategy_recommendation_branch_event_context(issues, path, row, source_row) do
+    source_summary =
+      source_row
+      |> Map.get("explanation", [])
+      |> List.wrap()
+      |> Enum.find(fn
+        %{"type" => "branch_event_summary"} -> true
+        _row -> false
+      end)
+
+    case source_summary do
+      %{} ->
+        issues
+        |> validate_source_pairs(
+          path,
+          row,
+          source_summary,
+          @branch_reservation_expiration_context_field_pairs,
+          "source_recommendation.explanation.branch_event_summary"
+        )
+        |> validate_required_source_pairs(
+          path,
+          row,
+          source_summary,
+          @branch_reservation_expiration_context_field_pairs,
+          "source_recommendation.explanation.branch_event_summary"
+        )
+
+      _summary ->
+        issues
+    end
   end
 
   defp validate_strategy_tradeoff_source_tradeoff_matches(

@@ -126,6 +126,8 @@ defmodule OrbitalDynamics.CadenceImport.StrategyManifestRow do
       "branch_station_reservation_statuses" => row["branch_station_reservation_statuses"],
       "branch_station_reservation_match_statuses" =>
         row["branch_station_reservation_match_statuses"],
+      "branch_station_reservation_expiration_statuses" =>
+        row["branch_station_reservation_expiration_statuses"],
       "branch_image_quality_min_score" => row["branch_image_quality_min_score"],
       "branch_image_quality_statuses" => row["branch_image_quality_statuses"],
       "branch_image_quality_sources" => row["branch_image_quality_sources"],

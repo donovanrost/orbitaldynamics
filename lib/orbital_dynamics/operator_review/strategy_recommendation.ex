@@ -127,6 +127,7 @@ defmodule OrbitalDynamics.OperatorReview.StrategyRecommendation do
           "branch_station_reserved_by",
           "branch_station_reservation_statuses",
           "branch_station_reservation_match_statuses",
+          "branch_station_reservation_expiration_statuses",
           "branch_image_quality_min_score",
           "branch_image_quality_statuses",
           "branch_image_quality_sources",

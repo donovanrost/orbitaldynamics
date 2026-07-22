@@ -22,7 +22,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
     expected_handoff = StrategyRecommendationPressureExpectedHandoffFixture.expected_handoff()
 
-    window_context_fields = [
+    branch_context_fields = [
       "branch_source_window_ids",
       "branch_source_window_count",
       "branch_source_window_bounds",
@@ -33,13 +33,14 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
       "branch_partially_timed_source_window_count",
       "branch_source_window_timing_coverage_status",
       "branch_earliest_starts_at_s",
-      "branch_latest_ends_at_s"
+      "branch_latest_ends_at_s",
+      "branch_station_reservation_expiration_statuses"
     ]
 
-    recommendation_window_context =
+    recommendation_branch_context =
       artifact["recommendation"]["explanation"]
       |> Enum.find(&(&1["type"] == "branch_event_summary"))
-      |> Map.take(window_context_fields)
+      |> Map.take(branch_context_fields)
 
     assert %{
              "branch_earliest_starts_at_s" => 500.0,
@@ -51,8 +52,9 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
              "branch_untimed_source_window_ids" => ["equator_prime_rejected_window"],
              "branch_untimed_source_window_count" => 1,
              "branch_partially_timed_source_window_count" => 0,
-             "branch_source_window_timing_coverage_status" => "partial"
-           } = recommendation_window_context
+             "branch_source_window_timing_coverage_status" => "partial",
+             "branch_station_reservation_expiration_statuses" => ["active"]
+           } = recommendation_branch_context
 
     assert source_window_ids == Enum.sort(source_window_ids)
     assert length(source_window_ids) == 11
@@ -89,8 +91,12 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
     assert Map.take(recommendation_review_row, Map.keys(emitted_expected_handoff)) ==
              emitted_expected_handoff
 
-    assert Map.take(recommendation_review_row, window_context_fields) ==
-             recommendation_window_context
+    assert Map.take(recommendation_review_row, branch_context_fields) ==
+             recommendation_branch_context
+
+    assert recommendation_review_row["branch_station_reservation_expiration_statuses"] == [
+             "active"
+           ]
 
     selected_import_row =
       artifact["cadence_import_manifest"]["rows"]
@@ -101,7 +107,9 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
     assert Map.take(selected_import_row, Map.keys(emitted_expected_handoff)) ==
              emitted_expected_handoff
 
-    assert Map.take(selected_import_row, window_context_fields) == recommendation_window_context
+    assert Map.take(selected_import_row, branch_context_fields) == recommendation_branch_context
+
+    assert selected_import_row["branch_station_reservation_expiration_statuses"] == ["active"]
 
     review_import =
       OrbitalDynamics.cadence_import_manifest(artifact["operator_review_package"])
@@ -113,18 +121,108 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
     assert Map.take(review_import_row, Map.keys(emitted_expected_handoff)) ==
              emitted_expected_handoff
 
-    assert Map.take(review_import_row, window_context_fields) == recommendation_window_context
+    assert Map.take(review_import_row, branch_context_fields) == recommendation_branch_context
+
+    assert review_import_row["branch_station_reservation_expiration_statuses"] == ["active"]
 
     assert Map.take(review_import_row["source_review_row"], Map.keys(emitted_expected_handoff)) ==
              emitted_expected_handoff
 
-    assert Map.take(review_import_row["source_review_row"], window_context_fields) ==
-             recommendation_window_context
+    assert Map.take(review_import_row["source_review_row"], branch_context_fields) ==
+             recommendation_branch_context
+
+    assert review_import_row["source_review_row"][
+             "branch_station_reservation_expiration_statuses"
+           ] == ["active"]
 
     assert {:ok, %{"schema_contract" => "campaign_strategy.v3", "status" => "pass"}} =
              Schema.validate_artifact(artifact)
 
     assert {:ok, %{"schema_contract" => "cadence_import_manifest.v1", "status" => "pass"}} =
              Schema.validate_artifact(review_import)
+
+    recommendation_review_index =
+      Enum.find_index(
+        artifact["operator_review_package"]["rows"],
+        &(&1["id"] == recommendation_review_row["id"])
+      )
+
+    missing_review_expiration =
+      update_in(
+        artifact["operator_review_package"],
+        ["rows", Access.at(recommendation_review_index)],
+        &Map.delete(&1, "branch_station_reservation_expiration_statuses")
+      )
+
+    assert {:error, missing_review_expiration_report} =
+             Schema.validate_artifact(missing_review_expiration)
+
+    assert Enum.any?(
+             missing_review_expiration_report["errors"],
+             &(&1["path"] ==
+                 "$.rows[#{recommendation_review_index}].branch_station_reservation_expiration_statuses")
+           )
+
+    legacy_review_expiration =
+      update_in(
+        artifact["operator_review_package"],
+        ["rows", Access.at(recommendation_review_index)],
+        fn row ->
+          row
+          |> Map.delete("branch_station_reservation_expiration_statuses")
+          |> update_in(["source_recommendation", "explanation"], fn explanation ->
+            Enum.map(explanation, fn
+              %{"type" => "branch_event_summary"} = summary ->
+                Map.delete(summary, "branch_station_reservation_expiration_statuses")
+
+              other ->
+                other
+            end)
+          end)
+        end
+      )
+
+    assert {:ok, _legacy_review_expiration} = Schema.validate_artifact(legacy_review_expiration)
+
+    selected_import_index =
+      Enum.find_index(
+        artifact["cadence_import_manifest"]["rows"],
+        &(&1["id"] == selected_import_row["id"])
+      )
+
+    stale_selected_expiration =
+      update_in(
+        artifact["cadence_import_manifest"],
+        ["rows", Access.at(selected_import_index)],
+        &Map.put(&1, "branch_station_reservation_expiration_statuses", ["expired"])
+      )
+
+    assert {:error, stale_selected_expiration_report} =
+             Schema.validate_artifact(stale_selected_expiration)
+
+    assert Enum.any?(
+             stale_selected_expiration_report["errors"],
+             &(&1["path"] ==
+                 "$.rows[#{selected_import_index}].branch_station_reservation_expiration_statuses")
+           )
+
+    review_import_index =
+      Enum.find_index(review_import["rows"], &(&1["id"] == review_import_row["id"]))
+
+    missing_review_import_expiration =
+      update_in(
+        review_import,
+        ["rows", Access.at(review_import_index)],
+        &Map.delete(&1, "branch_station_reservation_expiration_statuses")
+      )
+
+    assert {:error, missing_review_import_expiration_report} =
+             Schema.validate_artifact(missing_review_import_expiration)
+
+    assert Enum.any?(
+             missing_review_import_expiration_report["errors"],
+             &(&1["path"] ==
+                 "$.rows[#{review_import_index}].branch_station_reservation_expiration_statuses")
+           )
   end
 end
