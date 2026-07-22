@@ -2574,6 +2574,106 @@ defmodule OrbitalDynamics.Schema.CadenceImportContractsTest do
            )
   end
 
+  test "correlates capacity-pack group identity with top and status counts" do
+    fields = [
+      "reduced_capacity_pack_group_count",
+      "reduced_capacity_pack_status_counts",
+      "capacity_pack_group_ids",
+      "capacity_pack_group_ids_by_status"
+    ]
+
+    manifest =
+      "study_results/cadence_import_manifest_v1.json"
+      |> read_json!()
+      |> Map.drop(fields)
+
+    schema = read_json!("schemas/cadence_import_manifest.v1.schema.json")
+
+    assert get_in(schema, ["properties", "capacity_pack_group_ids", "uniqueItems"]) == true
+
+    assert get_in(schema, [
+             "properties",
+             "capacity_pack_group_ids_by_status",
+             "additionalProperties",
+             "uniqueItems"
+           ]) == true
+
+    routed_identity =
+      Map.merge(manifest, %{
+        "reduced_capacity_pack_status_counts" => %{"all_fit" => 2},
+        "capacity_pack_group_ids_by_status" => %{
+          "all_fit" => ["pack_direction", "pack_nested"]
+        }
+      })
+
+    assert {:ok, _manifest} = Schema.validate_artifact(routed_identity)
+
+    valid_identity =
+      Map.merge(routed_identity, %{
+        "reduced_capacity_pack_group_count" => 2,
+        "capacity_pack_group_ids" => ["pack_direction", "pack_nested"]
+      })
+
+    assert {:ok, _manifest} = Schema.validate_artifact(valid_identity)
+
+    incomplete_identity =
+      Map.merge(routed_identity, %{
+        "reduced_capacity_pack_group_count" => 1,
+        "capacity_pack_group_ids" => ["pack_direction"]
+      })
+
+    assert {:error, incomplete_identity_report} = Schema.validate_artifact(incomplete_identity)
+
+    assert Enum.any?(
+             incomplete_identity_report["errors"],
+             &(&1["path"] == "$.capacity_pack_group_ids")
+           )
+
+    invalid_route =
+      Map.merge(manifest, %{
+        "reduced_capacity_pack_status_counts" => %{"all_fit" => 2},
+        "capacity_pack_group_ids_by_status" => %{
+          "all_fit" => ["pack_b", "pack_a"]
+        }
+      })
+
+    assert {:error, invalid_route_report} = Schema.validate_artifact(invalid_route)
+
+    assert Enum.any?(
+             invalid_route_report["errors"],
+             &(&1["path"] == "$.capacity_pack_group_ids_by_status.all_fit")
+           )
+
+    invalid_status_count =
+      put_in(routed_identity, ["reduced_capacity_pack_status_counts", "all_fit"], 1)
+
+    assert {:error, invalid_status_count_report} = Schema.validate_artifact(invalid_status_count)
+
+    assert Enum.any?(
+             invalid_status_count_report["errors"],
+             &(&1["path"] == "$.reduced_capacity_pack_status_counts.all_fit")
+           )
+
+    for {group_count, group_ids, error_path} <- [
+          {2, ["pack_b", "pack_a"], "$.capacity_pack_group_ids"},
+          {1, ["pack_a", "pack_a"], "$.capacity_pack_group_ids"},
+          {2, ["pack_a"], "$.reduced_capacity_pack_group_count"}
+        ] do
+      invalid_identity =
+        Map.merge(manifest, %{
+          "reduced_capacity_pack_group_count" => group_count,
+          "capacity_pack_group_ids" => group_ids
+        })
+
+      assert {:error, invalid_identity_report} = Schema.validate_artifact(invalid_identity)
+
+      assert Enum.any?(
+               invalid_identity_report["errors"],
+               &(&1["path"] == error_path)
+             )
+    end
+  end
+
   defp read_json!(path) do
     path
     |> File.read!()

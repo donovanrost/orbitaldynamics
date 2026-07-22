@@ -203,14 +203,7 @@ defmodule OrbitalDynamics.OperatorReview.ContactAllocationSummary do
       "provider_reservation_request_status",
       "provider_reservation_request_status_counts"
     )
-    |> put_contact_allocation_count_summary(
-      reports,
-      "reduced_capacity_pack_status_counts"
-    )
-    |> put_contact_allocation_scalar_count_summary(
-      reports,
-      "reduced_capacity_pack_group_count"
-    )
+    |> put_capacity_pack_group_identity_summary(reports)
     |> put_contact_allocation_scalar_count_summary(
       reports,
       "station_reservation_declared_expiration_contact_count"
@@ -227,7 +220,6 @@ defmodule OrbitalDynamics.OperatorReview.ContactAllocationSummary do
     |> put_contact_allocation_list_summary(reports, "station_reservation_expires_at_s")
     |> put_contact_allocation_list_summary(reports, "station_reserved_bys")
     |> put_contact_allocation_list_summary(reports, "station_reservation_statuses")
-    |> put_contact_allocation_list_summary(reports, "capacity_pack_group_ids")
     |> put_contact_allocation_list_summary(reports, "reduced_capacity_packed_contact_ids")
     |> put_contact_allocation_list_summary(reports, "reduced_capacity_deferred_contact_ids")
     |> put_contact_allocation_id_map_summary(
@@ -336,10 +328,6 @@ defmodule OrbitalDynamics.OperatorReview.ContactAllocationSummary do
     |> put_contact_allocation_nested_id_map_summary(
       reports,
       "reservation_conflict_contact_ids_by_direction_and_ground_station_id"
-    )
-    |> put_contact_allocation_id_map_summary(
-      reports,
-      "capacity_pack_group_ids_by_status"
     )
     |> put_contact_allocation_id_map_summary(
       reports,
@@ -534,6 +522,39 @@ defmodule OrbitalDynamics.OperatorReview.ContactAllocationSummary do
         package
         |> Map.put(count_field, length(contact_ids))
         |> Map.put(identity_field, contact_ids)
+    end
+  end
+
+  defp put_capacity_pack_group_identity_summary(package, reports) do
+    count_field = "reduced_capacity_pack_group_count"
+    status_count_field = "reduced_capacity_pack_status_counts"
+    identity_field = "capacity_pack_group_ids"
+    status_identity_field = "capacity_pack_group_ids_by_status"
+
+    identity_lists =
+      Enum.flat_map(reports, fn report ->
+        collect_identity_lists(Map.get(report, identity_field)) ++
+          collect_identity_lists(Map.get(report, status_identity_field))
+      end)
+
+    package =
+      put_correlated_id_count_map_summary(
+        package,
+        reports,
+        status_count_field,
+        status_identity_field
+      )
+
+    case identity_lists do
+      [] ->
+        put_contact_allocation_scalar_count_summary(package, reports, count_field)
+
+      identity_lists ->
+        group_ids = identity_lists |> List.flatten() |> canonical_stable_ids()
+
+        package
+        |> Map.put(count_field, length(group_ids))
+        |> Map.put(identity_field, group_ids)
     end
   end
 

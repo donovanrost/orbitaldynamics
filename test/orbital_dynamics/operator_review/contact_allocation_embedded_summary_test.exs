@@ -1023,9 +1023,9 @@ defmodule OrbitalDynamics.OperatorReview.ContactAllocationEmbeddedSummaryTest do
            }
 
     assert repair["capacity_pack_group_ids"] == [
-             "pack_source",
              "pack_result_a",
-             "pack_result_b"
+             "pack_result_b",
+             "pack_source"
            ]
 
     assert repair["capacity_pack_group_ids_by_status"] == %{
@@ -1255,9 +1255,9 @@ defmodule OrbitalDynamics.OperatorReview.ContactAllocationEmbeddedSummaryTest do
            }
 
     assert strategy["capacity_pack_group_ids"] == [
-             "pack_source",
              "pack_result_a",
-             "pack_result_b"
+             "pack_result_b",
+             "pack_source"
            ]
 
     assert strategy["capacity_pack_group_ids_by_status"] == %{
@@ -1785,6 +1785,70 @@ defmodule OrbitalDynamics.OperatorReview.ContactAllocationEmbeddedSummaryTest do
 
     assert scalar_only["provider_reservation_no_request_contact_count"] == 2
     refute Map.has_key?(scalar_only, "provider_reservation_no_request_contact_ids")
+
+    for package <- [repair, explicit_empty, scalar_only] do
+      assert {:ok, %{"schema_contract" => "operator_review_package.v1"}} =
+               Schema.validate_artifact(package)
+    end
+  end
+
+  test "correlates capacity-pack group identity and status counts" do
+    repair =
+      OperatorReview.from_repair_artifact(%{
+        "repair_metadata" => %{"repair_id" => "repair:capacity_pack_group_overlap"},
+        "source_contact_allocation_report" => %{
+          "reduced_capacity_pack_group_count" => 7,
+          "reduced_capacity_pack_status_counts" => %{"all_fit" => 7},
+          "capacity_pack_group_ids" => ["pack_source", "pack_shared"],
+          "capacity_pack_group_ids_by_status" => %{
+            "all_fit" => ["pack_source", "pack_shared"]
+          }
+        },
+        "contact_allocation_report" => %{
+          "reduced_capacity_pack_group_count" => 7,
+          "reduced_capacity_pack_status_counts" => %{"all_fit" => 7},
+          "capacity_pack_group_ids" => ["pack_shared", "pack_result"],
+          "capacity_pack_group_ids_by_status" => %{
+            "all_fit" => ["pack_result", "pack_routed", "pack_shared"]
+          }
+        }
+      })
+
+    explicit_empty =
+      OperatorReview.from_campaign_artifact(%{
+        "plan_id" => "plan:capacity_pack_group_empty",
+        "contact_allocation_report" => %{
+          "reduced_capacity_pack_group_count" => 9,
+          "reduced_capacity_pack_status_counts" => %{"all_fit" => 9},
+          "capacity_pack_group_ids_by_status" => %{"all_fit" => []}
+        }
+      })
+
+    scalar_only =
+      OperatorReview.from_campaign_artifact(%{
+        "plan_id" => "plan:capacity_pack_group_scalar",
+        "contact_allocation_report" => %{
+          "reduced_capacity_pack_group_count" => 2,
+          "reduced_capacity_pack_status_counts" => %{"all_fit" => 2}
+        }
+      })
+
+    expected_group_ids = ["pack_result", "pack_routed", "pack_shared", "pack_source"]
+
+    assert repair["reduced_capacity_pack_group_count"] == 4
+    assert repair["reduced_capacity_pack_status_counts"] == %{"all_fit" => 4}
+    assert repair["capacity_pack_group_ids"] == expected_group_ids
+    assert repair["capacity_pack_group_ids_by_status"] == %{"all_fit" => expected_group_ids}
+
+    assert explicit_empty["reduced_capacity_pack_group_count"] == 0
+    assert explicit_empty["reduced_capacity_pack_status_counts"] == %{"all_fit" => 0}
+    assert explicit_empty["capacity_pack_group_ids"] == []
+    assert explicit_empty["capacity_pack_group_ids_by_status"] == %{"all_fit" => []}
+
+    assert scalar_only["reduced_capacity_pack_group_count"] == 2
+    assert scalar_only["reduced_capacity_pack_status_counts"] == %{"all_fit" => 2}
+    refute Map.has_key?(scalar_only, "capacity_pack_group_ids")
+    refute Map.has_key?(scalar_only, "capacity_pack_group_ids_by_status")
 
     for package <- [repair, explicit_empty, scalar_only] do
       assert {:ok, %{"schema_contract" => "operator_review_package.v1"}} =

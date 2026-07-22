@@ -424,6 +424,74 @@ defmodule OrbitalDynamics.Schema.ContactAllocationHandoffContracts do
     end
   end
 
+  defp validate_capacity_pack_group_identity_summary(issues, path, artifact) do
+    count_field = "reduced_capacity_pack_group_count"
+    status_count_field = "reduced_capacity_pack_status_counts"
+    identity_field = "capacity_pack_group_ids"
+    status_identity_field = "capacity_pack_group_ids_by_status"
+
+    issues =
+      validate_correlated_id_count_map(
+        issues,
+        path,
+        artifact,
+        status_count_field,
+        status_identity_field
+      )
+
+    case Map.get(artifact, identity_field) do
+      group_ids when is_list(group_ids) ->
+        canonical_group_ids = group_ids |> Enum.uniq() |> Enum.sort()
+
+        issues =
+          if group_ids == canonical_group_ids do
+            issues
+          else
+            [
+              error(
+                path <> ".#{identity_field}",
+                "must equal sorted unique capacity-pack group IDs"
+              )
+              | issues
+            ]
+          end
+
+        issues =
+          if Map.get(artifact, count_field) == length(canonical_group_ids) do
+            issues
+          else
+            [
+              error(
+                path <> ".#{count_field}",
+                "must equal canonical #{identity_field} count"
+              )
+              | issues
+            ]
+          end
+
+        routed_group_ids =
+          artifact
+          |> Map.get(status_identity_field)
+          |> collect_identity_lists()
+          |> List.flatten()
+
+        if MapSet.subset?(MapSet.new(routed_group_ids), MapSet.new(canonical_group_ids)) do
+          issues
+        else
+          [
+            error(
+              path <> ".#{identity_field}",
+              "must include all status-routed capacity-pack group IDs"
+            )
+            | issues
+          ]
+        end
+
+      _group_ids ->
+        issues
+    end
+  end
+
   defp validate_station_pressure_grouped_identity_summaries(issues, path, artifact) do
     Enum.reduce(@station_pressure_grouped_summary_fields, issues, fn
       {count_field, id_field}, acc ->
@@ -448,7 +516,7 @@ defmodule OrbitalDynamics.Schema.ContactAllocationHandoffContracts do
                   [
                     error(
                       "#{path}.#{id_field}.#{key}",
-                      "must equal sorted unique station-pressure contact IDs"
+                      "must equal sorted unique stable IDs"
                     )
                     | acc
                   ]
@@ -918,6 +986,7 @@ defmodule OrbitalDynamics.Schema.ContactAllocationHandoffContracts do
       artifact,
       "capacity_pack_group_ids_by_status"
     )
+    |> validate_capacity_pack_group_identity_summary(path, artifact)
     |> validate_optional_stable_id_array_map(
       path,
       artifact,

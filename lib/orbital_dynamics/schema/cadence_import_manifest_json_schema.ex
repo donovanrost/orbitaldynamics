@@ -598,6 +598,7 @@ defmodule OrbitalDynamics.Schema.CadenceImportManifestJsonSchema do
   ]
   @canonical_id_map_fields @correlated_station_pressure_id_map_fields ++
                              [
+                               "capacity_pack_group_ids_by_status",
                                "provider_reservation_no_request_contact_ids_by_direction",
                                "provider_reservation_request_contact_ids_by_ground_station_id",
                                "provider_reservation_request_contact_ids_by_direction",
@@ -735,6 +736,7 @@ defmodule OrbitalDynamics.Schema.CadenceImportManifestJsonSchema do
       when field in [
              "station_pressure_contact_ids",
              "station_pressure_review_contact_ids",
+             "capacity_pack_group_ids",
              "provider_reservation_no_request_contact_ids",
              "provider_reservation_request_contact_ids",
              "provider_reservation_review_contact_ids"

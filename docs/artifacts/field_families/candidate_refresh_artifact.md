@@ -1167,6 +1167,11 @@ grouped identity evidence.
 Direction routes are canonical sorted unique maps; nested direction/station IDs
 are also lifted into the matching flat direction while direct flat-only evidence
 remains available.
+Capacity-pack group IDs likewise form one sorted unique top-level union across
+direct and status-routed identity evidence and fix the exact group count,
+including explicit-empty zero. Each supplied status route fixes its corresponding
+status count. Count-only inputs and status-count keys without identity retain
+additive fallback, while top-absent routed legacy artifacts remain valid.
 Direct/list and result-artifact-wrapped `source_contact_allocation_summary` /
 `contact_allocation_summary` inputs lift through the same OperatorReview and
 CadenceImport handoff. Their validated compact
