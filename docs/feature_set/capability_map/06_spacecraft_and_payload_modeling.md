@@ -353,7 +353,11 @@ data-volume evidence, and declared battery-energy roll-forward evidence.
 ### Planner integration (V1/V2/V3)
 
 - V1 campaign planning applies the same thin resource summary availability/margin filter before ranking, emitting `resource_filter_report.v1` with source-quality and trust-boundary status counts when summaries are supplied and preserving campaign approval-policy evidence on suppressed resource rows.
-- V2 repair and V3 branch repair preserve source resource summaries and source resource-filter reports from candidate-refresh artifacts.
+- V2 repair and V3 branch repair preserve source resource summaries and source
+  resource-filter reports from candidate-refresh artifacts. V2 declares its
+  optional `source_resource_summaries` array with direct `resource_summary.v1`
+  item-contract evidence in the generated schema and runs the standalone row
+  validator before consuming those summaries.
 - V3 branch products emit `resource_projection_report.v1` when branch repair has source resource summaries.
 - Resource projection roll-forward is status-aware, preserving terminal or approval-rejected activities in the flow audit while assigning them zero projected resource effect, preserving approval rejection as the ignored reason even when the activity is also terminal. The same flow rows preserve planned/actual data-volume and completion-fraction evidence without using realized feedback to reconcile projected resource state, and compact summaries derive actual-volume evidence counts, total actual volume, total data-volume delta, and under/over/exact activity ID routing from those rows for audit-only review.
 - Capacity-only downlink resource summaries do not synthesize branch-level low-downlink risk for observation-only missions without a declared downlink-completion requirement.

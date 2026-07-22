@@ -359,6 +359,10 @@ schema-type their stable IDs, invalid-input flags, and protected/change counts.
   resource contributions, the resulting greedy ranking score, and selected
   flag. The evidence does not copy candidate payloads or claim global
   optimization.
+- `source_contact_intents` and `source_resource_summaries` are optional typed
+  source arrays backed by direct `contact_intent.v1` and `resource_summary.v1`
+  definitions. Their existing standalone row validators run before V2 uses the
+  inputs for scoring, replacement ranking, and strategy handoff.
 - `source_contact_allocation_report` and `source_station_calendar_report` are
   optional direct nested V1 contracts. Their standalone validators run before
   V2 consumes station availability, capacity, reservation, allocation, and

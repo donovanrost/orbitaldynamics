@@ -99,6 +99,9 @@ Standalone candidate-refresh, V1 campaign, V2 repair, and V3 branch-repair conta
 So contact-review handoff rows carry policy evidence plus schema-constrained contact-intent policy gate status at both initial planning and refresh boundaries.
 
 V2 repair also makes exact selected downlink intent pressure visible in scoring.
+Its optional `source_contact_intents` array is declared with the direct
+`contact_intent.v1` item contract in the V2 schema export, while the existing
+runtime row validator rejects malformed intent evidence before scoring.
 It reuses the V3 contact-intent identity classifier and emits one
 `contact_intent_pressure_penalty` risk-weight unit per unique pressured contact
 ID present in the repaired activities. Unrelated contacts, duplicate evidence,

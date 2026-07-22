@@ -5,61 +5,64 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Validate V2 timeline feedback source.
+Export V2 typed source rows.
 
 Status:
 Complete; ready to publish.
 
 Selection evidence:
-- V2 emits `source_timeline_feedback_report` from planned-versus-realized
-  reconciliation, and downstream strategy refresh consumes that evidence.
-- The V2 registry/export does not declare the field or direct
-  `timeline_feedback_report.v1` contract.
-- Runtime repair validation does not currently apply the standalone timeline
-  feedback validator at the source-report path.
+- V2 emits `source_contact_intents` and `source_resource_summaries` as direct
+  planning inputs for scoring, replacement ranking, and strategy evaluation.
+- Runtime repair validation already applies the standalone contact-intent and
+  resource-summary row validators to both arrays.
+- The V2 registry/export declares neither array nor the direct item contracts,
+  so the machine-readable boundary is weaker than runtime.
 
 Intended behavior:
-- Declare the optional source report and direct nested contract in the V2
-  registry and generated JSON Schema.
-- Apply the complete timeline-feedback validator at
-  `$.source_timeline_feedback_report`.
-- Keep the field optional when a repair has no realized feedback.
-- Add checked-fixture, standalone, drift, optional-field, and export coverage;
+- Declare both optional arrays and the direct `contact_intent.v1` and
+  `resource_summary.v1` item contracts in the V2 registry/export.
+- Preserve the existing runtime row validators and planning semantics.
+- Keep both arrays optional for repairs without those source inputs.
+- Add populated-row, standalone, drift, optional-field, and export coverage;
   document the executable guarantee.
 
 Level 6 pillar advanced:
-Validated realized-feedback provenance at the V2 boundary.
+Typed resource and communications provenance at the V2 boundary.
 
 Last published slice:
-- `83a67852` Export V2 feasibility source reports (`3767 passed`).
+- `5feed886` Validate V2 timeline feedback source (`3771 passed`).
 
 Likely files:
-- V2 registry and repair runtime source-report validation
-- focused feedback-source compatibility and drift tests
+- V2 registry typed source declarations
+- focused row-contract/export compatibility tests
 - checked-in schema exports and V2 planner/capability docs
 
 Verification:
-- Focused timeline-feedback source contract tests: `4 passed`.
-- Repair-schema and timeline-feedback regression coverage: `153 passed`.
-- Schema suite plus schema-lint/export task tests: `460 passed`.
+- Focused typed-source row contract tests: `4 passed`.
+- Shared row-contract and repair regression coverage: `144 passed`.
+- Schema suite plus schema-lint/export task tests: `464 passed`.
 - Campaign-planner suite: `761 passed`.
 - Full checked-artifact lint: `155/155 passed`, zero warnings.
-- Full suite: `3771 passed`.
+- Full suite: `3775 passed` on the unchanged rerun.
+- The first full run had one transient checked-schema export timeout
+  (`3774/3775`); that exact default-timeout test passed alone in `39.1s` before
+  the clean full rerun.
 - `mix format --check-formatted`, `mix compile --warnings-as-errors`, and
   `git diff --check` passed.
 - Full schema export refreshed the V2 repair schema and aggregate bundle only.
 
 Review:
-- The V2 registry and generated schema expose the optional source property and
-  complete `timeline_feedback_report.v1` definition exactly once, with all
-  `24` nested-contract names unique.
-- Runtime repair validation now applies the complete report contract at its
-  embedded path, including row-derived counts, exact model limits, row status,
-  operational feedback, and nested operator-review validation.
-- The new path-aware operator-review helper preserves the enclosing report path
-  for nested shape errors instead of reporting them at an unrelated root.
-- The checked repair validates at both V2 and standalone boundaries, deleting
-  the optional source remains valid, and all existing consumers remain green.
+- The V2 registry and generated schema expose both optional arrays and complete
+  direct item definitions exactly once, with all `26` nested-contract names
+  unique.
+- Runtime already validates every populated contact-intent and resource-summary
+  item at its source-array path; this slice changes no scoring, ranking, or
+  strategy semantics.
+- Populated standalone rows validate through the V2 boundary, malformed row or
+  collection shapes fail at their exact paths, and deleting both optional
+  arrays remains compatible.
+- All checked artifacts and existing resource, communications, repair, review,
+  and Cadence-import consumers remain valid.
 
 Remaining maturity gaps:
 - Continue exact V2 ranking/score reconciliation for replayable source fields.
