@@ -2458,7 +2458,13 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshResourceProvenanceContractsTest
         "contact_contention_contact_id_counts" => %{"dl_primary" => 1, "dl_backup" => 1},
         "direction_counts" => %{"downlink" => 2},
         "contact_ids_by_direction" => %{
-          "downlink" => ["dl_primary", "dl_backup"]
+          "downlink" => ["dl_backup", "dl_primary"]
+        },
+        "direction_routing" => %{
+          "downlink" => %{
+            "contact_count" => 2,
+            "contact_ids" => ["dl_backup", "dl_primary"]
+          }
         },
         "required_operator_action_counts" => %{
           "review_contact_contention" => 1,
@@ -2468,6 +2474,29 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshResourceProvenanceContractsTest
 
     assert {:ok, %{"schema_contract" => "candidate_refresh.v1"}} =
              Schema.validate_artifact(artifact_with_contact_contention_summary)
+
+    stale_contact_contention_direction_route =
+      put_in(
+        artifact_with_contact_contention_summary,
+        [
+          "provenance",
+          "source_reports",
+          "contact_contention_report",
+          "direction_routing",
+          "downlink",
+          "contact_count"
+        ],
+        99
+      )
+
+    assert {:error, stale_contact_contention_direction_route_report} =
+             Schema.validate_artifact(stale_contact_contention_direction_route)
+
+    assert Enum.any?(
+             stale_contact_contention_direction_route_report["errors"],
+             &(&1["path"] ==
+                 "$.provenance.source_reports.contact_contention_report.direction_routing")
+           )
 
     invalid_contact_contention_contact_count =
       put_in(

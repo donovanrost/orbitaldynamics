@@ -8,11 +8,9 @@ defmodule OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactContention
     direction_counts = empty_map_if_nil(direction_counts)
     contact_ids_by_direction = empty_map_if_nil(contact_ids_by_direction)
 
-    [
-      Map.keys(direction_counts),
-      Map.keys(contact_ids_by_direction)
-    ]
-    |> List.flatten()
+    contact_ids_by_direction
+    |> Map.keys()
+    |> Enum.filter(&Map.has_key?(direction_counts, &1))
     |> Enum.map(&to_string/1)
     |> Enum.uniq()
     |> Enum.sort()

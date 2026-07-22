@@ -1216,6 +1216,10 @@ Each correlated direction list is locally bounded by that direction's positive
 count. CandidateRefresh removes over-cardinality lists instead of choosing
 arbitrary contact identities, retains scalar direction pressure, and rejects the
 same mismatch in compact schema validation.
+Direction routes include only directions with retained correlated contact IDs;
+count-only directions remain scalar pressure without becoming identity routes.
+Replay boundaries rebuild routes, and compact schema validation rejects a
+preserved route map that differs from the canonical count/list correlation.
 Branch-generated CandidateRefresh requests preserve direct mission-state and
 result-artifact-wrapped raw `source_contact_contention_report` /
 `contact_contention_report` inputs with wrapper-qualified request paths and

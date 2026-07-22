@@ -235,6 +235,11 @@ Each correlated direction list must also contain no more unique contact IDs than
 that direction's positive count. Over-cardinality lists are removed rather than
 arbitrarily selecting identities, while the scalar direction count remains
 conservative pressure; compact schema validation enforces the same local bound.
+Direction routes are emitted only for directions with retained correlated
+contact IDs. Count-only directions remain visible in `direction_counts` as
+scalar pressure but do not masquerade as identity routes. CandidateRefresh
+continues to rebuild routes at every replay boundary, and compact schema
+validation requires any preserved route map to equal that canonical rebuild.
 Its exported JSON Schema includes the nested row and `timeline_identity` field
 shape used by executable validation. Rows also carry artifact-only operational
 kind, required operator action, operator-action reason, execution boundary,

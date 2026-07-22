@@ -5,32 +5,33 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Correlate contention direction cardinality.
+Correlate contention direction routes.
 
 Status:
 Verified; ready for mechanical publish.
 
 Selection evidence:
-- Raw conflict pairs derive each direction count from its unique contact-ID list,
-  while multi-report merges can legitimately make a count exceed list length.
-- Compact correlation checks only the aggregate contact total against the
-  aggregate direction total, not each direction's own list cardinality.
-- Contacts can therefore be shifted onto an under-counted direction by surplus
-  count evidence from another direction.
+- Correlation now removes invalid or over-cardinality direction contact lists
+  while intentionally retaining their scalar direction counts as pressure.
+- `RouteMap.field/2` builds from the union of count/list keys, so those count-only
+  directions still appear as routes with no routable contact identity.
+- Preserved compact `direction_routing` is structurally validated but not checked
+  against the authoritative rebuilt count/list correlation.
 
 Intended behavior:
-- Retain a correlated direction contact list only when its unique ID count does
-  not exceed that direction's positive count.
-- Drop an over-cardinality list rather than selecting arbitrary identities, then
-  rebuild routes while retaining scalar direction pressure.
-- Enforce the same per-direction bound in compact-summary schema validation.
+- Build direction routes only for directions with retained correlated contact
+  IDs, while preserving all positive scalar direction counts separately.
+- Continue rebuilding routes at raw, flattened-source, and replay boundaries so
+  stale supplied routes never authorize identity.
+- If a compact summary preserves a route map, require it to equal the canonical
+  rebuilt route map.
 
 Level 6 pillar advanced:
 Fleet-scale planning decisions and durable reproducible audit handoffs.
 
 Planned files:
-- contention direction correlation and compact-summary schema validation
-- cross-direction substitution and over-cardinality challenge tests
+- contention route construction and compact-summary route correlation
+- count-only and stale-route challenge tests
 - contention artifact documentation and autonomous-loop ledger
 
 Verification:
@@ -44,17 +45,15 @@ Verification:
 - `mix test --timeout 120000` -> `3807 passed`.
 
 Review:
-- Each normalized direction list is bounded by its own positive count before it
-  can authorize contact-ID counts or routes; surplus counts on other directions
-  cannot substitute for the local bound.
-- Over-cardinality lists drop whole rather than choosing arbitrary identities,
-  while scalar direction counts remain conservative review pressure.
-- The schema requires unique IDs within the same local bound. Equality is not
-  required because multi-report merges may count repeated evidence for one
-  stable identity. No unresolved findings.
+- Routes are keyed only by retained correlated direction lists; count-only
+  directions remain independently visible as scalar review pressure.
+- Raw, flattened, and replay paths continue to rebuild routes, so supplied route
+  maps cannot authorize identities or counts.
+- Compact schema validation compares a supplied route to a fresh canonical
+  rebuild with sorted IDs and rejects stale values. No unresolved findings.
 
 Last published slice:
-- `6f9f6a17` Canonicalize contention direction identities (`3807 passed`).
+- `e8dad580` Correlate contention direction cardinality (`3807 passed`).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions while preserving explicit
@@ -65,8 +64,8 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-After publish, audit count-only contention direction-route semantics for
-preserved compact summaries.
+After publish, audit compact contention source-report identity fields for
+preserved route-only substitution.
 
 Blocked:
 None.

@@ -3,7 +3,11 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshCommunicationPressureContracts 
 
   alias OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactContention.CountFields.CountMaps.ResourceScopes
 
-  alias OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactContention.DirectionRouting.ConflictGroupDirections.ContactPairs
+  alias OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactContention.DirectionRouting.{
+    ConflictGroupDirections.ContactPairs,
+    Correlation,
+    RouteMap
+  }
 
   alias OrbitalDynamics.Schema.StableIdValidation
 
@@ -28,6 +32,7 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshCommunicationPressureContracts 
     |> validate_contact_contention_ground_stations(path, summary)
     |> validate_contact_contention_direction_counts(path, summary)
     |> validate_contact_contention_contact_ids(path, summary)
+    |> validate_contact_contention_direction_routing(path, summary)
     |> validate_count_maps(path, summary, [
       "contact_contention_ground_station_counts",
       "contact_contention_contact_id_counts"
@@ -412,4 +417,46 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshCommunicationPressureContracts 
   end
 
   defp validate_contact_contention_contact_ids(issues, _path, _summary), do: issues
+
+  defp validate_contact_contention_direction_routing(
+         issues,
+         path,
+         %{
+           "contract" => "contact_contention_report.v1",
+           "direction_routing" => direction_routing
+         } = summary
+       )
+       when is_map(direction_routing) do
+    direction_counts = Correlation.direction_counts(Map.get(summary, "direction_counts"))
+
+    contact_id_counts =
+      Correlation.contact_id_counts(
+        direction_counts,
+        Map.get(summary, "contact_ids_by_direction"),
+        Map.get(summary, "contact_contention_contact_id_counts")
+      )
+
+    contact_ids_by_direction =
+      Correlation.contact_ids_by_direction(
+        direction_counts,
+        Map.get(summary, "contact_ids_by_direction"),
+        contact_id_counts
+      )
+
+    expected_routing = RouteMap.field(direction_counts, contact_ids_by_direction) || %{}
+
+    if direction_routing == expected_routing do
+      issues
+    else
+      [
+        error(
+          path <> ".direction_routing",
+          "must equal canonical routing rebuilt from correlated direction counts and contact IDs"
+        )
+        | issues
+      ]
+    end
+  end
+
+  defp validate_contact_contention_direction_routing(issues, _path, _summary), do: issues
 end
