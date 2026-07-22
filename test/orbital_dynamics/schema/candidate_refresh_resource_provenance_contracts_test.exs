@@ -605,6 +605,50 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshResourceProvenanceContractsTest
              )
     end
 
+    for field <- [
+          "allocation_status_counts",
+          "effective_allocation_status_counts",
+          "allocation_reason_counts"
+        ] do
+      overstated_allocation_count_map =
+        put_in(
+          artifact_with_allocation_direction_summary,
+          ["provenance", "source_reports", "contact_allocation_report", field],
+          %{"overstated" => 3}
+        )
+
+      assert {:error, overstated_allocation_count_map_report} =
+               Schema.validate_artifact(overstated_allocation_count_map)
+
+      assert Enum.any?(
+               overstated_allocation_count_map_report["errors"],
+               &(&1["path"] ==
+                   "$.provenance.source_reports.contact_allocation_report.#{field}")
+             )
+    end
+
+    allocation_maps_without_row_count =
+      update_in(
+        artifact_with_allocation_direction_summary,
+        ["provenance", "source_reports", "contact_allocation_report"],
+        &Map.delete(&1, "row_count")
+      )
+
+    assert {:error, allocation_maps_without_row_count_report} =
+             Schema.validate_artifact(allocation_maps_without_row_count)
+
+    for field <- [
+          "allocation_status_counts",
+          "effective_allocation_status_counts",
+          "allocation_reason_counts"
+        ] do
+      assert Enum.any?(
+               allocation_maps_without_row_count_report["errors"],
+               &(&1["path"] ==
+                   "$.provenance.source_reports.contact_allocation_report.#{field}")
+             )
+    end
+
     noncanonical_allocation_direction =
       update_in(
         artifact_with_allocation_direction_summary,

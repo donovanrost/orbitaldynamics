@@ -69,7 +69,9 @@ The contact-filter, contact-contention, contact-intent, and command-window repor
 - declared allocation-status counts and effective-status counts, preserved
   separately through candidate-refresh contact-allocation replay, with
   string-equivalent keys merged and only positive integer entries retained so
-  zero-only compact maps cannot create branch-local pressure
+  zero-only compact maps cannot create branch-local pressure; each map is
+  independently bounded by positive allocation row count while preserving
+  partial reason evidence and custom status/reason keys
 - allocation-reason contact-ID maps, preserved through candidate-refresh
   contact-allocation replay for branch-local triage queues
 - row-derived scalar allocation/contact counters, including declared

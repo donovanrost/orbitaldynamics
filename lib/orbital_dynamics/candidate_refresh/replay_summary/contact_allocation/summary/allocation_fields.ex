@@ -9,6 +9,7 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.ContactAllocation.Summa
     only: [summary_integer: 2]
 
   def fields(allocation_summary) do
+    row_count = summary_integer(allocation_summary, "row_count")
     direction_fields = DirectionRouting.direction_fields_from_summary(allocation_summary)
 
     %{
@@ -18,15 +19,15 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.ContactAllocation.Summa
       allocation_status_counts:
         allocation_summary
         |> Map.get("allocation_status_counts")
-        |> CountMapCorrelation.positive_counts(),
+        |> CountMapCorrelation.correlated_counts_or_empty(row_count),
       effective_allocation_status_counts:
         allocation_summary
         |> Map.get("effective_allocation_status_counts")
-        |> CountMapCorrelation.positive_counts(),
+        |> CountMapCorrelation.correlated_counts_or_empty(row_count),
       allocation_reason_counts:
         allocation_summary
         |> Map.get("allocation_reason_counts")
-        |> CountMapCorrelation.positive_counts(),
+        |> CountMapCorrelation.correlated_counts_or_empty(row_count),
       direction_counts: Map.get(direction_fields, "direction_counts"),
       contact_ids_by_direction: Map.get(direction_fields, "contact_ids_by_direction"),
       direction_routing: Map.get(direction_fields, "direction_routing") || %{},

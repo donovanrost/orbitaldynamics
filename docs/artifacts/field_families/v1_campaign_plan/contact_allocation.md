@@ -252,7 +252,10 @@ Base allocation status, effective-status, and reason count maps likewise retain
 only positive integer evidence after raw merges and at compact replay
 boundaries. String-equivalent keys merge by occurrence count, including custom
 status and reason values, while zero-only maps cannot create branch-local
-allocation pressure. Compact schema validation enforces the same canonical map.
+allocation pressure. Each independently preserved map must also total no more
+occurrences than a positive allocation row count; partial reason maps and custom
+status keys remain valid within that bound. Compact schema validation enforces
+the same canonical correlation.
 Allocation row duplicate-contact and station-calendar overlap/reservation count
 fields are also executable integer counts, duplicate-contact collision rows must
 preserve candidate count, ID, and source-candidate evidence, and contention

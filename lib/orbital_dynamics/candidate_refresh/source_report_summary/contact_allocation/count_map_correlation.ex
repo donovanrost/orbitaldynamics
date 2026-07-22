@@ -10,8 +10,10 @@ defmodule OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactAllocation
   def count_fields, do: @count_fields
 
   def fields(%{} = summary) do
+    row_count = Map.get(summary, "row_count")
+
     Enum.reduce(@count_fields, summary, fn field, correlated ->
-      case positive_counts_or_nil(Map.get(summary, field)) do
+      case correlated_counts(Map.get(summary, field), row_count) do
         nil -> Map.delete(correlated, field)
         counts -> Map.put(correlated, field, counts)
       end
@@ -28,10 +30,16 @@ defmodule OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactAllocation
 
   def positive_counts(_counts), do: %{}
 
-  def positive_counts_or_nil(counts) do
-    case positive_counts(counts) do
-      counts when map_size(counts) == 0 -> nil
-      counts -> counts
-    end
+  def correlated_counts(counts, row_count) when is_integer(row_count) and row_count > 0 do
+    counts = positive_counts(counts)
+
+    if map_size(counts) > 0 and Enum.sum(Map.values(counts)) <= row_count,
+      do: counts,
+      else: nil
   end
+
+  def correlated_counts(_counts, _row_count), do: nil
+
+  def correlated_counts_or_empty(counts, row_count),
+    do: correlated_counts(counts, row_count) || %{}
 end

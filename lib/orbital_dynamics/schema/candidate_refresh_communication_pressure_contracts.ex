@@ -76,12 +76,17 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshCommunicationPressureContracts 
     Enum.reduce(ContactAllocationCountMapCorrelation.count_fields(), issues, fn field, acc ->
       counts = Map.get(summary, field)
 
-      if is_map(counts) and
-           counts != ContactAllocationCountMapCorrelation.positive_counts(counts) do
+      canonical_counts =
+        ContactAllocationCountMapCorrelation.correlated_counts(
+          counts,
+          Map.get(summary, "row_count")
+        ) || %{}
+
+      if is_map(counts) and counts != canonical_counts do
         [
           error(
             path <> ".#{field}",
-            "must use canonical string keys with positive integer counts"
+            "must use canonical positive counts whose total does not exceed positive row_count"
           )
           | acc
         ]

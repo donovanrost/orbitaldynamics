@@ -5,51 +5,54 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Normalize compact allocation count maps.
+Correlate compact allocation maps with row totals.
 
 Status:
 Verified; ready to publish.
 
 Selection evidence:
-- Allocation replay tests map presence for allocation status, effective status,
-  and reason pressure.
-- Preserved compact maps currently retain zero entries, so zero-only maps can
-  create branch pressure without positive allocation evidence.
-- Raw row-derived maps contain positive integer counts and provide the canonical
-  producer behavior.
+- Compact allocation status/effective-status/reason maps can currently total
+  more occurrences than `row_count`, or create pressure without a positive row
+  scalar.
+- Raw reports derive the three maps and row count from the same allocation rows.
+- Compact candidate-source fixtures preserve partial reason maps and custom
+  status names, so correlation must bound totals rather than require equality or
+  a closed key vocabulary.
 
 Intended behavior:
-- Retain only positive integer entries in the three base allocation count maps
-  after raw merges and at flattened/replay boundaries.
-- Preserve positive custom status/reason keys and merge string-equivalent keys.
-- Require the same canonical positive maps in compact schema validation.
+- Retain each positive base allocation count map only when its occurrence total
+  does not exceed a positive `row_count`.
+- Preserve independently valid partial maps and positive custom keys.
+- Apply the same row-total correlation at raw, flattened, replay, and compact
+  schema boundaries so stale maps cannot create allocation pressure.
 
 Level 6 pillar advanced:
 Fleet-scale planning decisions and durable reproducible audit handoffs.
 
 Planned files:
-- allocation count-map normalization at producer, flattened, replay, and schema
-- zero/non-positive compact count-map challenge tests
+- allocation count-map row correlation at producer, flattened, replay, schema
+- absent/overstated row-total challenge tests
 - allocation artifact documentation and autonomous-loop ledger
 
 Verification:
-- Focused replay/schema challenge tests: `8 passed`.
-- Contact-allocation family: `179 passed`.
+- Focused replay/candidate-source/schema tests: `13 passed`.
+- Contact-allocation family: `180 passed`.
 - Golden artifacts: `12 passed`.
 - Schema lint: `155` artifacts, no errors or warnings.
-- Full suite: `3809 passed`.
+- Full suite: `3810 passed`.
 - `mix format` and `git diff --check` passed.
 
 Review:
-- Central positive-count correlation is applied before raw multi-report merges,
-  after the final raw merge, and at flattened/replay boundaries.
-- Zero, negative, and non-integer entries cannot create replay pressure;
-  positive custom keys survive and string-equivalent keys sum deterministically.
-- Compact contract validation rejects stale zero entries for all three maps.
-- No unrelated files changed; documentation states the artifact-only boundary.
+- Raw merged maps are correlated after their row total is established;
+  flattened and replay boundaries use the same helper and identity scalar.
+- Each map is evaluated independently, preserving valid partial/custom evidence
+  while dropping absent-scalar and overstated maps before pressure evaluation.
+- Compact schema challenges reject zero, overstated, and missing-row variants
+  for all three maps.
+- No provider action, scheduling mutation, or unrelated product scope added.
 
 Last published slice:
-- `3c11ac52` Correlate compact allocation directions (`3807 passed`).
+- `6867bffa` Normalize compact allocation count maps (`3809 passed`).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions while preserving explicit
@@ -60,7 +63,7 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-After publish, audit compact allocation status-count scalar correlation.
+After publish, audit blocked/deferred allocation scalar correlation.
 
 Blocked:
 None.
