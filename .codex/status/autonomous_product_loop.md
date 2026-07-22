@@ -5,25 +5,25 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Preserve provider-review expiration on candidate replay.
+Escalate expired request-ready provider contacts on candidate replay.
 
 Status:
 Verified; ready to publish.
 
 Selection evidence:
-- Candidate-source provider-review risks already carry exact contact identity,
-  but drop that contact's routed reservation-expiration status.
-- The same helper preserves expiration on reservation-conflict risks, and the
-  existing strategic classifier already owns the calibrated expiration penalty.
-- Exact routed `expired`/`missing` evidence can safely become planner-visible;
-  aggregate counts and unrelated IDs must remain neutral.
+- Provider request readiness proves exact owner/match plus reservation identity,
+  but does not prove the reservation remains usable.
+- Candidate replay preserves exact request-contact and expiration-status routes,
+  yet silently ignores an `expired` or `missing` intersection.
+- Existing provider-review and expiration classifiers already own the calibrated
+  review state and penalties; no new formula is needed.
 
 Intended behavior:
-- Attach exact contact-routed expiration status to candidate-source provider
-  reservation review risks.
-- Reuse the existing station-reservation-expiration score term and explanation;
-  do not introduce a new formula or infer from aggregate-only evidence.
-- Preserve active/absent neutrality and all provider/Cadence authority boundaries.
+- Emit request-scope review risk only when a request-ready contact has exact
+  routed `expired` or `missing` expiration evidence.
+- Preserve the source `request_ready` status while reusing existing provider and
+  expiration pressure terms and operator-review policy.
+- Keep exact `active`, unrelated, absent, and aggregate-only evidence neutral.
 
 Level 6 pillar advanced:
 Fleet-scale planning decisions and durable reproducible audit handoffs.
@@ -42,15 +42,17 @@ Verification:
   byte-stable; no schema export changed.
 
 Review:
-- Exact routed `expired` provider-review evidence survives candidate replay and
-  activates the existing expiration pressure term beside provider review.
-- Exact `active` evidence remains visible but score-neutral; unrelated and
-  aggregate-only expiration evidence neither attaches nor changes the score.
-- The strategy challenge proves the cross-source identity handoff and validates
-  the resulting artifact; no formula, external effect, or authority changed.
+- Exact routed `expired`/`missing` request-ready contacts now enter existing
+  provider-review and expiration pressure while retaining `request_ready` and
+  request scope; exact `active` and unrouted/aggregate-only evidence stays inert.
+- Focused strategy proofs pin score reuse, operator review, branch comparison,
+  nested review-source context, and schema-valid artifacts.
+- Top-level review/import rows do not yet lift the branch expiration statuses;
+  that bounded adapter gap remains the next slice.
+- No score formula, provider/Cadence effect, execution authority, or schema changed.
 
 Last published slice:
-- `92b2dbbe` Expose partially timed source windows (`3887 passed`).
+- `114f46e8` Preserve provider review expiration (`3888 passed`).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions while preserving explicit
@@ -61,7 +63,7 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-Assess exact expiration evidence on request-ready provider contacts.
+Lift branch expiration statuses into review and Cadence comparison rows.
 
 Blocked:
 None.

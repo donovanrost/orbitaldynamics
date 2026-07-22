@@ -828,6 +828,15 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyContactAllocationPressureTest 
 
     assert_station_reservation_conflict_pressure_score_terms(reservation_branch, artifact)
 
+    assert Enum.any?(
+             reservation_branch["risk_indicators"],
+             &(&1["type"] == "provider_reservation_request_review" and
+                 &1["contact_id"] == "summary_reservation_dl_reserved_owner" and
+                 &1["provider_reservation_request_status"] == "request_ready" and
+                 &1["provider_reservation_row_scope"] == "request" and
+                 &1["station_reservation_expiration_status"] == "expired")
+           )
+
     reservation_row =
       artifact["branch_comparison_report"]["rows"]
       |> Enum.find(&(&1["branch_id"] == reservation_branch["branch_id"]))
@@ -836,11 +845,16 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyContactAllocationPressureTest 
              "branch_station_reservation_conflict_contact_ids"
            ]
 
+    assert "summary_reservation_dl_reserved_owner" in reservation_row[
+             "branch_station_reservation_conflict_contact_ids"
+           ]
+
     assert "summary_reservation_reservation_1" in reservation_row[
              "branch_station_reservation_conflict_reservation_ids"
            ]
 
     assert reservation_row["branch_station_reservation_conflict_match_statuses"] == [
+             "matched",
              "overlap"
            ]
 
@@ -856,11 +870,16 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyContactAllocationPressureTest 
              "branch_station_reservation_conflict_contact_ids"
            ]
 
+    assert "summary_reservation_dl_reserved_owner" in reservation_review_row[
+             "branch_station_reservation_conflict_contact_ids"
+           ]
+
     assert "summary_reservation_reservation_1" in reservation_review_row[
              "branch_station_reservation_conflict_reservation_ids"
            ]
 
     assert reservation_review_row["branch_station_reservation_conflict_match_statuses"] == [
+             "matched",
              "overlap"
            ]
 
@@ -880,11 +899,16 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyContactAllocationPressureTest 
              "branch_station_reservation_conflict_contact_ids"
            ]
 
+    assert "summary_reservation_dl_reserved_owner" in reservation_import_row[
+             "branch_station_reservation_conflict_contact_ids"
+           ]
+
     assert "summary_reservation_reservation_1" in reservation_import_row[
              "branch_station_reservation_conflict_reservation_ids"
            ]
 
     assert reservation_import_row["branch_station_reservation_conflict_match_statuses"] == [
+             "matched",
              "overlap"
            ]
 
@@ -1271,7 +1295,23 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyContactAllocationPressureTest 
              "tentative"
            ]
 
-    assert provider_row["branch_station_reservation_expiration_statuses"] == ["expired"]
+    assert "summary_provider_dl_reserved_owner" in provider_row[
+             "branch_station_reservation_conflict_contact_ids"
+           ]
+
+    assert "summary_provider_dl_review_overlap" in provider_row[
+             "branch_station_reservation_conflict_contact_ids"
+           ]
+
+    assert provider_row["branch_station_reservation_conflict_match_statuses"] == [
+             "matched",
+             "overlap"
+           ]
+
+    assert provider_row["branch_station_reservation_expiration_statuses"] == [
+             "expired",
+             "missing"
+           ]
 
     provider_branch_id = provider_branch["branch_id"]
 
@@ -1303,6 +1343,11 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyContactAllocationPressureTest 
              "source_branch_comparison",
              "branch_source_window_ids"
            ]) == ["summary_provider_source_window"]
+
+    assert get_in(provider_review_row, [
+             "source_branch_comparison",
+             "branch_station_reservation_expiration_statuses"
+           ]) == ["expired", "missing"]
 
     provider_import_row =
       artifact["cadence_import_manifest"]["rows"]
@@ -1435,6 +1480,14 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyContactAllocationPressureTest 
              provider_branch["risk_indicators"],
              &(&1["contact_id"] == "summary_provider_dl_review_overlap" and
                  &1["station_reservation_expiration_status"] == "expired")
+           ) == 1
+
+    assert Enum.count(
+             provider_branch["risk_indicators"],
+             &(&1["contact_id"] == "summary_provider_dl_reserved_owner" and
+                 &1["provider_reservation_request_status"] == "request_ready" and
+                 &1["provider_reservation_row_scope"] == "request" and
+                 &1["station_reservation_expiration_status"] == "missing")
            ) == 1
 
     expiration_pressure_count =

@@ -14,15 +14,23 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyStationReservationAllocationCh
 
   alias OrbitalDynamics.Schema
 
-  test "candidate-source provider review expiration requires exact contact routing" do
+  test "candidate-source provider expiration requires exact contact routing" do
     replay_summary = %{
       "provider_reservation_review_contact_ids_by_match_status" => %{
         "overlap" => ["active_review", "expired_review", "unrouted_review"]
       },
+      "provider_reservation_request_contact_ids_by_match_status" => %{
+        "matched" => [
+          "active_request",
+          "expired_request",
+          "missing_request",
+          "unrouted_request"
+        ]
+      },
       "station_reservation_contact_ids_by_expiration_status" => %{
-        "active" => ["active_review"],
-        "expired" => ["expired_review"],
-        "missing" => ["unrelated_contact"]
+        "active" => ["active_request", "active_review"],
+        "expired" => ["expired_request", "expired_review"],
+        "missing" => ["missing_request", "unrelated_contact"]
       },
       "station_reservation_expiration_status_counts" => %{"missing" => 99}
     }
@@ -37,12 +45,26 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyStationReservationAllocationCh
              "station_reservation_expiration_status"
            ] == "expired"
 
+    assert %{
+             "provider_reservation_request_status" => "request_ready",
+             "provider_reservation_row_scope" => "request",
+             "station_reservation_expiration_status" => "expired",
+             "required_operator_action" => "review_provider_reservation_request"
+           } = Enum.find(risks, &(&1["contact_id"] == "expired_request"))
+
+    assert Enum.find(risks, &(&1["contact_id"] == "missing_request"))[
+             "station_reservation_expiration_status"
+           ] == "missing"
+
+    refute Enum.any?(risks, &(&1["contact_id"] == "active_request"))
+    refute Enum.any?(risks, &(&1["contact_id"] == "unrouted_request"))
+
     refute Map.has_key?(
              Enum.find(risks, &(&1["contact_id"] == "unrouted_review")),
              "station_reservation_expiration_status"
            )
 
-    assert StrategyPressureRisk.station_reservation_expiration_pressure_risk_count(risks) == 1
+    assert StrategyPressureRisk.station_reservation_expiration_pressure_risk_count(risks) == 3
   end
 
   test "strategy-derived refresh preserves contradictory station reservation allocation evidence" do
@@ -259,7 +281,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyStationReservationAllocationCh
     assert "challenge_dl_deferred" in deferred_contact_ids
     assert challenge_contact in reservation_conflict_contact_ids
     assert challenge_contact in expired_reservation_contact_ids
-    assert "challenge_dl_review_overlap" in provider_reservation_review_contact_ids
+    assert "challenge_dl_reserved_intruder" in provider_reservation_review_contact_ids
 
     for source_path <- [
           "mission_state.source_contact_allocation_summary",
@@ -332,7 +354,17 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyStationReservationAllocationCh
     assert Enum.any?(
              challenge_branch["risk_indicators"],
              &(&1["type"] == "provider_reservation_request_review" and
-                 &1["contact_id"] == "challenge_dl_review_overlap" and
+                 &1["contact_id"] == "challenge_dl_reserved_intruder" and
+                 &1["station_reservation_expiration_status"] == "expired")
+           )
+
+    assert Enum.any?(
+             challenge_branch["risk_indicators"],
+             &(&1["type"] == "provider_reservation_request_review" and
+                 &1["contact_id"] == "challenge_dl_reserved_owner" and
+                 &1["provider_reservation_request_status"] == "request_ready" and
+                 &1["provider_reservation_row_scope"] == "request" and
+                 &1["station_reservation_match_status"] == "matched" and
                  &1["station_reservation_expiration_status"] == "expired")
            )
 
@@ -358,12 +390,11 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyStationReservationAllocationCh
 
     assert challenge_row["branch_station_reservation_conflict_contact_ids"] == [
              challenge_contact,
-             "challenge_dl_review_overlap"
+             "challenge_dl_reserved_owner"
            ]
 
     assert challenge_row["branch_station_reservation_conflict_reservation_ids"] == [
-             "challenge_reservation_1",
-             "challenge_reservation_review"
+             "challenge_reservation_1"
            ]
 
     assert "expired" in challenge_row["branch_station_reservation_expiration_statuses"]
@@ -492,7 +523,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyStationReservationAllocationCh
 
   defp contact_allocation_reservation_conflict_summary_fixture(prefix) do
     owner_row = %{
-      "contact_id" => "#{prefix}_dl_review_overlap",
+      "contact_id" => "#{prefix}_dl_reserved_owner",
       "allocation_status" => "allocated",
       "effective_allocation_status" => "allocated",
       "allocation_reason" => "selected_by_contention_resolution",
@@ -541,7 +572,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyStationReservationAllocationCh
       "reservation_conflict_contact_ids" => ["#{prefix}_dl_reserved_intruder"],
       "reservation_review_contact_ids" => ["#{prefix}_dl_reserved_intruder"],
       "station_reservation_contact_ids_by_match_status" => %{
-        "matched" => ["#{prefix}_dl_review_overlap"],
+        "matched" => ["#{prefix}_dl_reserved_owner"],
         "overlap" => ["#{prefix}_dl_reserved_intruder"]
       },
       "reservation_conflict_contact_ids_by_match_status" => %{
@@ -550,19 +581,19 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyStationReservationAllocationCh
       "station_reservation_contact_ids_by_status" => %{
         "confirmed" => [
           "#{prefix}_dl_reserved_intruder",
-          "#{prefix}_dl_review_overlap"
+          "#{prefix}_dl_reserved_owner"
         ]
       },
       "station_reservation_contact_ids_by_reserved_by" => %{
         "ops_team_b" => [
           "#{prefix}_dl_reserved_intruder",
-          "#{prefix}_dl_review_overlap"
+          "#{prefix}_dl_reserved_owner"
         ]
       },
       "station_reservation_contact_ids_by_expiration_status" => %{
         "expired" => [
           "#{prefix}_dl_reserved_intruder",
-          "#{prefix}_dl_review_overlap"
+          "#{prefix}_dl_reserved_owner"
         ]
       },
       "station_reservation_ids_by_match_status" => %{
@@ -603,7 +634,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyStationReservationAllocationCh
     }
 
     review_row = %{
-      "contact_id" => "#{prefix}_dl_review_overlap",
+      "contact_id" => "#{prefix}_dl_reserved_intruder",
       "allocation_status" => "allocated",
       "effective_allocation_status" => "allocated",
       "allocation_reason" => "selected_by_contention_resolution",
@@ -626,19 +657,19 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyStationReservationAllocationCh
       "provider_reservation_no_request_contact_count" => 1,
       "provider_reservation_request_status" => "review_required",
       "provider_reservation_request_contact_ids" => ["#{prefix}_dl_reserved_owner"],
-      "provider_reservation_review_contact_ids" => ["#{prefix}_dl_review_overlap"],
+      "provider_reservation_review_contact_ids" => ["#{prefix}_dl_reserved_intruder"],
       "provider_reservation_no_request_contact_ids" => ["#{prefix}_dl_unreserved"],
       "provider_reservation_request_contact_ids_by_ground_station_id" => %{
         "equator_prime" => ["#{prefix}_dl_reserved_owner"]
       },
       "provider_reservation_review_contact_ids_by_ground_station_id" => %{
-        "equator_prime" => ["#{prefix}_dl_review_overlap"]
+        "equator_prime" => ["#{prefix}_dl_reserved_intruder"]
       },
       "provider_reservation_request_contact_ids_by_match_status" => %{
         "matched" => ["#{prefix}_dl_reserved_owner"]
       },
       "provider_reservation_review_contact_ids_by_match_status" => %{
-        "overlap" => ["#{prefix}_dl_review_overlap"]
+        "overlap" => ["#{prefix}_dl_reserved_intruder"]
       },
       "provider_reservation_request_ids_by_match_status" => %{
         "matched" => ["#{prefix}_reservation_1"]
