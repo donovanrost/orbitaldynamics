@@ -44,6 +44,8 @@ defmodule OrbitalDynamics.CampaignPlanner.CandidateSourceContactAllocationReplay
       contact_ids
       |> List.wrap()
       |> Enum.map(fn contact_id ->
+        expiration_status = reservation_expiration_status(replay_summary, contact_id)
+
         %{
           "type" => "provider_reservation_request_review",
           "severity" => "high",
@@ -53,6 +55,7 @@ defmodule OrbitalDynamics.CampaignPlanner.CandidateSourceContactAllocationReplay
           "source_activity_id" => contact_id,
           "source_activity_ids" => List.wrap(contact_id),
           "station_reservation_match_status" => match_status,
+          "station_reservation_expiration_status" => expiration_status,
           "provider_reservation_request_status" => "review_required",
           "provider_reservation_row_scope" => "review",
           "feedback_source" => "candidate_source.contact_allocation_replay_summary",

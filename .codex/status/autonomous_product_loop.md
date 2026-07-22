@@ -5,58 +5,52 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Expose partially timed source-window identities.
+Preserve provider-review expiration on candidate replay.
 
 Status:
 Verified; ready to publish.
 
 Selection evidence:
-- The aggregate status now identifies incomplete timing, but consumers must
-  reopen every per-window bound to locate start-only/end-only evidence.
-- Untimed source-window IDs already have canonical routing; partial endpoint
-  identities are the remaining uncorrelated review queue.
-- Exact identity can improve operator/Cadence audit routing without introducing
-  a risk indicator or changing branch score.
+- Candidate-source provider-review risks already carry exact contact identity,
+  but drop that contact's routed reservation-expiration status.
+- The same helper preserves expiration on reservation-conflict risks, and the
+  existing strategic classifier already owns the calibrated expiration penalty.
+- Exact routed `expired`/`missing` evidence can safely become planner-visible;
+  aggregate counts and unrelated IDs must remain neutral.
 
 Intended behavior:
-- Derive canonical partially timed source-window IDs and their count from
-  per-ID bounds with exactly one numeric endpoint.
-- Preserve the optional fields through operator-review and Cadence handoffs and
-  reject stale list/count values or stale source copies.
-- Keep legacy omission valid and preserve all scoring and authority boundaries.
+- Attach exact contact-routed expiration status to candidate-source provider
+  reservation review risks.
+- Reuse the existing station-reservation-expiration score term and explanation;
+  do not introduce a new formula or infer from aggregate-only evidence.
+- Preserve active/absent neutrality and all provider/Cadence authority boundaries.
 
 Level 6 pillar advanced:
 Fleet-scale planning decisions and durable reproducible audit handoffs.
 
 Planned files:
-- branch context, shared schema/validation, adapters, and generated schemas
-- focused derivation/handoff/challenge proofs, capability docs, and ledger
+- candidate-source contact-allocation replay risk helper
+- focused scoring/handoff proofs, capability docs, and ledger
 
 Verification:
-- Focused derivation/schema/handoff proofs: `55 passed`.
+- Focused provider/reservation replay proofs: `17 passed`.
 - Contact-allocation family: `213 passed`.
 - Golden artifacts: `12 passed`.
-- Schema lint: `155` artifacts passed with zero errors or warnings.
-- Full suite: `3887 passed` after the final identity-precondition review change.
+- Schema lint: `155 schemas, 0 errors, 0 warnings`.
+- Full suite: `3888 passed`.
+- Canonical V3 campaign regenerated through the public runner and remained
+  byte-stable; no schema export changed.
 
 Review:
-- Start-only/end-only bounds emit canonical partial IDs and an exact count; fully
-  timed provider and selected-recommendation bounds emit count zero without a
-  fabricated empty ID list.
-- Runtime validation rejects stale partial ID/count values against authoritative
-  per-window bounds and rejects partial fields without non-empty source-window
-  identity, while legacy omission remains valid.
-- Operator comparison, recommendation/tradeoff, and Cadence adapters preserve
-  the optional fields, with source-copy omission challenges at exact row paths.
-- Twelve direct/dependent schemas were regenerated. The public V3 campaign was
-  regenerated through the runner and remained byte-stable.
-- Partial timing stays audit-only and changes no scoring, approval, or execution
-  behavior. All no-provider-request, no-reservation, no-schedule-mutation,
-  no-Cadence-write, no-operator-authority, and no-autonomous-execution
-  boundaries remain intact; local review found no publish blocker.
+- Exact routed `expired` provider-review evidence survives candidate replay and
+  activates the existing expiration pressure term beside provider review.
+- Exact `active` evidence remains visible but score-neutral; unrelated and
+  aggregate-only expiration evidence neither attaches nor changes the score.
+- The strategy challenge proves the cross-source identity handoff and validates
+  the resulting artifact; no formula, external effect, or authority changed.
 
 Last published slice:
-- `b011e1aa` Tighten source window timing status (`3887 passed`).
+- `92b2dbbe` Expose partially timed source windows (`3887 passed`).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions while preserving explicit
@@ -67,7 +61,7 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-Challenge partially timed source-window source copies.
+Assess exact expiration evidence on request-ready provider contacts.
 
 Blocked:
 None.
