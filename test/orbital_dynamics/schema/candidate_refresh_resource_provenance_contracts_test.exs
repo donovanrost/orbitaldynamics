@@ -507,6 +507,27 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshResourceProvenanceContractsTest
     assert {:ok, %{"schema_contract" => "candidate_refresh.v1"}} =
              Schema.validate_artifact(artifact_with_station_pressure_summary)
 
+    stale_contact_allocation_direction_route =
+      put_in(
+        artifact_with_station_pressure_summary,
+        ["provenance", "source_reports", "contact_allocation_report", "direction_routing"],
+        %{
+          "stale_direction" => %{
+            "contact_count" => 99,
+            "contact_ids" => ["stale_contact"]
+          }
+        }
+      )
+
+    assert {:error, stale_contact_allocation_direction_route_report} =
+             Schema.validate_artifact(stale_contact_allocation_direction_route)
+
+    assert Enum.any?(
+             stale_contact_allocation_direction_route_report["errors"],
+             &(&1["path"] ==
+                 "$.provenance.source_reports.contact_allocation_report.direction_routing")
+           )
+
     invalid_station_pressure_count =
       put_in(
         artifact_with_station_pressure_summary,

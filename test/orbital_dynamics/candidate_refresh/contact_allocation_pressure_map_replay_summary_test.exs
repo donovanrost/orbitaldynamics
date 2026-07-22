@@ -31,6 +31,10 @@ defmodule OrbitalDynamics.CandidateRefresh.ContactAllocationPressureMapReplaySum
               "downlink" => %{
                 "contact_count" => 1,
                 "contact_ids" => ["selected_contact"]
+              },
+              "stale_direction" => %{
+                "contact_count" => 99,
+                "contact_ids" => ["stale_contact"]
               }
             }
           }
@@ -91,7 +95,12 @@ defmodule OrbitalDynamics.CandidateRefresh.ContactAllocationPressureMapReplaySum
     assert source_summary["source_report_contact_allocation_direction_routing"] == %{
              "downlink" => %{
                "contact_count" => 1,
-               "contact_ids" => ["selected_contact"]
+               "contact_ids" => ["selected_contact"],
+               "provider_reservation_no_request_contact_ids" => [],
+               "provider_reservation_request_contact_ids" => [],
+               "provider_reservation_review_contact_ids" => [],
+               "reservation_conflict_contact_ids" => [],
+               "station_pressure_contact_ids" => []
              }
            }
 
@@ -124,7 +133,12 @@ defmodule OrbitalDynamics.CandidateRefresh.ContactAllocationPressureMapReplaySum
     assert replay_summary["direction_routing"] == %{
              "downlink" => %{
                "contact_count" => 1,
-               "contact_ids" => ["selected_contact"]
+               "contact_ids" => ["selected_contact"],
+               "provider_reservation_no_request_contact_ids" => [],
+               "provider_reservation_request_contact_ids" => [],
+               "provider_reservation_review_contact_ids" => [],
+               "reservation_conflict_contact_ids" => [],
+               "station_pressure_contact_ids" => []
              }
            }
 

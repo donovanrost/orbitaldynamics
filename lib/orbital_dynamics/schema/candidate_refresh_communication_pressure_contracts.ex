@@ -9,6 +9,9 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshCommunicationPressureContracts 
     RouteMap
   }
 
+  alias OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactAllocation.DirectionRouting,
+    as: ContactAllocationDirectionRouting
+
   alias OrbitalDynamics.Schema.StableIdValidation
 
   import OrbitalDynamics.Schema.PrimitiveValidation,
@@ -40,18 +43,47 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshCommunicationPressureContracts 
   end
 
   def validate_contact_allocation(issues, path, summary) do
-    Enum.reduce(
-      [
-        "provider_reservation_no_request_contact_ids_by_direction_and_ground_station",
-        "provider_reservation_request_contact_ids_by_direction_and_ground_station",
-        "provider_reservation_review_contact_ids_by_direction_and_ground_station"
-      ],
-      issues,
-      fn field, acc ->
-        validate_nested_stable_id_array_map(acc, path <> ".#{field}", Map.get(summary, field))
-      end
-    )
+    issues =
+      Enum.reduce(
+        [
+          "provider_reservation_no_request_contact_ids_by_direction_and_ground_station",
+          "provider_reservation_request_contact_ids_by_direction_and_ground_station",
+          "provider_reservation_review_contact_ids_by_direction_and_ground_station"
+        ],
+        issues,
+        fn field, acc ->
+          validate_nested_stable_id_array_map(acc, path <> ".#{field}", Map.get(summary, field))
+        end
+      )
+
+    validate_contact_allocation_direction_routing(issues, path, summary)
   end
+
+  defp validate_contact_allocation_direction_routing(
+         issues,
+         path,
+         %{
+           "contract" => "contact_allocation_report.v1",
+           "direction_routing" => direction_routing
+         } = summary
+       )
+       when is_map(direction_routing) do
+    expected_routing = ContactAllocationDirectionRouting.fields_from_summary(summary) || %{}
+
+    if direction_routing == expected_routing do
+      issues
+    else
+      [
+        error(
+          path <> ".direction_routing",
+          "must equal canonical routing rebuilt from contact-allocation field maps"
+        )
+        | issues
+      ]
+    end
+  end
+
+  defp validate_contact_allocation_direction_routing(issues, _path, _summary), do: issues
 
   def validate_station_pressure(issues, path, summary) do
     issues

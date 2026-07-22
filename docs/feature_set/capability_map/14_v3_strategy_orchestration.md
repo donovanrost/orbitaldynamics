@@ -1067,6 +1067,12 @@ result-artifact-wrapped `source_contact_allocation_report` /
 indexed embedded replay copies, keeping raw allocation rows, capacity-pack
 demand/routing, direction routing, station pressure, and trust-boundary evidence
 visible to branch-local replay.
+Preserved compact contact-allocation direction routes are rebuilt from their
+direction, station-pressure, reservation-conflict, and provider-reservation
+field maps at flattened-source and replay boundaries. Explicit compact count
+maps retain occurrence counts while stable ID lists remain de-duplicated, stale
+route-only entries cannot create pressure, and compact schema validation rejects
+a supplied route that differs from the canonical rebuild.
 Branch-generated CandidateRefresh requests also carry mission-state
 `source_contact_allocation_summary` / `contact_allocation_summary`,
 	`source_contact_allocation_station_pressure_summary` /

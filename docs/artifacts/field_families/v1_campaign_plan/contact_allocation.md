@@ -234,6 +234,14 @@ can be audited against the external resource summary that made it eligible.
 Executable validation treats allocation summary and trust-boundary count fields
 as integer counts, matching the exported JSON Schema and avoiding float-shaped
 queue totals in Cadence-facing handoffs.
+CandidateRefresh rebuilds preserved compact contact-allocation direction routes
+from the authoritative direction, station-pressure, reservation-conflict, and
+provider-reservation field maps at flattened-source and replay boundaries.
+Explicit compact count maps retain occurrence counts even when stable contact-ID
+lists de-duplicate identities; nested provider maps continue to derive route
+evidence when direct maps are absent. Stale supplied route-only entries cannot
+create allocation pressure, and compact schema validation requires a supplied
+route map to equal the canonical rebuild.
 Allocation row duplicate-contact and station-calendar overlap/reservation count
 fields are also executable integer counts, duplicate-contact collision rows must
 preserve candidate count, ID, and source-candidate evidence, and contention

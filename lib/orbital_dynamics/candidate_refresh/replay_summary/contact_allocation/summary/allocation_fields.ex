@@ -1,6 +1,8 @@
 defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.ContactAllocation.Summary.AllocationFields do
   @moduledoc false
 
+  alias OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactAllocation.DirectionRouting
+
   import OrbitalDynamics.CandidateRefresh.ReplaySummary.ContactAllocation.Summary.Normalization,
     only: [summary_integer: 2]
 
@@ -15,7 +17,7 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.ContactAllocation.Summa
       allocation_reason_counts: Map.get(allocation_summary, "allocation_reason_counts", %{}),
       direction_counts: Map.get(allocation_summary, "direction_counts"),
       contact_ids_by_direction: Map.get(allocation_summary, "contact_ids_by_direction"),
-      direction_routing: Map.get(allocation_summary, "direction_routing", %{}),
+      direction_routing: DirectionRouting.fields_from_summary(allocation_summary) || %{},
       allocated_contact_count:
         non_zero_summary_integer(allocation_summary, "allocated_contact_count"),
       allocated_contact_ids: Map.get(allocation_summary, "allocated_contact_ids"),
