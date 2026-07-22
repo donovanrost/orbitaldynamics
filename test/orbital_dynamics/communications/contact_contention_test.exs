@@ -834,6 +834,54 @@ defmodule OrbitalDynamics.Communications.ContactContentionTest do
     assert {:ok, %{"schema_contract" => "contact_contention_report.v1"}} =
              Schema.validate_artifact(report)
 
+    reordered_group_candidates =
+      update_in(
+        report,
+        ["conflict_groups", Access.at(0), "source_contact_candidates"],
+        &Enum.reverse/1
+      )
+
+    assert {:ok, %{"schema_contract" => "contact_contention_report.v1"}} =
+             Schema.validate_artifact(reordered_group_candidates)
+
+    substituted_group_candidate =
+      put_in(
+        report,
+        [
+          "conflict_groups",
+          Access.at(0),
+          "source_contact_candidates",
+          Access.at(0),
+          "id"
+        ],
+        "dl_substituted_conflict_candidate"
+      )
+
+    assert {:error, substituted_group_candidate_report} =
+             Schema.validate_artifact(substituted_group_candidate)
+
+    assert Enum.any?(
+             substituted_group_candidate_report["errors"],
+             &(&1["path"] == "$.conflict_groups[0].source_contact_candidates" and
+                 &1["message"] == "contact IDs must match contact_ids")
+           )
+
+    empty_group_candidates =
+      put_in(
+        report,
+        ["conflict_groups", Access.at(0), "source_contact_candidates"],
+        []
+      )
+
+    assert {:error, empty_group_candidates_report} =
+             Schema.validate_artifact(empty_group_candidates)
+
+    assert Enum.any?(
+             empty_group_candidates_report["errors"],
+             &(&1["path"] == "$.conflict_groups[0].source_contact_candidates" and
+                 &1["message"] == "contact IDs must match contact_ids")
+           )
+
     assert {:ok, %{"schema_contract" => "contact_contention_resolution_report.v1"}} =
              Schema.validate_artifact(resolution)
 

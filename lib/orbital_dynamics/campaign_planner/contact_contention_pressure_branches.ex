@@ -298,43 +298,67 @@ defmodule OrbitalDynamics.CampaignPlanner.ContactContentionPressureBranches do
   end
 
   defp conflict_contacts(group, callbacks) do
-    source_contacts =
-      group
-      |> Map.get("source_contact_candidates", [])
-      |> List.wrap()
-      |> Enum.filter(&is_map/1)
-      |> Enum.map(&stringify_keys(&1, callbacks))
+    case Map.fetch(group, "source_contact_candidates") do
+      :error ->
+        fallback_conflict_contacts(group, callbacks)
 
-    case source_contacts do
-      [] ->
-        encode_value = Keyword.fetch!(callbacks, :encode_value)
-        stable_id_string? = Keyword.fetch!(callbacks, :stable_id_string?)
-        compact_map = Keyword.fetch!(callbacks, :compact_map)
+      {:ok, candidates} when is_list(candidates) ->
+        contacts =
+          candidates
+          |> Enum.filter(&is_map/1)
+          |> Enum.map(&stringify_keys(&1, callbacks))
 
-        group
-        |> Map.get("contact_ids", [])
-        |> List.wrap()
-        |> Enum.map(&encode_value.(&1))
-        |> Enum.filter(&stable_id_string?.(&1))
-        |> Enum.map(fn contact_id ->
-          %{
-            "id" => contact_id,
-            "contact_id" => contact_id,
-            "type" => group_activity_type(group),
-            "direction" => group["direction"],
-            "scenario_id" => first_stable_id(group["scenario_ids"], callbacks),
-            "spacecraft_id" =>
-              group["spacecraft_id"] || first_stable_id(group["spacecraft_ids"], callbacks),
-            "ground_station_id" => group["ground_station_id"],
-            "starts_at_s" => group["starts_at_s"],
-            "ends_at_s" => group["ends_at_s"]
-          }
-          |> compact_map.()
-        end)
+        if conflict_candidate_ids_correlated?(group, contacts, callbacks),
+          do: contacts,
+          else: []
 
-      contacts ->
-        contacts
+      {:ok, _candidates} ->
+        []
     end
+  end
+
+  defp fallback_conflict_contacts(group, callbacks) do
+    encode_value = Keyword.fetch!(callbacks, :encode_value)
+    stable_id_string? = Keyword.fetch!(callbacks, :stable_id_string?)
+    compact_map = Keyword.fetch!(callbacks, :compact_map)
+
+    group
+    |> Map.get("contact_ids", [])
+    |> List.wrap()
+    |> Enum.map(&encode_value.(&1))
+    |> Enum.filter(&stable_id_string?.(&1))
+    |> Enum.map(fn contact_id ->
+      %{
+        "id" => contact_id,
+        "contact_id" => contact_id,
+        "type" => group_activity_type(group),
+        "direction" => group["direction"],
+        "scenario_id" => first_stable_id(group["scenario_ids"], callbacks),
+        "spacecraft_id" =>
+          group["spacecraft_id"] || first_stable_id(group["spacecraft_ids"], callbacks),
+        "ground_station_id" => group["ground_station_id"],
+        "starts_at_s" => group["starts_at_s"],
+        "ends_at_s" => group["ends_at_s"]
+      }
+      |> compact_map.()
+    end)
+  end
+
+  defp conflict_candidate_ids_correlated?(group, contacts, callbacks) do
+    encode_value = Keyword.fetch!(callbacks, :encode_value)
+    contact_identity = Keyword.fetch!(callbacks, :contact_identity)
+    stable_id_string? = Keyword.fetch!(callbacks, :stable_id_string?)
+
+    contact_ids =
+      group
+      |> Map.get("contact_ids", [])
+      |> List.wrap()
+      |> Enum.map(&encode_value.(&1))
+
+    candidate_ids = Enum.map(contacts, &(contact_identity.(&1) |> encode_value.()))
+
+    Enum.all?(contact_ids ++ candidate_ids, stable_id_string?) and
+      Enum.sort(contact_ids) == Enum.sort(candidate_ids)
   end
 
   defp group_activity_type(group) do

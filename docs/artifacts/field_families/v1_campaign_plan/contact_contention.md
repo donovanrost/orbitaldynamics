@@ -156,6 +156,10 @@ requires `selected_contact_id` plus `deferred_contact_ids` to be a unique,
 exact match for the IDs in `source_contact_candidates`. This preserves the
 producer's single-candidate-set decision invariant and rejects substituted or
 self-deferred identities before downstream planner use.
+When a conflict group carries `source_contact_candidates`, their ID multiset
+must likewise match `contact_ids`; ordering may differ and legitimate duplicate
+identity evidence remains representable, but substituted or missing candidate
+rows are rejected.
 Its exported JSON Schema includes the nested row and `timeline_identity` field
 shape used by executable validation. Rows also carry artifact-only operational
 kind, required operator action, operator-action reason, execution boundary,

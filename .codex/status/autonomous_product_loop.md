@@ -5,52 +5,53 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Correlate contention-resolution decision identities.
+Correlate contention conflict-group identities.
 
 Status:
 Complete; ready to publish.
 
 Selection evidence:
-- The producer selects and defers contacts from one canonical candidate list.
-- Executable validation compares only candidate counts, so substituted selected
-  or deferred IDs can pass without matching `source_contact_candidates`.
-- CampaignPlanner can turn such a substituted deferred ID into pressure by
-  falling back to recommendation-level downlink direction.
+- The producer derives `contact_ids` and `source_contact_candidates` from the
+  same canonical contention-group contacts.
+- Executable validation checks `contact_count` against `contact_ids` but does
+  not correlate a present source-candidate collection to those IDs.
+- CampaignPlanner prefers present source candidates, so a substituted candidate
+  can create pressure for an identity absent from `contact_ids`.
 
 Implemented behavior:
-- Validate deterministic selected/deferred IDs as the exact, unique candidate
-  identity set.
-- Create resolution pressure only when the same identity correlation holds.
-- Preserve ambiguous duplicate-identity recommendations as review-only rows.
+- Validate present source-candidate IDs as the exact `contact_ids` multiset.
+- Create conflict pressure only when the same present-collection correlation
+  holds, including an explicitly empty collection.
+- Preserve contact-ID fallback for partial handoffs that omit candidates.
 
 Level 6 pillar advanced:
 Fleet-scale planning decisions and durable reproducible audit handoffs.
 
 Files changed:
-- contention-resolution executable validation and planner pressure gating
-- schema and planner identity-substitution challenge tests
+- contention-group executable validation and planner pressure gating
+- schema and planner candidate-substitution challenge tests
 - contention artifact documentation and autonomous-loop ledger
 
 Verification:
-- Focused schema/producer/planner tests: `55 passed`.
-- Related schema/export fixture matrix: `43 passed`.
-- Planner tests carrying deferred contact IDs: `58 passed`.
+- Focused contention schema/planner tests: `54 passed`.
+- Related contention/schema matrix: `74 passed`.
 - Full checked-artifact lint: `155/155 passed`, zero warnings.
-- Full suite with a 120-second per-test ceiling: `3797 passed`.
+- Full suite with a 120-second per-test ceiling: `3798 passed`.
 - `mix format --check-formatted`, `mix compile --warnings-as-errors`, and
   `git diff --check` passed.
 - No public artifact shape or checked-in schema export changed.
 
 Review:
-- Exact multiset comparison is order-independent while rejecting missing,
-  substituted, duplicate, and self-deferred contact identities.
-- Generated deterministic recommendations already satisfy the rule; ambiguous
-  duplicate-identity recommendations omit selection and remain review-only.
-- Planner gating uses the same canonical contact aliases as pressure lookup and
-  suppresses only malformed decisions, not the containing source report.
+- Present candidate collections are authoritative and compared as multisets,
+  preserving order independence and legitimate duplicate-identity evidence.
+- Substituted, missing, or non-list candidates suppress only the malformed
+  group's planner effects; an explicitly empty collection cannot trigger
+  contact-ID fallback.
+- Candidate omission retains legacy fallback, so partial review handoffs keep
+  their existing contact-scoped pressure behavior.
 
 Last published slice:
-- `2a20dcf4` Constrain contention pressure report contracts (`3796 passed`).
+- `d10aacdc` Correlate contention decision identities (`3797 passed`).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions while preserving explicit
@@ -61,8 +62,8 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-After publish, audit conflict-group contact IDs against source candidates before
-contention pressure can be created.
+After publish, audit resolution summary identity maps for exact per-group
+selected/deferred lineage before replay pressure is surfaced.
 
 Blocked:
 None.

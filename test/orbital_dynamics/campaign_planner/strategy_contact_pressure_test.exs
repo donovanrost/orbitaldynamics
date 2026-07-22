@@ -1244,6 +1244,72 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyContactPressureTest do
     assert "derived_contact_contention_pressure_deferred_dl_correlated_deferred" in branch_ids
   end
 
+  test "strategy requires present conflict candidates to match group contact identities" do
+    group = fn prefix, contact_ids, source_contact_candidates ->
+      %{
+        "id" => "#{prefix}_group",
+        "ground_station_id" => "equator_prime",
+        "contact_count" => length(contact_ids),
+        "contact_ids" => contact_ids,
+        "direction" => "downlink",
+        "starts_at_s" => 800.0,
+        "ends_at_s" => 860.0
+      }
+      |> then(fn group ->
+        if source_contact_candidates == :omitted do
+          group
+        else
+          Map.put(group, "source_contact_candidates", source_contact_candidates)
+        end
+      end)
+    end
+
+    source_candidate = fn contact_id ->
+      downlink(contact_id, 800.0, 860.0)
+      |> Map.put("estimated_throughput_mb", 34.0)
+    end
+
+    contention_report = %{
+      "schema_contract" => "contact_contention_report.v1",
+      "conflict_groups" => [
+        group.(
+          "substituted_candidate",
+          ["dl_expected_conflict_a", "dl_expected_conflict_b"],
+          [
+            source_candidate.("dl_expected_conflict_a"),
+            source_candidate.("dl_phantom_conflict_candidate")
+          ]
+        ),
+        group.("empty_candidates", ["dl_explicit_empty_candidate"], []),
+        group.("omitted_candidates", ["dl_legacy_fallback_candidate"], :omitted)
+      ]
+    }
+
+    artifact =
+      strategy(base_plan(%{}),
+        mission_state:
+          mission_state_with_refresh_inputs()
+          |> Map.put(:source_contact_contention_report, contention_report),
+        derive_branches?: true,
+        branches: [%{id: "baseline"}],
+        current_epoch_s: 0.0
+      )
+
+    branch_ids = Enum.map(artifact["branches"], & &1["branch_id"])
+
+    refute Enum.any?(
+             branch_ids,
+             &String.starts_with?(
+               &1,
+               "derived_contact_contention_pressure_conflict_substituted_candidate_group"
+             )
+           )
+
+    refute "derived_contact_contention_pressure_conflict_empty_candidates_group_dl_explicit_empty_candidate" in branch_ids
+
+    assert "derived_contact_contention_pressure_conflict_omitted_candidates_group_dl_legacy_fallback_candidate" in branch_ids
+  end
+
   test "strategy keeps independent contact contention pressures for the same deferred contact" do
     prior_plan =
       base_plan(%{

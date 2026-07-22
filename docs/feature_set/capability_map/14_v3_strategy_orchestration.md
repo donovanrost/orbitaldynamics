@@ -1122,6 +1122,9 @@ prior-plan inputs.
 Resolution recommendations create branch pressure only when the selected and
 deferred contact IDs are unique and exactly match their source candidate IDs;
 substituted, missing, or self-deferred identities remain review evidence.
+Conflict groups apply the same exact multiset rule whenever source candidates
+are present, including an explicitly empty collection. Partial handoffs that
+omit source candidates retain contact-ID fallback pressure.
 Branch-generated CandidateRefresh requests preserve direct mission-state and
 result-artifact-wrapped raw `source_contact_contention_resolution_report` /
 `contact_contention_resolution_report` inputs with wrapper-qualified request

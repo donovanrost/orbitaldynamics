@@ -188,6 +188,7 @@ defmodule OrbitalDynamics.Schema.ContactContentionReportContracts do
       "duplicate_contact_id_count",
       list_count(group, "duplicate_contact_ids")
     )
+    |> validate_group_candidate_ids(path, group)
   end
 
   def validate_resolution_report(issues, path, report) do
@@ -861,6 +862,36 @@ defmodule OrbitalDynamics.Schema.ContactContentionReportContracts do
   end
 
   defp validate_recommendation_identity(issues, _path, _recommendation), do: issues
+
+  defp validate_group_candidate_ids(
+         issues,
+         path,
+         %{
+           "contact_ids" => contact_ids,
+           "source_contact_candidates" => source_contact_candidates
+         }
+       )
+       when is_list(contact_ids) and is_list(source_contact_candidates) do
+    candidate_ids =
+      Enum.map(source_contact_candidates, fn
+        %{} = candidate -> Map.get(candidate, "id")
+        _candidate -> nil
+      end)
+
+    if Enum.sort(contact_ids) == Enum.sort(candidate_ids) do
+      issues
+    else
+      [
+        error(
+          path <> ".source_contact_candidates",
+          "contact IDs must match contact_ids"
+        )
+        | issues
+      ]
+    end
+  end
+
+  defp validate_group_candidate_ids(issues, _path, _group), do: issues
 
   defp validate_recommendation_candidate_ids(issues, path, decision_ids, candidate_ids) do
     if Enum.sort(decision_ids) == Enum.sort(candidate_ids) do
