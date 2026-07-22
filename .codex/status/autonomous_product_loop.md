@@ -5,53 +5,53 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Correlate capacity-pack contact status identity/count at handoff top level.
+Correlate required-capacity source identity/count at handoff top level.
 
 Status:
 Verified; ready to publish.
 
 Selection evidence:
-- Capacity-pack group identity/count correlation is exact and schema-enforced.
-- Source reports carry `capacity_pack_status_counts` beside contact IDs by
-  status, but both derived handoffs currently drop that count map.
-- A live probe supplied additive status count `14` and four unique status-routed
-  contact IDs; both handoffs emitted only the IDs and validated.
+- Capacity-pack contact status identity/count correlation is now preserved and
+  schema-enforced across both handoffs.
+- Required-capacity source counts still sum independently while contact IDs by
+  source merge uniquely.
+- A live probe produced source count `14` beside four unique source-routed IDs in
+  both handoffs; both contradictory artifacts validated.
 
 Intended behavior:
-- Preserve capacity-pack contact status counts beside their status-routed IDs.
-- Derive each supplied status count from its sorted unique contact IDs, including
-  explicit-empty zero; retain additive fallback for statuses without identity.
-- Reject noncanonical status routes or mismatched counts and export route
+- Derive each supplied required-capacity source count from its sorted unique
+  contact IDs, including explicit-empty zero.
+- Retain additive fallback for source keys without identity evidence.
+- Reject noncanonical source routes or mismatched counts and export route
   uniqueness in both handoff schemas.
 
 Level 6 pillar advanced:
 Fleet-scale planning decisions and durable reproducible audit handoffs.
 
 Planned files:
-- operator-review capacity-pack contact status count/identity aggregation
-- shared review/import field registry, correlation, and generated schemas
+- operator-review required-capacity source count/identity aggregation
+- shared review/import correlation and generated schemas
 - overlap/empty/fallback challenge proofs, docs, and loop ledger
 
 Verification:
 - Focused producer/schema proofs: `4 passed`.
-- Contact-allocation family: `202 passed`.
+- Contact-allocation family: `203 passed`.
 - Golden artifact suite: `12 passed`.
 - Schema lint: `155` artifacts, `0` errors, `0` warnings.
-- Full suite: `3843 passed`.
+- Full suite: `3847 passed`.
 - `mix format --check-formatted` and `git diff --check` passed.
 
 Review:
-- `capacity_pack_status_counts` now crosses the review/import registries,
-  summary context, and Cadence manifest builder beside status-routed contact IDs.
-- Supplied status IDs are merged as sorted unique lists and fix each exact count,
-  including explicit-empty zero; count-only status keys retain additive fallback.
-- Both handoff validators reject noncanonical routes and missing/mismatched counts,
-  while generated schemas export the optional count map and route uniqueness.
+- Required-capacity contact IDs now merge as sorted unique lists per source and
+  fix the matching source count, including explicit-empty zero.
+- Source-count keys without identity retain additive fallback.
+- Both handoff validators reject noncanonical routes and missing/mismatched
+  counts; generated schemas export source-route uniqueness.
 - Golden artifacts remain unchanged, and provider execution, schedule mutation,
   planner effects, and Cadence write authority remain out of scope.
 
 Last published slice:
-- `d983da07` Correlate capacity-pack group identity (`3839 passed`).
+- `2bd09497` Correlate capacity-pack contact counts (`3843 passed`).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions while preserving explicit
@@ -62,7 +62,7 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-After publish, audit required-capacity source identity/count correlation.
+After publish, audit station-reservation match-status identity/count correlation.
 
 Blocked:
 None.

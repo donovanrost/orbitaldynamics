@@ -838,6 +838,12 @@ defmodule OrbitalDynamics.Schema.ContactAllocationHandoffContracts do
       artifact,
       "required_capacity_fraction_contact_ids_by_source"
     )
+    |> validate_correlated_id_count_map(
+      path,
+      artifact,
+      "required_capacity_fraction_source_counts",
+      "required_capacity_fraction_contact_ids_by_source"
+    )
     |> expect_optional_non_negative_integer(
       path,
       artifact,

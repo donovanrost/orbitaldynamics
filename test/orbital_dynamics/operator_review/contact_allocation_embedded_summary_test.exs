@@ -1913,6 +1913,67 @@ defmodule OrbitalDynamics.OperatorReview.ContactAllocationEmbeddedSummaryTest do
     end
   end
 
+  test "correlates required-capacity source identity and counts" do
+    source = "capacity_model"
+
+    repair =
+      OperatorReview.from_repair_artifact(%{
+        "repair_metadata" => %{"repair_id" => "repair:required_capacity_source_overlap"},
+        "source_contact_allocation_report" => %{
+          "required_capacity_fraction_source_counts" => %{source => 7},
+          "required_capacity_fraction_contact_ids_by_source" => %{
+            source => ["contact_source", "contact_shared"]
+          }
+        },
+        "contact_allocation_report" => %{
+          "required_capacity_fraction_source_counts" => %{source => 7},
+          "required_capacity_fraction_contact_ids_by_source" => %{
+            source => ["contact_result", "contact_routed", "contact_shared"]
+          }
+        }
+      })
+
+    explicit_empty =
+      OperatorReview.from_campaign_artifact(%{
+        "plan_id" => "plan:required_capacity_source_empty",
+        "contact_allocation_report" => %{
+          "required_capacity_fraction_source_counts" => %{source => 9},
+          "required_capacity_fraction_contact_ids_by_source" => %{source => []}
+        }
+      })
+
+    count_only =
+      OperatorReview.from_campaign_artifact(%{
+        "plan_id" => "plan:required_capacity_source_count",
+        "contact_allocation_report" => %{
+          "required_capacity_fraction_source_counts" => %{source => 2}
+        }
+      })
+
+    expected_contact_ids = [
+      "contact_result",
+      "contact_routed",
+      "contact_shared",
+      "contact_source"
+    ]
+
+    assert repair["required_capacity_fraction_source_counts"] == %{source => 4}
+
+    assert repair["required_capacity_fraction_contact_ids_by_source"] == %{
+             source => expected_contact_ids
+           }
+
+    assert explicit_empty["required_capacity_fraction_source_counts"] == %{source => 0}
+    assert explicit_empty["required_capacity_fraction_contact_ids_by_source"] == %{source => []}
+    assert count_only["required_capacity_fraction_source_counts"] == %{source => 2}
+    refute Map.has_key?(count_only, "required_capacity_fraction_contact_ids_by_source")
+
+    for package <- [repair, explicit_empty, count_only] do
+      assert {:ok, %{"schema_contract" => "operator_review_package.v1"}} =
+               Schema.validate_artifact(package)
+    end
+  end
+
   defp contact_allocation_summary(counts, summary) do
     %{
       "schema_contract" => "contact_allocation_report.v1",

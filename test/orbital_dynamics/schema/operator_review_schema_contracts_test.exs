@@ -1424,6 +1424,74 @@ defmodule OrbitalDynamics.Schema.OperatorReviewSchemaContractsTest do
     end
   end
 
+  test "correlates required-capacity contact IDs with source counts" do
+    fields = [
+      "required_capacity_fraction_source_counts",
+      "required_capacity_fraction_contact_ids_by_source"
+    ]
+
+    package =
+      "study_results/operator_review_resource_pressure_v1.json"
+      |> read_json!()
+      |> Map.drop(fields)
+
+    schema = read_json!("schemas/operator_review_package.v1.schema.json")
+    source = "capacity_model"
+
+    assert get_in(schema, [
+             "properties",
+             "required_capacity_fraction_contact_ids_by_source",
+             "additionalProperties",
+             "uniqueItems"
+           ]) == true
+
+    valid_identity =
+      Map.merge(package, %{
+        "required_capacity_fraction_source_counts" => %{source => 2},
+        "required_capacity_fraction_contact_ids_by_source" => %{
+          source => ["contact_a", "contact_b"]
+        }
+      })
+
+    assert {:ok, _package} = Schema.validate_artifact(valid_identity)
+
+    count_only = Map.put(package, "required_capacity_fraction_source_counts", %{source => 2})
+    assert {:ok, _package} = Schema.validate_artifact(count_only)
+
+    invalid_route =
+      Map.merge(package, %{
+        "required_capacity_fraction_source_counts" => %{source => 2},
+        "required_capacity_fraction_contact_ids_by_source" => %{
+          source => ["contact_b", "contact_a"]
+        }
+      })
+
+    assert {:error, invalid_route_report} = Schema.validate_artifact(invalid_route)
+
+    assert Enum.any?(
+             invalid_route_report["errors"],
+             &(&1["path"] == "$.required_capacity_fraction_contact_ids_by_source.#{source}")
+           )
+
+    for source_count <- [nil, 1] do
+      invalid_count =
+        Map.merge(package, %{
+          "required_capacity_fraction_source_counts" =>
+            if(source_count == nil, do: %{}, else: %{source => source_count}),
+          "required_capacity_fraction_contact_ids_by_source" => %{
+            source => ["contact_a", "contact_b"]
+          }
+        })
+
+      assert {:error, invalid_count_report} = Schema.validate_artifact(invalid_count)
+
+      assert Enum.any?(
+               invalid_count_report["errors"],
+               &(&1["path"] == "$.required_capacity_fraction_source_counts.#{source}")
+             )
+    end
+  end
+
   defp read_json!(path) do
     path
     |> File.read!()

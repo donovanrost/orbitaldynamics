@@ -601,6 +601,7 @@ defmodule OrbitalDynamics.Schema.CadenceImportManifestJsonSchema do
                              [
                                "capacity_pack_contact_ids_by_status",
                                "capacity_pack_group_ids_by_status",
+                               "required_capacity_fraction_contact_ids_by_source",
                                "provider_reservation_no_request_contact_ids_by_direction",
                                "provider_reservation_request_contact_ids_by_ground_station_id",
                                "provider_reservation_request_contact_ids_by_direction",

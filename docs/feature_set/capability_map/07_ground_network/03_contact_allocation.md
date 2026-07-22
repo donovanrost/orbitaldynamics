@@ -496,6 +496,8 @@ so adapters can route contact queues without recounting rows.
   routed legacy handoffs remain compatible.
 - Capacity-pack contact IDs by status are canonical and fix the corresponding
   contact-status count; status keys without identity retain additive fallback.
+- Required-capacity contact IDs by source are canonical and fix the corresponding
+  source count; source keys without identity retain additive fallback.
 - Provider-reservation request, review, and no-request contact identities are
   independent canonical top-level unions across their available direct and
   routed evidence. Request/review include station, direction, nested

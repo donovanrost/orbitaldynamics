@@ -1175,6 +1175,9 @@ additive fallback, while top-absent routed legacy artifacts remain valid.
 Capacity-pack contact IDs by status are also canonical and fix the corresponding
 `capacity_pack_status_counts` entry, including explicit-empty zero; count-only
 status keys retain additive fallback.
+Required-capacity contact IDs by source apply the same per-key correlation to
+`required_capacity_fraction_source_counts`, with canonical identity, exact
+identity-backed counts, explicit-empty zero, and count-only fallback.
 Direct/list and result-artifact-wrapped `source_contact_allocation_summary` /
 `contact_allocation_summary` inputs lift through the same OperatorReview and
 CadenceImport handoff. Their validated compact

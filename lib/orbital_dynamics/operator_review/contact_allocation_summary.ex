@@ -187,9 +187,10 @@ defmodule OrbitalDynamics.OperatorReview.ContactAllocationSummary do
       reports,
       "capacity_pack_deferred_required_capacity_fraction_by_ground_station_id"
     )
-    |> put_contact_allocation_count_summary(
+    |> put_correlated_id_count_map_summary(
       reports,
-      "required_capacity_fraction_source_counts"
+      "required_capacity_fraction_source_counts",
+      "required_capacity_fraction_contact_ids_by_source"
     )
     |> put_contact_allocation_scalar_count_summary(
       reports,
@@ -272,10 +273,6 @@ defmodule OrbitalDynamics.OperatorReview.ContactAllocationSummary do
     |> put_contact_allocation_id_map_summary(
       reports,
       "capacity_pack_deferred_contact_ids_by_ground_station_id"
-    )
-    |> put_contact_allocation_id_map_summary(
-      reports,
-      "required_capacity_fraction_contact_ids_by_source"
     )
     |> put_contact_allocation_id_map_summary(
       reports,
