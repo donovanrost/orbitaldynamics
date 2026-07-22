@@ -70,7 +70,7 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairExecutionPolicyTest do
           "activities" => [downlink("dl_1", 100.0, 160.0)],
           "candidate_activities" => [
             downlink("dl_1", 100.0, 160.0),
-            downlink("dl_2", 200.0, 260.0)
+            refreshed_downlink("dl_2", 200.0, 260.0)
           ],
           "ranking_explanation" => %{
             "policy" => %{
@@ -86,6 +86,28 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairExecutionPolicyTest do
 
     assert artifact["scoring_policy"]["schedule_move_cost_weight"] == 2.0
     assert artifact["score_terms"]["schedule_move_penalty"] == -200.0
+
+    assert {:ok, %{"schema_contract" => "campaign_repair.v2"}} =
+             Schema.validate_artifact(artifact)
+
+    invalid_ranking =
+      update_in(
+        artifact,
+        ["activities", Access.at(0), "repair", "replacement_ranking", "rows", Access.at(0)],
+        fn row ->
+          row
+          |> Map.put("schedule_move_penalty", -100.0)
+          |> Map.update!("ranking_score", &(&1 + 100.0))
+        end
+      )
+
+    assert {:error, report} = Schema.validate_artifact(invalid_ranking)
+
+    assert Enum.any?(
+             report["errors"],
+             &(&1["path"] ==
+                 "$.activities[0].repair.replacement_ranking.rows[0].schedule_move_penalty")
+           )
   end
 
   test "repair marks downstream activities affected by a delayed maneuver" do

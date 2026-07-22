@@ -33,6 +33,32 @@ defmodule OrbitalDynamics.Schema.CampaignRepairReplacementRankingContractsTest d
 
     assert {:ok, %{"schema_contract" => "campaign_repair.v2"}} =
              Schema.validate_artifact(legacy_artifact)
+
+    legacy_without_source_timing =
+      update_in(
+        artifact,
+        ["activities", Access.at(activity_index), "repair"],
+        &Map.delete(&1, "source_activity_context")
+      )
+
+    assert {:ok, %{"schema_contract" => "campaign_repair.v2"}} =
+             Schema.validate_artifact(legacy_without_source_timing)
+
+    invalid_legacy_cost =
+      legacy_without_source_timing
+      |> put_in_path(
+        ranking_path(activity_index) <> ".rows[0].schedule_churn_penalty",
+        -200.0
+      )
+      |> put_in_path(ranking_path(activity_index) <> ".rows[0].ranking_score", -194.0)
+
+    assert {:error, report} = Schema.validate_artifact(invalid_legacy_cost)
+
+    assert Enum.any?(
+             report["errors"],
+             &(&1["path"] ==
+                 ranking_path(activity_index) <> ".rows[0].schedule_churn_penalty")
+           )
   end
 
   test "rejects stale ranking envelopes and derived summary values", context do
@@ -211,6 +237,19 @@ defmodule OrbitalDynamics.Schema.CampaignRepairReplacementRankingContractsTest d
        |> put_in_path(row_path <> ".ranking_score", -93.0)},
       {row_path <> ".candidate_diff_priority",
        put_in_path(context.artifact, row_path <> ".semantic_candidate_diff_match", true)},
+      {row_path <> ".schedule_churn_penalty",
+       context.artifact
+       |> put_in_path(row_path <> ".schedule_churn_penalty", -200.0)
+       |> put_in_path(row_path <> ".ranking_score", -194.0)},
+      {row_path <> ".schedule_move_penalty",
+       context.artifact
+       |> put_in_path(row_path <> ".schedule_move_penalty", -8.0)
+       |> put_in_path(row_path <> ".ranking_score", -98.0)},
+      {row_path <> ".schedule_churn_s",
+       context.artifact
+       |> put_in_path(row_path <> ".schedule_churn_s", 500.0)
+       |> put_in_path(row_path <> ".schedule_move_penalty", -5.0)
+       |> put_in_path(row_path <> ".ranking_score", -95.0)},
       {row_path <> ".station_calendar_pressure_sources",
        context.artifact
        |> put_in_path(row_path <> ".station_calendar_pressure_penalty", -1.0)

@@ -368,8 +368,10 @@ schema-type their stable IDs, invalid-input flags, and protected/change counts.
   for viable unique alternatives with semantic-diff priority, value, churn,
   schedule-move, station-calendar, projected link-capacity, and projected
   resource contributions, the resulting greedy ranking score, and selected
-  flag. The evidence does not copy candidate payloads or claim global
-  optimization.
+  flag. Executable validation replays source-to-candidate start-time churn from
+  the embedded source context and unique source candidate, then pins fixed churn
+  and churn-times-move penalties to the enclosing scoring policy. The evidence
+  does not copy candidate payloads or claim global optimization.
 - `source_contact_intents` and `source_resource_summaries` are optional typed
   source arrays backed by direct `contact_intent.v1` and `resource_summary.v1`
   definitions. Their existing standalone row validators run before V2 uses the
