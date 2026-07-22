@@ -1493,6 +1493,73 @@ defmodule OrbitalDynamics.Schema.OperatorReviewSchemaContractsTest do
     end
   end
 
+  test "correlates top-level and routed station-reservation identity" do
+    route_fields = [
+      "station_reservation_ids_by_expiration_status",
+      "station_reservation_ids_by_match_status",
+      "station_reservation_ids_by_status",
+      "station_reservation_ids_by_reserved_by"
+    ]
+
+    package =
+      "study_results/operator_review_resource_pressure_v1.json"
+      |> read_json!()
+      |> Map.drop(["station_reservation_ids" | route_fields])
+
+    schema = read_json!("schemas/operator_review_package.v1.schema.json")
+
+    assert get_in(schema, ["properties", "station_reservation_ids", "uniqueItems"]) == true
+
+    for field <- route_fields do
+      assert get_in(schema, ["properties", field, "additionalProperties", "uniqueItems"]) ==
+               true
+    end
+
+    valid_identity =
+      Map.merge(package, %{
+        "station_reservation_ids" => ["reservation_direct", "reservation_routed"],
+        "station_reservation_ids_by_match_status" => %{
+          "overlap" => ["reservation_routed"]
+        }
+      })
+
+    assert {:ok, _package} = Schema.validate_artifact(valid_identity)
+
+    route_only =
+      Map.put(package, "station_reservation_ids_by_match_status", %{
+        "overlap" => ["reservation_routed"]
+      })
+
+    assert {:ok, _package} = Schema.validate_artifact(route_only)
+
+    invalid_top = Map.put(valid_identity, "station_reservation_ids", ["reservation_direct"])
+    assert {:error, invalid_top_report} = Schema.validate_artifact(invalid_top)
+
+    assert Enum.any?(
+             invalid_top_report["errors"],
+             &(&1["path"] == "$.station_reservation_ids")
+           )
+
+    invalid_route =
+      Map.merge(package, %{
+        "station_reservation_ids" => [
+          "reservation_a",
+          "reservation_direct",
+          "reservation_z"
+        ],
+        "station_reservation_ids_by_status" => %{
+          "confirmed" => ["reservation_z", "reservation_a"]
+        }
+      })
+
+    assert {:error, invalid_route_report} = Schema.validate_artifact(invalid_route)
+
+    assert Enum.any?(
+             invalid_route_report["errors"],
+             &(&1["path"] == "$.station_reservation_ids_by_status.confirmed")
+           )
+  end
+
   test "correlates station-reservation contact IDs with owner counts" do
     fields = [
       "station_reserved_by_counts",

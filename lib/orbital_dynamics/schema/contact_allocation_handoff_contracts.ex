@@ -43,6 +43,12 @@ defmodule OrbitalDynamics.Schema.ContactAllocationHandoffContracts do
     "declared" => "station_reservation_declared_expiration_contact_count",
     "missing" => "station_reservation_missing_expiration_contact_count"
   }
+  @station_reservation_id_map_fields [
+    "station_reservation_ids_by_expiration_status",
+    "station_reservation_ids_by_match_status",
+    "station_reservation_ids_by_status",
+    "station_reservation_ids_by_reserved_by"
+  ]
   @provider_reservation_contact_identity_fields %{
     "no_request" => %{
       count_field: "provider_reservation_no_request_contact_count",
@@ -1124,6 +1130,43 @@ defmodule OrbitalDynamics.Schema.ContactAllocationHandoffContracts do
       artifact,
       "station_reservation_ids_by_reserved_by"
     )
+    |> validate_station_reservation_identity_summary(path, artifact)
+  end
+
+  defp validate_station_reservation_identity_summary(issues, path, artifact) do
+    issues =
+      Enum.reduce(@station_reservation_id_map_fields, issues, fn field, acc ->
+        validate_canonical_id_map(acc, path, Map.get(artifact, field), field)
+      end)
+
+    case Map.get(artifact, "station_reservation_ids") do
+      reservation_ids when is_list(reservation_ids) ->
+        routed_identity_lists =
+          Enum.flat_map(@station_reservation_id_map_fields, fn field ->
+            collect_identity_lists(Map.get(artifact, field))
+          end)
+
+        canonical_reservation_ids =
+          [reservation_ids | routed_identity_lists]
+          |> List.flatten()
+          |> Enum.uniq()
+          |> Enum.sort()
+
+        if reservation_ids == canonical_reservation_ids do
+          issues
+        else
+          [
+            error(
+              "#{path}.station_reservation_ids",
+              "must equal sorted unique direct and routed station reservation IDs"
+            )
+            | issues
+          ]
+        end
+
+      _reservation_ids ->
+        issues
+    end
   end
 
   defp validate_station_reservation_expiration_identity_summary(issues, path, artifact) do

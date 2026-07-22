@@ -144,6 +144,10 @@ defmodule OrbitalDynamics.Schema.OperatorReviewPackageJsonSchema do
                                "station_reservation_contact_ids_by_expiration_status",
                                "station_reservation_contact_ids_by_status",
                                "station_reservation_contact_ids_by_reserved_by",
+                               "station_reservation_ids_by_expiration_status",
+                               "station_reservation_ids_by_match_status",
+                               "station_reservation_ids_by_status",
+                               "station_reservation_ids_by_reserved_by",
                                "provider_reservation_no_request_contact_ids_by_direction",
                                "provider_reservation_request_contact_ids_by_ground_station_id",
                                "provider_reservation_request_contact_ids_by_direction",
@@ -281,6 +285,7 @@ defmodule OrbitalDynamics.Schema.OperatorReviewPackageJsonSchema do
       when field in [
              "station_pressure_contact_ids",
              "station_pressure_review_contact_ids",
+             "station_reservation_ids",
              "capacity_pack_group_ids",
              "provider_reservation_no_request_contact_ids",
              "provider_reservation_request_contact_ids",

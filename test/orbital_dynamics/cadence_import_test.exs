@@ -8955,7 +8955,7 @@ defmodule OrbitalDynamics.CadenceImportTest do
     assert refresh["reduced_capacity_packed_contact_ids"] == ["dl_refresh_pack"]
     assert refresh["reduced_capacity_deferred_contact_ids"] == ["dl_refresh_deferred"]
 
-    assert repair["station_reservation_ids"] == ["reservation_source", "reservation_result"]
+    assert repair["station_reservation_ids"] == ["reservation_result", "reservation_source"]
     assert repair["station_reserved_bys"] == ["ops_source", "ops_result"]
     assert repair["station_reservation_statuses"] == ["confirmed", "released"]
     assert repair["station_reservation_match_status_counts"] == %{"matched" => 2, "overlap" => 1}
@@ -9194,7 +9194,7 @@ defmodule OrbitalDynamics.CadenceImportTest do
              "dl_result_deferred"
            ]
 
-    assert strategy["station_reservation_ids"] == ["reservation_source", "reservation_result"]
+    assert strategy["station_reservation_ids"] == ["reservation_result", "reservation_source"]
     assert strategy["station_reserved_bys"] == ["ops_source", "ops_result"]
     assert strategy["station_reservation_statuses"] == ["confirmed", "released"]
 
@@ -10141,6 +10141,78 @@ defmodule OrbitalDynamics.CadenceImportTest do
     refute Map.has_key?(count_only, "station_reservation_contact_ids_by_match_status")
 
     for manifest <- [repair, explicit_empty, count_only] do
+      assert {:ok, %{"schema_contract" => "cadence_import_manifest.v1"}} =
+               Schema.validate_artifact(manifest)
+    end
+  end
+
+  test "correlates top-level and routed station-reservation identity" do
+    repair =
+      CadenceImport.from_repair_artifact(%{
+        "repair_metadata" => %{"repair_id" => "repair:reservation_identity_union"},
+        "source_plan_id" => "plan:reservation_identity_union",
+        "source_contact_allocation_report" => %{
+          "station_reservation_ids" => [
+            "reservation_source",
+            "reservation_shared",
+            "reservation_source"
+          ],
+          "station_reservation_ids_by_match_status" => %{
+            "overlap" => ["reservation_shared", "reservation_match"]
+          },
+          "station_reservation_ids_by_expiration_status" => %{
+            "declared" => ["reservation_expiring"]
+          }
+        },
+        "contact_allocation_report" => %{
+          "station_reservation_ids" => ["reservation_result", "reservation_shared"],
+          "station_reservation_ids_by_status" => %{
+            "confirmed" => ["reservation_status", "reservation_shared"]
+          },
+          "station_reservation_ids_by_reserved_by" => %{
+            "mission_ops" => ["reservation_owner"]
+          }
+        }
+      })
+
+    route_only =
+      CadenceImport.from_campaign_artifact(%{
+        "plan_id" => "plan:reservation_identity_route_only",
+        "contact_allocation_report" => %{
+          "station_reservation_ids_by_status" => %{
+            "confirmed" => ["reservation_route_only"]
+          }
+        }
+      })
+
+    explicit_empty =
+      CadenceImport.from_campaign_artifact(%{
+        "plan_id" => "plan:reservation_identity_empty",
+        "contact_allocation_report" => %{
+          "station_reservation_ids" => [],
+          "station_reservation_ids_by_match_status" => %{"matched" => []}
+        }
+      })
+
+    assert repair["station_reservation_ids"] == [
+             "reservation_expiring",
+             "reservation_match",
+             "reservation_owner",
+             "reservation_result",
+             "reservation_shared",
+             "reservation_source",
+             "reservation_status"
+           ]
+
+    assert repair["station_reservation_ids_by_match_status"] == %{
+             "overlap" => ["reservation_match", "reservation_shared"]
+           }
+
+    assert route_only["station_reservation_ids"] == ["reservation_route_only"]
+    assert explicit_empty["station_reservation_ids"] == []
+    assert explicit_empty["station_reservation_ids_by_match_status"] == %{"matched" => []}
+
+    for manifest <- [repair, route_only, explicit_empty] do
       assert {:ok, %{"schema_contract" => "cadence_import_manifest.v1"}} =
                Schema.validate_artifact(manifest)
     end

@@ -504,6 +504,10 @@ so adapters can route contact queues without recounting rows.
 - Station-reservation contact IDs by reservation owner likewise fix each routed
   owner count; count-only owner keys remain compatible, and reservation-ID
   routes do not define contact cardinality.
+- Top-level station-reservation IDs form the sorted unique union of direct and
+  match/status/owner/expiration reservation-ID routes. Route-only handoffs
+  synthesize top identity, while legacy artifacts may still omit that optional
+  top field; supplied top and routed identity must be canonical and consistent.
 - Capacity-pack group IDs form a canonical top-level union across direct and
   status-routed identity evidence and fix the exact group count. Each supplied
   status route likewise fixes its status count; count-only keys and top-absent

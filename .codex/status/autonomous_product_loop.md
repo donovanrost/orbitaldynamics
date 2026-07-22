@@ -5,58 +5,57 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Lift and correlate station-reservation owner contact identity/count at handoff top level.
+Correlate station-reservation top-level and routed identity at handoff boundaries.
 
 Status:
 Verified; ready to publish.
 
 Selection evidence:
-- Station-reservation status contact identity/count correlation is now
+- Station-reservation owner contact identity/count correlation is now
   schema-enforced across both handoffs.
-- Station-reservation contact and reservation IDs by owner already merge across
-  embedded summaries, but the matching owner count is dropped.
-- A live probe produced four routed contacts and two reservation IDs under
-  `mission_ops` in both handoffs with no `station_reserved_by_counts`.
-- Reservation IDs can legitimately collapse across contacts, so only the
-  contact-ID route defines the contact-row count.
+- Top-level reservation IDs currently merge only direct lists while match,
+  status, owner, and expiration routes merge independently.
+- A live probe produced an unsorted three-ID top list beside four additional
+  routed reservation IDs in both handoffs; both contradictory artifacts
+  validated.
 
 Intended behavior:
-- Lift reservation-owner counts into both handoffs and derive each supplied
-  owner count from its sorted unique contact IDs, including explicit-empty
-  zero.
-- Retain additive count-only fallback for owner keys without contact identity.
-- Reject noncanonical contact routes or mismatched counts without treating the
-  independently routed reservation IDs as contact-count authority.
+- Build sorted unique top-level reservation identity from direct and all routed
+  reservation-ID evidence, including route-only and explicit-empty inputs.
+- Emit canonical match/status/owner/expiration reservation-ID routes.
+- Reject a supplied noncanonical or incomplete top union and noncanonical
+  routes while accepting legacy route-only artifacts that omit the top field.
 
 Level 6 pillar advanced:
 Fleet-scale planning decisions and durable reproducible audit handoffs.
 
 Planned files:
-- operator-review station-reservation owner count/identity aggregation
-- Cadence context/builder and both handoff registries
-- shared review/import correlation and generated schemas
+- operator-review station-reservation identity aggregation
+- shared review/import identity validation and generated schemas
 - overlap/empty/fallback challenge proofs, docs, and loop ledger
 
 Verification:
-- Focused producer/schema proofs: `4 passed`.
-- Contact-allocation family: `207 passed`.
-- Golden artifact suite: `12 passed`.
-- Schema lint: `155` artifacts, `0` errors, `0` warnings.
-- Full suite: `3863 passed`.
-- `mix format --check-formatted` and `git diff --check` passed.
+- Focused review/import producer and schema proofs: `4 passed`.
+- Contact-allocation family: `208 passed`.
+- Golden artifacts: `12 passed` after deterministic V1/V2/V3 and dependent
+  fixture regeneration.
+- Schema lint: `155` artifacts passed with zero errors or warnings.
+- Full suite: `3867 passed`.
 
 Review:
-- Reservation-owner counts now lift through operator review and Cadence context
-  and derive from sorted unique contact IDs, including explicit-empty zero.
-- Count-only owner keys retain additive fallback; reservation-ID routing stays
-  independent of contact cardinality.
-- Both handoff validators reject noncanonical contact routes and missing or
-  mismatched counts; generated schemas export count bounds and route uniqueness.
-- Provider execution, schedule mutation, planner effects, and Cadence writes
-  remain out of scope.
+- Top-level identity is the canonical union of direct and all four routed
+  reservation-ID surfaces; routed maps are canonicalized independently.
+- Route-only legacy artifacts remain accepted when the top field is absent;
+  supplied top fields must be complete, sorted, and unique, including explicit
+  empty evidence.
+- Generated schemas require unique reservation ID lists, and regenerated
+  public fixtures pin the additive handoff surface.
+- No provider request, reservation, schedule mutation, Cadence write, operator
+  authority, candidate selection, or planner-effect boundary changed.
+- Local review found no publish blocker.
 
 Last published slice:
-- `3047bfe7` Lift reservation status counts (`3859 passed`).
+- `9ccb5a96` Lift reservation owner counts (`3863 passed`).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions while preserving explicit
@@ -67,7 +66,7 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-After publish, audit station-reservation top-level identity union consistency.
+After publish, audit reservation owner/status vocabulary-list consistency.
 
 Blocked:
 None.
