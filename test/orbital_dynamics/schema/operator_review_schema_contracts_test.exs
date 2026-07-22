@@ -1145,6 +1145,103 @@ defmodule OrbitalDynamics.Schema.OperatorReviewSchemaContractsTest do
              )
     end
 
+    provider_no_request_direction_field =
+      "provider_reservation_no_request_contact_ids_by_direction"
+
+    provider_no_request_nested_field =
+      "provider_reservation_no_request_contact_ids_by_direction_and_ground_station_id"
+
+    assert get_in(schema, [
+             "properties",
+             "provider_reservation_no_request_contact_ids",
+             "uniqueItems"
+           ]) == true
+
+    assert get_in(schema, [
+             "properties",
+             provider_no_request_direction_field,
+             "additionalProperties",
+             "uniqueItems"
+           ]) == true
+
+    assert get_in(schema, [
+             "properties",
+             provider_no_request_nested_field,
+             "additionalProperties",
+             "additionalProperties",
+             "uniqueItems"
+           ]) == true
+
+    routed_provider_no_request_identity =
+      Map.merge(package, %{
+        provider_no_request_direction_field => %{
+          "downlink" => ["contact_direction"]
+        },
+        provider_no_request_nested_field => %{
+          "downlink" => %{"gs_a" => ["contact_nested"]}
+        }
+      })
+
+    assert {:ok, _package} = Schema.validate_artifact(routed_provider_no_request_identity)
+
+    valid_provider_no_request_identity =
+      Map.merge(routed_provider_no_request_identity, %{
+        "provider_reservation_no_request_contact_count" => 2,
+        "provider_reservation_no_request_contact_ids" => [
+          "contact_direction",
+          "contact_nested"
+        ]
+      })
+
+    assert {:ok, _package} = Schema.validate_artifact(valid_provider_no_request_identity)
+
+    incomplete_provider_no_request_identity =
+      Map.merge(routed_provider_no_request_identity, %{
+        "provider_reservation_no_request_contact_count" => 1,
+        "provider_reservation_no_request_contact_ids" => ["contact_direction"]
+      })
+
+    assert {:error, incomplete_provider_no_request_identity_report} =
+             Schema.validate_artifact(incomplete_provider_no_request_identity)
+
+    assert Enum.any?(
+             incomplete_provider_no_request_identity_report["errors"],
+             &(&1["path"] == "$.provider_reservation_no_request_contact_ids")
+           )
+
+    invalid_provider_no_request_route =
+      Map.put(package, provider_no_request_direction_field, %{
+        "downlink" => ["contact_b", "contact_a"]
+      })
+
+    assert {:error, invalid_provider_no_request_route_report} =
+             Schema.validate_artifact(invalid_provider_no_request_route)
+
+    assert Enum.any?(
+             invalid_provider_no_request_route_report["errors"],
+             &(&1["path"] == "$.#{provider_no_request_direction_field}.downlink")
+           )
+
+    for {contact_count, contact_ids, error_path} <- [
+          {2, ["contact_b", "contact_a"], "$.provider_reservation_no_request_contact_ids"},
+          {1, ["contact_a", "contact_a"], "$.provider_reservation_no_request_contact_ids"},
+          {2, ["contact_a"], "$.provider_reservation_no_request_contact_count"}
+        ] do
+      invalid_provider_no_request_identity =
+        Map.merge(package, %{
+          "provider_reservation_no_request_contact_count" => contact_count,
+          "provider_reservation_no_request_contact_ids" => contact_ids
+        })
+
+      assert {:error, invalid_provider_no_request_identity_report} =
+               Schema.validate_artifact(invalid_provider_no_request_identity)
+
+      assert Enum.any?(
+               invalid_provider_no_request_identity_report["errors"],
+               &(&1["path"] == error_path)
+             )
+    end
+
     invalid_station_pressure_ids =
       Map.put(package, "station_pressure_contact_ids", ["bad id"])
 

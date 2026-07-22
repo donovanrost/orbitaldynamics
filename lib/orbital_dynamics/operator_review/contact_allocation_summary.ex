@@ -13,6 +13,11 @@ defmodule OrbitalDynamics.OperatorReview.ContactAllocationSummary do
     {"station_pressure_contact_counts_by_status", "station_pressure_contact_ids_by_status"}
   ]
   @provider_reservation_contact_id_fields %{
+    "no_request" => [
+      "provider_reservation_no_request_contact_ids",
+      "provider_reservation_no_request_contact_ids_by_direction",
+      "provider_reservation_no_request_contact_ids_by_direction_and_ground_station_id"
+    ],
     "request" => [
       "provider_reservation_request_contact_ids",
       "provider_reservation_request_contact_ids_by_ground_station_id",
@@ -192,10 +197,7 @@ defmodule OrbitalDynamics.OperatorReview.ContactAllocationSummary do
     )
     |> put_provider_reservation_contact_identity_summary(reports, "request")
     |> put_provider_reservation_contact_identity_summary(reports, "review")
-    |> put_contact_allocation_scalar_count_summary(
-      reports,
-      "provider_reservation_no_request_contact_count"
-    )
+    |> put_provider_reservation_contact_identity_summary(reports, "no_request")
     |> put_contact_allocation_status_count_summary(
       reports,
       "provider_reservation_request_status",
@@ -228,7 +230,6 @@ defmodule OrbitalDynamics.OperatorReview.ContactAllocationSummary do
     |> put_contact_allocation_list_summary(reports, "capacity_pack_group_ids")
     |> put_contact_allocation_list_summary(reports, "reduced_capacity_packed_contact_ids")
     |> put_contact_allocation_list_summary(reports, "reduced_capacity_deferred_contact_ids")
-    |> put_contact_allocation_list_summary(reports, "provider_reservation_no_request_contact_ids")
     |> put_contact_allocation_id_map_summary(
       reports,
       "station_reservation_contact_ids_by_match_status"

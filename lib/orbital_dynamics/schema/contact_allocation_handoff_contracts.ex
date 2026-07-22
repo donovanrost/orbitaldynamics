@@ -40,6 +40,15 @@ defmodule OrbitalDynamics.Schema.ContactAllocationHandoffContracts do
     {"station_pressure_contact_counts_by_status", "station_pressure_contact_ids_by_status"}
   ]
   @provider_reservation_contact_identity_fields %{
+    "no_request" => %{
+      count_field: "provider_reservation_no_request_contact_count",
+      identity_field: "provider_reservation_no_request_contact_ids",
+      map_fields: [
+        "provider_reservation_no_request_contact_ids_by_direction"
+      ],
+      nested_field:
+        "provider_reservation_no_request_contact_ids_by_direction_and_ground_station_id"
+    },
     "request" => %{
       count_field: "provider_reservation_request_contact_count",
       identity_field: "provider_reservation_request_contact_ids",
@@ -886,6 +895,7 @@ defmodule OrbitalDynamics.Schema.ContactAllocationHandoffContracts do
     )
     |> validate_provider_reservation_contact_identity_summary(path, artifact, "request")
     |> validate_provider_reservation_contact_identity_summary(path, artifact, "review")
+    |> validate_provider_reservation_contact_identity_summary(path, artifact, "no_request")
     |> expect_optional_non_negative_integer(
       path,
       artifact,
