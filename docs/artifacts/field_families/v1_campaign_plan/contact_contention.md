@@ -186,6 +186,12 @@ Capacity-source contact maps require positive entries in
 identity. Candidate-refresh applies the same correlation per source report and
 during preserved replay while retaining the raw count map as conservative
 review evidence when standalone validation was bypassed.
+Capacity status maps are limited to `selected` and `deferred`. Candidate-refresh
+retains capacity station/status numeric maps only when their non-negative values
+sum to the corresponding required, selected, or deferred scalar totals, applying
+that check per report and during preserved replay. Scalar totals remain review
+pressure when an inconsistent map is removed; station keys are not treated as
+independently authorized identity.
 Its exported JSON Schema includes the nested row and `timeline_identity` field
 shape used by executable validation. Rows also carry artifact-only operational
 kind, required operator action, operator-action reason, execution boundary,

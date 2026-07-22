@@ -485,4 +485,107 @@ defmodule OrbitalDynamics.CandidateRefresh.ContactContentionResolutionCapacityPa
              "capacity_model" => ["deferred_a", "selected_a"]
            }
   end
+
+  test "capacity-pack replay rejects unsupported status and mismatched numeric maps" do
+    resolution_summary = %{
+      "schema_contract" => "contact_contention_resolution_summary.v1",
+      "capacity_pack_required_capacity_fraction" => 0.5,
+      "capacity_pack_selected_required_capacity_fraction" => 0.2,
+      "capacity_pack_deferred_required_capacity_fraction" => 0.3,
+      "capacity_pack_required_capacity_fraction_by_ground_station_id" => %{
+        "stale_station" => 0.6
+      },
+      "capacity_pack_selected_required_capacity_fraction_by_ground_station_id" => %{
+        "selected_station" => 0.2
+      },
+      "capacity_pack_deferred_required_capacity_fraction_by_ground_station_id" => %{
+        "deferred_station" => 0.3
+      },
+      "capacity_pack_required_capacity_fraction_by_status" => %{
+        "selected" => 0.2,
+        "deferred" => 0.2,
+        "phantom_status" => 0.1
+      }
+    }
+
+    refresh = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "source_contact_contention_resolution_summary" => resolution_summary
+    }
+
+    source_summary = CandidateRefresh.source_report_summary(refresh)
+
+    assert source_summary[
+             "source_report_contact_contention_capacity_pack_required_capacity_fraction"
+           ] == 0.5
+
+    assert source_summary[
+             "source_report_contact_contention_capacity_pack_selected_required_capacity_fraction"
+           ] == 0.2
+
+    assert source_summary[
+             "source_report_contact_contention_capacity_pack_deferred_required_capacity_fraction"
+           ] == 0.3
+
+    assert Map.get(
+             source_summary,
+             "source_report_contact_contention_capacity_pack_required_capacity_fraction_by_ground_station",
+             %{}
+           ) == %{}
+
+    assert source_summary[
+             "source_report_contact_contention_capacity_pack_selected_required_capacity_fraction_by_ground_station"
+           ] == %{"selected_station" => 0.2}
+
+    assert source_summary[
+             "source_report_contact_contention_capacity_pack_deferred_required_capacity_fraction_by_ground_station"
+           ] == %{"deferred_station" => 0.3}
+
+    assert Map.get(
+             source_summary,
+             "source_report_contact_contention_capacity_pack_required_capacity_fraction_by_status",
+             %{}
+           ) == %{}
+
+    replay_summary = CandidateRefresh.contact_contention_resolution_replay_summary(refresh)
+
+    assert replay_summary["capacity_pack_required_capacity_fraction"] == 0.5
+    assert replay_summary["capacity_pack_selected_required_capacity_fraction"] == 0.2
+    assert replay_summary["capacity_pack_deferred_required_capacity_fraction"] == 0.3
+    assert replay_summary["capacity_pack_required_capacity_fraction_by_ground_station"] == %{}
+
+    assert replay_summary["capacity_pack_selected_required_capacity_fraction_by_ground_station"] ==
+             %{"selected_station" => 0.2}
+
+    assert replay_summary["capacity_pack_deferred_required_capacity_fraction_by_ground_station"] ==
+             %{"deferred_station" => 0.3}
+
+    refute Map.has_key?(
+             replay_summary,
+             "capacity_pack_required_capacity_fraction_by_status"
+           )
+
+    assert replay_summary["branch_local_capacity_pack_pressure"]
+
+    preserved_artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "provenance" => %{
+        "source_reports" => %{
+          "contact_contention_resolution_report" =>
+            Map.put(resolution_summary, "contract", "contact_contention_resolution_summary.v1")
+        }
+      }
+    }
+
+    preserved_replay =
+      CandidateRefresh.contact_contention_resolution_replay_summary(preserved_artifact)
+
+    assert preserved_replay["capacity_pack_required_capacity_fraction"] == 0.5
+    assert preserved_replay["capacity_pack_required_capacity_fraction_by_ground_station"] == %{}
+
+    refute Map.has_key?(
+             preserved_replay,
+             "capacity_pack_required_capacity_fraction_by_status"
+           )
+  end
 end

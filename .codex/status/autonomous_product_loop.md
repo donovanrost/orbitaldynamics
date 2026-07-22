@@ -5,56 +5,56 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Correlate resolution capacity-source contact routing.
+Correlate resolution capacity-pack numeric maps.
 
 Status:
 Complete; verified and ready to publish.
 
 Selection evidence:
-- Standalone validation matches capacity-source counts to map-list lengths but
-  does not require positive source counts or selected/deferred contact identity.
-- CandidateRefresh aggregates and replays capacity-source contact maps without
-  either correlation when standalone validation is bypassed.
-- Capacity demand is producer-derived only from selected/deferred contacts;
-  raw counts can remain conservative review evidence without authorizing IDs.
+- Capacity status keys are producer-owned by selected/deferred demand, but the
+  executable schema accepts unsupported keys in some scalar-omission shapes.
+- CandidateRefresh aggregates and replays station/status numeric maps without
+  checking their sums against corresponding scalar totals.
+- Compact summaries have no independent station-ID authority, so station keys
+  can only be retained or rejected by map-total consistency.
 
 Intended behavior:
-- Require capacity-source map keys to reference positive source-count entries
-  and values to reference selected/deferred IDs in executable validation.
-- Apply the same per-report key and value filter during source aggregation and
-  again during preserved replay.
-- Retain flattened IDs and the raw source-count map as conservative review
-  evidence when a capacity-source route is rejected.
+- Restrict capacity status maps to selected/deferred keys in validation,
+  aggregation, and replay.
+- Retain station/status numeric maps only when their non-negative values sum to
+  the corresponding scalar totals, applied per report before aggregation and
+  again during replay.
+- Preserve scalar totals as conservative pressure when an unvalidated map is
+  rejected; do not invent station identity.
 
 Level 6 pillar advanced:
 Fleet-scale planning decisions and durable reproducible audit handoffs.
 
 Planned files:
-- resolution schema, capacity-source aggregation, and replay fields
-- zero-count/substituted capacity-source challenge tests
+- resolution schema, capacity numeric aggregation, and replay fields
+- unsupported-status and mismatched-map challenge tests
 - contention artifact documentation and autonomous-loop ledger
 
 Verification:
-- `43 passed` focused schema and capacity-routing replay tests.
-- `27 passed` targeted contention-resolution CandidateRefresh/planner tests.
-- `101 passed` contention-family regression sweep.
-- `91 passed` related schema, export, validation, and replay tests.
+- `44 passed` focused schema and capacity-routing replay tests.
+- `28 passed` targeted contention-resolution CandidateRefresh/planner tests.
+- `102 passed` contention-family regression sweep.
+- `92 passed` related schema, export, validation, and replay tests.
 - `mix orbital_dynamics.schema.lint --all`: `155` artifacts passed.
-- `mix test --timeout 120000`: `3804 passed`.
+- `mix test --timeout 120000`: `3805 passed`.
 - `mix format --check-formatted` and `git diff --check` passed.
 
 Review:
-- Executable validation now requires positive capacity-source counts and
-  selected/deferred identity for every source-map contact ID.
-- CandidateRefresh filters source keys and contact IDs per report before
-  aggregation, preventing another report's selected contact from being borrowed.
-- Preserved replay reapplies the same correlation while retaining raw counts,
-  including zero/count-only evidence, as conservative review pressure.
-- No capacity total, contact selection, allocation, reservation, or provider
-  mutation behavior was added or inferred.
+- Executable validation now restricts capacity status keys to selected/deferred.
+- CandidateRefresh normalizes non-negative numeric maps per report and retains
+  them only when their sums match required, selected, or deferred scalar totals.
+- Preserved replay reapplies station-map totals and status key/value totals;
+  inconsistent maps are removed while scalar demand remains pressure.
+- Station keys remain evidence rather than independently authorized identity;
+  no capacity, allocation, reservation, or provider mutation was inferred.
 
 Last published slice:
-- `32642c96` Constrain resolution category map identities (`3803 passed`).
+- `685ce150` Correlate resolution capacity sources (`3804 passed`).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions while preserving explicit
@@ -65,8 +65,8 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-After publish, audit capacity-pack numeric station/status maps for total and
-status correlation when standalone summary validation is bypassed.
+After publish, move beyond contention summaries and audit another planner input
+family with branch pressure but incomplete identity correlation.
 
 Blocked:
 None.

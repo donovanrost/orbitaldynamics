@@ -1743,6 +1743,29 @@ defmodule OrbitalDynamics.Communications.ContactContentionTest do
                    "keys must reference positive required_capacity_fraction_source_counts entries")
            )
 
+    unsupported_capacity_status =
+      summary
+      |> Map.put("capacity_pack_required_capacity_fraction", 0.5)
+      |> Map.delete("capacity_pack_selected_required_capacity_fraction")
+      |> Map.delete("capacity_pack_deferred_required_capacity_fraction")
+      |> Map.put("capacity_pack_required_capacity_fraction_by_status", %{
+        "phantom_status" => 0.5
+      })
+      |> Map.put("capacity_pack_required_capacity_fraction_by_ground_station_id", %{
+        "equator_prime" => 0.5
+      })
+      |> Map.delete("capacity_pack_selected_required_capacity_fraction_by_ground_station_id")
+      |> Map.delete("capacity_pack_deferred_required_capacity_fraction_by_ground_station_id")
+
+    assert {:error, unsupported_capacity_status_report} =
+             Schema.validate_artifact(unsupported_capacity_status)
+
+    assert Enum.any?(
+             unsupported_capacity_status_report["errors"],
+             &(&1["path"] == "$.capacity_pack_required_capacity_fraction_by_status" and
+                 &1["message"] == "keys must be selected or deferred")
+           )
+
     stale_summary_resolution =
       resolution
       |> Map.put("conflict_group_count", 9)

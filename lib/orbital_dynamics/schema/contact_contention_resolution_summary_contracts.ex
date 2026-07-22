@@ -205,6 +205,7 @@ defmodule OrbitalDynamics.Schema.ContactContentionResolutionSummaryContracts do
       Map.get(summary, "capacity_pack_required_capacity_fraction_by_status")
 
     issues
+    |> validate_capacity_status_keys(path, summary)
     |> expect_field_equals(
       path,
       summary,
@@ -436,6 +437,26 @@ defmodule OrbitalDynamics.Schema.ContactContentionResolutionSummaryContracts do
       source_counts(summary),
       "must equal required_capacity_fraction_contact_ids_by_source counts"
     )
+  end
+
+  defp validate_capacity_status_keys(issues, path, summary) do
+    case Map.get(summary, "capacity_pack_required_capacity_fraction_by_status") do
+      %{} = values ->
+        if Enum.all?(Map.keys(values), &(&1 in ["selected", "deferred"])) do
+          issues
+        else
+          [
+            error(
+              "#{path}.capacity_pack_required_capacity_fraction_by_status",
+              "keys must be selected or deferred"
+            )
+            | issues
+          ]
+        end
+
+      _values ->
+        issues
+    end
   end
 
   defp capacity_status_value(%{} = values, status), do: Map.get(values, status)

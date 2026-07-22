@@ -4,6 +4,20 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.ContactContentionResolu
   alias OrbitalDynamics.CandidateRefresh.ValueEncoding
 
   def fields(resolution_summary) do
+    required_fraction =
+      numeric_value(Map.get(resolution_summary, "capacity_pack_required_capacity_fraction")) ||
+        0.0
+
+    selected_required_fraction =
+      numeric_value(
+        Map.get(resolution_summary, "capacity_pack_selected_required_capacity_fraction")
+      ) || 0.0
+
+    deferred_required_fraction =
+      numeric_value(
+        Map.get(resolution_summary, "capacity_pack_deferred_required_capacity_fraction")
+      ) || 0.0
+
     source_counts =
       map_or_empty(Map.get(resolution_summary, "required_capacity_fraction_source_counts"))
 
@@ -19,38 +33,35 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.ContactContentionResolu
       )
 
     %{
-      "capacity_pack_required_capacity_fraction" =>
-        numeric_value(Map.get(resolution_summary, "capacity_pack_required_capacity_fraction")) ||
-          0.0,
-      "capacity_pack_selected_required_capacity_fraction" =>
-        numeric_value(
-          Map.get(resolution_summary, "capacity_pack_selected_required_capacity_fraction")
-        ) || 0.0,
-      "capacity_pack_deferred_required_capacity_fraction" =>
-        numeric_value(
-          Map.get(resolution_summary, "capacity_pack_deferred_required_capacity_fraction")
-        ) || 0.0,
+      "capacity_pack_required_capacity_fraction" => required_fraction,
+      "capacity_pack_selected_required_capacity_fraction" => selected_required_fraction,
+      "capacity_pack_deferred_required_capacity_fraction" => deferred_required_fraction,
       "capacity_pack_required_capacity_fraction_by_ground_station" =>
-        Map.get(
-          resolution_summary,
-          "capacity_pack_required_capacity_fraction_by_ground_station",
-          %{}
+        correlated_numeric_map(
+          Map.get(
+            resolution_summary,
+            "capacity_pack_required_capacity_fraction_by_ground_station"
+          ),
+          required_fraction
         ),
       "capacity_pack_selected_required_capacity_fraction_by_ground_station" =>
-        Map.get(
+        correlated_numeric_map(
           resolution_summary,
           "capacity_pack_selected_required_capacity_fraction_by_ground_station",
-          %{}
+          selected_required_fraction
         ),
       "capacity_pack_deferred_required_capacity_fraction_by_ground_station" =>
-        Map.get(
+        correlated_numeric_map(
           resolution_summary,
           "capacity_pack_deferred_required_capacity_fraction_by_ground_station",
-          %{}
+          deferred_required_fraction
         ),
       "capacity_pack_required_capacity_fraction_by_status" =>
-        non_empty_map(
-          Map.get(resolution_summary, "capacity_pack_required_capacity_fraction_by_status", %{})
+        correlated_capacity_status(
+          Map.get(resolution_summary, "capacity_pack_required_capacity_fraction_by_status"),
+          required_fraction,
+          selected_required_fraction,
+          deferred_required_fraction
         ),
       "required_capacity_fraction_source_counts" => non_empty_map(source_counts),
       "required_capacity_fraction_contact_ids_by_source" => non_empty_map(contact_ids_by_source)
@@ -85,6 +96,43 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.ContactContentionResolu
   end
 
   defp numeric_value(value), do: ValueEncoding.numeric_value(value)
+
+  defp correlated_numeric_map(summary, field, total),
+    do: correlated_numeric_map(Map.get(summary, field), total)
+
+  defp correlated_numeric_map(values, total) do
+    values = normalize_numeric_map(values, :all_keys)
+
+    if numeric_map_sum(values) == total, do: values, else: %{}
+  end
+
+  defp correlated_capacity_status(values, total, selected_total, deferred_total) do
+    values = normalize_numeric_map(values, ["selected", "deferred"])
+
+    if numeric_map_sum(values) == total and
+         Map.get(values, "selected", 0) == selected_total and
+         Map.get(values, "deferred", 0) == deferred_total do
+      non_empty_map(values)
+    else
+      nil
+    end
+  end
+
+  defp normalize_numeric_map(%{} = values, allowed_keys) do
+    Enum.reduce(values, %{}, fn {key, value}, normalized ->
+      value = numeric_value(value)
+
+      if (allowed_keys == :all_keys or key in allowed_keys) and is_number(value) and value >= 0 do
+        Map.put(normalized, key, value)
+      else
+        normalized
+      end
+    end)
+  end
+
+  defp normalize_numeric_map(_values, _allowed_keys), do: %{}
+
+  defp numeric_map_sum(values), do: values |> Map.values() |> Enum.sum()
 
   defp filter_contact_ids(%{} = values_by_source, %{} = source_counts, allowed_contact_ids) do
     allowed_contact_ids = MapSet.new(allowed_contact_ids)

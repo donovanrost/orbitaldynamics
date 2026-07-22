@@ -1146,6 +1146,10 @@ Capacity-source contact routing is likewise limited to positive source-count
 keys and the same report's selected/deferred contact IDs during executable
 validation, aggregation, and replay. Raw source counts remain conservative
 review evidence when an unvalidated route entry is removed.
+Capacity status maps accept only selected/deferred keys, and capacity
+station/status numeric maps survive aggregation and replay only when they match
+their corresponding scalar totals. A rejected map does not erase scalar demand
+pressure or invent station authority.
 Branch-generated CandidateRefresh requests preserve direct mission-state and
 result-artifact-wrapped raw `source_contact_contention_resolution_report` /
 `contact_contention_resolution_report` inputs with wrapper-qualified request
