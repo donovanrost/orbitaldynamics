@@ -627,6 +627,21 @@ defmodule OrbitalDynamics.Schema.OptimizerObjectiveContractsTest do
                Schema.validate_artifact(partial_branch_window_context)
     end
 
+    orphaned_timing_coverage_status =
+      put_in(
+        branch_comparison_report,
+        ["rows", Access.at(0), "branch_source_window_timing_coverage_status"],
+        "complete"
+      )
+
+    assert {:error, orphaned_timing_coverage_status_report} =
+             Schema.validate_artifact(orphaned_timing_coverage_status)
+
+    assert Enum.any?(
+             orphaned_timing_coverage_status_report["errors"],
+             &(&1["path"] == "$.rows[0].branch_source_window_timing_coverage_status")
+           )
+
     invalid_source_window_bounds =
       branch_comparison_report
       |> put_in(
@@ -683,6 +698,10 @@ defmodule OrbitalDynamics.Schema.OptimizerObjectiveContractsTest do
       |> put_in(["rows", Access.at(0), "branch_source_window_bound_count"], 1)
       |> put_in(["rows", Access.at(0), "branch_untimed_source_window_ids"], ["window_b"])
       |> put_in(["rows", Access.at(0), "branch_untimed_source_window_count"], 1)
+      |> put_in(
+        ["rows", Access.at(0), "branch_source_window_timing_coverage_status"],
+        "partial"
+      )
 
     assert {:ok, _valid_source_window_coverage} =
              Schema.validate_artifact(valid_source_window_coverage)
@@ -693,6 +712,10 @@ defmodule OrbitalDynamics.Schema.OptimizerObjectiveContractsTest do
       |> put_in(["rows", Access.at(0), "branch_source_window_bound_count"], 2)
       |> put_in(["rows", Access.at(0), "branch_untimed_source_window_ids"], ["window_a"])
       |> put_in(["rows", Access.at(0), "branch_untimed_source_window_count"], 2)
+      |> put_in(
+        ["rows", Access.at(0), "branch_source_window_timing_coverage_status"],
+        "complete"
+      )
 
     assert {:error, stale_source_window_coverage_report} =
              Schema.validate_artifact(stale_source_window_coverage)
@@ -701,13 +724,29 @@ defmodule OrbitalDynamics.Schema.OptimizerObjectiveContractsTest do
           "branch_source_window_count",
           "branch_source_window_bound_count",
           "branch_untimed_source_window_ids",
-          "branch_untimed_source_window_count"
+          "branch_untimed_source_window_count",
+          "branch_source_window_timing_coverage_status"
         ] do
       assert Enum.any?(
                stale_source_window_coverage_report["errors"],
                &(&1["path"] == "$.rows[0].#{field}")
              )
     end
+
+    untimed_source_window_coverage =
+      branch_comparison_report
+      |> put_in(["rows", Access.at(0), "branch_source_window_ids"], ["window_a"])
+      |> put_in(["rows", Access.at(0), "branch_source_window_count"], 1)
+      |> put_in(["rows", Access.at(0), "branch_source_window_bound_count"], 0)
+      |> put_in(["rows", Access.at(0), "branch_untimed_source_window_ids"], ["window_a"])
+      |> put_in(["rows", Access.at(0), "branch_untimed_source_window_count"], 1)
+      |> put_in(
+        ["rows", Access.at(0), "branch_source_window_timing_coverage_status"],
+        "untimed"
+      )
+
+    assert {:ok, _untimed_source_window_coverage} =
+             Schema.validate_artifact(untimed_source_window_coverage)
 
     invalid_capacity_pack_pressure =
       branch_comparison_report

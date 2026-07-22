@@ -47,6 +47,14 @@ defmodule OrbitalDynamics.CampaignPlanner.BranchComparisonContext do
     untimed_source_window_count =
       if source_window_ids == [], do: nil, else: length(untimed_source_window_ids)
 
+    source_window_timing_coverage_status =
+      cond do
+        source_window_ids == [] -> nil
+        source_window_bounds == [] -> "untimed"
+        length(source_window_bounds) == length(source_window_ids) -> "complete"
+        true -> "partial"
+      end
+
     fields =
       %{
         "branch_event_count" => length(events),
@@ -151,6 +159,7 @@ defmodule OrbitalDynamics.CampaignPlanner.BranchComparisonContext do
         "branch_source_window_bound_count" => source_window_bound_count,
         "branch_untimed_source_window_ids" => untimed_source_window_ids,
         "branch_untimed_source_window_count" => untimed_source_window_count,
+        "branch_source_window_timing_coverage_status" => source_window_timing_coverage_status,
         "branch_earliest_starts_at_s" => minimum_present(events, "starts_at_s"),
         "branch_latest_ends_at_s" => maximum_present(events, "ends_at_s"),
         "branch_directions" => branch_event_unique_values(events, "direction"),
@@ -416,6 +425,7 @@ defmodule OrbitalDynamics.CampaignPlanner.BranchComparisonContext do
     |> maybe_put_nonempty("branch_source_window_bound_count")
     |> maybe_put_nonempty("branch_untimed_source_window_ids")
     |> maybe_put_nonempty("branch_untimed_source_window_count")
+    |> maybe_put_nonempty("branch_source_window_timing_coverage_status")
     |> maybe_put_nonempty("branch_earliest_starts_at_s")
     |> maybe_put_nonempty("branch_latest_ends_at_s")
     |> maybe_put_nonempty("branch_directions")

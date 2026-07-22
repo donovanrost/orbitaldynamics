@@ -21,6 +21,8 @@ defmodule OrbitalDynamics.Schema.StrategyHandoffContracts do
     {"branch_source_window_bound_count", "branch_source_window_bound_count"},
     {"branch_untimed_source_window_ids", "branch_untimed_source_window_ids"},
     {"branch_untimed_source_window_count", "branch_untimed_source_window_count"},
+    {"branch_source_window_timing_coverage_status",
+     "branch_source_window_timing_coverage_status"},
     {"branch_earliest_starts_at_s", "branch_earliest_starts_at_s"},
     {"branch_latest_ends_at_s", "branch_latest_ends_at_s"}
   ]
@@ -73,6 +75,7 @@ defmodule OrbitalDynamics.Schema.StrategyHandoffContracts do
                                                     "branch_source_window_bound_count",
                                                     "branch_untimed_source_window_ids",
                                                     "branch_untimed_source_window_count",
+                                                    "branch_source_window_timing_coverage_status",
                                                     "branch_earliest_starts_at_s",
                                                     "branch_latest_ends_at_s",
                                                     "source_recommendation"
@@ -104,6 +107,8 @@ defmodule OrbitalDynamics.Schema.StrategyHandoffContracts do
     {"branch_source_window_bound_count", "branch_source_window_bound_count"},
     {"branch_untimed_source_window_ids", "branch_untimed_source_window_ids"},
     {"branch_untimed_source_window_count", "branch_untimed_source_window_count"},
+    {"branch_source_window_timing_coverage_status",
+     "branch_source_window_timing_coverage_status"},
     {"branch_earliest_starts_at_s", "branch_earliest_starts_at_s"},
     {"branch_latest_ends_at_s", "branch_latest_ends_at_s"},
     {"capacity_pack_statuses", "capacity_pack_statuses"},
@@ -132,6 +137,8 @@ defmodule OrbitalDynamics.Schema.StrategyHandoffContracts do
     {"branch_source_window_bound_count", "branch_source_window_bound_count"},
     {"branch_untimed_source_window_ids", "branch_untimed_source_window_ids"},
     {"branch_untimed_source_window_count", "branch_untimed_source_window_count"},
+    {"branch_source_window_timing_coverage_status",
+     "branch_source_window_timing_coverage_status"},
     {"branch_earliest_starts_at_s", "branch_earliest_starts_at_s"},
     {"branch_latest_ends_at_s", "branch_latest_ends_at_s"},
     {"branch_actual_downlink_completion_ratio", "branch_actual_downlink_completion_ratio"},
@@ -163,6 +170,7 @@ defmodule OrbitalDynamics.Schema.StrategyHandoffContracts do
                                               "branch_source_window_bound_count",
                                               "branch_untimed_source_window_ids",
                                               "branch_untimed_source_window_count",
+                                              "branch_source_window_timing_coverage_status",
                                               "branch_earliest_starts_at_s",
                                               "branch_latest_ends_at_s",
                                               "capacity_pack_statuses",

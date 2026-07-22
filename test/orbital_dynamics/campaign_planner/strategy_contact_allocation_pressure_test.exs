@@ -1239,6 +1239,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyContactAllocationPressureTest 
 
     assert provider_row["branch_source_window_bound_count"] == 1
     assert provider_row["branch_untimed_source_window_count"] == 0
+    assert provider_row["branch_source_window_timing_coverage_status"] == "complete"
     refute Map.has_key?(provider_row, "branch_untimed_source_window_ids")
 
     assert provider_row["branch_earliest_starts_at_s"] == 820.0
@@ -1290,6 +1291,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyContactAllocationPressureTest 
     assert provider_review_row["branch_source_window_count"] == 1
     assert provider_review_row["branch_source_window_bound_count"] == 1
     assert provider_review_row["branch_untimed_source_window_count"] == 0
+    assert provider_review_row["branch_source_window_timing_coverage_status"] == "complete"
 
     assert provider_review_row["branch_earliest_starts_at_s"] == 820.0
     assert provider_review_row["branch_latest_ends_at_s"] == 880.0
@@ -1316,6 +1318,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyContactAllocationPressureTest 
     assert provider_import_row["branch_source_window_count"] == 1
     assert provider_import_row["branch_source_window_bound_count"] == 1
     assert provider_import_row["branch_untimed_source_window_count"] == 0
+    assert provider_import_row["branch_source_window_timing_coverage_status"] == "complete"
 
     assert provider_import_row["branch_earliest_starts_at_s"] == 820.0
     assert provider_import_row["branch_latest_ends_at_s"] == 880.0
@@ -1332,6 +1335,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyContactAllocationPressureTest 
       "branch_source_window_bound_count",
       "branch_untimed_source_window_ids",
       "branch_untimed_source_window_count",
+      "branch_source_window_timing_coverage_status",
       "branch_earliest_starts_at_s",
       "branch_latest_ends_at_s"
     ]

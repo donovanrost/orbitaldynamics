@@ -561,6 +561,11 @@ defmodule OrbitalDynamics.Schema.BranchEventContracts do
     |> validate_optional_stable_id_list(path, row, "branch_untimed_source_window_ids")
     |> validate_canonical_branch_untimed_source_window_ids(path, row)
     |> expect_optional_non_negative_integer(path, row, "branch_untimed_source_window_count")
+    |> expect_optional_one_of(path, row, "branch_source_window_timing_coverage_status", [
+      "complete",
+      "partial",
+      "untimed"
+    ])
     |> validate_branch_source_window_coverage(path, row)
     |> expect_optional_number(path, row, "branch_earliest_starts_at_s")
     |> expect_optional_number(path, row, "branch_latest_ends_at_s")
@@ -716,7 +721,7 @@ defmodule OrbitalDynamics.Schema.BranchEventContracts do
   defp validate_branch_source_window_coverage(issues, path, row) do
     source_window_ids = Map.get(row, "branch_source_window_ids")
 
-    if is_list(source_window_ids) do
+    if is_list(source_window_ids) and source_window_ids != [] do
       source_window_bounds =
         case Map.get(row, "branch_source_window_bounds") do
           bounds when is_list(bounds) -> bounds
@@ -733,6 +738,13 @@ defmodule OrbitalDynamics.Schema.BranchEventContracts do
         end)
 
       untimed_source_window_ids = source_window_ids -- bounded_source_window_ids
+
+      timing_coverage_status =
+        cond do
+          source_window_bounds == [] -> "untimed"
+          length(source_window_bounds) == length(source_window_ids) -> "complete"
+          true -> "partial"
+        end
 
       issues
       |> validate_source_window_coverage_count(
@@ -754,6 +766,17 @@ defmodule OrbitalDynamics.Schema.BranchEventContracts do
         length(untimed_source_window_ids)
       )
       |> validate_untimed_source_window_ids(path, row, untimed_source_window_ids)
+      |> validate_source_window_timing_coverage_status(path, row, timing_coverage_status)
+    else
+      validate_source_window_timing_coverage_identity(issues, path, row)
+    end
+  end
+
+  defp validate_source_window_timing_coverage_identity(issues, path, row) do
+    field = "branch_source_window_timing_coverage_status"
+
+    if Map.has_key?(row, field) do
+      [error("#{path}.#{field}", "requires non-empty branch_source_window_ids") | issues]
     else
       issues
     end
@@ -780,6 +803,16 @@ defmodule OrbitalDynamics.Schema.BranchEventContracts do
 
       _ids ->
         issues
+    end
+  end
+
+  defp validate_source_window_timing_coverage_status(issues, path, row, expected_status) do
+    field = "branch_source_window_timing_coverage_status"
+
+    if Map.has_key?(row, field) and Map.get(row, field) != expected_status do
+      [error("#{path}.#{field}", "must equal the row-derived timing coverage status") | issues]
+    else
+      issues
     end
   end
 

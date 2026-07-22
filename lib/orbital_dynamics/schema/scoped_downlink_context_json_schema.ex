@@ -150,6 +150,10 @@ defmodule OrbitalDynamics.Schema.ScopedDownlinkContextJsonSchema do
       "branch_source_window_bound_count" => %{"type" => "integer", "minimum" => 0},
       "branch_untimed_source_window_ids" => CommonJsonSchema.stable_id_array(stable_id_pattern),
       "branch_untimed_source_window_count" => %{"type" => "integer", "minimum" => 0},
+      "branch_source_window_timing_coverage_status" => %{
+        "type" => "string",
+        "enum" => ["complete", "partial", "untimed"]
+      },
       "branch_earliest_starts_at_s" => %{"type" => "number"},
       "branch_latest_ends_at_s" => %{"type" => "number"},
       "branch_max_latency_s" => %{"type" => "number"},

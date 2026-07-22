@@ -29,6 +29,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
       "branch_source_window_bound_count",
       "branch_untimed_source_window_ids",
       "branch_untimed_source_window_count",
+      "branch_source_window_timing_coverage_status",
       "branch_earliest_starts_at_s",
       "branch_latest_ends_at_s"
     ]
@@ -46,7 +47,8 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
              "branch_source_window_bounds" => source_window_bounds,
              "branch_source_window_bound_count" => 10,
              "branch_untimed_source_window_ids" => ["equator_prime_rejected_window"],
-             "branch_untimed_source_window_count" => 1
+             "branch_untimed_source_window_count" => 1,
+             "branch_source_window_timing_coverage_status" => "partial"
            } = recommendation_window_context
 
     assert source_window_ids == Enum.sort(source_window_ids)

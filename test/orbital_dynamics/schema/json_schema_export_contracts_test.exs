@@ -254,6 +254,12 @@ defmodule OrbitalDynamics.Schema.JsonSchemaExportContractsTest do
              "pattern"
            ]) == Schema.identity_policy()["stable_id_pattern"]
 
+    assert get_in(row_schema, [
+             "properties",
+             "branch_source_window_timing_coverage_status",
+             "enum"
+           ]) == ["complete", "partial", "untimed"]
+
     assert get_in(row_schema, ["properties", "branch_earliest_starts_at_s", "type"]) ==
              "number"
 
