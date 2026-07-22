@@ -756,6 +756,49 @@ defmodule OrbitalDynamics.Schema.OperatorReviewSchemaContractsTest do
       assert Enum.any?(invalid_identity_report["errors"], &(&1["path"] == error_path))
     end
 
+    grouped_station_pressure_fields = [
+      {"station_pressure_contact_counts_by_ground_station_id",
+       "station_pressure_contact_ids_by_ground_station_id", "gs_a"},
+      {"station_pressure_contact_counts_by_availability",
+       "station_pressure_contact_ids_by_availability", "reserved"},
+      {"station_pressure_contact_counts_by_precedence_availability",
+       "station_pressure_contact_ids_by_precedence_availability", "reserved"},
+      {"station_pressure_contact_counts_by_precedence_rank",
+       "station_pressure_contact_ids_by_precedence_rank", "1"},
+      {"station_pressure_contact_counts_by_status", "station_pressure_contact_ids_by_status",
+       "reservation_hold"}
+    ]
+
+    for {count_field, id_field, key} <- grouped_station_pressure_fields do
+      assert get_in(schema, [
+               "properties",
+               id_field,
+               "additionalProperties",
+               "uniqueItems"
+             ]) == true
+
+      valid_group =
+        package
+        |> Map.put(count_field, %{key => 2})
+        |> Map.put(id_field, %{key => ["contact_a", "contact_b"]})
+
+      assert {:ok, _package} = Schema.validate_artifact(valid_group)
+
+      for {count, contact_ids, error_path} <- [
+            {2, ["contact_b", "contact_a"], "$.#{id_field}.#{key}"},
+            {1, ["contact_a", "contact_a"], "$.#{id_field}.#{key}"},
+            {1, ["contact_a", "contact_b"], "$.#{count_field}.#{key}"}
+          ] do
+        invalid_group =
+          package
+          |> Map.put(count_field, %{key => count})
+          |> Map.put(id_field, %{key => contact_ids})
+
+        assert {:error, invalid_group_report} = Schema.validate_artifact(invalid_group)
+        assert Enum.any?(invalid_group_report["errors"], &(&1["path"] == error_path))
+      end
+    end
+
     invalid_station_pressure_ids =
       Map.put(package, "station_pressure_contact_ids", ["bad id"])
 

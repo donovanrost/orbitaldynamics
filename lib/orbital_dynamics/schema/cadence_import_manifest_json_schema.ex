@@ -500,7 +500,8 @@ defmodule OrbitalDynamics.Schema.CadenceImportManifestJsonSchema do
     "station_pressure_contact_counts_by_ground_station_id",
     "station_pressure_contact_counts_by_availability",
     "station_pressure_contact_counts_by_precedence_availability",
-    "station_pressure_contact_counts_by_precedence_rank"
+    "station_pressure_contact_counts_by_precedence_rank",
+    "station_pressure_contact_counts_by_status"
   ]
 
   @review_import_scalar_count_fields [
@@ -583,7 +584,16 @@ defmodule OrbitalDynamics.Schema.CadenceImportManifestJsonSchema do
     "station_pressure_contact_ids_by_availability",
     "station_pressure_contact_ids_by_precedence_availability",
     "station_pressure_contact_ids_by_precedence_rank",
+    "station_pressure_contact_ids_by_status",
     "station_pressure_contact_ids_by_direction"
+  ]
+
+  @correlated_station_pressure_id_map_fields [
+    "station_pressure_contact_ids_by_ground_station_id",
+    "station_pressure_contact_ids_by_availability",
+    "station_pressure_contact_ids_by_precedence_availability",
+    "station_pressure_contact_ids_by_precedence_rank",
+    "station_pressure_contact_ids_by_status"
   ]
 
   @nested_stable_id_array_map_fields [
@@ -720,6 +730,13 @@ defmodule OrbitalDynamics.Schema.CadenceImportManifestJsonSchema do
     opts
     |> Keyword.fetch!(:stable_id_pattern)
     |> CommonJsonSchema.stable_id_array()
+  end
+
+  def property(field, opts) when field in @correlated_station_pressure_id_map_fields do
+    opts
+    |> Keyword.fetch!(:stable_id_pattern)
+    |> CommonJsonSchema.stable_id_array_map()
+    |> Map.update!("additionalProperties", &Map.put(&1, "uniqueItems", true))
   end
 
   def property(field, opts) when field in @stable_id_array_map_fields do

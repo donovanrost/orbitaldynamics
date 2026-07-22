@@ -1284,11 +1284,51 @@ defmodule OrbitalDynamics.OperatorReview.ContactAllocationEmbeddedSummaryTest do
         "repair_metadata" => %{"repair_id" => "repair:station_pressure_overlap"},
         "source_contact_allocation_report" => %{
           "station_pressure_contact_count" => 2,
-          "station_pressure_contact_ids" => ["contact_source", "contact_shared"]
+          "station_pressure_contact_ids" => ["contact_source", "contact_shared"],
+          "station_pressure_contact_counts_by_ground_station_id" => %{"gs_shared" => 2},
+          "station_pressure_contact_ids_by_ground_station_id" => %{
+            "gs_shared" => ["contact_source", "contact_shared"]
+          },
+          "station_pressure_contact_counts_by_availability" => %{"reserved" => 2},
+          "station_pressure_contact_ids_by_availability" => %{
+            "reserved" => ["contact_source", "contact_shared"]
+          },
+          "station_pressure_contact_counts_by_precedence_availability" => %{"reserved" => 2},
+          "station_pressure_contact_ids_by_precedence_availability" => %{
+            "reserved" => ["contact_source", "contact_shared"]
+          },
+          "station_pressure_contact_counts_by_precedence_rank" => %{"1" => 2},
+          "station_pressure_contact_ids_by_precedence_rank" => %{
+            "1" => ["contact_source", "contact_shared"]
+          },
+          "station_pressure_contact_counts_by_status" => %{"reservation_hold" => 2},
+          "station_pressure_contact_ids_by_status" => %{
+            "reservation_hold" => ["contact_source", "contact_shared"]
+          }
         },
         "contact_allocation_report" => %{
           "station_pressure_contact_count" => 2,
-          "station_pressure_contact_ids" => ["contact_shared", "contact_result"]
+          "station_pressure_contact_ids" => ["contact_shared", "contact_result"],
+          "station_pressure_contact_counts_by_ground_station_id" => %{"gs_shared" => 2},
+          "station_pressure_contact_ids_by_ground_station_id" => %{
+            "gs_shared" => ["contact_shared", "contact_result"]
+          },
+          "station_pressure_contact_counts_by_availability" => %{"reserved" => 2},
+          "station_pressure_contact_ids_by_availability" => %{
+            "reserved" => ["contact_shared", "contact_result"]
+          },
+          "station_pressure_contact_counts_by_precedence_availability" => %{"reserved" => 2},
+          "station_pressure_contact_ids_by_precedence_availability" => %{
+            "reserved" => ["contact_shared", "contact_result"]
+          },
+          "station_pressure_contact_counts_by_precedence_rank" => %{"1" => 2},
+          "station_pressure_contact_ids_by_precedence_rank" => %{
+            "1" => ["contact_shared", "contact_result"]
+          },
+          "station_pressure_contact_counts_by_status" => %{"reservation_hold" => 2},
+          "station_pressure_contact_ids_by_status" => %{
+            "reservation_hold" => ["contact_shared", "contact_result"]
+          }
         }
       })
 
@@ -1297,14 +1337,19 @@ defmodule OrbitalDynamics.OperatorReview.ContactAllocationEmbeddedSummaryTest do
         "plan_id" => "plan:station_pressure_empty",
         "contact_allocation_report" => %{
           "station_pressure_contact_count" => 9,
-          "station_pressure_contact_ids" => []
+          "station_pressure_contact_ids" => [],
+          "station_pressure_contact_counts_by_ground_station_id" => %{"gs_empty" => 9},
+          "station_pressure_contact_ids_by_ground_station_id" => %{"gs_empty" => []}
         }
       })
 
     scalar_only =
       OperatorReview.from_campaign_artifact(%{
         "plan_id" => "plan:station_pressure_scalar",
-        "contact_allocation_report" => %{"station_pressure_contact_count" => 2}
+        "contact_allocation_report" => %{
+          "station_pressure_contact_count" => 2,
+          "station_pressure_contact_counts_by_ground_station_id" => %{"gs_scalar" => 2}
+        }
       })
 
     assert repair["station_pressure_contact_count"] == 3
@@ -1315,10 +1360,43 @@ defmodule OrbitalDynamics.OperatorReview.ContactAllocationEmbeddedSummaryTest do
              "contact_source"
            ]
 
+    expected_group_ids = ["contact_result", "contact_shared", "contact_source"]
+
+    for {count_field, id_field, key} <- [
+          {"station_pressure_contact_counts_by_ground_station_id",
+           "station_pressure_contact_ids_by_ground_station_id", "gs_shared"},
+          {"station_pressure_contact_counts_by_availability",
+           "station_pressure_contact_ids_by_availability", "reserved"},
+          {"station_pressure_contact_counts_by_precedence_availability",
+           "station_pressure_contact_ids_by_precedence_availability", "reserved"},
+          {"station_pressure_contact_counts_by_precedence_rank",
+           "station_pressure_contact_ids_by_precedence_rank", "1"},
+          {"station_pressure_contact_counts_by_status", "station_pressure_contact_ids_by_status",
+           "reservation_hold"}
+        ] do
+      assert repair[count_field] == %{key => 3}
+      assert repair[id_field] == %{key => expected_group_ids}
+    end
+
     assert explicit_empty["station_pressure_contact_count"] == 0
     assert explicit_empty["station_pressure_contact_ids"] == []
+
+    assert explicit_empty["station_pressure_contact_counts_by_ground_station_id"] == %{
+             "gs_empty" => 0
+           }
+
+    assert explicit_empty["station_pressure_contact_ids_by_ground_station_id"] == %{
+             "gs_empty" => []
+           }
+
     assert scalar_only["station_pressure_contact_count"] == 2
+
+    assert scalar_only["station_pressure_contact_counts_by_ground_station_id"] == %{
+             "gs_scalar" => 2
+           }
+
     refute Map.has_key?(scalar_only, "station_pressure_contact_ids")
+    refute Map.has_key?(scalar_only, "station_pressure_contact_ids_by_ground_station_id")
 
     for package <- [repair, explicit_empty, scalar_only] do
       assert {:ok, %{"schema_contract" => "operator_review_package.v1"}} =

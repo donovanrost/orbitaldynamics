@@ -5,36 +5,35 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Correlate review/import station-pressure identity counts.
+Correlate grouped station-pressure handoff routes.
 
 Status:
 Verified; ready to publish.
 
 Selection evidence:
-- Operator-review now deduplicates the station-pressure ID union but still sums
-  scalar counts across embedded source and replacement reports.
-- A live repair-artifact probe with one overlapping ID produced count `4` beside
-  three canonical IDs in both OperatorReview and CadenceImport.
-- Executable handoff validation accepts that contradiction and does not yet
-  enforce sorted unique top-level identity.
+- Top-level review/import station-pressure identity and count now correlate.
+- Grouped ID maps already deduplicate overlapping source/replacement contacts,
+  while their paired count maps remain additive.
+- A live same-station probe produced `gs_shared: 4` beside three canonical IDs
+  in both OperatorReview and CadenceImport, and validation accepted the mismatch.
 
 Intended behavior:
-- Derive the top-level count from the sorted unique ID union whenever any
-  embedded report supplies top-level identity, including explicit-empty zero.
-- Retain summed nonnegative scalar fallback when identity is absent.
-- Reject mismatched counts, duplicate IDs, and noncanonical ordering at both
-  review/import schema boundaries.
+- Correlate per-key counts and sorted unique IDs for station, availability,
+  precedence availability, precedence rank, and status maps.
+- Preserve additive per-key count fallback wherever grouped identity is absent,
+  including mixed legacy/identity-bearing maps.
+- Reject mismatched counts and noncanonical grouped IDs at both handoff schemas.
 
 Level 6 pillar advanced:
 Fleet-scale planning decisions and durable reproducible audit handoffs.
 
 Planned files:
-- operator-review identity/count aggregation
-- shared review/import handoff correlation contracts
-- overlapping, empty, scalar-only, and schema challenge proofs plus docs/ledger
+- operator-review grouped count/identity aggregation
+- shared review/import grouped correlation and exported schemas
+- overlap, explicit-empty, fallback, and schema challenge proofs plus docs/ledger
 
 Verification:
-- Focused review/import/schema proofs: `115 passed`.
+- Focused review/import/schema/strategy proofs: `124 passed`.
 - Contact-allocation family: `196 passed`.
 - Golden artifact suite: `12 passed`.
 - Schema lint: `155` artifacts, `0` errors, `0` warnings.
@@ -42,20 +41,21 @@ Verification:
 - `mix format` and `git diff --check` passed.
 
 Review:
-- Operator-review derives one sorted unique station-pressure ID union and its
-  exact count across overlapping campaign, refresh, repair, and strategy inputs.
-- Explicit-empty identity survives as `[]` with count zero; absent identity
-  retains the prior summed scalar fallback.
-- Cadence-import preserves the correlated pair unchanged.
-- Shared executable contracts reject reversed or duplicate identity and count
-  mismatches; exported schemas also declare unique top-level ID items.
-- Existing grouped counts/routes remain additive and unchanged pending their
-  separate overlap-semantics audit.
-- Provider, schedule, planner-effect, and no-execution-authority boundaries are
-  unchanged.
+- Station, availability, precedence-availability, precedence-rank, and status
+  routes now derive exact per-key counts from sorted unique ID unions.
+- Explicit-empty grouped identity yields zero; keys without identity retain their
+  prior additive count fallback, including mixed legacy maps.
+- Shared handoff contracts reject noncanonical IDs and per-key count mismatch;
+  exported schemas declare unique ID arrays and now expose the status pair.
+- The deterministic strategy golden artifact was regenerated from its checked-in
+  request, replacing stale branch totals with exact routed-contact counts.
+- Cadence no longer invokes the same handoff validator twice, avoiding duplicate
+  diagnostics without changing validation coverage.
+- Direction routing and provider, schedule, planner-effect, and no-execution-
+  authority boundaries are unchanged.
 
 Last published slice:
-- `ee89a0ed` Preserve station pressure review identity (`3825 passed`).
+- `ac17eadc` Correlate station pressure handoff counts (`3827 passed`).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions while preserving explicit
@@ -66,7 +66,7 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-After publish, audit grouped-route correlation across overlapping handoff reports.
+After publish, audit direction-route correlation across overlapping handoffs.
 
 Blocked:
 None.

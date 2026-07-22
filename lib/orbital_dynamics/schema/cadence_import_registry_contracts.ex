@@ -68,6 +68,8 @@ defmodule OrbitalDynamics.Schema.CadenceImportRegistryContracts do
           "station_pressure_contact_ids_by_precedence_availability",
           "station_pressure_contact_counts_by_precedence_rank",
           "station_pressure_contact_ids_by_precedence_rank",
+          "station_pressure_contact_counts_by_status",
+          "station_pressure_contact_ids_by_status",
           "station_pressure_contact_ids_by_direction",
           "capacity_pack_required_capacity_fraction",
           "capacity_pack_selected_required_capacity_fraction",

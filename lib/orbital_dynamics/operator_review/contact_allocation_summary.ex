@@ -1,6 +1,18 @@
 defmodule OrbitalDynamics.OperatorReview.ContactAllocationSummary do
   @moduledoc false
 
+  @station_pressure_grouped_summary_fields [
+    {"station_pressure_contact_counts_by_ground_station_id",
+     "station_pressure_contact_ids_by_ground_station_id"},
+    {"station_pressure_contact_counts_by_availability",
+     "station_pressure_contact_ids_by_availability"},
+    {"station_pressure_contact_counts_by_precedence_availability",
+     "station_pressure_contact_ids_by_precedence_availability"},
+    {"station_pressure_contact_counts_by_precedence_rank",
+     "station_pressure_contact_ids_by_precedence_rank"},
+    {"station_pressure_contact_counts_by_status", "station_pressure_contact_ids_by_status"}
+  ]
+
   def put_from_paths(package, artifact, paths) do
     artifact = stringify_keys(artifact || %{})
     reports = Enum.map(paths, &get_in(artifact, &1))
@@ -123,26 +135,7 @@ defmodule OrbitalDynamics.OperatorReview.ContactAllocationSummary do
       reports,
       "resource_blocking_dimension_counts"
     )
-    |> put_contact_allocation_count_summary(
-      reports,
-      "station_pressure_contact_counts_by_ground_station_id"
-    )
-    |> put_contact_allocation_count_summary(
-      reports,
-      "station_pressure_contact_counts_by_availability"
-    )
-    |> put_contact_allocation_count_summary(
-      reports,
-      "station_pressure_contact_counts_by_precedence_availability"
-    )
-    |> put_contact_allocation_count_summary(
-      reports,
-      "station_pressure_contact_counts_by_precedence_rank"
-    )
-    |> put_contact_allocation_count_summary(
-      reports,
-      "station_pressure_contact_counts_by_status"
-    )
+    |> put_station_pressure_grouped_summaries(reports)
     |> put_station_pressure_identity_summary(reports)
     |> put_contact_allocation_scalar_count_summary(
       reports,
@@ -362,26 +355,6 @@ defmodule OrbitalDynamics.OperatorReview.ContactAllocationSummary do
       reports,
       "resource_blocked_contact_ids_by_spacecraft_id"
     )
-    |> put_contact_allocation_id_map_summary(
-      reports,
-      "station_pressure_contact_ids_by_ground_station_id"
-    )
-    |> put_contact_allocation_id_map_summary(
-      reports,
-      "station_pressure_contact_ids_by_availability"
-    )
-    |> put_contact_allocation_id_map_summary(
-      reports,
-      "station_pressure_contact_ids_by_precedence_availability"
-    )
-    |> put_contact_allocation_id_map_summary(
-      reports,
-      "station_pressure_contact_ids_by_precedence_rank"
-    )
-    |> put_contact_allocation_id_map_summary(
-      reports,
-      "station_pressure_contact_ids_by_status"
-    )
     |> put_contact_allocation_nested_id_map_summary(
       reports,
       "station_pressure_contact_ids_by_direction_and_ground_station_id"
@@ -495,9 +468,7 @@ defmodule OrbitalDynamics.OperatorReview.ContactAllocationSummary do
             _values -> []
           end
         end)
-        |> Enum.filter(&(is_binary(&1) and &1 != ""))
-        |> Enum.uniq()
-        |> Enum.sort()
+        |> canonical_stable_ids()
 
       package
       |> Map.put("station_pressure_contact_count", length(contact_ids))
@@ -510,6 +481,63 @@ defmodule OrbitalDynamics.OperatorReview.ContactAllocationSummary do
       )
     end
   end
+
+  defp put_station_pressure_grouped_summaries(package, reports) do
+    Enum.reduce(@station_pressure_grouped_summary_fields, package, fn
+      {count_field, id_field}, acc ->
+        put_correlated_id_count_map_summary(acc, reports, count_field, id_field)
+    end)
+  end
+
+  defp put_correlated_id_count_map_summary(package, reports, count_field, id_field) do
+    fallback_counts =
+      reports
+      |> contact_allocation_count_maps(count_field)
+      |> merge_count_maps()
+
+    {contact_ids_by_key, identity_keys} =
+      Enum.reduce(reports, {%{}, MapSet.new()}, fn report, {id_map, identity_keys} ->
+        case Map.get(report, id_field) do
+          %{} = report_id_map ->
+            Enum.reduce(report_id_map, {id_map, identity_keys}, fn
+              {key, contact_ids}, {id_map, identity_keys} when is_list(contact_ids) ->
+                contact_ids = canonical_stable_ids(contact_ids)
+
+                id_map =
+                  Map.update(id_map, key, contact_ids, fn current ->
+                    canonical_stable_ids(current ++ contact_ids)
+                  end)
+
+                {id_map, MapSet.put(identity_keys, key)}
+
+              {_key, _contact_ids}, acc ->
+                acc
+            end)
+
+          _report_id_map ->
+            {id_map, identity_keys}
+        end
+      end)
+
+    correlated_counts =
+      Enum.reduce(identity_keys, fallback_counts, fn key, counts ->
+        Map.put(counts, key, length(Map.fetch!(contact_ids_by_key, key)))
+      end)
+
+    package
+    |> put_merged_count_map(count_field, correlated_counts)
+    |> put_merged_id_map(id_field, contact_ids_by_key)
+  end
+
+  defp canonical_stable_ids(values) do
+    values
+    |> Enum.filter(&(is_binary(&1) and &1 != ""))
+    |> Enum.uniq()
+    |> Enum.sort()
+  end
+
+  defp put_merged_id_map(package, _field, values) when values == %{}, do: package
+  defp put_merged_id_map(package, field, values), do: Map.put(package, field, values)
 
   defp put_contact_allocation_id_map_summary(package, reports, field) do
     values =

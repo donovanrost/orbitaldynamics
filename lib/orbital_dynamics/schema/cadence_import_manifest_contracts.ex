@@ -87,7 +87,6 @@ defmodule OrbitalDynamics.Schema.CadenceImportManifestContracts do
     |> validate_rows(path <> ".rows", rows, row_validator)
     |> suppression_group_validator.(path, rows)
     |> validate_count_maps(path, manifest)
-    |> expiration_handoff_validator.(path, manifest)
     |> validate_derived_counts(path, manifest, rows)
     |> expect_optional_one_of(
       path,

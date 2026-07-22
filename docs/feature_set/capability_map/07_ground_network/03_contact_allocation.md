@@ -495,7 +495,8 @@ so adapters can route contact queues without recounting rows.
   availability, precedence availability, and precedence rank, plus
   station-pressure review contact IDs, at their own top-level adapter boundary.
   Top-level identity fixes the exact unique contact count across overlapping
-  embedded reports; scalar-only legacy summaries retain additive fallback.
+  embedded reports; each grouped ID route likewise fixes its per-key count, while
+  keys without identity evidence retain additive legacy fallback.
 - Derived operator-review/import artifacts preserve those reservation summaries,
   expiration routing maps/counters, reservation contact/reservation ID maps by
   match status, reservation status, and reserved-by owner, and the lifted count

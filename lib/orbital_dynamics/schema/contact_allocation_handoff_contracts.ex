@@ -28,6 +28,17 @@ defmodule OrbitalDynamics.Schema.ContactAllocationHandoffContracts do
     "resolution_priority_override_count",
     "resolution_priority_override_contact_ids"
   ]
+  @station_pressure_grouped_summary_fields [
+    {"station_pressure_contact_counts_by_ground_station_id",
+     "station_pressure_contact_ids_by_ground_station_id"},
+    {"station_pressure_contact_counts_by_availability",
+     "station_pressure_contact_ids_by_availability"},
+    {"station_pressure_contact_counts_by_precedence_availability",
+     "station_pressure_contact_ids_by_precedence_availability"},
+    {"station_pressure_contact_counts_by_precedence_rank",
+     "station_pressure_contact_ids_by_precedence_rank"},
+    {"station_pressure_contact_counts_by_status", "station_pressure_contact_ids_by_status"}
+  ]
   @allocation_source_field_pairs [
     {"activity_type", "type"}
     | Enum.map(
@@ -239,6 +250,59 @@ defmodule OrbitalDynamics.Schema.ContactAllocationHandoffContracts do
     end
   end
 
+  defp validate_station_pressure_grouped_identity_summaries(issues, path, artifact) do
+    Enum.reduce(@station_pressure_grouped_summary_fields, issues, fn
+      {count_field, id_field}, acc ->
+        validate_correlated_id_count_map(acc, path, artifact, count_field, id_field)
+    end)
+  end
+
+  defp validate_correlated_id_count_map(issues, path, artifact, count_field, id_field) do
+    case Map.get(artifact, id_field) do
+      %{} = contact_ids_by_key ->
+        counts_by_key = Map.get(artifact, count_field)
+
+        Enum.reduce(contact_ids_by_key, issues, fn {key, contact_ids}, acc ->
+          case contact_ids do
+            contact_ids when is_list(contact_ids) ->
+              canonical_contact_ids = contact_ids |> Enum.uniq() |> Enum.sort()
+
+              acc =
+                if contact_ids == canonical_contact_ids do
+                  acc
+                else
+                  [
+                    error(
+                      "#{path}.#{id_field}.#{key}",
+                      "must equal sorted unique station-pressure contact IDs"
+                    )
+                    | acc
+                  ]
+                end
+
+              if is_map(counts_by_key) and
+                   Map.get(counts_by_key, key) == length(canonical_contact_ids) do
+                acc
+              else
+                [
+                  error(
+                    "#{path}.#{count_field}.#{key}",
+                    "must equal canonical #{id_field} count"
+                  )
+                  | acc
+                ]
+              end
+
+            _contact_ids ->
+              [error("#{path}.#{id_field}.#{key}", "must be a list of stable IDs") | acc]
+          end
+        end)
+
+      _contact_ids_by_key ->
+        issues
+    end
+  end
+
   def validate_expiration_summary(issues, path, artifact) do
     issues
     |> expect_optional_type(
@@ -367,6 +431,7 @@ defmodule OrbitalDynamics.Schema.ContactAllocationHandoffContracts do
       artifact,
       "station_pressure_contact_ids_by_direction_and_ground_station_id"
     )
+    |> validate_station_pressure_grouped_identity_summaries(path, artifact)
     |> expect_optional_non_negative_number(
       path,
       artifact,
