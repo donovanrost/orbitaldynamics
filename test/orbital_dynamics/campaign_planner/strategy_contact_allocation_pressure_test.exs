@@ -1297,6 +1297,94 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyContactAllocationPressureTest 
              "branch_latest_ends_at_s"
            ]) == 880.0
 
+    branch_window_fields = [
+      "branch_source_window_ids",
+      "branch_earliest_starts_at_s",
+      "branch_latest_ends_at_s"
+    ]
+
+    provider_review_index =
+      Enum.find_index(
+        artifact["operator_review_package"]["rows"],
+        &(&1["id"] == provider_review_row["id"])
+      )
+
+    missing_review_window =
+      update_in(
+        artifact,
+        ["operator_review_package", "rows", Access.at(provider_review_index)],
+        &Map.delete(&1, "branch_source_window_ids")
+      )
+
+    assert {:error, missing_review_window_report} =
+             Schema.validate_artifact(missing_review_window["operator_review_package"])
+
+    assert Enum.any?(
+             missing_review_window_report["errors"],
+             &(&1["path"] == "$.rows[#{provider_review_index}].branch_source_window_ids")
+           )
+
+    legacy_review_package =
+      update_in(
+        artifact["operator_review_package"],
+        ["rows", Access.at(provider_review_index)],
+        fn row ->
+          row
+          |> Map.drop(branch_window_fields)
+          |> Map.update!("source_branch_comparison", &Map.drop(&1, branch_window_fields))
+        end
+      )
+
+    assert {:ok, _legacy_review_package} = Schema.validate_artifact(legacy_review_package)
+
+    provider_import_index =
+      Enum.find_index(
+        artifact["cadence_import_manifest"]["rows"],
+        &(&1["id"] == provider_import_row["id"])
+      )
+
+    missing_import_window =
+      update_in(
+        artifact["cadence_import_manifest"],
+        ["rows", Access.at(provider_import_index)],
+        &Map.delete(&1, "branch_earliest_starts_at_s")
+      )
+
+    assert {:error, missing_import_window_report} =
+             Schema.validate_artifact(missing_import_window)
+
+    assert Enum.any?(
+             missing_import_window_report["errors"],
+             &(&1["path"] == "$.rows[#{provider_import_index}].branch_earliest_starts_at_s")
+           )
+
+    stale_import_window =
+      update_in(
+        artifact["cadence_import_manifest"],
+        ["rows", Access.at(provider_import_index)],
+        &Map.put(&1, "branch_latest_ends_at_s", 881.0)
+      )
+
+    assert {:error, stale_import_window_report} = Schema.validate_artifact(stale_import_window)
+
+    assert Enum.any?(
+             stale_import_window_report["errors"],
+             &(&1["path"] == "$.rows[#{provider_import_index}].branch_latest_ends_at_s")
+           )
+
+    legacy_import_manifest =
+      update_in(
+        artifact["cadence_import_manifest"],
+        ["rows", Access.at(provider_import_index)],
+        fn row ->
+          row
+          |> Map.drop(branch_window_fields)
+          |> Map.update!("source_branch_comparison", &Map.drop(&1, branch_window_fields))
+        end
+      )
+
+    assert {:ok, _legacy_import_manifest} = Schema.validate_artifact(legacy_import_manifest)
+
     risk_weight =
       get_in(artifact, ["score_term_report", "assumptions", "policy", "risk_weight"])
 

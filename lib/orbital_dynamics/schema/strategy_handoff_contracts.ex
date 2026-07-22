@@ -14,6 +14,11 @@ defmodule OrbitalDynamics.Schema.StrategyHandoffContracts do
     {"risk_count", "risks_remaining"},
     {"approval_requirement_count", "requires_approval"}
   ]
+  @branch_window_context_field_pairs [
+    {"branch_source_window_ids", "branch_source_window_ids"},
+    {"branch_earliest_starts_at_s", "branch_earliest_starts_at_s"},
+    {"branch_latest_ends_at_s", "branch_latest_ends_at_s"}
+  ]
   @strategy_recommendation_source_review_fields Enum.map(
                                                   [
                                                     "subject_id",
@@ -57,6 +62,9 @@ defmodule OrbitalDynamics.Schema.StrategyHandoffContracts do
                                                     "quality_gate_trust_boundaries",
                                                     "quality_gate_resource_availability_reason_ids",
                                                     "quality_gate_unavailable_resource_reason_ids",
+                                                    "branch_source_window_ids",
+                                                    "branch_earliest_starts_at_s",
+                                                    "branch_latest_ends_at_s",
                                                     "source_recommendation"
                                                   ],
                                                   &{&1, &1}
@@ -228,12 +236,19 @@ defmodule OrbitalDynamics.Schema.StrategyHandoffContracts do
         %{"source_review_row" => %{} = source_review_row} = row
       ) do
     if strategy_recommendation_handoff_row?(row) do
-      validate_cadence_source_review_pairs(
-        issues,
+      issues
+      |> validate_cadence_source_review_pairs(
         path,
         row,
         source_review_row,
         @strategy_recommendation_source_review_fields
+      )
+      |> validate_required_source_pairs(
+        path,
+        row,
+        source_review_row,
+        @branch_window_context_field_pairs,
+        "source_review_row"
       )
     else
       issues
@@ -259,12 +274,19 @@ defmodule OrbitalDynamics.Schema.StrategyHandoffContracts do
         %{"source_review_row" => %{} = source_review_row} = row
       ) do
     if strategy_tradeoff_handoff_row?(row) do
-      validate_cadence_source_review_pairs(
-        issues,
+      issues
+      |> validate_cadence_source_review_pairs(
         path,
         row,
         source_review_row,
         @strategy_tradeoff_source_review_fields
+      )
+      |> validate_required_source_pairs(
+        path,
+        row,
+        source_review_row,
+        @branch_window_context_field_pairs,
+        "source_review_row"
       )
     else
       issues
@@ -280,12 +302,19 @@ defmodule OrbitalDynamics.Schema.StrategyHandoffContracts do
         %{"source_branch_comparison" => %{} = source_row} = row
       ) do
     if strategy_branch_comparison_handoff_row?(row) do
-      validate_source_pairs(
-        issues,
+      issues
+      |> validate_source_pairs(
         path,
         row,
         source_row,
         @strategy_branch_comparison_source_field_pairs,
+        "source_branch_comparison"
+      )
+      |> validate_required_source_pairs(
+        path,
+        row,
+        source_row,
+        @branch_window_context_field_pairs,
         "source_branch_comparison"
       )
     else
@@ -452,12 +481,19 @@ defmodule OrbitalDynamics.Schema.StrategyHandoffContracts do
          path,
          %{"source_branch_comparison" => %{} = source_row} = row
        ) do
-    validate_source_pairs(
-      issues,
+    issues
+    |> validate_source_pairs(
       path,
       row,
       source_row,
       @strategy_tradeoff_source_branch_comparison_field_pairs,
+      "source_branch_comparison"
+    )
+    |> validate_required_source_pairs(
+      path,
+      row,
+      source_row,
+      @branch_window_context_field_pairs,
       "source_branch_comparison"
     )
   end
@@ -472,6 +508,16 @@ defmodule OrbitalDynamics.Schema.StrategyHandoffContracts do
 
       if not is_nil(row_value) and not is_nil(source_value) and row_value != source_value do
         [error("#{path}.#{row_field}", "must match #{source_key}.#{source_field}") | acc]
+      else
+        acc
+      end
+    end)
+  end
+
+  defp validate_required_source_pairs(issues, path, row, source_row, field_pairs, source_key) do
+    Enum.reduce(field_pairs, issues, fn {row_field, source_field}, acc ->
+      if not is_nil(Map.get(source_row, source_field)) and is_nil(Map.get(row, row_field)) do
+        [error("#{path}.#{row_field}", "must preserve #{source_key}.#{source_field}") | acc]
       else
         acc
       end
