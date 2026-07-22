@@ -284,6 +284,10 @@ Review contact IDs likewise remain identity-only evidence through raw,
 flattened, and replay summaries, canonicalized as sorted unique stable IDs;
 compact validation rejects duplicate, out-of-order, or invalid supplied review
 identity instead of fabricating a paired review count.
+Station-pressure review identity has an exact unique-contact count: when its ID
+list is present, replay canonicalizes stable IDs and derives the count from that
+list; scalar-only summaries retain their fallback count. Compact validation
+rejects noncanonical IDs or a contradictory supplied count.
 Invalid-input, status-blocked, and resource-blocked count/ID pairs use the same
 identity-first rule. Their top-level lists remain canonical review evidence when
 a compact scalar is absent or undersized; valid occurrence counts may exceed

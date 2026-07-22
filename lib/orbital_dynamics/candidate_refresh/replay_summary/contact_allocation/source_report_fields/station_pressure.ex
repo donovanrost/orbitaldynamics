@@ -3,9 +3,22 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.ContactAllocation.Sourc
 
   alias OrbitalDynamics.CandidateRefresh.ReplaySummary.ContactAllocation.SourceReportFields.Aggregation
 
+  alias OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactAllocation.StationPressureReviewCorrelation
+
   import Aggregation
 
   def source_report_station_pressure_fields(source_reports) do
+    review_fields =
+      StationPressureReviewCorrelation.fields(%{
+        "station_pressure_review_contact_count" =>
+          source_report_station_pressure_review_contact_count(source_reports),
+        "station_pressure_review_contact_ids" =>
+          source_report_family_merge_string_lists(
+            source_reports,
+            "station_pressure_review_contact_ids"
+          )
+      })
+
     %{
       "source_report_contact_allocation_station_pressure_contact_count" =>
         source_report_station_pressure_contact_count(source_reports),
@@ -69,12 +82,9 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.ContactAllocation.Sourc
           "station_pressure_contact_ids_by_direction_and_ground_station"
         ),
       "source_report_contact_allocation_station_pressure_review_contact_count" =>
-        source_report_station_pressure_review_contact_count(source_reports),
+        Map.get(review_fields, "station_pressure_review_contact_count"),
       "source_report_contact_allocation_station_pressure_review_contact_ids" =>
-        source_report_family_merge_string_lists(
-          source_reports,
-          "station_pressure_review_contact_ids"
-        )
+        Map.get(review_fields, "station_pressure_review_contact_ids")
     }
   end
 end

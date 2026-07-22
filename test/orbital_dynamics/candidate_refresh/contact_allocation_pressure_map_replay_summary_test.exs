@@ -482,6 +482,47 @@ defmodule OrbitalDynamics.CandidateRefresh.ContactAllocationPressureMapReplaySum
     assert replay_summary["branch_local_contact_allocation_pressure"]
   end
 
+  test "contact allocation replay correlates station-pressure review identity and count" do
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "provenance" => %{
+        "source_reports" => %{
+          "contact_allocation_report" => %{
+            "contract" => "contact_allocation_report.v1",
+            "count" => 1,
+            "station_pressure_review_contact_count" => 99,
+            "station_pressure_review_contact_ids" => [
+              "station_review_b",
+              "station_review_a",
+              "station_review_a",
+              "invalid id"
+            ]
+          }
+        }
+      }
+    }
+
+    source_summary = CandidateRefresh.source_report_summary(artifact)
+    replay_summary = CandidateRefresh.contact_allocation_replay_summary(artifact)
+
+    assert source_summary[
+             "source_report_contact_allocation_station_pressure_review_contact_count"
+           ] == 2
+
+    assert source_summary[
+             "source_report_contact_allocation_station_pressure_review_contact_ids"
+           ] == ["station_review_a", "station_review_b"]
+
+    assert replay_summary["station_pressure_review_contact_count"] == 2
+
+    assert replay_summary["station_pressure_review_contact_ids"] == [
+             "station_review_a",
+             "station_review_b"
+           ]
+
+    assert replay_summary["branch_local_station_pressure"]
+  end
+
   test "contact allocation replay correlates resource-blocking routes" do
     artifact = %{
       "schema_contract" => "candidate_refresh.v1",

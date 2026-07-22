@@ -3,16 +3,18 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.ContactAllocation.Summa
 
   alias OrbitalDynamics.CandidateRefresh.ReplaySummary.ContactAllocation.SourceReportFields
 
+  alias OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactAllocation.StationPressureReviewCorrelation
+
   def fields(allocation_summary) do
+    review_fields = StationPressureReviewCorrelation.fields(allocation_summary)
+
     %{
       "station_pressure_contact_count" =>
         SourceReportFields.contact_allocation_station_pressure_contact_count(allocation_summary),
       "station_pressure_review_contact_count" =>
-        SourceReportFields.contact_allocation_station_pressure_review_contact_count(
-          allocation_summary
-        ),
+        Map.get(review_fields, "station_pressure_review_contact_count"),
       "station_pressure_review_contact_ids" =>
-        Map.get(allocation_summary, "station_pressure_review_contact_ids"),
+        Map.get(review_fields, "station_pressure_review_contact_ids"),
       "station_pressure_ground_station_counts" =>
         Map.get(allocation_summary, "station_pressure_ground_station_counts", %{}),
       "station_pressure_contact_ids_by_ground_station" =>

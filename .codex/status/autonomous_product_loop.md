@@ -5,49 +5,51 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Canonicalize allocation review-contact identity.
+Correlate station-pressure review identity and count.
 
 Status:
 Verified; ready to publish.
 
 Selection evidence:
-- Allocation review contact IDs currently bypass stable-ID canonicalization in
-  raw, flattened, and replay compact paths.
-- The review list directly creates branch-local allocation pressure and should
-  remain usable without a paired scalar count.
-- Raw allocation rows already provide authoritative review identity when present.
+- Station-pressure review IDs currently accept arbitrary strings, and their
+  derived unique-contact count can include invalid identity.
+- When review IDs are present they are authoritative for the exact unique review
+  count; scalar-only summaries must retain their fallback count.
+- Raw station-pressure review rows already provide authoritative identity.
 
 Intended behavior:
-- Canonicalize review contact IDs as sorted unique stable identity evidence in
-  raw, flattened, and replay paths.
-- Preserve identity-only review evidence without fabricating a count.
-- Reject noncanonical supplied compact review identities in schema validation.
+- Canonicalize station-pressure review IDs as sorted unique stable identity.
+- Derive the exact unique review count when an ID list is present; preserve a
+  valid scalar fallback when identity is absent.
+- Reject noncanonical or contradictory supplied compact identity/count pairs.
 
 Level 6 pillar advanced:
 Fleet-scale planning decisions and durable reproducible audit handoffs.
 
 Planned files:
-- review-contact identity handling across raw/flattened/replay/schema
-- identity-only, duplicate, ordering, and invalid-ID challenges
+- station-pressure review correlation across raw/flattened/replay/schema
+- invalid-ID, duplicate, ordering, contradictory-count, and scalar-only tests
 - allocation artifact documentation and autonomous-loop ledger
 
 Verification:
-- Focused replay/schema identity challenges: `19 passed`.
-- Contact-allocation family: `190 passed`.
+- Focused station-pressure replay/schema challenges: `26 passed`.
+- Contact-allocation family: `191 passed`.
 - Golden artifacts: `12 passed`.
 - Schema lint: `155` artifacts, no errors or warnings.
-- Full suite: `3820 passed`.
+- Full suite: `3821 passed`.
 - `mix format` and `git diff --check` passed.
 
 Review:
-- One shared canonicalizer now governs raw, flattened, and replay review IDs.
-- Review identity remains usable without fabricating a scalar count.
-- Compact validation rejects duplicate, out-of-order, or invalid supplied IDs;
-  row-derived review identities remain authoritative when source rows exist.
+- One shared correlation boundary governs raw, flattened, replay, and schema.
+- Explicit review IDs are stable, sorted, unique, and define the exact count;
+  scalar-only summaries retain a valid nonnegative fallback.
+- Compact validation rejects noncanonical IDs and contradictory counts.
+- Focused proof corrected an over-broad pressure assertion: station-review
+  evidence intentionally sets station pressure, not generic allocation pressure.
 - Provider, schedule, Cadence-write, and planner-effect boundaries are unchanged.
 
 Last published slice:
-- `1b0a32fc` Correlate allocation resource routing (`3819 passed`).
+- `b9e7d4a7` Canonicalize allocation review identities (`3820 passed`).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions while preserving explicit
@@ -58,7 +60,7 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-After publish, audit station-pressure review identity/count correlation.
+After publish, audit reservation-conflict identity/count correlation.
 
 Blocked:
 None.

@@ -548,6 +548,8 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshResourceProvenanceContractsTest
           "selected" => ["dl_backup", "dl_primary"]
         },
         "review_contact_ids" => ["review_a", "review_b"],
+        "station_pressure_review_contact_count" => 2,
+        "station_pressure_review_contact_ids" => ["station_review_a", "station_review_b"],
         "resource_blocked_contact_count" => 2,
         "resource_blocked_contact_ids" => ["resource_a", "resource_b"],
         "resource_blocking_dimension_counts" => %{"antenna" => 2},
@@ -662,6 +664,48 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshResourceProvenanceContractsTest
              noncanonical_allocation_review_ids_report["errors"],
              &(&1["path"] ==
                  "$.provenance.source_reports.contact_allocation_report.review_contact_ids")
+           )
+
+    contradictory_station_pressure_review_count =
+      put_in(
+        artifact_with_allocation_direction_summary,
+        [
+          "provenance",
+          "source_reports",
+          "contact_allocation_report",
+          "station_pressure_review_contact_count"
+        ],
+        1
+      )
+
+    assert {:error, contradictory_station_pressure_review_count_report} =
+             Schema.validate_artifact(contradictory_station_pressure_review_count)
+
+    assert Enum.any?(
+             contradictory_station_pressure_review_count_report["errors"],
+             &(&1["path"] ==
+                 "$.provenance.source_reports.contact_allocation_report.station_pressure_review_contact_count")
+           )
+
+    noncanonical_station_pressure_review_ids =
+      put_in(
+        artifact_with_allocation_direction_summary,
+        [
+          "provenance",
+          "source_reports",
+          "contact_allocation_report",
+          "station_pressure_review_contact_ids"
+        ],
+        ["station_review_b", "station_review_a", "station_review_a"]
+      )
+
+    assert {:error, noncanonical_station_pressure_review_ids_report} =
+             Schema.validate_artifact(noncanonical_station_pressure_review_ids)
+
+    assert Enum.any?(
+             noncanonical_station_pressure_review_ids_report["errors"],
+             &(&1["path"] ==
+                 "$.provenance.source_reports.contact_allocation_report.station_pressure_review_contact_ids")
            )
 
     over_cardinality_allocation_reason_ids =

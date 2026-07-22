@@ -112,7 +112,9 @@ The contact-filter, contact-contention, contact-intent, and command-window repor
   availability, precedence availability, precedence rank, station-calendar
   status, and review
   requirement, preserved through candidate-refresh contact-allocation replay for
-  branch-local station queues
+  branch-local station queues; station-pressure review IDs are canonical stable
+  identity and define their exact unique-contact count when present, while a
+  scalar-only summary retains its fallback count
 - reservation IDs
 - trust-boundary counts
 - explicit no-provider-reservation / no-authority assumptions

@@ -33,6 +33,9 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshCommunicationPressureContracts 
   alias OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactAllocation.ReviewIdentityCorrelation,
     as: ContactAllocationReviewIdentityCorrelation
 
+  alias OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactAllocation.StationPressureReviewCorrelation,
+    as: ContactAllocationStationPressureReviewCorrelation
+
   alias OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactAllocation.DirectionRouting.Correlation,
     as: ContactAllocationDirectionCorrelation
 
@@ -85,6 +88,7 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshCommunicationPressureContracts 
     |> validate_contact_allocation_count_maps(path, summary)
     |> validate_contact_allocation_resource_blocking(path, summary)
     |> validate_contact_allocation_contact_identities(path, summary)
+    |> validate_contact_allocation_station_pressure_review(path, summary)
     |> validate_contact_allocation_reason_identities(path, summary)
     |> validate_contact_allocation_direction_fields(path, summary)
     |> validate_contact_allocation_direction_routing(path, summary)
@@ -253,6 +257,21 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshCommunicationPressureContracts 
   end
 
   defp validate_contact_allocation_resource_blocking(issues, _path, _summary), do: issues
+
+  defp validate_contact_allocation_station_pressure_review(
+         issues,
+         path,
+         %{"contract" => "contact_allocation_report.v1"} = summary
+       ) do
+    canonical = ContactAllocationStationPressureReviewCorrelation.fields(summary)
+
+    Enum.reduce(ContactAllocationStationPressureReviewCorrelation.fields(), issues, fn field,
+                                                                                       acc ->
+      validate_canonical_supplied_field(acc, path, summary, canonical, field)
+    end)
+  end
+
+  defp validate_contact_allocation_station_pressure_review(issues, _path, _summary), do: issues
 
   defp validate_contact_allocation_direction_fields(
          issues,
