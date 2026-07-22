@@ -1655,6 +1655,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureExpected
           "mission_state_reservation_conflict_summary"
         ],
         "station_reservation_hold_import_statuses" => ["review_required_before_import"],
+        "station_reservation_hold_expiration_statuses" => ["active"],
         "station_reservation_hold_import_readiness_summary_models" => [
           "artifact_only_station_reservation_hold_import_readiness_summary"
         ],
@@ -1668,13 +1669,13 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureExpected
         "station_reservation_hold_import_classifications" => ["review_only"],
         "station_reservation_hold_count_values" => [2],
         "station_reservation_hold_ids" => [
-          "reservation_hold_expired",
+          "reservation_hold_active",
           "reservation_hold_missing"
         ],
         "station_reservation_hold_ids_by_import_status" => [
           %{
             "review_required_before_import" => [
-              "reservation_hold_expired",
+              "reservation_hold_active",
               "reservation_hold_missing"
             ]
           }
@@ -1682,18 +1683,18 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureExpected
         "station_reservation_hold_ids_by_required_import_action" => [
           %{
             "review_station_provider_contention" => ["reservation_hold_missing"],
-            "review_station_reservation_overlap" => ["reservation_hold_expired"]
+            "review_station_reservation_overlap" => ["reservation_hold_active"]
           }
         ],
         "station_reservation_hold_ids_by_direction" => [
           %{
-            "downlink" => ["reservation_hold_expired"],
+            "downlink" => ["reservation_hold_active"],
             "uplink" => ["reservation_hold_missing"]
           }
         ],
         "station_reservation_hold_ids_by_direction_and_ground_station_id" => [
           %{
-            "downlink:equator_prime" => ["reservation_hold_expired"],
+            "downlink:equator_prime" => ["reservation_hold_active"],
             "uplink:equator_prime" => ["reservation_hold_missing"]
           }
         ],
@@ -1702,7 +1703,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureExpected
           %{"review_required_before_import" => ["dl_hold_import_review"]}
         ],
         "station_reservation_hold_contact_ids_by_expiration_status" => [
-          %{"expired" => ["dl_hold_import_review"]}
+          %{"active" => ["dl_hold_import_review"]}
         ],
         "station_reservation_hold_contact_ids_by_direction" => [
           %{"downlink" => ["dl_hold_import_review"]}

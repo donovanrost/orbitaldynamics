@@ -711,9 +711,10 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureEventsTe
              "planned_contacts" => 0,
              "required_downlink_mb" => 41.0,
              "planned_downlink_mb" => hold_planned_downlink_mb,
-             "station_reservation_id" => "reservation_hold_expired",
+             "station_reservation_id" => "reservation_hold_active",
              "station_reserved_by" => "ops_calendar",
              "station_reservation_status" => "held",
+             "station_reservation_expiration_status" => "active",
              "station_reservation_match_status" => "overlap",
              "station_reservation_expires_at_s" => 120.0,
              "station_reservation_hold_import_status" => "review_required_before_import",
@@ -727,7 +728,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureEventsTe
              "station_reservation_hold_import_classification" => "review_only",
              "station_reservation_hold_count" => 2,
              "station_reservation_hold_ids" => [
-               "reservation_hold_expired",
+               "reservation_hold_active",
                "reservation_hold_missing"
              ],
              "station_reservation_hold_import_execution_boundary" =>

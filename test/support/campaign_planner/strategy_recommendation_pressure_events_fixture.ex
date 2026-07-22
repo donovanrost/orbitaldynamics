@@ -1399,9 +1399,10 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureEventsFi
                 planned_contacts: 0,
                 required_downlink_mb: 41.0,
                 planned_downlink_mb: 0.0,
-                station_reservation_id: "reservation_hold_expired",
+                station_reservation_id: "reservation_hold_active",
                 station_reserved_by: "ops_calendar",
                 station_reservation_status: "held",
+                station_reservation_expiration_status: "active",
                 station_reservation_match_status: "overlap",
                 station_reservation_expires_at_s: 120.0,
                 station_reservation_hold_import_status: "review_required_before_import",
@@ -1415,32 +1416,32 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureEventsFi
                 station_reservation_hold_import_classification: "review_only",
                 station_reservation_hold_count: 2,
                 station_reservation_hold_ids: [
-                  "reservation_hold_expired",
+                  "reservation_hold_active",
                   "reservation_hold_missing"
                 ],
                 station_reservation_hold_ids_by_import_status: %{
                   "review_required_before_import" => [
-                    "reservation_hold_expired",
+                    "reservation_hold_active",
                     "reservation_hold_missing"
                   ]
                 },
                 station_reservation_hold_ids_by_required_import_action: %{
                   "review_station_provider_contention" => ["reservation_hold_missing"],
-                  "review_station_reservation_overlap" => ["reservation_hold_expired"]
+                  "review_station_reservation_overlap" => ["reservation_hold_active"]
                 },
                 station_reservation_hold_ids_by_direction: %{
-                  "downlink" => ["reservation_hold_expired"],
+                  "downlink" => ["reservation_hold_active"],
                   "uplink" => ["reservation_hold_missing"]
                 },
                 station_reservation_hold_ids_by_direction_and_ground_station_id: %{
-                  "downlink:equator_prime" => ["reservation_hold_expired"],
+                  "downlink:equator_prime" => ["reservation_hold_active"],
                   "uplink:equator_prime" => ["reservation_hold_missing"]
                 },
                 station_reservation_hold_contact_ids_by_import_status: %{
                   "review_required_before_import" => ["dl_hold_import_review"]
                 },
                 station_reservation_hold_contact_ids_by_expiration_status: %{
-                  "expired" => ["dl_hold_import_review"]
+                  "active" => ["dl_hold_import_review"]
                 },
                 station_reservation_hold_contact_ids_by_direction: %{
                   "downlink" => ["dl_hold_import_review"]

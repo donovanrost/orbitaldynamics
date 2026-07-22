@@ -230,7 +230,8 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
     assert_risk_expiration_context_contract(
       StrategyRecommendationPressureEventsFixture.artifact(),
       "provider_reservation_request_station_reservation_expiration_statuses",
-      "dl_provider_review"
+      "dl_provider_review",
+      "active"
     )
   end
 
@@ -238,11 +239,21 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
     assert_risk_expiration_context_contract(
       StrategyRecommendationPressureEventsFixture.artifact(),
       "station_reservation_conflict_expiration_statuses",
-      "dl_reservation_conflict"
+      "dl_reservation_conflict",
+      "active"
     )
   end
 
-  defp assert_risk_expiration_context_contract(artifact, field, contact_id) do
+  test "station hold expiration risk context remains source exact across handoffs" do
+    assert_risk_expiration_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "station_reservation_hold_expiration_statuses",
+      "dl_hold_import_review",
+      "active"
+    )
+  end
+
+  defp assert_risk_expiration_context_contract(artifact, field, contact_id, expected_status) do
     recommendation_review_row =
       Enum.find(
         artifact["operator_review_package"]["rows"],
@@ -263,10 +274,10 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
         &(&1["source_review_type"] == "strategy_recommendation")
       )
 
-    assert recommendation_review_row[field] == ["active"]
-    assert selected_import_row[field] == ["active"]
-    assert review_import_row[field] == ["active"]
-    assert review_import_row["source_review_row"][field] == ["active"]
+    assert recommendation_review_row[field] == [expected_status]
+    assert selected_import_row[field] == [expected_status]
+    assert review_import_row[field] == [expected_status]
+    assert review_import_row["source_review_row"][field] == [expected_status]
 
     recommendation_review_index =
       Enum.find_index(
@@ -329,7 +340,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
       update_in(
         artifact["cadence_import_manifest"],
         ["rows", Access.at(selected_import_index)],
-        &Map.put(&1, field, ["expired"])
+        &Map.put(&1, field, [if(expected_status == "active", do: "expired", else: "active")])
       )
 
     assert {:error, stale_selected_context_report} =

@@ -40,11 +40,17 @@ defmodule OrbitalDynamics.Schema.StrategyHandoffContracts do
     {"station_reservation_conflict_expiration_statuses",
      "station_reservation_conflict_expiration_statuses"}
   ]
+  @station_reservation_hold_expiration_context_field_pairs [
+    {"station_reservation_hold_expiration_statuses",
+     "station_reservation_hold_expiration_statuses"}
+  ]
   @strategy_recommendation_risk_expiration_context_specs [
     {@provider_reservation_request_expiration_context_field_pairs,
      :provider_reservation_request_context},
     {@station_reservation_conflict_expiration_context_field_pairs,
-     :station_reservation_conflict_context}
+     :station_reservation_conflict_context},
+    {@station_reservation_hold_expiration_context_field_pairs,
+     :station_reservation_hold_import_readiness_context}
   ]
   @strategy_recommendation_risk_expiration_context_field_pairs Enum.flat_map(
                                                                  @strategy_recommendation_risk_expiration_context_specs,
@@ -107,6 +113,7 @@ defmodule OrbitalDynamics.Schema.StrategyHandoffContracts do
                                                     "branch_station_reservation_expiration_statuses",
                                                     "provider_reservation_request_station_reservation_expiration_statuses",
                                                     "station_reservation_conflict_expiration_statuses",
+                                                    "station_reservation_hold_expiration_statuses",
                                                     "source_recommendation"
                                                   ],
                                                   &{&1, &1}

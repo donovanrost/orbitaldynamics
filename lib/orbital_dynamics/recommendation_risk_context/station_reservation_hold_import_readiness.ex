@@ -3,6 +3,7 @@ defmodule OrbitalDynamics.RecommendationRiskContext.StationReservationHoldImport
 
   @context_keys [
     "station_reservation_hold_import_statuses",
+    "station_reservation_hold_expiration_statuses",
     "station_reservation_hold_import_readiness_summary_models",
     "station_reservation_hold_import_readiness_sources",
     "station_reservation_hold_import_readiness_source_artifact_types",
@@ -49,6 +50,11 @@ defmodule OrbitalDynamics.RecommendationRiskContext.StationReservationHoldImport
         risk_context_values(
           station_reservation_hold_risks,
           "station_reservation_hold_import_status"
+        ),
+      "station_reservation_hold_expiration_statuses" =>
+        risk_context_values(
+          station_reservation_hold_risks,
+          "station_reservation_expiration_status"
         ),
       "station_reservation_hold_import_readiness_summary_models" =>
         risk_context_values(
