@@ -5,50 +5,50 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Preserve station-hold reservation-expiration risk context.
+Enforce source-exact station-calendar expiration context.
 
 Status:
 Verified; ready to publish.
 
 Selection evidence:
-- Station-hold recommendation risks already preserve policy-relevant expiration
-  classifications, but their explanation field boundary drops the scalar.
-- Review and both Cadence paths expose contact IDs grouped by expiration status
-  without a canonical family-scoped expiration-status list.
+- Recommendation review and both Cadence paths already emit the canonical
+  station-calendar expiration-status list from source risks.
+- Explicit schemas omit the list, and handoff validation does not reject a
+  missing or stale derived copy.
 
 Intended behavior:
-- Preserve the exact scalar classification in recommendation risk drivers and
-  its canonical unique list in review/direct/review-derived Cadence rows.
+- Declare the existing list in review/import schemas and require an exact
+  source-derived copy in review/direct/review-derived Cadence rows.
 - Reject missing or stale aggregate copies when source risks supply the field;
   retain paired legacy omission compatibility.
-- Keep active source evidence score-neutral and preserve all execution boundaries.
+- Preserve risk scoring, selection, and every execution boundary.
 
 Level 6 pillar advanced:
 Fleet-scale planning decisions and durable reproducible audit handoffs.
 
 Planned files:
-- station-hold pressure/recommendation risk context and handoff validation
-- review/import schemas, focused risk/handoff proofs, docs, exports, and ledger
+- strategy handoff validation plus review/import schemas
+- focused mutation/schema proofs, docs, exports, and ledger
 
 Verification:
-- Focused recommendation/handoff/schema/Cadence proofs: `23 passed`.
+- Focused handoff/schema/Cadence proofs: `22 passed`.
 - Contact-allocation family: `213 passed`.
 - Golden artifacts: `12 passed`.
 - Schema lint: `155 schemas, 0 errors, 0 warnings`.
-- Full suite: `3893 passed`.
+- Full suite: `3894 passed`.
 - General and manifest schemas regenerated; canonical V3 campaign remained
   byte-stable through the public runner.
 
 Review:
-- The station-hold explanation now retains the exact source classification, and
-  review/direct/review-derived Cadence rows carry its canonical unique list.
-- Shared mutation proofs reject missing/stale copies for all three reservation
-  risk families and preserve contact-scoped paired legacy omission.
-- A coherent active-hold fixture proves the additive audit field is neutral;
-  no score, selection, provider/Cadence effect, or authority boundary changed.
+- Review/direct/review-derived Cadence rows and the nested source-review copy now
+  require the exact source-derived station-calendar expiration list.
+- Identity-driven mutation proofs reject missing/stale copies across all four
+  expiration contexts while retaining exact-risk paired legacy omission.
+- Explicit schemas now declare the existing field; no planner behavior, adapter
+  effect, execution boundary, or authority surface changed.
 
 Last published slice:
-- `434153be` Preserve station conflict expiration context (`3892 passed`).
+- `02628dce` Preserve station hold expiration context (`3893 passed`).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions while preserving explicit
@@ -59,7 +59,7 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-Assess source-exact station-calendar expiration-context validation.
+Assess source-exact station-calendar reservation-deadline validation.
 
 Blocked:
 None.

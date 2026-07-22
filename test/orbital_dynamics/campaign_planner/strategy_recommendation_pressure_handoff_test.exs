@@ -230,7 +230,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
     assert_risk_expiration_context_contract(
       StrategyRecommendationPressureEventsFixture.artifact(),
       "provider_reservation_request_station_reservation_expiration_statuses",
-      "dl_provider_review",
+      {"contact_id", "dl_provider_review"},
       "active"
     )
   end
@@ -239,7 +239,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
     assert_risk_expiration_context_contract(
       StrategyRecommendationPressureEventsFixture.artifact(),
       "station_reservation_conflict_expiration_statuses",
-      "dl_reservation_conflict",
+      {"contact_id", "dl_reservation_conflict"},
       "active"
     )
   end
@@ -248,12 +248,26 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
     assert_risk_expiration_context_contract(
       StrategyRecommendationPressureEventsFixture.artifact(),
       "station_reservation_hold_expiration_statuses",
-      "dl_hold_import_review",
+      {"contact_id", "dl_hold_import_review"},
       "active"
     )
   end
 
-  defp assert_risk_expiration_context_contract(artifact, field, contact_id, expected_status) do
+  test "station calendar expiration risk context remains source exact across handoffs" do
+    assert_risk_expiration_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "station_calendar_pressure_station_reservation_expiration_statuses",
+      {"station_reservation_id", "reservation_calendar_selected"},
+      "active"
+    )
+  end
+
+  defp assert_risk_expiration_context_contract(
+         artifact,
+         field,
+         {identity_field, identity_value},
+         expected_status
+       ) do
     recommendation_review_row =
       Enum.find(
         artifact["operator_review_package"]["rows"],
@@ -308,21 +322,21 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
           row
           |> Map.delete(field)
           |> update_in(["source_recommendation", "risks_remaining"], fn risks ->
-            Enum.map(risks, fn
-              %{"contact_id" => ^contact_id} = risk ->
+            Enum.map(risks, fn risk ->
+              if risk[identity_field] == identity_value do
                 Map.delete(risk, "station_reservation_expiration_status")
-
-              other ->
-                other
+              else
+                risk
+              end
             end)
           end)
           |> update_in(["source_recommendation", "explanation"], fn explanation ->
-            Enum.map(explanation, fn
-              %{"contact_id" => ^contact_id} = risk_driver ->
-                Map.delete(risk_driver, "station_reservation_expiration_status")
-
-              other ->
-                other
+            Enum.map(explanation, fn row ->
+              if row[identity_field] == identity_value do
+                Map.delete(row, "station_reservation_expiration_status")
+              else
+                row
+              end
             end)
           end)
         end

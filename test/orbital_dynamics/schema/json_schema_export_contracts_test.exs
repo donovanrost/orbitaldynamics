@@ -48,7 +48,8 @@ defmodule OrbitalDynamics.Schema.JsonSchemaExportContractsTest do
     aggregate_fields = [
       "provider_reservation_request_station_reservation_expiration_statuses",
       "station_reservation_conflict_expiration_statuses",
-      "station_reservation_hold_expiration_statuses"
+      "station_reservation_hold_expiration_statuses",
+      "station_calendar_pressure_station_reservation_expiration_statuses"
     ]
 
     assert get_in(strategy_schema, [
