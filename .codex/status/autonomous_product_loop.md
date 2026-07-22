@@ -5,39 +5,38 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Correlate contention invalid-input identities.
+Correlate contention required-action counts.
 
 Status:
 Verified; ready for mechanical publish.
 
 Selection evidence:
-- The raw contention contract requires invalid-input counts and ID lists to
-  match invalid-input rows.
-- Source aggregation, flattened preserved fields, and replay currently retain
-  compact invalid-input IDs independently of the scalar count.
-- A preserved zero-count or mismatched list can therefore create identity and
-  branch pressure that raw report validation would reject.
+- Raw contention producers derive `review_contact_contention` once per conflict
+  group and `review_invalid_contact_contention_input` once per invalid row.
+- Preserved compact summaries currently replay arbitrary required-action keys
+  and counts without relating them to conflict/invalid scalar evidence.
+- Unknown, zero-evidence, or over-counted actions can therefore create branch
+  review pressure after raw rows have been removed.
 
 Intended behavior:
-- Retain invalid-input IDs per report only when a positive scalar count matches
-  the normalized stable-ID list length.
-- Reapply the count/list correlation for flattened preserved fields and replay.
-- Preserve a mismatched positive scalar count as conservative pressure while
-  preventing uncorrelated IDs from driving identity-specific pressure.
+- Retain only the two canonical contention review actions when their positive
+  counts do not exceed the corresponding conflict or invalid-input scalar.
+- Apply correlation per report and again at flattened-source/replay boundaries.
+- Keep mismatched scalar conflict/invalid counts as pressure while preventing
+  uncorrelated action keys from creating review-action pressure.
 
 Level 6 pillar advanced:
 Fleet-scale planning decisions and durable reproducible audit handoffs.
 
 Planned files:
-- contention invalid-input aggregation, flattened source fields, replay, and
+- contention required-action aggregation, flattened source fields, replay, and
   compact-summary schema correlation
-- zero-count and mismatched-count invalid-ID challenge tests
+- unknown-action and mismatched-action-count challenge tests
 - contention artifact documentation and autonomous-loop ledger
 
 Verification:
-- Contact-contention replay focus -> `10 passed`.
+- Contact-contention replay and candidate-source focus -> `15 passed`.
 - CandidateRefresh compact-summary schema focus -> `4 passed`.
-- Broader source-report summary proof -> `1 passed`.
 - `mix test test/orbital_dynamics/**/*contact_contention*.exs --timeout 120000`
   -> `103 passed`.
 - `mix orbital_dynamics.schema.lint --all` -> `155 passed`, no warnings.
@@ -45,16 +44,16 @@ Verification:
 - `mix test --timeout 120000` -> `3806 passed`.
 
 Review:
-- Raw and compact sources normalize IDs before exact positive count matching;
-  raw numeric count shapes and compact integer shapes follow the same rule.
-- Flattened and replay boundaries reapply correlation, while a mismatched
-  positive scalar still supplies branch pressure without identity authority.
-- Schema correlation is scoped to `contact_contention_report.v1`, uses unique
-  normalized ID count, and does not constrain adjacent report families. No
-  unresolved findings.
+- Correlation is applied per raw report before aggregation and again at compact
+  flattened/replay boundaries; scalar conflict/invalid evidence is unchanged.
+- A heterogeneous four-report campaign fixture confirmed canonical action
+  counts may be partial, so they are bounded by rather than forced equal to the
+  matching scalar; partner-specific keys are not granted compact authority.
+- Schema/runtime both reject unknown, zero-evidence, non-positive, and
+  over-counted actions. No unresolved findings.
 
 Last published slice:
-- `600958e0` Correlate contention direction routing (`3806 passed`).
+- `177d5805` Correlate contention invalid identities (`3806 passed`).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions while preserving explicit
@@ -65,8 +64,8 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-After publish, audit contention required-action count totals and action-key
-authority for preserved compact summaries.
+After publish, audit contention resource-scope count totals for preserved
+compact summaries.
 
 Blocked:
 None.

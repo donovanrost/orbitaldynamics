@@ -8,6 +8,8 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.ContactContention.Summa
 
   alias OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactContention.CountFields.InvalidInputs
 
+  alias OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactContention.CountFields.CountMaps.RequiredOperatorActions
+
   def summary(contention_summary, summary_source, replay_scope) do
     conflict_group_count = summary_integer(contention_summary, "conflict_group_count")
 
@@ -30,7 +32,12 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.ContactContention.Summa
       |> Map.get("contact_contention_contact_id_counts")
       |> Correlation.map_or_empty()
 
-    required_action_counts = Map.get(contention_summary, "required_operator_action_counts", %{})
+    required_action_counts =
+      RequiredOperatorActions.correlated_counts(
+        conflict_group_count,
+        invalid_contact_input_count,
+        Map.get(contention_summary, "required_operator_action_counts")
+      ) || %{}
 
     direction_counts =
       contention_summary |> Map.get("direction_counts") |> Correlation.map_or_empty()

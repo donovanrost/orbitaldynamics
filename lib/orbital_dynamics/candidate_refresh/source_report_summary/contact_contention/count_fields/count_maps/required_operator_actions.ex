@@ -16,15 +16,42 @@ defmodule OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactContention
     |> merge_count_maps()
   end
 
-  defp count_map(report) do
+  def correlated_counts(conflict_group_count, invalid_contact_input_count, counts)
+      when is_map(counts) do
     [
-      ConflictGroups.required_operator_action_counts(report),
-      InvalidInputs.required_operator_action_counts(report)
+      {"review_contact_contention", conflict_group_count},
+      {"review_invalid_contact_contention_input", invalid_contact_input_count}
     ]
-    |> merge_count_maps()
-    |> empty_counts_if_nil()
+    |> Enum.reduce(%{}, fn {action, expected_count}, correlated ->
+      count = Map.get(counts, action)
+
+      if is_integer(count) and count > 0 and is_number(expected_count) and expected_count > 0 and
+           count <= expected_count do
+        Map.put(correlated, action, count)
+      else
+        correlated
+      end
+    end)
+    |> non_empty_counts()
+  end
+
+  def correlated_counts(_conflict_group_count, _invalid_contact_input_count, _counts), do: nil
+
+  defp count_map(report) do
+    counts =
+      [
+        ConflictGroups.required_operator_action_counts(report),
+        InvalidInputs.required_operator_action_counts(report)
+      ]
+      |> merge_count_maps()
+      |> empty_counts_if_nil()
+
+    correlated_counts(ConflictGroups.count(report), InvalidInputs.count(report), counts)
   end
 
   defp empty_counts_if_nil(nil), do: %{}
   defp empty_counts_if_nil(counts), do: counts
+
+  defp non_empty_counts(counts) when map_size(counts) == 0, do: nil
+  defp non_empty_counts(counts), do: counts
 end

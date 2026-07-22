@@ -386,7 +386,10 @@ defmodule OrbitalDynamics.CandidateRefresh.ContactContentionReplaySummaryTest do
             "direction_counts" => %{"downlink" => 1},
             "contact_ids_by_direction" => %{"downlink" => ["contention_contact_a"]},
             "direction_routing" => direction_routing,
-            "required_operator_action_counts" => %{"review_contact_contention" => 1}
+            "required_operator_action_counts" => %{
+              "review_contact_contention" => 1,
+              "stale_action" => 99
+            }
           }
         }
       }
@@ -426,15 +429,17 @@ defmodule OrbitalDynamics.CandidateRefresh.ContactContentionReplaySummaryTest do
     assert source_summary["source_report_contact_contention_direction_routing"] ==
              direction_routing
 
-    assert source_summary["source_report_contact_contention_required_operator_action_counts"] ==
-             %{"review_contact_contention" => 1}
+    refute Map.has_key?(
+             source_summary,
+             "source_report_contact_contention_required_operator_action_counts"
+           )
 
     summary = CandidateRefresh.contact_contention_replay_summary(artifact)
 
     assert summary["branch_local_contact_contention_pressure"]
     refute summary["branch_local_contact_contention_conflict_pressure"]
     refute summary["branch_local_invalid_contact_input_pressure"]
-    assert summary["branch_local_contact_contention_review_pressure"]
+    refute summary["branch_local_contact_contention_review_pressure"]
   end
 
   test "replays contact contention source reports from review and import containers" do

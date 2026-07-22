@@ -151,8 +151,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyContactContentionSourceReportT
              },
              "source_report_contact_contention_required_operator_action_counts" => %{
                "review_contact_contention" => 3,
-               "review_invalid_contact_contention_input" => 1,
-               "review_partner_contact_contention" => 1
+               "review_invalid_contact_contention_input" => 1
              }
            } = candidate_source["candidate_refresh_request_source_report_summary"]
 
@@ -213,8 +212,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyContactContentionSourceReportT
              },
              "required_operator_action_counts" => %{
                "review_contact_contention" => 3,
-               "review_invalid_contact_contention_input" => 1,
-               "review_partner_contact_contention" => 1
+               "review_invalid_contact_contention_input" => 1
              },
              "trust_boundary_status" => "declared",
              "trust_boundaries" => [

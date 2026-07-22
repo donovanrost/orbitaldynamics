@@ -10,7 +10,11 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.ContactContention.Sourc
 
   alias OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactContention.CountFields.InvalidInputs
 
+  alias OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactContention.CountFields.CountMaps.RequiredOperatorActions
+
   def source_report_fields(source_reports) do
+    conflict_group_count = source_report_family_count(source_reports, "conflict_group_count")
+
     invalid_contact_input_count =
       source_report_family_count(source_reports, "invalid_contact_input_count")
 
@@ -18,6 +22,13 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.ContactContention.Sourc
       InvalidInputs.correlated_ids(
         invalid_contact_input_count,
         source_report_family_merge_string_lists(source_reports, "invalid_contact_input_ids")
+      )
+
+    required_operator_action_counts =
+      RequiredOperatorActions.correlated_counts(
+        conflict_group_count,
+        invalid_contact_input_count,
+        source_report_family_merge_count_maps(source_reports, "required_operator_action_counts")
       )
 
     direction_counts =
@@ -45,8 +56,7 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.ContactContention.Sourc
         source_report_family_identity_count(source_reports, "row_count"),
       "source_report_contact_contention_paths" =>
         source_report_family_identity_field(source_reports, "paths"),
-      "source_report_contact_contention_conflict_group_count" =>
-        source_report_family_count(source_reports, "conflict_group_count"),
+      "source_report_contact_contention_conflict_group_count" => conflict_group_count,
       "source_report_contact_contention_invalid_contact_input_count" =>
         invalid_contact_input_count,
       "source_report_contact_contention_resource_scope_counts" =>
@@ -63,7 +73,7 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.ContactContention.Sourc
         RouteMap.field(Correlation.positive_counts(direction_counts), contact_ids_by_direction),
       "source_report_contact_contention_invalid_contact_input_ids" => invalid_contact_input_ids,
       "source_report_contact_contention_required_operator_action_counts" =>
-        source_report_family_merge_count_maps(source_reports, "required_operator_action_counts")
+        required_operator_action_counts
     }
   end
 

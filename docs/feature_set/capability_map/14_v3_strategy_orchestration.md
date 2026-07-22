@@ -1187,6 +1187,10 @@ Preserved invalid-input IDs likewise require a matching positive invalid-input
 count at source aggregation, flattened-source, and replay boundaries. Compact
 CandidateRefresh schema validation rejects count/list mismatches, while runtime
 replay retains a mismatched positive count as pressure without carrying its IDs.
+Compact contention required-action maps are limited to canonical conflict and
+invalid-input review actions whose positive counts do not exceed the matching
+scalar evidence. Unknown or over-counted action keys are rejected by compact
+schema validation and cannot create replay review-action pressure.
 Branch-generated CandidateRefresh requests preserve direct mission-state and
 result-artifact-wrapped raw `source_contact_contention_report` /
 `contact_contention_report` inputs with wrapper-qualified request paths and

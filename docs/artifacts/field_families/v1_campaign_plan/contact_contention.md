@@ -203,6 +203,12 @@ CandidateRefresh reapplies that correlation at flattened-source and replay
 boundaries, and its compact-summary contract reports mismatches during schema
 validation. A mismatched positive scalar count remains conservative pressure
 without authorizing the uncorrelated IDs.
+Required-action maps from compact summaries retain only the canonical
+`review_contact_contention` and `review_invalid_contact_contention_input`
+actions, with positive counts no greater than their conflict-group or
+invalid-input scalar evidence. CandidateRefresh applies the rule per report and
+again at flattened-source and replay boundaries; unknown, zero-evidence, and
+over-counted actions cannot create review-action pressure.
 Its exported JSON Schema includes the nested row and `timeline_identity` field
 shape used by executable validation. Rows also carry artifact-only operational
 kind, required operator action, operator-action reason, execution boundary,

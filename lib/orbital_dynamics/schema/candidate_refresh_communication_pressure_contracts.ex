@@ -17,6 +17,7 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshCommunicationPressureContracts 
   def validate_contact_contention(issues, path, summary) do
     issues
     |> validate_contact_contention_invalid_inputs(path, summary)
+    |> validate_contact_contention_required_actions(path, summary)
     |> validate_count_maps(path, summary, [
       "contact_contention_ground_station_counts",
       "contact_contention_contact_id_counts"
@@ -108,4 +109,50 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshCommunicationPressureContracts 
   end
 
   defp validate_contact_contention_invalid_inputs(issues, _path, _summary), do: issues
+
+  defp validate_contact_contention_required_actions(
+         issues,
+         path,
+         %{
+           "contract" => "contact_contention_report.v1"
+         } = summary
+       ) do
+    counts = Map.get(summary, "required_operator_action_counts")
+
+    issues =
+      validate_non_negative_integer_count_map(
+        issues,
+        path <> ".required_operator_action_counts",
+        counts
+      )
+
+    if is_map(counts) do
+      expected_counts = %{
+        "review_contact_contention" => Map.get(summary, "conflict_group_count"),
+        "review_invalid_contact_contention_input" =>
+          Map.get(summary, "invalid_contact_input_count")
+      }
+
+      Enum.reduce(counts, issues, fn {action, count}, acc ->
+        expected_count = Map.get(expected_counts, action)
+
+        if is_integer(count) and count > 0 and is_integer(expected_count) and
+             expected_count > 0 and count <= expected_count do
+          acc
+        else
+          [
+            error(
+              path <> ".required_operator_action_counts.#{action}",
+              "must be a canonical contention action whose count does not exceed its scalar evidence"
+            )
+            | acc
+          ]
+        end
+      end)
+    else
+      issues
+    end
+  end
+
+  defp validate_contact_contention_required_actions(issues, _path, _summary), do: issues
 end
