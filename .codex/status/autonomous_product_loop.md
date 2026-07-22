@@ -5,34 +5,34 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Normalize contention direction-count pressure.
+Canonicalize contention direction identities.
 
 Status:
 Verified; ready for mechanical publish.
 
 Selection evidence:
-- A conflict group can legitimately produce several contact-direction pairs,
-  so conflict-group count is not a valid upper bound for direction totals.
-- Raw fallback and preserved compact direction maps can retain zero or negative
-  counts even though routes already use only positive integer counts.
-- Replay pressure tests map presence, so a non-positive-only direction map can
-  independently create branch pressure without positive direction evidence.
+- Raw conflict groups normalize provider aliases such as `Down Link` and
+  `s-band command` to canonical `downlink` and `command` direction keys.
+- Preserved compact count/list maps currently stringify keys without applying
+  that normalizer, so equivalent aliases can split counts and routes.
+- Compact JSON Schema permits arbitrary count-map property names and does not
+  enforce canonical direction identity.
 
 Intended behavior:
-- Retain only positive integer direction counts at raw aggregation,
-  flattened-source, and replay boundaries.
-- Keep legitimate multi-contact and multi-direction totals independent of the
-  conflict-group scalar while eliminating non-positive-only pressure.
-- Align compact-summary schema checks, routes, and branch pressure with the same
-  positive direction evidence.
+- Normalize direction count and contact-list keys through the shared provider
+  alias rules at raw aggregation, flattened-source, and replay boundaries.
+- Merge canonical alias collisions before rebuilding correlated contact lists
+  and routes.
+- Require canonical direction keys in compact-summary schema validation while
+  preserving stable custom direction tokens.
 
 Level 6 pillar advanced:
 Fleet-scale planning decisions and durable reproducible audit handoffs.
 
 Planned files:
-- contention direction aggregation, flattened source fields, replay, and
-  compact-summary schema validation
-- non-positive fallback and compact-direction challenge tests
+- contention direction correlation, flattened source fields, replay, and
+  compact-summary schema identity validation
+- provider-alias collision and noncanonical compact-direction challenge tests
 - contention artifact documentation and autonomous-loop ledger
 
 Verification:
@@ -46,16 +46,16 @@ Verification:
 - `mix test --timeout 120000` -> `3807 passed`.
 
 Review:
-- Non-positive fallback entries are discarded before provider-alias aggregation,
-  so they cannot cancel legitimate positive counts.
-- Raw aggregation and flattened/replay boundaries retain only positive integer
-  counts; compact schema validation rejects zero and negative direction entries.
-- Valid multi-contact/direction totals remain independent of conflict-group
-  count, and absent direction evidence remains absent to preserve golden artifact
-  identity. No unresolved findings.
+- Direction count keys and contact-list keys use one shared canonicalizer before
+  contact-count correlation and route rebuilding; alias collisions merge counts
+  and de-duplicate sorted contact IDs.
+- Stable custom direction tokens survive while malformed and generic sentinel
+  keys cannot create count, list, or route pressure.
+- Compact schema validation requires canonical stable count keys, and the golden
+  repair artifact retains its existing identity. No unresolved findings.
 
 Last published slice:
-- `c7ca9fa3` Correlate contention contact identities (`3806 passed`).
+- `0cabe82c` Normalize contention direction pressure (`3807 passed`).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions while preserving explicit
@@ -66,7 +66,7 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-After publish, audit contention direction-key identity normalization for
+After publish, audit contention direction-route count/list cardinality for
 preserved compact summaries.
 
 Blocked:

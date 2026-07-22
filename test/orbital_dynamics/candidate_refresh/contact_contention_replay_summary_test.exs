@@ -555,16 +555,21 @@ defmodule OrbitalDynamics.CandidateRefresh.ContactContentionReplaySummaryTest do
       "contact_contention_contact_id_counts" => %{
         "orphan_contact" => 1,
         "real_contact" => 1,
+        "real_contact_backup" => 1,
         "zero_contact" => 0
       },
       "direction_counts" => %{
-        "downlink" => 1,
+        "bad direction ?" => 1,
+        "Down Link" => 1,
+        "down" => 1,
         "malformed_direction" => 1,
         "negative_direction" => -1,
         "zero_direction" => 0
       },
       "contact_ids_by_direction" => %{
-        "downlink" => ["real_contact", "substituted_contact", "zero_contact"],
+        "bad direction ?" => ["real_contact"],
+        "DOWN-LINK" => ["real_contact", "substituted_contact", "zero_contact"],
+        "down" => ["real_contact_backup"],
         "malformed_direction" => %{"unexpected" => "shape"},
         "missing_direction" => ["real_contact"],
         "zero_direction" => ["real_contact"]
@@ -587,40 +592,48 @@ defmodule OrbitalDynamics.CandidateRefresh.ContactContentionReplaySummaryTest do
     source_summary = CandidateRefresh.source_report_summary(artifact)
 
     assert source_summary["source_report_contact_contention_contact_id_counts"] == %{
-             "real_contact" => 1
+             "real_contact" => 1,
+             "real_contact_backup" => 1
            }
 
     assert source_summary["source_report_contact_contention_direction_counts"] == %{
-             "downlink" => 1,
+             "downlink" => 2,
              "malformed_direction" => 1
            }
 
     assert source_summary["source_report_contact_contention_contact_ids_by_direction"] == %{
-             "downlink" => ["real_contact"]
+             "downlink" => ["real_contact", "real_contact_backup"]
            }
 
     assert source_summary["source_report_contact_contention_direction_routing"] == %{
-             "downlink" => %{"contact_count" => 1, "contact_ids" => ["real_contact"]},
+             "downlink" => %{
+               "contact_count" => 2,
+               "contact_ids" => ["real_contact", "real_contact_backup"]
+             },
              "malformed_direction" => %{"contact_count" => 1, "contact_ids" => []}
            }
 
     replay_summary = CandidateRefresh.contact_contention_replay_summary(artifact)
 
     assert replay_summary["contact_contention_contact_id_counts"] == %{
-             "real_contact" => 1
+             "real_contact" => 1,
+             "real_contact_backup" => 1
            }
 
     assert replay_summary["direction_counts"] == %{
-             "downlink" => 1,
+             "downlink" => 2,
              "malformed_direction" => 1
            }
 
     assert replay_summary["contact_ids_by_direction"] == %{
-             "downlink" => ["real_contact"]
+             "downlink" => ["real_contact", "real_contact_backup"]
            }
 
     assert replay_summary["direction_routing"] == %{
-             "downlink" => %{"contact_count" => 1, "contact_ids" => ["real_contact"]},
+             "downlink" => %{
+               "contact_count" => 2,
+               "contact_ids" => ["real_contact", "real_contact_backup"]
+             },
              "malformed_direction" => %{"contact_count" => 1, "contact_ids" => []}
            }
 

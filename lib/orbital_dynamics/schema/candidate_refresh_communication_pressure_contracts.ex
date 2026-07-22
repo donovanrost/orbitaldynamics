@@ -2,6 +2,9 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshCommunicationPressureContracts 
   @moduledoc false
 
   alias OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactContention.CountFields.CountMaps.ResourceScopes
+
+  alias OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactContention.DirectionRouting.ConflictGroupDirections.ContactPairs
+
   alias OrbitalDynamics.Schema.StableIdValidation
 
   import OrbitalDynamics.Schema.PrimitiveValidation,
@@ -286,13 +289,16 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshCommunicationPressureContracts 
        )
        when is_map(counts) do
     Enum.reduce(counts, issues, fn {direction, count}, acc ->
-      if is_integer(count) and count > 0 do
+      canonical_direction = ContactPairs.normalize_direction(direction)
+
+      if is_integer(count) and count > 0 and StableIdValidation.valid?(direction) and
+           canonical_direction == direction and direction not in ["mixed", "contact"] do
         acc
       else
         [
           error(
             path <> ".direction_counts.#{direction}",
-            "must be a positive integer direction count"
+            "must use a canonical stable direction key with a positive integer count"
           )
           | acc
         ]

@@ -226,6 +226,11 @@ lists are then rebuilt from those counts. Raw direction counts remain pressure
 when uncorrelated contact identities are removed, but zero and negative
 direction entries are discarded at raw aggregation and compact replay
 boundaries and cannot create pressure through map presence alone.
+Direction count and contact-list keys use the same canonical provider alias
+normalization at raw aggregation and compact replay boundaries. Equivalent keys
+such as `Down Link`, `down`, and `downlink` merge into `downlink` before contact
+correlation and route rebuilding; compact schema validation requires canonical
+stable direction keys while preserving canonical custom direction tokens.
 Its exported JSON Schema includes the nested row and `timeline_identity` field
 shape used by executable validation. Rows also carry artifact-only operational
 kind, required operator action, operator-action reason, execution boundary,

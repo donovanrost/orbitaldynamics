@@ -2513,6 +2513,27 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshResourceProvenanceContractsTest
                  "$.provenance.source_reports.contact_contention_report.direction_counts.downlink")
            )
 
+    noncanonical_contact_contention_direction =
+      update_in(
+        artifact_with_contact_contention_summary,
+        [
+          "provenance",
+          "source_reports",
+          "contact_contention_report",
+          "direction_counts"
+        ],
+        fn counts -> counts |> Map.delete("downlink") |> Map.put("Down Link", 2) end
+      )
+
+    assert {:error, noncanonical_contact_contention_direction_report} =
+             Schema.validate_artifact(noncanonical_contact_contention_direction)
+
+    assert Enum.any?(
+             noncanonical_contact_contention_direction_report["errors"],
+             &(&1["path"] ==
+                 "$.provenance.source_reports.contact_contention_report.direction_counts.Down Link")
+           )
+
     invalid_contact_contention_input_id =
       put_in(
         artifact_with_contact_contention_summary,

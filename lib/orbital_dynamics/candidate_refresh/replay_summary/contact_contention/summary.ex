@@ -53,7 +53,7 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.ContactContention.Summa
     direction_counts =
       contention_summary
       |> Map.get("direction_counts")
-      |> Correlation.positive_counts()
+      |> Correlation.direction_counts()
 
     raw_contact_ids_by_direction = Map.get(contention_summary, "contact_ids_by_direction")
 

@@ -1207,6 +1207,11 @@ pressure when uncorrelated contact identities are removed. Zero and negative
 direction entries are discarded at raw aggregation and compact replay
 boundaries, so map presence without positive direction evidence cannot create
 branch pressure.
+Direction count and contact-list keys are canonicalized through the shared
+provider alias rules before correlation. Equivalent compact keys such as
+`Down Link`, `down`, and `downlink` merge into `downlink`; compact schema
+validation requires canonical stable direction keys while allowing canonical
+custom direction tokens.
 Branch-generated CandidateRefresh requests preserve direct mission-state and
 result-artifact-wrapped raw `source_contact_contention_report` /
 `contact_contention_report` inputs with wrapper-qualified request paths and

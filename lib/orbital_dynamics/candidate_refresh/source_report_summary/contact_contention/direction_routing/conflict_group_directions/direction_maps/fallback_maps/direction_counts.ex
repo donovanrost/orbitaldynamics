@@ -2,6 +2,7 @@ defmodule OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactContention
   @moduledoc false
 
   alias OrbitalDynamics.CandidateRefresh.SourceReportSummary.Common.NumericValue
+  alias OrbitalDynamics.CandidateRefresh.SourceReportSummary.Common.StableIds
 
   alias OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactContention.DirectionRouting.ConflictGroupDirections.ContactPairs
 
@@ -15,12 +16,16 @@ defmodule OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactContention
         {_direction, nil} ->
           acc
 
-        {direction, count} ->
+        {direction, count} when direction not in ["mixed", "contact"] ->
+          direction = StableIds.stable_id_or_nil(direction)
           count = trunc(count)
 
-          if count > 0,
+          if direction && count > 0,
             do: Map.update(acc, direction, count, &(&1 + count)),
             else: acc
+
+        {_direction, _count} ->
+          acc
       end
     end)
     |> non_empty_map()
