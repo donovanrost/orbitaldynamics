@@ -141,7 +141,10 @@ Current implementation:
   The generic summary and every specialized quality-gate summary also derive
   both source report IDs from their declared source artifact type and ID, so a
   well-formed but stale quality-gate or readiness report ID cannot be relabeled
-  as current summary lineage.
+  as current summary lineage. CampaignPlanner requires that exact lineage before
+  any of those summaries can create pressure branches or risk terms, while it
+  still recomputes pressure from row/status maps when only redundant aggregate
+  arrays are stale.
 - `OperationalReadiness.quality_gate_unavailable_resource_summary/2` and
   `OrbitalDynamics.operational_quality_gate_unavailable_resource_summary/2`
   publish the validated

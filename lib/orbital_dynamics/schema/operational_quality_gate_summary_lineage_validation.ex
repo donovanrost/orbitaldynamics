@@ -5,6 +5,23 @@ defmodule OrbitalDynamics.Schema.OperationalQualityGateSummaryLineageValidation 
 
   import OrbitalDynamics.Schema.PrimitiveValidation, only: [expect_field_equals: 6]
 
+  def valid?(summary) when is_map(summary) do
+    case {summary["source_artifact_type"], summary["source_artifact_id"]} do
+      {source_artifact_type, source_artifact_id}
+      when is_binary(source_artifact_type) and source_artifact_type != "" and
+             is_binary(source_artifact_id) and source_artifact_id != "" ->
+        summary["source_quality_gate_report_id"] ==
+          SourceIdentity.quality_gate_report_id(source_artifact_type, source_artifact_id) and
+          summary["source_readiness_report_id"] ==
+            SourceIdentity.readiness_report_id(source_artifact_type, source_artifact_id)
+
+      _source_identity ->
+        false
+    end
+  end
+
+  def valid?(_summary), do: false
+
   def validate(issues, path, summary) do
     case {summary["source_artifact_type"], summary["source_artifact_id"]} do
       {source_artifact_type, source_artifact_id}

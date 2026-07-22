@@ -5,41 +5,40 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Reconcile quality-gate summary lineage at the candidate-selection boundary.
+Gate CampaignPlanner quality-summary pressure by canonical lineage.
 
 Status:
 Complete; ready to publish.
 
 Selection evidence:
-- All five `operational_quality_gate_*summary.v1` runtime contracts required
-  stable source IDs but did not derive them from the source artifact identity.
-- CandidateRefresh converted unavailable-resource summaries into internal
-  reports and authorized contact rejection from schema/model labels without
-  validating the original summary.
+- CampaignPlanner ingested all five `operational_quality_gate_*summary.v1`
+  families and derived pressure rows without checking source report lineage.
+- A summary rejected by its standalone contract for stale source quality-gate
+  or readiness IDs could still create strategy branches and risk terms.
+- Full schema gating would incorrectly remove intentional row-derived recovery
+  from stale redundant aggregate arrays.
 
 Implemented behavior:
-- One shared validator now derives source quality-gate and readiness report IDs
-  for the generic summary and all four specialized summary contracts.
-- Unavailable-resource replay normalization preserves the original summary's
-  standalone validation status; only a passing summary may filter candidates.
-- Invalid summaries remain observable in replay provenance but cannot reject an
-  explicitly scoped contact.
-- Curated validation and CampaignPlanner fixtures now use producer-canonical
-  summary lineage rather than pre-contract shorthand IDs.
+- The shared quality-summary lineage helper now exposes an exact predicate using
+  the same producer `SourceIdentity` derivations as runtime validation.
+- All five quality-summary families must pass that predicate before
+  CampaignPlanner can derive pressure rows, branches, or downstream risk terms.
+- A stale unavailable-resource summary produces no matching pressure branch.
+- Canonically identified import-readiness summaries still recompute pressure
+  from authoritative row/status maps when redundant top-level arrays are stale.
 
 Level 6 pillar advanced:
-Durable schema-versioned artifacts and reproducible audit handoffs.
+Fleet-scale planning decisions and durable reproducible audit handoffs.
 
 Files changed:
-- shared quality-gate summary lineage validator and five contract validators
-- unavailable-resource replay normalization and candidate filter
-- focused readiness, CandidateRefresh, planner, and validation fixtures/tests
-- operational-readiness and reproducibility documentation
+- shared quality-gate summary lineage helper
+- CampaignPlanner quality-summary pressure-row dispatcher
+- focused strategy pressure tests
+- planning/readiness and reproducibility documentation
 
 Verification:
-- Focused readiness/unavailable-resource tests: `39 passed`.
-- Expanded quality-gate/schema-export replay set: `69 passed`.
-- Affected planner/validation/reference/readiness set: `56 passed`.
+- Focused strategy summary and row-context pressure tests: `17 passed`.
+- Related CampaignPlanner quality/readiness/repair tests: `24 passed`.
 - Full checked-artifact lint: `155/155 passed`, zero warnings.
 - Full suite with a 120-second per-test ceiling: `3786 passed`.
 - `mix format --check-formatted`, `mix compile --warnings-as-errors`, and
@@ -47,14 +46,15 @@ Verification:
 - No public artifact shape or checked-in schema export changed.
 
 Review:
-- The first full run exposed seven stale test fixtures at the new identity
-  boundary; canonicalizing their IDs restored all intended fixture behavior.
-- Candidate selection consumes only the internal validation status; replay
-  summaries and public CandidateRefresh artifact shapes remain unchanged.
-- Shared derivation reuses producer `SourceIdentity` functions to avoid drift.
+- The gate is limited to the five compact summary contracts; raw quality-gate
+  report row recovery is unchanged.
+- Exact lineage is the authorization boundary, while row/status maps remain the
+  authoritative pressure source for canonically identified summaries.
+- Mission-state, prior-plan, and wrapped-result inputs converge on the same
+  dispatcher, so the identity rule applies consistently to every input path.
 
 Last published slice:
-- `1b9c3ad0` Reconcile quality gate row identity (`3784 passed`).
+- `32dda46c` Reconcile quality gate summary lineage (`3786 passed`).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions while preserving explicit
@@ -65,8 +65,8 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-Audit CampaignPlanner quality-gate summary branch derivation for the same
-standalone-validation boundary and one concrete stale-lineage challenge.
+Audit another planner-affecting compact handoff family for exact source identity
+or selected-candidate scope before adding new station/allocation effects.
 
 Blocked:
 None.

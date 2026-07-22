@@ -833,6 +833,43 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyReadinessQualityGatePressureTe
 
     assert {:ok, %{"schema_contract" => "campaign_strategy.v3", "status" => "pass"}} =
              Schema.validate_artifact(artifact)
+
+    stale_lineage_summary =
+      Map.put(
+        direct_summary,
+        "source_quality_gate_report_id",
+        "quality_gate:contact_allocation_report.v1:stale_resource_projection"
+      )
+
+    assert {:error, %{"errors" => stale_lineage_errors}} =
+             Schema.validate_artifact(stale_lineage_summary)
+
+    assert Enum.any?(
+             stale_lineage_errors,
+             &(&1["path"] == "$.source_quality_gate_report_id" and
+                 &1["message"] == "must match source artifact identity")
+           )
+
+    stale_lineage_artifact =
+      strategy(base_plan(%{}),
+        mission_state:
+          mission_state_with_refresh_inputs()
+          |> Map.put(
+            "source_operational_quality_gate_unavailable_resource_summary",
+            stale_lineage_summary
+          ),
+        derive_branches?: true,
+        branches: [%{id: "baseline"}],
+        current_epoch_s: 0.0
+      )
+
+    refute Enum.any?(stale_lineage_artifact["branches"], fn branch ->
+             Enum.any?(
+               branch["events"] || [],
+               &(&1["type"] == "quality_gate_pressure" and
+                   &1["source_artifact_id"] == "direct_resource_projection")
+             )
+           end)
   end
 
   test "strategy derives branch refresh from mission-state quality gate operator training summaries" do

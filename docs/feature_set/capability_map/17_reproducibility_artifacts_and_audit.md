@@ -96,7 +96,9 @@ work, a **partial** executable-schema track, and **near-term** / **later** /
   gate IDs, row IDs, and non-passed rows without approving or importing work.
   Runtime validation derives the source quality-gate and readiness report IDs
   from the declared source artifact identity for this summary and all four
-  specialized quality-gate summaries.
+  specialized quality-gate summaries. CampaignPlanner checks that exact lineage
+  before deriving summary-backed pressure branches and risk terms, while
+  preserving row-derived recovery from stale redundant aggregate arrays.
 - Derived operator-review packages and Cadence import manifests preserve
   quality-gate gate counts, status/classification count maps, gate-ID maps,
   quality-gate row-ID maps, and gate ID sets at their top-level adapter

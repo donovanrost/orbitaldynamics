@@ -11,10 +11,11 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyReadinessRowContextPressureTes
     quality_gate_report = %{
       "schema_contract" => "quality_gate_report.v1",
       "model" => "artifact_only_operational_quality_gate_report",
-      "report_id" => "quality_gate:stale_import",
+      "report_id" => "quality_gate:planned_activity.v1:stale_import_payload",
       "source_artifact_type" => "planned_activity.v1",
       "source_artifact_id" => "stale_import_payload",
-      "source_readiness_report_id" => "operational_readiness:stale_import",
+      "source_readiness_report_id" =>
+        "operational_readiness:planned_activity.v1:stale_import_payload",
       "readiness_level" => "operator_review",
       "import_classification" => "review_only",
       "status" => "review_required",
