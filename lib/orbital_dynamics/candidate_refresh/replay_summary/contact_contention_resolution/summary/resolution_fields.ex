@@ -83,7 +83,8 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.ContactContentionResolu
         take_positive_count_keys(
           resolution_summary,
           "selected_contact_ids_by_selection_reason",
-          selection_reason_counts
+          selection_reason_counts,
+          selected_contact_ids
         ),
       "selected_contact_ids_by_ground_station" =>
         filter_contact_ids(
@@ -102,19 +103,22 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.ContactContentionResolu
         take_positive_count_keys(
           resolution_summary,
           "selected_contact_ids_by_resource_scope",
-          resource_scope_counts
+          resource_scope_counts,
+          selected_contact_ids
         ),
       "deferred_contact_ids_by_resource_scope" =>
         take_positive_count_keys(
           resolution_summary,
           "deferred_contact_ids_by_resource_scope",
-          resource_scope_counts
+          resource_scope_counts,
+          deferred_contact_ids
         ),
       "review_contact_ids_by_resource_scope" =>
         take_positive_count_keys(
           resolution_summary,
           "review_contact_ids_by_resource_scope",
-          resource_scope_counts
+          resource_scope_counts,
+          review_contact_ids
         ),
       "direction_counts" => direction_counts,
       "contact_ids_by_direction" => direction_contact_ids,
@@ -125,7 +129,8 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.ContactContentionResolu
         take_positive_count_keys(
           resolution_summary,
           "review_contact_ids_by_action",
-          required_operator_action_counts
+          required_operator_action_counts,
+          review_contact_ids
         )
     }
   end
@@ -192,13 +197,16 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.ContactContentionResolu
     |> filter_contact_ids(:all_keys, allowed_contact_ids)
   end
 
-  defp take_positive_count_keys(summary, field, counts) when is_map(counts) do
+  defp take_positive_count_keys(summary, field, counts, allowed_contact_ids)
+       when is_map(counts) do
     case Map.get(summary, field) do
       %{} = values ->
         positive_count_keys =
           for {key, count} <- counts, is_integer(count) and count > 0, do: key
 
-        Map.take(values, positive_count_keys)
+        values
+        |> Map.take(positive_count_keys)
+        |> filter_contact_ids(:all_keys, allowed_contact_ids)
 
       _values ->
         %{}

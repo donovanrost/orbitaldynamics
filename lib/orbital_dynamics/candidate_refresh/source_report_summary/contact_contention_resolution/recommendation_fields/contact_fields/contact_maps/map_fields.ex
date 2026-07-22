@@ -17,6 +17,12 @@ defmodule OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactContention
     "review_contact_ids_by_resource_scope"
   ]
   @selection_reason_fields ["selected_contact_ids_by_selection_reason"]
+  @categorical_contact_id_fields %{
+    "selected_contact_ids_by_resource_scope" => "selected_contact_ids",
+    "deferred_contact_ids_by_resource_scope" => "deferred_contact_ids",
+    "review_contact_ids_by_resource_scope" => "review_contact_ids",
+    "selected_contact_ids_by_selection_reason" => "selected_contact_ids"
+  }
 
   alias __MODULE__.FieldSpecs
 
@@ -47,11 +53,23 @@ defmodule OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactContention
     |> filter_contact_ids(Map.get(report, Map.fetch!(@group_contact_id_fields, field)))
   end
 
-  defp lineage_map(report, field) when field in @resource_scope_fields,
-    do: take_positive_count_keys(report, field, "resource_scope_counts")
+  defp lineage_map(report, field) when field in @resource_scope_fields do
+    take_positive_count_keys(
+      report,
+      field,
+      "resource_scope_counts",
+      Map.fetch!(@categorical_contact_id_fields, field)
+    )
+  end
 
-  defp lineage_map(report, field) when field in @selection_reason_fields,
-    do: take_positive_count_keys(report, field, "selection_reason_counts")
+  defp lineage_map(report, field) when field in @selection_reason_fields do
+    take_positive_count_keys(
+      report,
+      field,
+      "selection_reason_counts",
+      Map.fetch!(@categorical_contact_id_fields, field)
+    )
+  end
 
   defp lineage_map(report, field), do: Map.get(report, field, %{})
 
@@ -77,23 +95,25 @@ defmodule OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactContention
     end
   end
 
-  defp take_positive_count_keys(report, field, count_field) do
+  defp take_positive_count_keys(report, field, count_field, contact_id_field) do
     case {Map.get(report, field), Map.get(report, count_field)} do
       {%{} = values, %{} = counts} ->
         positive_count_keys =
           for {key, count} <- counts, is_integer(count) and count > 0, do: key
 
-        Map.take(values, positive_count_keys)
+        values
+        |> Map.take(positive_count_keys)
+        |> filter_contact_ids(Map.get(report, contact_id_field))
 
       _values ->
         %{}
     end
   end
 
-  defp filter_contact_ids(%{} = values_by_group, allowed_contact_ids) do
+  defp filter_contact_ids(%{} = values_by_key, allowed_contact_ids) do
     allowed_contact_ids = MapSet.new(List.wrap(allowed_contact_ids))
 
-    Enum.reduce(values_by_group, %{}, fn {group_id, contact_ids}, filtered ->
+    Enum.reduce(values_by_key, %{}, fn {key, contact_ids}, filtered ->
       contact_ids =
         contact_ids
         |> List.wrap()
@@ -101,10 +121,10 @@ defmodule OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactContention
 
       case contact_ids do
         [] -> filtered
-        contact_ids -> Map.put(filtered, group_id, contact_ids)
+        contact_ids -> Map.put(filtered, key, contact_ids)
       end
     end)
   end
 
-  defp filter_contact_ids(_values_by_group, _allowed_contact_ids), do: %{}
+  defp filter_contact_ids(_values_by_key, _allowed_contact_ids), do: %{}
 end

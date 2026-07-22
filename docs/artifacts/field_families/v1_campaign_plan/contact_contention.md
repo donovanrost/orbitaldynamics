@@ -171,8 +171,9 @@ substituted contact identity from another report.
 Resolution-summary resource-scope, selection-reason, and review-action maps also
 require keys backed by positive entries in their corresponding count maps.
 Candidate-refresh filters those category keys per source report and again during
-preserved replay, while retaining flattened contact IDs and aggregate counts as
-review evidence.
+preserved replay, and constrains their values to the same report's corresponding
+selected, deferred, or review contact IDs. Flattened contact IDs and aggregate
+counts remain review evidence.
 Candidate-refresh also constrains compact resolution station-map values to the
 corresponding selected or deferred contact IDs. Direction contact maps are
 filtered per report to selected/deferred IDs under positive direction-count

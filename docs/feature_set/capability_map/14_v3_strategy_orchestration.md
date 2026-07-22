@@ -1133,9 +1133,10 @@ flattened selected, deferred, review, or ambiguous contact-ID list, preventing a
 valid group key from carrying borrowed identity across reports.
 Resource-scope, selection-reason, and review-action routing maps are likewise
 restricted to positive keys in their corresponding count maps during executable
-validation, per-report aggregation, and preserved replay. Flattened contact IDs
-and aggregate counts remain available as conservative review evidence when a
-categorical key is rejected.
+validation, per-report aggregation, and preserved replay. Aggregation and replay
+also constrain their values to the same report's selected, deferred, or review
+contact IDs. Flattened contact IDs and aggregate counts remain available as
+conservative review evidence when a categorical entry is rejected.
 Station-routing values are constrained per report and during replay to the
 summary's selected/deferred contact identity. Direction contact routing adds the
 same identity constraint plus positive direction-count key correlation, and its

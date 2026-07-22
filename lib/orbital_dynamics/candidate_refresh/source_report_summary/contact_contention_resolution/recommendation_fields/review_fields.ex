@@ -99,7 +99,9 @@ defmodule OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactContention
           positive_count_keys =
             for {key, count} <- counts, is_integer(count) and count > 0, do: key
 
-          Map.take(values, positive_count_keys)
+          values
+          |> Map.take(positive_count_keys)
+          |> filter_contact_ids(Map.get(report, "review_contact_ids"))
         else
           %{}
         end
@@ -108,4 +110,22 @@ defmodule OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactContention
     end)
     |> Aggregates.string_list_map_field("review_contact_ids_by_action")
   end
+
+  defp filter_contact_ids(%{} = values_by_key, allowed_contact_ids) do
+    allowed_contact_ids = MapSet.new(List.wrap(allowed_contact_ids))
+
+    Enum.reduce(values_by_key, %{}, fn {key, contact_ids}, filtered ->
+      contact_ids =
+        contact_ids
+        |> List.wrap()
+        |> Enum.filter(&MapSet.member?(allowed_contact_ids, &1))
+
+      case contact_ids do
+        [] -> filtered
+        contact_ids -> Map.put(filtered, key, contact_ids)
+      end
+    end)
+  end
+
+  defp filter_contact_ids(_values_by_key, _allowed_contact_ids), do: %{}
 end

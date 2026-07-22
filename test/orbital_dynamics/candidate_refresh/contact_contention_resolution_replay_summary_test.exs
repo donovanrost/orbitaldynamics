@@ -655,4 +655,136 @@ defmodule OrbitalDynamics.CandidateRefresh.ContactContentionResolutionReplaySumm
              "group_a" => ["duplicate_a"]
            }
   end
+
+  test "contact contention resolution replay filters substituted categorical contact identity" do
+    first_summary = %{
+      "schema_contract" => "contact_contention_resolution_summary.v1",
+      "selected_contact_ids" => ["selected_a"],
+      "deferred_contact_ids" => ["deferred_a"],
+      "review_contact_ids" => ["deferred_a", "selected_a"],
+      "resource_scope_counts" => %{"ground_station" => 1},
+      "selection_reason_counts" => %{"highest_score" => 1},
+      "action_counts" => %{"review_resolution" => 1},
+      "selected_contact_ids_by_resource_scope" => %{
+        "ground_station" => ["selected_a", "selected_b", "substituted_contact"]
+      },
+      "deferred_contact_ids_by_resource_scope" => %{
+        "ground_station" => ["deferred_a", "deferred_b", "substituted_contact"]
+      },
+      "review_contact_ids_by_resource_scope" => %{
+        "ground_station" => [
+          "deferred_a",
+          "selected_a",
+          "selected_b",
+          "substituted_contact"
+        ]
+      },
+      "selected_contact_ids_by_selection_reason" => %{
+        "highest_score" => ["selected_a", "selected_b", "substituted_contact"]
+      },
+      "review_contact_ids_by_action" => %{
+        "review_resolution" => [
+          "deferred_a",
+          "selected_a",
+          "selected_b",
+          "substituted_contact"
+        ]
+      }
+    }
+
+    second_summary = %{
+      "schema_contract" => "contact_contention_resolution_summary.v1",
+      "selected_contact_ids" => ["selected_b"],
+      "deferred_contact_ids" => ["deferred_b"],
+      "review_contact_ids" => ["deferred_b", "selected_b"],
+      "resource_scope_counts" => %{"ground_station" => 1},
+      "selection_reason_counts" => %{"highest_score" => 1},
+      "action_counts" => %{"review_resolution" => 1}
+    }
+
+    refresh = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "source_contact_contention_resolution_summary" => first_summary,
+      "mission_state" => %{
+        "source_contact_contention_resolution_summary" => second_summary
+      }
+    }
+
+    source_summary = CandidateRefresh.source_report_summary(refresh)
+
+    assert source_summary[
+             "source_report_contact_contention_resolution_selected_contact_ids_by_resource_scope"
+           ] == %{"ground_station" => ["selected_a"]}
+
+    assert source_summary[
+             "source_report_contact_contention_resolution_deferred_contact_ids_by_resource_scope"
+           ] == %{"ground_station" => ["deferred_a"]}
+
+    assert source_summary[
+             "source_report_contact_contention_resolution_review_contact_ids_by_resource_scope"
+           ] == %{"ground_station" => ["deferred_a", "selected_a"]}
+
+    assert source_summary[
+             "source_report_contact_contention_resolution_selected_contact_ids_by_selection_reason"
+           ] == %{"highest_score" => ["selected_a"]}
+
+    assert source_summary[
+             "source_report_contact_contention_resolution_review_contact_ids_by_action"
+           ] == %{"review_resolution" => ["deferred_a", "selected_a"]}
+
+    replay_summary = CandidateRefresh.contact_contention_resolution_replay_summary(refresh)
+
+    assert replay_summary["selected_contact_ids_by_resource_scope"] == %{
+             "ground_station" => ["selected_a"]
+           }
+
+    assert replay_summary["deferred_contact_ids_by_resource_scope"] == %{
+             "ground_station" => ["deferred_a"]
+           }
+
+    assert replay_summary["review_contact_ids_by_resource_scope"] == %{
+             "ground_station" => ["deferred_a", "selected_a"]
+           }
+
+    assert replay_summary["selected_contact_ids_by_selection_reason"] == %{
+             "highest_score" => ["selected_a"]
+           }
+
+    assert replay_summary["review_contact_ids_by_action"] == %{
+             "review_resolution" => ["deferred_a", "selected_a"]
+           }
+
+    preserved_artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "provenance" => %{
+        "source_reports" => %{
+          "contact_contention_resolution_report" =>
+            Map.put(first_summary, "contract", "contact_contention_resolution_summary.v1")
+        }
+      }
+    }
+
+    preserved_replay =
+      CandidateRefresh.contact_contention_resolution_replay_summary(preserved_artifact)
+
+    assert preserved_replay["selected_contact_ids_by_resource_scope"] == %{
+             "ground_station" => ["selected_a"]
+           }
+
+    assert preserved_replay["deferred_contact_ids_by_resource_scope"] == %{
+             "ground_station" => ["deferred_a"]
+           }
+
+    assert preserved_replay["review_contact_ids_by_resource_scope"] == %{
+             "ground_station" => ["deferred_a", "selected_a"]
+           }
+
+    assert preserved_replay["selected_contact_ids_by_selection_reason"] == %{
+             "highest_score" => ["selected_a"]
+           }
+
+    assert preserved_replay["review_contact_ids_by_action"] == %{
+             "review_resolution" => ["deferred_a", "selected_a"]
+           }
+  end
 end
