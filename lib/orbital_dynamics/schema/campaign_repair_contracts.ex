@@ -11,6 +11,7 @@ defmodule OrbitalDynamics.Schema.CampaignRepairContracts do
     CampaignRepairProducedSurfaceContracts,
     CampaignRepairReadinessSourceContracts,
     CampaignRepairReplacementRankingContracts,
+    CampaignRepairResourcePressureContracts,
     CampaignRepairScoreContracts,
     CampaignRepairStationPressureContracts,
     CampaignRepairTimelineTransitionContracts
@@ -153,6 +154,7 @@ defmodule OrbitalDynamics.Schema.CampaignRepairContracts do
     |> OrbitalDynamics.Schema.CampaignRepairObjectiveTradeoffContracts.validate(artifact)
     |> CampaignRepairCandidateValueContracts.validate(artifact)
     |> CampaignRepairContactIntentPressureContracts.validate(artifact)
+    |> CampaignRepairResourcePressureContracts.validate(artifact)
     |> CampaignRepairStationPressureContracts.validate(artifact)
     |> call(callbacks, :validate_optional_link_capacity_report, [
       Map.get(artifact, "link_capacity_report")

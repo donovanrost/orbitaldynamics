@@ -102,8 +102,10 @@ Already implemented or heavily covered:
   contact-intent rows are additionally reconciled to exact embedded source
   identities and risk weight while all-prechange rankings remain compatible,
   and station-pressure rows are reconciled to exact allocation/calendar
-  candidate identities, ordered source paths, and risk weight; candidate IDs
-  and values are pinned to exactly one embedded source candidate row
+  candidate identities, ordered source paths, and risk weight; resource-
+  projection penalties are recomputed from each row's embedded risk-indicator
+  count and the enclosing risk weight; candidate IDs and values are pinned to
+  exactly one embedded source candidate row
 - runtime and exported V2 contracts require numeric aggregate score terms;
   runtime validation pins their sum and optional score-term report repair model,
   embedded policy/source assumption, sorted rows, source-plan row identities,

@@ -219,6 +219,25 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairResourceProjectionTest do
 
     assert {:ok, %{"schema_contract" => "campaign_repair.v2"}} =
              Schema.validate_artifact(pressured_artifact)
+
+    invalid_ranking =
+      update_in(
+        pressured_artifact,
+        ["activities", Access.at(0), "repair", "replacement_ranking", "rows", Access.at(0)],
+        fn row ->
+          row
+          |> Map.put("resource_projection_pressure_penalty", -0.5)
+          |> Map.update!("ranking_score", &(&1 - 0.25))
+        end
+      )
+
+    assert {:error, report} = Schema.validate_artifact(invalid_ranking)
+
+    assert Enum.any?(
+             report["errors"],
+             &(&1["path"] ==
+                 "$.activities[0].repair.replacement_ranking.rows[0].resource_projection_pressure_penalty")
+           )
   end
 
   test "repair projects thin resource impacts from repaired activities" do

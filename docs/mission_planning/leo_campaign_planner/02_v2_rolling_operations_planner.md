@@ -260,9 +260,13 @@ schema-type their stable IDs, invalid-input flags, and protected/change counts.
   ranking projects each alternative with already repaired and not-yet-processed
   planned activities against the same candidate-refresh resource summaries,
   subtracting one calibrated `risk_weight` unit per shared projection risk
-  within the candidate's semantic-diff priority tier. Final resource projection
-  is recomputed after repair and remains authoritative; this does not turn the
-  thin planning model into a subsystem simulator or global optimizer.
+  within the candidate's semantic-diff priority tier. Executable V2 validation
+  recomputes that row penalty from the embedded risk-indicator count and the
+  enclosing scoring-policy weight, so compensating ranking-score edits cannot
+  contradict the explanation while preserving arithmetic. Final resource
+  projection is recomputed after repair and remains authoritative; this does
+  not turn the thin planning model into a subsystem simulator or global
+  optimizer.
 - `score_term_report.v1` and `objective_tradeoff_report.v1` over repaired
   activity value, churn, schedule-move, and resource-projection pressure score
   terms plus selected link-capacity shortfall pressure, preserving the same

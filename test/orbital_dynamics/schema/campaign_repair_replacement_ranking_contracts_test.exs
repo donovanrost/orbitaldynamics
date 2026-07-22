@@ -239,6 +239,18 @@ defmodule OrbitalDynamics.Schema.CampaignRepairReplacementRankingContractsTest d
        context.artifact
        |> put_in_path(row_path <> ".resource_projection_pressure_penalty", -1.0)
        |> put_in_path(row_path <> ".ranking_score", -95.0)},
+      {row_path <> ".resource_projection_pressure_penalty",
+       context.artifact
+       |> put_in_path(row_path <> ".resource_projection_pressure_penalty", -2.0)
+       |> put_in_path(row_path <> ".resource_projection_pressure_risk_indicators", [
+         %{
+           "type" => "payload_unavailable",
+           "severity" => "high",
+           "reason" => "payload unavailable",
+           "spacecraft_id" => "leo_1"
+         }
+       ])
+       |> put_in_path(row_path <> ".ranking_score", -96.0)},
       {ranking_path <> ".rows", score_order_artifact},
       {ranking_path <> ".rows", priority_order_artifact}
     ]

@@ -5,71 +5,67 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Complete the V3 produced top-level surface.
+Reconcile V2 replacement-ranking resource-pressure penalties.
 
 Status:
 Complete; ready to publish.
 
 Selection evidence:
-- The checked V3 strategy emits exactly six top-level fields outside the
-  generated `campaign_strategy.v3` property surface: `source_repair_id`,
-  `score_term_report`, `objective_tradeoff_report`, `pareto_frontier_report`,
-  `operational_feedback_provenance`, and `cadence_import_manifest`.
-- The public producer emits all six on every strategy; only `source_repair_id`
-  is null for the checked V1-plan-backed fixture.
-- Strategy runtime validation currently skips the optional repair identity,
-  score-term, objective-tradeoff, Pareto, provenance, and Cadence-manifest
-  surfaces even though standalone validators already exist for four reports.
+- The V2 replacement producer computes each resource-pressure penalty as the
+  negative embedded risk-indicator count times `risk_weight`.
+- Before this slice, runtime checked indicator shape, nonempty evidence for a
+  nonzero penalty, and aggregate ranking arithmetic, but did not reconcile the
+  penalty magnitude with that count.
+- A compensating penalty/ranking-score mutation can therefore remain internally
+  arithmetic-valid while contradicting its own resource-risk explanation.
 
 Intended behavior:
-- Declare all six fields with correct exported types while keeping them
-  optional for older strategies.
-- Embed direct public schemas for score-term, objective-tradeoff, Pareto, and
-  Cadence-import reports instead of exporting opaque objects.
-- Validate optional source repair identity, the four nested report contracts,
-  and deterministic operational-feedback provenance shape/counts.
-- Add checked-fixture, drift, compatibility, completeness-audit, and export
-  coverage; document the executable guarantee.
+- Recompute every ranking-row resource-pressure penalty from its embedded risk
+  indicators and the enclosing repair scoring policy.
+- Require zero pressure when evidence is absent and the exact negative
+  count-times-weight value when evidence is present.
+- Preserve nominal and older rows without resource-risk indicators.
+- Add focused default/nondefault-weight and compensating-drift coverage; update
+  the V2 ranking documentation.
 
 Level 6 pillar advanced:
-Versioned compatibility and complete machine-readable V3 output surface.
+Reproducible V2 branch ranking with explainable resource-pressure score terms.
 
 Last published slice:
-- `6dd58b2b` Complete V2 produced schema surface (`3779 passed`).
+- `b4fb0966` Complete V3 produced schema surface (`3784 passed`).
 
 Likely files:
-- V3 registry/property routing and strategy produced-surface validators
-- focused produced-surface compatibility/drift tests
-- checked-in schema exports and V3 capability/compatibility docs
+- V2 replacement-ranking semantic validator wiring
+- focused replacement-ranking contract and planner tests
+- resource/communications capability documentation
 
 Verification:
-- Focused V3 produced-surface contract tests: `4 passed`.
-- Related strategy/provenance regression coverage: `29 passed`.
-- Cadence-import suite: `81 passed`.
-- Schema suite plus schema-lint/export task tests: `464 passed`.
+- Focused ranking/resource-projection contract tests: `11 passed`.
+- Related V2 repair/schema coverage: `150 passed`.
 - Full checked-artifact lint: `155/155 passed`, zero warnings.
-- Full suite: `3784 passed`.
+- The default-timeout full run reached `3783/3784 passed`; the registry-wide
+  schema-export test timed out at 60 seconds under concurrent load, then passed
+  alone in 22.7 seconds.
+- Full suite with a 120-second per-test ceiling: `3784 passed`.
 - `mix format --check-formatted`, `mix compile --warnings-as-errors`, and
   `git diff --check` passed.
-- Full schema export refreshed the V3 strategy schema and aggregate bundle only.
+- No artifact shape or checked-in schema export changed.
 
 Review:
-- The checked V3 strategy now has zero produced top-level keys outside the
-  generated property surface; all six additive fields remain optional for
-  older strategies.
-- Score-term, objective-tradeoff, Pareto-frontier, and Cadence-import outputs
-  embed and execute their standalone V1 contracts at exact strategy paths.
-- Runtime reconciles optional repair identity and deterministic feedback
-  provenance, including row counts, declared sources, effective-source keys,
-  and nonempty operational-feedback input keys.
-- Activating the complete nested Cadence contract exposed and fixed a latent
-  producer inconsistency: manifest rows now derive semantic-change reasons in
-  exact detail order while preserving legacy reason-only rows.
-- Focused drift cases fail at exact nested paths, and all checked artifacts and
-  existing strategy, review, and Cadence-import consumers remain valid.
+- Runtime now applies the producer's exact row formula: zero without embedded
+  risk indicators, otherwise negative indicator count times `risk_weight`.
+- Numeric and numeric-string policy weights use the same producer-equivalent
+  defaulting behavior, retaining nominal and older ranking compatibility.
+- Default- and nondefault-weight drift cases adjust `ranking_score` to keep the
+  old arithmetic valid but still fail at the exact resource-pressure penalty
+  path.
+- The guard counts existing compact evidence only; it does not rerun resource
+  projection, enlarge the artifact, or claim subsystem simulation authority.
+- All checked artifacts and existing V2 repair/planner consumers remain valid.
 
 Remaining maturity gaps:
-- Continue exact V2 ranking/score reconciliation for replayable source fields.
+- Reconcile V2 replacement-ranking link-capacity shortfall/penalty evidence as
+  exactly as the resource, contact-intent, station, and candidate-value rows.
 - Continue fleet-scale station/allocation decisions while preserving explicit
   provider and Cadence execution boundaries.
 - Continue broader schema/versioned compatibility discipline and stale-input
