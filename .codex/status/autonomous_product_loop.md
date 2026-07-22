@@ -5,59 +5,58 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Tighten source-window timing status semantics.
+Expose partially timed source-window identities.
 
 Status:
 Verified; ready to publish.
 
 Selection evidence:
-- `complete` currently means every source-window ID has a bounds row, even when
-  each row supplies only a start or only an end.
-- The contract deliberately preserves partial endpoint evidence, so row
-  presence is not equivalent to complete timing.
-- Risk indicators feed scoring; incomplete timing must stay provenance-only
-  rather than becoming a new planner risk.
+- The aggregate status now identifies incomplete timing, but consumers must
+  reopen every per-window bound to locate start-only/end-only evidence.
+- Untimed source-window IDs already have canonical routing; partial endpoint
+  identities are the remaining uncorrelated review queue.
+- Exact identity can improve operator/Cadence audit routing without introducing
+  a risk indicator or changing branch score.
 
 Intended behavior:
-- Classify `complete` only when every source-window ID has both numeric timing
-  endpoints.
-- Classify any nonzero but incomplete endpoint evidence as `partial`, and keep
-  zero timing evidence `untimed`.
-- Preserve the existing enum, adapters, compatibility, scoring, and authority
-  boundaries.
+- Derive canonical partially timed source-window IDs and their count from
+  per-ID bounds with exactly one numeric endpoint.
+- Preserve the optional fields through operator-review and Cadence handoffs and
+  reject stale list/count values or stale source copies.
+- Keep legacy omission valid and preserve all scoring and authority boundaries.
 
 Level 6 pillar advanced:
 Fleet-scale planning decisions and durable reproducible audit handoffs.
 
 Planned files:
-- branch comparison derivation and semantic validator
-- focused endpoint challenge proofs, capability docs, and ledger
+- branch context, shared schema/validation, adapters, and generated schemas
+- focused derivation/handoff/challenge proofs, capability docs, and ledger
 
 Verification:
-- Focused producer/semantic endpoint proofs: `14 passed`.
+- Focused derivation/schema/handoff proofs: `55 passed`.
 - Contact-allocation family: `213 passed`.
 - Golden artifacts: `12 passed`.
 - Schema lint: `155` artifacts passed with zero errors or warnings.
-- Full suite: `3887 passed`.
+- Full suite: `3887 passed` after the final identity-precondition review change.
 
 Review:
-- `complete` now requires both numeric endpoints on every source-window ID;
-  all-ID start-only/end-only evidence remains `partial` even when bounded-row
-  count equals total identity count.
-- Provider full timing remains `complete`, selected recommendation timing
-  remains `partial`, and zero-bound identity remains `untimed`.
-- Runtime semantic validation rejects a stale `complete` copy for partial
-  endpoints. The existing enum, adapters, and generated schemas did not change.
-- The public V3 campaign was regenerated through the runner and remained
-  byte-stable.
-- Incomplete timing did not become a risk indicator because risks feed scoring;
-  this slice preserves provenance-only behavior and all no-provider-request,
-  no-reservation, no-schedule-mutation, no-Cadence-write,
-  no-operator-authority, and no-autonomous-execution boundaries. Local review
-  found no publish blocker.
+- Start-only/end-only bounds emit canonical partial IDs and an exact count; fully
+  timed provider and selected-recommendation bounds emit count zero without a
+  fabricated empty ID list.
+- Runtime validation rejects stale partial ID/count values against authoritative
+  per-window bounds and rejects partial fields without non-empty source-window
+  identity, while legacy omission remains valid.
+- Operator comparison, recommendation/tradeoff, and Cadence adapters preserve
+  the optional fields, with source-copy omission challenges at exact row paths.
+- Twelve direct/dependent schemas were regenerated. The public V3 campaign was
+  regenerated through the runner and remained byte-stable.
+- Partial timing stays audit-only and changes no scoring, approval, or execution
+  behavior. All no-provider-request, no-reservation, no-schedule-mutation,
+  no-Cadence-write, no-operator-authority, and no-autonomous-execution
+  boundaries remain intact; local review found no publish blocker.
 
 Last published slice:
-- `901afcd2` Challenge source window timing status copies (`3886 passed`).
+- `b011e1aa` Tighten source window timing status (`3887 passed`).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions while preserving explicit
@@ -68,7 +67,7 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-Expose complete versus partial endpoint counts only if consumers need them.
+Challenge partially timed source-window source copies.
 
 Blocked:
 None.

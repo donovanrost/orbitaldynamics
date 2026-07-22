@@ -3502,6 +3502,8 @@ defmodule OrbitalDynamics.Schema.CadenceImportContractsTest do
         "branch_source_window_bound_count" => 2,
         "branch_untimed_source_window_ids" => ["window_c"],
         "branch_untimed_source_window_count" => 1,
+        "branch_partially_timed_source_window_ids" => ["window_a", "window_b"],
+        "branch_partially_timed_source_window_count" => 2,
         "branch_source_window_timing_coverage_status" => "partial",
         "branch_earliest_starts_at_s" => 100.0,
         "source_review_row" => %{
@@ -3512,6 +3514,8 @@ defmodule OrbitalDynamics.Schema.CadenceImportContractsTest do
           "branch_source_window_bound_count" => 2,
           "branch_untimed_source_window_ids" => ["window_c"],
           "branch_untimed_source_window_count" => 1,
+          "branch_partially_timed_source_window_ids" => ["window_a", "window_b"],
+          "branch_partially_timed_source_window_count" => 2,
           "branch_source_window_timing_coverage_status" => "partial",
           "branch_earliest_starts_at_s" => 100.0
         }
@@ -3527,6 +3531,8 @@ defmodule OrbitalDynamics.Schema.CadenceImportContractsTest do
           "branch_source_window_bound_count",
           "branch_untimed_source_window_ids",
           "branch_untimed_source_window_count",
+          "branch_partially_timed_source_window_ids",
+          "branch_partially_timed_source_window_count",
           "branch_source_window_timing_coverage_status"
         ] do
       missing_recommendation_coverage =
@@ -3605,6 +3611,8 @@ defmodule OrbitalDynamics.Schema.CadenceImportContractsTest do
         "branch_source_window_bound_count" => 1,
         "branch_untimed_source_window_ids" => ["window_e"],
         "branch_untimed_source_window_count" => 1,
+        "branch_partially_timed_source_window_ids" => ["window_d"],
+        "branch_partially_timed_source_window_count" => 1,
         "branch_source_window_timing_coverage_status" => "partial",
         "branch_latest_ends_at_s" => 200.0,
         "source_review_row" => %{
@@ -3615,6 +3623,8 @@ defmodule OrbitalDynamics.Schema.CadenceImportContractsTest do
           "branch_source_window_bound_count" => 1,
           "branch_untimed_source_window_ids" => ["window_e"],
           "branch_untimed_source_window_count" => 1,
+          "branch_partially_timed_source_window_ids" => ["window_d"],
+          "branch_partially_timed_source_window_count" => 1,
           "branch_source_window_timing_coverage_status" => "partial",
           "branch_latest_ends_at_s" => 200.0
         }
@@ -3629,6 +3639,8 @@ defmodule OrbitalDynamics.Schema.CadenceImportContractsTest do
           "branch_source_window_bound_count",
           "branch_untimed_source_window_ids",
           "branch_untimed_source_window_count",
+          "branch_partially_timed_source_window_ids",
+          "branch_partially_timed_source_window_count",
           "branch_source_window_timing_coverage_status"
         ] do
       missing_tradeoff_coverage =

@@ -256,6 +256,18 @@ defmodule OrbitalDynamics.Schema.JsonSchemaExportContractsTest do
 
     assert get_in(row_schema, [
              "properties",
+             "branch_partially_timed_source_window_ids",
+             "items",
+             "pattern"
+           ]) == Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(row_schema, [
+             "properties",
+             "branch_partially_timed_source_window_count"
+           ]) == %{"type" => "integer", "minimum" => 0}
+
+    assert get_in(row_schema, [
+             "properties",
              "branch_source_window_timing_coverage_status",
              "enum"
            ]) == ["complete", "partial", "untimed"]

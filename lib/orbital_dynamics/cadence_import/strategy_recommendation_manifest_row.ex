@@ -202,6 +202,10 @@ defmodule OrbitalDynamics.CadenceImport.StrategyRecommendationManifestRow do
       "branch_source_window_bound_count" => row["branch_source_window_bound_count"],
       "branch_untimed_source_window_ids" => row["branch_untimed_source_window_ids"],
       "branch_untimed_source_window_count" => row["branch_untimed_source_window_count"],
+      "branch_partially_timed_source_window_ids" =>
+        row["branch_partially_timed_source_window_ids"],
+      "branch_partially_timed_source_window_count" =>
+        row["branch_partially_timed_source_window_count"],
       "branch_source_window_timing_coverage_status" =>
         row["branch_source_window_timing_coverage_status"],
       "branch_earliest_starts_at_s" => row["branch_earliest_starts_at_s"],

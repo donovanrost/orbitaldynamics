@@ -1254,6 +1254,8 @@ defmodule OrbitalDynamics.Schema.OperatorReviewContractsTest do
         "branch_source_window_bound_count" => 2,
         "branch_untimed_source_window_ids" => ["window_c"],
         "branch_untimed_source_window_count" => 1,
+        "branch_partially_timed_source_window_ids" => ["window_a", "window_b"],
+        "branch_partially_timed_source_window_count" => 2,
         "branch_source_window_timing_coverage_status" => "partial",
         "source_branch_comparison" => %{
           "branch_source_window_ids" => ["window_a", "window_b", "window_c"],
@@ -1262,6 +1264,8 @@ defmodule OrbitalDynamics.Schema.OperatorReviewContractsTest do
           "branch_source_window_bound_count" => 2,
           "branch_untimed_source_window_ids" => ["window_c"],
           "branch_untimed_source_window_count" => 1,
+          "branch_partially_timed_source_window_ids" => ["window_a", "window_b"],
+          "branch_partially_timed_source_window_count" => 2,
           "branch_source_window_timing_coverage_status" => "partial"
         }
       })
@@ -1280,6 +1284,8 @@ defmodule OrbitalDynamics.Schema.OperatorReviewContractsTest do
           "branch_source_window_bound_count",
           "branch_untimed_source_window_ids",
           "branch_untimed_source_window_count",
+          "branch_partially_timed_source_window_ids",
+          "branch_partially_timed_source_window_count",
           "branch_source_window_timing_coverage_status"
         ] do
       missing_coverage_field =

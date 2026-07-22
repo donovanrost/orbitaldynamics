@@ -40,6 +40,8 @@ defmodule OrbitalDynamics.CampaignPlanner.BranchComparisonContextFieldValuesTest
              "branch_source_window_count" => 2,
              "branch_source_window_bound_count" => 2,
              "branch_untimed_source_window_count" => 0,
+             "branch_partially_timed_source_window_ids" => ["window_a", "window_b"],
+             "branch_partially_timed_source_window_count" => 2,
              "branch_source_window_timing_coverage_status" => "partial"
            } = BranchComparisonContext.event_fields(partial_branch)
 
@@ -57,8 +59,11 @@ defmodule OrbitalDynamics.CampaignPlanner.BranchComparisonContextFieldValuesTest
         }
       ])
 
-    assert %{"branch_source_window_timing_coverage_status" => "complete"} =
-             BranchComparisonContext.event_fields(complete_branch)
+    complete_fields = BranchComparisonContext.event_fields(complete_branch)
+
+    assert complete_fields["branch_partially_timed_source_window_count"] == 0
+    assert complete_fields["branch_source_window_timing_coverage_status"] == "complete"
+    refute Map.has_key?(complete_fields, "branch_partially_timed_source_window_ids")
   end
 
   defp branch_with_events(events) do

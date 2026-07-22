@@ -50,6 +50,17 @@ defmodule OrbitalDynamics.CampaignPlanner.BranchComparisonContext do
           is_number(bound["latest_ends_at_s"])
       end)
 
+    partially_timed_source_window_ids =
+      Enum.flat_map(source_window_bounds, fn bound ->
+        has_start = is_number(bound["earliest_starts_at_s"])
+        has_end = is_number(bound["latest_ends_at_s"])
+
+        if has_start != has_end, do: [bound["source_window_id"]], else: []
+      end)
+
+    partially_timed_source_window_count =
+      if source_window_ids == [], do: nil, else: length(partially_timed_source_window_ids)
+
     untimed_source_window_count =
       if source_window_ids == [], do: nil, else: length(untimed_source_window_ids)
 
@@ -165,6 +176,8 @@ defmodule OrbitalDynamics.CampaignPlanner.BranchComparisonContext do
         "branch_source_window_bound_count" => source_window_bound_count,
         "branch_untimed_source_window_ids" => untimed_source_window_ids,
         "branch_untimed_source_window_count" => untimed_source_window_count,
+        "branch_partially_timed_source_window_ids" => partially_timed_source_window_ids,
+        "branch_partially_timed_source_window_count" => partially_timed_source_window_count,
         "branch_source_window_timing_coverage_status" => source_window_timing_coverage_status,
         "branch_earliest_starts_at_s" => minimum_present(events, "starts_at_s"),
         "branch_latest_ends_at_s" => maximum_present(events, "ends_at_s"),
@@ -431,6 +444,8 @@ defmodule OrbitalDynamics.CampaignPlanner.BranchComparisonContext do
     |> maybe_put_nonempty("branch_source_window_bound_count")
     |> maybe_put_nonempty("branch_untimed_source_window_ids")
     |> maybe_put_nonempty("branch_untimed_source_window_count")
+    |> maybe_put_nonempty("branch_partially_timed_source_window_ids")
+    |> maybe_put_nonempty("branch_partially_timed_source_window_count")
     |> maybe_put_nonempty("branch_source_window_timing_coverage_status")
     |> maybe_put_nonempty("branch_earliest_starts_at_s")
     |> maybe_put_nonempty("branch_latest_ends_at_s")

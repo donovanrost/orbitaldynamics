@@ -642,6 +642,27 @@ defmodule OrbitalDynamics.Schema.OptimizerObjectiveContractsTest do
              &(&1["path"] == "$.rows[0].branch_source_window_timing_coverage_status")
            )
 
+    orphaned_partial_timing =
+      branch_comparison_report
+      |> put_in(
+        ["rows", Access.at(0), "branch_partially_timed_source_window_ids"],
+        ["window_a"]
+      )
+      |> put_in(["rows", Access.at(0), "branch_partially_timed_source_window_count"], 1)
+
+    assert {:error, orphaned_partial_timing_report} =
+             Schema.validate_artifact(orphaned_partial_timing)
+
+    for field <- [
+          "branch_partially_timed_source_window_ids",
+          "branch_partially_timed_source_window_count"
+        ] do
+      assert Enum.any?(
+               orphaned_partial_timing_report["errors"],
+               &(&1["path"] == "$.rows[0].#{field}")
+             )
+    end
+
     invalid_source_window_bounds =
       branch_comparison_report
       |> put_in(
@@ -762,12 +783,38 @@ defmodule OrbitalDynamics.Schema.OptimizerObjectiveContractsTest do
       |> put_in(["rows", Access.at(0), "branch_source_window_bound_count"], 2)
       |> put_in(["rows", Access.at(0), "branch_untimed_source_window_count"], 0)
       |> put_in(
+        ["rows", Access.at(0), "branch_partially_timed_source_window_ids"],
+        ["window_a", "window_b"]
+      )
+      |> put_in(["rows", Access.at(0), "branch_partially_timed_source_window_count"], 2)
+      |> put_in(
         ["rows", Access.at(0), "branch_source_window_timing_coverage_status"],
         "partial"
       )
 
     assert {:ok, _partial_endpoint_coverage} =
              Schema.validate_artifact(partial_endpoint_coverage)
+
+    stale_partial_endpoint_coverage =
+      partial_endpoint_coverage
+      |> put_in(
+        ["rows", Access.at(0), "branch_partially_timed_source_window_ids"],
+        ["window_a"]
+      )
+      |> put_in(["rows", Access.at(0), "branch_partially_timed_source_window_count"], 1)
+
+    assert {:error, stale_partial_endpoint_coverage_report} =
+             Schema.validate_artifact(stale_partial_endpoint_coverage)
+
+    for field <- [
+          "branch_partially_timed_source_window_ids",
+          "branch_partially_timed_source_window_count"
+        ] do
+      assert Enum.any?(
+               stale_partial_endpoint_coverage_report["errors"],
+               &(&1["path"] == "$.rows[0].#{field}")
+             )
+    end
 
     stale_complete_endpoint_coverage =
       put_in(

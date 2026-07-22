@@ -561,6 +561,14 @@ defmodule OrbitalDynamics.Schema.BranchEventContracts do
     |> validate_optional_stable_id_list(path, row, "branch_untimed_source_window_ids")
     |> validate_canonical_branch_untimed_source_window_ids(path, row)
     |> expect_optional_non_negative_integer(path, row, "branch_untimed_source_window_count")
+    |> expect_optional_type(path, row, "branch_partially_timed_source_window_ids", :list)
+    |> validate_optional_stable_id_list(path, row, "branch_partially_timed_source_window_ids")
+    |> validate_canonical_branch_partially_timed_source_window_ids(path, row)
+    |> expect_optional_non_negative_integer(
+      path,
+      row,
+      "branch_partially_timed_source_window_count"
+    )
     |> expect_optional_one_of(path, row, "branch_source_window_timing_coverage_status", [
       "complete",
       "partial",
@@ -613,6 +621,26 @@ defmodule OrbitalDynamics.Schema.BranchEventContracts do
             error(
               "#{path}.branch_untimed_source_window_ids",
               "must equal sorted unique untimed source-window IDs"
+            )
+            | issues
+          ]
+        end
+
+      _ids ->
+        issues
+    end
+  end
+
+  defp validate_canonical_branch_partially_timed_source_window_ids(issues, path, row) do
+    case Map.get(row, "branch_partially_timed_source_window_ids") do
+      ids when is_list(ids) ->
+        if ids == ids |> Enum.uniq() |> Enum.sort() do
+          issues
+        else
+          [
+            error(
+              "#{path}.branch_partially_timed_source_window_ids",
+              "must equal sorted unique partially timed source-window IDs"
             )
             | issues
           ]
@@ -745,6 +773,14 @@ defmodule OrbitalDynamics.Schema.BranchEventContracts do
             is_number(bound["latest_ends_at_s"])
         end)
 
+      partially_timed_source_window_ids =
+        Enum.flat_map(source_window_bounds, fn bound ->
+          has_start = is_number(bound["earliest_starts_at_s"])
+          has_end = is_number(bound["latest_ends_at_s"])
+
+          if has_start != has_end, do: [bound["source_window_id"]], else: []
+        end)
+
       timing_coverage_status =
         cond do
           source_window_bounds == [] -> "untimed"
@@ -772,6 +808,17 @@ defmodule OrbitalDynamics.Schema.BranchEventContracts do
         length(untimed_source_window_ids)
       )
       |> validate_untimed_source_window_ids(path, row, untimed_source_window_ids)
+      |> validate_source_window_coverage_count(
+        path,
+        row,
+        "branch_partially_timed_source_window_count",
+        length(partially_timed_source_window_ids)
+      )
+      |> validate_partially_timed_source_window_ids(
+        path,
+        row,
+        partially_timed_source_window_ids
+      )
       |> validate_source_window_timing_coverage_status(path, row, timing_coverage_status)
     else
       validate_source_window_timing_coverage_identity(issues, path, row)
@@ -779,13 +826,21 @@ defmodule OrbitalDynamics.Schema.BranchEventContracts do
   end
 
   defp validate_source_window_timing_coverage_identity(issues, path, row) do
-    field = "branch_source_window_timing_coverage_status"
-
-    if Map.has_key?(row, field) do
-      [error("#{path}.#{field}", "requires non-empty branch_source_window_ids") | issues]
-    else
-      issues
-    end
+    Enum.reduce(
+      [
+        "branch_partially_timed_source_window_ids",
+        "branch_partially_timed_source_window_count",
+        "branch_source_window_timing_coverage_status"
+      ],
+      issues,
+      fn field, acc ->
+        if Map.has_key?(row, field) do
+          [error("#{path}.#{field}", "requires non-empty branch_source_window_ids") | acc]
+        else
+          acc
+        end
+      end
+    )
   end
 
   defp validate_source_window_coverage_count(issues, path, row, field, expected_count) do
@@ -803,6 +858,22 @@ defmodule OrbitalDynamics.Schema.BranchEventContracts do
           error(
             "#{path}.branch_untimed_source_window_ids",
             "must equal source-window IDs without bound rows"
+          )
+          | issues
+        ]
+
+      _ids ->
+        issues
+    end
+  end
+
+  defp validate_partially_timed_source_window_ids(issues, path, row, expected_ids) do
+    case Map.get(row, "branch_partially_timed_source_window_ids") do
+      ids when is_list(ids) and ids != expected_ids ->
+        [
+          error(
+            "#{path}.branch_partially_timed_source_window_ids",
+            "must equal source-window IDs with exactly one timing endpoint"
           )
           | issues
         ]
