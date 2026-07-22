@@ -737,7 +737,22 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyContactAllocationPressureTest 
       )
 
     provider_summary =
-      contact_allocation_provider_reservation_request_summary_fixture("summary_provider")
+      "summary_provider"
+      |> contact_allocation_provider_reservation_request_summary_fixture()
+      |> put_in(
+        ["provider_reservation_review_rows", Access.at(0), "station_calendar_reservation_ids"],
+        [
+          "summary_provider_reservation_review",
+          "summary_provider_reservation_review_backup"
+        ]
+      )
+      |> put_in(
+        ["provider_reservation_review_ids_by_match_status", "overlap"],
+        [
+          "summary_provider_reservation_review",
+          "summary_provider_reservation_review_backup"
+        ]
+      )
 
     mission_state =
       mission_state_with_refresh_inputs()
@@ -1066,6 +1081,10 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyContactAllocationPressureTest 
              "contact_id" => "summary_provider_dl_review_overlap",
              "ground_station_id" => "equator_prime",
              "station_reservation_id" => "summary_provider_reservation_review",
+             "station_calendar_reservation_ids" => [
+               "summary_provider_reservation_review",
+               "summary_provider_reservation_review_backup"
+             ],
              "station_reservation_match_status" => "overlap",
              "provider_reservation_request_status" => "review_required",
              "provider_reservation_row_scope" => "review",
@@ -1089,8 +1108,21 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyContactAllocationPressureTest 
     assert Enum.any?(
              provider_branch["risk_indicators"],
              &(&1["type"] == "provider_reservation_request_review" and
-                 &1["station_reservation_match_status"] == "overlap")
+                 &1["station_reservation_match_status"] == "overlap" and
+                 &1["station_calendar_reservation_ids"] == [
+                   "summary_provider_reservation_review",
+                   "summary_provider_reservation_review_backup"
+                 ])
            )
+
+    assert get_in(provider_branch, [
+             "provenance",
+             "branch_metadata",
+             "station_calendar_reservation_ids"
+           ]) == [
+             "summary_provider_reservation_review",
+             "summary_provider_reservation_review_backup"
+           ]
 
     assert_provider_reservation_request_pressure_score_terms(provider_branch, artifact)
 
@@ -1104,7 +1136,8 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyContactAllocationPressureTest 
     assert "provider_reservation_request_review" in provider_row["risk_types"]
 
     assert provider_row["branch_station_reservation_ids"] == [
-             "summary_provider_reservation_review"
+             "summary_provider_reservation_review",
+             "summary_provider_reservation_review_backup"
            ]
 
     refute Enum.any?(

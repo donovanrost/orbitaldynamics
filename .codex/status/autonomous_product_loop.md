@@ -5,60 +5,60 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Correlate provider-reservation status observations with contact evidence.
+Preserve list-valued reservation identities in provider-pressure branches.
 
 Status:
 Verified; ready to publish.
 
 Selection evidence:
-- Each `request_ready` summary observation has at least one request contact;
-  each `review_required` observation has at least one review contact.
-- Distinct embedded paths may mix statuses, but their aggregate corresponding
-  request/review evidence cannot be explicitly zero when those observations are
-  positive.
-- Live operator-review and Cadence probes accept positive `request_ready` or
-  `review_required` counts beside an explicit zero matching contact count.
+- `clear` request-status observations must remain provenance-only: a clear
+  source can coexist with a legacy statusless source that contributes positive
+  request/review evidence.
+- Provider-reservation summary rows preserve scalar `station_reservation_id`
+  and list-valued `station_calendar_reservation_ids` evidence.
+- Derived provider-pressure events, risks, and branch comparisons currently
+  carry only the scalar ID, dropping additional reservation identities.
 
 Intended behavior:
-- Reject positive `request_ready` observations when a supplied aggregate request
-  contact count is zero, and positive `review_required` observations when a
-  supplied aggregate review contact count is zero.
-- Keep missing legacy contact counts optional and allow mixed status maps across
-  distinct embedded source paths.
-- Preserve clear-status semantics, observation counting, identity-derived
-  counts, canonical routes, and execution boundaries.
+- Carry canonical list-valued reservation IDs through the selected contact's
+  provider-pressure event, risk indicator, branch metadata, and comparison row.
+- Merge scalar and list-valued IDs into branch reservation identity without
+  inventing aggregate planner effects.
+- Preserve request/review classification, scoring, approval, and execution
+  boundaries.
 
 Level 6 pillar advanced:
 Fleet-scale planning decisions and durable reproducible audit handoffs.
 
 Planned files:
-- shared review/import status-evidence validation
-- zero-evidence and legacy-omission challenge proofs, docs, and loop ledger
+- provider-pressure event/risk and branch-comparison identity extraction
+- multi-reservation branch proof, docs, and loop ledger
 
 Verification:
-- Focused review/import status-evidence proofs: `24 passed`.
+- Focused provider-pressure branch handoff: `9 passed`.
+- Focused provider-reservation/challenge coverage: `5 passed`.
 - Contact-allocation family: `213 passed`.
 - Golden artifacts: `12 passed`.
 - Schema lint: `155` artifacts passed with zero errors or warnings.
 - Full suite: `3883 passed`.
 
 Review:
-- Shared operator-review and Cadence validation rejects an explicit zero request
-  contact count beside positive `request_ready` observations and an explicit
-  zero review contact count beside positive `review_required` observations.
-- Missing legacy contact counts remain valid; mixed `clear` plus request/review
-  observations across distinct embedded paths remain valid when matching
-  supplied contact evidence is positive.
-- This adds semantic validation only; generated schemas and golden artifacts do
-  not change.
-- Identity-derived counts, canonical routes, embedded path observation counts,
-  and all no-provider-request, no-reservation, no-schedule-mutation,
-  no-Cadence-write, no-operator-authority, and no-planner-effect boundaries
-  remain unchanged.
+- Provider-pressure events and their high-severity review risks retain the
+  selected row's list-valued reservation IDs beside the scalar ID.
+- Branch provenance metadata retains the list, and branch comparison identity
+  merges scalar and list-valued reservation IDs into one canonical list.
+- The multi-reservation proof preserves request/review classification, policy
+  blocking, risk scoring, and the existing comparison schema; generated schemas
+  and golden artifacts do not change.
+- `clear` status observations remain intentionally provenance-only across mixed
+  current/legacy source paths.
+- No aggregate reservation route creates a planner effect, and all
+  no-provider-request, no-reservation, no-schedule-mutation, no-Cadence-write,
+  no-operator-authority, and no-autonomous-execution boundaries remain intact.
 - Local review found no publish blocker.
 
 Last published slice:
-- `1698cfcc` Constrain provider reservation request routes (`3881 passed`).
+- `a3c077e4` Correlate provider reservation status evidence (`3883 passed`).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions while preserving explicit
@@ -69,8 +69,8 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-Audit whether positive `clear` observations need any additional aggregate
-evidence or remain intentionally provenance-only across mixed source paths.
+Audit list-valued reservation owner/status evidence in provider-pressure
+branches for the same selected-contact identity loss.
 
 Blocked:
 None.

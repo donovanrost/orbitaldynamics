@@ -32,6 +32,7 @@ defmodule OrbitalDynamics.CampaignPlanner.ProviderReservationPressureBranches do
                 event["provider_reservation_request_status"],
               "provider_reservation_row_scope" => event["provider_reservation_row_scope"],
               "station_reservation_id" => event["station_reservation_id"],
+              "station_calendar_reservation_ids" => event["station_calendar_reservation_ids"],
               "station_reservation_match_status" => event["station_reservation_match_status"]
             }
             |> compact_map.()
@@ -66,6 +67,7 @@ defmodule OrbitalDynamics.CampaignPlanner.ProviderReservationPressureBranches do
           "ground_station_id" => row["ground_station_id"] || row["station_id"],
           "direction" => row["direction"],
           "station_reservation_id" => row["station_reservation_id"],
+          "station_calendar_reservation_ids" => row["station_calendar_reservation_ids"],
           "station_reserved_by" => row["station_reserved_by"],
           "station_reservation_status" =>
             normalized_status_token.(row["station_reservation_status"]),
