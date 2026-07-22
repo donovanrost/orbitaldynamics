@@ -105,6 +105,11 @@ defmodule OrbitalDynamics.Schema.CampaignRegistryContracts do
           "repair_metadata"
         ],
         "optional_fields" => [
+          "study_id",
+          "source_planner",
+          "change_summary",
+          "preserved_activities",
+          "approval_rule_matches",
           "operational_timeline_report",
           "timeline_transition_application_report",
           "command_window_report",

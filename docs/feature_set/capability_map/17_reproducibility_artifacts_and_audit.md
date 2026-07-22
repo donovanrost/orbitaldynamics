@@ -300,6 +300,10 @@ work, a **partial** executable-schema track, and **near-term** / **later** /
   optional arrays with direct `contact_intent.v1` and `resource_summary.v1`
   definitions. Existing runtime row validators enforce each populated item
   before repair scoring, ranking, or strategy handoff.
+- The remaining produced V2 metadata surface is declared and executable:
+  stable study/source identity, non-negative row-derived change counts, exact
+  preserved-activity subsets, and shared policy validation for top-level
+  approval rule matches. Older repairs may omit these additive fields.
 - `realized_state_snapshot.v1` and `timeline_feedback_report.v1` export nested
   operational-feedback rows plus command/contact feedback, throughput-delta,
   success fields, and source planned/realized activity context.

@@ -198,13 +198,17 @@ defmodule OrbitalDynamics.Schema.CampaignArtifactValidation do
       validate_stable_ids: &OrbitalDynamics.Schema.StableIdValidation.validate_stable_ids/4,
       expect_equal: &OrbitalDynamics.Schema.PrimitiveValidation.expect_equal/5,
       expect_type: &OrbitalDynamics.Schema.PrimitiveValidation.expect_type/5,
+      expect_optional_type: &OrbitalDynamics.Schema.PrimitiveValidation.expect_optional_type/5,
       expect_one_of: &OrbitalDynamics.Schema.PrimitiveValidation.expect_one_of/5,
+      validate_optional_stable_ids:
+        &OrbitalDynamics.Schema.StableIdValidation.validate_optional_stable_ids/4,
       validate_realized_state_snapshot:
         &OrbitalDynamics.Schema.RealizedStateSnapshotContracts.validate/3,
       validate_rows: &OrbitalDynamics.Schema.CollectionValidation.validate_rows/4,
       validate_optional_rows:
         &OrbitalDynamics.Schema.CollectionValidation.validate_optional_rows/4,
       validate_activity: &OrbitalDynamics.Schema.ActivityContracts.validate/3,
+      validate_policy_rule_match: &PolicyValidation.validate_rule_match/3,
       validate_contact_intent: &OrbitalDynamics.Schema.ContactIntentContracts.validate/3,
       validate_resource_summary: &OrbitalDynamics.Schema.ResourceSummaryContracts.validate/3,
       validate_optional_contact_filter_report:

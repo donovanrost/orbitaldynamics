@@ -12,6 +12,15 @@ operator what changed.
 - `repair_metadata` with deterministic repair identity and timeline-protection
   summaries
 
+All fields emitted by the checked V2 repair artifacts are represented in the
+generated `campaign_repair.v2` property surface. The additive `study_id`,
+`source_planner`, `change_summary`, `preserved_activities`, and
+`approval_rule_matches` fields remain optional for older repairs, but populated
+values are executable-validated. Change counts must equal the delta
+`repair_action` frequencies, preserved activities must equal the preserved
+subset of repaired activities in order, study identity must be stable, and
+approval rule-match rows run the shared policy validator.
+
 ### `realized_state_snapshot`
 
 - **Nested spacecraft-state rows** require a scenario identity and are validated

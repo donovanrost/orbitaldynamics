@@ -134,6 +134,11 @@ The supporting V2 concepts live with the planner:
 The V2 artifact includes:
 
 - `source_plan_id`, `source_planner`, and source provenance.
+- `study_id`, `source_planner`, `change_summary`, `preserved_activities`, and
+  `approval_rule_matches` are represented in the generated V2 schema while
+  remaining optional for older repairs. Runtime validation pins stable study
+  identity, typed policy rows, row-derived delta-action counts, and the exact
+  preserved subset of repaired activities.
 - `realized_state_snapshot` exactly as normalized for the repair.
 - `deltas` explaining what changed and why.
 - `activities` for the repaired plan and `preserved_activities` for unchanged

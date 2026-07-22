@@ -8,6 +8,7 @@ defmodule OrbitalDynamics.Schema.CampaignRepairContracts do
     CampaignRepairConstraintContracts,
     CampaignRepairContactAllocationContracts,
     CampaignRepairContactIntentPressureContracts,
+    CampaignRepairProducedSurfaceContracts,
     CampaignRepairReadinessSourceContracts,
     CampaignRepairReplacementRankingContracts,
     CampaignRepairScoreContracts,
@@ -52,6 +53,10 @@ defmodule OrbitalDynamics.Schema.CampaignRepairContracts do
     |> call(callbacks, :expect_type, ["$", artifact, "policy_decision", :map])
     |> call(callbacks, :expect_type, ["$", artifact, "warnings", :list])
     |> call(callbacks, :expect_type, ["$", artifact, "repair_metadata", :map])
+    |> call(callbacks, :expect_optional_type, ["$", artifact, "source_planner", :binary])
+    |> call(callbacks, :expect_optional_type, ["$", artifact, "study_id", :binary])
+    |> call(callbacks, :validate_optional_stable_ids, ["$", artifact, ["study_id"]])
+    |> call(callbacks, :expect_optional_type, ["$", artifact, "change_summary", :map])
     |> call(callbacks, :validate_realized_state_snapshot, [
       "$.realized_state_snapshot",
       Map.get(artifact, "realized_state_snapshot", %{})
@@ -65,6 +70,17 @@ defmodule OrbitalDynamics.Schema.CampaignRepairContracts do
       "$.activities",
       Map.get(artifact, "activities", [])
     )
+    |> call(callbacks, :validate_optional_rows, [
+      "$.preserved_activities",
+      Map.get(artifact, "preserved_activities"),
+      callback(callbacks, :validate_activity)
+    ])
+    |> call(callbacks, :validate_optional_rows, [
+      "$.approval_rule_matches",
+      Map.get(artifact, "approval_rule_matches"),
+      callback(callbacks, :validate_policy_rule_match)
+    ])
+    |> CampaignRepairProducedSurfaceContracts.validate(artifact)
     |> call(callbacks, :validate_optional_rows, [
       "$.source_contact_intents",
       Map.get(artifact, "source_contact_intents"),

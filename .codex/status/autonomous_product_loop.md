@@ -5,64 +5,63 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Export V2 typed source rows.
+Complete the V2 produced surface.
 
 Status:
 Complete; ready to publish.
 
 Selection evidence:
-- V2 emits `source_contact_intents` and `source_resource_summaries` as direct
-  planning inputs for scoring, replacement ranking, and strategy evaluation.
-- Runtime repair validation already applies the standalone contact-intent and
-  resource-summary row validators to both arrays.
-- The V2 registry/export declares neither array nor the direct item contracts,
-  so the machine-readable boundary is weaker than runtime.
+- A full checked-artifact-versus-schema audit leaves exactly five produced V2
+  fields undeclared: `study_id`, `source_planner`, `change_summary`,
+  `preserved_activities`, and `approval_rule_matches`.
+- Runtime repair validation currently trusts all five shapes and does not
+  reconcile change counts or preserved rows with deltas/activities.
+- Both checked V2 fixtures emit all five fields, so this is a live public
+  surface rather than speculative metadata.
 
 Intended behavior:
-- Declare both optional arrays and the direct `contact_intent.v1` and
-  `resource_summary.v1` item contracts in the V2 registry/export.
-- Preserve the existing runtime row validators and planning semantics.
-- Keep both arrays optional for repairs without those source inputs.
-- Add populated-row, standalone, drift, optional-field, and export coverage;
-  document the executable guarantee.
+- Declare all five fields with correct exported types while keeping them
+  optional for older repairs.
+- Validate source/study identity, preserved activity rows, approval rule-match
+  rows, and non-negative change counts.
+- Require `change_summary` and `preserved_activities` to equal their row-derived
+  delta/activity evidence when present.
+- Add checked-fixture, drift, compatibility, completeness-audit, and export
+  coverage; document the executable guarantee.
 
 Level 6 pillar advanced:
-Typed resource and communications provenance at the V2 boundary.
+Complete, self-reconciling machine-readable V2 output surface.
 
 Last published slice:
-- `5feed886` Validate V2 timeline feedback source (`3771 passed`).
+- `a757e6fa` Export V2 typed source rows (`3775 passed`).
 
 Likely files:
-- V2 registry typed source declarations
-- focused row-contract/export compatibility tests
-- checked-in schema exports and V2 planner/capability docs
+- V2 registry/type hints and repair summary validators
+- focused produced-surface compatibility/reconciliation tests
+- checked-in schema exports and V2 artifact/planner/capability docs
 
 Verification:
-- Focused typed-source row contract tests: `4 passed`.
-- Shared row-contract and repair regression coverage: `144 passed`.
-- Schema suite plus schema-lint/export task tests: `464 passed`.
+- Focused V2 produced-surface contract tests: `4 passed`.
+- Repair schema/planner regression coverage: `150 passed`.
+- Schema suite plus schema-lint/export task tests: `468 passed`.
 - Campaign-planner suite: `761 passed`.
 - Full checked-artifact lint: `155/155 passed`, zero warnings.
-- Full suite: `3775 passed` on the unchanged rerun.
-- The first full run had one transient checked-schema export timeout
-  (`3774/3775`); that exact default-timeout test passed alone in `39.1s` before
-  the clean full rerun.
+- Full suite: `3779 passed`.
 - `mix format --check-formatted`, `mix compile --warnings-as-errors`, and
   `git diff --check` passed.
 - Full schema export refreshed the V2 repair schema and aggregate bundle only.
 
 Review:
-- The V2 registry and generated schema expose both optional arrays and complete
-  direct item definitions exactly once, with all `26` nested-contract names
-  unique.
-- Runtime already validates every populated contact-intent and resource-summary
-  item at its source-array path; this slice changes no scoring, ranking, or
-  strategy semantics.
-- Populated standalone rows validate through the V2 boundary, malformed row or
-  collection shapes fail at their exact paths, and deleting both optional
-  arrays remains compatible.
-- All checked artifacts and existing resource, communications, repair, review,
-  and Cadence-import consumers remain valid.
+- Both checked V2 repairs now have zero produced top-level keys outside the
+  generated property surface; the five additive fields retain optional
+  compatibility for older repairs.
+- Runtime validates stable study identity, source-planner type, non-negative
+  change counts, preserved activity rows, and shared policy rule-match fields.
+- Change summaries must equal delta repair-action frequencies and preserved
+  activities must equal the repaired activity subset in original order, making
+  both summaries reproducible from the artifact itself.
+- Focused drift cases fail at exact paths, and all checked artifacts plus
+  existing repair, review, and Cadence-import consumers remain valid.
 
 Remaining maturity gaps:
 - Continue exact V2 ranking/score reconciliation for replayable source fields.
