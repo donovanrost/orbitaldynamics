@@ -1226,6 +1226,10 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyContactAllocationPressureTest 
 
     assert "provider_reservation_request_review" in provider_row["risk_types"]
 
+    assert provider_row["branch_source_window_ids"] == ["summary_provider_source_window"]
+    assert provider_row["branch_earliest_starts_at_s"] == 820.0
+    assert provider_row["branch_latest_ends_at_s"] == 880.0
+
     assert provider_row["branch_station_calendar_entry_ids"] == [
              "summary_provider_calendar_entry"
            ]
@@ -1251,6 +1255,47 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyContactAllocationPressureTest 
            ]
 
     assert provider_row["branch_station_reservation_expiration_statuses"] == ["expired"]
+
+    provider_branch_id = provider_branch["branch_id"]
+
+    provider_review_row =
+      artifact["operator_review_package"]["rows"]
+      |> Enum.find(
+        &(&1["review_type"] == "strategy_tradeoff" and
+            &1["branch_id"] == provider_branch_id and
+            &1["source"] == "campaign_strategy.branch_comparison_report.rows")
+      )
+
+    assert provider_review_row["branch_source_window_ids"] == [
+             "summary_provider_source_window"
+           ]
+
+    assert provider_review_row["branch_earliest_starts_at_s"] == 820.0
+    assert provider_review_row["branch_latest_ends_at_s"] == 880.0
+
+    assert get_in(provider_review_row, [
+             "source_branch_comparison",
+             "branch_source_window_ids"
+           ]) == ["summary_provider_source_window"]
+
+    provider_import_row =
+      artifact["cadence_import_manifest"]["rows"]
+      |> Enum.find(
+        &(&1["source_review_type"] == "strategy_branch_comparison" and
+            &1["branch_id"] == provider_branch_id)
+      )
+
+    assert provider_import_row["branch_source_window_ids"] == [
+             "summary_provider_source_window"
+           ]
+
+    assert provider_import_row["branch_earliest_starts_at_s"] == 820.0
+    assert provider_import_row["branch_latest_ends_at_s"] == 880.0
+
+    assert get_in(provider_import_row, [
+             "source_branch_comparison",
+             "branch_latest_ends_at_s"
+           ]) == 880.0
 
     risk_weight =
       get_in(artifact, ["score_term_report", "assumptions", "policy", "risk_weight"])

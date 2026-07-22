@@ -594,6 +594,28 @@ defmodule OrbitalDynamics.Schema.OptimizerObjectiveContractsTest do
              &(&1["path"] == "$.rows[0].branch_station_calendar_provider_ids[0]")
            )
 
+    invalid_branch_window_context =
+      branch_comparison_report
+      |> put_in(
+        ["rows", Access.at(0), "branch_source_window_ids"],
+        ["window_b", "window_a"]
+      )
+      |> put_in(["rows", Access.at(0), "branch_earliest_starts_at_s"], 200.0)
+      |> put_in(["rows", Access.at(0), "branch_latest_ends_at_s"], 100.0)
+
+    assert {:error, branch_window_context_report} =
+             Schema.validate_artifact(invalid_branch_window_context)
+
+    assert Enum.any?(
+             branch_window_context_report["errors"],
+             &(&1["path"] == "$.rows[0].branch_source_window_ids")
+           )
+
+    assert Enum.any?(
+             branch_window_context_report["errors"],
+             &(&1["path"] == "$.rows[0].branch_latest_ends_at_s")
+           )
+
     invalid_capacity_pack_pressure =
       branch_comparison_report
       |> put_in(["rows", Access.at(0), "capacity_pack_max_required_capacity_fraction"], 1.1)

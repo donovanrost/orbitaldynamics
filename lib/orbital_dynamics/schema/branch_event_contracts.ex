@@ -549,6 +549,12 @@ defmodule OrbitalDynamics.Schema.BranchEventContracts do
     )
     |> expect_optional_type(path, row, "branch_source_activity_ids", :list)
     |> validate_optional_stable_id_list(path, row, "branch_source_activity_ids")
+    |> expect_optional_type(path, row, "branch_source_window_ids", :list)
+    |> validate_optional_stable_id_list(path, row, "branch_source_window_ids")
+    |> validate_canonical_branch_source_window_ids(path, row)
+    |> expect_optional_number(path, row, "branch_earliest_starts_at_s")
+    |> expect_optional_number(path, row, "branch_latest_ends_at_s")
+    |> validate_branch_window_bounds(path, row)
     |> expect_optional_number(path, row, "branch_max_latency_s")
     |> expect_optional_number(path, row, "branch_planned_latency_s")
     |> expect_optional_number(path, row, "branch_required_contacts")
@@ -560,6 +566,44 @@ defmodule OrbitalDynamics.Schema.BranchEventContracts do
       row,
       "branch_actual_downlink_completion_ratio"
     )
+  end
+
+  defp validate_canonical_branch_source_window_ids(issues, path, row) do
+    case Map.get(row, "branch_source_window_ids") do
+      ids when is_list(ids) ->
+        if ids == ids |> Enum.uniq() |> Enum.sort() do
+          issues
+        else
+          [
+            error(
+              "#{path}.branch_source_window_ids",
+              "must equal sorted unique stable source-window IDs"
+            )
+            | issues
+          ]
+        end
+
+      _ids ->
+        issues
+    end
+  end
+
+  defp validate_branch_window_bounds(issues, path, row) do
+    earliest_starts_at_s = Map.get(row, "branch_earliest_starts_at_s")
+    latest_ends_at_s = Map.get(row, "branch_latest_ends_at_s")
+
+    if is_number(earliest_starts_at_s) and is_number(latest_ends_at_s) and
+         latest_ends_at_s < earliest_starts_at_s do
+      [
+        error(
+          "#{path}.branch_latest_ends_at_s",
+          "must be greater than or equal to branch_earliest_starts_at_s"
+        )
+        | issues
+      ]
+    else
+      issues
+    end
   end
 
   defp validate_trust_boundary_status_counts(issues, path, row) do

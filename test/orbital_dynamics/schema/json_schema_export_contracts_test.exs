@@ -211,6 +211,18 @@ defmodule OrbitalDynamics.Schema.JsonSchemaExportContractsTest do
 
     assert get_in(row_schema, [
              "properties",
+             "branch_source_window_ids",
+             "items",
+             "pattern"
+           ]) == Schema.identity_policy()["stable_id_pattern"]
+
+    assert get_in(row_schema, ["properties", "branch_earliest_starts_at_s", "type"]) ==
+             "number"
+
+    assert get_in(row_schema, ["properties", "branch_latest_ends_at_s", "type"]) == "number"
+
+    assert get_in(row_schema, [
+             "properties",
              "branch_station_calendar_directions",
              "items",
              "type"

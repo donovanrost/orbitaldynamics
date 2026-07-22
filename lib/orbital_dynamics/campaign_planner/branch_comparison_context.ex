@@ -130,6 +130,10 @@ defmodule OrbitalDynamics.CampaignPlanner.BranchComparisonContext do
           ),
         "branch_source_activity_ids" =>
           branch_event_unique_values(events, ["source_activity_id", "source_activity_ids"]),
+        "branch_source_window_ids" =>
+          branch_event_unique_values(events, ["source_window_id", "source_window_ids"]),
+        "branch_earliest_starts_at_s" => minimum_present(events, "starts_at_s"),
+        "branch_latest_ends_at_s" => maximum_present(events, "ends_at_s"),
         "branch_directions" => branch_event_unique_values(events, "direction"),
         "branch_station_calendar_entry_ids" =>
           branch_event_unique_values(events, [
@@ -387,6 +391,9 @@ defmodule OrbitalDynamics.CampaignPlanner.BranchComparisonContext do
     |> maybe_put_nonempty("branch_timeline_preservation_review_change_timeline_ids")
     |> maybe_put_nonempty("branch_timeline_preservation_invalid_activity_input_reasons")
     |> maybe_put_nonempty("branch_source_activity_ids")
+    |> maybe_put_nonempty("branch_source_window_ids")
+    |> maybe_put_nonempty("branch_earliest_starts_at_s")
+    |> maybe_put_nonempty("branch_latest_ends_at_s")
     |> maybe_put_nonempty("branch_directions")
     |> maybe_put_nonempty("branch_station_calendar_entry_ids")
     |> maybe_put_nonempty("branch_station_calendar_provider_ids")

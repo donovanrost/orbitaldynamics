@@ -5,57 +5,60 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Preserve selected-row operational window in provider pressure.
+Version branch-comparison operational-window context.
 
 Status:
 Verified; ready to publish.
 
 Selection evidence:
-- Provider-reservation review rows can carry `source_window_id`, `starts_at_s`,
-  and `ends_at_s` tied to the selected contact.
-- Provider-pressure event/risk construction currently drops the operational
-  window, leaving the review risk without time-bounded source evidence.
-- Branch comparison has no versioned source-window/time fields yet; this slice
-  keeps that separate rather than emitting uncontracted comparison fields.
+- Selected provider-pressure events now retain source-window identity and
+  normalized start/end times.
+- Branch comparison, operator review, and Cadence import have no contracted
+  fields for that window, so downstream adapters lose it.
+- Shared branch-scoped schemas and source-consistency validation provide one
+  versioned path for adding the fields across all three handoffs.
 
 Intended behavior:
-- Carry selected-row source-window identity and normalized start/end times
-  through the provider-pressure event, review risk, and provenance metadata.
-- Keep the evidence contact-scoped without consulting aggregate windows.
-- Preserve comparison contracts, request/review classification, scoring,
-  approval, and execution boundaries.
+- Derive canonical `branch_source_window_ids`, earliest start, and latest end
+  from branch events.
+- Preserve those fields through operator-review and Cadence comparison rows,
+  with source-consistency validation and generated schema coverage.
+- Keep the context optional for legacy handoffs and preserve scoring, approval,
+  and execution boundaries.
 
 Level 6 pillar advanced:
 Fleet-scale planning decisions and durable reproducible audit handoffs.
 
 Planned files:
-- provider-pressure event/risk operational-window evidence
-- selected-row window proof, docs, and loop ledger
+- branch comparison context, shared handoff validation/schema, and adapters
+- provider-window comparison/review/import proof, generated schemas, docs, ledger
 
 Verification:
-- Focused provider-pressure branch handoff: `9 passed`.
-- Focused provider-reservation/challenge coverage: `5 passed`.
+- Focused comparison/schema/challenge proofs: `25 passed`.
+- Focused provider/review/import compatibility: `30 passed`.
 - Contact-allocation family: `213 passed`.
 - Golden artifacts: `12 passed`.
 - Schema lint: `155` artifacts passed with zero errors or warnings.
 - Full suite: `3883 passed`.
 
 Review:
-- Provider-pressure events, review risks, and provenance metadata retain the
-  selected contact's source-window ID and normalized start/end times.
-- The window remains selected-row and contact-scoped; no aggregate window map
-  creates a branch, score, or approval effect.
-- Existing provider and expiration risk counts, score terms, policy blocking,
-  and approval behavior remain unchanged.
-- Branch comparison emits no ad hoc window fields; generated schemas and golden
-  artifacts do not change ahead of a dedicated versioned comparison slice.
+- Branch comparison derives sorted unique source-window IDs plus the earliest
+  event start and latest event end; executable validation rejects noncanonical
+  IDs and inverted bounds.
+- Operator-review and Cadence comparison rows preserve all three fields beside
+  their source comparison, with shared source-consistency validation.
+- Shared optional schema properties reached twelve direct/dependent generated
+  schemas, including the bundle and study manifest; the canonical public V3
+  strategy golden was regenerated through the campaign runner.
+- Legacy omission remains valid, and existing provider/expiration scoring,
+  policy blocking, and approval behavior remain unchanged.
 - All no-provider-request, no-reservation, no-schedule-mutation,
   no-Cadence-write, no-operator-authority, and no-autonomous-execution
   boundaries remain intact.
 - Local review found no publish blocker.
 
 Last published slice:
-- `6edb85ab` Preserve provider pressure calendar identity (`3883 passed`).
+- `68f9f0c8` Preserve provider pressure operational window (`3883 passed`).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions while preserving explicit
@@ -66,8 +69,7 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-Add versioned branch-comparison source-window/time context before carrying the
-selected window into review/import comparison rows.
+Challenge stale operator/Cadence window copies while preserving legacy omission.
 
 Blocked:
 None.
