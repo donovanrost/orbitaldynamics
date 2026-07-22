@@ -5,59 +5,54 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Expose source-window timing coverage status.
+Challenge source-window timing status copies.
 
 Status:
 Verified; ready to publish.
 
 Selection evidence:
-- Coverage counts are now durable, but every consumer must still compare total
-  and bounded counts to distinguish complete, partial, and entirely untimed
-  source-window evidence.
-- The live fixtures already contain both complete provider timing and partial
-  selected-branch timing; a contract fixture can exercise the untimed case.
-- A row-derived status can improve scanability without changing selection,
-  scoring, approval, or execution behavior.
+- The status now propagates on real output paths, but the focused operator and
+  Cadence source-copy omission loops cover only the preceding count/ID fields.
+- Because the field remains optional for compatibility, deleting it from a
+  derived row is row-locally valid unless source preservation is challenged.
+- Existing partial-coverage comparison/recommendation/tradeoff fixtures can pin
+  this behavior without production changes.
 
 Intended behavior:
-- Emit `complete`, `partial`, or `untimed` only when source-window identity
-  exists, derived from authoritative IDs and bounds.
-- Preserve the optional status through operator-review and Cadence handoffs and
-  reject stale values or stale source copies.
-- Keep legacy omission valid and preserve all operational authority boundaries.
+- Add the derived `partial` status to operator and Cadence source copies.
+- Prove omission from the derived row fails at the exact status path when the
+  source supplies it, while legacy source/derived pairs may omit it together.
+- Keep this a proof-only slice unless a live contract gap appears.
 
 Level 6 pillar advanced:
 Fleet-scale planning decisions and durable reproducible audit handoffs.
 
 Planned files:
-- branch comparison context, shared schema/validation, and adapters
-- focused derivation/challenge proofs, generated schemas, docs, and ledger
+- operator-review and Cadence source-copy challenge proofs
+- loop ledger
 
 Verification:
-- Focused derivation/schema/handoff proofs: `53 passed`.
+- Focused operator/Cadence source-copy proofs: `26 passed`.
 - Contact-allocation family: `213 passed`.
 - Golden artifacts: `12 passed`.
 - Schema lint: `155` artifacts passed with zero errors or warnings.
-- Full suite: `3886 passed` after the final semantic review change.
+- Full suite: `3886 passed`.
 
 Review:
-- Status derives only from authoritative identity/bounds: the provider path is
-  `complete`, the selected recommendation is `partial`, and the zero-bound
-  contract case is `untimed`.
-- Executable validation rejects stale enum values and rejects a status supplied
-  without non-empty source-window identity; legacy status omission stays valid.
-- Operator-review, recommendation/tradeoff, and Cadence adapters preserve the
-  optional status, with shared source-copy consistency checks.
-- Twelve direct/dependent schemas were regenerated. The public V3 campaign was
-  regenerated through the runner and remained byte-stable.
-- The status is provenance-only and changes no timing, scoring, approval, or
-  execution behavior. All no-provider-request, no-reservation,
-  no-schedule-mutation, no-Cadence-write, no-operator-authority, and
-  no-autonomous-execution boundaries remain intact; local review found no
-  publish blocker.
+- Valid partial-coverage operator comparison, Cadence recommendation, and
+  Cadence tradeoff fixtures carry the status on source and derived rows.
+- Removing only the derived status is rejected at its exact row path because
+  the source still supplies it.
+- Legacy source/derived pairs that jointly omit the optional status remain
+  covered and valid.
+- This proof-only slice changed no production module, schema, golden artifact,
+  scoring, approval, or execution behavior.
+- All no-provider-request, no-reservation, no-schedule-mutation,
+  no-Cadence-write, no-operator-authority, and no-autonomous-execution
+  boundaries remain intact; local review found no publish blocker.
 
 Last published slice:
-- `3349c75a` Prove source window coverage copies (`3886 passed`).
+- `1a0736e0` Expose source window timing status (`3886 passed`).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions while preserving explicit
@@ -68,7 +63,7 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-Challenge source-window timing status source copies.
+Evaluate source-window timing evidence in operator risk context.
 
 Blocked:
 None.
