@@ -38,6 +38,71 @@ defmodule OrbitalDynamics.Schema.JsonSchemaExportContractsTest do
            ]) == "string"
   end
 
+  test "exports provider request expiration recommendation risk context" do
+    assert {:ok, strategy_schema} = Schema.json_schema("campaign_strategy.v3")
+    assert {:ok, review_schema} = Schema.json_schema("operator_review_package.v1")
+    assert {:ok, import_schema} = Schema.json_schema("cadence_import_manifest.v1")
+
+    scalar_field = "station_reservation_expiration_status"
+
+    aggregate_field =
+      "provider_reservation_request_station_reservation_expiration_statuses"
+
+    assert get_in(strategy_schema, [
+             "properties",
+             "recommendation",
+             "properties",
+             "risks_remaining",
+             "items",
+             "properties",
+             scalar_field,
+             "type"
+           ]) == "string"
+
+    assert get_in(strategy_schema, [
+             "properties",
+             "recommendation",
+             "properties",
+             "explanation",
+             "items",
+             "properties",
+             scalar_field,
+             "type"
+           ]) == "string"
+
+    assert get_in(review_schema, [
+             "properties",
+             "rows",
+             "items",
+             "properties",
+             aggregate_field,
+             "items",
+             "type"
+           ]) == "string"
+
+    assert get_in(import_schema, [
+             "properties",
+             "rows",
+             "items",
+             "properties",
+             aggregate_field,
+             "items",
+             "type"
+           ]) == "string"
+
+    assert get_in(import_schema, [
+             "properties",
+             "rows",
+             "items",
+             "properties",
+             "source_review_row",
+             "properties",
+             aggregate_field,
+             "items",
+             "type"
+           ]) == "string"
+  end
+
   test "exports nested branch comparison report row schema" do
     assert {:ok, schema} = Schema.json_schema("branch_comparison_report.v1")
 

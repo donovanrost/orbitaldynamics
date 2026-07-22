@@ -9,6 +9,7 @@ defmodule OrbitalDynamics.RecommendationRiskContext.ProviderReservationRequest d
     "provider_reservation_request_station_reservation_ids",
     "provider_reservation_request_station_reserved_by",
     "provider_reservation_request_station_reservation_statuses",
+    "provider_reservation_request_station_reservation_expiration_statuses",
     "provider_reservation_request_station_reservation_match_statuses",
     "provider_reservation_request_statuses",
     "provider_reservation_request_row_scopes",
@@ -49,6 +50,11 @@ defmodule OrbitalDynamics.RecommendationRiskContext.ProviderReservationRequest d
         risk_context_values(provider_reservation_request_risks, "station_reserved_by"),
       "provider_reservation_request_station_reservation_statuses" =>
         risk_context_values(provider_reservation_request_risks, "station_reservation_status"),
+      "provider_reservation_request_station_reservation_expiration_statuses" =>
+        risk_context_values(
+          provider_reservation_request_risks,
+          "station_reservation_expiration_status"
+        ),
       "provider_reservation_request_station_reservation_match_statuses" =>
         risk_context_values(
           provider_reservation_request_risks,

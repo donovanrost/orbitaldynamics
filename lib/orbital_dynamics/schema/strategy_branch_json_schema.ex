@@ -322,6 +322,7 @@ defmodule OrbitalDynamics.Schema.StrategyBranchJsonSchema do
           "severity" => %{"type" => "string"},
           "reason" => %{"type" => "string"},
           "value" => %{"type" => "number"},
+          "station_reservation_expiration_status" => %{"type" => "string"},
           "station_calendar_provider_id" => %{
             "type" => "string",
             "pattern" => stable_id_pattern

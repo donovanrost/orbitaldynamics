@@ -160,6 +160,8 @@ defmodule OrbitalDynamics.Schema.OperatorReviewRowJsonSchema do
             schema.(:stable_id_array_schema),
           "branch_station_reservation_conflict_match_statuses" => schema.(:string_array_schema),
           "branch_station_reservation_expiration_statuses" => schema.(:string_array_schema),
+          "provider_reservation_request_station_reservation_expiration_statuses" =>
+            schema.(:string_array_schema),
           "branch_image_quality_min_score" => %{
             "type" => "number",
             "minimum" => 0.0,

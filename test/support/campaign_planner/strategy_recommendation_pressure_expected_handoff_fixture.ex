@@ -1358,6 +1358,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureExpected
         ],
         "provider_reservation_request_station_reserved_by" => ["partner_calendar"],
         "provider_reservation_request_station_reservation_statuses" => ["confirmed"],
+        "provider_reservation_request_station_reservation_expiration_statuses" => ["active"],
         "provider_reservation_request_station_reservation_match_statuses" => ["overlap"],
         "provider_reservation_request_statuses" => ["review_required"],
         "provider_reservation_request_row_scopes" => ["review"],

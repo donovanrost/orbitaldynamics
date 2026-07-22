@@ -1224,6 +1224,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureEventsFi
                 station_reservation_id: "provider_reservation_review",
                 station_reserved_by: "partner_calendar",
                 station_reservation_status: "confirmed",
+                station_reservation_expiration_status: "active",
                 station_reservation_match_status: "overlap",
                 provider_reservation_request_status: "review_required",
                 provider_reservation_row_scope: "review",

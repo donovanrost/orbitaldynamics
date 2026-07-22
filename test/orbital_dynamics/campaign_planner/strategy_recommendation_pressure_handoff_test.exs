@@ -225,4 +225,124 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
                  "$.rows[#{review_import_index}].branch_station_reservation_expiration_statuses")
            )
   end
+
+  test "provider request expiration risk context remains source exact across handoffs" do
+    artifact = StrategyRecommendationPressureEventsFixture.artifact()
+    field = "provider_reservation_request_station_reservation_expiration_statuses"
+
+    recommendation_review_row =
+      Enum.find(
+        artifact["operator_review_package"]["rows"],
+        &(&1["review_type"] == "strategy_recommendation")
+      )
+
+    selected_import_row =
+      Enum.find(
+        artifact["cadence_import_manifest"]["rows"],
+        &(&1["import_action"] == "import_strategy_recommendation" and &1["selected"] == true)
+      )
+
+    review_import = OrbitalDynamics.cadence_import_manifest(artifact["operator_review_package"])
+
+    review_import_row =
+      Enum.find(
+        review_import["rows"],
+        &(&1["source_review_type"] == "strategy_recommendation")
+      )
+
+    assert recommendation_review_row[field] == ["active"]
+    assert selected_import_row[field] == ["active"]
+    assert review_import_row[field] == ["active"]
+    assert review_import_row["source_review_row"][field] == ["active"]
+
+    recommendation_review_index =
+      Enum.find_index(
+        artifact["operator_review_package"]["rows"],
+        &(&1["id"] == recommendation_review_row["id"])
+      )
+
+    missing_review_context =
+      update_in(
+        artifact["operator_review_package"],
+        ["rows", Access.at(recommendation_review_index)],
+        &Map.delete(&1, field)
+      )
+
+    assert {:error, missing_review_context_report} =
+             Schema.validate_artifact(missing_review_context)
+
+    assert Enum.any?(
+             missing_review_context_report["errors"],
+             &(&1["path"] == "$.rows[#{recommendation_review_index}].#{field}")
+           )
+
+    legacy_review_context =
+      update_in(
+        artifact["operator_review_package"],
+        ["rows", Access.at(recommendation_review_index)],
+        fn row ->
+          row
+          |> Map.delete(field)
+          |> update_in(["source_recommendation", "risks_remaining"], fn risks ->
+            Enum.map(risks, fn
+              %{"type" => "provider_reservation_request_review"} = risk ->
+                Map.delete(risk, "station_reservation_expiration_status")
+
+              other ->
+                other
+            end)
+          end)
+          |> update_in(["source_recommendation", "explanation"], fn explanation ->
+            Enum.map(explanation, fn
+              %{"risk_type" => "provider_reservation_request_review"} = risk_driver ->
+                Map.delete(risk_driver, "station_reservation_expiration_status")
+
+              other ->
+                other
+            end)
+          end)
+        end
+      )
+
+    assert {:ok, _legacy_review_context} = Schema.validate_artifact(legacy_review_context)
+
+    selected_import_index =
+      Enum.find_index(
+        artifact["cadence_import_manifest"]["rows"],
+        &(&1["id"] == selected_import_row["id"])
+      )
+
+    stale_selected_context =
+      update_in(
+        artifact["cadence_import_manifest"],
+        ["rows", Access.at(selected_import_index)],
+        &Map.put(&1, field, ["expired"])
+      )
+
+    assert {:error, stale_selected_context_report} =
+             Schema.validate_artifact(stale_selected_context)
+
+    assert Enum.any?(
+             stale_selected_context_report["errors"],
+             &(&1["path"] == "$.rows[#{selected_import_index}].#{field}")
+           )
+
+    review_import_index =
+      Enum.find_index(review_import["rows"], &(&1["id"] == review_import_row["id"]))
+
+    missing_review_import_context =
+      update_in(
+        review_import,
+        ["rows", Access.at(review_import_index)],
+        &Map.delete(&1, field)
+      )
+
+    assert {:error, missing_review_import_context_report} =
+             Schema.validate_artifact(missing_review_import_context)
+
+    assert Enum.any?(
+             missing_review_import_context_report["errors"],
+             &(&1["path"] == "$.rows[#{review_import_index}].#{field}")
+           )
+  end
 end

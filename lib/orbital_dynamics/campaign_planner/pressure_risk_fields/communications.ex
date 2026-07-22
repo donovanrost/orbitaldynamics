@@ -11,6 +11,7 @@ defmodule OrbitalDynamics.CampaignPlanner.PressureRiskFields.Communications do
       "station_reservation_id",
       "station_reserved_by",
       "station_reservation_status",
+      "station_reservation_expiration_status",
       "station_reservation_match_status",
       "provider_reservation_request_status",
       "provider_reservation_row_scope",

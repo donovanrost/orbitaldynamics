@@ -112,6 +112,7 @@ defmodule OrbitalDynamics.CampaignPlanner.BranchEventNormalizer do
       "station_reserved_by",
       "reservation_status",
       "station_reservation_status",
+      "station_reservation_expiration_status",
       "station_reservation_match_status",
       "feedback_source",
       "source_event_type"

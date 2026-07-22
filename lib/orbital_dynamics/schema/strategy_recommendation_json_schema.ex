@@ -200,6 +200,7 @@ defmodule OrbitalDynamics.Schema.StrategyRecommendationJsonSchema do
             "pattern" => stable_id_pattern
           },
           "station_calendar_directions" => CommonJsonSchema.string_array(),
+          "station_reservation_expiration_status" => %{"type" => "string"},
           "first_resource_pressure_activity_id" => %{
             "type" => "string",
             "pattern" => stable_id_pattern

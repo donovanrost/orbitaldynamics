@@ -5,50 +5,51 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Preserve selected-recommendation reservation-expiration statuses.
+Preserve provider-request reservation-expiration risk context.
 
 Status:
 Verified; ready to publish.
 
 Selection evidence:
-- Recommended branch-event summaries already contain canonical expiration
-  statuses, but recommendation review and both Cadence paths drop the field.
-- Recommendation builders, scoped branch schema, and source-copy validators
-  expose the bounded additive path needed to preserve it.
+- Provider-request pressure inputs already carry a canonical reservation
+  expiration status, but event normalization and risk-driver rows drop it.
+- Recommendation review and both Cadence paths aggregate the surrounding
+  provider-request identity/status context but omit expiration classifications.
 
 Intended behavior:
-- Copy exact statuses from recommendation explanation through operator review,
-  direct selected Cadence import, and review-derived Cadence import.
-- Reject missing/stale copies at each source boundary while retaining paired
-  legacy omission compatibility.
-- Add schema visibility only; do not change scoring, selection, or effects.
+- Preserve the exact scalar classification in recommendation risk drivers and
+  the canonical unique list in review/direct/review-derived Cadence rows.
+- Reject missing or stale aggregate copies when source risks supply the field;
+  retain paired legacy omission compatibility.
+- Add schema visibility only; do not change risk scoring, selection, or effects.
 
 Level 6 pillar advanced:
 Fleet-scale planning decisions and durable reproducible audit handoffs.
 
 Planned files:
-- recommendation review/direct/review-derived Cadence builders and validation
-- scoped branch schema, focused handoff proof, docs, exports, and ledger
+- provider-request pressure/recommendation risk context and handoff validation
+- review/import schemas, focused risk/handoff proofs, docs, exports, and ledger
 
 Verification:
-- Focused recommendation/schema handoff proofs: `17 passed`.
+- Focused recommendation/schema proofs: `20 passed`.
+- Targeted Cadence compatibility and handoff proofs: `3 passed`.
 - Contact-allocation family: `213 passed`.
 - Golden artifacts: `12 passed`.
 - Schema lint: `155 schemas, 0 errors, 0 warnings`.
-- Full suite: `3889 passed`.
-- General schemas regenerated; manifest schema and canonical V3 campaign remained
-  byte-stable through their public exporters/runners.
+- Full suite: `3891 passed`.
+- General and manifest schemas regenerated; canonical V3 campaign remained
+  byte-stable through the public runner.
 
 Review:
-- Canonical statuses now survive recommendation branch-event explanation,
-  operator review, direct selected Cadence import, and review-derived import.
-- Validation rejects a missing operator copy, stale direct Cadence copy, and
-  missing review-derived copy while accepting paired legacy omission.
-- Four generated schemas expose the additive branch-summary field; no score,
-  branch selection, provider/Cadence effect, or authority changed.
+- Normalization now retains the scalar status through event-to-risk conversion,
+  and the recommendation risk driver exposes the exact source classification.
+- Review/direct/review-derived Cadence rows carry the canonical unique list;
+  validation rejects missing/stale copies and accepts paired legacy omission.
+- Shared risk and explicit handoff schemas expose only additive properties; no
+  scoring, selection, provider/Cadence effect, or authority boundary changed.
 
 Last published slice:
-- `fb21df9e` Preserve reservation expiration handoffs (`3888 passed`).
+- `d7e54b9e` Preserve recommendation expiration handoffs (`3889 passed`).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions while preserving explicit
@@ -59,7 +60,7 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-Assess expiration-status context in recommendation risk summaries.
+Assess expiration context in station-conflict recommendation risk summaries.
 
 Blocked:
 None.
