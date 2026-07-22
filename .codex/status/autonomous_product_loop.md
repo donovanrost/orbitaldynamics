@@ -5,55 +5,57 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Correlate resolution-summary group lineage.
+Correlate resolution-summary categorical routing.
 
 Status:
-Complete; ready to publish.
+Complete; verified and ready to publish.
 
 Selection evidence:
-- Resolution summaries flatten selected/deferred IDs from per-group maps, but
-  executable validation does not correlate those map keys to group ID lists.
-- Replacing a real group key with a phantom key preserves current value/count
-  checks and still validates.
-- CandidateRefresh merges and replays those uncorrelated group maps as branch
-  pressure without validating the source artifact first.
+- Resource-scope, selection-reason, and review-action maps are value-checked
+  against flattened IDs but their category keys are not correlated to counts.
+- A phantom category key can preserve every current value and total-count check
+  while changing downstream routing identity.
+- CandidateRefresh merges and replays those uncorrelated category maps as
+  pressure when standalone validation is bypassed.
 
-Implemented behavior:
-- Require selected/deferred group maps to reference recommendation groups,
-  review maps to reference review groups, and ambiguous maps to reference
-  ambiguous groups.
-- Require review and ambiguous group lists to reference recommendation groups.
-- Filter uncorrelated group maps during source aggregation and replay even when
-  callers bypass standalone artifact validation.
+Intended behavior:
+- Require resource-scope, selection-reason, and review-action map keys to
+  reference positive entries in their corresponding count maps.
+- Apply the same per-report filter during source aggregation.
+- Reapply the correlation during preserved replay while retaining flattened IDs
+  and aggregate counts as review evidence.
 
 Level 6 pillar advanced:
 Fleet-scale planning decisions and durable reproducible audit handoffs.
 
-Files changed:
-- resolution-summary executable validation and replay lineage filtering
-- schema/source-summary/replay phantom-group challenge tests
+Planned files:
+- resolution-summary validation and categorical replay filtering
+- schema/source-summary/replay phantom-category challenge tests
 - contention artifact documentation and autonomous-loop ledger
 
 Verification:
-- Focused summary validation/replay tests: `43 passed`.
-- Targeted resolution-summary matrix: `64 passed`.
-- Broad contention-resolution matrix: `163 passed`.
-- Full checked-artifact lint: `155/155 passed`, zero warnings.
-- Full suite with a 120-second per-test ceiling: `3799 passed`.
-- `mix format --check-formatted`, `mix compile --warnings-as-errors`, and
-  `git diff --check` passed.
-- No public artifact shape or checked-in schema export changed.
+- `44 passed` focused contact-contention schema and categorical replay tests.
+- `97 passed` contention-family regression sweep.
+- `87 passed` related CandidateRefresh, schema, export, and validation tests.
+- `mix orbital_dynamics.schema.lint --all`: `155` artifacts passed.
+- `mix test --timeout 120000`: `3800 passed`.
+- `mix format --check-formatted` and `git diff --check` passed.
 
 Review:
-- Validation rejects phantom decision, review, and ambiguous group lineage while
-  allowing legitimate subsets for ambiguous or non-selected recommendations.
-- Source aggregation filters lineage per input report before merging, preventing
-  one report's group list from authorizing another report's phantom map keys.
-- Preserved replay applies the same filter if callers bypass source aggregation;
-  flattened contacts and aggregate counts remain visible as review pressure.
+- Schema validation now rejects absent and zero-count resource-scope,
+  selection-reason, and review-action keys even when flattened IDs and totals
+  are unchanged.
+- CandidateRefresh filters keys against each source report before aggregation,
+  preventing one report's counts from authorizing another report's routing.
+- Preserved replay reapplies the positive-count correlation, with summary
+  `action_counts` accepted as the compact-summary source for effective action
+  counts.
+- Flattened contact IDs and aggregate count maps remain conservative review
+  evidence; no contact selection, allocation, reservation, or provider side
+  effect was added.
 
 Last published slice:
-- `71732c9f` Correlate contention conflict identities (`3798 passed`).
+- `a65b08ee` Correlate resolution summary group lineage (`3799 passed`).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions while preserving explicit
@@ -64,8 +66,8 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-After publish, audit resolution-summary resource-scope, selection-reason, and
-action map keys against their corresponding count maps.
+After publish, audit resolution-summary station and direction routing maps for
+contact-ID lineage and positive-count correlation.
 
 Blocked:
 None.

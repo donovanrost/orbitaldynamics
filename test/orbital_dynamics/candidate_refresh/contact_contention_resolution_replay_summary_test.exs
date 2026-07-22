@@ -404,4 +404,138 @@ defmodule OrbitalDynamics.CandidateRefresh.ContactContentionResolutionReplaySumm
     assert Map.get(preserved_replay, "ambiguous_duplicate_contact_ids_by_group_id", %{}) ==
              %{}
   end
+
+  test "contact contention resolution replay filters phantom categorical routing" do
+    resolution_summary = %{
+      "schema_contract" => "contact_contention_resolution_summary.v1",
+      "recommendation_count" => 1,
+      "conflict_group_count" => 1,
+      "selected_contact_ids" => ["selected_contact"],
+      "deferred_contact_ids" => ["deferred_contact"],
+      "review_contact_ids" => ["deferred_contact", "selected_contact"],
+      "resource_scope_counts" => %{"ground_station" => 1, "zero_scope" => 0},
+      "selection_reason_counts" => %{"highest_score" => 1, "zero_reason" => 0},
+      "action_counts" => %{
+        "review_contact_contention_resolution" => 1,
+        "zero_action" => 0
+      },
+      "selected_contact_ids_by_resource_scope" => %{
+        "phantom_scope" => ["selected_contact"],
+        "zero_scope" => ["selected_contact"]
+      },
+      "deferred_contact_ids_by_resource_scope" => %{
+        "phantom_scope" => ["deferred_contact"],
+        "zero_scope" => ["deferred_contact"]
+      },
+      "review_contact_ids_by_resource_scope" => %{
+        "phantom_scope" => ["deferred_contact", "selected_contact"],
+        "zero_scope" => ["deferred_contact", "selected_contact"]
+      },
+      "selected_contact_ids_by_selection_reason" => %{
+        "phantom_reason" => ["selected_contact"],
+        "zero_reason" => ["selected_contact"]
+      },
+      "review_contact_ids_by_action" => %{
+        "phantom_action" => ["deferred_contact", "selected_contact"],
+        "zero_action" => ["deferred_contact", "selected_contact"]
+      }
+    }
+
+    refresh = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "source_contact_contention_resolution_summary" => resolution_summary
+    }
+
+    source_summary = CandidateRefresh.source_report_summary(refresh)
+
+    assert source_summary["source_report_contact_contention_resolution_selected_contact_ids"] ==
+             ["selected_contact"]
+
+    assert source_summary["source_report_contact_contention_resolution_deferred_contact_ids"] ==
+             ["deferred_contact"]
+
+    assert source_summary["source_report_contact_contention_resolution_review_contact_ids"] ==
+             ["deferred_contact", "selected_contact"]
+
+    assert source_summary["source_report_contact_contention_resolution_resource_scope_counts"] ==
+             %{"ground_station" => 1, "zero_scope" => 0}
+
+    assert source_summary[
+             "source_report_contact_contention_resolution_selection_reason_counts"
+           ] == %{"highest_score" => 1, "zero_reason" => 0}
+
+    assert source_summary[
+             "source_report_contact_contention_resolution_required_operator_action_counts"
+           ] == %{"review_contact_contention_resolution" => 1, "zero_action" => 0}
+
+    for field <- [
+          "selected_contact_ids_by_resource_scope",
+          "deferred_contact_ids_by_resource_scope",
+          "review_contact_ids_by_resource_scope",
+          "selected_contact_ids_by_selection_reason",
+          "review_contact_ids_by_action"
+        ] do
+      assert Map.get(
+               source_summary,
+               "source_report_contact_contention_resolution_#{field}",
+               %{}
+             ) == %{}
+    end
+
+    replay_summary = CandidateRefresh.contact_contention_resolution_replay_summary(refresh)
+
+    assert replay_summary["selected_contact_ids"] == ["selected_contact"]
+    assert replay_summary["deferred_contact_ids"] == ["deferred_contact"]
+    assert replay_summary["review_contact_ids"] == ["deferred_contact", "selected_contact"]
+    assert replay_summary["resource_scope_counts"] == %{"ground_station" => 1, "zero_scope" => 0}
+
+    assert replay_summary["selection_reason_counts"] == %{
+             "highest_score" => 1,
+             "zero_reason" => 0
+           }
+
+    assert replay_summary["required_operator_action_counts"] == %{
+             "review_contact_contention_resolution" => 1,
+             "zero_action" => 0
+           }
+
+    for field <- [
+          "selected_contact_ids_by_resource_scope",
+          "deferred_contact_ids_by_resource_scope",
+          "review_contact_ids_by_resource_scope",
+          "selected_contact_ids_by_selection_reason",
+          "review_contact_ids_by_action"
+        ] do
+      assert Map.get(replay_summary, field, %{}) == %{}
+    end
+
+    assert replay_summary["branch_local_contact_contention_resolution_pressure"]
+    assert replay_summary["branch_local_deferred_contact_pressure"]
+
+    preserved_artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "provenance" => %{
+        "source_reports" => %{
+          "contact_contention_resolution_report" =>
+            Map.put(resolution_summary, "contract", "contact_contention_resolution_summary.v1")
+        }
+      }
+    }
+
+    preserved_replay =
+      CandidateRefresh.contact_contention_resolution_replay_summary(preserved_artifact)
+
+    assert preserved_replay["selected_contact_ids"] == ["selected_contact"]
+    assert preserved_replay["deferred_contact_ids"] == ["deferred_contact"]
+
+    for field <- [
+          "selected_contact_ids_by_resource_scope",
+          "deferred_contact_ids_by_resource_scope",
+          "review_contact_ids_by_resource_scope",
+          "selected_contact_ids_by_selection_reason",
+          "review_contact_ids_by_action"
+        ] do
+      assert Map.get(preserved_replay, field, %{}) == %{}
+    end
+  end
 end

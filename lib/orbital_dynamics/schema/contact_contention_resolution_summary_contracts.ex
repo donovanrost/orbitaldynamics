@@ -252,6 +252,36 @@ defmodule OrbitalDynamics.Schema.ContactContentionResolutionSummaryContracts do
       "ambiguous_duplicate_contact_ids_by_group_id",
       "ambiguous_group_ids"
     )
+    |> validate_positive_count_map_keys(
+      path,
+      summary,
+      "selected_contact_ids_by_resource_scope",
+      "resource_scope_counts"
+    )
+    |> validate_positive_count_map_keys(
+      path,
+      summary,
+      "deferred_contact_ids_by_resource_scope",
+      "resource_scope_counts"
+    )
+    |> validate_positive_count_map_keys(
+      path,
+      summary,
+      "review_contact_ids_by_resource_scope",
+      "resource_scope_counts"
+    )
+    |> validate_positive_count_map_keys(
+      path,
+      summary,
+      "selected_contact_ids_by_selection_reason",
+      "selection_reason_counts"
+    )
+    |> validate_positive_count_map_keys(
+      path,
+      summary,
+      "review_contact_ids_by_action",
+      "action_counts"
+    )
     |> expect_field_equals(
       path,
       summary,
@@ -433,6 +463,30 @@ defmodule OrbitalDynamics.Schema.ContactContentionResolutionSummaryContracts do
       else
         issues
       end
+    end
+  end
+
+  defp validate_positive_count_map_keys(issues, path, summary, field, count_field) do
+    values = Map.get(summary, field)
+    counts = Map.get(summary, count_field)
+
+    if is_map(values) and is_map(counts) do
+      positive_count_keys =
+        counts
+        |> Enum.filter(fn {_key, count} -> is_integer(count) and count > 0 end)
+        |> Map.new()
+        |> Map.keys()
+
+      if Enum.all?(Map.keys(values), &(&1 in positive_count_keys)) do
+        issues
+      else
+        [
+          error("#{path}.#{field}", "keys must reference positive #{count_field} entries")
+          | issues
+        ]
+      end
+    else
+      issues
     end
   end
 

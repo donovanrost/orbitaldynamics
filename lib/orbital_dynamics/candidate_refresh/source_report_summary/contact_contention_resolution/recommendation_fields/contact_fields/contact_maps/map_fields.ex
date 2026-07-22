@@ -6,6 +6,12 @@ defmodule OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactContention
     "deferred_contact_ids_by_group_id"
   ]
   @review_group_fields ["review_contact_ids_by_group_id"]
+  @resource_scope_fields [
+    "selected_contact_ids_by_resource_scope",
+    "deferred_contact_ids_by_resource_scope",
+    "review_contact_ids_by_resource_scope"
+  ]
+  @selection_reason_fields ["selected_contact_ids_by_selection_reason"]
 
   alias __MODULE__.FieldSpecs
 
@@ -30,6 +36,12 @@ defmodule OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactContention
   defp lineage_map(report, field) when field in @review_group_fields,
     do: take_group_keys(report, field, "review_group_ids", "recommendation_group_ids")
 
+  defp lineage_map(report, field) when field in @resource_scope_fields,
+    do: take_positive_count_keys(report, field, "resource_scope_counts")
+
+  defp lineage_map(report, field) when field in @selection_reason_fields,
+    do: take_positive_count_keys(report, field, "selection_reason_counts")
+
   defp lineage_map(report, field), do: Map.get(report, field, %{})
 
   defp take_group_keys(report, field, group_field) do
@@ -48,6 +60,19 @@ defmodule OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactContention
       {%{} = values, group_ids, allowed_group_ids}
       when is_list(group_ids) and is_list(allowed_group_ids) ->
         Map.take(values, Enum.filter(group_ids, &(&1 in allowed_group_ids)))
+
+      _values ->
+        %{}
+    end
+  end
+
+  defp take_positive_count_keys(report, field, count_field) do
+    case {Map.get(report, field), Map.get(report, count_field)} do
+      {%{} = values, %{} = counts} ->
+        positive_count_keys =
+          for {key, count} <- counts, is_integer(count) and count > 0, do: key
+
+        Map.take(values, positive_count_keys)
 
       _values ->
         %{}

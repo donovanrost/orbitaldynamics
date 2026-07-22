@@ -1641,6 +1641,70 @@ defmodule OrbitalDynamics.Communications.ContactContentionTest do
                  &1["message"] == "must reference recommendation_group_ids")
            )
 
+    phantom_categorical_routing =
+      summary
+      |> Map.put("selected_contact_ids_by_resource_scope", %{
+        "phantom_resource_scope" => summary["selected_contact_ids"]
+      })
+      |> Map.put("deferred_contact_ids_by_resource_scope", %{
+        "phantom_resource_scope" => summary["deferred_contact_ids"]
+      })
+      |> Map.put("review_contact_ids_by_resource_scope", %{
+        "phantom_resource_scope" => summary["review_contact_ids"]
+      })
+      |> Map.put("selected_contact_ids_by_selection_reason", %{
+        "phantom_selection_reason" => summary["selected_contact_ids"]
+      })
+      |> Map.put("review_contact_ids_by_action", %{
+        "phantom_action" => summary["review_contact_ids"]
+      })
+
+    assert {:error, phantom_categorical_routing_report} =
+             Schema.validate_artifact(phantom_categorical_routing)
+
+    for {field, count_field} <- [
+          {"selected_contact_ids_by_resource_scope", "resource_scope_counts"},
+          {"deferred_contact_ids_by_resource_scope", "resource_scope_counts"},
+          {"review_contact_ids_by_resource_scope", "resource_scope_counts"},
+          {"selected_contact_ids_by_selection_reason", "selection_reason_counts"},
+          {"review_contact_ids_by_action", "action_counts"}
+        ] do
+      assert Enum.any?(
+               phantom_categorical_routing_report["errors"],
+               &(&1["path"] == "$.#{field}" and
+                   &1["message"] == "keys must reference positive #{count_field} entries")
+             )
+    end
+
+    zero_count_categorical_routing =
+      phantom_categorical_routing
+      |> put_in(["resource_scope_counts", "phantom_resource_scope"], 0)
+      |> put_in(["selection_reason_counts", "phantom_selection_reason"], 0)
+      |> put_in(["action_counts", "phantom_action"], 0)
+
+    assert {:error, zero_count_categorical_routing_report} =
+             Schema.validate_artifact(zero_count_categorical_routing)
+
+    assert Enum.any?(
+             zero_count_categorical_routing_report["errors"],
+             &(&1["path"] == "$.selected_contact_ids_by_resource_scope" and
+                 &1["message"] ==
+                   "keys must reference positive resource_scope_counts entries")
+           )
+
+    assert Enum.any?(
+             zero_count_categorical_routing_report["errors"],
+             &(&1["path"] == "$.selected_contact_ids_by_selection_reason" and
+                 &1["message"] ==
+                   "keys must reference positive selection_reason_counts entries")
+           )
+
+    assert Enum.any?(
+             zero_count_categorical_routing_report["errors"],
+             &(&1["path"] == "$.review_contact_ids_by_action" and
+                 &1["message"] == "keys must reference positive action_counts entries")
+           )
+
     stale_summary_resolution =
       resolution
       |> Map.put("conflict_group_count", 9)

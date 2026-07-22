@@ -164,6 +164,11 @@ Resolution-summary group maps must reference their corresponding recommendation,
 review, or ambiguous group lists, and review/ambiguous group IDs must reference
 recommendation groups. Candidate-refresh aggregation and replay apply the same
 lineage filter when consuming preserved summaries without standalone validation.
+Resolution-summary resource-scope, selection-reason, and review-action maps also
+require keys backed by positive entries in their corresponding count maps.
+Candidate-refresh filters those category keys per source report and again during
+preserved replay, while retaining flattened contact IDs and aggregate counts as
+review evidence.
 Its exported JSON Schema includes the nested row and `timeline_identity` field
 shape used by executable validation. Rows also carry artifact-only operational
 kind, required operator action, operator-action reason, execution boundary,

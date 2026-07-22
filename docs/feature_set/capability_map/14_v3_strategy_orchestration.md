@@ -1129,6 +1129,11 @@ Compact resolution-summary selected, deferred, review, and ambiguous maps are
 group-lineage filtered during source aggregation and replay, so phantom group
 keys cannot surface as branch pressure even when standalone validation is
 bypassed.
+Resource-scope, selection-reason, and review-action routing maps are likewise
+restricted to positive keys in their corresponding count maps during executable
+validation, per-report aggregation, and preserved replay. Flattened contact IDs
+and aggregate counts remain available as conservative review evidence when a
+categorical key is rejected.
 Branch-generated CandidateRefresh requests preserve direct mission-state and
 result-artifact-wrapped raw `source_contact_contention_resolution_report` /
 `contact_contention_resolution_report` inputs with wrapper-qualified request

@@ -25,8 +25,7 @@ defmodule OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactContention
         ambiguous_duplicate_contact_ids_by_group_id(reports),
       "required_operator_action_counts" =>
         Aggregates.count_map(reports, &Recommendation.required_action_counts/1),
-      "review_contact_ids_by_action" =>
-        Aggregates.string_list_map_field(reports, "review_contact_ids_by_action")
+      "review_contact_ids_by_action" => review_contact_ids_by_action(reports)
     }
   end
 
@@ -66,5 +65,26 @@ defmodule OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactContention
       end
     end)
     |> Aggregates.sorted_field_values(field)
+  end
+
+  defp review_contact_ids_by_action(reports) do
+    reports
+    |> Enum.map(fn report ->
+      values = Map.get(report, "review_contact_ids_by_action")
+      counts = Recommendation.required_action_counts(report)
+
+      filtered_values =
+        if is_map(values) and is_map(counts) do
+          positive_count_keys =
+            for {key, count} <- counts, is_integer(count) and count > 0, do: key
+
+          Map.take(values, positive_count_keys)
+        else
+          %{}
+        end
+
+      Map.put(report, "review_contact_ids_by_action", filtered_values)
+    end)
+    |> Aggregates.string_list_map_field("review_contact_ids_by_action")
   end
 end
