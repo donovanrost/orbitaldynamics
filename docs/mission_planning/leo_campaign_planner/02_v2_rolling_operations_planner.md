@@ -340,9 +340,12 @@ schema-type their stable IDs, invalid-input flags, and protected/change counts.
   decision, and source protection summary context.
 - V1 `station_calendar_report.v1` on campaign plans when `ground_network`
   availability or capacity intervals affect generated contacts.
-- `source_candidate_diff_report` and `source_freshness_report` when present on
-  the refresh artifact, preserving candidate-set churn and stale/unknown
-  freshness status at the repair decision boundary. When the diff report marks
+- `source_candidate_diff_report`, `source_freshness_report`, and
+  `source_refresh_budget_report` when present on the refresh artifact,
+  preserving candidate-set churn, stale/unknown freshness status, and the
+  deterministic kept/dropped candidate budget at the repair decision boundary.
+  V2 declares all three as optional direct nested contracts and runs their
+  standalone validators. When the diff report marks
   an invalidated candidate as replaced by a semantically similar refreshed
   candidate, V2 repair prefers that `replacement_candidate_id` for matching
   missed contacts or failed observations and records the semantic diff row in

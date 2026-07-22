@@ -149,6 +149,10 @@ defmodule OrbitalDynamics.Schema.CampaignRepairContracts do
       "$.source_freshness_report",
       Map.get(artifact, "source_freshness_report")
     ])
+    |> call(callbacks, :validate_optional_refresh_budget_report, [
+      "$.source_refresh_budget_report",
+      Map.get(artifact, "source_refresh_budget_report")
+    ])
     |> call(callbacks, :validate_optional_station_calendar_report, [
       "$.source_station_calendar_report",
       Map.get(artifact, "source_station_calendar_report")

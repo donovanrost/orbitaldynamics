@@ -278,6 +278,11 @@ work, a **partial** executable-schema track, and **near-term** / **later** /
   runs both standalone validators. Executable repair validation also requires
   the quality-gate report's readiness-report ID and source artifact identity to
   match the paired readiness report when both are present.
+- V2 also declares candidate-refresh source `candidate_diff_report.v1`,
+  `freshness_report.v1`, and `refresh_budget_report.v1` evidence directly. All
+  three run their standalone row/count/model-limit validators at the repair
+  boundary while remaining optional for repairs that did not consume refresh
+  evidence.
 - `realized_state_snapshot.v1` and `timeline_feedback_report.v1` export nested
   operational-feedback rows plus command/contact feedback, throughput-delta,
   success fields, and source planned/realized activity context.

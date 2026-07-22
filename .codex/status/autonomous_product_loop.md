@@ -5,72 +5,66 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Validate V2 readiness source handoffs.
+Validate V2 candidate-refresh source reports.
 
 Status:
 Complete; ready to publish.
 
 Selection evidence:
-- V2 carries source `operational_readiness_report.v1` and
-  `quality_gate_report.v1` evidence into repair ranking, operator review, and
-  Cadence import, but declares and validates neither top-level source field.
-- The checked readiness handoff still used legacy partial report shapes that
-  failed their current standalone contracts despite the enclosing repair
-  validating successfully.
-- Readiness and quality-gate source identity is consumed as a pair, but no V2
-  cross-field rule prevents a valid gate report from pointing to another
-  readiness report.
+- V2 carries source candidate-diff, freshness, and refresh-budget reports into
+  ranking, pressure scoring, operator review, and Cadence import, but its
+  registry/export declares none of the three fields or nested contracts.
+- Runtime repair validation already applies the candidate-diff and freshness
+  standalone validators, but refresh-budget evidence is only consumed by score
+  reconciliation and is not validated as its claimed V1 artifact contract.
+- All three reports in the checked candidate-refresh repair pass their current
+  standalone contracts.
 
 Intended behavior:
-- Refresh the checked V2 readiness handoff with current artifact-only report
-  models, assumptions, model limits, execution boundary, and row-derived
-  review gates.
-- Declare both optional source reports and direct nested contracts in the V2
+- Declare all three optional source reports and direct nested contracts in the V2
   registry and generated JSON Schema.
-- Run both complete standalone validators inside repair validation.
-- Reconcile quality-gate readiness-report ID and source artifact identity to the
-  paired readiness report when both fields are present.
-- Keep both fields optional for compatible older V2 artifacts.
-- Add standalone, linkage, optional-field, checked-fixture, and schema-export
+- Preserve the existing candidate-diff and freshness runtime validation and add
+  the complete refresh-budget validator.
+- Keep all three fields optional for repairs without candidate-refresh source
+  evidence.
+- Add checked-fixture, standalone, drift, optional-field, and schema-export
   coverage; document the executable guarantee.
 
 Level 6 pillar advanced:
-Versioned, self-validating readiness evidence at the V2 repair boundary.
+Versioned, self-validating candidate-refresh provenance at the V2 boundary.
 
 Last published slice:
-- `a29f0795` Reconcile V2 Cadence import manifests (`3750 passed`).
+- `ead17aad` Validate V2 readiness source handoffs (`3755 passed`).
 
 Likely files:
-- V2 registry/runtime readiness source contracts
-- refreshed checked readiness handoff fixture and focused tests
-- checked-in schema exports and readiness capability docs
+- V2 registry/runtime candidate-refresh source declarations
+- focused refresh source and schema-export tests
+- checked-in schema exports and V2 planner/capability docs
 
 Verification:
-- Focused readiness source contracts: `6 passed`.
-- Campaign-repair schema fixtures: `57 passed`.
-- Repair-source and generated-candidate planner coverage: `41 passed`.
-- Schema suite plus schema-lint/export task tests: `444 passed`.
+- Focused candidate-refresh source contract tests: `4 passed`.
+- Repair schema and candidate-refresh planner coverage: `77 passed`.
+- Schema suite plus schema-lint/export task tests: `448 passed`.
 - Campaign-planner suite: `761 passed`.
 - Full checked-artifact lint: `155/155 passed`, zero warnings.
-- Full suite: `3755 passed`.
+- Full suite: `3759 passed`.
 - `mix format --check-formatted`, `mix compile --warnings-as-errors`, and
   `git diff --check` passed.
 - Full schema export refreshed the V2 repair schema and aggregate bundle only.
 
 Review:
-- The V2 registry now declares both optional readiness source fields and their
-  direct nested contracts without requiring them from older repair artifacts.
-- Runtime repair validation applies the full standalone readiness and
-  quality-gate contracts, including exact artifact-only models/limits,
-  no-authority execution boundaries, gate/row identities, and row-derived
-  status/count summaries.
-- Cross-report validation rejects a quality gate whose source readiness-report
-  ID or source artifact identity differs from the paired readiness report.
-- The checked repair handoff and planner fixtures now use current canonical
-  readiness evidence. Its explicit review gate correctly contributes a second
-  readiness review/pressure row, while quality-gate pressure remains one row.
-- Both checked V2 repairs, all checked artifacts, and existing readiness/Cadence
-  consumers remain valid.
+- The V2 registry now exports all three optional source properties and their
+  complete direct nested definitions without changing the required repair
+  surface.
+- Candidate-diff and freshness reports retain their existing standalone runtime
+  checks; refresh-budget reports now also enforce model identity, exact model
+  limits, nonnegative and row-derived counts, disjoint kept/dropped stable IDs,
+  and deterministic selection metadata.
+- Both checked repairs demonstrate compatibility: the older candidate-refresh
+  repair validates all three reports, while the newer readiness fixture remains
+  valid without them.
+- All checked artifacts and existing candidate-refresh, repair-score,
+  operator-review, and Cadence-import consumers remain valid.
 
 Remaining maturity gaps:
 - Continue exact V2 ranking/score reconciliation for replayable source fields.

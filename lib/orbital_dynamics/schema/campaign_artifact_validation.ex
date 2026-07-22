@@ -21,6 +21,7 @@ defmodule OrbitalDynamics.Schema.CampaignArtifactValidation do
     PolicyValidation,
     ProposedContactContracts,
     ProposedContactRegistryContracts,
+    RefreshBudgetReportContracts,
     ResourceValidation,
     StationReservationValidation,
     StrategyManeuverRegistryContracts,
@@ -240,6 +241,7 @@ defmodule OrbitalDynamics.Schema.CampaignArtifactValidation do
         &CandidateRejectionValidation.validate_optional_report/3,
       validate_optional_freshness_report:
         &OrbitalDynamics.Schema.FreshnessReportContracts.validate_optional/3,
+      validate_optional_refresh_budget_report: &RefreshBudgetReportContracts.validate_optional/3,
       validate_optional_station_calendar_report:
         &StationReservationValidation.validate_optional_calendar_report/3,
       validate_plan_delta: &OrbitalDynamics.Schema.PlanDeltaContracts.validate/3,
