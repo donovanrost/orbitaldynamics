@@ -18,6 +18,9 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshCommunicationPressureContracts 
   alias OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactAllocation.RowCountCorrelation,
     as: ContactAllocationRowCountCorrelation
 
+  alias OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactAllocation.OutcomeIdentityCorrelation,
+    as: ContactAllocationOutcomeIdentityCorrelation
+
   alias OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactAllocation.DirectionRouting.Correlation,
     as: ContactAllocationDirectionCorrelation
 
@@ -68,6 +71,7 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshCommunicationPressureContracts 
     issues
     |> validate_contact_allocation_row_counts(path, summary)
     |> validate_contact_allocation_count_maps(path, summary)
+    |> validate_contact_allocation_outcome_identities(path, summary)
     |> validate_contact_allocation_direction_fields(path, summary)
     |> validate_contact_allocation_direction_routing(path, summary)
   end
@@ -101,6 +105,48 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshCommunicationPressureContracts 
   end
 
   defp validate_contact_allocation_row_counts(issues, _path, _summary), do: issues
+
+  defp validate_contact_allocation_outcome_identities(
+         issues,
+         path,
+         %{"contract" => "contact_allocation_report.v1"} = summary
+       ) do
+    Enum.reduce(ContactAllocationOutcomeIdentityCorrelation.field_pairs(), issues, fn
+      {count_field, ids_field}, acc ->
+        count = Map.get(summary, count_field)
+        contact_ids = Map.get(summary, ids_field)
+        canonical_ids = ContactAllocationOutcomeIdentityCorrelation.contact_ids(contact_ids)
+
+        acc =
+          if is_list(contact_ids) and contact_ids != (canonical_ids || []) do
+            [
+              error(path <> ".#{ids_field}", "must contain sorted unique stable contact IDs")
+              | acc
+            ]
+          else
+            acc
+          end
+
+        if is_list(canonical_ids) and Map.has_key?(summary, count_field) and
+             count !=
+               ContactAllocationOutcomeIdentityCorrelation.correlated_count(
+                 count,
+                 canonical_ids
+               ) do
+          [
+            error(
+              path <> ".#{count_field}",
+              "must be at least the unique #{ids_field} cardinality"
+            )
+            | acc
+          ]
+        else
+          acc
+        end
+    end)
+  end
+
+  defp validate_contact_allocation_outcome_identities(issues, _path, _summary), do: issues
 
   defp validate_contact_allocation_count_maps(
          issues,

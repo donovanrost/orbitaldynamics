@@ -81,7 +81,9 @@ The contact-filter, contact-contention, contact-intent, and command-window repor
 - allocated, returned-allocated, deferred, blocked, and policy-blocked contact
   IDs plus allocated/returned/policy-blocked counts and station maps, preserved
   through candidate-refresh contact-allocation replay for branch-local
-  allocation queues
+  allocation queues; top-level identity lists are canonical sorted unique stable
+  IDs, and paired occurrence counts cannot be smaller than de-duplicated
+  identity cardinality while count-only or identity-only evidence remains usable
 - row-derived direction counts/contact-ID maps plus station-pressure and
   reservation-conflict direction and direction/ground-station routing,
   preserved through candidate-refresh contact-allocation replay for branch-local

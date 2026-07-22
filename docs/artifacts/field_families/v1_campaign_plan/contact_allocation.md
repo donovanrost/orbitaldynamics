@@ -262,6 +262,13 @@ allocation row count. An all-zero pair remains valid without positive row
 identity, but positive scalar pressure requires a positive row total. Invalid
 pairs collapse to zero before branch-local pressure evaluation, and compact
 schema validation rejects the contradictory source values.
+Primary allocated, returned-allocated, deferred, blocked, and policy-blocked
+contact-ID lists are canonical sorted unique stable identities at raw and
+compact replay boundaries. Identity-only and count-only evidence remain usable;
+when both are present, an occurrence count may exceed de-duplicated identity
+cardinality but cannot be smaller. Replay drops only an undersized scalar while
+preserving valid identity pressure, and compact schema validation rejects the
+stale count/list pair.
 Allocation row duplicate-contact and station-calendar overlap/reservation count
 fields are also executable integer counts, duplicate-contact collision rows must
 preserve candidate count, ID, and source-candidate evidence, and contention

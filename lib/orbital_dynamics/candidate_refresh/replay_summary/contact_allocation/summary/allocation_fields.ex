@@ -1,10 +1,12 @@
 defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.ContactAllocation.Summary.AllocationFields do
   @moduledoc false
 
-  alias OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactAllocation.DirectionRouting
-
-  alias OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactAllocation.CountMapCorrelation
-  alias OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactAllocation.RowCountCorrelation
+  alias OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactAllocation.{
+    CountMapCorrelation,
+    DirectionRouting,
+    OutcomeIdentityCorrelation,
+    RowCountCorrelation
+  }
 
   import OrbitalDynamics.CandidateRefresh.ReplaySummary.ContactAllocation.Summary.Normalization,
     only: [summary_integer: 2]
@@ -18,6 +20,8 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.ContactAllocation.Summa
         summary_integer(allocation_summary, "blocked_row_count"),
         summary_integer(allocation_summary, "deferred_row_count")
       )
+
+    outcome_fields = primary_outcome_fields(allocation_summary)
 
     direction_fields = DirectionRouting.direction_fields_from_summary(allocation_summary)
 
@@ -40,30 +44,26 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.ContactAllocation.Summa
       direction_counts: Map.get(direction_fields, "direction_counts"),
       contact_ids_by_direction: Map.get(direction_fields, "contact_ids_by_direction"),
       direction_routing: Map.get(direction_fields, "direction_routing") || %{},
-      allocated_contact_count:
-        non_zero_summary_integer(allocation_summary, "allocated_contact_count"),
-      allocated_contact_ids: Map.get(allocation_summary, "allocated_contact_ids"),
+      allocated_contact_count: Map.get(outcome_fields, "allocated_contact_count"),
+      allocated_contact_ids: Map.get(outcome_fields, "allocated_contact_ids"),
       allocated_contact_ids_by_station:
         Map.get(allocation_summary, "allocated_contact_ids_by_ground_station"),
       returned_allocated_contact_count:
-        non_zero_summary_integer(allocation_summary, "returned_allocated_contact_count"),
-      returned_allocated_contact_ids:
-        Map.get(allocation_summary, "returned_allocated_contact_ids"),
+        Map.get(outcome_fields, "returned_allocated_contact_count"),
+      returned_allocated_contact_ids: Map.get(outcome_fields, "returned_allocated_contact_ids"),
       returned_allocated_contact_ids_by_station:
         Map.get(allocation_summary, "returned_allocated_contact_ids_by_ground_station"),
-      deferred_contact_count:
-        non_zero_summary_integer(allocation_summary, "deferred_contact_count"),
-      deferred_contact_ids: Map.get(allocation_summary, "deferred_contact_ids"),
+      deferred_contact_count: Map.get(outcome_fields, "deferred_contact_count"),
+      deferred_contact_ids: Map.get(outcome_fields, "deferred_contact_ids"),
       deferred_contact_ids_by_general_station:
         Map.get(allocation_summary, "deferred_contact_ids_by_ground_station"),
-      blocked_contact_count:
-        non_zero_summary_integer(allocation_summary, "blocked_contact_count"),
-      blocked_contact_ids: Map.get(allocation_summary, "blocked_contact_ids"),
+      blocked_contact_count: Map.get(outcome_fields, "blocked_contact_count"),
+      blocked_contact_ids: Map.get(outcome_fields, "blocked_contact_ids"),
       blocked_contact_ids_by_station:
         Map.get(allocation_summary, "blocked_contact_ids_by_ground_station"),
       policy_blocked_allocated_contact_count:
-        non_zero_summary_integer(allocation_summary, "policy_blocked_allocated_contact_count"),
-      policy_blocked_contact_ids: Map.get(allocation_summary, "policy_blocked_contact_ids"),
+        Map.get(outcome_fields, "policy_blocked_allocated_contact_count"),
+      policy_blocked_contact_ids: Map.get(outcome_fields, "policy_blocked_contact_ids"),
       policy_blocked_contact_ids_by_station:
         Map.get(allocation_summary, "policy_blocked_contact_ids_by_ground_station"),
       invalid_contact_input_count:
@@ -142,5 +142,15 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.ContactAllocation.Summa
       0 -> nil
       count -> count
     end
+  end
+
+  defp primary_outcome_fields(allocation_summary) do
+    OutcomeIdentityCorrelation.field_pairs()
+    |> Enum.reduce(%{}, fn {count_field, ids_field}, fields ->
+      fields
+      |> Map.put(count_field, non_zero_summary_integer(allocation_summary, count_field))
+      |> Map.put(ids_field, Map.get(allocation_summary, ids_field))
+    end)
+    |> OutcomeIdentityCorrelation.fields()
   end
 end

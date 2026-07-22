@@ -3,8 +3,11 @@ defmodule OrbitalDynamics.CandidateRefresh.ContactAllocationPressureMapReplaySum
 
   alias OrbitalDynamics.CandidateRefresh
 
-  alias OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactAllocation.CountMapCorrelation
-  alias OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactAllocation.RowCountCorrelation
+  alias OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactAllocation.{
+    CountMapCorrelation,
+    OutcomeIdentityCorrelation,
+    RowCountCorrelation
+  }
 
   test "allocation count maps merge string-equivalent positive entries" do
     counts = %{
@@ -19,6 +22,22 @@ defmodule OrbitalDynamics.CandidateRefresh.ContactAllocationPressureMapReplaySum
     assert CountMapCorrelation.correlated_counts(counts, 3) == %{"allocated" => 3}
     assert CountMapCorrelation.correlated_counts(counts, 2) == nil
     assert CountMapCorrelation.correlated_counts(counts, nil) == nil
+  end
+
+  test "primary outcome counts allow de-duplicated identity cardinality" do
+    fields = %{
+      "allocated_contact_count" => 1,
+      "allocated_contact_ids" => ["allocated_b", "allocated_a", "allocated_a", "bad id"]
+    }
+
+    assert OutcomeIdentityCorrelation.fields(fields) == %{
+             "allocated_contact_ids" => ["allocated_a", "allocated_b"]
+           }
+
+    assert OutcomeIdentityCorrelation.correlated_count(
+             3,
+             ["allocated_a", "allocated_b"]
+           ) == 3
   end
 
   test "blocked and deferred row counts form a bounded pair" do
@@ -319,6 +338,39 @@ defmodule OrbitalDynamics.CandidateRefresh.ContactAllocationPressureMapReplaySum
     assert replay_summary["effective_allocation_status_counts"] == %{}
     assert replay_summary["allocation_reason_counts"] == %{}
     refute replay_summary["branch_local_contact_allocation_pressure"]
+  end
+
+  test "contact allocation replay preserves identities but drops undersized counts" do
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "provenance" => %{
+        "source_reports" => %{
+          "contact_allocation_report" => %{
+            "contract" => "contact_allocation_report.v1",
+            "count" => 1,
+            "allocated_contact_count" => 1,
+            "allocated_contact_ids" => ["allocated_b", "allocated_a"]
+          }
+        }
+      }
+    }
+
+    source_summary = CandidateRefresh.source_report_summary(artifact)
+    replay_summary = CandidateRefresh.contact_allocation_replay_summary(artifact)
+
+    refute Map.has_key?(
+             source_summary,
+             "source_report_contact_allocation_allocated_contact_count"
+           )
+
+    assert source_summary["source_report_contact_allocation_allocated_contact_ids"] == [
+             "allocated_a",
+             "allocated_b"
+           ]
+
+    assert replay_summary["allocated_contact_count"] == nil
+    assert replay_summary["allocated_contact_ids"] == ["allocated_a", "allocated_b"]
+    assert replay_summary["branch_local_contact_allocation_pressure"]
   end
 
   test "contact allocation replay drops contradictory row-pressure scalars" do

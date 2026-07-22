@@ -6,6 +6,7 @@ defmodule OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactAllocation
     CapacityPackSummary,
     CountMapCorrelation,
     DirectionRouting,
+    OutcomeIdentityCorrelation,
     PressureConflictSummary,
     ProviderReservationSummary,
     RowCountCorrelation,
@@ -29,6 +30,7 @@ defmodule OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactAllocation
     |> correlate_direction_fields()
     |> CountMapCorrelation.fields()
     |> RowCountCorrelation.fields()
+    |> OutcomeIdentityCorrelation.fields()
     |> compact_map()
   end
 

@@ -536,6 +536,8 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshResourceProvenanceContractsTest
         "row_count" => 2,
         "blocked_row_count" => 1,
         "deferred_row_count" => 1,
+        "allocated_contact_count" => 2,
+        "allocated_contact_ids" => ["dl_backup", "dl_primary"],
         "allocation_status_counts" => %{"allocated" => 2},
         "effective_allocation_status_counts" => %{"allocated" => 2},
         "allocation_reason_counts" => %{"selected" => 2},
@@ -558,6 +560,48 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshResourceProvenanceContractsTest
 
     assert {:ok, %{"schema_contract" => "candidate_refresh.v1"}} =
              Schema.validate_artifact(artifact_with_allocation_direction_summary)
+
+    undersized_allocation_outcome_count =
+      put_in(
+        artifact_with_allocation_direction_summary,
+        [
+          "provenance",
+          "source_reports",
+          "contact_allocation_report",
+          "allocated_contact_count"
+        ],
+        1
+      )
+
+    assert {:error, undersized_allocation_outcome_count_report} =
+             Schema.validate_artifact(undersized_allocation_outcome_count)
+
+    assert Enum.any?(
+             undersized_allocation_outcome_count_report["errors"],
+             &(&1["path"] ==
+                 "$.provenance.source_reports.contact_allocation_report.allocated_contact_count")
+           )
+
+    noncanonical_allocation_outcome_ids =
+      put_in(
+        artifact_with_allocation_direction_summary,
+        [
+          "provenance",
+          "source_reports",
+          "contact_allocation_report",
+          "allocated_contact_ids"
+        ],
+        ["dl_primary", "dl_backup", "dl_backup"]
+      )
+
+    assert {:error, noncanonical_allocation_outcome_ids_report} =
+             Schema.validate_artifact(noncanonical_allocation_outcome_ids)
+
+    assert Enum.any?(
+             noncanonical_allocation_outcome_ids_report["errors"],
+             &(&1["path"] ==
+                 "$.provenance.source_reports.contact_allocation_report.allocated_contact_ids")
+           )
 
     contradictory_allocation_row_counts =
       put_in(

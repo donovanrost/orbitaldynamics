@@ -3,15 +3,18 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.ContactAllocation.Sourc
 
   alias OrbitalDynamics.CandidateRefresh.ReplaySummary.ContactAllocation.SourceReportFields.Aggregation
 
-  alias OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactAllocation.DirectionRouting
-
-  alias OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactAllocation.CountMapCorrelation
-  alias OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactAllocation.RowCountCorrelation
+  alias OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactAllocation.{
+    CountMapCorrelation,
+    DirectionRouting,
+    OutcomeIdentityCorrelation,
+    RowCountCorrelation
+  }
 
   import Aggregation
 
   def source_report_allocation_fields(source_reports) do
     row_count = source_report_family_identity_count(source_reports, "row_count")
+    outcome_fields = primary_outcome_fields(source_reports)
 
     row_counts =
       RowCountCorrelation.correlated_counts_or_nil(
@@ -49,45 +52,45 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.ContactAllocation.Sourc
       "source_report_contact_allocation_direction_routing" =>
         Map.get(direction_fields, "direction_routing"),
       "source_report_contact_allocation_allocated_contact_count" =>
-        source_report_family_count(source_reports, "allocated_contact_count"),
+        Map.get(outcome_fields, "allocated_contact_count"),
       "source_report_contact_allocation_allocated_contact_ids" =>
-        source_report_family_merge_string_lists(source_reports, "allocated_contact_ids"),
+        Map.get(outcome_fields, "allocated_contact_ids"),
       "source_report_contact_allocation_allocated_contact_ids_by_ground_station" =>
         source_report_family_merge_string_list_maps(
           source_reports,
           "allocated_contact_ids_by_ground_station"
         ),
       "source_report_contact_allocation_returned_allocated_contact_count" =>
-        source_report_family_count(source_reports, "returned_allocated_contact_count"),
+        Map.get(outcome_fields, "returned_allocated_contact_count"),
       "source_report_contact_allocation_returned_allocated_contact_ids" =>
-        source_report_family_merge_string_lists(source_reports, "returned_allocated_contact_ids"),
+        Map.get(outcome_fields, "returned_allocated_contact_ids"),
       "source_report_contact_allocation_returned_allocated_contact_ids_by_ground_station" =>
         source_report_family_merge_string_list_maps(
           source_reports,
           "returned_allocated_contact_ids_by_ground_station"
         ),
       "source_report_contact_allocation_deferred_contact_count" =>
-        source_report_family_count(source_reports, "deferred_contact_count"),
+        Map.get(outcome_fields, "deferred_contact_count"),
       "source_report_contact_allocation_deferred_contact_ids" =>
-        source_report_family_merge_string_lists(source_reports, "deferred_contact_ids"),
+        Map.get(outcome_fields, "deferred_contact_ids"),
       "source_report_contact_allocation_deferred_contact_ids_by_ground_station" =>
         source_report_family_merge_string_list_maps(
           source_reports,
           "deferred_contact_ids_by_ground_station"
         ),
       "source_report_contact_allocation_blocked_contact_count" =>
-        source_report_family_count(source_reports, "blocked_contact_count"),
+        Map.get(outcome_fields, "blocked_contact_count"),
       "source_report_contact_allocation_blocked_contact_ids" =>
-        source_report_family_merge_string_lists(source_reports, "blocked_contact_ids"),
+        Map.get(outcome_fields, "blocked_contact_ids"),
       "source_report_contact_allocation_blocked_contact_ids_by_ground_station" =>
         source_report_family_merge_string_list_maps(
           source_reports,
           "blocked_contact_ids_by_ground_station"
         ),
       "source_report_contact_allocation_policy_blocked_allocated_contact_count" =>
-        source_report_family_count(source_reports, "policy_blocked_allocated_contact_count"),
+        Map.get(outcome_fields, "policy_blocked_allocated_contact_count"),
       "source_report_contact_allocation_policy_blocked_contact_ids" =>
-        source_report_family_merge_string_lists(source_reports, "policy_blocked_contact_ids"),
+        Map.get(outcome_fields, "policy_blocked_contact_ids"),
       "source_report_contact_allocation_policy_blocked_contact_ids_by_ground_station" =>
         source_report_family_merge_string_list_maps(
           source_reports,
@@ -130,5 +133,15 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.ContactAllocation.Sourc
       "source_report_contact_allocation_review_contact_ids" =>
         source_report_family_merge_string_lists(source_reports, "review_contact_ids")
     }
+  end
+
+  defp primary_outcome_fields(source_reports) do
+    OutcomeIdentityCorrelation.field_pairs()
+    |> Enum.reduce(%{}, fn {count_field, ids_field}, fields ->
+      fields
+      |> Map.put(count_field, source_report_family_count(source_reports, count_field))
+      |> Map.put(ids_field, source_report_family_merge_string_lists(source_reports, ids_field))
+    end)
+    |> OutcomeIdentityCorrelation.fields()
   end
 end

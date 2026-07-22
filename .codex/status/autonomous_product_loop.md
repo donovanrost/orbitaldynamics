@@ -5,53 +5,52 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Correlate blocked and deferred allocation scalars.
+Correlate primary allocation outcome identities.
 
 Status:
 Verified; ready to publish.
 
 Selection evidence:
-- Replay currently accepts negative or jointly impossible blocked/deferred row
-  scalars and evaluates them directly in allocation-pressure predicates.
-- Raw reports derive both scalars from mutually exclusive effective row states.
-- Valid compact handoffs preserve zero pairs and partial identity, so only
-  positive scalar evidence should require a positive row total.
+- Compact allocated, returned, deferred, blocked, and policy-blocked count/ID
+  pairs currently accept counts below unique identity cardinality.
+- Existing replay deliberately preserves identity-only evidence when a scalar is
+  absent or stale, so identities must not be discarded or force equality.
+- Raw occurrence counts can validly exceed de-duplicated contact-ID lists.
 
 Intended behavior:
-- Normalize blocked/deferred row scalars as a correlated nonnegative pair whose
-  sum does not exceed `row_count`.
-- Preserve an all-zero pair without requiring positive row identity; require a
-  positive row total for any positive scalar pressure.
-- Apply the same correlation at raw, flattened, replay, and compact schema
-  boundaries.
+- Canonicalize the five primary outcome ID lists as sorted unique stable IDs.
+- Preserve identity-only evidence and count-only evidence independently.
+- Retain an occurrence count alongside IDs only when it is at least the unique
+  ID cardinality; compact schema validation rejects stale count/list pairs.
 
 Level 6 pillar advanced:
 Fleet-scale planning decisions and durable reproducible audit handoffs.
 
 Planned files:
-- allocation row-scalar correlation at producer, flattened, replay, and schema
-- negative/missing/overlapping row-count challenge tests
+- primary allocation outcome count/ID correlation across raw/flattened/replay
+- stale-count and noncanonical-ID compact schema/replay challenges
 - allocation artifact documentation and autonomous-loop ledger
 
 Verification:
-- Focused replay/candidate-source/schema tests: `15 passed`.
-- Contact-allocation family: `182 passed`.
-- Golden artifacts: `12 passed` after correcting absent-family zero leakage.
+- Focused replay/schema challenges: `14 passed`.
+- Contact-allocation family: `184 passed`.
+- Golden artifacts: `12 passed`.
 - Schema lint: `155` artifacts, no errors or warnings.
-- Full suite: `3812 passed`.
+- Full suite: `3814 passed`.
 - `mix format` and `git diff --check` passed.
 
 Review:
-- Raw, flattened, replay, and compact-schema paths share the same nonnegative,
-  mutually exclusive row-count bound.
-- Invalid negative or overlapping pairs collapse to zero before pressure; schema
-  rejects the source values instead of silently accepting them.
-- Present zero pairs remain harmless, while absent allocation families remain
-  absent and do not leak defaults into unrelated golden artifacts.
-- No provider action, scheduling mutation, or unrelated scope added.
+- Raw, flattened, and replay boundaries share canonical sorted unique stable
+  identity normalization for the five selected outcome pairs.
+- Identity-only and count-only pressure remain usable; only a supplied scalar
+  below canonical ID cardinality is removed, while larger occurrence counts
+  preserve duplicate-event evidence.
+- Compact schema rejects undersized scalars and noncanonical identity lists.
+- Station routing, blocked-input identities, and execution boundaries are
+  unchanged and remain separately scoped.
 
 Last published slice:
-- `d28abfe8` Correlate allocation maps with row totals (`3810 passed`).
+- `d4c1f7ad` Correlate allocation row pressure counts (`3812 passed`).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions while preserving explicit
@@ -62,7 +61,7 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-After publish, audit allocation contact-count identity correlation.
+After publish, audit blocked-input allocation identity correlation.
 
 Blocked:
 None.
