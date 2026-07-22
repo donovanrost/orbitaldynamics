@@ -423,6 +423,39 @@ defmodule OrbitalDynamics.CandidateRefresh.ContactAllocationPressureMapReplaySum
     assert replay_summary["branch_local_contact_allocation_pressure"]
   end
 
+  test "contact allocation replay correlates reason-scoped identities" do
+    artifact = %{
+      "schema_contract" => "candidate_refresh.v1",
+      "provenance" => %{
+        "source_reports" => %{
+          "contact_allocation_report" => %{
+            "contract" => "contact_allocation_report.v1",
+            "count" => 1,
+            "row_count" => 1,
+            "allocation_reason_counts" => %{"counted_reason" => 1},
+            "contact_ids_by_allocation_reason" => %{
+              "counted_reason" => ["contact_b", "contact_a"],
+              "route_only_reason" => ["route_only_contact"],
+              "invalid reason" => ["orphan_contact"]
+            }
+          }
+        }
+      }
+    }
+
+    source_summary = CandidateRefresh.source_report_summary(artifact)
+    replay_summary = CandidateRefresh.contact_allocation_replay_summary(artifact)
+
+    assert source_summary["source_report_contact_allocation_contact_ids_by_allocation_reason"] ==
+             %{"route_only_reason" => ["route_only_contact"]}
+
+    assert replay_summary["contact_ids_by_allocation_reason"] == %{
+             "route_only_reason" => ["route_only_contact"]
+           }
+
+    assert replay_summary["branch_local_contact_allocation_pressure"]
+  end
+
   test "contact allocation replay preserves blocked identities but drops undersized counts" do
     artifact = %{
       "schema_contract" => "candidate_refresh.v1",

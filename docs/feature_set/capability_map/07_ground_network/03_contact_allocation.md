@@ -73,7 +73,9 @@ The contact-filter, contact-contention, contact-intent, and command-window repor
   independently bounded by positive allocation row count while preserving
   partial reason evidence and custom status/reason keys
 - allocation-reason contact-ID maps, preserved through candidate-refresh
-  contact-allocation replay for branch-local triage queues
+  contact-allocation replay for branch-local triage queues, with canonical
+  stable reason/ID routing and local ID cardinality bounded by any positive
+  reason count while route-only reasons remain usable
 - row-derived scalar allocation/contact counters, including declared
   blocked/deferred counts for candidate-refresh replay; blocked/deferred row
   counts remain mutually exclusive, nonnegative, and jointly bounded by

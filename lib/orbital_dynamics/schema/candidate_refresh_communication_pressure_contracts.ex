@@ -24,6 +24,9 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshCommunicationPressureContracts 
   alias OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactAllocation.BlockedInputIdentityCorrelation,
     as: ContactAllocationBlockedInputIdentityCorrelation
 
+  alias OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactAllocation.ReasonIdentityCorrelation,
+    as: ContactAllocationReasonIdentityCorrelation
+
   alias OrbitalDynamics.CandidateRefresh.SourceReportSummary.ContactAllocation.DirectionRouting.Correlation,
     as: ContactAllocationDirectionCorrelation
 
@@ -75,6 +78,7 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshCommunicationPressureContracts 
     |> validate_contact_allocation_row_counts(path, summary)
     |> validate_contact_allocation_count_maps(path, summary)
     |> validate_contact_allocation_contact_identities(path, summary)
+    |> validate_contact_allocation_reason_identities(path, summary)
     |> validate_contact_allocation_direction_fields(path, summary)
     |> validate_contact_allocation_direction_routing(path, summary)
   end
@@ -179,6 +183,34 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshCommunicationPressureContracts 
       issues
     end
   end
+
+  defp validate_contact_allocation_reason_identities(
+         issues,
+         path,
+         %{"contract" => "contact_allocation_report.v1"} = summary
+       ) do
+    routes = Map.get(summary, "contact_ids_by_allocation_reason")
+
+    canonical_routes =
+      ContactAllocationReasonIdentityCorrelation.routes(
+        Map.get(summary, "allocation_reason_counts"),
+        routes
+      )
+
+    if is_map(routes) and routes != (canonical_routes || %{}) do
+      [
+        error(
+          path <> ".contact_ids_by_allocation_reason",
+          "must use canonical reason keys and IDs within local reason counts"
+        )
+        | issues
+      ]
+    else
+      issues
+    end
+  end
+
+  defp validate_contact_allocation_reason_identities(issues, _path, _summary), do: issues
 
   defp validate_contact_allocation_count_maps(
          issues,

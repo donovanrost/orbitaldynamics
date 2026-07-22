@@ -544,6 +544,9 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshResourceProvenanceContractsTest
         "allocation_status_counts" => %{"allocated" => 2},
         "effective_allocation_status_counts" => %{"allocated" => 2},
         "allocation_reason_counts" => %{"selected" => 2},
+        "contact_ids_by_allocation_reason" => %{
+          "selected" => ["dl_backup", "dl_primary"]
+        },
         "direction_counts" => %{"downlink" => 2},
         "contact_ids_by_direction" => %{
           "downlink" => ["dl_backup", "dl_primary"]
@@ -628,6 +631,28 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshResourceProvenanceContractsTest
              noncanonical_allocation_outcome_routes_report["errors"],
              &(&1["path"] ==
                  "$.provenance.source_reports.contact_allocation_report.allocated_contact_ids_by_ground_station")
+           )
+
+    over_cardinality_allocation_reason_ids =
+      put_in(
+        artifact_with_allocation_direction_summary,
+        [
+          "provenance",
+          "source_reports",
+          "contact_allocation_report",
+          "allocation_reason_counts",
+          "selected"
+        ],
+        1
+      )
+
+    assert {:error, over_cardinality_allocation_reason_ids_report} =
+             Schema.validate_artifact(over_cardinality_allocation_reason_ids)
+
+    assert Enum.any?(
+             over_cardinality_allocation_reason_ids_report["errors"],
+             &(&1["path"] ==
+                 "$.provenance.source_reports.contact_allocation_report.contact_ids_by_allocation_reason")
            )
 
     undersized_blocked_input_count =

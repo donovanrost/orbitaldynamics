@@ -6,6 +6,7 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.ContactAllocation.Summa
     CountMapCorrelation,
     DirectionRouting,
     OutcomeIdentityCorrelation,
+    ReasonIdentityCorrelation,
     RowCountCorrelation
   }
 
@@ -25,6 +26,16 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.ContactAllocation.Summa
     outcome_fields = primary_outcome_fields(allocation_summary)
     blocked_input_fields = blocked_input_fields(allocation_summary)
 
+    reason_fields =
+      ReasonIdentityCorrelation.fields(%{
+        "allocation_reason_counts" =>
+          allocation_summary
+          |> Map.get("allocation_reason_counts")
+          |> CountMapCorrelation.correlated_counts_or_empty(row_count),
+        "contact_ids_by_allocation_reason" =>
+          Map.get(allocation_summary, "contact_ids_by_allocation_reason")
+      })
+
     direction_fields = DirectionRouting.direction_fields_from_summary(allocation_summary)
 
     %{
@@ -39,10 +50,7 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.ContactAllocation.Summa
         allocation_summary
         |> Map.get("effective_allocation_status_counts")
         |> CountMapCorrelation.correlated_counts_or_empty(row_count),
-      allocation_reason_counts:
-        allocation_summary
-        |> Map.get("allocation_reason_counts")
-        |> CountMapCorrelation.correlated_counts_or_empty(row_count),
+      allocation_reason_counts: Map.fetch!(reason_fields, "allocation_reason_counts"),
       direction_counts: Map.get(direction_fields, "direction_counts"),
       contact_ids_by_direction: Map.get(direction_fields, "contact_ids_by_direction"),
       direction_routing: Map.get(direction_fields, "direction_routing") || %{},
@@ -83,8 +91,7 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.ContactAllocation.Summa
         Map.get(allocation_summary, "resource_blocked_contact_ids_by_blocking_dimension"),
       resource_blocked_contact_ids_by_spacecraft:
         Map.get(allocation_summary, "resource_blocked_contact_ids_by_spacecraft"),
-      contact_ids_by_allocation_reason:
-        Map.get(allocation_summary, "contact_ids_by_allocation_reason")
+      contact_ids_by_allocation_reason: Map.get(reason_fields, "contact_ids_by_allocation_reason")
     }
   end
 

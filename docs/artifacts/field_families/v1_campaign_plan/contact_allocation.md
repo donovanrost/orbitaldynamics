@@ -275,6 +275,11 @@ routed evidence. Route-only compact evidence therefore remains usable. A
 supplied occurrence count must cover both unique identities and routed
 memberships; replay drops an undersized scalar, while compact validation rejects
 noncanonical routes or count/route mismatches.
+Allocation-reason identity maps likewise canonicalize stable reason keys and
+sorted unique stable contact IDs. Count-only and route-only reasons remain
+usable independently; when a positive local reason count is present, routed
+identity cardinality cannot exceed it. Replay removes only the over-cardinality
+route, and compact schema validation rejects the stale reason map.
 Invalid-input, status-blocked, and resource-blocked count/ID pairs use the same
 identity-first rule. Their top-level lists remain canonical review evidence when
 a compact scalar is absent or undersized; valid occurrence counts may exceed

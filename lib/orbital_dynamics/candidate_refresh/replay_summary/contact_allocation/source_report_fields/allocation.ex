@@ -8,6 +8,7 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.ContactAllocation.Sourc
     CountMapCorrelation,
     DirectionRouting,
     OutcomeIdentityCorrelation,
+    ReasonIdentityCorrelation,
     RowCountCorrelation
   }
 
@@ -17,6 +18,19 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.ContactAllocation.Sourc
     row_count = source_report_family_identity_count(source_reports, "row_count")
     outcome_fields = primary_outcome_fields(source_reports)
     blocked_input_fields = blocked_input_fields(source_reports)
+
+    reason_fields =
+      ReasonIdentityCorrelation.fields(%{
+        "allocation_reason_counts" =>
+          source_reports
+          |> source_report_family_merge_count_maps("allocation_reason_counts")
+          |> CountMapCorrelation.correlated_counts(row_count),
+        "contact_ids_by_allocation_reason" =>
+          source_report_family_merge_string_list_maps(
+            source_reports,
+            "contact_ids_by_allocation_reason"
+          )
+      })
 
     row_counts =
       RowCountCorrelation.correlated_counts_or_nil(
@@ -44,9 +58,7 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.ContactAllocation.Sourc
         |> source_report_family_merge_count_maps("effective_allocation_status_counts")
         |> CountMapCorrelation.correlated_counts(row_count),
       "source_report_contact_allocation_allocation_reason_counts" =>
-        source_reports
-        |> source_report_family_merge_count_maps("allocation_reason_counts")
-        |> CountMapCorrelation.correlated_counts(row_count),
+        Map.get(reason_fields, "allocation_reason_counts"),
       "source_report_contact_allocation_direction_counts" =>
         Map.get(direction_fields, "direction_counts"),
       "source_report_contact_allocation_contact_ids_by_direction" =>
@@ -113,10 +125,7 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.ContactAllocation.Sourc
           "resource_blocked_contact_ids_by_spacecraft"
         ),
       "source_report_contact_allocation_contact_ids_by_allocation_reason" =>
-        source_report_family_merge_string_list_maps(
-          source_reports,
-          "contact_ids_by_allocation_reason"
-        ),
+        Map.get(reason_fields, "contact_ids_by_allocation_reason"),
       "source_report_contact_allocation_review_contact_ids" =>
         source_report_family_merge_string_lists(source_reports, "review_contact_ids")
     }
