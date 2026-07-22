@@ -759,6 +759,9 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyContactAllocationPressureTest 
           "station_reserved_by" => "ops_primary",
           "station_calendar_reserved_by" => ["ops_backup", "ops_primary"],
           "station_calendar_reservation_statuses" => ["confirmed", "tentative"],
+          "station_calendar_entry_id" => "summary_provider_calendar_entry",
+          "station_calendar_provider_id" => "summary_provider_calendar",
+          "station_calendar_provider_entry_id" => "summary_provider_calendar_source_entry",
           "station_reservation_expires_at_s" => 360.0,
           "station_reservation_expiration_status" => "expired"
         })
@@ -1090,6 +1093,9 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyContactAllocationPressureTest 
              "type" => "provider_reservation_request_pressure",
              "contact_id" => "summary_provider_dl_review_overlap",
              "ground_station_id" => "equator_prime",
+             "station_calendar_entry_id" => "summary_provider_calendar_entry",
+             "station_calendar_provider_id" => "summary_provider_calendar",
+             "station_calendar_provider_entry_id" => "summary_provider_calendar_source_entry",
              "station_reservation_id" => "summary_provider_reservation_review",
              "station_calendar_reservation_ids" => [
                "summary_provider_reservation_review",
@@ -1130,9 +1136,31 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyContactAllocationPressureTest 
                  ] and
                  &1["station_calendar_reserved_by"] == ["ops_backup", "ops_primary"] and
                  &1["station_calendar_reservation_statuses"] == ["confirmed", "tentative"] and
+                 &1["station_calendar_entry_id"] == "summary_provider_calendar_entry" and
+                 &1["station_calendar_provider_id"] == "summary_provider_calendar" and
+                 &1["station_calendar_provider_entry_id"] ==
+                   "summary_provider_calendar_source_entry" and
                  &1["station_reservation_expires_at_s"] == 360.0 and
                  &1["station_reservation_expiration_status"] == "expired")
            )
+
+    assert get_in(provider_branch, [
+             "provenance",
+             "branch_metadata",
+             "station_calendar_entry_id"
+           ]) == "summary_provider_calendar_entry"
+
+    assert get_in(provider_branch, [
+             "provenance",
+             "branch_metadata",
+             "station_calendar_provider_id"
+           ]) == "summary_provider_calendar"
+
+    assert get_in(provider_branch, [
+             "provenance",
+             "branch_metadata",
+             "station_calendar_provider_entry_id"
+           ]) == "summary_provider_calendar_source_entry"
 
     assert get_in(provider_branch, [
              "provenance",
@@ -1177,6 +1205,18 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyContactAllocationPressureTest 
       )
 
     assert "provider_reservation_request_review" in provider_row["risk_types"]
+
+    assert provider_row["branch_station_calendar_entry_ids"] == [
+             "summary_provider_calendar_entry"
+           ]
+
+    assert provider_row["branch_station_calendar_provider_ids"] == [
+             "summary_provider_calendar"
+           ]
+
+    assert provider_row["branch_station_calendar_provider_entry_ids"] == [
+             "summary_provider_calendar_source_entry"
+           ]
 
     assert provider_row["branch_station_reservation_ids"] == [
              "summary_provider_reservation_review",
