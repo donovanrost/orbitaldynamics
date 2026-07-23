@@ -50,6 +50,7 @@ defmodule OrbitalDynamics.Schema.JsonSchemaExportContractsTest do
       {"provider_reservation_request_station_reservation_expiration_statuses", "string", nil},
       {"station_reservation_conflict_expiration_statuses", "string", nil},
       {"station_reservation_hold_expiration_statuses", "string", nil},
+      {"station_calendar_pressure_risk_types", "string", nil},
       {"station_calendar_pressure_ground_station_ids", "string", stable_id_pattern},
       {"station_calendar_pressure_start_values_s", "number", nil},
       {"station_calendar_pressure_end_values_s", "number", nil},

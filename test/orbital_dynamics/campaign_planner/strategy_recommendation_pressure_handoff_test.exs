@@ -701,6 +701,18 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
     )
   end
 
+  test "station calendar risk type remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "station_calendar_pressure_risk_types",
+      {"station_reservation_id", "reservation_calendar_selected"},
+      "type",
+      ["ground_station_reserved"],
+      ["ground_station_outage"],
+      :drop_risk
+    )
+  end
+
   defp assert_risk_expiration_context_contract(
          artifact,
          field,
@@ -726,6 +738,26 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
          source_field,
          expected_value,
          stale_value
+       ) do
+    assert_risk_context_contract(
+      artifact,
+      field,
+      {identity_field, identity_value},
+      source_field,
+      expected_value,
+      stale_value,
+      :drop_field
+    )
+  end
+
+  defp assert_risk_context_contract(
+         artifact,
+         field,
+         {identity_field, identity_value},
+         source_field,
+         expected_value,
+         stale_value,
+         legacy_mode
        ) do
     recommendation_review_row =
       Enum.find(
@@ -777,28 +809,14 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
       update_in(
         artifact["operator_review_package"],
         ["rows", Access.at(recommendation_review_index)],
-        fn row ->
-          row
-          |> Map.delete(field)
-          |> update_in(["source_recommendation", "risks_remaining"], fn risks ->
-            Enum.map(risks, fn risk ->
-              if risk[identity_field] == identity_value do
-                Map.delete(risk, source_field)
-              else
-                risk
-              end
-            end)
-          end)
-          |> update_in(["source_recommendation", "explanation"], fn explanation ->
-            Enum.map(explanation, fn row ->
-              if row[identity_field] == identity_value do
-                Map.delete(row, source_field)
-              else
-                row
-              end
-            end)
-          end)
-        end
+        &legacy_risk_context_row(
+          &1,
+          field,
+          identity_field,
+          identity_value,
+          source_field,
+          legacy_mode
+        )
       )
 
     assert {:ok, _legacy_review_context} = Schema.validate_artifact(legacy_review_context)
@@ -841,5 +859,54 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
              missing_review_import_context_report["errors"],
              &(&1["path"] == "$.rows[#{review_import_index}].#{field}")
            )
+  end
+
+  defp legacy_risk_context_row(
+         row,
+         field,
+         identity_field,
+         identity_value,
+         source_field,
+         :drop_field
+       ) do
+    row
+    |> Map.delete(field)
+    |> update_in(["source_recommendation", "risks_remaining"], fn risks ->
+      Enum.map(risks, fn risk ->
+        if risk[identity_field] == identity_value do
+          Map.delete(risk, source_field)
+        else
+          risk
+        end
+      end)
+    end)
+    |> update_in(["source_recommendation", "explanation"], fn explanation ->
+      Enum.map(explanation, fn explanation_row ->
+        if explanation_row[identity_field] == identity_value do
+          Map.delete(explanation_row, source_field)
+        else
+          explanation_row
+        end
+      end)
+    end)
+  end
+
+  defp legacy_risk_context_row(
+         row,
+         field,
+         identity_field,
+         identity_value,
+         _source_field,
+         :drop_risk
+       ) do
+    risks =
+      row
+      |> get_in(["source_recommendation", "risks_remaining"])
+      |> Enum.reject(&(&1[identity_field] == identity_value))
+
+    row
+    |> Map.delete(field)
+    |> put_in(["source_recommendation", "risks_remaining"], risks)
+    |> Map.put("risk_count", length(risks))
   end
 end
