@@ -5,21 +5,21 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Enforce source-exact station-calendar ambiguity-count context.
+Enforce source-exact station-calendar ambiguous-entry identity context.
 
 Status:
 Verified; ready to publish.
 
 Selection evidence:
-- The selected branch event supplies ambiguity count `2`, but the passive
-  recommendation-risk projection drops it before aggregation.
-- The canonical aggregator already defines `[2]`; review/import schemas and
-  exact-copy validation omit the numeric list.
+- The selected branch event supplies two stable ambiguous-entry IDs, but the
+  passive recommendation-risk projection drops them before aggregation.
+- The canonical aggregator exists; review/import schemas and exact-copy
+  validation omit the identity list.
 
 Intended behavior:
-- Declare the non-negative-integer list in review/import schemas and require an
+- Declare the stable-ID list in review/import schemas and require an
   exact source-derived copy in review/direct/review-derived Cadence rows.
-- Reject missing or stale counts when source risks supply the scalar;
+- Reject missing or stale IDs when source risks supply the list;
   retain paired legacy omission compatibility.
 - Preserve risk scoring, selection, execution boundaries, and authority.
 
@@ -28,28 +28,28 @@ Fleet-scale planning decisions and durable reproducible audit handoffs.
 
 Planned files:
 - strategy handoff validation plus review/import schemas
-- numeric mutation/schema proofs, docs, exports, and ledger
+- identity mutation/schema proofs, docs, exports, and ledger
 
 Verification:
-- focused handoff/schema contracts: `38 passed`
+- focused handoff/schema contracts: `39 passed`
 - contact-allocation tests: `213 passed`
 - golden artifacts: `12 passed`
 - schema lint: `155` artifacts, `0` errors, `0` warnings
-- full suite: `3911 passed`
+- full suite: `3912 passed`
 - canonical strategy artifact SHA-256 remained
   `b335a0e3337c35e5dcb11594b2ffa3a51923743dfd6728c6f8e30dec1b9b1027`
 
 Review:
-- The source count now crosses the existing passive risk projection; scoring,
+- The source IDs now cross the existing passive risk projection; scoring,
   selection, provider requests, reservations, schedules, Cadence writes,
   operator authority, and autonomous execution remain unchanged.
-- All four review/import copies require exact `[2]`; missing and stale `[99]`
-  copies fail, while paired legacy omission remains compatible.
-- Exported lists use the shared non-negative-integer schema primitive; generated
-  diffs are limited to the expected ten schema artifacts.
+- All four review/import copies require the exact two source IDs; missing and
+  stale copies fail, while paired legacy omission remains compatible.
+- Explicit schemas require canonical stable IDs; generated diffs are limited to
+  the expected ten schema artifacts.
 
 Last published slice:
-- `dc1a6cc3` Validate station calendar ambiguity flag (`3910 passed`).
+- `413e134c` Validate station calendar ambiguity count (`3911 passed`).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions while preserving explicit
@@ -60,7 +60,7 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-Assess source-exact station-calendar ambiguous-entry identity context.
+Assess source-exact station-calendar reservation-overlap count context.
 
 Blocked:
 None.
