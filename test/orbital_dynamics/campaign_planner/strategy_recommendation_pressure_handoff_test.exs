@@ -471,6 +471,17 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
     )
   end
 
+  test "calendar-scoped reservation identity remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "station_calendar_pressure_station_calendar_reservation_ids",
+      {"station_reservation_id", "reservation_calendar_selected"},
+      "station_calendar_reservation_ids",
+      ["reservation_calendar_selected"],
+      ["reservation_calendar_stale"]
+    )
+  end
+
   defp assert_risk_expiration_context_contract(
          artifact,
          field,
