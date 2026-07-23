@@ -845,6 +845,72 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
     )
   end
 
+  test "contact allocation required contact demand remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "contact_allocation_pressure_required_contact_values",
+      {"contact_id", "dl_reservation_conflict"},
+      "required_contacts",
+      [1],
+      [2]
+    )
+  end
+
+  test "contact allocation planned contact demand remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "contact_allocation_pressure_planned_contact_values",
+      {"contact_id", "dl_reservation_conflict"},
+      "planned_contacts",
+      [0],
+      [1]
+    )
+  end
+
+  test "contact allocation required downlink demand remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "contact_allocation_pressure_required_downlink_values_mb",
+      {"contact_id", "dl_reservation_conflict"},
+      "required_downlink_mb",
+      [43.0],
+      [44.0]
+    )
+  end
+
+  test "contact allocation planned downlink demand remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "contact_allocation_pressure_planned_downlink_values_mb",
+      {"contact_id", "dl_reservation_conflict"},
+      "planned_downlink_mb",
+      [0.0],
+      [1.0]
+    )
+  end
+
+  test "contact allocation start bound remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "contact_allocation_pressure_start_values_s",
+      {"contact_id", "dl_reservation_conflict"},
+      "starts_at_s",
+      [1_620.0],
+      [1_621.0]
+    )
+  end
+
+  test "contact allocation end bound remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "contact_allocation_pressure_end_values_s",
+      {"contact_id", "dl_reservation_conflict"},
+      "ends_at_s",
+      [1_680.0],
+      [1_681.0]
+    )
+  end
+
   test "contact intent risk type remains source exact across handoffs" do
     assert_risk_context_contract(
       StrategyRecommendationPressureEventsFixture.artifact(),

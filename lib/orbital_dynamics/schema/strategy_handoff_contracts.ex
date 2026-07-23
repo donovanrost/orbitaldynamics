@@ -54,7 +54,17 @@ defmodule OrbitalDynamics.Schema.StrategyHandoffContracts do
     {"contact_allocation_pressure_source_activity_ids",
      "contact_allocation_pressure_source_activity_ids"},
     {"contact_allocation_pressure_source_window_ids",
-     "contact_allocation_pressure_source_window_ids"}
+     "contact_allocation_pressure_source_window_ids"},
+    {"contact_allocation_pressure_required_contact_values",
+     "contact_allocation_pressure_required_contact_values"},
+    {"contact_allocation_pressure_planned_contact_values",
+     "contact_allocation_pressure_planned_contact_values"},
+    {"contact_allocation_pressure_required_downlink_values_mb",
+     "contact_allocation_pressure_required_downlink_values_mb"},
+    {"contact_allocation_pressure_planned_downlink_values_mb",
+     "contact_allocation_pressure_planned_downlink_values_mb"},
+    {"contact_allocation_pressure_start_values_s", "contact_allocation_pressure_start_values_s"},
+    {"contact_allocation_pressure_end_values_s", "contact_allocation_pressure_end_values_s"}
   ]
   @contact_intent_context_field_pairs [
     {"contact_intent_pressure_risk_types", "contact_intent_pressure_risk_types"},

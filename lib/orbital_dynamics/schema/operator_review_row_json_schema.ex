@@ -171,6 +171,14 @@ defmodule OrbitalDynamics.Schema.OperatorReviewRowJsonSchema do
           "contact_allocation_pressure_ground_station_ids" => schema.(:stable_id_array_schema),
           "contact_allocation_pressure_source_activity_ids" => schema.(:stable_id_array_schema),
           "contact_allocation_pressure_source_window_ids" => schema.(:stable_id_array_schema),
+          "contact_allocation_pressure_required_contact_values" => schema.(:number_array_schema),
+          "contact_allocation_pressure_planned_contact_values" => schema.(:number_array_schema),
+          "contact_allocation_pressure_required_downlink_values_mb" =>
+            schema.(:number_array_schema),
+          "contact_allocation_pressure_planned_downlink_values_mb" =>
+            schema.(:number_array_schema),
+          "contact_allocation_pressure_start_values_s" => schema.(:number_array_schema),
+          "contact_allocation_pressure_end_values_s" => schema.(:number_array_schema),
           "contact_intent_pressure_risk_types" => schema.(:string_array_schema),
           "contact_intent_pressure_contact_ids" => schema.(:stable_id_array_schema),
           "contact_intent_pressure_source_activity_ids" => schema.(:stable_id_array_schema),
