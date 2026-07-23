@@ -5,21 +5,21 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Enforce source-exact provider-calendar reservation-status context.
+Enforce source-exact provider-calendar trust-boundary status context.
 
 Status:
 Verified; publish pending.
 
 Selection evidence:
-- The selected branch event supplies reservation status `confirmed`, but the
+- The selected branch event supplies trust-boundary status `declared`, but the
   passive recommendation-risk projection drops it before aggregation.
 - The canonical aggregator exists; review/import schemas and exact-copy
-  validation omit the provider-reservation status list.
+  validation omit the provider trust-boundary status list.
 
 Intended behavior:
 - Declare the string list in review/import schemas and require an
   exact source-derived copy in review/direct/review-derived Cadence rows.
-- Reject missing or stale statuses when source risks supply the list;
+- Reject missing or stale trust statuses when source risks supply the list;
   retain paired legacy omission compatibility.
 - Preserve risk scoring, selection, execution boundaries, and authority.
 
@@ -28,21 +28,21 @@ Fleet-scale planning decisions and durable reproducible audit handoffs.
 
 Planned files:
 - strategy handoff validation plus review/import schemas
-- reservation-status mutation/schema proofs, docs, exports, and ledger
+- trust-status mutation/schema proofs, docs, exports, and ledger
 
 Verification:
-- Focused handoff/schema proof: `54 passed`.
+- Focused handoff/schema proof: `55 passed`.
 - Contact-allocation regression: `213 passed`.
 - Golden artifact regression: `12 passed`.
 - Schema lint: `155` artifacts, `0` errors, `0` warnings.
-- Full suite: `3927 passed`.
+- Full suite: `3928 passed`.
 - Canonical strategy SHA-256 remained
   `b335a0e3337c35e5dcb11594b2ffa3a51923743dfd6728c6f8e30dec1b9b1027`.
 - Ten expected generated schema surfaces changed; `git diff --check` passed.
 
 Review:
-- Passive projection now retains reservation status `confirmed` as provenance
-  without changing lifecycle state or risk scoring.
+- Passive projection now retains trust status `declared` as source provenance
+  without reinterpreting trust or changing risk scoring.
 - Executable handoff checks enforce all four exact copies, missing review,
   paired legacy omission, stale direct import, and missing review-derived import.
 - All three source schemas declare a string array; generated exports agree.
@@ -50,7 +50,7 @@ Review:
   autonomous-execution boundaries remain unchanged.
 
 Last published slice:
-- `c7d2ad09` Validate provider calendar reservation owner (`3926 passed`).
+- `8016fb8e` Validate provider calendar reservation status (`3927 passed`).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions while preserving explicit
@@ -61,7 +61,7 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-Assess source-exact provider-calendar trust-boundary status context.
+Assess source-exact provider-calendar overlap-pair context and schema shape.
 
 Blocked:
 None.

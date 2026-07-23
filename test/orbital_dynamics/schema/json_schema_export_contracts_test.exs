@@ -93,6 +93,8 @@ defmodule OrbitalDynamics.Schema.JsonSchemaExportContractsTest do
        stable_id_pattern},
       {"station_calendar_pressure_provider_calendar_contention_reserved_by", "string", nil},
       {"station_calendar_pressure_provider_calendar_contention_reservation_statuses", "string",
+       nil},
+      {"station_calendar_pressure_provider_calendar_contention_trust_boundary_statuses", "string",
        nil}
     ]
 
