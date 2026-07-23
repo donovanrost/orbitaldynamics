@@ -779,6 +779,17 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
     )
   end
 
+  test "contact intent source activity identity remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "contact_intent_pressure_source_activity_ids",
+      {"contact_id", "contact_intent:selected_blocked"},
+      ["source_activity_id", "source_activity_ids"],
+      ["dl_contact_intent_selected"],
+      ["dl_contact_intent_stale"]
+    )
+  end
+
   defp assert_risk_expiration_context_contract(
          artifact,
          field,
@@ -932,7 +943,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
          field,
          identity_field,
          identity_value,
-         source_field,
+         source_fields,
          :drop_field
        ) do
     row
@@ -940,7 +951,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
     |> update_in(["source_recommendation", "risks_remaining"], fn risks ->
       Enum.map(risks, fn risk ->
         if risk[identity_field] == identity_value do
-          Map.delete(risk, source_field)
+          Enum.reduce(List.wrap(source_fields), risk, &Map.delete(&2, &1))
         else
           risk
         end
@@ -949,7 +960,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
     |> update_in(["source_recommendation", "explanation"], fn explanation ->
       Enum.map(explanation, fn explanation_row ->
         if explanation_row[identity_field] == identity_value do
-          Map.delete(explanation_row, source_field)
+          Enum.reduce(List.wrap(source_fields), explanation_row, &Map.delete(&2, &1))
         else
           explanation_row
         end
