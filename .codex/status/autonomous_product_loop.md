@@ -5,21 +5,21 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Enforce source-exact contact-intent contact demand.
+Enforce source-exact contact-intent downlink demand.
 
 Status:
 Verified; publish pending.
 
 Selection evidence:
-- The selected blocked contact risk exposes required/planned contact demand
-  values `1` and `0`, which explain its candidate-specific completion gap.
+- The selected blocked contact risk exposes required/planned downlink demand
+  values `42.0 MB` and `0.0 MB`, completing its candidate-specific gap evidence.
 - Review/import schemas and exact-copy validation still omit both values after
-  the adjacent identity contracts were published.
+  contact-count demand was published.
 
 Intended behavior:
 - Declare both numeric arrays and require exact source-derived copies in
   review/direct/review-derived Cadence rows.
-- Reject missing or stale derived demand; retain paired legacy omission
+- Reject missing or stale derived downlink demand; retain paired legacy omission
   compatibility for each optional source value.
 - Preserve risk scoring, selection, execution boundaries, and authority.
 
@@ -28,22 +28,22 @@ Fleet-scale planning decisions and durable reproducible audit handoffs.
 
 Planned files:
 - strategy risk-context validation plus review/import schemas
-- required/planned-contact mutation/schema proofs, docs, exports, and ledger
+- required/planned-downlink mutation/schema proofs, docs, exports, and ledger
 
 Verification:
-- Focused handoff/schema proof: `71 passed`.
+- Focused handoff/schema proof: `73 passed`.
 - Contact-allocation regression: `213 passed`.
 - Golden artifact regression: `12 passed`.
 - Schema lint: `155` artifacts, `0` errors, `0` warnings.
-- Full suite: `3944 passed`.
+- Full suite: `3946 passed`.
 - Canonical strategy SHA-256 remained
   `b335a0e3337c35e5dcb11594b2ffa3a51923743dfd6728c6f8e30dec1b9b1027`.
 - Ten expected generated schema surfaces changed; `git diff --check` passed.
 
 Review:
-- Exact-copy checks independently cover required and planned demand across
-  operator review, direct selected Cadence import, and review-derived import,
-  including missing, stale, and paired legacy omission mutations.
+- Exact-copy checks independently cover required and planned downlink demand
+  across operator review, direct selected Cadence import, and review-derived
+  import, including missing, stale, and paired legacy omission mutations.
 - Numeric arrays match the existing branch-event number contract; all three
   public row schemas and generated exports agree.
 - The values remain source provenance and introduce no aggregate-demand
@@ -52,7 +52,7 @@ Review:
   operator-authority, and autonomous-execution behavior remain unchanged.
 
 Last published slice:
-- `34ff97cb` Validate contact intent ground station identity (`3942 passed`).
+- `4a9bef1e` Validate contact intent contact demand (`3944 passed`).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions while preserving explicit
@@ -63,7 +63,7 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-Assess source-exact contact-intent downlink demand.
+Assess source-exact contact-intent timing bounds.
 
 Blocked:
 None.

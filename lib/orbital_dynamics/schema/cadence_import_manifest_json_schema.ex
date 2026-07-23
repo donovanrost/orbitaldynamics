@@ -163,6 +163,8 @@ defmodule OrbitalDynamics.Schema.CadenceImportManifestJsonSchema do
           "contact_intent_pressure_ground_station_ids" => schema.(:stable_id_array_schema),
           "contact_intent_pressure_required_contact_values" => schema.(:number_array_schema),
           "contact_intent_pressure_planned_contact_values" => schema.(:number_array_schema),
+          "contact_intent_pressure_required_downlink_values_mb" => schema.(:number_array_schema),
+          "contact_intent_pressure_planned_downlink_values_mb" => schema.(:number_array_schema),
           "station_calendar_pressure_risk_types" => schema.(:string_array_schema),
           "station_calendar_pressure_ground_station_ids" => schema.(:stable_id_array_schema),
           "station_calendar_pressure_start_values_s" => schema.(:number_array_schema),

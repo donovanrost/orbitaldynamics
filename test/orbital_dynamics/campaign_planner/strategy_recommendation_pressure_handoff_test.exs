@@ -823,6 +823,28 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
     )
   end
 
+  test "contact intent required downlink demand remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "contact_intent_pressure_required_downlink_values_mb",
+      {"contact_id", "contact_intent:selected_blocked"},
+      "required_downlink_mb",
+      [42.0],
+      [43.0]
+    )
+  end
+
+  test "contact intent planned downlink demand remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "contact_intent_pressure_planned_downlink_values_mb",
+      {"contact_id", "contact_intent:selected_blocked"},
+      "planned_downlink_mb",
+      [0.0],
+      [1.0]
+    )
+  end
+
   defp assert_risk_expiration_context_contract(
          artifact,
          field,
