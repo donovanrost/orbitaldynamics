@@ -668,6 +668,28 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
     )
   end
 
+  test "station calendar start timing remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "station_calendar_pressure_start_values_s",
+      {"station_reservation_id", "reservation_calendar_selected"},
+      "starts_at_s",
+      [1_170.0],
+      [1_171.0]
+    )
+  end
+
+  test "station calendar end timing remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "station_calendar_pressure_end_values_s",
+      {"station_reservation_id", "reservation_calendar_selected"},
+      "ends_at_s",
+      [1_230.0],
+      [1_231.0]
+    )
+  end
+
   defp assert_risk_expiration_context_contract(
          artifact,
          field,

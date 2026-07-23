@@ -38,6 +38,8 @@ defmodule OrbitalDynamics.CampaignPlanner.EventRiskIndicator.StationDownlinkPres
         "severity" => "high",
         "reason" => "station #{station} reserved during branch window",
         "ground_station_id" => station,
+        "starts_at_s" => event["starts_at_s"],
+        "ends_at_s" => event["ends_at_s"],
         "station_availability" => "reserved",
         "station_contention_status" => "reserved_overlap",
         "station_calendar_entry_id" => event["station_calendar_entry_id"],
