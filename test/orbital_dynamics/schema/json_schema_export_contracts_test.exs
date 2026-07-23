@@ -59,6 +59,8 @@ defmodule OrbitalDynamics.Schema.JsonSchemaExportContractsTest do
       {"contact_intent_pressure_planned_downlink_values_mb", "number", nil},
       {"contact_intent_pressure_start_values_s", "number", nil},
       {"contact_intent_pressure_end_values_s", "number", nil},
+      {"contact_intent_pressure_source_window_ids", "string", stable_id_pattern},
+      {"contact_intent_pressure_timeline_ids", "string", stable_id_pattern},
       {"station_calendar_pressure_risk_types", "string", nil},
       {"station_calendar_pressure_ground_station_ids", "string", stable_id_pattern},
       {"station_calendar_pressure_start_values_s", "number", nil},

@@ -58,7 +58,9 @@ defmodule OrbitalDynamics.Schema.StrategyHandoffContracts do
     {"contact_intent_pressure_planned_downlink_values_mb",
      "contact_intent_pressure_planned_downlink_values_mb"},
     {"contact_intent_pressure_start_values_s", "contact_intent_pressure_start_values_s"},
-    {"contact_intent_pressure_end_values_s", "contact_intent_pressure_end_values_s"}
+    {"contact_intent_pressure_end_values_s", "contact_intent_pressure_end_values_s"},
+    {"contact_intent_pressure_source_window_ids", "contact_intent_pressure_source_window_ids"},
+    {"contact_intent_pressure_timeline_ids", "contact_intent_pressure_timeline_ids"}
   ]
   @station_calendar_context_field_pairs [
     {"station_calendar_pressure_risk_types", "station_calendar_pressure_risk_types"},

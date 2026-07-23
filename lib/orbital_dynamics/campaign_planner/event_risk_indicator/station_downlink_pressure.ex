@@ -222,6 +222,7 @@ defmodule OrbitalDynamics.CampaignPlanner.EventRiskIndicator.StationDownlinkPres
         "missed_downlink_activity_ids" => event["missed_downlink_activity_ids"],
         "source_window_id" => event["source_window_id"],
         "source_window_ids" => event["source_window_ids"],
+        "timeline_id" => event["timeline_id"],
         "station_reservation_id" => event["station_reservation_id"],
         "station_reserved_by" => event["station_reserved_by"],
         "station_reservation_status" => event["station_reservation_status"],
