@@ -5,21 +5,21 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Enforce source-exact station-calendar timing context.
+Enforce source-exact station-calendar capacity-fraction context.
 
 Status:
 Verified; publish pending.
 
 Selection evidence:
-- The selected branch event supplies start `1170.0` and end `1230.0`, but the
-  passive recommendation-risk projection drops both before aggregation.
-- Both canonical aggregators exist; review/import schemas and exact-copy
-  validation also omit the numeric interval bounds.
+- The selected branch event supplies capacity fraction `0.4`, but the passive
+  recommendation-risk projection drops it before aggregation.
+- The canonical aggregator exists; exact-copy validation and a reusable bounded
+  `[0,1]` array schema are absent.
 
 Intended behavior:
-- Declare both numeric lists in review/import schemas and require an
+- Add a shared probability-array schema and require an
   exact source-derived copy in review/direct/review-derived Cadence rows.
-- Reject missing or stale bounds when source risks supply the values;
+- Reject missing, stale, or out-of-range fractions;
   retain paired legacy omission compatibility.
 - Preserve risk scoring, selection, execution boundaries, and authority.
 
@@ -28,30 +28,32 @@ Fleet-scale planning decisions and durable reproducible audit handoffs.
 
 Planned files:
 - strategy handoff validation plus review/import schemas
-- timing mutation/schema proofs, docs, exports, and ledger
+- bounded fraction schema, mutation proofs, docs, exports, and ledger
 
 Verification:
-- Focused handoff/schema proof: `59 passed`.
+- Focused handoff/schema proof: `60 passed`.
 - Contact-allocation regression: `213 passed`.
 - Golden artifact regression: `12 passed`.
 - Schema lint: `155` artifacts, `0` errors, `0` warnings.
-- Full suite: `3932 passed`.
+- Full suite: `3933 passed`.
 - Canonical strategy SHA-256 remained
   `b335a0e3337c35e5dcb11594b2ffa3a51923743dfd6728c6f8e30dec1b9b1027`.
 - Ten expected generated schema surfaces changed; `git diff --check` passed.
 
 Review:
-- Passive projection now retains both event bounds without changing scoring or
-  planning behavior; the interval remains `1170.0` through `1230.0`.
-- Executable handoff checks enforce exact start and end copies independently,
-  including missing review, paired legacy omission, stale direct import, and
-  missing review-derived import.
-- All three source schemas declare numeric arrays; generated exports agree.
+- Passive projection now retains source capacity fraction `0.4` without
+  changing scoring or planning behavior.
+- Executable handoff checks enforce exact copies across operator review,
+  direct Cadence import, and review-derived Cadence import, including missing
+  review, paired legacy omission, stale direct, and missing review-derived
+  mutations.
+- All three source schemas declare arrays with inclusive `[0,1]` item bounds;
+  generated exports agree.
 - Provider, reservation, schedule, Cadence-write, operator-authority, and
   autonomous-execution boundaries remain unchanged.
 
 Last published slice:
-- `ee314cb9` Validate station calendar ground station identity (`3930 passed`).
+- `4e030c58` Validate station calendar timing context (`3932 passed`).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions while preserving explicit
@@ -62,7 +64,7 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-Assess source-exact station-calendar capacity-fraction context.
+Assess source-exact station-calendar risk-type context.
 
 Blocked:
 None.

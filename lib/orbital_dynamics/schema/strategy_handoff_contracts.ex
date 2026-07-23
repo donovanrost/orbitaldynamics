@@ -49,6 +49,8 @@ defmodule OrbitalDynamics.Schema.StrategyHandoffContracts do
      "station_calendar_pressure_ground_station_ids"},
     {"station_calendar_pressure_start_values_s", "station_calendar_pressure_start_values_s"},
     {"station_calendar_pressure_end_values_s", "station_calendar_pressure_end_values_s"},
+    {"station_calendar_pressure_capacity_fraction_values",
+     "station_calendar_pressure_capacity_fraction_values"},
     {"station_calendar_pressure_station_reservation_expiration_statuses",
      "station_calendar_pressure_station_reservation_expiration_statuses"},
     {"station_calendar_pressure_station_reservation_expires_at_values_s",

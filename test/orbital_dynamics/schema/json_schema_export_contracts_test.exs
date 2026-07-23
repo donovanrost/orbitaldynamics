@@ -53,6 +53,7 @@ defmodule OrbitalDynamics.Schema.JsonSchemaExportContractsTest do
       {"station_calendar_pressure_ground_station_ids", "string", stable_id_pattern},
       {"station_calendar_pressure_start_values_s", "number", nil},
       {"station_calendar_pressure_end_values_s", "number", nil},
+      {"station_calendar_pressure_capacity_fraction_values", "number", nil},
       {"station_calendar_pressure_station_reservation_expiration_statuses", "string", nil},
       {"station_calendar_pressure_station_reservation_expires_at_values_s", "number", nil},
       {"station_calendar_pressure_station_reservation_ids", "string", stable_id_pattern},
@@ -102,10 +103,13 @@ defmodule OrbitalDynamics.Schema.JsonSchemaExportContractsTest do
     ]
 
     item_minimums = %{
+      "station_calendar_pressure_capacity_fraction_values" => 0.0,
       "station_calendar_pressure_station_calendar_overlap_count_values" => 0,
       "station_calendar_pressure_station_calendar_ambiguous_entry_count_values" => 0,
       "station_calendar_pressure_station_calendar_reservation_overlap_count_values" => 0
     }
+
+    item_maximums = %{"station_calendar_pressure_capacity_fraction_values" => 1.0}
 
     assert get_in(strategy_schema, [
              "properties",
@@ -168,6 +172,10 @@ defmodule OrbitalDynamics.Schema.JsonSchemaExportContractsTest do
 
         if item_minimum = item_minimums[aggregate_field] do
           assert item_schema["minimum"] == item_minimum
+        end
+
+        if item_maximum = item_maximums[aggregate_field] do
+          assert item_schema["maximum"] == item_maximum
         end
       end)
     end)

@@ -167,6 +167,8 @@ defmodule OrbitalDynamics.Schema.OperatorReviewRowJsonSchema do
           "station_calendar_pressure_ground_station_ids" => schema.(:stable_id_array_schema),
           "station_calendar_pressure_start_values_s" => schema.(:number_array_schema),
           "station_calendar_pressure_end_values_s" => schema.(:number_array_schema),
+          "station_calendar_pressure_capacity_fraction_values" =>
+            OrbitalDynamics.Schema.CommonJsonSchema.probability_array(),
           "station_calendar_pressure_station_reservation_expiration_statuses" =>
             schema.(:string_array_schema),
           "station_calendar_pressure_station_reservation_expires_at_values_s" =>

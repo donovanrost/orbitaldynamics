@@ -170,6 +170,10 @@ defmodule OrbitalDynamics.Schema.CommonJsonSchema do
     %{"type" => "number", "minimum" => 0.0, "maximum" => 1.0}
   end
 
+  def probability_array do
+    %{"type" => "array", "items" => probability()}
+  end
+
   def number_or_string do
     %{"type" => ["number", "string"]}
   end

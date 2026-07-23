@@ -690,6 +690,17 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
     )
   end
 
+  test "station calendar capacity fraction remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "station_calendar_pressure_capacity_fraction_values",
+      {"station_reservation_id", "reservation_calendar_selected"},
+      "capacity_fraction",
+      [0.4],
+      [0.6]
+    )
+  end
+
   defp assert_risk_expiration_context_contract(
          artifact,
          field,

@@ -40,6 +40,7 @@ defmodule OrbitalDynamics.CampaignPlanner.EventRiskIndicator.StationDownlinkPres
         "ground_station_id" => station,
         "starts_at_s" => event["starts_at_s"],
         "ends_at_s" => event["ends_at_s"],
+        "capacity_fraction" => event["capacity_fraction"],
         "station_availability" => "reserved",
         "station_contention_status" => "reserved_overlap",
         "station_calendar_entry_id" => event["station_calendar_entry_id"],
