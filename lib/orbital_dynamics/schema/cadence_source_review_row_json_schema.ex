@@ -131,6 +131,7 @@ defmodule OrbitalDynamics.Schema.CadenceSourceReviewRowJsonSchema do
               stable_id_pattern
             ),
           "station_calendar_pressure_required_operator_actions" => schema.(:string_array_schema),
+          "station_calendar_pressure_feedback_sources" => schema.(:string_array_schema),
           "branch_image_quality_min_score" => %{
             "type" => "number",
             "minimum" => 0.0,

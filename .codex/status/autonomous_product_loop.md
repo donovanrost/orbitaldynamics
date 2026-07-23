@@ -5,22 +5,22 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Enforce source-exact station-calendar required-action context.
+Enforce source-exact station-calendar feedback-source context.
 
 Status:
 Verified; publish pending.
 
 Selection evidence:
-- The selected risk and current handoffs expose
-  `station_calendar_pressure_required_operator_actions` as
-  `["review_station_calendar"]`.
-- Review/import schemas and exact-copy validation omit the field, so stale or
-  missing operator-routing evidence can cross the boundary unchecked.
+- The selected risk and current handoffs expose the authoritative station
+  calendar affected-contact source path.
+- Review/import schemas and exact-copy validation omit
+  `station_calendar_pressure_feedback_sources`, so stale or missing provenance
+  can cross the boundary unchecked.
 
 Intended behavior:
 - Declare the string-array field and require an exact source-derived copy in
   review/direct/review-derived Cadence rows.
-- Reject missing or stale derived actions; retain paired legacy omission
+- Reject missing or stale derived source paths; retain paired legacy omission
   compatibility.
 - Preserve risk scoring, selection, execution boundaries, and authority.
 
@@ -29,21 +29,22 @@ Fleet-scale planning decisions and durable reproducible audit handoffs.
 
 Planned files:
 - strategy handoff validation plus review/import schemas
-- required-action mutation/schema proofs, docs, exports, and ledger
+- feedback-source mutation/schema proofs, docs, exports, and ledger
 
 Verification:
-- Focused handoff/schema proof: `62 passed`.
+- Focused handoff/schema proof: `63 passed`.
 - Contact-allocation regression: `213 passed`.
 - Golden artifact regression: `12 passed`.
 - Schema lint: `155` artifacts, `0` errors, `0` warnings.
-- Full suite: `3935 passed`.
+- Full suite: `3936 passed`.
 - Canonical strategy SHA-256 remained
   `b335a0e3337c35e5dcb11594b2ffa3a51923743dfd6728c6f8e30dec1b9b1027`.
 - Ten expected generated schema surfaces changed; `git diff --check` passed.
 
 Review:
 - Existing passive risk projection and the canonical aggregator remain the
-  sole producers of `review_station_calendar`; planner behavior is unchanged.
+  sole producers of the affected-contact source path; planner behavior is
+  unchanged.
 - Executable handoff checks enforce exact copies across operator review,
   direct Cadence import, and review-derived Cadence import, including missing
   review, paired legacy omission, stale direct, and missing review-derived
@@ -53,7 +54,7 @@ Review:
   autonomous-execution boundaries remain unchanged.
 
 Last published slice:
-- `3fb2f558` Validate station calendar risk type (`3934 passed`).
+- `49715a27` Validate station calendar required action (`3935 passed`).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions while preserving explicit
@@ -64,7 +65,7 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-Assess source-exact station-calendar feedback-source context.
+Assess source-exact station-calendar feedback-scope context.
 
 Blocked:
 None.
