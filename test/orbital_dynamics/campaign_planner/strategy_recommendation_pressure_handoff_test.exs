@@ -1120,6 +1120,55 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
     )
   end
 
+  test "contact intent feedback source remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "contact_intent_pressure_feedback_sources",
+      {"contact_id", "contact_intent:selected_blocked"},
+      "feedback_source",
+      ["mission_state.source_contact_intent.rows"],
+      ["mission_state.stale_contact_intent.rows"]
+    )
+  end
+
+  test "contact intent feedback scope remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "contact_intent_pressure_feedback_scopes",
+      {"contact_id", "contact_intent:selected_blocked"},
+      "feedback_scope",
+      ["contact_intent"],
+      ["stale_contact_intent"]
+    )
+  end
+
+  test "contact intent trust boundary remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "contact_intent_pressure_trust_boundaries",
+      {"contact_id", "contact_intent:selected_blocked"},
+      "trust_boundary",
+      ["mission_state_contact_intent_review"],
+      ["mission_state_stale_contact_intent_review"]
+    )
+  end
+
+  test "contact intent derivation reasons remain source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "contact_intent_pressure_derivation_reasons",
+      {"contact_id", "contact_intent:selected_blocked"},
+      "derivation_reasons",
+      [
+        "contact_intent_blocked_by_policy",
+        "review_contact_intent",
+        "reserved",
+        "unmatched_overlap"
+      ],
+      ["stale_contact_intent_derivation"]
+    )
+  end
+
   defp assert_risk_expiration_context_contract(
          artifact,
          field,

@@ -204,6 +204,10 @@ defmodule OrbitalDynamics.Schema.OperatorReviewRowJsonSchema do
           "contact_intent_pressure_station_reservation_statuses" => schema.(:string_array_schema),
           "contact_intent_pressure_station_reservation_match_statuses" =>
             schema.(:string_array_schema),
+          "contact_intent_pressure_feedback_sources" => schema.(:string_array_schema),
+          "contact_intent_pressure_feedback_scopes" => schema.(:string_array_schema),
+          "contact_intent_pressure_trust_boundaries" => schema.(:string_array_schema),
+          "contact_intent_pressure_derivation_reasons" => schema.(:string_array_schema),
           "station_calendar_pressure_risk_types" => schema.(:string_array_schema),
           "station_calendar_pressure_ground_station_ids" => schema.(:stable_id_array_schema),
           "station_calendar_pressure_start_values_s" => schema.(:number_array_schema),
