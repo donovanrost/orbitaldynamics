@@ -405,6 +405,17 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
     )
   end
 
+  test "station calendar overlap entry identity remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "station_calendar_pressure_station_calendar_overlap_entry_ids",
+      {"station_reservation_id", "reservation_calendar_selected"},
+      "station_calendar_overlap_entry_ids",
+      ["calendar_selected_reserved", "calendar_selected_maintenance"],
+      ["calendar_selected_reserved", "calendar_stale_maintenance"]
+    )
+  end
+
   defp assert_risk_expiration_context_contract(
          artifact,
          field,
