@@ -38,7 +38,7 @@ defmodule OrbitalDynamics.Schema.JsonSchemaExportContractsTest do
            ]) == "string"
   end
 
-  test "exports provider request expiration recommendation risk context" do
+  test "exports reservation recommendation risk context" do
     assert {:ok, strategy_schema} = Schema.json_schema("campaign_strategy.v3")
     assert {:ok, review_schema} = Schema.json_schema("operator_review_package.v1")
     assert {:ok, import_schema} = Schema.json_schema("cadence_import_manifest.v1")
@@ -46,10 +46,11 @@ defmodule OrbitalDynamics.Schema.JsonSchemaExportContractsTest do
     scalar_field = "station_reservation_expiration_status"
 
     aggregate_fields = [
-      "provider_reservation_request_station_reservation_expiration_statuses",
-      "station_reservation_conflict_expiration_statuses",
-      "station_reservation_hold_expiration_statuses",
-      "station_calendar_pressure_station_reservation_expiration_statuses"
+      {"provider_reservation_request_station_reservation_expiration_statuses", "string"},
+      {"station_reservation_conflict_expiration_statuses", "string"},
+      {"station_reservation_hold_expiration_statuses", "string"},
+      {"station_calendar_pressure_station_reservation_expiration_statuses", "string"},
+      {"station_calendar_pressure_station_reservation_expires_at_values_s", "number"}
     ]
 
     assert get_in(strategy_schema, [
@@ -74,7 +75,7 @@ defmodule OrbitalDynamics.Schema.JsonSchemaExportContractsTest do
              "type"
            ]) == "string"
 
-    Enum.each(aggregate_fields, fn aggregate_field ->
+    Enum.each(aggregate_fields, fn {aggregate_field, item_type} ->
       assert get_in(review_schema, [
                "properties",
                "rows",
@@ -83,7 +84,7 @@ defmodule OrbitalDynamics.Schema.JsonSchemaExportContractsTest do
                aggregate_field,
                "items",
                "type"
-             ]) == "string"
+             ]) == item_type
 
       assert get_in(import_schema, [
                "properties",
@@ -93,7 +94,7 @@ defmodule OrbitalDynamics.Schema.JsonSchemaExportContractsTest do
                aggregate_field,
                "items",
                "type"
-             ]) == "string"
+             ]) == item_type
 
       assert get_in(import_schema, [
                "properties",
@@ -105,7 +106,7 @@ defmodule OrbitalDynamics.Schema.JsonSchemaExportContractsTest do
                aggregate_field,
                "items",
                "type"
-             ]) == "string"
+             ]) == item_type
     end)
   end
 

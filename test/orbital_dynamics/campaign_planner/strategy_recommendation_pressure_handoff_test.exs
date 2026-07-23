@@ -262,11 +262,42 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
     )
   end
 
+  test "station calendar reservation deadlines remain source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "station_calendar_pressure_station_reservation_expires_at_values_s",
+      {"station_reservation_id", "reservation_calendar_selected"},
+      "station_reservation_expires_at_s",
+      [1_260.0],
+      [0.0]
+    )
+  end
+
   defp assert_risk_expiration_context_contract(
          artifact,
          field,
          {identity_field, identity_value},
          expected_status
+       ) do
+    stale_status = if expected_status == "active", do: "expired", else: "active"
+
+    assert_risk_context_contract(
+      artifact,
+      field,
+      {identity_field, identity_value},
+      "station_reservation_expiration_status",
+      [expected_status],
+      [stale_status]
+    )
+  end
+
+  defp assert_risk_context_contract(
+         artifact,
+         field,
+         {identity_field, identity_value},
+         source_field,
+         expected_value,
+         stale_value
        ) do
     recommendation_review_row =
       Enum.find(
@@ -288,10 +319,10 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
         &(&1["source_review_type"] == "strategy_recommendation")
       )
 
-    assert recommendation_review_row[field] == [expected_status]
-    assert selected_import_row[field] == [expected_status]
-    assert review_import_row[field] == [expected_status]
-    assert review_import_row["source_review_row"][field] == [expected_status]
+    assert recommendation_review_row[field] == expected_value
+    assert selected_import_row[field] == expected_value
+    assert review_import_row[field] == expected_value
+    assert review_import_row["source_review_row"][field] == expected_value
 
     recommendation_review_index =
       Enum.find_index(
@@ -324,7 +355,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
           |> update_in(["source_recommendation", "risks_remaining"], fn risks ->
             Enum.map(risks, fn risk ->
               if risk[identity_field] == identity_value do
-                Map.delete(risk, "station_reservation_expiration_status")
+                Map.delete(risk, source_field)
               else
                 risk
               end
@@ -333,7 +364,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
           |> update_in(["source_recommendation", "explanation"], fn explanation ->
             Enum.map(explanation, fn row ->
               if row[identity_field] == identity_value do
-                Map.delete(row, "station_reservation_expiration_status")
+                Map.delete(row, source_field)
               else
                 row
               end
@@ -354,7 +385,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
       update_in(
         artifact["cadence_import_manifest"],
         ["rows", Access.at(selected_import_index)],
-        &Map.put(&1, field, [if(expected_status == "active", do: "expired", else: "active")])
+        &Map.put(&1, field, stale_value)
       )
 
     assert {:error, stale_selected_context_report} =

@@ -5,22 +5,22 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Enforce source-exact station-calendar expiration context.
+Enforce source-exact station-calendar reservation deadlines.
 
 Status:
 Verified; ready to publish.
 
 Selection evidence:
 - Recommendation review and both Cadence paths already emit the canonical
-  station-calendar expiration-status list from source risks.
+  station-calendar reservation-deadline list from source risks.
 - Explicit schemas omit the list, and handoff validation does not reject a
-  missing or stale derived copy.
+  missing or stale derived deadline copy.
 
 Intended behavior:
-- Declare the existing list in review/import schemas and require an exact
+- Declare the numeric list in review/import schemas and require an exact
   source-derived copy in review/direct/review-derived Cadence rows.
-- Reject missing or stale aggregate copies when source risks supply the field;
-  retain paired legacy omission compatibility.
+- Reject missing or stale deadlines when source risks supply the scalar; retain
+  paired legacy omission compatibility.
 - Preserve risk scoring, selection, and every execution boundary.
 
 Level 6 pillar advanced:
@@ -28,27 +28,27 @@ Fleet-scale planning decisions and durable reproducible audit handoffs.
 
 Planned files:
 - strategy handoff validation plus review/import schemas
-- focused mutation/schema proofs, docs, exports, and ledger
+- typed mutation/schema proofs, docs, exports, and ledger
 
 Verification:
-- Focused handoff/schema/Cadence proofs: `22 passed`.
+- Focused handoff/schema/Cadence proofs: `23 passed`.
 - Contact-allocation family: `213 passed`.
 - Golden artifacts: `12 passed`.
 - Schema lint: `155 schemas, 0 errors, 0 warnings`.
-- Full suite: `3894 passed`.
+- Full suite: `3895 passed`.
 - General and manifest schemas regenerated; canonical V3 campaign remained
   byte-stable through the public runner.
 
 Review:
-- Review/direct/review-derived Cadence rows and the nested source-review copy now
-  require the exact source-derived station-calendar expiration list.
-- Identity-driven mutation proofs reject missing/stale copies across all four
-  expiration contexts while retaining exact-risk paired legacy omission.
-- Explicit schemas now declare the existing field; no planner behavior, adapter
-  effect, execution boundary, or authority surface changed.
+- All four review/import copies now require the exact source-derived numeric
+  deadline list; missing or stale values fail executable validation.
+- The shared identity-driven proof removes the exact deadline scalar for paired
+  legacy omission and challenges a stale numeric copy independently.
+- Explicit schemas and the shared source-review provider declare number arrays;
+  no planner behavior, adapter effect, or authority boundary changed.
 
 Last published slice:
-- `02628dce` Preserve station hold expiration context (`3893 passed`).
+- `58dae5f4` Validate station calendar expiration context (`3894 passed`).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions while preserving explicit
@@ -59,7 +59,7 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-Assess source-exact station-calendar reservation-deadline validation.
+Assess source-exact station-calendar reservation identity context.
 
 Blocked:
 None.

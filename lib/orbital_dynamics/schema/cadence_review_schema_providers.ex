@@ -125,6 +125,7 @@ defmodule OrbitalDynamics.Schema.CadenceReviewSchemaProviders do
         )
       end,
       non_negative_number_map_json_schema: &CommonJsonSchema.non_negative_number_map/0,
+      number_array_schema: &CommonJsonSchema.number_array/0,
       number_or_string_json_schema: &CommonJsonSchema.number_or_string/0,
       operational_readiness_source_report_evidence_json_schema:
         dependency(dependencies, :operational_readiness_source_report_evidence_schema),
