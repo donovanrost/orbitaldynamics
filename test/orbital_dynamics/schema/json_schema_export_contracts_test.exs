@@ -38,7 +38,7 @@ defmodule OrbitalDynamics.Schema.JsonSchemaExportContractsTest do
            ]) == "string"
   end
 
-  test "exports reservation recommendation risk context" do
+  test "exports recommendation risk context" do
     assert {:ok, strategy_schema} = Schema.json_schema("campaign_strategy.v3")
     assert {:ok, review_schema} = Schema.json_schema("operator_review_package.v1")
     assert {:ok, import_schema} = Schema.json_schema("cadence_import_manifest.v1")
@@ -50,6 +50,7 @@ defmodule OrbitalDynamics.Schema.JsonSchemaExportContractsTest do
       {"provider_reservation_request_station_reservation_expiration_statuses", "string", nil},
       {"station_reservation_conflict_expiration_statuses", "string", nil},
       {"station_reservation_hold_expiration_statuses", "string", nil},
+      {"contact_intent_pressure_contact_ids", "string", stable_id_pattern},
       {"station_calendar_pressure_risk_types", "string", nil},
       {"station_calendar_pressure_ground_station_ids", "string", stable_id_pattern},
       {"station_calendar_pressure_start_values_s", "number", nil},

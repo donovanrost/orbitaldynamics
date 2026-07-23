@@ -768,6 +768,17 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
     )
   end
 
+  test "contact intent contact identity remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "contact_intent_pressure_contact_ids",
+      {"contact_id", "contact_intent:selected_blocked"},
+      "contact_id",
+      ["contact_intent:selected_blocked"],
+      ["contact_intent:stale_blocked"]
+    )
+  end
+
   defp assert_risk_expiration_context_contract(
          artifact,
          field,

@@ -5,55 +5,56 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Preserve source-exact station-calendar derivation reasons.
+Enforce source-exact contact-intent contact identity.
 
 Status:
 Verified; publish pending.
 
 Selection evidence:
-- The selected branch event supplies `station_calendar_reserved`,
-  `reserved_overlap`, and `overlap`, but the passive reserved-station risk
-  projection drops the list before aggregation.
-- The canonical aggregator and expected handoff field exist; review/import
-  schemas and exact-copy validation omit the field.
+- Mechanical comparison confirms all `46` station-calendar context fields now
+  match validation, schemas, and expected handoffs.
+- Contact-intent pressure already uses and exposes candidate-specific contact
+  ID `contact_intent:selected_blocked`, but schemas and exact-copy validation
+  omit it.
 
 Intended behavior:
-- Preserve the event reason list in the passive risk and require an exact copy
-  in review/direct/review-derived Cadence rows.
-- Reject missing or stale derived reasons; retain paired legacy omission
+- Declare the stable-ID array and require an exact source-derived copy in
+  review/direct/review-derived Cadence rows.
+- Reject missing or stale derived contact identity; retain paired legacy omission
   compatibility.
+- Generalize internal risk-context validator names for the second context family.
 - Preserve risk scoring, selection, execution boundaries, and authority.
 
 Level 6 pillar advanced:
 Fleet-scale planning decisions and durable reproducible audit handoffs.
 
 Planned files:
-- passive risk projection, strategy validation, and review/import schemas
-- derivation-reason mutation/schema proofs, docs, exports, and ledger
+- strategy risk-context validation plus review/import schemas
+- contact-identity mutation/schema proofs, docs, exports, and ledger
 
 Verification:
-- Focused handoff/schema proof: `66 passed`.
+- Focused handoff/schema proof: `67 passed`.
 - Contact-allocation regression: `213 passed`.
 - Golden artifact regression: `12 passed`.
 - Schema lint: `155` artifacts, `0` errors, `0` warnings.
-- Full suite: `3939 passed`.
+- Full suite: `3940 passed`.
 - Canonical strategy SHA-256 remained
   `b335a0e3337c35e5dcb11594b2ffa3a51923743dfd6728c6f8e30dec1b9b1027`.
 - Ten expected generated schema surfaces changed; `git diff --check` passed.
 
 Review:
-- The passive reserved-station risk now retains the exact three source
-  derivation reasons without changing severity, scoring, or planning behavior.
-- Executable handoff checks enforce exact copies across operator review,
-  direct Cadence import, and review-derived Cadence import, including missing
-  review, paired legacy omission, stale direct, and missing review-derived
-  mutations.
-- All three source schemas declare string arrays; generated exports agree.
-- Provider, reservation, schedule, Cadence-write, operator-authority, and
-  autonomous-execution boundaries remain unchanged.
+- Exact-copy checks cover operator review, direct selected Cadence import, and
+  review-derived Cadence import, including missing review, paired legacy
+  omission, stale direct, and missing review-derived mutations.
+- All three public row schemas declare a stable-ID array and generated exports
+  agree.
+- Internal validator naming now describes both reservation and contact-intent
+  risk contexts without changing validation behavior for existing families.
+- Risk scoring, planning, provider, reservation, schedule, Cadence-write,
+  operator-authority, and autonomous-execution behavior remain unchanged.
 
 Last published slice:
-- `68cbc688` Validate station calendar trust boundary (`3938 passed`).
+- `2a8d7c79` Validate station calendar derivation reasons (`3939 passed`).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions while preserving explicit
@@ -64,8 +65,7 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-Reassess station-calendar exact-contract completeness against the canonical
-aggregator.
+Assess source-exact contact-intent source-activity identity.
 
 Blocked:
 None.

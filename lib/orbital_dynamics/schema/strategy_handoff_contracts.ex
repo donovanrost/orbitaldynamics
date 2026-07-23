@@ -44,7 +44,10 @@ defmodule OrbitalDynamics.Schema.StrategyHandoffContracts do
     {"station_reservation_hold_expiration_statuses",
      "station_reservation_hold_expiration_statuses"}
   ]
-  @station_calendar_expiration_context_field_pairs [
+  @contact_intent_context_field_pairs [
+    {"contact_intent_pressure_contact_ids", "contact_intent_pressure_contact_ids"}
+  ]
+  @station_calendar_context_field_pairs [
     {"station_calendar_pressure_risk_types", "station_calendar_pressure_risk_types"},
     {"station_calendar_pressure_ground_station_ids",
      "station_calendar_pressure_ground_station_ids"},
@@ -132,19 +135,20 @@ defmodule OrbitalDynamics.Schema.StrategyHandoffContracts do
     {"station_calendar_pressure_derivation_reasons",
      "station_calendar_pressure_derivation_reasons"}
   ]
-  @strategy_recommendation_risk_expiration_context_specs [
+  @strategy_recommendation_risk_context_specs [
     {@provider_reservation_request_expiration_context_field_pairs,
      :provider_reservation_request_context},
     {@station_reservation_conflict_expiration_context_field_pairs,
      :station_reservation_conflict_context},
     {@station_reservation_hold_expiration_context_field_pairs,
      :station_reservation_hold_import_readiness_context},
-    {@station_calendar_expiration_context_field_pairs, :station_calendar_context}
+    {@contact_intent_context_field_pairs, :contact_intent_context},
+    {@station_calendar_context_field_pairs, :station_calendar_context}
   ]
-  @strategy_recommendation_risk_expiration_context_field_pairs Enum.flat_map(
-                                                                 @strategy_recommendation_risk_expiration_context_specs,
-                                                                 &elem(&1, 0)
-                                                               )
+  @strategy_recommendation_risk_context_field_pairs Enum.flat_map(
+                                                      @strategy_recommendation_risk_context_specs,
+                                                      &elem(&1, 0)
+                                                    )
   @strategy_recommendation_source_review_fields Enum.map(
                                                   [
                                                     "subject_id",
@@ -394,7 +398,7 @@ defmodule OrbitalDynamics.Schema.StrategyHandoffContracts do
       )
       |> validate_strategy_recommendation_source_count_matches(path, row, source_row)
       |> validate_strategy_recommendation_branch_event_context(path, row, source_row)
-      |> validate_strategy_recommendation_risk_expiration_contexts(
+      |> validate_strategy_recommendation_risk_contexts(
         path,
         row,
         source_row
@@ -437,7 +441,7 @@ defmodule OrbitalDynamics.Schema.StrategyHandoffContracts do
         path,
         row,
         source_review_row,
-        @strategy_recommendation_risk_expiration_context_field_pairs,
+        @strategy_recommendation_risk_context_field_pairs,
         "source_review_row"
       )
     else
@@ -521,7 +525,7 @@ defmodule OrbitalDynamics.Schema.StrategyHandoffContracts do
         @branch_reservation_expiration_context_field_pairs,
         "source_branch_comparison"
       )
-      |> validate_strategy_import_recommendation_risk_expiration_contexts(path, row)
+      |> validate_strategy_import_recommendation_risk_contexts(path, row)
     else
       issues
     end
@@ -697,7 +701,7 @@ defmodule OrbitalDynamics.Schema.StrategyHandoffContracts do
     end
   end
 
-  defp validate_strategy_recommendation_risk_expiration_contexts(
+  defp validate_strategy_recommendation_risk_contexts(
          issues,
          path,
          row,
@@ -706,7 +710,7 @@ defmodule OrbitalDynamics.Schema.StrategyHandoffContracts do
     risks = Map.get(source_row, "risks_remaining", [])
 
     Enum.reduce(
-      @strategy_recommendation_risk_expiration_context_specs,
+      @strategy_recommendation_risk_context_specs,
       issues,
       fn {field_pairs, context_function}, acc ->
         source_context =
@@ -731,7 +735,7 @@ defmodule OrbitalDynamics.Schema.StrategyHandoffContracts do
     )
   end
 
-  defp validate_strategy_import_recommendation_risk_expiration_contexts(
+  defp validate_strategy_import_recommendation_risk_contexts(
          issues,
          path,
          %{
@@ -739,7 +743,7 @@ defmodule OrbitalDynamics.Schema.StrategyHandoffContracts do
            "source_recommendation" => %{} = source_row
          } = row
        ) do
-    validate_strategy_recommendation_risk_expiration_contexts(
+    validate_strategy_recommendation_risk_contexts(
       issues,
       path,
       row,
@@ -747,7 +751,7 @@ defmodule OrbitalDynamics.Schema.StrategyHandoffContracts do
     )
   end
 
-  defp validate_strategy_import_recommendation_risk_expiration_contexts(
+  defp validate_strategy_import_recommendation_risk_contexts(
          issues,
          _path,
          _row
