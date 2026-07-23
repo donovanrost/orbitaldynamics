@@ -78,6 +78,8 @@ defmodule OrbitalDynamics.Schema.CadenceSourceReviewRowJsonSchema do
             schema.(:string_array_schema),
           "contact_intent_pressure_invalid_activity_input_values" =>
             schema.(:boolean_array_schema),
+          "contact_intent_pressure_invalid_activity_input_reasons" =>
+            schema.(:string_array_schema),
           "contact_intent_pressure_station_availabilities" => schema.(:string_array_schema),
           "contact_intent_pressure_station_contention_statuses" => schema.(:string_array_schema),
           "contact_intent_pressure_station_calendar_entry_ids" =>

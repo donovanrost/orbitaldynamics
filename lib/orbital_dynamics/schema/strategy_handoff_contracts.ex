@@ -77,6 +77,8 @@ defmodule OrbitalDynamics.Schema.StrategyHandoffContracts do
      "contact_intent_pressure_invalid_cadence_import_reasons"},
     {"contact_intent_pressure_invalid_activity_input_values",
      "contact_intent_pressure_invalid_activity_input_values"},
+    {"contact_intent_pressure_invalid_activity_input_reasons",
+     "contact_intent_pressure_invalid_activity_input_reasons"},
     {"contact_intent_pressure_station_availabilities",
      "contact_intent_pressure_station_availabilities"},
     {"contact_intent_pressure_station_contention_statuses",

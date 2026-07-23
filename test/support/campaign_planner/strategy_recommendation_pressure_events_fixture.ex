@@ -1,7 +1,7 @@
 defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureEventsFixture do
   import OrbitalDynamics.CampaignPlanner.TestSupport
 
-  def artifact do
+  def artifact(opts \\ []) do
     prior_plan =
       base_plan(%{
         "planning_horizon" => %{"duration_s" => 2_000.0},
@@ -506,7 +506,8 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureEventsFi
                 cadence_import_status: "missing",
                 invalid_cadence_import: true,
                 invalid_cadence_import_reason: "missing_cadence_import_row",
-                invalid_activity_input: false,
+                invalid_activity_input: Keyword.get(opts, :invalid_activity_input, false),
+                invalid_activity_input_reason: Keyword.get(opts, :invalid_activity_input_reason),
                 contact_intent_gate_status: "blocked_by_policy",
                 policy_classification: "blocked_by_policy",
                 policy_bundle_id: "contact_command_review_v1",
@@ -1660,5 +1661,12 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureEventsFi
       )
 
     artifact
+  end
+
+  def invalid_contact_intent_artifact do
+    artifact(
+      invalid_activity_input: true,
+      invalid_activity_input_reason: "missing_activity_type"
+    )
   end
 end

@@ -71,6 +71,7 @@ defmodule OrbitalDynamics.Schema.JsonSchemaExportContractsTest do
       {"contact_intent_pressure_invalid_cadence_import_values", "boolean", nil},
       {"contact_intent_pressure_invalid_cadence_import_reasons", "string", nil},
       {"contact_intent_pressure_invalid_activity_input_values", "boolean", nil},
+      {"contact_intent_pressure_invalid_activity_input_reasons", "string", nil},
       {"contact_intent_pressure_station_availabilities", "string", nil},
       {"contact_intent_pressure_station_contention_statuses", "string", nil},
       {"contact_intent_pressure_station_calendar_entry_ids", "string", stable_id_pattern},
