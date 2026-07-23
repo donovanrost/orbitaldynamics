@@ -5,21 +5,21 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Enforce source-exact station-calendar overlap-availability context.
+Enforce source-exact station-calendar entry-ambiguity flag context.
 
 Status:
 Verified; ready to publish.
 
 Selection evidence:
-- The selected branch event supplies `reserved` and `maintenance` overlap
-  classifications, but the passive recommendation-risk projection drops them.
-- The canonical first-seen-order aggregator already exists; review/import
-  schemas and exact-copy validation omit its derived list.
+- The selected branch event declares its calendar entry ambiguous, but the
+  passive recommendation-risk projection drops the boolean before aggregation.
+- The canonical aggregator already defines `[true]`; review/import schemas and
+  exact-copy validation omit the decision list.
 
 Intended behavior:
-- Declare the string list in review/import schemas and require an
+- Declare the boolean list in review/import schemas and require an
   exact source-derived copy in review/direct/review-derived Cadence rows.
-- Reject missing or stale values when source risks supply the list;
+- Reject missing or stale flags when source risks supply the scalar;
   retain paired legacy omission compatibility.
 - Preserve risk scoring, selection, execution boundaries, and authority.
 
@@ -28,28 +28,28 @@ Fleet-scale planning decisions and durable reproducible audit handoffs.
 
 Planned files:
 - strategy handoff validation plus review/import schemas
-- availability mutation/schema proofs, docs, exports, and ledger
+- boolean mutation/schema proofs, docs, exports, and ledger
 
 Verification:
-- focused handoff/schema contracts: `36 passed`
+- focused handoff/schema contracts: `37 passed`
 - contact-allocation tests: `213 passed`
 - golden artifacts: `12 passed`
 - schema lint: `155` artifacts, `0` errors, `0` warnings
-- full suite: `3909 passed`
+- full suite: `3910 passed`
 - canonical strategy artifact SHA-256 remained
   `b335a0e3337c35e5dcb11594b2ffa3a51923743dfd6728c6f8e30dec1b9b1027`
 
 Review:
-- The source list now crosses the existing passive risk projection; scoring,
+- The source boolean now crosses the existing passive risk projection; scoring,
   selection, provider requests, reservations, schedules, Cadence writes,
   operator authority, and autonomous execution remain unchanged.
-- All four review/import copies preserve exact first-seen source order; missing
-  and stale copies fail, while paired legacy omission remains compatible.
-- Explicit schemas require string items; generated diffs are limited to the
-  expected ten schema artifacts.
+- All four review/import copies require exact `[true]`; missing and stale
+  `[false]` copies fail, while paired legacy omission remains compatible.
+- Exported lists use the shared boolean-array schema primitive; generated diffs
+  are limited to the expected ten schema artifacts.
 
 Last published slice:
-- `69e03c64` Validate station calendar overlap identities (`3908 passed`).
+- `bafdf215` Validate station calendar overlap availability (`3909 passed`).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions while preserving explicit
@@ -60,7 +60,7 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-Assess source-exact station-calendar ambiguity context.
+Assess source-exact station-calendar ambiguity-count context.
 
 Blocked:
 None.

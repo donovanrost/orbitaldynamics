@@ -77,6 +77,7 @@ defmodule OrbitalDynamics.Schema.OperatorReviewSchemaProviders do
           stable_id_pattern
         )
       end,
+      boolean_array_schema: &CommonJsonSchema.boolean_array/0,
       lifecycle_transition_json_schema: &TimelineContextJsonSchema.lifecycle_transition/0,
       non_negative_integer_array_schema: &CommonJsonSchema.non_negative_integer_array/0,
       non_negative_number_map_json_schema: &CommonJsonSchema.non_negative_number_map/0,

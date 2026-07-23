@@ -13,6 +13,10 @@ defmodule OrbitalDynamics.Schema.CommonJsonSchema do
     %{"type" => "array", "items" => %{"type" => "number"}}
   end
 
+  def boolean_array do
+    %{"type" => "array", "items" => %{"type" => "boolean"}}
+  end
+
   def non_negative_integer_array do
     %{"type" => "array", "items" => %{"type" => "integer", "minimum" => 0}}
   end
