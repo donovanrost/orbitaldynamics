@@ -215,6 +215,7 @@ defmodule OrbitalDynamics.CampaignPlanner.EventRiskIndicator.StationDownlinkPres
         "cadence_import_status" => event["cadence_import_status"],
         "invalid_cadence_import" => event["invalid_cadence_import"],
         "invalid_cadence_import_reason" => event["invalid_cadence_import_reason"],
+        "invalid_activity_input" => event["invalid_activity_input"],
         "contact_intent_gate_status" => event["contact_intent_gate_status"],
         "policy_classification" => event["policy_classification"],
         "policy_bundle_id" => event["policy_bundle_id"],

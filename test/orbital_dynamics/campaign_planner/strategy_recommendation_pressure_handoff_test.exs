@@ -977,6 +977,17 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
     )
   end
 
+  test "contact intent activity validity remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "contact_intent_pressure_invalid_activity_input_values",
+      {"contact_id", "contact_intent:selected_blocked"},
+      "invalid_activity_input",
+      [false],
+      [true]
+    )
+  end
+
   defp assert_risk_expiration_context_contract(
          artifact,
          field,
