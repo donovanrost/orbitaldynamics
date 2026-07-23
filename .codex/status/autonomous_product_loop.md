@@ -5,22 +5,21 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Enforce source-exact provider-calendar reservation identity context.
+Enforce source-exact provider-calendar reservation-owner context.
 
 Status:
 Verified; publish pending.
 
 Selection evidence:
-- The selected branch event supplies reservation ID
-  `reservation_calendar_selected`, but the
+- The selected branch event supplies reservation owner `partner_team`, but the
   passive recommendation-risk projection drops it before aggregation.
 - The canonical aggregator exists; review/import schemas and exact-copy
-  validation omit the provider-reservation identity list.
+  validation omit the provider-reservation owner list.
 
 Intended behavior:
-- Declare the stable-ID list in review/import schemas and require an
+- Declare the string list in review/import schemas and require an
   exact source-derived copy in review/direct/review-derived Cadence rows.
-- Reject missing or stale reservation IDs when source risks supply the list;
+- Reject missing or stale owners when source risks supply the list;
   retain paired legacy omission compatibility.
 - Preserve risk scoring, selection, execution boundaries, and authority.
 
@@ -29,29 +28,29 @@ Fleet-scale planning decisions and durable reproducible audit handoffs.
 
 Planned files:
 - strategy handoff validation plus review/import schemas
-- reservation-identity mutation/schema proofs, docs, exports, and ledger
+- reservation-owner mutation/schema proofs, docs, exports, and ledger
 
 Verification:
-- Focused handoff/schema proof: `52 passed`.
+- Focused handoff/schema proof: `53 passed`.
 - Contact-allocation regression: `213 passed`.
 - Golden artifact regression: `12 passed`.
 - Schema lint: `155` artifacts, `0` errors, `0` warnings.
-- Full suite: `3925 passed`.
+- Full suite: `3926 passed`.
 - Canonical strategy SHA-256 remained
   `b335a0e3337c35e5dcb11594b2ffa3a51923743dfd6728c6f8e30dec1b9b1027`.
 - Ten expected generated schema surfaces changed; `git diff --check` passed.
 
 Review:
-- Passive projection now retains the source reservation ID without creating or
-  mutating a reservation or changing risk scoring.
+- Passive projection now retains reservation owner `partner_team` as provenance
+  without granting authority or changing risk scoring.
 - Executable handoff checks enforce all four exact copies, missing review,
   paired legacy omission, stale direct import, and missing review-derived import.
-- All three source schemas declare a stable-ID array; generated exports agree.
-- Provider, schedule, Cadence-write, operator-authority, and autonomous-execution
-  boundaries remain unchanged.
+- All three source schemas declare a string array; generated exports agree.
+- Provider, reservation, schedule, Cadence-write, operator-authority, and
+  autonomous-execution boundaries remain unchanged.
 
 Last published slice:
-- `cf47b616` Validate provider calendar direction (`3924 passed`).
+- `68e07059` Validate provider calendar reservation identity (`3925 passed`).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions while preserving explicit
@@ -62,7 +61,7 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-Assess source-exact provider-calendar reservation owner context.
+Assess source-exact provider-calendar reservation status context.
 
 Blocked:
 None.

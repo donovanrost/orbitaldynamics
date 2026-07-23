@@ -218,6 +218,8 @@ defmodule OrbitalDynamics.Schema.CadenceImportManifestJsonSchema do
             schema.(:string_array_schema),
           "station_calendar_pressure_provider_calendar_contention_reservation_ids" =>
             schema.(:stable_id_array_schema),
+          "station_calendar_pressure_provider_calendar_contention_reserved_by" =>
+            schema.(:string_array_schema),
           "branch_image_quality_min_score" => %{
             "type" => "number",
             "minimum" => 0.0,
