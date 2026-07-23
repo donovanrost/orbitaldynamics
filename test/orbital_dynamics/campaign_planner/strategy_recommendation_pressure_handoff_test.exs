@@ -889,6 +889,28 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
     )
   end
 
+  test "contact intent approval status remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "contact_intent_pressure_approval_statuses",
+      {"contact_id", "contact_intent:selected_blocked"},
+      "approval_status",
+      ["blocked_by_policy"],
+      ["approved"]
+    )
+  end
+
+  test "contact intent required action remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "contact_intent_pressure_required_operator_actions",
+      {"contact_id", "contact_intent:selected_blocked"},
+      "required_operator_action",
+      ["review_contact_intent"],
+      ["review_stale_contact_intent"]
+    )
+  end
+
   defp assert_risk_expiration_context_contract(
          artifact,
          field,
