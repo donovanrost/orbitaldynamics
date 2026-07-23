@@ -45,6 +45,7 @@ defmodule OrbitalDynamics.Schema.StrategyHandoffContracts do
      "station_reservation_hold_expiration_statuses"}
   ]
   @contact_intent_context_field_pairs [
+    {"contact_intent_pressure_risk_types", "contact_intent_pressure_risk_types"},
     {"contact_intent_pressure_contact_ids", "contact_intent_pressure_contact_ids"},
     {"contact_intent_pressure_source_activity_ids",
      "contact_intent_pressure_source_activity_ids"},

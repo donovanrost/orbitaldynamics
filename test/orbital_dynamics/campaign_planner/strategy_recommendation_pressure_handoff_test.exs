@@ -768,6 +768,17 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
     )
   end
 
+  test "contact intent risk type remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "contact_intent_pressure_risk_types",
+      {"contact_id", "contact_intent:selected_blocked"},
+      ["type", "risk_type"],
+      ["downlink_completion_gap"],
+      ["stale_downlink_completion_gap"]
+    )
+  end
+
   test "contact intent contact identity remains source exact across handoffs" do
     assert_risk_context_contract(
       StrategyRecommendationPressureEventsFixture.artifact(),

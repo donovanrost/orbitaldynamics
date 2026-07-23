@@ -164,6 +164,7 @@ defmodule OrbitalDynamics.Schema.OperatorReviewRowJsonSchema do
             schema.(:string_array_schema),
           "station_reservation_conflict_expiration_statuses" => schema.(:string_array_schema),
           "station_reservation_hold_expiration_statuses" => schema.(:string_array_schema),
+          "contact_intent_pressure_risk_types" => schema.(:string_array_schema),
           "contact_intent_pressure_contact_ids" => schema.(:stable_id_array_schema),
           "contact_intent_pressure_source_activity_ids" => schema.(:stable_id_array_schema),
           "contact_intent_pressure_ground_station_ids" => schema.(:stable_id_array_schema),
