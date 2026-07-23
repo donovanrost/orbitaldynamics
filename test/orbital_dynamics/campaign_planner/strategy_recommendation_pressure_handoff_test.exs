@@ -790,6 +790,17 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
     )
   end
 
+  test "contact intent ground station identity remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "contact_intent_pressure_ground_station_ids",
+      {"contact_id", "contact_intent:selected_blocked"},
+      "ground_station_id",
+      ["deep_space_net"],
+      ["stale_ground_station"]
+    )
+  end
+
   defp assert_risk_expiration_context_contract(
          artifact,
          field,
