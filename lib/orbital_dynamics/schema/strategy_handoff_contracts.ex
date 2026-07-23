@@ -128,7 +128,9 @@ defmodule OrbitalDynamics.Schema.StrategyHandoffContracts do
      "station_calendar_pressure_required_operator_actions"},
     {"station_calendar_pressure_feedback_sources", "station_calendar_pressure_feedback_sources"},
     {"station_calendar_pressure_feedback_scopes", "station_calendar_pressure_feedback_scopes"},
-    {"station_calendar_pressure_trust_boundaries", "station_calendar_pressure_trust_boundaries"}
+    {"station_calendar_pressure_trust_boundaries", "station_calendar_pressure_trust_boundaries"},
+    {"station_calendar_pressure_derivation_reasons",
+     "station_calendar_pressure_derivation_reasons"}
   ]
   @strategy_recommendation_risk_expiration_context_specs [
     {@provider_reservation_request_expiration_context_field_pairs,

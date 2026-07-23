@@ -148,7 +148,8 @@ defmodule OrbitalDynamics.CampaignPlanner.EventRiskIndicator.StationDownlinkPres
           event["source_station_reservation_hold_import_readiness_summary"],
         "feedback_source" => event["feedback_source"],
         "feedback_scope" => event["feedback_scope"],
-        "trust_boundary" => event["trust_boundary"]
+        "trust_boundary" => event["trust_boundary"],
+        "derivation_reasons" => event["derivation_reasons"]
       }
       |> compact_map()
     ]

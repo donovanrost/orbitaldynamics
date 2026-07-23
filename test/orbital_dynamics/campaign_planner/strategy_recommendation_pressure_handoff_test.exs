@@ -757,6 +757,17 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
     )
   end
 
+  test "station calendar derivation reasons remain source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "station_calendar_pressure_derivation_reasons",
+      {"station_reservation_id", "reservation_calendar_selected"},
+      "derivation_reasons",
+      ["station_calendar_reserved", "reserved_overlap", "overlap"],
+      ["station_calendar_reserved", "reserved_overlap", "stale_overlap"]
+    )
+  end
+
   defp assert_risk_expiration_context_contract(
          artifact,
          field,
