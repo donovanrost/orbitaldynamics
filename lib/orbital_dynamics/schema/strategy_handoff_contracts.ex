@@ -98,7 +98,9 @@ defmodule OrbitalDynamics.Schema.StrategyHandoffContracts do
     {"station_calendar_pressure_provider_calendar_contention_statuses",
      "station_calendar_pressure_provider_calendar_contention_statuses"},
     {"station_calendar_pressure_provider_calendar_contention_entry_ids",
-     "station_calendar_pressure_provider_calendar_contention_entry_ids"}
+     "station_calendar_pressure_provider_calendar_contention_entry_ids"},
+    {"station_calendar_pressure_provider_calendar_contention_provider_ids",
+     "station_calendar_pressure_provider_calendar_contention_provider_ids"}
   ]
   @strategy_recommendation_risk_expiration_context_specs [
     {@provider_reservation_request_expiration_context_field_pairs,
