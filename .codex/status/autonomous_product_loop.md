@@ -5,21 +5,21 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Enforce source-exact station-calendar reservation identity context.
+Enforce source-exact station-calendar reservation-owner context.
 
 Status:
 Verified; ready to publish.
 
 Selection evidence:
-- The selected branch event supplies a calendar-scoped reservation-ID list, but
+- The selected branch event supplies a calendar-scoped reservation owner, but
   the passive recommendation-risk projection drops it before aggregation.
 - The canonical aggregator exists; review/import schemas and exact-copy
-  validation omit the stable identity list.
+  validation omit the owner list.
 
 Intended behavior:
-- Declare the stable-ID list in review/import schemas and require an
+- Declare the string list in review/import schemas and require an
   exact source-derived copy in review/direct/review-derived Cadence rows.
-- Reject missing or stale IDs when source risks supply the list;
+- Reject missing or stale owners when source risks supply the list;
   retain paired legacy omission compatibility.
 - Preserve risk scoring, selection, execution boundaries, and authority.
 
@@ -28,28 +28,28 @@ Fleet-scale planning decisions and durable reproducible audit handoffs.
 
 Planned files:
 - strategy handoff validation plus review/import schemas
-- identity mutation/schema proofs, docs, exports, and ledger
+- owner mutation/schema proofs, docs, exports, and ledger
 
 Verification:
-- focused handoff/schema contracts: `41 passed`
+- focused handoff/schema contracts: `42 passed`
 - contact-allocation tests: `213 passed`
 - golden artifacts: `12 passed`
 - schema lint: `155` artifacts, `0` errors, `0` warnings
-- full suite: `3914 passed`
+- full suite: `3915 passed`
 - canonical strategy artifact SHA-256 remained
   `b335a0e3337c35e5dcb11594b2ffa3a51923743dfd6728c6f8e30dec1b9b1027`
 
 Review:
-- The calendar-scoped source IDs now cross the existing passive risk projection;
+- The calendar-scoped owner now crosses the existing passive risk projection;
   scoring, selection, provider requests, reservations, schedules, Cadence
   writes, operator authority, and autonomous execution remain unchanged.
-- All four review/import copies require the exact source ID; missing and stale
-  copies fail, while paired legacy omission remains compatible.
-- Explicit schemas require canonical stable IDs; generated diffs are limited to
-  the expected ten schema artifacts.
+- All four review/import copies require exact `["partner_team"]`; missing and
+  stale copies fail, while paired legacy omission remains compatible.
+- Explicit schemas require string items; generated diffs are limited to the
+  expected ten schema artifacts.
 
 Last published slice:
-- `15ca00d1` Validate station calendar reservation overlap count (`3913 passed`).
+- `8201731c` Validate station calendar reservation identities (`3914 passed`).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions while preserving explicit
@@ -60,7 +60,7 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-Assess source-exact station-calendar reservation-owner context.
+Assess source-exact station-calendar reservation-status context.
 
 Blocked:
 None.

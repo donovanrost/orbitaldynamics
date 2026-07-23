@@ -74,7 +74,8 @@ defmodule OrbitalDynamics.Schema.JsonSchemaExportContractsTest do
        stable_id_pattern},
       {"station_calendar_pressure_station_calendar_reservation_overlap_count_values", "integer",
        nil},
-      {"station_calendar_pressure_station_calendar_reservation_ids", "string", stable_id_pattern}
+      {"station_calendar_pressure_station_calendar_reservation_ids", "string", stable_id_pattern},
+      {"station_calendar_pressure_station_calendar_reserved_by", "string", nil}
     ]
 
     item_minimums = %{
