@@ -62,6 +62,8 @@ defmodule OrbitalDynamics.CampaignPlanner.EventRiskIndicator.StationDownlinkPres
           event["station_calendar_trust_boundary_status"],
         "provider_calendar_contention_group_id" => event["provider_calendar_contention_group_id"],
         "provider_calendar_contention_status" => event["provider_calendar_contention_status"],
+        "provider_calendar_contention_entry_ids" =>
+          event["provider_calendar_contention_entry_ids"],
         "station_reservation_id" => reservation_id,
         "station_reserved_by" => reserved_by,
         "station_reservation_status" => reservation_status,

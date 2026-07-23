@@ -5,21 +5,21 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Enforce source-exact provider-calendar contention-status context.
+Enforce source-exact provider-calendar contention-entry identity context.
 
 Status:
-Verified; ready to publish.
+Verified; publish pending.
 
 Selection evidence:
-- The selected branch event supplies provider contention status
-  `review_required`, but the passive projection drops it before aggregation.
+- The selected branch event supplies two provider-contention entry IDs, but the
+  passive recommendation-risk projection drops them before aggregation.
 - The canonical aggregator exists; review/import schemas and exact-copy
-  validation omit the status list.
+  validation omit the stable identity list.
 
 Intended behavior:
-- Declare the string list in review/import schemas and require an
+- Declare the stable-ID list in review/import schemas and require an
   exact source-derived copy in review/direct/review-derived Cadence rows.
-- Reject missing or stale statuses when source risks supply the scalar;
+- Reject missing or stale IDs when source risks supply the list;
   retain paired legacy omission compatibility.
 - Preserve risk scoring, selection, execution boundaries, and authority.
 
@@ -28,28 +28,29 @@ Fleet-scale planning decisions and durable reproducible audit handoffs.
 
 Planned files:
 - strategy handoff validation plus review/import schemas
-- status mutation/schema proofs, docs, exports, and ledger
+- identity mutation/schema proofs, docs, exports, and ledger
 
 Verification:
-- focused handoff/schema contracts: `46 passed`
-- contact-allocation tests: `213 passed`
-- golden artifacts: `12 passed`
-- schema lint: `155` artifacts, `0` errors, `0` warnings
-- full suite: `3919 passed`
-- canonical strategy artifact SHA-256 remained
-  `b335a0e3337c35e5dcb11594b2ffa3a51923743dfd6728c6f8e30dec1b9b1027`
+- Focused handoff/schema proof: `47 passed`.
+- Contact-allocation regression: `213 passed`.
+- Golden artifact regression: `12 passed`.
+- Schema lint: `155` artifacts, `0` errors, `0` warnings.
+- Full suite: `3920 passed`.
+- Canonical strategy SHA-256 remained
+  `b335a0e3337c35e5dcb11594b2ffa3a51923743dfd6728c6f8e30dec1b9b1027`.
+- Ten expected generated schema surfaces changed; `git diff --check` passed.
 
 Review:
-- The source status now crosses the existing passive risk projection; scoring,
-  selection, provider requests, reservations, schedules, Cadence writes,
-  operator authority, and autonomous execution remain unchanged.
-- All four review/import copies require exact `["review_required"]`; missing and
-  stale copies fail, while paired legacy omission remains compatible.
-- Explicit schemas require string items; generated diffs are limited to the
-  expected ten schema artifacts.
+- Passive projection now retains the two source contention-entry IDs without
+  changing risk scoring or planning behavior.
+- Executable handoff checks enforce all four exact copies, missing review,
+  paired legacy omission, stale direct import, and missing review-derived import.
+- All three source schemas declare a stable-ID array; generated exports agree.
+- Provider, reservation, schedule, Cadence-write, operator-authority, and
+  autonomous-execution boundaries remain unchanged.
 
 Last published slice:
-- `b7f7eed3` Validate provider calendar contention group (`3918 passed`).
+- `d1ad8f72` Validate provider calendar contention status (`3919 passed`).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions while preserving explicit
@@ -60,7 +61,7 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-Assess source-exact provider-calendar contention-entry identity context.
+Assess source-exact provider-calendar provider identity context.
 
 Blocked:
 None.

@@ -80,7 +80,9 @@ defmodule OrbitalDynamics.Schema.JsonSchemaExportContractsTest do
       {"station_calendar_pressure_station_calendar_trust_boundary_statuses", "string", nil},
       {"station_calendar_pressure_provider_calendar_contention_group_ids", "string",
        stable_id_pattern},
-      {"station_calendar_pressure_provider_calendar_contention_statuses", "string", nil}
+      {"station_calendar_pressure_provider_calendar_contention_statuses", "string", nil},
+      {"station_calendar_pressure_provider_calendar_contention_entry_ids", "string",
+       stable_id_pattern}
     ]
 
     item_minimums = %{
