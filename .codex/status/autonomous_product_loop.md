@@ -5,21 +5,21 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Enforce source-exact station-calendar contention status.
+Enforce source-exact station-calendar overlap-count context.
 
 Status:
 Verified; ready to publish.
 
 Selection evidence:
-- Recommendation review and both Cadence paths already emit the canonical
-  station-calendar contention-status list from source risks.
-- Explicit schemas omit the list, and handoff validation does not reject a
-  missing or stale derived contention-status copy.
+- The selected branch event supplied `station_calendar_overlap_count`, but the
+  passive recommendation-risk projection dropped it before handoff aggregation.
+- Review/import schemas and handoff validation omitted the corresponding
+  canonical count list.
 
 Intended behavior:
-- Declare the string list in review/import schemas and require an exact
-  source-derived copy in review/direct/review-derived Cadence rows.
-- Reject missing or stale statuses when source risks supply the scalar;
+- Declare the non-negative-integer list in review/import schemas and require an
+  exact source-derived copy in review/direct/review-derived Cadence rows.
+- Reject missing or stale counts when source risks supply the scalar;
   retain paired legacy omission compatibility.
 - Preserve risk scoring, selection, execution boundaries, and authority.
 
@@ -28,27 +28,29 @@ Fleet-scale planning decisions and durable reproducible audit handoffs.
 
 Planned files:
 - strategy handoff validation plus review/import schemas
-- contention-status mutation/schema proofs, docs, exports, and ledger
+- numeric mutation/schema proofs, docs, exports, and ledger
 
 Verification:
-- Focused handoff/schema/Cadence proofs: `33 passed`.
-- Contact-allocation family: `213 passed`.
-- Golden artifacts: `12 passed`.
-- Schema lint: `155 schemas, 0 errors, 0 warnings`.
-- Full suite: `3906 passed`.
-- General and manifest schemas regenerated; canonical V3 campaign remained
-  byte-stable through the public runner.
+- focused handoff/schema contracts: `34 passed`
+- contact-allocation tests: `213 passed`
+- golden artifacts: `12 passed`
+- schema lint: `155` artifacts, `0` errors, `0` warnings
+- full suite: `3907 passed`
+- canonical strategy artifact SHA-256 remained
+  `b335a0e3337c35e5dcb11594b2ffa3a51923743dfd6728c6f8e30dec1b9b1027`
 
 Review:
-- All four review/import copies now require the exact source-derived contention
-  status list; missing or stale values fail executable validation.
-- The shared identity-driven proof removes the exact source contention status
-  for paired legacy omission and challenges an independently stale value.
-- Explicit schemas type statuses as strings; no contention calculation, planner
-  behavior, adapter effect, operator authority, or execution boundary changed.
+- The source scalar now crosses the existing passive risk projection; scoring,
+  selection, provider requests, reservations, schedules, Cadence writes,
+  operator authority, and autonomous execution remain unchanged.
+- Operator review, direct Cadence import, and review-derived Cadence import must
+  preserve exact `[2]`; missing and stale `[99]` copies fail, while paired legacy
+  omission remains compatible.
+- Exported lists use the shared non-negative integer schema primitive; generated
+  diffs are limited to the expected ten schema artifacts.
 
 Last published slice:
-- `1b337305` Validate station calendar availability context (`3905 passed`).
+- `bb749f58` Validate station calendar contention status (`3906 passed`).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions while preserving explicit
@@ -59,7 +61,7 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-Assess source-exact station-calendar overlap-count context.
+Assess source-exact station-calendar overlap-entry identity context.
 
 Blocked:
 None.

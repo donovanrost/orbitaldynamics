@@ -13,6 +13,10 @@ defmodule OrbitalDynamics.Schema.CommonJsonSchema do
     %{"type" => "array", "items" => %{"type" => "number"}}
   end
 
+  def non_negative_integer_array do
+    %{"type" => "array", "items" => %{"type" => "integer", "minimum" => 0}}
+  end
+
   def numeric_triplet do
     %{
       "type" => "array",

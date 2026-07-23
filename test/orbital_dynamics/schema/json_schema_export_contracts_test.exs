@@ -63,8 +63,11 @@ defmodule OrbitalDynamics.Schema.JsonSchemaExportContractsTest do
       {"station_calendar_pressure_station_calendar_directions", "string", nil},
       {"station_calendar_pressure_station_calendar_statuses", "string", nil},
       {"station_calendar_pressure_station_availabilities", "string", nil},
-      {"station_calendar_pressure_station_contention_statuses", "string", nil}
+      {"station_calendar_pressure_station_contention_statuses", "string", nil},
+      {"station_calendar_pressure_station_calendar_overlap_count_values", "integer", nil}
     ]
+
+    item_minimums = %{"station_calendar_pressure_station_calendar_overlap_count_values" => 0}
 
     assert get_in(strategy_schema, [
              "properties",
@@ -123,6 +126,10 @@ defmodule OrbitalDynamics.Schema.JsonSchemaExportContractsTest do
 
         if item_pattern do
           assert item_schema["pattern"] == item_pattern
+        end
+
+        if item_minimum = item_minimums[aggregate_field] do
+          assert item_schema["minimum"] == item_minimum
         end
       end)
     end)
