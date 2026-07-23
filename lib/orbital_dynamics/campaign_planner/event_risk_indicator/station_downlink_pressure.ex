@@ -176,6 +176,8 @@ defmodule OrbitalDynamics.CampaignPlanner.EventRiskIndicator.StationDownlinkPres
         "severity" => "medium",
         "reason" => reason,
         "ground_station_id" => event_ground_station_id(event),
+        "station_availability" => event["station_availability"],
+        "station_contention_status" => event["station_contention_status"],
         "starts_at_s" => event["starts_at_s"],
         "ends_at_s" => event["ends_at_s"],
         "direction" => event["direction"],

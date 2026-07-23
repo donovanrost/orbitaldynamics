@@ -988,6 +988,28 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
     )
   end
 
+  test "contact intent station availability remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "contact_intent_pressure_station_availabilities",
+      {"contact_id", "contact_intent:selected_blocked"},
+      "station_availability",
+      ["reserved"],
+      ["available"]
+    )
+  end
+
+  test "contact intent station contention remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "contact_intent_pressure_station_contention_statuses",
+      {"contact_id", "contact_intent:selected_blocked"},
+      "station_contention_status",
+      ["operator_review_required"],
+      ["clear"]
+    )
+  end
+
   defp assert_risk_expiration_context_contract(
          artifact,
          field,
