@@ -44,6 +44,18 @@ defmodule OrbitalDynamics.Schema.StrategyHandoffContracts do
     {"station_reservation_hold_expiration_statuses",
      "station_reservation_hold_expiration_statuses"}
   ]
+  @contact_allocation_context_field_pairs [
+    {"contact_allocation_pressure_risk_types", "contact_allocation_pressure_risk_types"},
+    {"contact_allocation_pressure_contact_ids", "contact_allocation_pressure_contact_ids"},
+    {"contact_allocation_pressure_scenario_ids", "contact_allocation_pressure_scenario_ids"},
+    {"contact_allocation_pressure_spacecraft_ids", "contact_allocation_pressure_spacecraft_ids"},
+    {"contact_allocation_pressure_ground_station_ids",
+     "contact_allocation_pressure_ground_station_ids"},
+    {"contact_allocation_pressure_source_activity_ids",
+     "contact_allocation_pressure_source_activity_ids"},
+    {"contact_allocation_pressure_source_window_ids",
+     "contact_allocation_pressure_source_window_ids"}
+  ]
   @contact_intent_context_field_pairs [
     {"contact_intent_pressure_risk_types", "contact_intent_pressure_risk_types"},
     {"contact_intent_pressure_contact_ids", "contact_intent_pressure_contact_ids"},
@@ -203,6 +215,7 @@ defmodule OrbitalDynamics.Schema.StrategyHandoffContracts do
      :station_reservation_conflict_context},
     {@station_reservation_hold_expiration_context_field_pairs,
      :station_reservation_hold_import_readiness_context},
+    {@contact_allocation_context_field_pairs, :contact_allocation_context},
     {@contact_intent_context_field_pairs, :contact_intent_context},
     {@station_calendar_context_field_pairs, :station_calendar_context}
   ]

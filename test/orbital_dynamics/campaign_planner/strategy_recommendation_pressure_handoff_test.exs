@@ -768,6 +768,83 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
     )
   end
 
+  test "contact allocation risk type remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "contact_allocation_pressure_risk_types",
+      {"contact_id", "dl_reservation_conflict"},
+      ["type", "risk_type"],
+      ["downlink_completion_gap"],
+      ["stale_downlink_completion_gap"]
+    )
+  end
+
+  test "contact allocation contact identity remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "contact_allocation_pressure_contact_ids",
+      {"contact_id", "dl_reservation_conflict"},
+      "contact_id",
+      ["dl_reservation_conflict"],
+      ["stale_dl_reservation_conflict"]
+    )
+  end
+
+  test "contact allocation scenario identity remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "contact_allocation_pressure_scenario_ids",
+      {"contact_id", "dl_reservation_conflict"},
+      "scenario_id",
+      ["leo_1"],
+      ["stale_leo_1"]
+    )
+  end
+
+  test "contact allocation spacecraft identity remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "contact_allocation_pressure_spacecraft_ids",
+      {"contact_id", "dl_reservation_conflict"},
+      "spacecraft_id",
+      ["leo_1"],
+      ["stale_leo_1"]
+    )
+  end
+
+  test "contact allocation station identity remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "contact_allocation_pressure_ground_station_ids",
+      {"contact_id", "dl_reservation_conflict"},
+      "ground_station_id",
+      ["equator_prime"],
+      ["stale_equator_prime"]
+    )
+  end
+
+  test "contact allocation source activity remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "contact_allocation_pressure_source_activity_ids",
+      {"contact_id", "dl_reservation_conflict"},
+      ["source_activity_id", "source_activity_ids"],
+      ["dl_reservation_conflict"],
+      ["stale_dl_reservation_conflict"]
+    )
+  end
+
+  test "contact allocation source window remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "contact_allocation_pressure_source_window_ids",
+      {"contact_id", "dl_reservation_conflict"},
+      "source_window_id",
+      ["window_allocation_deferred"],
+      ["stale_window_allocation_deferred"]
+    )
+  end
+
   test "contact intent risk type remains source exact across handoffs" do
     assert_risk_context_contract(
       StrategyRecommendationPressureEventsFixture.artifact(),
