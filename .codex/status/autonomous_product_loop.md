@@ -5,21 +5,21 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Enforce source-exact provider-calendar provider-entry identity context.
+Enforce source-exact provider-calendar availability context.
 
 Status:
 Verified; publish pending.
 
 Selection evidence:
-- The selected branch event supplies two provider-entry IDs, but the passive
-  recommendation-risk projection drops them before aggregation.
+- The selected branch event supplies `reserved` and `maintenance` provider
+  availabilities, but the passive risk drops them before aggregation.
 - The canonical aggregator exists; review/import schemas and exact-copy
-  validation omit the stable provider-entry identity list.
+  validation omit the provider-availability list.
 
 Intended behavior:
-- Declare the stable-ID list in review/import schemas and require an
+- Declare the string list in review/import schemas and require an
   exact source-derived copy in review/direct/review-derived Cadence rows.
-- Reject missing or stale provider-entry IDs when source risks supply the list;
+- Reject missing or stale values when source risks supply the list;
   retain paired legacy omission compatibility.
 - Preserve risk scoring, selection, execution boundaries, and authority.
 
@@ -28,29 +28,29 @@ Fleet-scale planning decisions and durable reproducible audit handoffs.
 
 Planned files:
 - strategy handoff validation plus review/import schemas
-- provider-entry mutation/schema proofs, docs, exports, and ledger
+- availability mutation/schema proofs, docs, exports, and ledger
 
 Verification:
-- Focused handoff/schema proof: `49 passed`.
+- Focused handoff/schema proof: `50 passed`.
 - Contact-allocation regression: `213 passed`.
 - Golden artifact regression: `12 passed`.
 - Schema lint: `155` artifacts, `0` errors, `0` warnings.
-- Full suite: `3922 passed`.
+- Full suite: `3923 passed`.
 - Canonical strategy SHA-256 remained
   `b335a0e3337c35e5dcb11594b2ffa3a51923743dfd6728c6f8e30dec1b9b1027`.
 - Ten expected generated schema surfaces changed; `git diff --check` passed.
 
 Review:
-- Passive projection now retains the two source provider-entry IDs without
+- Passive projection now retains both source availability values without
   changing risk scoring or planning behavior.
 - Executable handoff checks enforce all four exact copies, missing review,
   paired legacy omission, stale direct import, and missing review-derived import.
-- All three source schemas declare a stable-ID array; generated exports agree.
+- All three source schemas declare a string array; generated exports agree.
 - Provider, reservation, schedule, Cadence-write, operator-authority, and
   autonomous-execution boundaries remain unchanged.
 
 Last published slice:
-- `7c1e84ea` Validate provider calendar provider identity (`3921 passed`).
+- `67f69c97` Validate provider calendar provider entries (`3922 passed`).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions while preserving explicit
@@ -61,7 +61,7 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-Assess source-exact provider-calendar availability context.
+Assess source-exact provider-calendar direction context.
 
 Blocked:
 None.
