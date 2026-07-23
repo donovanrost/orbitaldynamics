@@ -1010,6 +1010,39 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
     )
   end
 
+  test "contact intent station calendar entry identity remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "contact_intent_pressure_station_calendar_entry_ids",
+      {"contact_id", "contact_intent:selected_blocked"},
+      "station_calendar_entry_id",
+      ["intent_selected_calendar_entry"],
+      ["stale_intent_selected_calendar_entry"]
+    )
+  end
+
+  test "contact intent station calendar provider identity remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "contact_intent_pressure_station_calendar_provider_ids",
+      {"contact_id", "contact_intent:selected_blocked"},
+      "station_calendar_provider_id",
+      ["partner_calendar"],
+      ["stale_partner_calendar"]
+    )
+  end
+
+  test "contact intent station calendar provider entry remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "contact_intent_pressure_station_calendar_provider_entry_ids",
+      {"contact_id", "contact_intent:selected_blocked"},
+      "station_calendar_provider_entry_id",
+      ["partner_entry_selected"],
+      ["stale_partner_entry_selected"]
+    )
+  end
+
   defp assert_risk_expiration_context_contract(
          artifact,
          field,
