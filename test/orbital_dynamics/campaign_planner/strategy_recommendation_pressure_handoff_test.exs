@@ -526,6 +526,17 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
     )
   end
 
+  test "provider calendar contention status remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "station_calendar_pressure_provider_calendar_contention_statuses",
+      {"station_reservation_id", "reservation_calendar_selected"},
+      "provider_calendar_contention_status",
+      ["review_required"],
+      ["resolved"]
+    )
+  end
+
   defp assert_risk_expiration_context_contract(
          artifact,
          field,

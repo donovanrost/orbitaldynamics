@@ -5,21 +5,21 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Enforce source-exact provider-calendar contention-group identity context.
+Enforce source-exact provider-calendar contention-status context.
 
 Status:
 Verified; ready to publish.
 
 Selection evidence:
-- The selected branch event supplies a provider-calendar contention-group ID,
-  but the passive recommendation-risk projection drops it before aggregation.
+- The selected branch event supplies provider contention status
+  `review_required`, but the passive projection drops it before aggregation.
 - The canonical aggregator exists; review/import schemas and exact-copy
-  validation omit the stable identity list.
+  validation omit the status list.
 
 Intended behavior:
-- Declare the stable-ID list in review/import schemas and require an
+- Declare the string list in review/import schemas and require an
   exact source-derived copy in review/direct/review-derived Cadence rows.
-- Reject missing or stale IDs when source risks supply the scalar;
+- Reject missing or stale statuses when source risks supply the scalar;
   retain paired legacy omission compatibility.
 - Preserve risk scoring, selection, execution boundaries, and authority.
 
@@ -28,28 +28,28 @@ Fleet-scale planning decisions and durable reproducible audit handoffs.
 
 Planned files:
 - strategy handoff validation plus review/import schemas
-- identity mutation/schema proofs, docs, exports, and ledger
+- status mutation/schema proofs, docs, exports, and ledger
 
 Verification:
-- focused handoff/schema contracts: `45 passed`
+- focused handoff/schema contracts: `46 passed`
 - contact-allocation tests: `213 passed`
 - golden artifacts: `12 passed`
 - schema lint: `155` artifacts, `0` errors, `0` warnings
-- full suite: `3918 passed`
+- full suite: `3919 passed`
 - canonical strategy artifact SHA-256 remained
   `b335a0e3337c35e5dcb11594b2ffa3a51923743dfd6728c6f8e30dec1b9b1027`
 
 Review:
-- The source group ID now crosses the existing passive risk projection; scoring,
+- The source status now crosses the existing passive risk projection; scoring,
   selection, provider requests, reservations, schedules, Cadence writes,
   operator authority, and autonomous execution remain unchanged.
-- All four review/import copies require the exact source ID; missing and stale
-  copies fail, while paired legacy omission remains compatible.
-- Explicit schemas require canonical stable IDs; generated diffs are limited to
-  the expected ten schema artifacts.
+- All four review/import copies require exact `["review_required"]`; missing and
+  stale copies fail, while paired legacy omission remains compatible.
+- Explicit schemas require string items; generated diffs are limited to the
+  expected ten schema artifacts.
 
 Last published slice:
-- `7a1f2e47` Validate station calendar trust boundary status (`3917 passed`).
+- `b7f7eed3` Validate provider calendar contention group (`3918 passed`).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions while preserving explicit
@@ -60,7 +60,7 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-Assess source-exact provider-calendar contention-status context.
+Assess source-exact provider-calendar contention-entry identity context.
 
 Blocked:
 None.
