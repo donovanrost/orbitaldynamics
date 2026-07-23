@@ -5,21 +5,21 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Enforce source-exact station-calendar direction context.
+Enforce source-exact station-calendar status context.
 
 Status:
 Verified; ready to publish.
 
 Selection evidence:
 - Recommendation review and both Cadence paths already emit the canonical
-  station-calendar direction list from source risks.
+  station-calendar status list from source risks.
 - Explicit schemas omit the list, and handoff validation does not reject a
-  missing or stale derived direction copy.
+  missing or stale derived status copy.
 
 Intended behavior:
 - Declare the string list in review/import schemas and require an exact
   source-derived copy in review/direct/review-derived Cadence rows.
-- Reject missing or stale directions when source risks supply the list; retain
+- Reject missing or stale statuses when source risks supply the scalar; retain
   paired legacy omission compatibility.
 - Preserve risk scoring, selection, execution boundaries, and authority.
 
@@ -28,27 +28,27 @@ Fleet-scale planning decisions and durable reproducible audit handoffs.
 
 Planned files:
 - strategy handoff validation plus review/import schemas
-- direction mutation/schema proofs, docs, exports, and ledger
+- status mutation/schema proofs, docs, exports, and ledger
 
 Verification:
-- Focused handoff/schema/Cadence proofs: `30 passed`.
+- Focused handoff/schema/Cadence proofs: `31 passed`.
 - Contact-allocation family: `213 passed`.
 - Golden artifacts: `12 passed`.
 - Schema lint: `155 schemas, 0 errors, 0 warnings`.
-- Full suite: `3903 passed`.
+- Full suite: `3904 passed`.
 - General and manifest schemas regenerated; canonical V3 campaign remained
   byte-stable through the public runner.
 
 Review:
 - All four review/import copies now require the exact source-derived calendar
-  direction list; missing or stale directions fail executable validation.
-- The shared identity-driven proof removes the exact source direction list for
-  paired legacy omission and challenges an independently stale direction.
-- Explicit schemas type directions as strings; no routing, planner behavior,
-  adapter effect, operator authority, or execution boundary changed.
+  status list; missing or stale statuses fail executable validation.
+- The shared identity-driven proof removes the exact source calendar status for
+  paired legacy omission and challenges an independently stale status.
+- Explicit schemas type statuses as strings; no planner behavior, adapter
+  effect, operator authority, or execution boundary changed.
 
 Last published slice:
-- `0aa15376` Validate station calendar provider entry identity (`3902 passed`).
+- `d48a2c68` Validate station calendar direction context (`3903 passed`).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions while preserving explicit
@@ -59,7 +59,7 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-Assess source-exact station-calendar status context.
+Assess source-exact station-calendar availability context.
 
 Blocked:
 None.

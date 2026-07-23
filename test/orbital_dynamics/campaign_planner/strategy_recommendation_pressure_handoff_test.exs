@@ -361,6 +361,17 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
     )
   end
 
+  test "station calendar status remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "station_calendar_pressure_station_calendar_statuses",
+      {"station_reservation_id", "reservation_calendar_selected"},
+      "station_calendar_status",
+      ["reserved"],
+      ["maintenance"]
+    )
+  end
+
   defp assert_risk_expiration_context_contract(
          artifact,
          field,
