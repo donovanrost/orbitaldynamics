@@ -48,7 +48,9 @@ defmodule OrbitalDynamics.Schema.StrategyHandoffContracts do
     {"station_calendar_pressure_station_reservation_expiration_statuses",
      "station_calendar_pressure_station_reservation_expiration_statuses"},
     {"station_calendar_pressure_station_reservation_expires_at_values_s",
-     "station_calendar_pressure_station_reservation_expires_at_values_s"}
+     "station_calendar_pressure_station_reservation_expires_at_values_s"},
+    {"station_calendar_pressure_station_reservation_ids",
+     "station_calendar_pressure_station_reservation_ids"}
   ]
   @strategy_recommendation_risk_expiration_context_specs [
     {@provider_reservation_request_expiration_context_field_pairs,

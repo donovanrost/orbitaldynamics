@@ -44,13 +44,15 @@ defmodule OrbitalDynamics.Schema.JsonSchemaExportContractsTest do
     assert {:ok, import_schema} = Schema.json_schema("cadence_import_manifest.v1")
 
     scalar_field = "station_reservation_expiration_status"
+    stable_id_pattern = Schema.identity_policy()["stable_id_pattern"]
 
     aggregate_fields = [
-      {"provider_reservation_request_station_reservation_expiration_statuses", "string"},
-      {"station_reservation_conflict_expiration_statuses", "string"},
-      {"station_reservation_hold_expiration_statuses", "string"},
-      {"station_calendar_pressure_station_reservation_expiration_statuses", "string"},
-      {"station_calendar_pressure_station_reservation_expires_at_values_s", "number"}
+      {"provider_reservation_request_station_reservation_expiration_statuses", "string", nil},
+      {"station_reservation_conflict_expiration_statuses", "string", nil},
+      {"station_reservation_hold_expiration_statuses", "string", nil},
+      {"station_calendar_pressure_station_reservation_expiration_statuses", "string", nil},
+      {"station_calendar_pressure_station_reservation_expires_at_values_s", "number", nil},
+      {"station_calendar_pressure_station_reservation_ids", "string", stable_id_pattern}
     ]
 
     assert get_in(strategy_schema, [
@@ -75,38 +77,43 @@ defmodule OrbitalDynamics.Schema.JsonSchemaExportContractsTest do
              "type"
            ]) == "string"
 
-    Enum.each(aggregate_fields, fn {aggregate_field, item_type} ->
-      assert get_in(review_schema, [
-               "properties",
-               "rows",
-               "items",
-               "properties",
-               aggregate_field,
-               "items",
-               "type"
-             ]) == item_type
+    Enum.each(aggregate_fields, fn {aggregate_field, item_type, item_pattern} ->
+      item_schemas = [
+        get_in(review_schema, [
+          "properties",
+          "rows",
+          "items",
+          "properties",
+          aggregate_field,
+          "items"
+        ]),
+        get_in(import_schema, [
+          "properties",
+          "rows",
+          "items",
+          "properties",
+          aggregate_field,
+          "items"
+        ]),
+        get_in(import_schema, [
+          "properties",
+          "rows",
+          "items",
+          "properties",
+          "source_review_row",
+          "properties",
+          aggregate_field,
+          "items"
+        ])
+      ]
 
-      assert get_in(import_schema, [
-               "properties",
-               "rows",
-               "items",
-               "properties",
-               aggregate_field,
-               "items",
-               "type"
-             ]) == item_type
+      Enum.each(item_schemas, fn item_schema ->
+        assert item_schema["type"] == item_type
 
-      assert get_in(import_schema, [
-               "properties",
-               "rows",
-               "items",
-               "properties",
-               "source_review_row",
-               "properties",
-               aggregate_field,
-               "items",
-               "type"
-             ]) == item_type
+        if item_pattern do
+          assert item_schema["pattern"] == item_pattern
+        end
+      end)
     end)
   end
 
