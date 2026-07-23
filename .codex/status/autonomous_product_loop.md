@@ -5,21 +5,27 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Enforce source-exact contact-allocation timing and demand.
+Enforce source-exact contact-allocation outcome state.
 
 Status:
 Verified; publish pending.
 
 Selection evidence:
-- The selected contact-allocation risk carries required/planned contacts `1/0`,
-  required/planned downlink `43.0/0.0` MB, and bounds `1620.0/1680.0` s.
-- All six numeric lists already survive risk projection and reach every handoff
-  copy; schemas and exact-copy validation still omit them.
+- The selected risk carries realized/allocation/effective status `deferred`,
+  contact result and allocation reason `same_station_contention`, plus review
+  and approval status `operator_review_required`.
+- All seven strings exist in the source branch event and belong in every
+  handoff copy; schemas and exact-copy validation still omit them.
+- Focused challenges show allocation/effective status, allocation reason, and
+  review status are the exceptions: passive downlink risk projection drops
+  those four fields.
 
 Intended behavior:
-- Declare six numeric arrays, requiring exact source-derived
+- Declare seven string arrays, requiring exact source-derived
   copies in review/direct/review-derived Cadence rows.
-- Reject missing or stale derived timing/demand; retain paired
+- Passively retain the four dropped allocation/review fields without changing
+  risk classification or score.
+- Reject missing or stale derived outcome/review state; retain paired
   legacy omission compatibility for optional source fields.
 - Preserve allocation scoring, selection, provider/reservation authority, and
   execution boundaries.
@@ -28,32 +34,33 @@ Level 6 pillar advanced:
 Fleet-scale planning decisions and durable reproducible audit handoffs.
 
 Planned files:
-- contact-allocation validation and review/import schemas
-- timing/demand mutation/schema proofs, docs, exports, and ledger
+- passive downlink projection, contact-allocation validation, and schemas
+- outcome-state mutation/schema proofs, docs, exports, and ledger
 
 Verification:
-- Focused handoff/schema proof: `117 passed`.
+- Focused handoff/schema proof: `124 passed`.
 - Contact-allocation regression: `213 passed`.
 - Golden artifact regression: `12 passed`.
 - Schema lint: `155` artifacts, `0` errors, `0` warnings.
-- Full suite: `3990 passed`.
+- Full suite: `3997 passed`.
 - Canonical strategy SHA-256 remained
   `f7fc7823d071db82124af4b903e5be730983d1d9cb96f4524c711041c750ca1c`.
 - Ten expected generated schema surfaces changed; `git diff --check` passed.
 
 Review:
-- Exact-copy checks independently cover required/planned contacts,
-  required/planned downlink MB, and start/end bounds across operator review,
-  direct selected Cadence import, and review-derived import, including missing,
-  stale, and paired legacy omission mutations.
-- All three public row schemas and generated exports agree on six numeric
-  arrays.
-- Allocation scores, recommendation choice, provider requests, reservations,
-  schedules, Cadence writes, operator authority, and autonomous execution remain
-  unchanged.
+- Passive projection now retains allocation status, effective status,
+  allocation reason, and review status beside existing realized status, contact
+  result, and approval status.
+- Exact-copy checks cover all seven lists across operator review, direct
+  selected Cadence import, and review-derived import, including missing, stale,
+  and paired legacy omission mutations.
+- All three public row schemas and generated exports agree on string arrays;
+  review state grants no authority, and allocation scores, recommendation
+  choice, provider requests, reservations, schedules, Cadence writes, operator
+  authority, and autonomous execution remain unchanged.
 
 Last published slice:
-- `0594796c` Validate contact allocation routing identity (`3984 passed`).
+- `fbc2aadb` Validate contact allocation timing and demand (`3990 passed`).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions while preserving explicit
@@ -64,7 +71,7 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-Assess source-exact contact-allocation outcome state.
+Assess source-exact contact-allocation policy context.
 
 Blocked:
 None.

@@ -911,6 +911,83 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
     )
   end
 
+  test "contact allocation realized status remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "contact_allocation_pressure_realized_statuses",
+      {"contact_id", "dl_reservation_conflict"},
+      "realized_status",
+      ["deferred"],
+      ["selected"]
+    )
+  end
+
+  test "contact allocation result remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "contact_allocation_pressure_contact_results",
+      {"contact_id", "dl_reservation_conflict"},
+      "contact_result",
+      ["same_station_contention"],
+      ["completed"]
+    )
+  end
+
+  test "contact allocation status remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "contact_allocation_pressure_allocation_statuses",
+      {"contact_id", "dl_reservation_conflict"},
+      "allocation_status",
+      ["deferred"],
+      ["selected"]
+    )
+  end
+
+  test "contact allocation effective status remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "contact_allocation_pressure_effective_allocation_statuses",
+      {"contact_id", "dl_reservation_conflict"},
+      "effective_allocation_status",
+      ["deferred"],
+      ["selected"]
+    )
+  end
+
+  test "contact allocation reason remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "contact_allocation_pressure_allocation_reasons",
+      {"contact_id", "dl_reservation_conflict"},
+      "allocation_reason",
+      ["same_station_contention"],
+      ["capacity_available"]
+    )
+  end
+
+  test "contact allocation review status remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "contact_allocation_pressure_review_statuses",
+      {"contact_id", "dl_reservation_conflict"},
+      "review_status",
+      ["operator_review_required"],
+      ["not_required"]
+    )
+  end
+
+  test "contact allocation approval status remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "contact_allocation_pressure_approval_statuses",
+      {"contact_id", "dl_reservation_conflict"},
+      "approval_status",
+      ["operator_review_required"],
+      ["approved"]
+    )
+  end
+
   test "contact intent risk type remains source exact across handoffs" do
     assert_risk_context_contract(
       StrategyRecommendationPressureEventsFixture.artifact(),
