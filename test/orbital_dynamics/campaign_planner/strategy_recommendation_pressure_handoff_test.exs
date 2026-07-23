@@ -911,6 +911,28 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
     )
   end
 
+  test "contact intent import status remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "contact_intent_pressure_cadence_import_statuses",
+      {"contact_id", "contact_intent:selected_blocked"},
+      "cadence_import_status",
+      ["missing"],
+      ["ready"]
+    )
+  end
+
+  test "contact intent gate status remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "contact_intent_pressure_gate_statuses",
+      {"contact_id", "contact_intent:selected_blocked"},
+      "contact_intent_gate_status",
+      ["blocked_by_policy"],
+      ["approved"]
+    )
+  end
+
   defp assert_risk_expiration_context_contract(
          artifact,
          field,
