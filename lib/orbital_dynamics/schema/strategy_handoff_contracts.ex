@@ -78,7 +78,11 @@ defmodule OrbitalDynamics.Schema.StrategyHandoffContracts do
     {"contact_allocation_pressure_review_statuses",
      "contact_allocation_pressure_review_statuses"},
     {"contact_allocation_pressure_approval_statuses",
-     "contact_allocation_pressure_approval_statuses"}
+     "contact_allocation_pressure_approval_statuses"},
+    {"contact_allocation_pressure_policy_classifications",
+     "contact_allocation_pressure_policy_classifications"},
+    {"contact_allocation_pressure_policy_bundle_ids",
+     "contact_allocation_pressure_policy_bundle_ids"}
   ]
   @contact_intent_context_field_pairs [
     {"contact_intent_pressure_risk_types", "contact_intent_pressure_risk_types"},

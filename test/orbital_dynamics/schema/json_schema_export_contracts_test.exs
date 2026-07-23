@@ -70,6 +70,8 @@ defmodule OrbitalDynamics.Schema.JsonSchemaExportContractsTest do
       {"contact_allocation_pressure_allocation_reasons", "string", nil},
       {"contact_allocation_pressure_review_statuses", "string", nil},
       {"contact_allocation_pressure_approval_statuses", "string", nil},
+      {"contact_allocation_pressure_policy_classifications", "string", nil},
+      {"contact_allocation_pressure_policy_bundle_ids", "string", stable_id_pattern},
       {"contact_intent_pressure_risk_types", "string", nil},
       {"contact_intent_pressure_contact_ids", "string", stable_id_pattern},
       {"contact_intent_pressure_source_activity_ids", "string", stable_id_pattern},

@@ -988,6 +988,28 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
     )
   end
 
+  test "contact allocation policy classification remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "contact_allocation_pressure_policy_classifications",
+      {"contact_id", "dl_reservation_conflict"},
+      "policy_classification",
+      ["review_only"],
+      ["approved"]
+    )
+  end
+
+  test "contact allocation policy bundle remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "contact_allocation_pressure_policy_bundle_ids",
+      {"contact_id", "dl_reservation_conflict"},
+      "policy_bundle_id",
+      ["contact_allocation_policy_v1"],
+      ["stale_contact_allocation_policy_v1"]
+    )
+  end
+
   test "contact intent risk type remains source exact across handoffs" do
     assert_risk_context_contract(
       StrategyRecommendationPressureEventsFixture.artifact(),
