@@ -735,6 +735,17 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
     )
   end
 
+  test "station calendar feedback scope remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "station_calendar_pressure_feedback_scopes",
+      {"station_reservation_id", "reservation_calendar_selected"},
+      "feedback_scope",
+      ["station_calendar"],
+      ["contact_intent"]
+    )
+  end
+
   defp assert_risk_expiration_context_contract(
          artifact,
          field,
