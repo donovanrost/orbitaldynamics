@@ -5,22 +5,22 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Enforce source-exact station-calendar provider-entry identity.
+Enforce source-exact station-calendar direction context.
 
 Status:
 Verified; ready to publish.
 
 Selection evidence:
 - Recommendation review and both Cadence paths already emit the canonical
-  station-calendar provider-entry-ID list from source risks.
+  station-calendar direction list from source risks.
 - Explicit schemas omit the list, and handoff validation does not reject a
-  missing or stale derived identity copy.
+  missing or stale derived direction copy.
 
 Intended behavior:
-- Declare the stable-ID list in review/import schemas and require an exact
+- Declare the string list in review/import schemas and require an exact
   source-derived copy in review/direct/review-derived Cadence rows.
-- Reject missing or stale IDs when source risks supply the scalar; retain paired
-  legacy omission compatibility.
+- Reject missing or stale directions when source risks supply the list; retain
+  paired legacy omission compatibility.
 - Preserve risk scoring, selection, execution boundaries, and authority.
 
 Level 6 pillar advanced:
@@ -28,27 +28,27 @@ Fleet-scale planning decisions and durable reproducible audit handoffs.
 
 Planned files:
 - strategy handoff validation plus review/import schemas
-- stable-identity mutation/schema proofs, docs, exports, and ledger
+- direction mutation/schema proofs, docs, exports, and ledger
 
 Verification:
-- Focused handoff/schema/Cadence proofs: `29 passed`.
+- Focused handoff/schema/Cadence proofs: `30 passed`.
 - Contact-allocation family: `213 passed`.
 - Golden artifacts: `12 passed`.
 - Schema lint: `155 schemas, 0 errors, 0 warnings`.
-- Full suite: `3902 passed`.
+- Full suite: `3903 passed`.
 - General and manifest schemas regenerated; canonical V3 campaign remained
   byte-stable through the public runner.
 
 Review:
 - All four review/import copies now require the exact source-derived calendar
-  provider-entry-ID list; missing or stale identities fail validation.
-- The shared identity-driven proof removes the exact source provider-entry ID
-  for paired legacy omission and challenges an independently stale identity.
-- Explicit schemas enforce the stable-ID pattern; no planner behavior, provider
-  access, adapter effect, operator authority, or execution boundary changed.
+  direction list; missing or stale directions fail executable validation.
+- The shared identity-driven proof removes the exact source direction list for
+  paired legacy omission and challenges an independently stale direction.
+- Explicit schemas type directions as strings; no routing, planner behavior,
+  adapter effect, operator authority, or execution boundary changed.
 
 Last published slice:
-- `bc59cd06` Validate station calendar provider identity (`3901 passed`).
+- `0aa15376` Validate station calendar provider entry identity (`3902 passed`).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions while preserving explicit
@@ -59,7 +59,7 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-Assess source-exact station-calendar direction context.
+Assess source-exact station-calendar status context.
 
 Blocked:
 None.
