@@ -234,6 +234,7 @@ defmodule OrbitalDynamics.Schema.CadenceImportManifestJsonSchema do
             OrbitalDynamics.Schema.CommonJsonSchema.provider_calendar_contention_overlap_pair_array(
               stable_id_pattern
             ),
+          "station_calendar_pressure_required_operator_actions" => schema.(:string_array_schema),
           "branch_image_quality_min_score" => %{
             "type" => "number",
             "minimum" => 0.0,
