@@ -230,6 +230,10 @@ defmodule OrbitalDynamics.Schema.OperatorReviewRowJsonSchema do
             schema.(:string_array_schema),
           "station_calendar_pressure_provider_calendar_contention_trust_boundary_statuses" =>
             schema.(:string_array_schema),
+          "station_calendar_pressure_provider_calendar_contention_overlap_pairs" =>
+            OrbitalDynamics.Schema.CommonJsonSchema.provider_calendar_contention_overlap_pair_array(
+              stable_id_pattern
+            ),
           "branch_image_quality_min_score" => %{
             "type" => "number",
             "minimum" => 0.0,

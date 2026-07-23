@@ -42,6 +42,34 @@ defmodule OrbitalDynamics.Schema.CommonJsonSchema do
     %{"type" => "array", "items" => %{"type" => "string", "pattern" => stable_id_pattern}}
   end
 
+  def provider_calendar_contention_overlap_pair_array(stable_id_pattern) do
+    %{
+      "type" => "array",
+      "items" => provider_calendar_contention_overlap_pair(stable_id_pattern)
+    }
+  end
+
+  def provider_calendar_contention_overlap_pair(stable_id_pattern) do
+    %{
+      "type" => "object",
+      "additionalProperties" => true,
+      "required" => [
+        "left_entry_id",
+        "right_entry_id",
+        "overlap_starts_at_s",
+        "overlap_ends_at_s",
+        "overlap_duration_s"
+      ],
+      "properties" => %{
+        "left_entry_id" => %{"type" => "string", "pattern" => stable_id_pattern},
+        "right_entry_id" => %{"type" => "string", "pattern" => stable_id_pattern},
+        "overlap_starts_at_s" => %{"type" => "number"},
+        "overlap_ends_at_s" => %{"type" => "number"},
+        "overlap_duration_s" => %{"type" => "number"}
+      }
+    }
+  end
+
   def stable_id_array_map(stable_id_pattern) do
     %{"type" => "object", "additionalProperties" => stable_id_array(stable_id_pattern)}
   end

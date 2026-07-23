@@ -651,8 +651,11 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureExpected
         ],
         "station_calendar_pressure_provider_calendar_contention_overlap_pairs" => [
           %{
-            "entry_id" => "calendar_selected_reserved",
-            "overlap_entry_id" => "calendar_selected_maintenance"
+            "left_entry_id" => "calendar_selected_reserved",
+            "right_entry_id" => "calendar_selected_maintenance",
+            "overlap_starts_at_s" => 1_170.0,
+            "overlap_ends_at_s" => 1_230.0,
+            "overlap_duration_s" => 60.0
           }
         ],
         "station_calendar_pressure_required_operator_actions" => [

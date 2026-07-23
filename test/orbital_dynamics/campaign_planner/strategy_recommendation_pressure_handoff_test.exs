@@ -636,6 +636,27 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
     )
   end
 
+  test "provider calendar contention overlap pair remains source exact across handoffs" do
+    expected_pair = %{
+      "left_entry_id" => "calendar_selected_reserved",
+      "right_entry_id" => "calendar_selected_maintenance",
+      "overlap_starts_at_s" => 1_170.0,
+      "overlap_ends_at_s" => 1_230.0,
+      "overlap_duration_s" => 60.0
+    }
+
+    stale_pair = Map.put(expected_pair, "right_entry_id", "calendar_stale_maintenance")
+
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "station_calendar_pressure_provider_calendar_contention_overlap_pairs",
+      {"station_reservation_id", "reservation_calendar_selected"},
+      "provider_calendar_contention_overlap_pairs",
+      [expected_pair],
+      [stale_pair]
+    )
+  end
+
   defp assert_risk_expiration_context_contract(
          artifact,
          field,

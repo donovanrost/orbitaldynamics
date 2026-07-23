@@ -5,21 +5,23 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Enforce source-exact provider-calendar trust-boundary status context.
+Enforce source-exact provider-calendar overlap-pair context.
 
 Status:
 Verified; publish pending.
 
 Selection evidence:
-- The selected branch event supplies trust-boundary status `declared`, but the
-  passive recommendation-risk projection drops it before aggregation.
-- The canonical aggregator exists; review/import schemas and exact-copy
-  validation omit the provider trust-boundary status list.
+- The canonical aggregator exists, but passive recommendation risks and
+  review/import contracts drop the overlap-pair object list.
+- The live producer emits stable left/right entry IDs plus numeric overlap
+  start, end, and duration; the synthetic strategy fixture uses an older shape.
 
 Intended behavior:
-- Declare the string list in review/import schemas and require an
+- Align the fixture to the live five-field pair shape and declare a shared
+  object-array schema with stable entry IDs and numeric overlap values.
+- Require an
   exact source-derived copy in review/direct/review-derived Cadence rows.
-- Reject missing or stale trust statuses when source risks supply the list;
+- Reject missing or stale pairs when source risks supply the list;
   retain paired legacy omission compatibility.
 - Preserve risk scoring, selection, execution boundaries, and authority.
 
@@ -28,29 +30,31 @@ Fleet-scale planning decisions and durable reproducible audit handoffs.
 
 Planned files:
 - strategy handoff validation plus review/import schemas
-- trust-status mutation/schema proofs, docs, exports, and ledger
+- shared pair schema, aligned fixtures, mutation/schema proofs, docs, exports,
+  and ledger
 
 Verification:
-- Focused handoff/schema proof: `55 passed`.
+- Focused handoff/schema/report proof: `60 passed`.
 - Contact-allocation regression: `213 passed`.
 - Golden artifact regression: `12 passed`.
 - Schema lint: `155` artifacts, `0` errors, `0` warnings.
-- Full suite: `3928 passed`.
+- Full suite: `3929 passed`.
 - Canonical strategy SHA-256 remained
   `b335a0e3337c35e5dcb11594b2ffa3a51923743dfd6728c6f8e30dec1b9b1027`.
 - Ten expected generated schema surfaces changed; `git diff --check` passed.
 
 Review:
-- Passive projection now retains trust status `declared` as source provenance
-  without reinterpreting trust or changing risk scoring.
+- The strategy fixture now matches the live producer's stable left/right IDs and
+  numeric overlap start/end/duration; the station-report export is unchanged.
+- One shared pair schema serves the producer report and all three handoff schema
+  sources, preventing the audit shape from drifting from the product contract.
 - Executable handoff checks enforce all four exact copies, missing review,
   paired legacy omission, stale direct import, and missing review-derived import.
-- All three source schemas declare a string array; generated exports agree.
-- Provider, reservation, schedule, Cadence-write, operator-authority, and
-  autonomous-execution boundaries remain unchanged.
+- Passive projection changes provenance only; scoring, provider requests,
+  reservations, schedules, Cadence writes, and authority remain unchanged.
 
 Last published slice:
-- `8016fb8e` Validate provider calendar reservation status (`3927 passed`).
+- `d9caf656` Validate provider calendar trust status (`3928 passed`).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions while preserving explicit
@@ -61,7 +65,7 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-Assess source-exact provider-calendar overlap-pair context and schema shape.
+Reassess the next highest-value Level 6 audit or fleet-decision gap.
 
 Blocked:
 None.

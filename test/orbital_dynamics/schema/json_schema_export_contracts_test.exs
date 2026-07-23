@@ -168,6 +168,63 @@ defmodule OrbitalDynamics.Schema.JsonSchemaExportContractsTest do
         end
       end)
     end)
+
+    overlap_pair_field =
+      "station_calendar_pressure_provider_calendar_contention_overlap_pairs"
+
+    overlap_pair_schemas = [
+      get_in(review_schema, [
+        "properties",
+        "rows",
+        "items",
+        "properties",
+        overlap_pair_field,
+        "items"
+      ]),
+      get_in(import_schema, [
+        "properties",
+        "rows",
+        "items",
+        "properties",
+        overlap_pair_field,
+        "items"
+      ]),
+      get_in(import_schema, [
+        "properties",
+        "rows",
+        "items",
+        "properties",
+        "source_review_row",
+        "properties",
+        overlap_pair_field,
+        "items"
+      ])
+    ]
+
+    Enum.each(overlap_pair_schemas, fn pair_schema ->
+      assert pair_schema["type"] == "object"
+
+      assert pair_schema["required"] == [
+               "left_entry_id",
+               "right_entry_id",
+               "overlap_starts_at_s",
+               "overlap_ends_at_s",
+               "overlap_duration_s"
+             ]
+
+      assert get_in(pair_schema, ["properties", "left_entry_id", "pattern"]) ==
+               stable_id_pattern
+
+      assert get_in(pair_schema, ["properties", "right_entry_id", "pattern"]) ==
+               stable_id_pattern
+
+      Enum.each(
+        ["overlap_starts_at_s", "overlap_ends_at_s", "overlap_duration_s"],
+        fn field ->
+          assert get_in(pair_schema, ["properties", field, "type"]) == "number"
+        end
+      )
+    end)
   end
 
   test "exports nested branch comparison report row schema" do
