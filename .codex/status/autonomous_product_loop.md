@@ -5,16 +5,16 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Enforce source-exact provider-calendar availability context.
+Enforce source-exact provider-calendar direction context.
 
 Status:
 Verified; publish pending.
 
 Selection evidence:
-- The selected branch event supplies `reserved` and `maintenance` provider
-  availabilities, but the passive risk drops them before aggregation.
+- The selected branch event supplies provider direction `downlink`, but the
+  passive recommendation-risk projection drops it before aggregation.
 - The canonical aggregator exists; review/import schemas and exact-copy
-  validation omit the provider-availability list.
+  validation omit the provider-direction list.
 
 Intended behavior:
 - Declare the string list in review/import schemas and require an
@@ -28,21 +28,21 @@ Fleet-scale planning decisions and durable reproducible audit handoffs.
 
 Planned files:
 - strategy handoff validation plus review/import schemas
-- availability mutation/schema proofs, docs, exports, and ledger
+- direction mutation/schema proofs, docs, exports, and ledger
 
 Verification:
-- Focused handoff/schema proof: `50 passed`.
+- Focused handoff/schema proof: `51 passed`.
 - Contact-allocation regression: `213 passed`.
 - Golden artifact regression: `12 passed`.
 - Schema lint: `155` artifacts, `0` errors, `0` warnings.
-- Full suite: `3923 passed`.
+- Full suite: `3924 passed`.
 - Canonical strategy SHA-256 remained
   `b335a0e3337c35e5dcb11594b2ffa3a51923743dfd6728c6f8e30dec1b9b1027`.
 - Ten expected generated schema surfaces changed; `git diff --check` passed.
 
 Review:
-- Passive projection now retains both source availability values without
-  changing risk scoring or planning behavior.
+- Passive projection now retains source direction `downlink` without changing
+  risk scoring or planning behavior.
 - Executable handoff checks enforce all four exact copies, missing review,
   paired legacy omission, stale direct import, and missing review-derived import.
 - All three source schemas declare a string array; generated exports agree.
@@ -50,7 +50,7 @@ Review:
   autonomous-execution boundaries remain unchanged.
 
 Last published slice:
-- `67f69c97` Validate provider calendar provider entries (`3922 passed`).
+- `e2636b95` Validate provider calendar availability (`3923 passed`).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions while preserving explicit
@@ -61,7 +61,7 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-Assess source-exact provider-calendar direction context.
+Assess source-exact provider-calendar reservation identity context.
 
 Blocked:
 None.

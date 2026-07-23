@@ -110,6 +110,8 @@ defmodule OrbitalDynamics.Schema.CadenceSourceReviewRowJsonSchema do
             schema.(:stable_id_array_schema),
           "station_calendar_pressure_provider_calendar_contention_availabilities" =>
             schema.(:string_array_schema),
+          "station_calendar_pressure_provider_calendar_contention_directions" =>
+            schema.(:string_array_schema),
           "branch_image_quality_min_score" => %{
             "type" => "number",
             "minimum" => 0.0,
