@@ -192,6 +192,8 @@ defmodule OrbitalDynamics.Schema.CadenceImportManifestJsonSchema do
             schema.(:non_negative_integer_array_schema),
           "station_calendar_pressure_station_calendar_ambiguous_entry_ids" =>
             schema.(:stable_id_array_schema),
+          "station_calendar_pressure_station_calendar_reservation_overlap_count_values" =>
+            schema.(:non_negative_integer_array_schema),
           "branch_image_quality_min_score" => %{
             "type" => "number",
             "minimum" => 0.0,

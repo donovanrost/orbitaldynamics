@@ -71,12 +71,15 @@ defmodule OrbitalDynamics.Schema.JsonSchemaExportContractsTest do
       {"station_calendar_pressure_station_calendar_entry_ambiguous_values", "boolean", nil},
       {"station_calendar_pressure_station_calendar_ambiguous_entry_count_values", "integer", nil},
       {"station_calendar_pressure_station_calendar_ambiguous_entry_ids", "string",
-       stable_id_pattern}
+       stable_id_pattern},
+      {"station_calendar_pressure_station_calendar_reservation_overlap_count_values", "integer",
+       nil}
     ]
 
     item_minimums = %{
       "station_calendar_pressure_station_calendar_overlap_count_values" => 0,
-      "station_calendar_pressure_station_calendar_ambiguous_entry_count_values" => 0
+      "station_calendar_pressure_station_calendar_ambiguous_entry_count_values" => 0,
+      "station_calendar_pressure_station_calendar_reservation_overlap_count_values" => 0
     }
 
     assert get_in(strategy_schema, [

@@ -460,6 +460,17 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
     )
   end
 
+  test "station calendar reservation overlap count remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "station_calendar_pressure_station_calendar_reservation_overlap_count_values",
+      {"station_reservation_id", "reservation_calendar_selected"},
+      "station_calendar_reservation_overlap_count",
+      [1],
+      [99]
+    )
+  end
+
   defp assert_risk_expiration_context_contract(
          artifact,
          field,
