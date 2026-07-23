@@ -69,7 +69,11 @@ defmodule OrbitalDynamics.Schema.StrategyHandoffContracts do
     {"contact_intent_pressure_gate_statuses", "contact_intent_pressure_gate_statuses"},
     {"contact_intent_pressure_policy_classifications",
      "contact_intent_pressure_policy_classifications"},
-    {"contact_intent_pressure_policy_bundle_ids", "contact_intent_pressure_policy_bundle_ids"}
+    {"contact_intent_pressure_policy_bundle_ids", "contact_intent_pressure_policy_bundle_ids"},
+    {"contact_intent_pressure_invalid_cadence_import_values",
+     "contact_intent_pressure_invalid_cadence_import_values"},
+    {"contact_intent_pressure_invalid_cadence_import_reasons",
+     "contact_intent_pressure_invalid_cadence_import_reasons"}
   ]
   @station_calendar_context_field_pairs [
     {"station_calendar_pressure_risk_types", "station_calendar_pressure_risk_types"},

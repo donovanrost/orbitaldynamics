@@ -955,6 +955,28 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
     )
   end
 
+  test "contact intent invalid import flag remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "contact_intent_pressure_invalid_cadence_import_values",
+      {"contact_id", "contact_intent:selected_blocked"},
+      "invalid_cadence_import",
+      [true],
+      [false]
+    )
+  end
+
+  test "contact intent invalid import reason remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "contact_intent_pressure_invalid_cadence_import_reasons",
+      {"contact_id", "contact_intent:selected_blocked"},
+      "invalid_cadence_import_reason",
+      ["missing_cadence_import_row"],
+      ["stale_cadence_import_reason"]
+    )
+  end
+
   defp assert_risk_expiration_context_contract(
          artifact,
          field,
