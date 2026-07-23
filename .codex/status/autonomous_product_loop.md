@@ -5,14 +5,14 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Enforce source-exact station-calendar provider identity.
+Enforce source-exact station-calendar provider-entry identity.
 
 Status:
 Verified; ready to publish.
 
 Selection evidence:
 - Recommendation review and both Cadence paths already emit the canonical
-  station-calendar provider-ID list from source risks.
+  station-calendar provider-entry-ID list from source risks.
 - Explicit schemas omit the list, and handoff validation does not reject a
   missing or stale derived identity copy.
 
@@ -31,24 +31,24 @@ Planned files:
 - stable-identity mutation/schema proofs, docs, exports, and ledger
 
 Verification:
-- Focused handoff/schema/Cadence proofs: `28 passed`.
+- Focused handoff/schema/Cadence proofs: `29 passed`.
 - Contact-allocation family: `213 passed`.
 - Golden artifacts: `12 passed`.
 - Schema lint: `155 schemas, 0 errors, 0 warnings`.
-- Full suite: `3901 passed`.
+- Full suite: `3902 passed`.
 - General and manifest schemas regenerated; canonical V3 campaign remained
   byte-stable through the public runner.
 
 Review:
 - All four review/import copies now require the exact source-derived calendar
-  provider-ID list; missing or stale identities fail executable validation.
-- The shared identity-driven proof removes the exact source provider ID for
-  paired legacy omission and challenges an independently stale identity.
+  provider-entry-ID list; missing or stale identities fail validation.
+- The shared identity-driven proof removes the exact source provider-entry ID
+  for paired legacy omission and challenges an independently stale identity.
 - Explicit schemas enforce the stable-ID pattern; no planner behavior, provider
   access, adapter effect, operator authority, or execution boundary changed.
 
 Last published slice:
-- `46831735` Validate station calendar entry identity (`3900 passed`).
+- `bc59cd06` Validate station calendar provider identity (`3901 passed`).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions while preserving explicit
@@ -59,7 +59,7 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-Assess source-exact station-calendar provider-entry identity context.
+Assess source-exact station-calendar direction context.
 
 Blocked:
 None.
