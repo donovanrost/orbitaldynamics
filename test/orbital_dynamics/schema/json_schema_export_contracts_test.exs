@@ -62,7 +62,8 @@ defmodule OrbitalDynamics.Schema.JsonSchemaExportContractsTest do
        stable_id_pattern},
       {"station_calendar_pressure_station_calendar_directions", "string", nil},
       {"station_calendar_pressure_station_calendar_statuses", "string", nil},
-      {"station_calendar_pressure_station_availabilities", "string", nil}
+      {"station_calendar_pressure_station_availabilities", "string", nil},
+      {"station_calendar_pressure_station_contention_statuses", "string", nil}
     ]
 
     assert get_in(strategy_schema, [
