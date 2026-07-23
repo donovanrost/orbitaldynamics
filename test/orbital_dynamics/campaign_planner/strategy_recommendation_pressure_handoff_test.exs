@@ -746,6 +746,17 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
     )
   end
 
+  test "station calendar trust boundary remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "station_calendar_pressure_trust_boundaries",
+      {"station_reservation_id", "reservation_calendar_selected"},
+      "trust_boundary",
+      ["mission_state_station_calendar_report"],
+      ["mission_state_stale_station_calendar_report"]
+    )
+  end
+
   defp assert_risk_expiration_context_contract(
          artifact,
          field,
