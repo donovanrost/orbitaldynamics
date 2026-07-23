@@ -91,7 +91,15 @@ defmodule OrbitalDynamics.Schema.StrategyHandoffContracts do
     {"contact_intent_pressure_station_calendar_statuses",
      "contact_intent_pressure_station_calendar_statuses"},
     {"contact_intent_pressure_station_calendar_trust_boundary_statuses",
-     "contact_intent_pressure_station_calendar_trust_boundary_statuses"}
+     "contact_intent_pressure_station_calendar_trust_boundary_statuses"},
+    {"contact_intent_pressure_station_reservation_ids",
+     "contact_intent_pressure_station_reservation_ids"},
+    {"contact_intent_pressure_station_reserved_by",
+     "contact_intent_pressure_station_reserved_by"},
+    {"contact_intent_pressure_station_reservation_statuses",
+     "contact_intent_pressure_station_reservation_statuses"},
+    {"contact_intent_pressure_station_reservation_match_statuses",
+     "contact_intent_pressure_station_reservation_match_statuses"}
   ]
   @station_calendar_context_field_pairs [
     {"station_calendar_pressure_risk_types", "station_calendar_pressure_risk_types"},

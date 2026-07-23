@@ -1076,6 +1076,50 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
     )
   end
 
+  test "contact intent station reservation identity remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "contact_intent_pressure_station_reservation_ids",
+      {"contact_id", "contact_intent:selected_blocked"},
+      "station_reservation_id",
+      ["reservation_intent_selected"],
+      ["stale_reservation_intent_selected"]
+    )
+  end
+
+  test "contact intent station reservation owner remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "contact_intent_pressure_station_reserved_by",
+      {"contact_id", "contact_intent:selected_blocked"},
+      "station_reserved_by",
+      ["partner_team"],
+      ["stale_partner_team"]
+    )
+  end
+
+  test "contact intent station reservation status remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "contact_intent_pressure_station_reservation_statuses",
+      {"contact_id", "contact_intent:selected_blocked"},
+      "station_reservation_status",
+      ["confirmed"],
+      ["cancelled"]
+    )
+  end
+
+  test "contact intent station reservation match remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "contact_intent_pressure_station_reservation_match_statuses",
+      {"contact_id", "contact_intent:selected_blocked"},
+      "station_reservation_match_status",
+      ["unmatched_overlap"],
+      ["matched"]
+    )
+  end
+
   defp assert_risk_expiration_context_contract(
          artifact,
          field,
