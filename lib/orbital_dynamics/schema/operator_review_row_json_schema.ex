@@ -208,6 +208,8 @@ defmodule OrbitalDynamics.Schema.OperatorReviewRowJsonSchema do
             schema.(:string_array_schema),
           "station_calendar_pressure_station_calendar_trust_boundary_statuses" =>
             schema.(:string_array_schema),
+          "station_calendar_pressure_provider_calendar_contention_group_ids" =>
+            schema.(:stable_id_array_schema),
           "branch_image_quality_min_score" => %{
             "type" => "number",
             "minimum" => 0.0,
