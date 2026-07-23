@@ -78,7 +78,9 @@ defmodule OrbitalDynamics.Schema.StrategyHandoffContracts do
     {"station_calendar_pressure_station_calendar_overlap_availabilities",
      "station_calendar_pressure_station_calendar_overlap_availabilities"},
     {"station_calendar_pressure_station_calendar_entry_ambiguous_values",
-     "station_calendar_pressure_station_calendar_entry_ambiguous_values"}
+     "station_calendar_pressure_station_calendar_entry_ambiguous_values"},
+    {"station_calendar_pressure_station_calendar_ambiguous_entry_count_values",
+     "station_calendar_pressure_station_calendar_ambiguous_entry_count_values"}
   ]
   @strategy_recommendation_risk_expiration_context_specs [
     {@provider_reservation_request_expiration_context_field_pairs,

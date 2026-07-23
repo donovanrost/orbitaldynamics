@@ -50,6 +50,8 @@ defmodule OrbitalDynamics.CampaignPlanner.EventRiskIndicator.StationDownlinkPres
         "station_calendar_overlap_availabilities" =>
           event["station_calendar_overlap_availabilities"],
         "station_calendar_entry_ambiguous" => event["station_calendar_entry_ambiguous"],
+        "station_calendar_ambiguous_entry_count" =>
+          event["station_calendar_ambiguous_entry_count"],
         "station_calendar_trust_boundary_status" =>
           event["station_calendar_trust_boundary_status"],
         "station_reservation_id" => reservation_id,

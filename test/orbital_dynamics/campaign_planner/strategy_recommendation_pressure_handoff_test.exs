@@ -438,6 +438,17 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
     )
   end
 
+  test "station calendar ambiguous entry count remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "station_calendar_pressure_station_calendar_ambiguous_entry_count_values",
+      {"station_reservation_id", "reservation_calendar_selected"},
+      "station_calendar_ambiguous_entry_count",
+      [2],
+      [99]
+    )
+  end
+
   defp assert_risk_expiration_context_contract(
          artifact,
          field,
