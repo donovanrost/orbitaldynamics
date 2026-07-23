@@ -5,21 +5,21 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Enforce source-exact station-calendar overlap-entry identity context.
+Enforce source-exact station-calendar overlap-availability context.
 
 Status:
 Verified; ready to publish.
 
 Selection evidence:
-- The selected branch event supplies two stable overlap entry IDs, but the
-  passive recommendation-risk projection drops them before handoff aggregation.
-- The canonical aggregator already exists; review/import schemas and exact-copy
-  validation omit its derived identity list.
+- The selected branch event supplies `reserved` and `maintenance` overlap
+  classifications, but the passive recommendation-risk projection drops them.
+- The canonical first-seen-order aggregator already exists; review/import
+  schemas and exact-copy validation omit its derived list.
 
 Intended behavior:
-- Declare the stable-ID list in review/import schemas and require an
+- Declare the string list in review/import schemas and require an
   exact source-derived copy in review/direct/review-derived Cadence rows.
-- Reject missing, stale, or malformed IDs when source risks supply the list;
+- Reject missing or stale values when source risks supply the list;
   retain paired legacy omission compatibility.
 - Preserve risk scoring, selection, execution boundaries, and authority.
 
@@ -28,14 +28,14 @@ Fleet-scale planning decisions and durable reproducible audit handoffs.
 
 Planned files:
 - strategy handoff validation plus review/import schemas
-- identity mutation/schema proofs, docs, exports, and ledger
+- availability mutation/schema proofs, docs, exports, and ledger
 
 Verification:
-- focused handoff/schema contracts: `35 passed`
+- focused handoff/schema contracts: `36 passed`
 - contact-allocation tests: `213 passed`
 - golden artifacts: `12 passed`
 - schema lint: `155` artifacts, `0` errors, `0` warnings
-- full suite: `3908 passed`
+- full suite: `3909 passed`
 - canonical strategy artifact SHA-256 remained
   `b335a0e3337c35e5dcb11594b2ffa3a51923743dfd6728c6f8e30dec1b9b1027`
 
@@ -43,13 +43,13 @@ Review:
 - The source list now crosses the existing passive risk projection; scoring,
   selection, provider requests, reservations, schedules, Cadence writes,
   operator authority, and autonomous execution remain unchanged.
-- All four review/import copies require the exact two source IDs; missing and
-  stale copies fail, while paired legacy omission remains compatible.
-- Explicit schemas require canonical stable IDs; generated diffs are limited to
-  the expected ten schema artifacts.
+- All four review/import copies preserve exact first-seen source order; missing
+  and stale copies fail, while paired legacy omission remains compatible.
+- Explicit schemas require string items; generated diffs are limited to the
+  expected ten schema artifacts.
 
 Last published slice:
-- `d5f1859d` Validate station calendar overlap count (`3907 passed`).
+- `69e03c64` Validate station calendar overlap identities (`3908 passed`).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions while preserving explicit
@@ -60,7 +60,7 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-Assess source-exact station-calendar overlap-availability context.
+Assess source-exact station-calendar ambiguity context.
 
 Blocked:
 None.
