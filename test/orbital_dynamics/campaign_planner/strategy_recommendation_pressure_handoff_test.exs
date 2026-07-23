@@ -559,6 +559,17 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
     )
   end
 
+  test "provider calendar contention provider-entry identity remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "station_calendar_pressure_provider_calendar_contention_provider_entry_ids",
+      {"station_reservation_id", "reservation_calendar_selected"},
+      "provider_calendar_contention_provider_entry_ids",
+      ["partner_entry_calendar_selected", "partner_entry_calendar_maintenance"],
+      ["partner_entry_calendar_selected", "stale_partner_entry_calendar_maintenance"]
+    )
+  end
+
   defp assert_risk_expiration_context_contract(
          artifact,
          field,
