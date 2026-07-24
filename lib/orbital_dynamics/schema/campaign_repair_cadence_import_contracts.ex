@@ -1,6 +1,7 @@
 defmodule OrbitalDynamics.Schema.CampaignRepairCadenceImportContracts do
   @moduledoc false
 
+  alias OrbitalDynamics.CadenceImport.ReviewTypePolicy
   alias OrbitalDynamics.Schema.PrimitiveValidation
 
   def validate(issues, artifact) when is_map(artifact) do
@@ -42,14 +43,15 @@ defmodule OrbitalDynamics.Schema.CampaignRepairCadenceImportContracts do
 
   defp validate_review_package(issues, %{} = review_package, manifest) do
     review_rows = Map.get(review_package, "rows")
+    import_review_rows = import_review_rows(review_rows)
     manifest_rows = Map.get(manifest, "rows")
 
     issues
     |> validate_equal(
       "$.cadence_import_manifest.row_count",
       Map.get(manifest, "row_count"),
-      Map.get(review_package, "review_count"),
-      "must match the enclosing operator review count"
+      length(import_review_rows),
+      "must match the import-eligible operator review count"
     )
     |> validate_equal(
       "$.cadence_import_manifest.provenance.source_review_count",
@@ -57,7 +59,7 @@ defmodule OrbitalDynamics.Schema.CampaignRepairCadenceImportContracts do
       Map.get(review_package, "review_count"),
       "must match the enclosing operator review count"
     )
-    |> validate_review_row_ids(review_rows, manifest_rows)
+    |> validate_review_row_ids(import_review_rows, manifest_rows)
   end
 
   defp validate_review_package(issues, _review_package, _manifest) do
@@ -91,6 +93,11 @@ defmodule OrbitalDynamics.Schema.CampaignRepairCadenceImportContracts do
   end
 
   defp validate_review_row_ids(issues, _review_rows, _manifest_rows), do: issues
+
+  defp import_review_rows(rows) when is_list(rows),
+    do: Enum.filter(rows, &ReviewTypePolicy.import_manifest?/1)
+
+  defp import_review_rows(_rows), do: []
 
   defp repair_id(%{"repair_metadata" => metadata}) when is_map(metadata),
     do: Map.get(metadata, "repair_id")

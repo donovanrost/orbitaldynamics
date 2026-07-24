@@ -467,6 +467,11 @@ focused repair-action regressions.
   `source_schema_validation_report`, and routes exact errors, warnings, and
   remediation into review-gated Cadence import without changing V2 validity or
   import eligibility.
+- **Source model-acceptance report** — V2 preserves CandidateRefresh's upstream
+  `model_acceptance_report.v1`, validates it at
+  `source_model_acceptance_report`, and exposes exact review-required and
+  blocked rows for operator review. Model-acceptance review remains excluded
+  from Cadence import and does not certify a model or change planning.
 - **Timeline-diff report** also exposes status/action/changed-field count maps,
   duplicate timeline-identity counts, and model limits from the checked-in
   fixture.

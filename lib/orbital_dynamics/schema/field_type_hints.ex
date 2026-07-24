@@ -624,6 +624,7 @@ defmodule OrbitalDynamics.Schema.FieldTypeHints do
     "source_resource_summaries" => "array",
     "source_risk" => "object",
     "source_schema_validation_report" => "object",
+    "source_model_acceptance_report" => "object",
     "source_feedback" => "object",
     "source_locked" => "boolean",
     "source_maneuver_review" => "object",

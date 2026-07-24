@@ -2,6 +2,7 @@ defmodule OrbitalDynamics.Schema.CampaignRepairCadenceImportContractsTest do
   use ExUnit.Case, async: true
 
   alias OrbitalDynamics.Schema
+  alias OrbitalDynamics.Schema.CampaignRepairCadenceImportContracts
 
   setup do
     %{artifact: read_json!("study_results/campaign_repair_readiness_source_handoff_v2.json")}
@@ -78,6 +79,27 @@ defmodule OrbitalDynamics.Schema.CampaignRepairCadenceImportContractsTest do
       assert {:error, report} = Schema.validate_artifact(invalid)
       assert Enum.any?(report["errors"], &(&1["path"] == expected_path))
     end
+  end
+
+  test "joins manifest rows only to Cadence-eligible operator reviews", %{artifact: artifact} do
+    operator_only_row = %{
+      "id" => "model_acceptance_review:operator_only",
+      "review_type" => "model_acceptance_review"
+    }
+
+    artifact =
+      artifact
+      |> update_in(
+        ["operator_review_package", "rows"],
+        &[operator_only_row | &1]
+      )
+      |> update_in(["operator_review_package", "review_count"], &(&1 + 1))
+      |> update_in(
+        ["cadence_import_manifest", "provenance", "source_review_count"],
+        &(&1 + 1)
+      )
+
+    assert CampaignRepairCadenceImportContracts.validate([], artifact) == []
   end
 
   test "exports the nested repair Cadence import contract" do

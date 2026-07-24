@@ -279,6 +279,10 @@ V2 repair `operator_review_package.v1` now emits:
 - CandidateRefresh source schema-validation issue rows, preserving exact
   contract/family, artifact path, validation mode/status, issue severity/path/
   message, counts, and remediation without changing V2 validation outcomes.
+- CandidateRefresh source model-acceptance rows, preserving exact report/model
+  identity, intended use, acceptance status, validation level, implementation,
+  reason, counts, and model-limit context without certifying models or adding
+  Cadence import rows.
 - Repaired-plan and CandidateRefresh source link-capacity review rows,
   preserving the upstream report independently from the recomputed repair
   report without applying another scoring effect.

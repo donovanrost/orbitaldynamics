@@ -147,6 +147,10 @@ defmodule OrbitalDynamics.Schema.CampaignRepairContracts do
       "$.source_schema_validation_report",
       Map.get(artifact, "source_schema_validation_report")
     ])
+    |> call(callbacks, :validate_optional_model_acceptance_report, [
+      "$.source_model_acceptance_report",
+      Map.get(artifact, "source_model_acceptance_report")
+    ])
     |> CampaignRepairReadinessSourceContracts.validate(artifact)
     |> call(callbacks, :validate_optional_objective_tradeoff_report, [
       Map.get(artifact, "objective_tradeoff_report")

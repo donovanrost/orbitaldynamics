@@ -168,6 +168,10 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairArtifact do
       RepairSourceReports.schema_validation(request.candidate_refresh)
     )
     |> put_source_report(
+      "source_model_acceptance_report",
+      RepairSourceReports.model_acceptance(request.candidate_refresh)
+    )
+    |> put_source_report(
       "source_resource_filter_report",
       RepairSourceReports.resource_filter(request.candidate_refresh)
     )

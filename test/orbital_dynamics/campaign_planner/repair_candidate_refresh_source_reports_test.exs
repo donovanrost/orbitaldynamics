@@ -69,6 +69,12 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
         ]
       })
 
+    source_model_acceptance_report =
+      OrbitalDynamics.validation_model_acceptance_report(
+        ["orbit_data.simple_json", "event.access_windows", "propagator.two_body"],
+        intended_use: :operational_import
+      )
+
     candidate_diff_report =
       candidate_diff_report()
       |> update_in(["invalidated_candidates", Access.at(0)], fn candidate ->
@@ -139,6 +145,7 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
           |> Map.put("source_score_term_report", source_score_term_report)
           |> Map.put("source_timeline_diff_report", source_timeline_diff_report)
           |> Map.put("source_schema_validation_report", source_schema_validation_report)
+          |> Map.put("source_model_acceptance_report", [source_model_acceptance_report])
           |> Map.put("source_quality_gate_report", passive_quality_gate_report())
           |> Map.put("operational_feedback", %{
             "station_throughput_factor" => %{"equator_prime" => 0.5}
@@ -719,6 +726,60 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
                artifact["cadence_import_manifest"]["rows"],
                &(&1["source"] == "campaign_repair.source_schema_validation_report.errors")
              )
+
+    assert artifact["source_model_acceptance_report"] == source_model_acceptance_report
+
+    assert %{
+             "review_type" => "model_acceptance_review",
+             "source" => "campaign_repair.source_model_acceptance_report.rows",
+             "subject_id" => "event.access_windows",
+             "action" => "review_model_acceptance",
+             "required_operator_action" => "review_model_acceptance",
+             "approval_status" => "operator_review_required",
+             "model_acceptance_report_id" => model_acceptance_report_id,
+             "model_acceptance_status" => "review_required",
+             "model_acceptance_intended_use" => "operational_import",
+             "model_acceptance_validation_level" => "analysis",
+             "model_acceptance_model_id" => "event.access_windows",
+             "source_model_acceptance_row" => %{
+               "model_id" => "event.access_windows",
+               "status" => "review_required"
+             },
+             "source_model_acceptance_report" => %{
+               "schema_contract" => "model_acceptance_report.v1",
+               "status" => "blocked",
+               "model_count" => 3,
+               "accepted_count" => 1,
+               "review_required_count" => 1,
+               "blocked_count" => 1,
+               "unknown_model_count" => 0
+             }
+           } =
+             Enum.find(
+               artifact["operator_review_package"]["rows"],
+               &(&1["source"] == "campaign_repair.source_model_acceptance_report.rows" and
+                   &1["subject_id"] == "event.access_windows")
+             )
+
+    assert model_acceptance_report_id == source_model_acceptance_report["report_id"]
+
+    assert %{
+             "subject_id" => "propagator.two_body",
+             "action" => "review_blocked_model_acceptance",
+             "approval_status" => "blocked_by_policy",
+             "model_acceptance_status" => "blocked",
+             "model_acceptance_validation_level" => "educational"
+           } =
+             Enum.find(
+               artifact["operator_review_package"]["rows"],
+               &(&1["source"] == "campaign_repair.source_model_acceptance_report.rows" and
+                   &1["subject_id"] == "propagator.two_body")
+             )
+
+    refute Enum.any?(
+             artifact["cadence_import_manifest"]["rows"],
+             &(&1["source_review_type"] == "model_acceptance_review")
+           )
 
     assert %{
              "contact_allocation_review_count" => 3
