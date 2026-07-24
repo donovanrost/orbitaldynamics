@@ -189,6 +189,13 @@ defmodule OrbitalDynamics.Schema.OperatorReviewRowJsonSchema do
           "contact_allocation_pressure_approval_statuses" => schema.(:string_array_schema),
           "contact_allocation_pressure_policy_classifications" => schema.(:string_array_schema),
           "contact_allocation_pressure_policy_bundle_ids" => schema.(:stable_id_array_schema),
+          "contact_allocation_pressure_station_reservation_ids" =>
+            schema.(:stable_id_array_schema),
+          "contact_allocation_pressure_station_reserved_by" => schema.(:string_array_schema),
+          "contact_allocation_pressure_station_reservation_statuses" =>
+            schema.(:string_array_schema),
+          "contact_allocation_pressure_station_reservation_match_statuses" =>
+            schema.(:string_array_schema),
           "contact_intent_pressure_risk_types" => schema.(:string_array_schema),
           "contact_intent_pressure_contact_ids" => schema.(:stable_id_array_schema),
           "contact_intent_pressure_source_activity_ids" => schema.(:stable_id_array_schema),

@@ -1010,6 +1010,50 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
     )
   end
 
+  test "contact allocation reservation identity remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "contact_allocation_pressure_station_reservation_ids",
+      {"contact_id", "dl_reservation_conflict"},
+      "station_reservation_id",
+      ["reservation_conflict_1"],
+      ["stale_reservation_conflict_1"]
+    )
+  end
+
+  test "contact allocation reservation owner remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "contact_allocation_pressure_station_reserved_by",
+      {"contact_id", "dl_reservation_conflict"},
+      "station_reserved_by",
+      ["ops_team_b"],
+      ["stale_ops_team_b"]
+    )
+  end
+
+  test "contact allocation reservation status remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "contact_allocation_pressure_station_reservation_statuses",
+      {"contact_id", "dl_reservation_conflict"},
+      "station_reservation_status",
+      ["confirmed"],
+      ["cancelled"]
+    )
+  end
+
+  test "contact allocation reservation match remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "contact_allocation_pressure_station_reservation_match_statuses",
+      {"contact_id", "dl_reservation_conflict"},
+      "station_reservation_match_status",
+      ["overlap"],
+      ["matched"]
+    )
+  end
+
   test "contact intent risk type remains source exact across handoffs" do
     assert_risk_context_contract(
       StrategyRecommendationPressureEventsFixture.artifact(),

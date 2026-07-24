@@ -5,54 +5,56 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Enforce source-exact contact-allocation policy context.
+Enforce source-exact contact-allocation reservation context.
 
 Status:
 Verified; publish pending.
 
 Selection evidence:
-- The selected risk carries policy classification `review_only` and bundle ID
-  `contact_allocation_policy_v1` across all four handoff copies.
-- Both lists already survive projection; schemas and exact-copy validation omit
-  them after outcome state was published.
+- The selected risk carries reservation ID `reservation_conflict_1`, owner
+  `ops_team_b`, status `confirmed`, and match `overlap` across all four handoff
+  copies.
+- All four lists survive projection; schemas and exact-copy validation omit
+  them after policy context was published.
 
 Intended behavior:
-- Declare one string and one stable-ID array, requiring exact source-derived
+- Declare one stable-ID and three string arrays, requiring exact source-derived
   copies in review/direct/review-derived Cadence rows.
-- Reject missing or stale derived policy context; retain paired
+- Reject missing or stale derived reservation context; retain paired
   legacy omission compatibility for optional source fields.
-- Preserve allocation scoring, selection, provider/reservation authority,
-  policy authority, and execution boundaries.
+- Preserve allocation scoring, selection, reservation acceptance/mutation,
+  provider authority, and execution boundaries.
 
 Level 6 pillar advanced:
 Fleet-scale planning decisions and durable reproducible audit handoffs.
 
 Planned files:
 - contact-allocation validation and review/import schemas
-- policy-context mutation/schema proofs, docs, exports, and ledger
+- reservation-context mutation/schema proofs, docs, exports, and ledger
 
 Verification:
-- Focused handoff/schema proof: `126 passed`.
+- Focused handoff/schema proof: `130 passed`.
 - Contact-allocation regression: `213 passed`.
 - Golden artifact regression: `12 passed`.
 - Schema lint: `155` artifacts, `0` errors, `0` warnings.
-- Full suite: `3999 passed`.
+- Full suite: `4003 passed`.
 - Canonical strategy SHA-256 remained
   `f7fc7823d071db82124af4b903e5be730983d1d9cb96f4524c711041c750ca1c`.
-- Ten expected generated schema surfaces changed; `git diff --check` passed.
+- Ten expected generated schema surfaces changed; format and
+  `git diff --check` passed.
 
 Review:
-- Exact-copy checks cover classification and bundle ID across operator review,
-  direct selected Cadence import, and review-derived import, including missing,
-  stale, and paired legacy omission mutations.
-- All three public row schemas and generated exports agree on one string and
-  one stable-ID array.
-- Policy evidence grants no authority; allocation scores, recommendation
-  choice, provider requests, reservations, schedules, Cadence writes, operator
-  authority, and autonomous execution remain unchanged.
+- Exact-copy checks cover reservation identity, owner, status, and match across
+  operator review, direct selected Cadence import, and review-derived import,
+  including missing, stale, and paired legacy omission mutations.
+- All three public row schemas and generated exports agree on one stable-ID and
+  three string arrays.
+- Reservation evidence grants no authority; allocation scores, recommendation
+  choice, provider requests, reservation acceptance/mutation, schedules,
+  Cadence writes, operator authority, and autonomous execution remain unchanged.
 
 Last published slice:
-- `9f29e247` Validate contact allocation outcome state (`3997 passed`).
+- `3a5e78ca` Validate contact allocation policy context (`3999 passed`).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions while preserving explicit
@@ -63,7 +65,7 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-Assess source-exact contact-allocation reservation context.
+Assess source-exact contact-allocation calendar context.
 
 Blocked:
 None.
