@@ -67,6 +67,11 @@ defmodule OrbitalDynamics.Schema.JsonSchemaExportContractsTest do
       {"capacity_pack_risk_source_activity_ids", "string", stable_id_pattern},
       {"capacity_pack_risk_ground_station_ids", "string", stable_id_pattern},
       {"capacity_pack_risk_group_ids", "string", stable_id_pattern},
+      {"capacity_pack_risk_statuses", "string", nil},
+      {"capacity_pack_risk_capacity_fraction_values", "number", nil},
+      {"capacity_pack_risk_used_fraction_values", "number", nil},
+      {"capacity_pack_risk_unused_fraction_values", "number", nil},
+      {"capacity_pack_risk_required_capacity_fraction_values", "number", nil},
       {"station_reservation_conflict_contact_ids", "string", stable_id_pattern},
       {"station_reservation_conflict_source_activity_ids", "string", stable_id_pattern},
       {"station_reservation_conflict_ground_station_ids", "string", stable_id_pattern},
@@ -257,6 +262,10 @@ defmodule OrbitalDynamics.Schema.JsonSchemaExportContractsTest do
     ]
 
     item_minimums = %{
+      "capacity_pack_risk_capacity_fraction_values" => 0.0,
+      "capacity_pack_risk_used_fraction_values" => 0.0,
+      "capacity_pack_risk_unused_fraction_values" => 0.0,
+      "capacity_pack_risk_required_capacity_fraction_values" => 0.0,
       "station_calendar_pressure_capacity_fraction_values" => 0.0,
       "station_reservation_hold_count_values" => 0,
       "station_calendar_pressure_station_calendar_overlap_count_values" => 0,
@@ -264,7 +273,13 @@ defmodule OrbitalDynamics.Schema.JsonSchemaExportContractsTest do
       "station_calendar_pressure_station_calendar_reservation_overlap_count_values" => 0
     }
 
-    item_maximums = %{"station_calendar_pressure_capacity_fraction_values" => 1.0}
+    item_maximums = %{
+      "capacity_pack_risk_capacity_fraction_values" => 1.0,
+      "capacity_pack_risk_used_fraction_values" => 1.0,
+      "capacity_pack_risk_unused_fraction_values" => 1.0,
+      "capacity_pack_risk_required_capacity_fraction_values" => 1.0,
+      "station_calendar_pressure_capacity_fraction_values" => 1.0
+    }
 
     assert get_in(strategy_schema, [
              "properties",

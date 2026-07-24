@@ -456,6 +456,61 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
     )
   end
 
+  test "capacity-pack risk status remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "capacity_pack_risk_statuses",
+      {"contact_id", "dl_capacity_overflow"},
+      "capacity_pack_status",
+      ["deferred_by_reduced_station_capacity_pack"],
+      ["stale_capacity_pack_status"]
+    )
+  end
+
+  test "capacity-pack risk capacity fraction remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "capacity_pack_risk_capacity_fraction_values",
+      {"contact_id", "dl_capacity_overflow"},
+      "capacity_pack_capacity_fraction",
+      [0.5],
+      [0.75]
+    )
+  end
+
+  test "capacity-pack risk used fraction remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "capacity_pack_risk_used_fraction_values",
+      {"contact_id", "dl_capacity_overflow"},
+      "capacity_pack_used_fraction",
+      [0.5],
+      [0.75]
+    )
+  end
+
+  test "capacity-pack risk unused fraction remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "capacity_pack_risk_unused_fraction_values",
+      {"contact_id", "dl_capacity_overflow"},
+      "capacity_pack_unused_fraction",
+      [0.0],
+      [0.25]
+    )
+  end
+
+  test "capacity-pack risk required fraction remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "capacity_pack_risk_required_capacity_fraction_values",
+      {"contact_id", "dl_capacity_overflow"},
+      "required_capacity_fraction",
+      [0.25],
+      [0.5]
+    )
+  end
+
   test "station conflict expiration risk context remains source exact across handoffs" do
     assert_risk_expiration_context_contract(
       StrategyRecommendationPressureEventsFixture.artifact(),

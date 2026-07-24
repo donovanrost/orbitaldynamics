@@ -78,6 +78,15 @@ defmodule OrbitalDynamics.Schema.CadenceSourceReviewRowJsonSchema do
           "capacity_pack_risk_source_activity_ids" => schema.(:stable_id_array_schema),
           "capacity_pack_risk_ground_station_ids" => schema.(:stable_id_array_schema),
           "capacity_pack_risk_group_ids" => schema.(:stable_id_array_schema),
+          "capacity_pack_risk_statuses" => schema.(:string_array_schema),
+          "capacity_pack_risk_capacity_fraction_values" =>
+            OrbitalDynamics.Schema.CommonJsonSchema.probability_array(),
+          "capacity_pack_risk_used_fraction_values" =>
+            OrbitalDynamics.Schema.CommonJsonSchema.probability_array(),
+          "capacity_pack_risk_unused_fraction_values" =>
+            OrbitalDynamics.Schema.CommonJsonSchema.probability_array(),
+          "capacity_pack_risk_required_capacity_fraction_values" =>
+            OrbitalDynamics.Schema.CommonJsonSchema.probability_array(),
           "station_reservation_conflict_contact_ids" => schema.(:stable_id_array_schema),
           "station_reservation_conflict_source_activity_ids" => schema.(:stable_id_array_schema),
           "station_reservation_conflict_ground_station_ids" => schema.(:stable_id_array_schema),

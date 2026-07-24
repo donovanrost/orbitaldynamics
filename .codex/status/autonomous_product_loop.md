@@ -5,21 +5,22 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Enforce source-exact capacity-pack risk routing identity.
+Enforce source-exact capacity-pack risk quantitative state.
 
 Status:
 Verified; ready to publish.
 
 Selection evidence:
-- Capacity-pack risk context is projected into all four handoff copies, but its
-  14 fields are not registered in source-exact handoff validation.
-- Canonical contact, source-activity, ground-station, and capacity-pack group IDs
-  survive projection while remaining absent from the public row schemas.
+- The first capacity-pack slice now validates its four routing fields, leaving
+  ten projected fields outside source-exact handoff validation.
+- Capacity-pack status and capacity, used, unused, and required fractions form
+  one coherent explanation of reduced-capacity deferral and lack public schemas.
 
 Intended behavior:
-- Declare four stable-ID arrays requiring exact source-derived copies in
+- Declare one status array and four bounded-fraction arrays requiring exact
+  source-derived copies in
   review/direct/review-derived Cadence rows.
-- Reject missing or stale derived capacity-pack routing identity; retain paired
+- Reject missing or stale derived capacity-pack quantitative state; retain paired
   legacy omission compatibility for optional source fields.
 - Preserve provider and Cadence writes, reservation acceptance, operator
   authority, and execution boundaries.
@@ -29,22 +30,22 @@ Fleet-scale planning decisions and durable reproducible audit handoffs.
 
 Planned files:
 - capacity-pack risk validation and review/import schemas
-- routing-identity mutation/schema proofs, docs, exports, and ledger
+- quantitative-state mutation/schema proofs, docs, exports, and ledger
 
 Verification:
-- Focused handoff/schema contracts: `197 passed`.
+- Focused handoff/schema contracts: `202 passed`.
 - Contact-allocation regression: `213 passed`.
 - Golden artifacts: `12 passed`.
 - Schema lint: `155` artifacts, `0` errors, `0` warnings.
-- Full suite: `4070 passed`.
+- Full suite: `4075 passed`.
 - Canonical strategy SHA-256 remains
   `f7fc7823d071db82124af4b903e5be730983d1d9cb96f4524c711041c750ca1c`.
 
 Review:
-- The first capacity-pack family slice covers `4/14` fields across operator
-  review, direct Cadence import, and review-derived import.
-- All four routing fields are stable-ID arrays in each public row schema and in
-  aggregate export-shape proofs.
+- The capacity-pack family now covers `9/14` fields across operator review,
+  direct Cadence import, and review-derived import.
+- Status is a string array; all four fraction arrays enforce numeric values in
+  the inclusive `0.0..1.0` range in every public row schema.
 - Shared mutation coverage proves missing review context, paired legacy
   omission, stale direct context, and missing/stale review-derived context.
 - Diff is limited to validation/schema surfaces, focused proofs, docs, ten
@@ -53,7 +54,7 @@ Review:
   operator-authority grant, or execution path was introduced.
 
 Last published slice:
-- `dcbd69b5` Validate station hold summary evidence (`4066 passed`, `28/28`).
+- `a4d2f2b5` Validate capacity-pack risk routing (`4070 passed`, `4/14`).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions while preserving explicit
@@ -64,7 +65,7 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-Assess source-exact capacity-pack risk status and fraction values.
+Assess source-exact capacity-pack risk provenance.
 
 Blocked:
 None.

@@ -66,7 +66,14 @@ defmodule OrbitalDynamics.Schema.StrategyHandoffContracts do
     {"capacity_pack_risk_contact_ids", "capacity_pack_risk_contact_ids"},
     {"capacity_pack_risk_source_activity_ids", "capacity_pack_risk_source_activity_ids"},
     {"capacity_pack_risk_ground_station_ids", "capacity_pack_risk_ground_station_ids"},
-    {"capacity_pack_risk_group_ids", "capacity_pack_risk_group_ids"}
+    {"capacity_pack_risk_group_ids", "capacity_pack_risk_group_ids"},
+    {"capacity_pack_risk_statuses", "capacity_pack_risk_statuses"},
+    {"capacity_pack_risk_capacity_fraction_values",
+     "capacity_pack_risk_capacity_fraction_values"},
+    {"capacity_pack_risk_used_fraction_values", "capacity_pack_risk_used_fraction_values"},
+    {"capacity_pack_risk_unused_fraction_values", "capacity_pack_risk_unused_fraction_values"},
+    {"capacity_pack_risk_required_capacity_fraction_values",
+     "capacity_pack_risk_required_capacity_fraction_values"}
   ]
   @station_reservation_conflict_context_field_pairs [
     {"station_reservation_conflict_contact_ids", "station_reservation_conflict_contact_ids"},
