@@ -73,6 +73,9 @@ Implemented or partially implemented modules and artifacts include:
   granting approval or execution authority. Relay-data-path handoffs preserve
   all 32 route, spacecraft, custody, latency, capacity, aggregate, safety-
   assumption, and provenance fields with the same source-exact guarantees.
+  Maneuver-execution-uncertainty handoffs preserve all 25 identity, covariance,
+  delta-v, threshold, timing, review, and provenance fields without granting
+  maneuver execution authority.
 - Operational readiness and quality artifacts: readiness, import-eligibility,
   execution-boundary, quality-gate, safety-case, model-acceptance,
   schema-validation, validation-fixture, operator-training, and unavailable

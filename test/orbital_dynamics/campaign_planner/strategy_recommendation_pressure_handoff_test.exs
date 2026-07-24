@@ -1578,6 +1578,92 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
     end
   end
 
+  @maneuver_execution_uncertainty_context_contracts [
+    {"risk type", "maneuver_execution_uncertainty_risk_types", ["type", "risk_type"],
+     ["maneuver_execution_uncertainty_high"], ["maneuver_execution_uncertainty_missing"]},
+    {"activity identity", "maneuver_execution_uncertainty_activity_ids", "activity_id",
+     ["burn_uncertain_review"], ["stale_burn"]},
+    {"timeline identity", "maneuver_execution_uncertainty_timeline_ids", "timeline_id",
+     ["timeline:maneuver:burn_uncertain_review"], ["timeline:maneuver:stale_burn"]},
+    {"maneuver identity", "maneuver_execution_uncertainty_maneuver_ids", "maneuver_id",
+     ["burn_uncertain_review"], ["stale_burn"]},
+    {"scenario identity", "maneuver_execution_uncertainty_scenario_ids", "scenario_id", ["leo_1"],
+     ["stale_leo_1"]},
+    {"source-activity identity", "maneuver_execution_uncertainty_source_activity_ids",
+     ["source_activity_id", "source_activity_ids"],
+     ["burn_uncertain_source", "burn_uncertain_review"], ["stale_burn_source"]},
+    {"replacement-activity identity", "maneuver_execution_uncertainty_replacement_activity_ids",
+     "replacement_activity_id", ["burn_uncertain_review"], ["stale_burn_replacement"]},
+    {"status", "maneuver_execution_uncertainty_statuses", "execution_uncertainty_status",
+     ["declared"], ["stale_status"]},
+    {"source", "maneuver_execution_uncertainty_sources", "execution_uncertainty_source",
+     ["ops_covariance_review"], ["stale_covariance_source"]},
+    {"uncertainty map", "maneuver_execution_uncertainty_maps", "execution_uncertainty",
+     [
+       %{
+         "delta_v_3sigma_km_s" => [0.0, 0.003, 0.004],
+         "source" => "ops_covariance_review",
+         "timing_3sigma_s" => 75.0
+       }
+     ],
+     [
+       %{
+         "delta_v_3sigma_km_s" => [0.0, 0.003, 0.005],
+         "source" => "ops_covariance_review",
+         "timing_3sigma_s" => 75.0
+       }
+     ]},
+    {"timing three-sigma", "maneuver_execution_uncertainty_timing_3sigma_values_s",
+     "timing_3sigma_s", [75.0], [76.0]},
+    {"timing three-sigma threshold",
+     "maneuver_execution_uncertainty_timing_3sigma_threshold_values_s",
+     "timing_3sigma_threshold_s", [60.0], [61.0]},
+    {"delta-v three-sigma vector", "maneuver_execution_uncertainty_delta_v_3sigma_vectors_km_s",
+     "delta_v_3sigma_km_s", [[0.0, 0.003, 0.004]], [[0.0, 0.003, 0.005]]},
+    {"delta-v three-sigma magnitude",
+     "maneuver_execution_uncertainty_delta_v_3sigma_magnitude_values_km_s",
+     "delta_v_3sigma_magnitude_km_s", [0.005], [0.006]},
+    {"delta-v three-sigma magnitude threshold",
+     "maneuver_execution_uncertainty_delta_v_3sigma_magnitude_threshold_values_km_s",
+     "delta_v_3sigma_magnitude_threshold_km_s", [0.002], [0.003]},
+    {"start timing", "maneuver_execution_uncertainty_start_values_s", "starts_at_s", [620.0],
+     [621.0]},
+    {"end timing", "maneuver_execution_uncertainty_end_values_s", "ends_at_s", [620.0], [621.0]},
+    {"changed fields", "maneuver_execution_uncertainty_changed_fields", ["changed_fields"],
+     ["execution_uncertainty"], ["stale_uncertainty"]},
+    {"required operator action", "maneuver_execution_uncertainty_required_operator_actions",
+     "required_operator_action", ["review_maneuver_execution_uncertainty"],
+     ["stale_operator_action"]},
+    {"operator-review requirement",
+     "maneuver_execution_uncertainty_requires_operator_review_values", "requires_operator_review",
+     [true], [false]},
+    {"feedback source", "maneuver_execution_uncertainty_feedback_sources", "feedback_source",
+     ["mission_state.source_maneuver_review.rows"], ["mission_state.stale_maneuver_review.rows"]},
+    {"feedback scope", "maneuver_execution_uncertainty_feedback_scopes", "feedback_scope",
+     ["maneuver_execution_uncertainty"], ["stale_maneuver_execution_uncertainty"]},
+    {"feedback key", "maneuver_execution_uncertainty_feedback_keys", "feedback_key",
+     ["burn_uncertain_review"], ["stale_burn"]},
+    {"trust boundary", "maneuver_execution_uncertainty_trust_boundaries", "trust_boundary",
+     ["mission_state_maneuver_review"], ["stale_maneuver_review"]},
+    {"derivation reasons", "maneuver_execution_uncertainty_derivation_reasons",
+     ["derivation_reasons"], ["maneuver_review_execution_uncertainty_pressure"],
+     ["stale_maneuver_uncertainty_derivation"]}
+  ]
+
+  for {description, field, source_field, expected_value, stale_value} <-
+        @maneuver_execution_uncertainty_context_contracts do
+    test "maneuver-execution uncertainty #{description} remains source exact across handoffs" do
+      assert_risk_context_contract(
+        StrategyRecommendationPressureEventsFixture.artifact(),
+        unquote(field),
+        {"feedback_scope", "maneuver_execution_uncertainty"},
+        unquote(Macro.escape(source_field)),
+        unquote(Macro.escape(expected_value)),
+        unquote(Macro.escape(stale_value))
+      )
+    end
+  end
+
   test "link-capacity risk type remains source exact across handoffs" do
     assert_risk_context_contract(
       StrategyRecommendationPressureEventsFixture.artifact(),

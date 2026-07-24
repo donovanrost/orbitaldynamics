@@ -5,22 +5,22 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Validate source-exact relay-data-path context.
+Validate source-exact maneuver-execution uncertainty context.
 
 Status:
 Verified; ready to publish.
 
 Selection evidence:
-- The shared recommendation fixture emits all `32/32` relay-data-path routing,
-  custody, latency, capacity, aggregation, safety-assumption, and provenance
-  fields from a live `relay_data_path_pressure` risk.
+- The shared recommendation fixture emits all `25/25` maneuver-execution
+  uncertainty identity, covariance, threshold, timing, review, and provenance
+  fields from a live `maneuver_execution_uncertainty_high` risk.
 - Operator review and Cadence import copy those fields, but the strategy handoff
-  validator has no relay-data-path source-pair registry, so missing or stale
-  copies are not checked against the source recommendation.
+  validator has no maneuver-execution-uncertainty source-pair registry, so
+  missing or stale copies are not checked against the source recommendation.
 
 Intended behavior:
-- Require all 32 relay-data-path fields to remain exact in operator review,
-  direct Cadence import, and review-derived Cadence rows.
+- Require all 25 maneuver-execution-uncertainty fields to remain exact in
+  operator review, direct Cadence import, and review-derived Cadence rows.
 - Reject missing or stale derived context while retaining paired legacy
   omission compatibility when the source risk omits the corresponding field.
 - Preserve provider and Cadence writes, reservation acceptance, operator
@@ -34,36 +34,34 @@ Planned files:
 - field-specific mutation/schema proofs, docs, exports, and ledger
 
 Verification:
-- Focused handoff contracts: `545 passed`.
-- Adjacent relay-data-path producer, replay, review, and communications
-  contracts: `62 passed`.
+- Focused handoff contracts: `570 passed`.
+- Adjacent maneuver review, feedback, uncertainty, and replay contracts:
+  `20 passed`.
 - Contact-allocation regression: `213 passed`.
 - Golden artifacts: `12 passed`.
 - Schema lint: `155/155` artifacts passed with zero warnings.
-- Full suite: `4434 passed`.
+- Full suite: `4459 passed`.
 - Canonical strategy SHA-256 remained
   `c13c37c2ae06849c5d8a49cecaf1c113e0ddcf653c34d32f751efd6815891887`.
-- Exact-copy coverage advanced from `0/32` to `32/32` relay-data-path context
-  fields.
+- Exact-copy coverage advanced from `0/25` to `25/25` maneuver-execution-
+  uncertainty context fields.
 
 Review:
 - Strategy recommendation handoff validation now derives and compares every
-  relay-data-path context field from the source recommendation risk.
-- Thirty-two generated mutation proofs cover operator review, direct Cadence
+  maneuver-execution-uncertainty context field from the source recommendation
+  risk.
+- Twenty-five generated mutation proofs cover operator review, direct Cadence
   import, review-derived Cadence rows, the embedded source-review row, missing
   review context, paired legacy omission, stale direct context, and missing or
-  stale review-derived context, including the valid zero direct-route count.
-- The test-only paired-omission resynchronizer now recomputes relay context with
-  the existing resource families so removing the relay risk discriminator does
-  not leave unrelated derived relay fields stale.
+  stale review-derived context, including the nested covariance map, delta-v
+  vector, and boolean operator-review requirement.
 - Schema exports and the canonical strategy artifact are unchanged because the
-  relay fields were already public and emitted.
-- Safety boundaries remain explicit: no provider request or reservation, relay
-  scheduling, schedule mutation, Cadence write, operator authority, or
-  autonomous execution was added.
+  maneuver-uncertainty fields were already public and emitted.
+- Safety boundaries remain explicit: no maneuver execution, schedule mutation,
+  Cadence write, operator authority, or autonomous execution was added.
 
 Last published slice:
-- `c5e23208` Validate approval boundary handoffs (`4402 passed`, `14/14`).
+- `7d13080d` Validate relay data path handoffs (`4434 passed`, `32/32`).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions while preserving explicit
@@ -74,8 +72,8 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-Reassess the next highest-value maturity gap after `32/32` relay-data-path
-coverage.
+Reassess the next highest-value maturity gap after `25/25` maneuver-execution
+uncertainty coverage.
 
 Blocked:
 None.
