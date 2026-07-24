@@ -5,21 +5,22 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Enforce source-exact score-term provenance.
+Enforce source-exact objective-tradeoff decision routing.
 
 Status:
 Verified; ready to publish.
 
 Selection evidence:
-- Score-term routing, demand, geometry, and scoring state now cover `31/37`
-  fields, leaving six provenance fields.
-- Demand/completion sources, feedback source/scope, trust boundary, and
-  derivation reasons already survive projection but lack exact-copy contracts.
+- Objective-tradeoff pressure has `0/34` exact-copy fields despite existing
+  derived operator-review and Cadence-import context.
+- The first eight risk/objective/target/scenario/branch/station routing values
+  already survive event-risk projection.
 
 Intended behavior:
-- Declare six string arrays requiring exact copies in
+- Declare five stable-ID, two string, and one boolean arrays requiring exact
+  copies in
   review/direct/review-derived Cadence rows.
-- Reject missing or stale derived score-term provenance; retain paired
+- Reject missing or stale derived objective-tradeoff decision routing; retain paired
   legacy omission compatibility for optional source fields.
 - Preserve provider and Cadence writes, reservation acceptance, operator
   authority, and execution boundaries.
@@ -28,34 +29,36 @@ Level 6 pillar advanced:
 Fleet-scale planning decisions and durable reproducible audit handoffs.
 
 Planned files:
-- score-term validation and review/import schemas
-- provenance mutation/schema proofs, docs, exports, and ledger
+- objective-tradeoff validation and review/import schemas
+- routing mutation/schema proofs, docs, exports, and ledger
 
 Verification:
-- Focused handoff/schema contracts: `345 passed`.
+- Focused handoff and schema contracts: `353 passed`.
 - Contact-allocation regression: `213 passed`.
 - Golden artifacts: `12 passed`.
-- Schema lint: `155` artifacts, `0` errors, `0` warnings.
-- Full suite: `4218 passed`.
-- Canonical strategy SHA-256 remains
+- Schema lint: `155/155` artifacts passed with zero warnings.
+- Full suite: `4226 passed`.
+- Canonical strategy SHA-256 remained
   `f7fc7823d071db82124af4b903e5be730983d1d9cb96f4524c711041c750ca1c`.
+- Exact-copy coverage advanced from `0/34` to `8/34` objective-tradeoff
+  fields.
 
 Review:
-- Score-term coverage reaches `37/37` fields across operator review, direct
-  Cadence import, and review-derived import.
-- All six provenance fields already survived event-risk projection; no adapter
-  repair was needed.
-- Public schemas type demand/completion sources, feedback source/scope, trust
-  boundary, and derivation reasons as string arrays.
-- Shared mutation coverage proves exact copies plus missing review, paired
-  legacy omission, stale direct, and missing/stale review-derived contexts.
-- Diff is limited to validation/schema surfaces, focused proofs, docs, ten
-  generated schemas, and this ledger; canonical strategy is unchanged.
-- No provider/Cadence write, reservation acceptance, schedule mutation,
-  operator-authority grant, or execution path was introduced.
+- Eight routing fields already survived the event-risk projection, so no
+  runtime adapter change was required.
+- Public schemas use five stable-ID arrays, two string arrays, and one boolean
+  array consistently across operator review, direct import, and source-review
+  rows.
+- Mutation proofs cover all four copies, missing review context, paired legacy
+  omission, stale direct context, and missing/stale review-derived context.
+- Generated changes are limited to the expected ten schema artifacts; the
+  canonical strategy artifact is unchanged.
+- Safety boundaries remain explicit: no provider request or reservation,
+  schedule mutation, Cadence write, operator authority, or autonomous
+  execution was added.
 
 Last published slice:
-- `1703f75a` Validate score term scoring state (`4212 passed`, `31/37`).
+- `2be22748` Validate score term provenance (`4218 passed`, `37/37`).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions while preserving explicit
@@ -66,7 +69,7 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-Assess the next mature planning pressure family.
+Assess objective-tradeoff entity routing.
 
 Blocked:
 None.

@@ -2098,6 +2098,94 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
     )
   end
 
+  test "objective-tradeoff risk type remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "objective_tradeoff_pressure_risk_types",
+      {"feedback_scope", "objective_tradeoff"},
+      ["type", "risk_type"],
+      ["downlink_completion_gap"],
+      ["stale_objective_tradeoff_risk"]
+    )
+  end
+
+  test "objective-tradeoff objective identity remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "objective_tradeoff_pressure_objective_ids",
+      {"feedback_scope", "objective_tradeoff"},
+      "objective_id",
+      ["objective_tradeoff:latency_gap"],
+      ["objective_tradeoff:stale"]
+    )
+  end
+
+  test "objective-tradeoff objective type remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "objective_tradeoff_pressure_objective_types",
+      {"feedback_scope", "objective_tradeoff"},
+      "objective_type",
+      ["collection_latency"],
+      ["stale_collection_latency"]
+    )
+  end
+
+  test "objective-tradeoff latency-objective flag remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "objective_tradeoff_pressure_latency_objective_values",
+      {"feedback_scope", "objective_tradeoff"},
+      "latency_objective",
+      [true],
+      [false]
+    )
+  end
+
+  test "objective-tradeoff target identity remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "objective_tradeoff_pressure_target_ids",
+      {"feedback_scope", "objective_tradeoff"},
+      "target_id",
+      ["target_tradeoff"],
+      ["stale_target_tradeoff"]
+    )
+  end
+
+  test "objective-tradeoff scenario identity remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "objective_tradeoff_pressure_scenario_ids",
+      {"feedback_scope", "objective_tradeoff"},
+      "scenario_id",
+      ["leo_1"],
+      ["stale_leo_1"]
+    )
+  end
+
+  test "objective-tradeoff branch identity remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "objective_tradeoff_pressure_branch_ids",
+      {"feedback_scope", "objective_tradeoff"},
+      "branch_id",
+      ["urgent"],
+      ["stale_urgent"]
+    )
+  end
+
+  test "objective-tradeoff station identity remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "objective_tradeoff_pressure_ground_station_ids",
+      {"feedback_scope", "objective_tradeoff"},
+      "ground_station_id",
+      ["madrid"],
+      ["stale_madrid"]
+    )
+  end
+
   test "station conflict expiration risk context remains source exact across handoffs" do
     assert_risk_expiration_context_contract(
       StrategyRecommendationPressureEventsFixture.artifact(),
