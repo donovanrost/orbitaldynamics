@@ -590,6 +590,10 @@ defmodule OrbitalDynamics.Schema.StrategyHandoffContracts do
      "timeline_lifecycle_state_derivation_reasons"},
     {"timeline_lifecycle_state_assumption_maps", "timeline_lifecycle_state_assumption_maps"}
   ]
+  @operational_feedback_context_field_pairs Enum.map(
+                                              OrbitalDynamics.RecommendationRiskContext.OperationalFeedback.field_pairs(),
+                                              fn {field, _source_fields} -> {field, field} end
+                                            )
   @maneuver_execution_uncertainty_context_field_pairs [
     {"maneuver_execution_uncertainty_risk_types", "maneuver_execution_uncertainty_risk_types"},
     {"maneuver_execution_uncertainty_activity_ids",
@@ -1226,6 +1230,7 @@ defmodule OrbitalDynamics.Schema.StrategyHandoffContracts do
     {@timeline_dependency_impact_context_field_pairs, :timeline_dependency_impact_context},
     {@timeline_publication_context_field_pairs, :timeline_publication_context},
     {@timeline_lifecycle_state_context_field_pairs, :timeline_lifecycle_state_context},
+    {@operational_feedback_context_field_pairs, :operational_feedback_context},
     {@maneuver_execution_uncertainty_context_field_pairs,
      :maneuver_execution_uncertainty_context},
     {@relay_data_path_context_field_pairs, :relay_data_path_context},

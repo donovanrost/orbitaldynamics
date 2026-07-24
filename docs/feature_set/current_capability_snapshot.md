@@ -85,7 +85,10 @@ Implemented or partially implemented modules and artifacts include:
   invalidating downstream products. Timeline-lifecycle-state handoffs preserve
   all 34 lifecycle status, count, transition, review, identity,
   safety-assumption, and provenance fields without applying lifecycle state or
-  mutating timelines.
+  mutating timelines. Operational-feedback handoffs preserve all 77 contact,
+  observation, station-throughput, realized-result, identity, transition,
+  review, and provenance fields without executing activities or mutating
+  station capacity.
 - Operational readiness and quality artifacts: readiness, import-eligibility,
   execution-boundary, quality-gate, safety-case, model-acceptance,
   schema-validation, validation-fixture, operator-training, and unavailable

@@ -2167,6 +2167,45 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
     end
   end
 
+  @operational_feedback_risk_types [
+    "contact_success_rate_low",
+    "observation_success_rate_low",
+    "station_throughput_factor_low"
+  ]
+  @operational_feedback_context_contracts Enum.map(
+                                            OrbitalDynamics.RecommendationRiskContext.OperationalFeedback.field_pairs(),
+                                            fn {field, source_fields} ->
+                                              legacy_mode =
+                                                if field ==
+                                                     "strategy_operational_feedback_risk_types",
+                                                   do: :drop_risk,
+                                                   else: :drop_field
+
+                                              {field, source_fields, legacy_mode}
+                                            end
+                                          )
+
+  for {field, source_fields, legacy_mode} <- @operational_feedback_context_contracts do
+    test "operational-feedback #{field} remains source exact across handoffs" do
+      artifact = StrategyRecommendationPressureEventsFixture.artifact()
+
+      expected_value =
+        artifact["operator_review_package"]["rows"]
+        |> Enum.find(&(&1["review_type"] == "strategy_recommendation"))
+        |> Map.fetch!(unquote(field))
+
+      assert_risk_context_contract(
+        artifact,
+        unquote(field),
+        {"type", unquote(@operational_feedback_risk_types)},
+        unquote(Macro.escape(source_fields)),
+        expected_value,
+        stale_context_value(expected_value),
+        unquote(legacy_mode)
+      )
+    end
+  end
+
   test "link-capacity risk type remains source exact across handoffs" do
     assert_risk_context_contract(
       StrategyRecommendationPressureEventsFixture.artifact(),
@@ -6181,6 +6220,16 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
     |> sync_mutated_risk_contexts()
   end
 
+  defp stale_context_value([_, _ | _] = values), do: Enum.reverse(values)
+  defp stale_context_value([value]) when is_boolean(value), do: [not value]
+  defp stale_context_value([value]) when is_integer(value), do: [value + 1]
+  defp stale_context_value([value]) when is_float(value), do: [value + 1.0]
+  defp stale_context_value([value]) when is_binary(value), do: ["stale_" <> value]
+
+  defp stale_context_value([%{} = value]) do
+    [Map.put(value, "transition_reason", "stale operational feedback transition")]
+  end
+
   defp sync_mutated_risk_contexts(row) do
     risks = get_in(row, ["source_recommendation", "risks_remaining"])
 
@@ -6189,7 +6238,9 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
         OrbitalDynamics.RecommendationRiskContext.ResourceMargin.context_keys() ++
         OrbitalDynamics.RecommendationRiskContext.ResourceProjection.context_keys() ++
         OrbitalDynamics.RecommendationRiskContext.ExecutionSuccessFeedback.context_keys() ++
-        OrbitalDynamics.RecommendationRiskContext.RelayDataPath.context_keys()
+        OrbitalDynamics.RecommendationRiskContext.RelayDataPath.context_keys() ++
+        OrbitalDynamics.RecommendationRiskContext.ObjectiveSatisfaction.context_keys() ++
+        OrbitalDynamics.RecommendationRiskContext.OperationalFeedback.context_keys()
 
     context =
       risks
@@ -6200,6 +6251,8 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
         OrbitalDynamics.RecommendationRiskContext.ExecutionSuccessFeedback.context(risks)
       )
       |> Map.merge(OrbitalDynamics.RecommendationRiskContext.RelayDataPath.context(risks))
+      |> Map.merge(OrbitalDynamics.RecommendationRiskContext.ObjectiveSatisfaction.context(risks))
+      |> Map.merge(OrbitalDynamics.RecommendationRiskContext.OperationalFeedback.context(risks))
 
     row
     |> Map.drop(context_keys)

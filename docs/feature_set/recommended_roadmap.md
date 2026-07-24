@@ -196,6 +196,9 @@ Already implemented or heavily covered:
 - V3 timeline-lifecycle-state review/import handoffs require all 34 lifecycle
   status, count, transition, review, identity, safety-assumption, and provenance
   fields to stay source exact without lifecycle-application authority
+- V3 operational-feedback review/import handoffs require all 77 contact,
+  observation, station-throughput, realized-result, identity, transition,
+  review, and provenance fields to stay source exact without execution authority
 - an executable registry-derived coverage guard confirms all 33 current
   resource/contact/station/link/provider contracts have curated artifact
   reference fixtures and automatically scopes future matching contracts

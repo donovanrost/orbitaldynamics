@@ -91,6 +91,7 @@ defmodule OrbitalDynamics.RecommendationRiskContext.OperationalFeedback do
     {"strategy_operational_feedback_derivation_reasons", ["derivation_reasons"]}
   ]
 
+  def field_pairs, do: @fields
   def context_keys, do: Enum.map(@fields, &elem(&1, 0))
 
   def context(risks) when is_list(risks) do
