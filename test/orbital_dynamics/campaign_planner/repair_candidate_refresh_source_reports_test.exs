@@ -101,6 +101,11 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
         source: :candidate_refresh_v2_handoff
       )
 
+    source_provider_counteroffer_plan_impact_summary =
+      "study_results/provider_counteroffer_plan_impact_summary_v1.json"
+      |> File.read!()
+      |> :json.decode()
+
     candidate_diff_report =
       candidate_diff_report()
       |> update_in(["invalidated_candidates", Access.at(0)], fn candidate ->
@@ -177,6 +182,10 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
             [source_validation_safety_case_summary]
           )
           |> Map.put("source_provider_counteroffer_report", [source_provider_counteroffer_report])
+          |> Map.put(
+            "source_provider_counteroffer_plan_impact_summary",
+            [source_provider_counteroffer_plan_impact_summary]
+          )
           |> Map.put("source_quality_gate_report", passive_quality_gate_report())
           |> Map.put("operational_feedback", %{
             "station_throughput_factor" => %{"equator_prime" => 0.5}
@@ -923,6 +932,69 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
                artifact["cadence_import_manifest"]["rows"],
                &(&1["source_review_type"] == "provider_counteroffer_review")
              )
+
+    assert artifact["source_provider_counteroffer_plan_impact_summary"] ==
+             source_provider_counteroffer_plan_impact_summary
+
+    assert %{
+             "review_type" => "provider_counteroffer_review",
+             "source" =>
+               "campaign_repair.source_provider_counteroffer_plan_impact_summary.impact_rows",
+             "subject_id" => "provider_offer_1",
+             "provider_counteroffer_id" => "provider_offer_1",
+             "provider_counteroffer_cost_delta" => 125.5,
+             "provider_counteroffer_lock_deadline_s" => 150.0,
+             "provider_counteroffer_starts_at_s" => 130.0,
+             "provider_counteroffer_ends_at_s" => 170.0,
+             "provider_counteroffer_start_delta_s" => 30.0,
+             "provider_counteroffer_end_delta_s" => 30.0,
+             "provider_counteroffer_duration_delta_s" => plan_impact_duration_delta,
+             "station_calendar_entry_id" => "provider_counteroffer_window",
+             "required_operator_action" => "review_provider_counteroffer",
+             "source_provider_counteroffer" => %{
+               "source_provider_counteroffer_summary" => %{
+                 "schema_contract" => "provider_counteroffer_plan_impact_summary.v1",
+                 "plan_impact_status" => "review_required",
+                 "counteroffer_lock_deadline_status_counts" => %{"active" => 1}
+               },
+               "source_station_calendar_entry" => %{
+                 "id" => "provider_counteroffer_window"
+               }
+             }
+           } =
+             Enum.find(
+               artifact["operator_review_package"]["rows"],
+               &(&1["source"] ==
+                   "campaign_repair.source_provider_counteroffer_plan_impact_summary.impact_rows")
+             )
+
+    assert plan_impact_duration_delta == 0.0
+
+    assert %{
+             "import_action" => "review_provider_counteroffer",
+             "source_review_type" => "provider_counteroffer_review",
+             "source" =>
+               "campaign_repair.source_provider_counteroffer_plan_impact_summary.impact_rows",
+             "subject_id" => "provider_offer_1",
+             "provider_counteroffer_start_delta_s" => 30.0,
+             "provider_counteroffer_end_delta_s" => 30.0,
+             "provider_counteroffer_duration_delta_s" => import_duration_delta,
+             "import_status" => "review_required_before_import",
+             "source_review_row" => %{
+               "source_provider_counteroffer" => %{
+                 "source_provider_counteroffer_summary" => %{
+                   "plan_impact_status" => "review_required"
+                 }
+               }
+             }
+           } =
+             Enum.find(
+               artifact["cadence_import_manifest"]["rows"],
+               &(&1["source"] ==
+                   "campaign_repair.source_provider_counteroffer_plan_impact_summary.impact_rows")
+             )
+
+    assert import_duration_delta == 0.0
 
     assert %{
              "contact_allocation_review_count" => 3

@@ -291,6 +291,10 @@ V2 repair `operator_review_package.v1` now emits:
   provider/station, negotiation, reason, cost/timing, lock-deadline, and source-
   calendar context in review-gated Cadence rows without requesting, accepting,
   reserving, or executing an offer.
+- CandidateRefresh source provider-counteroffer plan-impact summaries,
+  preserving exact proposed timing/cost deltas, lock-deadline status, affected
+  calendar identity, assumptions, and source lineage in review-gated handoffs
+  without changing the repaired schedule or provider state.
 - Repaired-plan and CandidateRefresh source link-capacity review rows,
   preserving the upstream report independently from the recomputed repair
   report without applying another scoring effect.

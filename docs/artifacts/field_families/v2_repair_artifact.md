@@ -482,6 +482,12 @@ focused repair-action regressions.
   `source_provider_counteroffer_report`, and routes exact reviewable offers into
   review-gated Cadence import without requesting, accepting, reserving, or
   executing a provider offer.
+- **Source provider-counteroffer plan impact** — V2 also preserves the upstream
+  `provider_counteroffer_plan_impact_summary.v1` at
+  `source_provider_counteroffer_plan_impact_summary`, including exact proposed
+  timing/cost deltas, lock-deadline status, affected calendar identity, and
+  source lineage. Reviewable impact rows remain review-gated and do not alter
+  the repaired schedule or provider state.
 - **Timeline-diff report** also exposes status/action/changed-field count maps,
   duplicate timeline-identity counts, and model limits from the checked-in
   fixture.

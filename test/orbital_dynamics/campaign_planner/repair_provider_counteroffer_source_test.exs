@@ -27,4 +27,29 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairProviderCounterofferSourceTest d
     assert RepairSourceReports.provider_counteroffer(%{}) == nil
     assert RepairSourceReports.provider_counteroffer(nil) == nil
   end
+
+  test "resolves source, collected, and canonical provider-counteroffer plan-impact summaries" do
+    summary = %{
+      "schema_contract" => "provider_counteroffer_plan_impact_summary.v1",
+      "plan_impact_status" => "review_required",
+      "impact_counteroffer_ids" => ["provider_offer_1"]
+    }
+
+    assert RepairSourceReports.provider_counteroffer_plan_impact(%{
+             "source_provider_counteroffer_plan_impact_summary" => summary
+           }) == summary
+
+    assert RepairSourceReports.provider_counteroffer_plan_impact(%{
+             "source_provider_counteroffer_plan_impact_summary" => [summary]
+           }) == summary
+
+    assert RepairSourceReports.provider_counteroffer_plan_impact(%{
+             "provider_counteroffer_plan_impact_summary" => summary
+           }) == summary
+  end
+
+  test "returns nil when candidate refresh has no provider-counteroffer plan impact" do
+    assert RepairSourceReports.provider_counteroffer_plan_impact(%{}) == nil
+    assert RepairSourceReports.provider_counteroffer_plan_impact(nil) == nil
+  end
 end

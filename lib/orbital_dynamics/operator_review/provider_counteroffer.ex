@@ -74,6 +74,10 @@ defmodule OrbitalDynamics.OperatorReview.ProviderCounteroffer do
     end)
   end
 
+  def plan_impact_summary_rows(summary_or_summaries, source) do
+    source_summary_rows(summary_or_summaries, source, "impact_rows")
+  end
+
   defp review_row?(row) do
     row["reviewable"] == true and
       row["required_operator_action"] == "review_provider_counteroffer"

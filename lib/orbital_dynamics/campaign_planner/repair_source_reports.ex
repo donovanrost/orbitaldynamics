@@ -309,6 +309,27 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairSourceReports do
     end
   end
 
+  def provider_counteroffer_plan_impact(candidate_refresh),
+    do: provider_counteroffer_plan_impact(candidate_refresh, default_callbacks())
+
+  def provider_counteroffer_plan_impact(nil, _callbacks), do: nil
+
+  def provider_counteroffer_plan_impact(%{} = candidate_refresh, callbacks) do
+    stringify_keys = Keyword.fetch!(callbacks, :stringify_keys)
+    candidate_refresh = stringify_keys.(candidate_refresh)
+
+    [
+      Map.get(candidate_refresh, "source_provider_counteroffer_plan_impact_summary"),
+      Map.get(candidate_refresh, "provider_counteroffer_plan_impact_summary")
+    ]
+    |> Enum.flat_map(&List.wrap/1)
+    |> Enum.find(&is_map/1)
+    |> case do
+      %{} = summary -> stringify_keys.(summary)
+      _summary -> nil
+    end
+  end
+
   def resource_filter(candidate_refresh),
     do: resource_filter(candidate_refresh, default_callbacks())
 

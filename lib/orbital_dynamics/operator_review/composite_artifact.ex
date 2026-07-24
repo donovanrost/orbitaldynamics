@@ -314,6 +314,10 @@ defmodule OrbitalDynamics.OperatorReview.CompositeArtifact do
         get_in(artifact, ["source_provider_counteroffer_report", "rows"]) || [],
         "campaign_repair.source_provider_counteroffer_report.rows"
       ) ++
+      ProviderCounteroffer.plan_impact_summary_rows(
+        Map.get(artifact, "source_provider_counteroffer_plan_impact_summary"),
+        "campaign_repair.source_provider_counteroffer_plan_impact_summary"
+      ) ++
       LinkCapacity.report_rows(
         Map.get(artifact, "link_capacity_report"),
         "campaign_repair.link_capacity_report"

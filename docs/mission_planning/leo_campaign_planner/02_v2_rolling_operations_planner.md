@@ -311,8 +311,10 @@ schema-type their stable IDs, invalid-input flags, and protected/change counts.
   review-only, remains excluded from Cadence import, and neither certifies a
   model nor changes planning. Source validation-safety-case evidence is likewise
   review-only and does not grant certification, import, or execution authority.
-  Source provider-counteroffer evidence remains review-gated and does not
-  request, accept, reserve, or execute a provider offer. If
+  Source provider-counteroffer evidence, including preserved plan-impact
+  timing/cost deltas and lock-deadline context, remains review-gated and does
+  not change the repaired schedule or request, accept, reserve, or execute a
+  provider offer. If
   an otherwise viable replacement candidate is named exactly in a preserved
   recommendation's `deferred_contact_ids`, replacement ranking applies one
   calibrated `risk_weight` unit and records the contributing resolution group

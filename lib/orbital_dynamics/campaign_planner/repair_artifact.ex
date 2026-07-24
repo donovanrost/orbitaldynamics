@@ -180,6 +180,10 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairArtifact do
       RepairSourceReports.provider_counteroffer(request.candidate_refresh)
     )
     |> put_source_report(
+      "source_provider_counteroffer_plan_impact_summary",
+      RepairSourceReports.provider_counteroffer_plan_impact(request.candidate_refresh)
+    )
+    |> put_source_report(
       "source_resource_filter_report",
       RepairSourceReports.resource_filter(request.candidate_refresh)
     )
