@@ -241,6 +241,18 @@ defmodule OrbitalDynamics.Schema.OperatorReviewRowJsonSchema do
             schema.(:stable_id_array_schema),
           "contact_contention_resolution_pressure_review_statuses" =>
             schema.(:string_array_schema),
+          "contact_contention_resolution_pressure_downlink_demand_sources" =>
+            schema.(:string_array_schema),
+          "contact_contention_resolution_pressure_downlink_completion_sources" =>
+            schema.(:string_array_schema),
+          "contact_contention_resolution_pressure_feedback_sources" =>
+            schema.(:string_array_schema),
+          "contact_contention_resolution_pressure_feedback_scopes" =>
+            schema.(:string_array_schema),
+          "contact_contention_resolution_pressure_trust_boundaries" =>
+            schema.(:string_array_schema),
+          "contact_contention_resolution_pressure_derivation_reasons" =>
+            schema.(:string_array_schema),
           "station_reservation_conflict_contact_ids" => schema.(:stable_id_array_schema),
           "station_reservation_conflict_source_activity_ids" => schema.(:stable_id_array_schema),
           "station_reservation_conflict_ground_station_ids" => schema.(:stable_id_array_schema),

@@ -786,6 +786,72 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
     )
   end
 
+  test "contention-resolution demand source remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "contact_contention_resolution_pressure_downlink_demand_sources",
+      {"contact_id", "dl_capacity_overflow"},
+      "downlink_demand_sources",
+      ["contention_resolution.required_downlink:dl_capacity_overflow"],
+      ["stale_contention_resolution_demand_source"]
+    )
+  end
+
+  test "contention-resolution completion source remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "contact_contention_resolution_pressure_downlink_completion_sources",
+      {"contact_id", "dl_capacity_overflow"},
+      "downlink_completion_sources",
+      ["contact_contention_resolution_report:recommendations"],
+      ["stale_contention_resolution_completion_source"]
+    )
+  end
+
+  test "contention-resolution feedback source remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "contact_contention_resolution_pressure_feedback_sources",
+      {"contact_id", "dl_capacity_overflow"},
+      "feedback_source",
+      ["mission_state.source_contact_allocation_capacity_pack_summary"],
+      ["stale_contention_resolution_feedback_source"]
+    )
+  end
+
+  test "contention-resolution feedback scope remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "contact_contention_resolution_pressure_feedback_scopes",
+      {"contact_id", "dl_capacity_overflow"},
+      "feedback_scope",
+      ["contact_contention_resolution"],
+      ["stale_contact_contention_resolution"]
+    )
+  end
+
+  test "contention-resolution trust boundary remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "contact_contention_resolution_pressure_trust_boundaries",
+      {"contact_id", "dl_capacity_overflow"},
+      "trust_boundary",
+      ["mission_state_capacity_pack_summary"],
+      ["stale_mission_state_capacity_pack_summary"]
+    )
+  end
+
+  test "contention-resolution derivation reasons remain source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "contact_contention_resolution_pressure_derivation_reasons",
+      {"contact_id", "dl_capacity_overflow"},
+      "derivation_reasons",
+      ["contact_contention_deferred", "deferred_by_reduced_station_capacity_pack"],
+      ["stale_contention_resolution_derivation"]
+    )
+  end
+
   test "station conflict expiration risk context remains source exact across handoffs" do
     assert_risk_expiration_context_contract(
       StrategyRecommendationPressureEventsFixture.artifact(),
