@@ -798,6 +798,35 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
     )
   end
 
+  test "station hold source summary remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "source_station_reservation_hold_import_readiness_summaries",
+      {"contact_id", "dl_hold_import_review"},
+      "source_station_reservation_hold_import_readiness_summary",
+      [
+        %{
+          "model" => "artifact_only_station_reservation_hold_import_readiness_summary",
+          "source_artifact_type" => "station_reservation_report.v1",
+          "source" => "station_calendar_report.reservation_evidence",
+          "reservation_hold_count" => 2,
+          "import_readiness_status" => "review_required",
+          "import_classification" => "review_only"
+        }
+      ],
+      [
+        %{
+          "model" => "artifact_only_station_reservation_hold_import_readiness_summary",
+          "source_artifact_type" => "station_reservation_report.v1",
+          "source" => "stale_station_calendar_report.reservation_evidence",
+          "reservation_hold_count" => 2,
+          "import_readiness_status" => "review_required",
+          "import_classification" => "review_only"
+        }
+      ]
+    )
+  end
+
   test "station hold summary model remains source exact across handoffs" do
     assert_risk_context_contract(
       StrategyRecommendationPressureEventsFixture.artifact(),

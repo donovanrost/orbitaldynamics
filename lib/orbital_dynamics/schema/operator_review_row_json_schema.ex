@@ -256,6 +256,11 @@ defmodule OrbitalDynamics.Schema.OperatorReviewRowJsonSchema do
           "station_reservation_hold_feedback_sources" => schema.(:string_array_schema),
           "station_reservation_hold_feedback_scopes" => schema.(:string_array_schema),
           "station_reservation_hold_trust_boundaries" => schema.(:string_array_schema),
+          "source_station_reservation_hold_import_readiness_summaries" => %{
+            "type" => "array",
+            "items" =>
+              schema.(:station_reservation_hold_import_readiness_summary_source_json_schema)
+          },
           "station_reservation_hold_expiration_statuses" => schema.(:string_array_schema),
           "contact_allocation_pressure_risk_types" => schema.(:string_array_schema),
           "contact_allocation_pressure_contact_ids" => schema.(:stable_id_array_schema),

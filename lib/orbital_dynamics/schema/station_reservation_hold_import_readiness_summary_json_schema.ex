@@ -150,6 +150,31 @@ defmodule OrbitalDynamics.Schema.StationReservationHoldImportReadinessSummaryJso
     |> CommonJsonSchema.stable_id_array()
   end
 
+  def source_summary do
+    required = [
+      "model",
+      "source_artifact_type",
+      "source",
+      "reservation_hold_count",
+      "import_readiness_status",
+      "import_classification"
+    ]
+
+    %{
+      "type" => "object",
+      "additionalProperties" => true,
+      "required" => required,
+      "properties" => %{
+        "model" => property("model", []),
+        "source_artifact_type" => property("source_artifact_type", []),
+        "source" => %{"type" => "string"},
+        "reservation_hold_count" => property("reservation_hold_count", []),
+        "import_readiness_status" => property("import_readiness_status", []),
+        "import_classification" => property("import_classification", [])
+      }
+    }
+  end
+
   def import_readiness_row(opts) do
     opts
     |> Keyword.fetch!(:review_row_schema)

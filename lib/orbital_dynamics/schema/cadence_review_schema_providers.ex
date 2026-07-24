@@ -160,6 +160,8 @@ defmodule OrbitalDynamics.Schema.CadenceReviewSchemaProviders do
         CommonJsonSchema.stable_id_array_map(stable_id_pattern)
       end,
       stable_id_array_schema: fn -> CommonJsonSchema.stable_id_array(stable_id_pattern) end,
+      station_reservation_hold_import_readiness_summary_source_json_schema:
+        &OrbitalDynamics.Schema.StationReservationHoldImportReadinessSummaryJsonSchema.source_summary/0,
       string_array_schema: &CommonJsonSchema.string_array/0,
       timeline_activity_precondition_summary_source_json_schema:
         dependency(dependencies, :timeline_activity_precondition_summary_source_schema),

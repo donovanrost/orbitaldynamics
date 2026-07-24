@@ -102,6 +102,7 @@ defmodule OrbitalDynamics.Schema.JsonSchemaExportContractsTest do
       {"station_reservation_hold_feedback_sources", "string", nil},
       {"station_reservation_hold_feedback_scopes", "string", nil},
       {"station_reservation_hold_trust_boundaries", "string", nil},
+      {"source_station_reservation_hold_import_readiness_summaries", "object", nil},
       {"station_reservation_hold_expiration_statuses", "string", nil},
       {"contact_allocation_pressure_risk_types", "string", nil},
       {"contact_allocation_pressure_contact_ids", "string", stable_id_pattern},
@@ -404,6 +405,69 @@ defmodule OrbitalDynamics.Schema.JsonSchemaExportContractsTest do
         assert get_in(item_schema, ["additionalProperties", "type"]) == "integer"
         assert get_in(item_schema, ["additionalProperties", "minimum"]) == 0
       end)
+    end)
+
+    hold_summary_field = "source_station_reservation_hold_import_readiness_summaries"
+
+    hold_summary_schemas = [
+      get_in(review_schema, [
+        "properties",
+        "rows",
+        "items",
+        "properties",
+        hold_summary_field,
+        "items"
+      ]),
+      get_in(import_schema, [
+        "properties",
+        "rows",
+        "items",
+        "properties",
+        hold_summary_field,
+        "items"
+      ]),
+      get_in(import_schema, [
+        "properties",
+        "rows",
+        "items",
+        "properties",
+        "source_review_row",
+        "properties",
+        hold_summary_field,
+        "items"
+      ])
+    ]
+
+    Enum.each(hold_summary_schemas, fn summary_schema ->
+      assert summary_schema["type"] == "object"
+
+      assert summary_schema["required"] == [
+               "model",
+               "source_artifact_type",
+               "source",
+               "reservation_hold_count",
+               "import_readiness_status",
+               "import_classification"
+             ]
+
+      assert get_in(summary_schema, ["properties", "model", "const"]) ==
+               "artifact_only_station_reservation_hold_import_readiness_summary"
+
+      assert get_in(summary_schema, ["properties", "source_artifact_type", "enum"]) ==
+               ["station_reservation_report.v1"]
+
+      assert get_in(summary_schema, ["properties", "source", "type"]) == "string"
+
+      assert get_in(summary_schema, ["properties", "reservation_hold_count", "type"]) ==
+               "integer"
+
+      assert get_in(summary_schema, ["properties", "reservation_hold_count", "minimum"]) == 0
+
+      assert get_in(summary_schema, ["properties", "import_readiness_status", "enum"]) ==
+               ["clear", "review_required"]
+
+      assert get_in(summary_schema, ["properties", "import_classification", "enum"]) ==
+               ["not_applicable", "review_only"]
     end)
 
     overlap_pair_field =
