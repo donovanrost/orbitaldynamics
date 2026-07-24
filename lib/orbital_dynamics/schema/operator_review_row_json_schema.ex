@@ -179,6 +179,9 @@ defmodule OrbitalDynamics.Schema.OperatorReviewRowJsonSchema do
             "type" => "array",
             "items" => %{"type" => "object", "additionalProperties" => true}
           },
+          "provider_reservation_request_feedback_sources" => schema.(:string_array_schema),
+          "provider_reservation_request_feedback_scopes" => schema.(:string_array_schema),
+          "provider_reservation_request_trust_boundaries" => schema.(:string_array_schema),
           "provider_reservation_request_station_reservation_expiration_statuses" =>
             schema.(:string_array_schema),
           "station_reservation_conflict_contact_ids" => schema.(:stable_id_array_schema),

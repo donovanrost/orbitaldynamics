@@ -53,6 +53,12 @@ defmodule OrbitalDynamics.Schema.StrategyHandoffContracts do
      "provider_reservation_request_required_operator_actions"},
     {"provider_reservation_request_assumption_maps",
      "provider_reservation_request_assumption_maps"},
+    {"provider_reservation_request_feedback_sources",
+     "provider_reservation_request_feedback_sources"},
+    {"provider_reservation_request_feedback_scopes",
+     "provider_reservation_request_feedback_scopes"},
+    {"provider_reservation_request_trust_boundaries",
+     "provider_reservation_request_trust_boundaries"},
     {"provider_reservation_request_station_reservation_expiration_statuses",
      "provider_reservation_request_station_reservation_expiration_statuses"}
   ]

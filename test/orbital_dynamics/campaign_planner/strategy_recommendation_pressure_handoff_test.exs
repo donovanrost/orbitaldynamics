@@ -379,6 +379,39 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
     )
   end
 
+  test "provider request feedback source remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "provider_reservation_request_feedback_sources",
+      {"contact_id", "dl_provider_review"},
+      "feedback_source",
+      ["mission_state.source_contact_allocation_provider_reservation_request_summary"],
+      ["stale.source_contact_allocation_provider_reservation_request_summary"]
+    )
+  end
+
+  test "provider request feedback scope remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "provider_reservation_request_feedback_scopes",
+      {"contact_id", "dl_provider_review"},
+      "feedback_scope",
+      ["contact_allocation_provider_reservation_request"],
+      ["stale_contact_allocation_provider_reservation_request"]
+    )
+  end
+
+  test "provider request trust boundary remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "provider_reservation_request_trust_boundaries",
+      {"contact_id", "dl_provider_review"},
+      "trust_boundary",
+      ["mission_state_provider_reservation_request_summary"],
+      ["stale_mission_state_provider_reservation_request_summary"]
+    )
+  end
+
   test "station conflict expiration risk context remains source exact across handoffs" do
     assert_risk_expiration_context_contract(
       StrategyRecommendationPressureEventsFixture.artifact(),
