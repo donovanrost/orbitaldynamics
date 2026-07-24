@@ -16,6 +16,12 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
       |> File.read!()
       |> :json.decode()
 
+    source_station_reservation_report =
+      "study_results/station_calendar_report_v1.json"
+      |> File.read!()
+      |> :json.decode()
+      |> OrbitalDynamics.station_reservation_report()
+
     candidate_diff_report =
       candidate_diff_report()
       |> update_in(["invalidated_candidates", Access.at(0)], fn candidate ->
@@ -76,6 +82,7 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
             source_reports["source_operational_readiness_report"]
           )
           |> Map.put("source_link_capacity_report", source_link_capacity_report)
+          |> Map.put("source_station_reservation_report", source_station_reservation_report)
           |> Map.put("source_quality_gate_report", passive_quality_gate_report())
           |> Map.put("operational_feedback", %{
             "station_throughput_factor" => %{"equator_prime" => 0.5}
@@ -338,6 +345,44 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
              Enum.find(
                artifact["cadence_import_manifest"]["rows"],
                &(&1["source"] == "campaign_repair.source_link_capacity_report.rows")
+             )
+
+    assert artifact["source_station_reservation_report"] ==
+             source_station_reservation_report
+
+    assert %{
+             "review_type" => "station_reservation_review",
+             "source" => "campaign_repair.source_station_reservation_report.affected_contacts",
+             "contact_id" => "cmd_1",
+             "ground_station_id" => "equator_prime",
+             "station_reservation_id" => "provider_reservation_42",
+             "station_reserved_by" => "cadence_ops",
+             "station_reservation_status" => "confirmed",
+             "source_station_reservation" => %{
+               "contact_id" => "cmd_1",
+               "station_reservation_id" => "provider_reservation_42"
+             }
+           } =
+             Enum.find(
+               artifact["operator_review_package"]["rows"],
+               &(&1["source"] ==
+                   "campaign_repair.source_station_reservation_report.affected_contacts")
+             )
+
+    assert %{
+             "import_action" => "review_station_reservation",
+             "source_review_type" => "station_reservation_review",
+             "contact_id" => "cmd_1",
+             "station_reservation_id" => "provider_reservation_42",
+             "import_status" => "review_required_before_import",
+             "source_review_row" => %{
+               "source" => "campaign_repair.source_station_reservation_report.affected_contacts"
+             }
+           } =
+             Enum.find(
+               artifact["cadence_import_manifest"]["rows"],
+               &(get_in(&1, ["source_review_row", "source"]) ==
+                   "campaign_repair.source_station_reservation_report.affected_contacts")
              )
 
     assert %{

@@ -1,7 +1,7 @@
 defmodule OrbitalDynamics.Schema.StationReservationValidation do
   @moduledoc false
 
-  import OrbitalDynamics.Schema.PrimitiveValidation, only: [require_fields: 4]
+  import OrbitalDynamics.Schema.PrimitiveValidation, only: [error: 2, require_fields: 4]
 
   def validate_artifact(issues, path, artifact, contract_name) do
     issues
@@ -11,6 +11,14 @@ defmodule OrbitalDynamics.Schema.StationReservationValidation do
 
   def validate_report_artifact(issues, path, artifact),
     do: validate_artifact(issues, path, artifact, "station_reservation_report.v1")
+
+  def validate_optional_report(issues, _path, nil), do: issues
+
+  def validate_optional_report(issues, path, %{} = report),
+    do: validate_report_artifact(issues, path, report)
+
+  def validate_optional_report(issues, path, _report),
+    do: [error(path, "must be an object") | issues]
 
   def validate_review_artifact(issues, path, artifact),
     do: validate_artifact(issues, path, artifact, "station_reservation_review_summary.v1")

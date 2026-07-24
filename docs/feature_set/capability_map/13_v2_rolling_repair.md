@@ -274,6 +274,10 @@ V2 repair `operator_review_package.v1` now emits:
   deferred IDs contribute one advisory `risk_weight` unit to replacement
   ranking and selected-plan scoring, with sorted resolution group IDs retained
   as the explanation; selected/recommended and unrelated IDs remain neutral.
+- CandidateRefresh source station-reservation affected-contact and provider-
+  contention rows, preserving exact reservation identities for review-gated
+  Cadence import without requesting, accepting, expiring, or mutating a
+  reservation.
 - Source candidate-diff rows.
 - Source contact/resource-suppression rows.
 - Source refresh-freshness and refresh-budget review rows.

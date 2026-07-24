@@ -5,53 +5,53 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Preserve V2 source link-capacity handoff.
+Preserve V2 source station-reservation handoff.
 
 Status:
 Verified; ready to publish.
 
 Selection evidence:
-- CandidateRefresh already retains exact upstream station/contact identities,
-  capacity-adjusted throughput, selection, shortfall, invalid-input, and model
-  evidence in a schema-valid `link_capacity_report.v1`.
-- V2 repair recomputes a repaired-plan `link_capacity_report` but drops the
-  distinct CandidateRefresh source report, so upstream capacity evidence is no
-  longer independently auditable after repair.
-- The existing link-capacity operator-review/Cadence mapping can already lift
-  the exact report rows; the missing V2 source path is therefore a bounded
-  compatibility gap rather than a reason to add another scoring effect.
+- CandidateRefresh already retains exact reservation IDs, owners, statuses,
+  expirations, affected contacts, and provider-contention groups in a schema-
+  valid `station_reservation_report.v1`.
+- V2 repair preserves a repair-time `source_station_calendar_report` but drops
+  the distinct CandidateRefresh reservation report, so upstream reservation
+  identity and trust evidence is no longer independently auditable after repair.
+- Existing station-reservation operator-review/Cadence mapping can already lift
+  the exact report rows; the missing V2 source path is a bounded compatibility
+  gap and does not require provider integration.
 
 Intended behavior:
-- Resolve the CandidateRefresh link-capacity report from its source or canonical
-  field and preserve it on V2 as `source_link_capacity_report` without
-  recomputation.
-- Validate the optional V2 source field against `link_capacity_report.v1` at
-  its distinct source path and export the property.
-- Reuse the existing complete link-capacity review/import mapping so upstream
-  station/contact and throughput evidence remains visible beside the repaired-
-  plan report.
-- Preserve all scores, ranking, candidate eligibility, provider requests or
-  reservations, schedule mutation, Cadence writes, operator authority, and
-  autonomous execution behavior.
+- Resolve the CandidateRefresh station-reservation report from its source or
+  canonical field and preserve it on V2 as
+  `source_station_reservation_report` without recomputation.
+- Validate the optional V2 source field against
+  `station_reservation_report.v1` at its distinct source path and export its
+  nested contract.
+- Reuse the existing station-reservation review/import mapping so exact
+  affected-contact and provider-contention evidence remains visible beside the
+  repair-time station calendar.
+- Preserve all scores, ranking, candidate eligibility, provider requests,
+  reservation acceptance/expiration, schedule mutation, Cadence writes,
+  operator authority, and autonomous execution behavior.
 
 Level 6 pillar advanced:
 Fleet-scale planning decisions and durable reproducible audit handoffs.
 
 Planned files:
 - V2 repair source-report resolution and artifact assembly
-- V2 path-aware schema validation, registry/type hints, and review routing
+- V2 schema validation, registry/type hints, and reservation-review routing
 - focused repair/schema review-import proofs, docs, exports, and ledger
 
 Verification:
 - Focused source resolution, V2 handoff, review/import, and schema proofs:
   `16 passed`.
-- Adjacent link-capacity, operator-review, Cadence-import, and V2 schema
-  contracts: `230 passed`.
+- Adjacent station/reservation, operator-review, Cadence-import, and V2 schema
+  contracts: `244 passed`.
 - Contact-allocation regression: `213 passed`.
 - Golden artifacts: `12 passed`.
 - Schema lint: `155/155` artifacts passed with zero warnings.
-- Full suite after the final list-compatible resolver refinement:
-  `4862 passed`.
+- Full suite: `4867 passed`.
 - Schema regeneration changed only `campaign_repair.v2` and the aggregate
   bundle; the manifest schema remained unchanged.
 - Canonical repair SHA-256 remains
@@ -66,25 +66,27 @@ Verification:
 Review:
 - Repair source resolution accepts a direct or collected source report before
   the canonical field and preserves the first exact map without recomputation.
-- The optional V2 field validates at `$.source_link_capacity_report` against
-  the full `link_capacity_report.v1` contract; its exported object property is
-  present in both the standalone repair schema and aggregate bundle.
-- Existing link-capacity mapping lifts the upstream report independently from
-  `campaign_repair.link_capacity_report`. The focused end-to-end proof pins the
-  source path, station/contact identity, capacity-adjusted throughput, nested
-  reduced-capacity evidence, and review-gated Cadence import action.
-- The checked canonical requests carry no CandidateRefresh link-capacity source
-  report, so the optional field is omitted and canonical repair/strategy
+- The optional V2 field validates at
+  `$.source_station_reservation_report` against the full
+  `station_reservation_report.v1` contract; its exported property and nested
+  contract are present in both the standalone repair schema and bundle.
+- Existing station-reservation mapping lifts affected-contact and provider-
+  contention rows independently from the repair-time station calendar. The
+  focused end-to-end proof pins the source path, contact/station identity,
+  reservation ID, owner, status, nested source evidence, and review-gated
+  Cadence import action.
+- The checked canonical requests carry no CandidateRefresh station-reservation
+  source report, so the optional field is omitted and canonical repair/strategy
   content, IDs, scores, branch choice, review/import counts, and hashes remain
   unchanged.
-- The source report is not read by repair scoring, replacement ranking,
-  eligibility, or scheduling code. No provider request/reservation, schedule
-  mutation, Cadence write, operator authority, or autonomous execution was
-  added.
+- The source report is not read by scoring, replacement ranking, eligibility,
+  scheduling, or provider-adapter code. No reservation request, acceptance,
+  expiration, provider/Cadence write, operator authority, or autonomous
+  execution was added.
 
 Last published slice:
-- `fa51ff43` Preserve V2 contact contention handoff (`4857 passed`; exact
-  conflict-group/invalid-input source plus review/import handoff).
+- `3973ca10` Preserve V2 source link capacity handoff (`4862 passed`; exact
+  upstream capacity source plus distinct review/import handoff).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions while preserving explicit
@@ -95,7 +97,7 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-After the upstream link-capacity evidence is durable, reassess the next exact-
+After the station-reservation evidence is durable, reassess the next exact-
 identity allocation/resource or compatibility gap.
 
 Blocked:

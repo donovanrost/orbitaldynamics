@@ -419,6 +419,11 @@ focused repair-action regressions.
   validates it at `source_link_capacity_report`, and routes its existing exact
   review fields into review-gated Cadence import without scoring the evidence a
   second time.
+- **Source station-reservation report** — V2 preserves CandidateRefresh's
+  upstream `station_reservation_report.v1` independently from the repair-time
+  station calendar, validates the nested contract, and routes affected-contact
+  and provider-contention rows into review-gated Cadence import without any
+  provider reservation write or acceptance.
 - **Operational-timeline report** exposes status/action/kind count maps,
   dependency and exclusivity issue counts, duplicate timeline-identity counts,
   invalid activity IDs, and model limits, with executable validation that

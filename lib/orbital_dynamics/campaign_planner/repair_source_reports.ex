@@ -100,6 +100,27 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairSourceReports do
     end
   end
 
+  def station_reservation(candidate_refresh),
+    do: station_reservation(candidate_refresh, default_callbacks())
+
+  def station_reservation(nil, _callbacks), do: nil
+
+  def station_reservation(%{} = candidate_refresh, callbacks) do
+    stringify_keys = Keyword.fetch!(callbacks, :stringify_keys)
+    candidate_refresh = stringify_keys.(candidate_refresh)
+
+    [
+      Map.get(candidate_refresh, "source_station_reservation_report"),
+      Map.get(candidate_refresh, "station_reservation_report")
+    ]
+    |> Enum.flat_map(&List.wrap/1)
+    |> Enum.find(&is_map/1)
+    |> case do
+      %{} = report -> stringify_keys.(report)
+      _report -> nil
+    end
+  end
+
   def resource_filter(candidate_refresh),
     do: resource_filter(candidate_refresh, default_callbacks())
 
