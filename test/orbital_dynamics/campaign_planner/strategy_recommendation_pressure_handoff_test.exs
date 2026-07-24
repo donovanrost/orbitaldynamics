@@ -1870,6 +1870,121 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
     end
   end
 
+  @timeline_publication_context_contracts [
+    {"identity", "timeline_publication_ids", "publication_id",
+     ["timeline_publication:9:timeline:selected_plan:v2:timeline:selected_plan:v1"],
+     ["timeline_publication:stale"]},
+    {"sequence", "timeline_publication_sequences", "publication_sequence", [9], [10]},
+    {"status", "timeline_publication_statuses", "publication_status",
+     ["published_with_downstream_invalidations"], ["stale_publication_status"]},
+    {"downstream invalidation status", "timeline_publication_downstream_invalidation_statuses",
+     "downstream_invalidation_status", ["invalidated"], ["stale_invalidation_status"]},
+    {"dependency-impact status", "timeline_publication_dependency_impact_statuses",
+     "dependency_impact_status", ["review_required"], ["stale_dependency_status"]},
+    {"source-artifact identity", "timeline_publication_source_artifact_ids", "source_artifact_id",
+     ["timeline:selected_plan:v2"], ["timeline:stale_plan"]},
+    {"source-artifact type", "timeline_publication_source_artifact_types", "source_artifact_type",
+     ["operational_timeline_report.v1"], ["stale_timeline_report.v1"]},
+    {"authority", "timeline_publication_authorities", "publication_authority",
+     ["mission_operations"], ["stale_authority"]},
+    {"superseded artifact identities", "timeline_publication_supersedes_artifact_ids",
+     ["supersedes_artifact_ids"], ["timeline:selected_plan:v1"], ["timeline:stale_plan"]},
+    {"downstream product identities", "timeline_publication_downstream_product_ids",
+     ["downstream_product_ids"], ["operator_review:selected:v1", "cadence_import:selected:v1"],
+     ["stale_downstream_product"]},
+    {"invalidated downstream product identities",
+     "timeline_publication_invalidated_downstream_product_ids",
+     ["invalidated_downstream_product_ids"],
+     ["cadence_import:selected:v1", "operator_review:selected:v1"],
+     ["stale_invalidated_product"]},
+    {"downstream invalidation reason counts",
+     "timeline_publication_downstream_invalidation_reason_count_maps",
+     "downstream_invalidation_reason_counts", [%{"dependency_impact_review_required" => 2}],
+     [%{"dependency_impact_review_required" => 3}]},
+    {"downstream invalidation reasons", "timeline_publication_downstream_invalidation_reasons",
+     ["downstream_invalidation_reasons"], ["dependency_impact_review_required"],
+     ["stale_invalidation_reason"]},
+    {"invalidated products by reason",
+     "timeline_publication_invalidated_downstream_product_ids_by_reason",
+     "invalidated_downstream_product_ids_by_reason",
+     [
+       %{
+         "dependency_impact_review_required" => [
+           "cadence_import:selected:v1",
+           "operator_review:selected:v1"
+         ]
+       }
+     ], [%{"dependency_impact_review_required" => ["stale_invalidated_product"]}]},
+    {"dependency-impact row count", "timeline_publication_dependency_impact_row_count_values",
+     "dependency_impact_row_count", [2], [3]},
+    {"timeline-diff row count", "timeline_publication_timeline_diff_row_count_values",
+     "timeline_diff_row_count", [3], [4]},
+    {"timeline-diff changed count", "timeline_publication_timeline_diff_changed_count_values",
+     "timeline_diff_changed_count", [2], [3]},
+    {"timeline-diff review-required count",
+     "timeline_publication_timeline_diff_review_required_count_values",
+     "timeline_diff_review_required_count", [1], [2]},
+    {"changed-field counts", "timeline_publication_changed_field_count_maps",
+     "changed_field_counts", [%{"timeline_presence" => 2}], [%{"timeline_presence" => 3}]},
+    {"changed fields", "timeline_publication_changed_fields", ["changed_fields"],
+     ["timeline_presence"], ["stale_changed_field"]},
+    {"changed timeline identities", "timeline_publication_changed_timeline_ids",
+     ["changed_timeline_ids"], ["timeline:health_check:0.0"], ["timeline:stale_change"]},
+    {"review timeline identities", "timeline_publication_review_timeline_ids",
+     ["review_timeline_ids"], ["timeline:health_check:0.0", "timeline:health_check:5.0"],
+     ["timeline:stale_review"]},
+    {"timeline identities by changed field", "timeline_publication_timeline_ids_by_changed_field",
+     "timeline_ids_by_changed_field",
+     [
+       %{
+         "timeline_presence" => ["timeline:health_check:0.0", "timeline:health_check:5.0"]
+       }
+     ], [%{"timeline_presence" => ["timeline:stale_change"]}]},
+    {"feedback source", "timeline_publication_feedback_sources", "feedback_source",
+     ["mission_state.source_timeline_publication_summary"],
+     ["mission_state.stale_timeline_publication_summary"]},
+    {"feedback scope", "timeline_publication_feedback_scopes", "feedback_scope",
+     ["timeline_publication"], ["stale_timeline_publication"]},
+    {"feedback key", "timeline_publication_feedback_keys", "feedback_key",
+     ["timeline_publication:9:timeline:selected_plan:v2:timeline:selected_plan:v1"],
+     ["timeline_publication:stale"]},
+    {"trust boundary", "timeline_publication_trust_boundaries", "trust_boundary",
+     ["mission_state_timeline_publication_summary"], ["stale_publication_boundary"]},
+    {"derivation reasons", "timeline_publication_derivation_reasons", ["derivation_reasons"],
+     ["timeline_publication_summary_pressure"], ["stale_publication_derivation"]},
+    {"safety assumptions", "timeline_publication_assumption_maps", "assumptions",
+     [
+       %{
+         "import_approval" => "not_granted_by_strategy_branch",
+         "notification_delivery" => "not_performed_by_strategy_branch",
+         "operator_authority" => "not_granted_by_strategy_branch",
+         "publication_execution" => "not_performed_by_strategy_branch"
+       }
+     ],
+     [
+       %{
+         "import_approval" => "not_granted_by_strategy_branch",
+         "notification_delivery" => "not_performed_by_strategy_branch",
+         "operator_authority" => "not_granted_by_strategy_branch",
+         "publication_execution" => "stale_publication_execution"
+       }
+     ]}
+  ]
+
+  for {description, field, source_field, expected_value, stale_value} <-
+        @timeline_publication_context_contracts do
+    test "timeline-publication #{description} remains source exact across handoffs" do
+      assert_risk_context_contract(
+        StrategyRecommendationPressureEventsFixture.artifact(),
+        unquote(field),
+        {"feedback_scope", "timeline_publication"},
+        unquote(Macro.escape(source_field)),
+        unquote(Macro.escape(expected_value)),
+        unquote(Macro.escape(stale_value))
+      )
+    end
+  end
+
   test "link-capacity risk type remains source exact across handoffs" do
     assert_risk_context_contract(
       StrategyRecommendationPressureEventsFixture.artifact(),

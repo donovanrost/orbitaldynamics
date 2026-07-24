@@ -79,7 +79,10 @@ Implemented or partially implemented modules and artifacts include:
   all 38 command/maneuver identity, realized-result, success-factor, transition,
   mismatch, review, and provenance fields for closed-loop planning evidence.
   Timeline-dependency-impact handoffs preserve all 19 dependency, exclusivity,
-  impact, operator-action, identity, and provenance fields.
+  impact, operator-action, identity, and provenance fields. Timeline-publication
+  handoffs preserve all 29 publication, invalidation, diff, dependency-impact,
+  safety-assumption, identity, and provenance fields without publishing or
+  invalidating downstream products.
 - Operational readiness and quality artifacts: readiness, import-eligibility,
   execution-boundary, quality-gate, safety-case, model-acceptance,
   schema-validation, validation-fixture, operator-training, and unavailable

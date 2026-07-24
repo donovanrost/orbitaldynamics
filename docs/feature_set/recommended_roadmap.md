@@ -190,6 +190,9 @@ Already implemented or heavily covered:
 - V3 timeline-dependency-impact review/import handoffs require all 19
   dependency, exclusivity, impact, operator-action, identity, and provenance
   fields to stay source exact across direct and review-derived Cadence rows
+- V3 timeline-publication review/import handoffs require all 29 publication,
+  invalidation, diff, dependency-impact, safety-assumption, identity, and
+  provenance fields to stay source exact without publication authority
 - an executable registry-derived coverage guard confirms all 33 current
   resource/contact/station/link/provider contracts have curated artifact
   reference fixtures and automatically scopes future matching contracts
