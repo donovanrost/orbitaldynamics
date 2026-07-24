@@ -1429,6 +1429,50 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
     )
   end
 
+  test "link-capacity risk type remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "link_capacity_pressure_risk_types",
+      {"ground_station_id", "equator_prime"},
+      ["type", "risk_type"],
+      ["downlink_completion_gap"],
+      ["stale_link_capacity_risk"]
+    )
+  end
+
+  test "link-capacity ground-station identity remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "link_capacity_pressure_ground_station_ids",
+      {"ground_station_id", "equator_prime"},
+      "ground_station_id",
+      ["equator_prime"],
+      ["stale_equator_prime"]
+    )
+  end
+
+  test "link-capacity source-activity identity remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "link_capacity_pressure_source_activity_ids",
+      {"ground_station_id", "equator_prime"},
+      ["source_activity_ids"],
+      ["dl_link_capacity_source"],
+      ["stale_dl_link_capacity_source"]
+    )
+  end
+
+  test "link-capacity source-window identity remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "link_capacity_pressure_source_window_ids",
+      {"ground_station_id", "equator_prime"},
+      ["source_window_id", "source_window_ids"],
+      ["window_link_capacity", "window_link_capacity_backup"],
+      ["stale_window_link_capacity"]
+    )
+  end
+
   test "station conflict expiration risk context remains source exact across handoffs" do
     assert_risk_expiration_context_contract(
       StrategyRecommendationPressureEventsFixture.artifact(),
