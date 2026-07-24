@@ -267,6 +267,27 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairSourceReports do
     end
   end
 
+  def validation_safety_case(candidate_refresh),
+    do: validation_safety_case(candidate_refresh, default_callbacks())
+
+  def validation_safety_case(nil, _callbacks), do: nil
+
+  def validation_safety_case(%{} = candidate_refresh, callbacks) do
+    stringify_keys = Keyword.fetch!(callbacks, :stringify_keys)
+    candidate_refresh = stringify_keys.(candidate_refresh)
+
+    [
+      Map.get(candidate_refresh, "source_validation_safety_case_summary"),
+      Map.get(candidate_refresh, "validation_safety_case_summary")
+    ]
+    |> Enum.flat_map(&List.wrap/1)
+    |> Enum.find(&is_map/1)
+    |> case do
+      %{} = summary -> stringify_keys.(summary)
+      _summary -> nil
+    end
+  end
+
   def resource_filter(candidate_refresh),
     do: resource_filter(candidate_refresh, default_callbacks())
 

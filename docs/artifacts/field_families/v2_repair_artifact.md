@@ -472,6 +472,11 @@ focused repair-action regressions.
   `source_model_acceptance_report`, and exposes exact review-required and
   blocked rows for operator review. Model-acceptance review remains excluded
   from Cadence import and does not certify a model or change planning.
+- **Source validation safety case** — V2 preserves CandidateRefresh's upstream
+  `validation_safety_case_summary.v1`, validates it at
+  `source_validation_safety_case_summary`, and exposes exact review-required
+  and blocked evidence for operator review. Safety-case review remains excluded
+  from Cadence import and does not grant certification or execution authority.
 - **Timeline-diff report** also exposes status/action/changed-field count maps,
   duplicate timeline-identity counts, and model limits from the checked-in
   fixture.

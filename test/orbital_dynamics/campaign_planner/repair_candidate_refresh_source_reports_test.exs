@@ -75,6 +75,11 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
         intended_use: :operational_import
       )
 
+    source_validation_safety_case_summary =
+      "study_results/validation_safety_case_summary_v1.json"
+      |> File.read!()
+      |> :json.decode()
+
     candidate_diff_report =
       candidate_diff_report()
       |> update_in(["invalidated_candidates", Access.at(0)], fn candidate ->
@@ -146,6 +151,10 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
           |> Map.put("source_timeline_diff_report", source_timeline_diff_report)
           |> Map.put("source_schema_validation_report", source_schema_validation_report)
           |> Map.put("source_model_acceptance_report", [source_model_acceptance_report])
+          |> Map.put(
+            "source_validation_safety_case_summary",
+            [source_validation_safety_case_summary]
+          )
           |> Map.put("source_quality_gate_report", passive_quality_gate_report())
           |> Map.put("operational_feedback", %{
             "station_throughput_factor" => %{"equator_prime" => 0.5}
@@ -779,6 +788,64 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
     refute Enum.any?(
              artifact["cadence_import_manifest"]["rows"],
              &(&1["source_review_type"] == "model_acceptance_review")
+           )
+
+    assert artifact["source_validation_safety_case_summary"] ==
+             source_validation_safety_case_summary
+
+    assert %{
+             "review_type" => "validation_safety_case_review",
+             "source" => "campaign_repair.source_validation_safety_case_summary.evidence",
+             "action" => "review_validation_safety_case",
+             "required_operator_action" => "review_validation_safety_case",
+             "approval_status" => "operator_review_required",
+             "validation_safety_case_summary_id" =>
+               "validation_safety_case:case:compatibility-example",
+             "validation_safety_case_status" => "blocked",
+             "validation_safety_case_evidence_status" => "review_required",
+             "validation_safety_case_evidence_ref" => evidence_ref,
+             "validation_safety_case_input_contract" => "model_acceptance_report.v1",
+             "validation_safety_case_blocked_evidence_count" => 2,
+             "validation_safety_case_review_required_evidence_count" => 1,
+             "source_validation_safety_case_evidence" => %{
+               "schema_contract" => "model_acceptance_report.v1",
+               "status" => "review_required"
+             },
+             "source_validation_safety_case_summary" => %{
+               "schema_contract" => "validation_safety_case_summary.v1",
+               "status" => "blocked",
+               "evidence_count" => 4,
+               "accepted_evidence_count" => 1,
+               "review_required_evidence_count" => 1,
+               "blocked_evidence_count" => 2
+             }
+           } =
+             Enum.find(
+               artifact["operator_review_package"]["rows"],
+               &(&1["source"] ==
+                   "campaign_repair.source_validation_safety_case_summary.evidence" and
+                   &1["validation_safety_case_evidence_status"] == "review_required")
+             )
+
+    assert evidence_ref ==
+             "model_acceptance_report.v1:model_acceptance:operational_import:orbit_data.simple_json__event.access_windows"
+
+    assert %{
+             "action" => "review_blocked_validation_safety_case",
+             "approval_status" => "blocked_by_policy",
+             "validation_safety_case_evidence_status" => "blocked",
+             "validation_safety_case_input_contract" => "schema_validation_report.v1"
+           } =
+             Enum.find(
+               artifact["operator_review_package"]["rows"],
+               &(&1["source"] ==
+                   "campaign_repair.source_validation_safety_case_summary.evidence" and
+                   &1["validation_safety_case_evidence_status"] == "blocked")
+             )
+
+    refute Enum.any?(
+             artifact["cadence_import_manifest"]["rows"],
+             &(&1["source_review_type"] == "validation_safety_case_review")
            )
 
     assert %{

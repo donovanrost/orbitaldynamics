@@ -18,6 +18,14 @@ defmodule OrbitalDynamics.Schema.ValidationArtifactValidation do
   def validate_optional_model_acceptance_report(issues, path, _report),
     do: [error(path, "must be an object") | issues]
 
+  def validate_optional_safety_case_summary(issues, _path, nil), do: issues
+
+  def validate_optional_safety_case_summary(issues, path, %{} = summary),
+    do: validate(issues, path, summary, "validation_safety_case_summary.v1")
+
+  def validate_optional_safety_case_summary(issues, path, _summary),
+    do: [error(path, "must be an object") | issues]
+
   def validate(issues, path, artifact, "validation_reference_fixture_report.v1" = name),
     do:
       ValidationReferenceContracts.validate_fixture_report(issues, path, artifact, contract(name))

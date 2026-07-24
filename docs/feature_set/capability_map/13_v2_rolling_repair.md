@@ -283,6 +283,10 @@ V2 repair `operator_review_package.v1` now emits:
   identity, intended use, acceptance status, validation level, implementation,
   reason, counts, and model-limit context without certifying models or adding
   Cadence import rows.
+- CandidateRefresh source validation-safety-case rows, preserving exact case/
+  evidence identity, source contract/reference, evidence status, rollup counts,
+  routing maps, and model-limit context without granting certification/import
+  authority or adding Cadence import rows.
 - Repaired-plan and CandidateRefresh source link-capacity review rows,
   preserving the upstream report independently from the recomputed repair
   report without applying another scoring effect.
