@@ -5,22 +5,21 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Enforce source-exact contact-filter reservation state.
+Enforce source-exact contact-filter provenance.
 
 Status:
 Verified; ready to publish.
 
 Selection evidence:
-- Contact-filter routing and demand/timing now cover `13/27` fields, leaving
-  eight filter/reservation-state and six provenance fields.
-- Seven selected state fields survive event-risk projection; suppression reason
-  is dropped even though suppression status is preserved.
+- Contact-filter routing, demand/timing, and reservation state now cover `21/27`
+  fields, leaving only six provenance fields unvalidated and untyped.
+- Demand/completion sources, feedback source/scope, trust boundary, and
+  derivation reasons already survive event-risk projection.
 
 Intended behavior:
-- Preserve suppression reason at the event-risk boundary.
-- Declare eight string/stable-ID arrays requiring exact copies in
+- Declare six string arrays requiring exact copies in
   review/direct/review-derived Cadence rows.
-- Reject missing or stale derived contact-filter reservation state; retain paired
+- Reject missing or stale derived contact-filter provenance; retain paired
   legacy omission compatibility for optional source fields.
 - Preserve provider and Cadence writes, reservation acceptance, operator
   authority, and execution boundaries.
@@ -29,34 +28,34 @@ Level 6 pillar advanced:
 Fleet-scale planning decisions and durable reproducible audit handoffs.
 
 Planned files:
-- contact-filter projection, validation, and review/import schemas
-- filter/reservation mutation/schema proofs, docs, exports, and ledger
+- contact-filter validation and review/import schemas
+- provenance mutation/schema proofs, docs, exports, and ledger
 
 Verification:
-- Focused handoff/schema contracts: `279 passed`.
+- Focused handoff/schema contracts: `285 passed`.
 - Contact-allocation regression: `213 passed`.
 - Golden artifacts: `12 passed`.
 - Schema lint: `155` artifacts, `0` errors, `0` warnings.
-- Full suite: `4152 passed`.
+- Full suite: `4158 passed`.
 - Canonical strategy SHA-256 remains
   `f7fc7823d071db82124af4b903e5be730983d1d9cb96f4524c711041c750ca1c`.
 
 Review:
-- Contact-filter coverage reaches `21/27` fields across operator review, direct
-  Cadence import, and review-derived import.
-- Event-risk projection now preserves the source suppression reason; the other
-  seven selected filter/reservation fields already survived.
-- Public schemas type reservation and calendar-entry identities as stable IDs
-  and the other six state values as string arrays; export proofs cover all eight.
+- The contact-filter family is complete at `27/27` fields across operator
+  review, direct Cadence import, and review-derived import.
+- All six provenance fields already survived event-risk projection; no adapter
+  repair was needed.
+- Public schemas type all six provenance values as string arrays; aggregate
+  export-shape proofs cover every field.
 - Shared mutation coverage proves missing review context, paired legacy
   omission, stale direct context, and missing/stale review-derived context.
-- Diff is limited to projection/validation/schema surfaces, focused proofs,
-  docs, ten generated schemas, and this ledger; canonical strategy is unchanged.
+- Diff is limited to validation/schema surfaces, focused proofs, docs, ten
+  generated schemas, and this ledger; canonical strategy is unchanged.
 - No provider/Cadence write, reservation acceptance, source filter mutation,
   operator-authority grant, or execution path was introduced.
 
 Last published slice:
-- `69e420d6` Validate contact filter demand (`4144 passed`, `13/27`).
+- `a1bfd47a` Validate contact filter reservation state (`4152 passed`, `21/27`).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions while preserving explicit
@@ -67,7 +66,7 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-Assess contact-filter provenance.
+Assess the next fleet-scale allocation handoff family.
 
 Blocked:
 None.

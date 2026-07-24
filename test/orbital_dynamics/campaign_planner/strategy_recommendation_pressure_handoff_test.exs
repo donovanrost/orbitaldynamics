@@ -1363,6 +1363,72 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
     )
   end
 
+  test "contact-filter downlink-demand source remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "contact_filter_pressure_downlink_demand_sources",
+      {"contact_id", "dl_contact_filter_suppressed"},
+      ["downlink_demand_sources"],
+      ["contact_filter:dl_contact_filter_suppressed"],
+      ["stale_contact_filter_demand"]
+    )
+  end
+
+  test "contact-filter completion source remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "contact_filter_pressure_downlink_completion_sources",
+      {"contact_id", "dl_contact_filter_suppressed"},
+      ["downlink_completion_sources"],
+      ["contact_filter_report:suppressed_candidates"],
+      ["stale_contact_filter_completion"]
+    )
+  end
+
+  test "contact-filter feedback source remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "contact_filter_pressure_feedback_sources",
+      {"contact_id", "dl_contact_filter_suppressed"},
+      "feedback_source",
+      ["mission_state.source_contact_filter_report.suppressed_candidates"],
+      ["stale_contact_filter_feedback"]
+    )
+  end
+
+  test "contact-filter feedback scope remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "contact_filter_pressure_feedback_scopes",
+      {"contact_id", "dl_contact_filter_suppressed"},
+      "feedback_scope",
+      ["contact_filter"],
+      ["stale_contact_filter"]
+    )
+  end
+
+  test "contact-filter trust boundary remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "contact_filter_pressure_trust_boundaries",
+      {"contact_id", "dl_contact_filter_suppressed"},
+      "trust_boundary",
+      ["mission_state_contact_filter_report"],
+      ["stale_contact_filter_boundary"]
+    )
+  end
+
+  test "contact-filter derivation reasons remain source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "contact_filter_pressure_derivation_reasons",
+      {"contact_id", "dl_contact_filter_suppressed"},
+      ["derivation_reasons"],
+      ["contact_filter_suppressed", "station_reserved"],
+      ["stale_contact_filter_reason"]
+    )
+  end
+
   test "station conflict expiration risk context remains source exact across handoffs" do
     assert_risk_expiration_context_contract(
       StrategyRecommendationPressureEventsFixture.artifact(),
