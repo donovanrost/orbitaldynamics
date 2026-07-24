@@ -64,7 +64,9 @@ Implemented or partially implemented modules and artifacts include:
   value, and provenance fields to stay source exact across direct and review-
   derived Cadence rows. The parallel resource-margin context preserves all 22
   field/value, threshold, timing, review, identity, and provenance fields with
-  the same source-exact guarantees.
+  the same source-exact guarantees. Resource-projection handoffs preserve the
+  17-field projected-downlink identity, demand, timing, routing, and provenance
+  subset with equivalent source-exact validation.
 - Operational readiness and quality artifacts: readiness, import-eligibility,
   execution-boundary, quality-gate, safety-case, model-acceptance,
   schema-validation, validation-fixture, operator-training, and unavailable

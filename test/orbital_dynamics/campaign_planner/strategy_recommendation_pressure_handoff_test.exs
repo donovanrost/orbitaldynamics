@@ -5089,6 +5089,64 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
     end
   end
 
+  @resource_projection_downlink_context_contracts [
+    {"risk type", "resource_projection_pressure_risk_types", ["type", "risk_type"],
+     ["downlink_completion_gap"], ["stale_resource_projection_risk"]},
+    {"scenario identity", "resource_projection_pressure_scenario_ids", "scenario_id",
+     ["leo_projection_selected"], ["stale_scenario"]},
+    {"spacecraft identity", "resource_projection_pressure_spacecraft_ids", "spacecraft_id",
+     ["leo_projection_selected"], ["stale_spacecraft"]},
+    {"ground-station identity", "resource_projection_pressure_ground_station_ids",
+     "ground_station_id", ["polar_prime"], ["stale_station"]},
+    {"source activity identity", "resource_projection_pressure_source_activity_ids",
+     ["source_activity_id", "source_activity_ids"], ["obs_projection_pressure"],
+     ["stale_projection_activity"]},
+    {"required contacts", "resource_projection_pressure_required_contact_values",
+     "required_contacts", [1], [2]},
+    {"planned contacts", "resource_projection_pressure_planned_contact_values",
+     "planned_contacts", [0], [1]},
+    {"required downlink", "resource_projection_pressure_required_downlink_values_mb",
+     "required_downlink_mb", [52.0], [53.0]},
+    {"planned downlink", "resource_projection_pressure_planned_downlink_values_mb",
+     "planned_downlink_mb", [12.0], [13.0]},
+    {"start timing", "resource_projection_pressure_start_values_s", "starts_at_s", [1_590.0],
+     [1_591.0]},
+    {"end timing", "resource_projection_pressure_end_values_s", "ends_at_s", [1_650.0],
+     [1_651.0]},
+    {"downlink demand source", "resource_projection_pressure_downlink_demand_sources",
+     ["downlink_demand_sources"],
+     ["resource_projection.projected_downlink_shortfall:obs_projection_pressure"],
+     ["resource_projection.stale_downlink_demand:obs_projection_pressure"]},
+    {"downlink completion source", "resource_projection_pressure_downlink_completion_sources",
+     ["downlink_completion_sources"],
+     ["resource_projection.projected_downlink_shortfall:obs_projection_pressure"],
+     ["resource_projection.stale_downlink_completion:obs_projection_pressure"]},
+    {"feedback source", "resource_projection_pressure_feedback_sources", "feedback_source",
+     ["mission_state.source_resource_projection_report"],
+     ["mission_state.stale_resource_projection_report"]},
+    {"feedback scope", "resource_projection_pressure_feedback_scopes", "feedback_scope",
+     ["resource_projection"], ["stale_resource_projection"]},
+    {"trust boundary", "resource_projection_pressure_trust_boundaries", "trust_boundary",
+     ["mission_state_resource_projection_report"], ["stale_resource_projection_boundary"]},
+    {"derivation reason", "resource_projection_pressure_derivation_reasons",
+     ["derivation_reasons"], ["projected_downlink_shortfall"],
+     ["stale_resource_projection_derivation"]}
+  ]
+
+  for {description, field, source_field, expected_value, stale_value} <-
+        @resource_projection_downlink_context_contracts do
+    test "resource-projection #{description} remains source exact across handoffs" do
+      assert_risk_context_contract(
+        StrategyRecommendationPressureEventsFixture.artifact(),
+        unquote(field),
+        {"feedback_scope", "resource_projection"},
+        unquote(Macro.escape(source_field)),
+        unquote(Macro.escape(expected_value)),
+        unquote(Macro.escape(stale_value))
+      )
+    end
+  end
+
   defp assert_risk_expiration_context_contract(
          artifact,
          field,
@@ -5293,12 +5351,14 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
     resource_context_keys =
       OrbitalDynamics.RecommendationRiskContext.ResourceFilter.context_keys() ++
-        OrbitalDynamics.RecommendationRiskContext.ResourceMargin.context_keys()
+        OrbitalDynamics.RecommendationRiskContext.ResourceMargin.context_keys() ++
+        OrbitalDynamics.RecommendationRiskContext.ResourceProjection.context_keys()
 
     resource_context =
       risks
       |> OrbitalDynamics.RecommendationRiskContext.ResourceFilter.context()
       |> Map.merge(OrbitalDynamics.RecommendationRiskContext.ResourceMargin.context(risks))
+      |> Map.merge(OrbitalDynamics.RecommendationRiskContext.ResourceProjection.context(risks))
 
     row
     |> Map.drop(resource_context_keys)

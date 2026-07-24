@@ -171,6 +171,9 @@ Already implemented or heavily covered:
 - V3 resource-margin review/import handoffs require all 22 identity, margin,
   threshold, timing, review, and provenance fields to stay source exact across
   direct and review-derived Cadence rows
+- V3 resource-projection review/import handoffs require the 17-field live
+  projected-downlink identity, demand, timing, routing, and provenance subset
+  to stay source exact across direct and review-derived Cadence rows
 - an executable registry-derived coverage guard confirms all 33 current
   resource/contact/station/link/provider contracts have curated artifact
   reference fixtures and automatically scopes future matching contracts

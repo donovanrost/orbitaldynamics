@@ -5,24 +5,26 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Complete source-exact resource-margin context.
+Validate source-exact resource-projection downlink context.
 
 Status:
 Verified; ready to publish.
 
 Selection evidence:
-- The shared recommendation fixture emits all `22/22` declared resource-margin
-  context fields across fuel, power, storage, downlink, and thermal risks.
-- Resource-margin context is declared and copied into review/import rows but is
-  absent from the strategy handoff validator's source-pair registry and has no
-  field-specific mutation proofs.
+- The shared recommendation fixture emits a coherent `17/37` resource-
+  projection subset for a selected projected-downlink shortfall: routing,
+  required/planned contacts and volume, timing, and provenance.
+- Resource-projection context is declared and copied into review/import rows
+  but is absent from the strategy handoff validator's source-pair registry and
+  has no field-specific mutation proofs.
 
 Intended behavior:
-- Require all 22 resource-margin identity, value/threshold, timing, review,
-  status, and provenance fields to remain exact in operator review, direct
+- Require all 17 live resource-projection downlink identity, demand, timing,
+  routing, and provenance fields to remain exact in operator review, direct
   Cadence import, and review-derived Cadence rows.
 - Reject missing or stale derived context while retaining paired legacy
-  omission compatibility for optional source fields.
+  omission compatibility; defer the other 20 declared fields until live
+  fixture evidence supports them.
 - Preserve provider and Cadence writes, reservation acceptance, operator
   authority, and execution boundaries.
 
@@ -34,27 +36,28 @@ Planned files:
 - mutation/schema proofs, docs, exports, and ledger
 
 Verification:
-- Focused handoff contracts: `462 passed`.
-- Adjacent resource-margin, resource-filter, operator-review, and Cadence-import
-  contracts: `33 passed`.
+- Focused handoff contracts: `479 passed`.
+- Adjacent resource-projection, operator-review, and Cadence-import contracts:
+  `13 passed`.
 - Contact-allocation regression: `213 passed`.
 - Golden artifacts: `12 passed`.
 - Schema lint: `155/155` artifacts passed with zero warnings.
-- Full suite: `4351 passed`.
+- Full suite: `4368 passed`.
 - Canonical strategy SHA-256 remained
   `c13c37c2ae06849c5d8a49cecaf1c113e0ddcf653c34d32f751efd6815891887`.
-- Exact-copy coverage advanced from `0/22` to `22/22` resource-margin
+- Exact-copy coverage advanced from `0/37` to `17/37` resource-projection
   context fields.
 
 Review:
-- Strategy recommendation handoff validation now derives and compares all 22
-  resource-margin context fields from the source recommendation risks.
+- Strategy recommendation handoff validation now derives and compares the 17
+  live projected-downlink resource-projection context fields from the source
+  recommendation risks.
 - Mutation proofs cover every direct and review-derived copy, missing review
   context, paired legacy omission, stale direct context, and missing/stale
-  review-derived context.
-- The paired-omission fixture now recomputes overlapping resource-filter and
-  resource-margin aggregates after source mutation, preventing one valid
-  legacy omission from leaving the other derived family stale.
+  review-derived context, including the valid zero planned-contact value.
+- The paired-omission fixture recomputes resource-projection context after
+  source mutation so omitting the family-defining feedback scope cannot leave
+  unrelated derived projection fields stale in the legacy fixture.
 - Schema exports and the canonical strategy artifact are unchanged because the
   fields were already declared and emitted.
 - Safety boundaries remain explicit: no provider request or reservation,
@@ -62,8 +65,7 @@ Review:
   execution was added.
 
 Last published slice:
-- `133228c2` Complete resource filter handoff coverage (`4329 passed`,
-  `27/27`).
+- `32b10e6b` Validate resource margin handoffs (`4351 passed`, `22/22`).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions while preserving explicit
@@ -74,8 +76,8 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-Reassess the next highest-value maturity gap after `22/22` resource-margin
-coverage.
+Complete the remaining `20/37` source-exact resource-projection context fields
+only if live fixture evidence supports a coherent follow-up.
 
 Blocked:
 None.
