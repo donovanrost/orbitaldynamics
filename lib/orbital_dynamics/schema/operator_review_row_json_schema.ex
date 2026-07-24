@@ -165,6 +165,12 @@ defmodule OrbitalDynamics.Schema.OperatorReviewRowJsonSchema do
           "provider_reservation_request_ground_station_ids" => schema.(:stable_id_array_schema),
           "provider_reservation_request_station_reservation_ids" =>
             schema.(:stable_id_array_schema),
+          "provider_reservation_request_station_reserved_by" => schema.(:string_array_schema),
+          "provider_reservation_request_station_reservation_statuses" =>
+            schema.(:string_array_schema),
+          "provider_reservation_request_station_reservation_match_statuses" =>
+            schema.(:string_array_schema),
+          "provider_reservation_request_statuses" => schema.(:string_array_schema),
           "provider_reservation_request_station_reservation_expiration_statuses" =>
             schema.(:string_array_schema),
           "station_reservation_conflict_contact_ids" => schema.(:stable_id_array_schema),
