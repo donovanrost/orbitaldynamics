@@ -88,6 +88,12 @@ defmodule OrbitalDynamics.Schema.StrategyHandoffContracts do
      "station_reservation_conflict_trust_boundaries"}
   ]
   @station_reservation_hold_context_field_pairs [
+    {"station_reservation_hold_import_readiness_summary_models",
+     "station_reservation_hold_import_readiness_summary_models"},
+    {"station_reservation_hold_import_readiness_sources",
+     "station_reservation_hold_import_readiness_sources"},
+    {"station_reservation_hold_import_readiness_source_artifact_types",
+     "station_reservation_hold_import_readiness_source_artifact_types"},
     {"station_reservation_hold_ids", "station_reservation_hold_ids"},
     {"station_reservation_hold_contact_ids", "station_reservation_hold_contact_ids"},
     {"station_reservation_hold_expiration_statuses",

@@ -584,6 +584,39 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
     )
   end
 
+  test "station hold summary model remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "station_reservation_hold_import_readiness_summary_models",
+      {"contact_id", "dl_hold_import_review"},
+      "station_reservation_hold_import_readiness_summary_model",
+      ["artifact_only_station_reservation_hold_import_readiness_summary"],
+      ["stale_station_reservation_hold_import_readiness_summary"]
+    )
+  end
+
+  test "station hold summary source remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "station_reservation_hold_import_readiness_sources",
+      {"contact_id", "dl_hold_import_review"},
+      "station_reservation_hold_import_readiness_source",
+      ["station_calendar_report.reservation_evidence"],
+      ["stale_station_calendar_report.reservation_evidence"]
+    )
+  end
+
+  test "station hold summary source artifact type remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "station_reservation_hold_import_readiness_source_artifact_types",
+      {"contact_id", "dl_hold_import_review"},
+      "station_reservation_hold_import_readiness_source_artifact_type",
+      ["station_reservation_report.v1"],
+      ["stale_station_reservation_report.v1"]
+    )
+  end
+
   test "station calendar expiration risk context remains source exact across handoffs" do
     assert_risk_expiration_context_contract(
       StrategyRecommendationPressureEventsFixture.artifact(),
