@@ -150,6 +150,14 @@ defmodule OrbitalDynamics.Schema.CadenceSourceReviewRowJsonSchema do
           "contact_contention_pressure_ground_station_ids" => schema.(:stable_id_array_schema),
           "contact_contention_pressure_source_activity_ids" => schema.(:stable_id_array_schema),
           "contact_contention_pressure_source_window_ids" => schema.(:stable_id_array_schema),
+          "contact_contention_pressure_required_contact_values" => schema.(:number_array_schema),
+          "contact_contention_pressure_planned_contact_values" => schema.(:number_array_schema),
+          "contact_contention_pressure_required_downlink_values_mb" =>
+            schema.(:number_array_schema),
+          "contact_contention_pressure_planned_downlink_values_mb" =>
+            schema.(:number_array_schema),
+          "contact_contention_pressure_start_values_s" => schema.(:number_array_schema),
+          "contact_contention_pressure_end_values_s" => schema.(:number_array_schema),
           "contact_contention_pressure_group_ids" => schema.(:stable_id_array_schema),
           "station_reservation_conflict_contact_ids" => schema.(:stable_id_array_schema),
           "station_reservation_conflict_source_activity_ids" => schema.(:stable_id_array_schema),

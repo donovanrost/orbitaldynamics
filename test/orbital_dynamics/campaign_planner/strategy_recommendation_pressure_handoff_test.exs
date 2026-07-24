@@ -929,6 +929,72 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
     )
   end
 
+  test "contact-contention required-contact demand remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "contact_contention_pressure_required_contact_values",
+      {"contact_id", "dl_contention_conflict"},
+      "required_contacts",
+      [1],
+      [2]
+    )
+  end
+
+  test "contact-contention planned-contact demand remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "contact_contention_pressure_planned_contact_values",
+      {"contact_id", "dl_contention_conflict"},
+      "planned_contacts",
+      [0],
+      [1]
+    )
+  end
+
+  test "contact-contention required-downlink demand remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "contact_contention_pressure_required_downlink_values_mb",
+      {"contact_id", "dl_contention_conflict"},
+      "required_downlink_mb",
+      [39.0],
+      [40.0]
+    )
+  end
+
+  test "contact-contention planned-downlink demand remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "contact_contention_pressure_planned_downlink_values_mb",
+      {"contact_id", "dl_contention_conflict"},
+      "planned_downlink_mb",
+      [0.0],
+      [1.0]
+    )
+  end
+
+  test "contact-contention start bound remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "contact_contention_pressure_start_values_s",
+      {"contact_id", "dl_contention_conflict"},
+      "starts_at_s",
+      [1_580.0],
+      [1_579.0]
+    )
+  end
+
+  test "contact-contention end bound remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "contact_contention_pressure_end_values_s",
+      {"contact_id", "dl_contention_conflict"},
+      "ends_at_s",
+      [1_640.0],
+      [1_641.0]
+    )
+  end
+
   test "contact-contention group identity remains source exact across handoffs" do
     assert_risk_context_contract(
       StrategyRecommendationPressureEventsFixture.artifact(),
