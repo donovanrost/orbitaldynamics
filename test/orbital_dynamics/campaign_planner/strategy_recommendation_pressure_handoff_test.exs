@@ -1803,6 +1803,73 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
     end
   end
 
+  @timeline_dependency_impact_context_contracts [
+    {"activity identity", "timeline_dependency_impact_activity_ids", "activity_id",
+     ["cmd_dependency_review"], ["stale_dependency_activity"]},
+    {"timeline identity", "timeline_dependency_impact_timeline_ids", "timeline_id",
+     ["timeline:cmd_dependency_review"], ["timeline:stale_dependency"]},
+    {"scope", "timeline_dependency_impact_scopes", "dependency_impact_scope", ["source"],
+     ["stale_scope"]},
+    {"status", "timeline_dependency_impact_statuses", "dependency_impact_status",
+     ["review_required"], ["stale_status"]},
+    {"required operator action", "timeline_dependency_impact_required_operator_actions",
+     "required_operator_action", ["review_timeline_dependency_impact"],
+     ["stale_operator_action"]},
+    {"operator-action reason", "timeline_dependency_impact_operator_action_reasons",
+     "operator_action_reason", ["dependency_link_impacted_by_timeline_change"],
+     ["stale_action_reason"]},
+    {"dependency activity identities", "timeline_dependency_impact_dependency_activity_ids",
+     ["dependency_activity_ids"], ["health_check"], ["stale_dependency_activity"]},
+    {"dependency timeline identities", "timeline_dependency_impact_dependency_timeline_ids",
+     ["dependency_timeline_ids"], ["timeline:health_check"], ["timeline:stale_dependency"]},
+    {"exclusive activity identities", "timeline_dependency_impact_exclusive_with_activity_ids",
+     ["exclusive_with_activity_ids"], ["downlink_conflict"], ["stale_exclusive_activity"]},
+    {"exclusive timeline identities", "timeline_dependency_impact_exclusive_with_timeline_ids",
+     ["exclusive_with_timeline_ids"], ["timeline:downlink_conflict"],
+     ["timeline:stale_exclusive"]},
+    {"impacted dependency activity identities",
+     "timeline_dependency_impact_impacted_dependency_activity_ids",
+     ["impacted_dependency_activity_ids"], ["health_check"], ["stale_impacted_dependency"]},
+    {"impacted dependency timeline identities",
+     "timeline_dependency_impact_impacted_dependency_timeline_ids",
+     ["impacted_dependency_timeline_ids"], ["timeline:health_check"],
+     ["timeline:stale_impacted_dependency"]},
+    {"impacted exclusive activity identities",
+     "timeline_dependency_impact_impacted_exclusive_with_activity_ids",
+     ["impacted_exclusive_with_activity_ids"], ["downlink_conflict"],
+     ["stale_impacted_exclusive"]},
+    {"impacted exclusive timeline identities",
+     "timeline_dependency_impact_impacted_exclusive_with_timeline_ids",
+     ["impacted_exclusive_with_timeline_ids"], ["timeline:downlink_conflict"],
+     ["timeline:stale_impacted_exclusive"]},
+    {"feedback source", "timeline_dependency_impact_feedback_sources", "feedback_source",
+     ["mission_state.source_timeline_dependency_impact_summary.dependency_impact_rows"],
+     ["mission_state.stale_timeline_dependency_impact_summary.rows"]},
+    {"feedback scope", "timeline_dependency_impact_feedback_scopes", "feedback_scope",
+     ["timeline_dependency_impact"], ["stale_timeline_dependency_impact"]},
+    {"feedback key", "timeline_dependency_impact_feedback_keys", "feedback_key",
+     ["cmd_dependency_review"], ["stale_dependency_key"]},
+    {"trust boundary", "timeline_dependency_impact_trust_boundaries", "trust_boundary",
+     ["mission_state_timeline_dependency_impact_summary"], ["stale_dependency_boundary"]},
+    {"derivation reasons", "timeline_dependency_impact_derivation_reasons",
+     ["derivation_reasons"], ["timeline_dependency_impact_summary_pressure"],
+     ["stale_dependency_derivation"]}
+  ]
+
+  for {description, field, source_field, expected_value, stale_value} <-
+        @timeline_dependency_impact_context_contracts do
+    test "timeline-dependency impact #{description} remains source exact across handoffs" do
+      assert_risk_context_contract(
+        StrategyRecommendationPressureEventsFixture.artifact(),
+        unquote(field),
+        {"feedback_scope", "timeline_dependency_impact"},
+        unquote(Macro.escape(source_field)),
+        unquote(Macro.escape(expected_value)),
+        unquote(Macro.escape(stale_value))
+      )
+    end
+  end
+
   test "link-capacity risk type remains source exact across handoffs" do
     assert_risk_context_contract(
       StrategyRecommendationPressureEventsFixture.artifact(),

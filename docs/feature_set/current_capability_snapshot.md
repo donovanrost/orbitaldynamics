@@ -78,6 +78,8 @@ Implemented or partially implemented modules and artifacts include:
   maneuver execution authority. Execution-success-feedback handoffs preserve
   all 38 command/maneuver identity, realized-result, success-factor, transition,
   mismatch, review, and provenance fields for closed-loop planning evidence.
+  Timeline-dependency-impact handoffs preserve all 19 dependency, exclusivity,
+  impact, operator-action, identity, and provenance fields.
 - Operational readiness and quality artifacts: readiness, import-eligibility,
   execution-boundary, quality-gate, safety-case, model-acceptance,
   schema-validation, validation-fixture, operator-training, and unavailable

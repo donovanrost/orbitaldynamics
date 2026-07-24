@@ -187,6 +187,9 @@ Already implemented or heavily covered:
 - V3 execution-success-feedback review/import handoffs require all 38 command
   and maneuver identity, realized-result, success-factor, transition, mismatch,
   review, and provenance fields to stay source exact
+- V3 timeline-dependency-impact review/import handoffs require all 19
+  dependency, exclusivity, impact, operator-action, identity, and provenance
+  fields to stay source exact across direct and review-derived Cadence rows
 - an executable registry-derived coverage guard confirms all 33 current
   resource/contact/station/link/provider contracts have curated artifact
   reference fixtures and automatically scopes future matching contracts
