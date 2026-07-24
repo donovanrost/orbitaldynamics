@@ -221,6 +221,7 @@ defmodule OrbitalDynamics.CampaignPlanner.EventRiskIndicator.StationDownlinkPres
         "contact_filter_status" => event["contact_filter_status"],
         "suppression_status" => event["suppression_status"],
         "contact_id" => event["contact_id"],
+        "selected_contact_id" => event["selected_contact_id"],
         "contact_result" => event["contact_result"],
         "realized_status" => event["realized_status"],
         "allocation_status" => event["allocation_status"],

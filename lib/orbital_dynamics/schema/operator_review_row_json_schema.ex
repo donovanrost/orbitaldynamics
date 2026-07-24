@@ -203,6 +203,21 @@ defmodule OrbitalDynamics.Schema.OperatorReviewRowJsonSchema do
           "capacity_pack_risk_feedback_sources" => schema.(:string_array_schema),
           "capacity_pack_risk_feedback_scopes" => schema.(:string_array_schema),
           "capacity_pack_risk_trust_boundaries" => schema.(:string_array_schema),
+          "contact_contention_resolution_pressure_risk_types" => schema.(:string_array_schema),
+          "contact_contention_resolution_pressure_contact_ids" =>
+            schema.(:stable_id_array_schema),
+          "contact_contention_resolution_pressure_selected_contact_ids" =>
+            schema.(:stable_id_array_schema),
+          "contact_contention_resolution_pressure_scenario_ids" =>
+            schema.(:stable_id_array_schema),
+          "contact_contention_resolution_pressure_spacecraft_ids" =>
+            schema.(:stable_id_array_schema),
+          "contact_contention_resolution_pressure_ground_station_ids" =>
+            schema.(:stable_id_array_schema),
+          "contact_contention_resolution_pressure_source_activity_ids" =>
+            schema.(:stable_id_array_schema),
+          "contact_contention_resolution_pressure_source_window_ids" =>
+            schema.(:stable_id_array_schema),
           "station_reservation_conflict_contact_ids" => schema.(:stable_id_array_schema),
           "station_reservation_conflict_source_activity_ids" => schema.(:stable_id_array_schema),
           "station_reservation_conflict_ground_station_ids" => schema.(:stable_id_array_schema),

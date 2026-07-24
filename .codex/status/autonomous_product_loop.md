@@ -5,21 +5,22 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Enforce source-exact capacity-pack risk provenance.
+Enforce source-exact contention-resolution risk routing.
 
 Status:
 Verified; ready to publish.
 
 Selection evidence:
-- Capacity-pack routing and quantitative state now cover `9/14` projected fields,
-  leaving only the five provenance fields outside source-exact validation.
-- Required-fraction source, derivation reasons, feedback source/scope, and trust
-  boundary jointly explain the evidence origin and reduction decision.
+- Capacity-pack risk context is complete at `14/14`, exposing the adjacent
+  contact-contention-resolution family as the next allocation handoff gap.
+- Its context module defines 26 fields for all four copies without source-exact
+  validation or public row schemas; the event-risk adapter also drops selected
+  contact identity while the other seven routing fields survive.
 
 Intended behavior:
-- Declare five provenance string arrays requiring exact source-derived copies in
+- Declare one risk-type array and seven stable-ID arrays requiring exact copies in
   review/direct/review-derived Cadence rows.
-- Reject missing or stale derived capacity-pack provenance; retain paired
+- Reject missing or stale derived contention-resolution routing; retain paired
   legacy omission compatibility for optional source fields.
 - Preserve provider and Cadence writes, reservation acceptance, operator
   authority, and execution boundaries.
@@ -28,32 +29,33 @@ Level 6 pillar advanced:
 Fleet-scale planning decisions and durable reproducible audit handoffs.
 
 Planned files:
-- capacity-pack risk validation and review/import schemas
-- provenance mutation/schema proofs, docs, exports, and ledger
+- contention-resolution projection, validation, and review/import schemas
+- routing mutation/schema proofs, docs, exports, and ledger
 
 Verification:
-- Focused handoff/schema contracts: `207 passed`.
+- Focused handoff/schema contracts: `215 passed`.
 - Contact-allocation regression: `213 passed`.
 - Golden artifacts: `12 passed`.
 - Schema lint: `155` artifacts, `0` errors, `0` warnings.
-- Full suite: `4080 passed`.
+- Full suite: `4088 passed`.
 - Canonical strategy SHA-256 remains
   `f7fc7823d071db82124af4b903e5be730983d1d9cb96f4524c711041c750ca1c`.
 
 Review:
-- The capacity-pack family is complete at `14/14` fields across operator review,
-  direct Cadence import, and review-derived import.
-- All five provenance fields are string arrays in each public row schema and in
-  aggregate export-shape proofs.
+- The contention-resolution family now covers `8/26` fields across operator
+  review, direct Cadence import, and review-derived import.
+- The event-risk adapter now preserves selected-contact identity; all seven ID
+  fields are stable-ID arrays and risk type is a string array publicly.
 - Shared mutation coverage proves missing review context, paired legacy
   omission, stale direct context, and missing/stale review-derived context.
-- Diff is limited to validation/schema surfaces, focused proofs, docs, ten
-  generated schemas, and this ledger; canonical strategy is unchanged.
+- Diff is limited to the one-field projection repair, validation/schema surfaces,
+  focused proofs, docs, ten generated schemas, and this ledger; canonical
+  strategy is unchanged.
 - No provider/Cadence write, reservation acceptance, schedule mutation,
   operator-authority grant, or execution path was introduced.
 
 Last published slice:
-- `330c1118` Validate capacity-pack risk state (`4075 passed`, `9/14`).
+- `be18fbd0` Validate capacity-pack risk provenance (`4080 passed`, `14/14`).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions while preserving explicit
@@ -64,7 +66,7 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-Reassess remaining station/allocation risk-context gaps after `14/14` coverage.
+Assess contention-resolution demand and timing context.
 
 Blocked:
 None.

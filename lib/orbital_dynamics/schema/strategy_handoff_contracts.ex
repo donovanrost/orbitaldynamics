@@ -81,6 +81,24 @@ defmodule OrbitalDynamics.Schema.StrategyHandoffContracts do
     {"capacity_pack_risk_feedback_scopes", "capacity_pack_risk_feedback_scopes"},
     {"capacity_pack_risk_trust_boundaries", "capacity_pack_risk_trust_boundaries"}
   ]
+  @contact_contention_resolution_context_field_pairs [
+    {"contact_contention_resolution_pressure_risk_types",
+     "contact_contention_resolution_pressure_risk_types"},
+    {"contact_contention_resolution_pressure_contact_ids",
+     "contact_contention_resolution_pressure_contact_ids"},
+    {"contact_contention_resolution_pressure_selected_contact_ids",
+     "contact_contention_resolution_pressure_selected_contact_ids"},
+    {"contact_contention_resolution_pressure_scenario_ids",
+     "contact_contention_resolution_pressure_scenario_ids"},
+    {"contact_contention_resolution_pressure_spacecraft_ids",
+     "contact_contention_resolution_pressure_spacecraft_ids"},
+    {"contact_contention_resolution_pressure_ground_station_ids",
+     "contact_contention_resolution_pressure_ground_station_ids"},
+    {"contact_contention_resolution_pressure_source_activity_ids",
+     "contact_contention_resolution_pressure_source_activity_ids"},
+    {"contact_contention_resolution_pressure_source_window_ids",
+     "contact_contention_resolution_pressure_source_window_ids"}
+  ]
   @station_reservation_conflict_context_field_pairs [
     {"station_reservation_conflict_contact_ids", "station_reservation_conflict_contact_ids"},
     {"station_reservation_conflict_source_activity_ids",
@@ -377,6 +395,7 @@ defmodule OrbitalDynamics.Schema.StrategyHandoffContracts do
   @strategy_recommendation_risk_context_specs [
     {@provider_reservation_request_context_field_pairs, :provider_reservation_request_context},
     {@capacity_pack_context_field_pairs, :capacity_pack_context},
+    {@contact_contention_resolution_context_field_pairs, :contact_contention_resolution_context},
     {@station_reservation_conflict_context_field_pairs, :station_reservation_conflict_context},
     {@station_reservation_hold_context_field_pairs,
      :station_reservation_hold_import_readiness_context},

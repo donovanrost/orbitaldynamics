@@ -566,6 +566,94 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
     )
   end
 
+  test "contention-resolution risk type remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "contact_contention_resolution_pressure_risk_types",
+      {"contact_id", "dl_capacity_overflow"},
+      ["type", "risk_type"],
+      ["downlink_completion_gap"],
+      ["stale_contention_resolution_risk"]
+    )
+  end
+
+  test "contention-resolution contact identity remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "contact_contention_resolution_pressure_contact_ids",
+      {"contact_id", "dl_capacity_overflow"},
+      "contact_id",
+      ["dl_capacity_overflow"],
+      ["stale_dl_capacity_overflow"]
+    )
+  end
+
+  test "contention-resolution selected-contact identity remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "contact_contention_resolution_pressure_selected_contact_ids",
+      {"contact_id", "dl_capacity_overflow"},
+      "selected_contact_id",
+      ["dl_capacity_selected"],
+      ["stale_dl_capacity_selected"]
+    )
+  end
+
+  test "contention-resolution scenario identity remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "contact_contention_resolution_pressure_scenario_ids",
+      {"contact_id", "dl_capacity_overflow"},
+      "scenario_id",
+      ["leo_1"],
+      ["stale_leo_1"]
+    )
+  end
+
+  test "contention-resolution spacecraft identity remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "contact_contention_resolution_pressure_spacecraft_ids",
+      {"contact_id", "dl_capacity_overflow"},
+      "spacecraft_id",
+      ["leo_1"],
+      ["stale_leo_1"]
+    )
+  end
+
+  test "contention-resolution ground-station identity remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "contact_contention_resolution_pressure_ground_station_ids",
+      {"contact_id", "dl_capacity_overflow"},
+      "ground_station_id",
+      ["equator_prime"],
+      ["stale_equator_prime"]
+    )
+  end
+
+  test "contention-resolution source-activity identity remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "contact_contention_resolution_pressure_source_activity_ids",
+      {"contact_id", "dl_capacity_overflow"},
+      ["source_activity_id", "source_activity_ids"],
+      ["dl_capacity_overflow"],
+      ["stale_dl_capacity_overflow"]
+    )
+  end
+
+  test "contention-resolution source-window identity remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "contact_contention_resolution_pressure_source_window_ids",
+      {"contact_id", "dl_capacity_overflow"},
+      "source_window_id",
+      ["window_capacity_overflow"],
+      ["stale_window_capacity_overflow"]
+    )
+  end
+
   test "station conflict expiration risk context remains source exact across handoffs" do
     assert_risk_expiration_context_contract(
       StrategyRecommendationPressureEventsFixture.artifact(),
