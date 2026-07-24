@@ -188,6 +188,12 @@ defmodule OrbitalDynamics.Schema.CadenceImportManifestJsonSchema do
           "capacity_pack_risk_unused_fraction_values" => CommonJsonSchema.probability_array(),
           "capacity_pack_risk_required_capacity_fraction_values" =>
             CommonJsonSchema.probability_array(),
+          "capacity_pack_risk_required_capacity_fraction_sources" =>
+            schema.(:string_array_schema),
+          "capacity_pack_risk_derivation_reasons" => schema.(:string_array_schema),
+          "capacity_pack_risk_feedback_sources" => schema.(:string_array_schema),
+          "capacity_pack_risk_feedback_scopes" => schema.(:string_array_schema),
+          "capacity_pack_risk_trust_boundaries" => schema.(:string_array_schema),
           "station_reservation_conflict_contact_ids" => schema.(:stable_id_array_schema),
           "station_reservation_conflict_source_activity_ids" => schema.(:stable_id_array_schema),
           "station_reservation_conflict_ground_station_ids" => schema.(:stable_id_array_schema),

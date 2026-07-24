@@ -511,6 +511,61 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
     )
   end
 
+  test "capacity-pack risk required-fraction source remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "capacity_pack_risk_required_capacity_fraction_sources",
+      {"contact_id", "dl_capacity_overflow"},
+      "required_capacity_fraction_source",
+      ["contact_required_capacity_fraction"],
+      ["stale_required_capacity_fraction_source"]
+    )
+  end
+
+  test "capacity-pack risk derivation reasons remain source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "capacity_pack_risk_derivation_reasons",
+      {"contact_id", "dl_capacity_overflow"},
+      "derivation_reasons",
+      ["contact_contention_deferred", "deferred_by_reduced_station_capacity_pack"],
+      ["stale_capacity_pack_derivation"]
+    )
+  end
+
+  test "capacity-pack risk feedback source remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "capacity_pack_risk_feedback_sources",
+      {"contact_id", "dl_capacity_overflow"},
+      "feedback_source",
+      ["mission_state.source_contact_allocation_capacity_pack_summary"],
+      ["stale_capacity_pack_feedback_source"]
+    )
+  end
+
+  test "capacity-pack risk feedback scope remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "capacity_pack_risk_feedback_scopes",
+      {"contact_id", "dl_capacity_overflow"},
+      "feedback_scope",
+      ["contact_contention_resolution"],
+      ["stale_contact_contention_resolution"]
+    )
+  end
+
+  test "capacity-pack risk trust boundary remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "capacity_pack_risk_trust_boundaries",
+      {"contact_id", "dl_capacity_overflow"},
+      "trust_boundary",
+      ["mission_state_capacity_pack_summary"],
+      ["stale_mission_state_capacity_pack_summary"]
+    )
+  end
+
   test "station conflict expiration risk context remains source exact across handoffs" do
     assert_risk_expiration_context_contract(
       StrategyRecommendationPressureEventsFixture.artifact(),
