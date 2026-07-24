@@ -600,6 +600,7 @@ defmodule OrbitalDynamics.Schema.FieldTypeHints do
     "source_constraint_report" => "object",
     "source_objective_satisfaction_report" => "object",
     "source_objective_tradeoff_report" => "object",
+    "source_score_term_report" => "object",
     "source_delta" => "object",
     "source_execution_report" => "object",
     "source_freshness_report" => "object",

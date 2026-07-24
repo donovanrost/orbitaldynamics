@@ -130,6 +130,7 @@ defmodule OrbitalDynamics.Schema.CampaignRegistryContracts do
           "source_constraint_report",
           "source_objective_satisfaction_report",
           "source_objective_tradeoff_report",
+          "source_score_term_report",
           "source_station_calendar_report",
           "source_contact_filter_report",
           "source_resource_filter_report",

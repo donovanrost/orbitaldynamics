@@ -5,31 +5,30 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Preserve V2 source objective-tradeoff handoff.
+Preserve V2 source score-term handoff.
 
 Status:
 Verified; ready to publish.
 
 Selection evidence:
-- CandidateRefresh already retains exact scenario, rank, score, selected-score
-  delta, activity IDs/counts, and score-term values in a schema-valid
-  `objective_tradeoff_report.v1`.
-- V2 repair recomputes an `objective_tradeoff_report` over repaired activities
-  but drops the distinct CandidateRefresh source report, so upstream ranking
-  evidence is no longer independently auditable after repair.
-- Existing objective-tradeoff operator-review/Cadence mapping can lift the
-  exact source rows; the missing V2 source path is a bounded compatibility gap
-  rather than a reason to change repair scores or ranking.
+- CandidateRefresh already retains exact scenario, rank, term key, value,
+  timeline score, selected state, and stable row ID in a schema-valid
+  `score_term_report.v1`.
+- V2 repair recomputes a `score_term_report` over repaired activities but drops
+  the distinct CandidateRefresh source report, so upstream score decomposition
+  is no longer independently auditable after repair.
+- Existing score-term operator-review/Cadence mapping can lift the exact source
+  rows; the missing V2 source path is a bounded compatibility gap rather than a
+  reason to change repair scores or ranking.
 
 Intended behavior:
-- Resolve the CandidateRefresh objective-tradeoff report from its source or
-  canonical field and preserve it on V2 as
-  `source_objective_tradeoff_report` without recomputation.
+- Resolve the CandidateRefresh score-term report from its source or canonical
+  field and preserve it on V2 as `source_score_term_report` without
+  recomputation.
 - Validate the optional V2 source field against
-  `objective_tradeoff_report.v1` at its distinct source path and export the
-  property.
-- Reuse the existing objective-tradeoff review/import mapping so exact upstream
-  ranking rows remain visible beside the recomputed repaired-plan report.
+  `score_term_report.v1` at its distinct source path and export the property.
+- Reuse the existing score-term review/import mapping so exact upstream term
+  rows remain visible beside the recomputed repaired-plan report.
 - Preserve objective evaluation, feasibility, scores, ranking, candidate
   eligibility, schedules, provider/Cadence writes, operator authority, and
   autonomous execution behavior.
@@ -45,12 +44,12 @@ Planned files:
 Verification:
 - Focused source resolver, repair handoff, and V2 source-contract proofs:
   `16 passed`.
-- Adjacent objective review/import, CandidateRefresh source, optimizer, and V2
+- Adjacent score-term review/import, CandidateRefresh source, optimizer, and V2
   repair contract proofs: `121 passed`.
 - Contact-allocation regression family: `213 passed`.
 - Golden artifacts: `12 passed`.
 - Schema lint: `155` checked artifacts, all pass.
-- Full repository suite: `4882 passed` in `537.0s`.
+- Full repository suite: `4887 passed` in `540.2s`.
 - Regenerated schema exports changed only `campaign_repair.v2` and the schema
   bundle; the manifest schema remained byte-stable.
 - Canonical V2 repair and strategy runs remained byte-stable:
@@ -64,23 +63,23 @@ Review:
   and canonical CandidateRefresh field, selects the first exact object, and is
   nil-safe.
 - V2 preserves the report unchanged beside its recomputed repaired-plan report,
-  validates the optional source field with the full
-  `objective_tradeoff_report.v1` contract at
-  `$.source_objective_tradeoff_report`, and exports the nested definition.
-- Existing review/import mapping lifts exact scenario, rank, score,
-  selected-score delta, activity IDs/counts, and score-term values from the
-  source rows while retaining the distinct source path.
+  validates the optional source field with the full `score_term_report.v1`
+  contract at `$.source_score_term_report`, and exports the nested definition.
+- Existing review/import mapping lifts exact stable row ID, scenario, term key,
+  value, timeline score, and selected state while the unchanged nested source
+  row retains its rank and complete upstream evidence.
 - Focused integration proof pins the exact source artifact, review row, and
   review-gated Cadence import row.
-- Canonical inputs have no source objective-tradeoff report, so omission
-  preserves canonical bytes and stable IDs.
-- No objective evaluation, feasibility, scoring, ranking, candidate
+- Canonical inputs have no source score-term report, so omission preserves
+  canonical bytes and stable IDs.
+- The new field is consumed only by preservation, validation, and review/import
+  assembly; no objective evaluation, feasibility, scoring, ranking, candidate
   eligibility, schedule mutation, provider request/reservation, Cadence write,
   operator authority, or autonomous execution behavior changed.
 
 Last published slice:
-- `598bfb65` Preserve V2 source objective satisfaction handoff (`4877 passed`;
-  exact objective-gap evidence plus review/import handoff, no decision effect).
+- `dd55e3ee` Preserve V2 source objective tradeoff handoff (`4882 passed`; exact
+  upstream ranking evidence plus review/import handoff, no decision effect).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions while preserving explicit
@@ -91,8 +90,8 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-After source objective-tradeoff evidence is durable, reassess the adjacent
-source score-term compatibility gap.
+After source score-term evidence is durable, reassess the next exact-identity
+decision-support or compatibility gap.
 
 Blocked:
 None.

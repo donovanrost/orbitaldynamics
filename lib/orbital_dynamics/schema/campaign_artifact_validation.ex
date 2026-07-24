@@ -247,6 +247,8 @@ defmodule OrbitalDynamics.Schema.CampaignArtifactValidation do
         &ContactAllocationValidation.validate_optional_report/2,
       validate_optional_score_term_report:
         &DecisionSupportValidation.validate_optional_score_term_report/2,
+      validate_optional_source_score_term_report:
+        &DecisionSupportValidation.validate_optional_score_term_report_at/3,
       validate_optional_link_capacity_report: &LinkCapacityValidation.validate_optional_report/2,
       validate_optional_source_link_capacity_report:
         &LinkCapacityValidation.validate_optional_report_at/3,

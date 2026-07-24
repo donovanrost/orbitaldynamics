@@ -326,6 +326,15 @@ defmodule OrbitalDynamics.Schema.DecisionSupportValidation do
   def validate_optional_score_term_report(issues, _report, _validate_contract),
     do: [error("$.score_term_report", "must be an object") | issues]
 
+  def validate_optional_score_term_report_at(issues, path, report),
+    do:
+      validate_optional_report(
+        issues,
+        report,
+        path,
+        &validate_score_term_report([], path, &1)
+      )
+
   defp validate_optional_report(issues, nil, _path, _validate_contract), do: issues
 
   defp validate_optional_report(issues, %{} = report, _path, validate_contract),

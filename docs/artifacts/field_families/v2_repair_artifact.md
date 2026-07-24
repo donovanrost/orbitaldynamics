@@ -454,6 +454,10 @@ focused repair-action regressions.
   repaired-plan report, validates it at `source_objective_tradeoff_report`, and
   routes exact ranking rows into review-gated Cadence import without changing
   repair scores or ranking.
+- **Source score-term report** — V2 preserves CandidateRefresh's upstream
+  `score_term_report.v1` independently from the recomputed repaired-plan report,
+  validates it at `source_score_term_report`, and routes exact term/value rows
+  into review-gated Cadence import without changing repair scores or ranking.
 - **Timeline-diff report** also exposes status/action/changed-field count maps,
   duplicate timeline-identity counts, and model limits from the checked-in
   fixture.

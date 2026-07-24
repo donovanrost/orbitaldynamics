@@ -156,6 +156,10 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairArtifact do
       RepairSourceReports.objective_tradeoff(request.candidate_refresh)
     )
     |> put_source_report(
+      "source_score_term_report",
+      RepairSourceReports.score_term(request.candidate_refresh)
+    )
+    |> put_source_report(
       "source_resource_filter_report",
       RepairSourceReports.resource_filter(request.candidate_refresh)
     )

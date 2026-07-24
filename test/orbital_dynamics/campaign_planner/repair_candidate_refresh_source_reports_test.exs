@@ -37,6 +37,11 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
       |> File.read!()
       |> :json.decode()
 
+    source_score_term_report =
+      "study_results/score_term_report_v1.json"
+      |> File.read!()
+      |> :json.decode()
+
     candidate_diff_report =
       candidate_diff_report()
       |> update_in(["invalidated_candidates", Access.at(0)], fn candidate ->
@@ -104,6 +109,7 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
             source_objective_satisfaction_report
           )
           |> Map.put("source_objective_tradeoff_report", source_objective_tradeoff_report)
+          |> Map.put("source_score_term_report", source_score_term_report)
           |> Map.put("source_quality_gate_report", passive_quality_gate_report())
           |> Map.put("operational_feedback", %{
             "station_throughput_factor" => %{"equator_prime" => 0.5}
@@ -538,6 +544,47 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
                artifact["cadence_import_manifest"]["rows"],
                &(&1["source"] ==
                    "campaign_repair.source_objective_tradeoff_report.tradeoffs")
+             )
+
+    assert artifact["source_score_term_report"] == source_score_term_report
+
+    assert %{
+             "review_type" => "score_term_review",
+             "source" => "campaign_repair.source_score_term_report.rows",
+             "subject_id" => "score_term:leo_1:1:activity_count_penalty",
+             "scenario_id" => "leo_1",
+             "term_key" => "activity_count_penalty",
+             "value" => 0,
+             "timeline_score" => 1417.2731832107565,
+             "selected" => true,
+             "source_score_term" => %{
+               "id" => "score_term:leo_1:1:activity_count_penalty",
+               "rank" => 1,
+               "term_key" => "activity_count_penalty"
+             }
+           } =
+             Enum.find(
+               artifact["operator_review_package"]["rows"],
+               &(&1["source"] == "campaign_repair.source_score_term_report.rows" and
+                   &1["term_key"] == "activity_count_penalty")
+             )
+
+    assert %{
+             "import_action" => "review_score_term",
+             "source_review_type" => "score_term_review",
+             "source" => "campaign_repair.source_score_term_report.rows",
+             "subject_id" => "score_term:leo_1:1:activity_count_penalty",
+             "scenario_id" => "leo_1",
+             "term_key" => "activity_count_penalty",
+             "value" => 0,
+             "timeline_score" => 1417.2731832107565,
+             "selected" => true,
+             "import_status" => "review_required_before_import"
+           } =
+             Enum.find(
+               artifact["cadence_import_manifest"]["rows"],
+               &(&1["source"] == "campaign_repair.source_score_term_report.rows" and
+                   &1["term_key"] == "activity_count_penalty")
              )
 
     assert %{

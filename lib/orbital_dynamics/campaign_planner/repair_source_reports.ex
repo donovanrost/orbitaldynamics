@@ -184,6 +184,26 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairSourceReports do
     end
   end
 
+  def score_term(candidate_refresh), do: score_term(candidate_refresh, default_callbacks())
+
+  def score_term(nil, _callbacks), do: nil
+
+  def score_term(%{} = candidate_refresh, callbacks) do
+    stringify_keys = Keyword.fetch!(callbacks, :stringify_keys)
+    candidate_refresh = stringify_keys.(candidate_refresh)
+
+    [
+      Map.get(candidate_refresh, "source_score_term_report"),
+      Map.get(candidate_refresh, "score_term_report")
+    ]
+    |> Enum.flat_map(&List.wrap/1)
+    |> Enum.find(&is_map/1)
+    |> case do
+      %{} = report -> stringify_keys.(report)
+      _report -> nil
+    end
+  end
+
   def resource_filter(candidate_refresh),
     do: resource_filter(candidate_refresh, default_callbacks())
 

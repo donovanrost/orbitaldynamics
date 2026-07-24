@@ -166,6 +166,10 @@ defmodule OrbitalDynamics.Schema.CampaignRepairContracts do
     |> call(callbacks, :validate_optional_score_term_report, [
       Map.get(artifact, "score_term_report")
     ])
+    |> call(callbacks, :validate_optional_source_score_term_report, [
+      "$.source_score_term_report",
+      Map.get(artifact, "source_score_term_report")
+    ])
     |> CampaignRepairScoreContracts.validate(artifact)
     |> OrbitalDynamics.Schema.CampaignRepairObjectiveTradeoffContracts.validate(artifact)
     |> CampaignRepairCandidateDiffRankingContracts.validate(artifact)
