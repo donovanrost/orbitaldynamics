@@ -1475,6 +1475,109 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
     )
   end
 
+  @relay_data_path_context_contracts [
+    {"risk type", "relay_data_path_risk_types", ["type", "risk_type"],
+     ["relay_data_path_pressure"], ["stale_relay_data_path_pressure"]},
+    {"ground-station identity", "relay_data_path_ground_station_ids", "ground_station_id",
+     ["dss_14"], ["stale_dss_14"]},
+    {"route identities", "relay_data_path_route_ids", ["route_id", "route_ids"],
+     ["relay_route_review", "relay_route_backup"], ["stale_relay_route"]},
+    {"source-spacecraft identity", "relay_data_path_source_spacecraft_ids",
+     ["source_spacecraft_id", "source_spacecraft_ids"], ["leo_1"], ["stale_leo_1"]},
+    {"relay-spacecraft identity", "relay_data_path_relay_spacecraft_ids",
+     ["relay_spacecraft_ids"], ["relay_a"], ["stale_relay"]},
+    {"relay-chain identity", "relay_data_path_relay_chain_spacecraft_ids",
+     ["relay_chain_spacecraft_ids"], ["relay_a", "relay_b"], ["stale_relay_chain"]},
+    {"relay-hop count", "relay_data_path_relay_hop_count_values", "relay_hop_count", [2], [3]},
+    {"ground-downlink contact identities", "relay_data_path_ground_downlink_contact_ids",
+     ["ground_downlink_contact_id", "ground_downlink_contact_ids"],
+     ["downlink_relay_review", "downlink_relay_backup"], ["stale_downlink_relay"]},
+    {"custody status", "relay_data_path_custody_statuses", "custody_status", ["missing_ack"],
+     ["stale_custody"]},
+    {"latency", "relay_data_path_latency_values_s", "latency_s", [500.0], [501.0]},
+    {"latency limit", "relay_data_path_latency_limit_values_s", "latency_limit_s", [300.0],
+     [301.0]},
+    {"latency status", "relay_data_path_latency_statuses", "latency_status", ["exceeds_limit"],
+     ["stale_latency"]},
+    {"risk status", "relay_data_path_risk_statuses", "risk_status", ["high"], ["stale_risk"]},
+    {"risk reasons", "relay_data_path_risk_reasons", ["risk_reasons"],
+     ["custody_missing_ack", "latency_exceeds_limit"], ["stale_risk_reason"]},
+    {"product identities", "relay_data_path_product_ids", ["product_ids"], ["product_relay"],
+     ["stale_product"]},
+    {"collection identities", "relay_data_path_collection_ids", ["collection_ids"],
+     ["collection_relay"], ["stale_collection"]},
+    {"route count", "relay_data_path_route_count_values", "route_count", [2], [3]},
+    {"relay-route count", "relay_data_path_relay_route_count_values", "relay_route_count", [2],
+     [3]},
+    {"direct-downlink route count", "relay_data_path_direct_downlink_route_count_values",
+     "direct_downlink_route_count", [0], [1]},
+    {"custody-status counts", "relay_data_path_custody_status_count_maps",
+     "custody_status_counts", [%{"missing_ack" => 2}], [%{"missing_ack" => 3}]},
+    {"latency-status counts", "relay_data_path_latency_status_count_maps",
+     "latency_status_counts", [%{"exceeds_limit" => 2}], [%{"exceeds_limit" => 3}]},
+    {"risk-status counts", "relay_data_path_risk_status_count_maps", "risk_status_counts",
+     [%{"high" => 2}], [%{"high" => 3}]},
+    {"routes by custody status", "relay_data_path_route_ids_by_custody_status",
+     "route_ids_by_custody_status",
+     [%{"missing_ack" => ["relay_route_review", "relay_route_backup"]}],
+     [%{"missing_ack" => ["stale_relay_route"]}]},
+    {"routes by latency status", "relay_data_path_route_ids_by_latency_status",
+     "route_ids_by_latency_status",
+     [%{"exceeds_limit" => ["relay_route_review", "relay_route_backup"]}],
+     [%{"exceeds_limit" => ["stale_relay_route"]}]},
+    {"routes by risk status", "relay_data_path_route_ids_by_risk_status",
+     "route_ids_by_risk_status", [%{"high" => ["relay_route_review", "relay_route_backup"]}],
+     [%{"high" => ["stale_relay_route"]}]},
+    {"routes by ground station", "relay_data_path_route_ids_by_ground_station_id",
+     "route_ids_by_ground_station_id",
+     [%{"dss_14" => ["relay_route_review", "relay_route_backup"]}],
+     [%{"dss_14" => ["stale_relay_route"]}]},
+    {"feedback source", "relay_data_path_feedback_sources", "feedback_source",
+     ["mission_state.source_relay_data_path_summary.rows"],
+     ["mission_state.stale_relay_data_path_summary.rows"]},
+    {"feedback scope", "relay_data_path_feedback_scopes", "feedback_scope", ["link_capacity"],
+     ["stale_link_capacity"]},
+    {"feedback key", "relay_data_path_feedback_keys", "feedback_key", ["relay_route_review"],
+     ["stale_relay_route"]},
+    {"trust boundary", "relay_data_path_trust_boundaries", "trust_boundary",
+     ["mission_state_relay_data_path_summary"], ["stale_relay_data_path_summary"]},
+    {"derivation reasons", "relay_data_path_derivation_reasons", ["derivation_reasons"],
+     [
+       "relay_data_path_custody_missing_ack",
+       "relay_data_path_latency_exceeds_limit",
+       "relay_data_path_risk_high"
+     ], ["stale_relay_derivation"]},
+    {"safety assumptions", "relay_data_path_assumption_maps", "assumptions",
+     [
+       %{
+         "execution_boundary" => "artifact_only_no_relay_scheduling_or_schedule_mutation",
+         "operator_authority" => "not_granted_by_summary",
+         "provider_reservation" => "not_performed"
+       }
+     ],
+     [
+       %{
+         "execution_boundary" => "stale_execution_boundary",
+         "operator_authority" => "not_granted_by_summary",
+         "provider_reservation" => "not_performed"
+       }
+     ]}
+  ]
+
+  for {description, field, source_field, expected_value, stale_value} <-
+        @relay_data_path_context_contracts do
+    test "relay-data-path #{description} remains source exact across handoffs" do
+      assert_risk_context_contract(
+        StrategyRecommendationPressureEventsFixture.artifact(),
+        unquote(field),
+        {"type", "relay_data_path_pressure"},
+        unquote(Macro.escape(source_field)),
+        unquote(Macro.escape(expected_value)),
+        unquote(Macro.escape(stale_value))
+      )
+    end
+  end
+
   test "link-capacity risk type remains source exact across handoffs" do
     assert_risk_context_contract(
       StrategyRecommendationPressureEventsFixture.artifact(),
@@ -5466,7 +5569,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
         end
       end)
     end)
-    |> sync_resource_risk_contexts()
+    |> sync_mutated_risk_contexts()
   end
 
   defp legacy_risk_context_row(
@@ -5486,26 +5589,28 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
     |> Map.delete(field)
     |> put_in(["source_recommendation", "risks_remaining"], risks)
     |> Map.put("risk_count", length(risks))
-    |> sync_resource_risk_contexts()
+    |> sync_mutated_risk_contexts()
   end
 
-  defp sync_resource_risk_contexts(row) do
+  defp sync_mutated_risk_contexts(row) do
     risks = get_in(row, ["source_recommendation", "risks_remaining"])
 
-    resource_context_keys =
+    context_keys =
       OrbitalDynamics.RecommendationRiskContext.ResourceFilter.context_keys() ++
         OrbitalDynamics.RecommendationRiskContext.ResourceMargin.context_keys() ++
-        OrbitalDynamics.RecommendationRiskContext.ResourceProjection.context_keys()
+        OrbitalDynamics.RecommendationRiskContext.ResourceProjection.context_keys() ++
+        OrbitalDynamics.RecommendationRiskContext.RelayDataPath.context_keys()
 
-    resource_context =
+    context =
       risks
       |> OrbitalDynamics.RecommendationRiskContext.ResourceFilter.context()
       |> Map.merge(OrbitalDynamics.RecommendationRiskContext.ResourceMargin.context(risks))
       |> Map.merge(OrbitalDynamics.RecommendationRiskContext.ResourceProjection.context(risks))
+      |> Map.merge(OrbitalDynamics.RecommendationRiskContext.RelayDataPath.context(risks))
 
     row
-    |> Map.drop(resource_context_keys)
-    |> Map.merge(resource_context)
+    |> Map.drop(context_keys)
+    |> Map.merge(context)
   end
 
   defp risk_identity_matches?(risk, identity_field, identity_values)

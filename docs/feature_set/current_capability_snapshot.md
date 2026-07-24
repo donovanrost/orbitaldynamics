@@ -70,7 +70,9 @@ Implemented or partially implemented modules and artifacts include:
   provenance fields with equivalent source-exact validation. Approval-boundary
   handoffs likewise require all 14 policy, status, authority, operator-action,
   execution-boundary, and provenance fields to remain source exact without
-  granting approval or execution authority.
+  granting approval or execution authority. Relay-data-path handoffs preserve
+  all 32 route, spacecraft, custody, latency, capacity, aggregate, safety-
+  assumption, and provenance fields with the same source-exact guarantees.
 - Operational readiness and quality artifacts: readiness, import-eligibility,
   execution-boundary, quality-gate, safety-case, model-acceptance,
   schema-validation, validation-fixture, operator-training, and unavailable

@@ -178,6 +178,9 @@ Already implemented or heavily covered:
 - V3 approval-boundary review/import handoffs require all 14 policy, status,
   authority, operator-action, execution-boundary, and provenance fields to stay
   source exact without granting approval or execution authority
+- V3 relay-data-path review/import handoffs require all 32 route, spacecraft,
+  custody, latency, capacity, aggregate, safety-assumption, and provenance
+  fields to stay source exact across direct and review-derived Cadence rows
 - an executable registry-derived coverage guard confirms all 33 current
   resource/contact/station/link/provider contracts have curated artifact
   reference fixtures and automatically scopes future matching contracts
