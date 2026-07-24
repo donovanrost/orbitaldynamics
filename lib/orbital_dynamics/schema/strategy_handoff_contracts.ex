@@ -285,7 +285,16 @@ defmodule OrbitalDynamics.Schema.StrategyHandoffContracts do
      "score_term_pressure_planned_downlink_values_mb"},
     {"score_term_pressure_max_latency_values_s", "score_term_pressure_max_latency_values_s"},
     {"score_term_pressure_planned_latency_values_s",
-     "score_term_pressure_planned_latency_values_s"}
+     "score_term_pressure_planned_latency_values_s"},
+    {"score_term_pressure_required_observation_values",
+     "score_term_pressure_required_observation_values"},
+    {"score_term_pressure_planned_observation_values",
+     "score_term_pressure_planned_observation_values"},
+    {"score_term_pressure_priorities", "score_term_pressure_priorities"},
+    {"score_term_pressure_latitude_values_deg", "score_term_pressure_latitude_values_deg"},
+    {"score_term_pressure_longitude_values_deg", "score_term_pressure_longitude_values_deg"},
+    {"score_term_pressure_minimum_elevation_values_deg",
+     "score_term_pressure_minimum_elevation_values_deg"}
   ]
   @station_reservation_conflict_context_field_pairs [
     {"station_reservation_conflict_contact_ids", "station_reservation_conflict_contact_ids"},

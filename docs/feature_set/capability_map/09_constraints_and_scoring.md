@@ -54,10 +54,11 @@ Status: **implemented** (core), with **partial**, **near-term**, **later**, and 
   objective, target, scenario, branch, and ground-station routing plus the
   latency-objective flag and collection, product, payload, and instrument
   identity; start/end bounds; contact and downlink demand; and maximum/planned
-  latency across operator review, direct Cadence import, and review-derived
-  import copies. Missing or stale derived routing, timing, or demand is rejected
-  while paired legacy omission remains compatible; the evidence cannot approve
-  an import, write to Cadence, or execute a schedule.
+  latency. Observation demand, priority, and target geometry remain source exact
+  across operator review, direct Cadence import, and review-derived import
+  copies. Missing or stale derived routing, timing, demand, or geometry is
+  rejected while paired legacy omission remains compatible; the evidence cannot
+  approve an import, write to Cadence, or execute a schedule.
 
 ### Objective-tradeoff reports
 

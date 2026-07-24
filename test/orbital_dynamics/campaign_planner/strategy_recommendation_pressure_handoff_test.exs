@@ -1902,6 +1902,72 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
     )
   end
 
+  test "score-term required observation demand remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "score_term_pressure_required_observation_values",
+      {"feedback_scope", "score_term"},
+      "required_observations",
+      [2],
+      [3]
+    )
+  end
+
+  test "score-term planned observation demand remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "score_term_pressure_planned_observation_values",
+      {"feedback_scope", "score_term"},
+      "planned_observations",
+      [1],
+      [0]
+    )
+  end
+
+  test "score-term priority remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "score_term_pressure_priorities",
+      {"feedback_scope", "score_term"},
+      "priority",
+      [24.0],
+      [23.0]
+    )
+  end
+
+  test "score-term latitude remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "score_term_pressure_latitude_values_deg",
+      {"feedback_scope", "score_term"},
+      "latitude_deg",
+      [34.1],
+      [34.2]
+    )
+  end
+
+  test "score-term longitude remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "score_term_pressure_longitude_values_deg",
+      {"feedback_scope", "score_term"},
+      "longitude_deg",
+      [-118.2],
+      [-118.1]
+    )
+  end
+
+  test "score-term minimum elevation remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "score_term_pressure_minimum_elevation_values_deg",
+      {"feedback_scope", "score_term"},
+      "minimum_elevation_deg",
+      [15.0],
+      [16.0]
+    )
+  end
+
   test "station conflict expiration risk context remains source exact across handoffs" do
     assert_risk_expiration_context_contract(
       StrategyRecommendationPressureEventsFixture.artifact(),
