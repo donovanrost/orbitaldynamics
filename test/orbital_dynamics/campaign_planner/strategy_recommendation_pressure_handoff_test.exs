@@ -268,6 +268,17 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
     )
   end
 
+  test "provider request direction remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "provider_reservation_request_directions",
+      {"contact_id", "dl_provider_review"},
+      "direction",
+      ["downlink"],
+      ["uplink"]
+    )
+  end
+
   test "provider request reservation identity remains source exact across handoffs" do
     assert_risk_context_contract(
       StrategyRecommendationPressureEventsFixture.artifact(),
@@ -320,6 +331,51 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
       "provider_reservation_request_status",
       ["review_required"],
       ["request_ready"]
+    )
+  end
+
+  test "provider request row scope remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "provider_reservation_request_row_scopes",
+      {"contact_id", "dl_provider_review"},
+      "provider_reservation_row_scope",
+      ["review"],
+      ["request"]
+    )
+  end
+
+  test "provider request required action remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "provider_reservation_request_required_operator_actions",
+      {"contact_id", "dl_provider_review"},
+      "required_operator_action",
+      ["review_provider_reservation_request"],
+      ["submit_provider_reservation_request"]
+    )
+  end
+
+  test "provider request assumptions remain source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "provider_reservation_request_assumption_maps",
+      {"contact_id", "dl_provider_review"},
+      "assumptions",
+      [
+        %{
+          "provider_reservation_execution" => "not_performed_by_strategy_branch",
+          "schedule_mutation" => "not_performed_by_strategy_branch",
+          "operator_authority" => "not_granted_by_strategy_branch"
+        }
+      ],
+      [
+        %{
+          "provider_reservation_execution" => "performed_by_strategy_branch",
+          "schedule_mutation" => "performed_by_strategy_branch",
+          "operator_authority" => "granted_by_strategy_branch"
+        }
+      ]
     )
   end
 

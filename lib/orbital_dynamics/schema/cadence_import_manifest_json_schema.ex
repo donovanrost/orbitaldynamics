@@ -157,6 +157,7 @@ defmodule OrbitalDynamics.Schema.CadenceImportManifestJsonSchema do
           "provider_reservation_request_contact_ids" => schema.(:stable_id_array_schema),
           "provider_reservation_request_source_activity_ids" => schema.(:stable_id_array_schema),
           "provider_reservation_request_ground_station_ids" => schema.(:stable_id_array_schema),
+          "provider_reservation_request_directions" => schema.(:string_array_schema),
           "provider_reservation_request_station_reservation_ids" =>
             schema.(:stable_id_array_schema),
           "provider_reservation_request_station_reserved_by" => schema.(:string_array_schema),
@@ -165,6 +166,13 @@ defmodule OrbitalDynamics.Schema.CadenceImportManifestJsonSchema do
           "provider_reservation_request_station_reservation_match_statuses" =>
             schema.(:string_array_schema),
           "provider_reservation_request_statuses" => schema.(:string_array_schema),
+          "provider_reservation_request_row_scopes" => schema.(:string_array_schema),
+          "provider_reservation_request_required_operator_actions" =>
+            schema.(:string_array_schema),
+          "provider_reservation_request_assumption_maps" => %{
+            "type" => "array",
+            "items" => %{"type" => "object", "additionalProperties" => true}
+          },
           "provider_reservation_request_station_reservation_expiration_statuses" =>
             schema.(:string_array_schema),
           "station_reservation_conflict_contact_ids" => schema.(:stable_id_array_schema),

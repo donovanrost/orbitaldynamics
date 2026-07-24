@@ -38,6 +38,7 @@ defmodule OrbitalDynamics.Schema.StrategyHandoffContracts do
      "provider_reservation_request_source_activity_ids"},
     {"provider_reservation_request_ground_station_ids",
      "provider_reservation_request_ground_station_ids"},
+    {"provider_reservation_request_directions", "provider_reservation_request_directions"},
     {"provider_reservation_request_station_reservation_ids",
      "provider_reservation_request_station_reservation_ids"},
     {"provider_reservation_request_station_reserved_by",
@@ -47,6 +48,11 @@ defmodule OrbitalDynamics.Schema.StrategyHandoffContracts do
     {"provider_reservation_request_station_reservation_match_statuses",
      "provider_reservation_request_station_reservation_match_statuses"},
     {"provider_reservation_request_statuses", "provider_reservation_request_statuses"},
+    {"provider_reservation_request_row_scopes", "provider_reservation_request_row_scopes"},
+    {"provider_reservation_request_required_operator_actions",
+     "provider_reservation_request_required_operator_actions"},
+    {"provider_reservation_request_assumption_maps",
+     "provider_reservation_request_assumption_maps"},
     {"provider_reservation_request_station_reservation_expiration_statuses",
      "provider_reservation_request_station_reservation_expiration_statuses"}
   ]
