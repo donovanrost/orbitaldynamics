@@ -2428,6 +2428,55 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
     )
   end
 
+  test "objective-tradeoff feedback source remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "objective_tradeoff_pressure_feedback_sources",
+      {"feedback_scope", "objective_tradeoff"},
+      "feedback_source",
+      ["mission_state.source_objective_tradeoff_report.tradeoffs"],
+      ["stale_objective_tradeoff_source"]
+    )
+  end
+
+  test "objective-tradeoff feedback scope remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "objective_tradeoff_pressure_feedback_scopes",
+      {"feedback_scope", "objective_tradeoff"},
+      "feedback_scope",
+      ["objective_tradeoff"],
+      ["stale_objective_tradeoff_scope"]
+    )
+  end
+
+  test "objective-tradeoff trust boundary remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "objective_tradeoff_pressure_trust_boundaries",
+      {"feedback_scope", "objective_tradeoff"},
+      "trust_boundary",
+      ["mission_state_objective_tradeoff_report"],
+      ["stale_objective_tradeoff_boundary"]
+    )
+  end
+
+  test "objective-tradeoff derivation reasons remain source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "objective_tradeoff_pressure_derivation_reasons",
+      {"feedback_scope", "objective_tradeoff"},
+      ["derivation_reasons"],
+      [
+        "objective_tradeoff_downlink_gap",
+        "collection_latency_gap",
+        "objective_tradeoff_latency_gap",
+        "objective_tradeoff_unselected"
+      ],
+      ["stale_objective_tradeoff_derivation"]
+    )
+  end
+
   test "station conflict expiration risk context remains source exact across handoffs" do
     assert_risk_expiration_context_contract(
       StrategyRecommendationPressureEventsFixture.artifact(),

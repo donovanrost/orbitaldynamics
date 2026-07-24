@@ -356,7 +356,15 @@ defmodule OrbitalDynamics.Schema.StrategyHandoffContracts do
     {"objective_tradeoff_pressure_longitude_values_deg",
      "objective_tradeoff_pressure_longitude_values_deg"},
     {"objective_tradeoff_pressure_minimum_elevation_values_deg",
-     "objective_tradeoff_pressure_minimum_elevation_values_deg"}
+     "objective_tradeoff_pressure_minimum_elevation_values_deg"},
+    {"objective_tradeoff_pressure_feedback_sources",
+     "objective_tradeoff_pressure_feedback_sources"},
+    {"objective_tradeoff_pressure_feedback_scopes",
+     "objective_tradeoff_pressure_feedback_scopes"},
+    {"objective_tradeoff_pressure_trust_boundaries",
+     "objective_tradeoff_pressure_trust_boundaries"},
+    {"objective_tradeoff_pressure_derivation_reasons",
+     "objective_tradeoff_pressure_derivation_reasons"}
   ]
   @station_reservation_conflict_context_field_pairs [
     {"station_reservation_conflict_contact_ids", "station_reservation_conflict_contact_ids"},
