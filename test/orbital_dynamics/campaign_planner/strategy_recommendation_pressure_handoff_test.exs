@@ -4991,16 +4991,17 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
        "storage_margin_low",
        "thermal_margin_c_low"
      ], ["stale_resource_margin_risk"]},
-    {"spacecraft identity", "resource_margin_spacecraft_ids", "spacecraft_id", ["leo_1"],
-     ["stale_spacecraft"]},
-    {"scenario identity", "resource_margin_scenario_ids", "scenario_id", ["leo_1"],
-     ["stale_scenario"]},
+    {"spacecraft identity", "resource_margin_spacecraft_ids", "spacecraft_id",
+     ["leo_1", "leo_projection_selected"], ["stale_spacecraft"]},
+    {"scenario identity", "resource_margin_scenario_ids", "scenario_id",
+     ["leo_1", "leo_projection_selected"], ["stale_scenario"]},
     {"timeline identity", "resource_margin_timeline_ids", "timeline_id",
      ["timeline:resource_margin:power"], ["timeline:stale_resource_margin"]},
     {"source activity identity", "resource_margin_source_activity_ids",
      ["source_activity_id", "source_activity_ids"],
      [
        "dl_resource_filter_downlink",
+       "obs_projection_pressure",
        "obs_resource_filter_fuel",
        "obs_power_pressure",
        "obs_resource_filter_power",
@@ -5019,23 +5020,27 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
        "thermal_margin_c"
      ], ["stale_margin"]},
     {"margin value", "resource_margin_values", "resource_margin_value",
-     [8.0, 0.05, 0.08, 12.0, 2.0], [999.0]},
+     [8.0, 0.0, 0.05, 0.08, 12.0, 2.0, -1.5], [999.0]},
     {"margin threshold", "resource_margin_threshold_values", "resource_margin_threshold",
-     [15.0, 0.1, 0.2, 20.0, 5.0], [1_000.0]},
+     [15.0, 0.75, 0.1, 0.2, 20.0, 5.0, 0.0], [1_000.0]},
     {"field value map", "resource_margin_field_value_maps", "resource_margin_field_value",
      [
        %{"field" => "downlink_margin", "threshold" => 15.0, "value" => 8.0},
+       %{"field" => "downlink_margin", "threshold" => 0.75, "value" => 0.0},
        %{"field" => "fuel_margin", "threshold" => 0.1, "value" => 0.05},
        %{"field" => "power_margin", "threshold" => 0.2, "value" => 0.08},
+       %{"field" => "power_margin", "threshold" => 0.2, "value" => 0.0},
        %{"field" => "storage_margin", "threshold" => 20.0, "value" => 12.0},
-       %{"field" => "thermal_margin_c", "threshold" => 5.0, "value" => 2.0}
+       %{"field" => "storage_margin", "threshold" => 0.2, "value" => 0.0},
+       %{"field" => "thermal_margin_c", "threshold" => 5.0, "value" => 2.0},
+       %{"field" => "thermal_margin_c", "threshold" => 0.0, "value" => -1.5}
      ], [%{"field" => "stale_margin", "threshold" => 1_000.0, "value" => 999.0}]},
     {"source quality", "resource_margin_source_quality_values", "source_quality",
      ["operator_supplied", "declared"], ["stale_source_quality"]},
     {"start timing", "resource_margin_start_values_s", "starts_at_s",
-     [1_510.0, 1_300.0, 500.0, 1_370.0, 1_440.0, 1_580.0], [999.0]},
+     [1_510.0, 1_590.0, 1_300.0, 500.0, 1_370.0, 1_440.0, 1_580.0], [999.0]},
     {"end timing", "resource_margin_end_values_s", "ends_at_s",
-     [1_570.0, 1_360.0, 560.0, 1_430.0, 1_500.0, 1_640.0], [1_000.0]},
+     [1_570.0, 1_650.0, 1_360.0, 560.0, 1_430.0, 1_500.0, 1_640.0], [1_000.0]},
     {"diff status", "resource_margin_diff_statuses", "diff_status", ["changed"], ["unchanged"]},
     {"changed field", "resource_margin_changed_fields", ["changed_fields"], ["power_margin"],
      ["stale_margin"]},
@@ -5046,10 +5051,11 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
     {"feedback source", "resource_margin_feedback_sources", "feedback_source",
      [
        "mission_state.source_resource_filter_report.suppressed_candidates",
+       "mission_state.source_resource_projection_report",
        "mission_state.source_resource_projection_report.rows"
      ], ["mission_state.stale_resource_margin_report.rows"]},
     {"feedback scope", "resource_margin_feedback_scopes", "feedback_scope",
-     ["resource_filter", "resource_margin"], ["stale_resource_margin"]},
+     ["resource_filter", "resource_projection", "resource_margin"], ["stale_resource_margin"]},
     {"feedback key", "resource_margin_feedback_keys", "feedback_key", ["leo_1.power_margin"],
      ["stale_spacecraft.power_margin"]},
     {"trust boundary", "resource_margin_trust_boundaries", "trust_boundary",
@@ -5059,11 +5065,15 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
      [
        "resource_filter_suppressed",
        "downlink_margin_below_policy",
+       "projected_downlink_shortfall",
        "fuel_margin_below_policy",
        "resource_projection_power_margin_low",
        "power_margin_below_observe_policy",
+       "projected_battery_depletion",
        "storage_margin_below_observe_policy",
-       "thermal_margin_below_policy"
+       "projected_storage_overflow",
+       "thermal_margin_below_policy",
+       "projected_thermal_margin_below_limit"
      ], ["stale_resource_margin_derivation"]}
   ]
 
@@ -5091,7 +5101,17 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   @resource_projection_downlink_context_contracts [
     {"risk type", "resource_projection_pressure_risk_types", ["type", "risk_type"],
-     ["downlink_completion_gap"], ["stale_resource_projection_risk"]},
+     [
+       "activity_type_incompatible_with_resource_summary",
+       "antenna_unavailable",
+       "downlink_completion_gap",
+       "downlink_margin_low",
+       "power_margin_low",
+       "spacecraft_degraded_payload_unavailable",
+       "spacecraft_unavailable",
+       "storage_margin_low",
+       "thermal_margin_c_low"
+     ], ["stale_resource_projection_risk"]},
     {"scenario identity", "resource_projection_pressure_scenario_ids", "scenario_id",
      ["leo_projection_selected"], ["stale_scenario"]},
     {"spacecraft identity", "resource_projection_pressure_spacecraft_ids", "spacecraft_id",
@@ -5129,12 +5149,89 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
     {"trust boundary", "resource_projection_pressure_trust_boundaries", "trust_boundary",
      ["mission_state_resource_projection_report"], ["stale_resource_projection_boundary"]},
     {"derivation reason", "resource_projection_pressure_derivation_reasons",
-     ["derivation_reasons"], ["projected_downlink_shortfall"],
-     ["stale_resource_projection_derivation"]}
+     ["derivation_reasons"],
+     [
+       "projected_activity_type_incompatible_with_resource_summary",
+       "projected_antenna_unavailable",
+       "projected_downlink_shortfall",
+       "projected_battery_depletion",
+       "projected_spacecraft_degraded_payload_unavailable",
+       "projected_spacecraft_unavailable",
+       "projected_storage_overflow",
+       "projected_thermal_margin_below_limit"
+     ], ["stale_resource_projection_derivation"]}
   ]
 
   for {description, field, source_field, expected_value, stale_value} <-
         @resource_projection_downlink_context_contracts do
+    test "resource-projection #{description} remains source exact across handoffs" do
+      assert_risk_context_contract(
+        StrategyRecommendationPressureEventsFixture.artifact(),
+        unquote(field),
+        {"feedback_scope", "resource_projection"},
+        unquote(Macro.escape(source_field)),
+        unquote(Macro.escape(expected_value)),
+        unquote(Macro.escape(stale_value))
+      )
+    end
+  end
+
+  @resource_projection_resource_context_contracts [
+    {"resource fields", "resource_projection_pressure_resource_fields", "resource_field",
+     [
+       "antenna_available",
+       "downlink_margin",
+       "power_margin",
+       "payload_available",
+       "spacecraft_available",
+       "storage_margin",
+       "thermal_margin_c"
+     ], ["stale_resource_field"]},
+    {"availability value", "resource_projection_pressure_available_values",
+     ["available", "resource_availability_value"], [false], [true]},
+    {"degraded value", "resource_projection_pressure_degraded_values", "degraded", [true],
+     [false]},
+    {"payload availability", "resource_projection_pressure_payload_available_values",
+     "payload_available", [false], [true]},
+    {"spacecraft availability", "resource_projection_pressure_spacecraft_available_values",
+     "spacecraft_available", [false], [true]},
+    {"antenna availability", "resource_projection_pressure_antenna_available_values",
+     "antenna_available", [false], [true]},
+    {"compatibility mode", "resource_projection_pressure_modes", "mode",
+     ["resource_activity_type_constraint"], ["stale_resource_mode"]},
+    {"incompatible activity types", "resource_projection_pressure_incompatible_activity_types",
+     ["incompatible_activity_types"], ["downlink", "observe"], ["maneuver"]},
+    {"storage margin", "resource_projection_pressure_storage_margin_values",
+     ["storage_margin", "resource_margin_value"], [0.0], [1.0]},
+    {"storage margin threshold", "resource_projection_pressure_storage_margin_threshold_values",
+     ["storage_margin_threshold", "resource_margin_threshold"], [0.2], [0.3]},
+    {"projected storage overflow",
+     "resource_projection_pressure_projected_storage_overflow_values_mb",
+     "projected_storage_overflow_mb", [25.0], [26.0]},
+    {"downlink margin", "resource_projection_pressure_downlink_margin_values",
+     ["downlink_margin", "resource_margin_value"], [0.0], [1.0]},
+    {"downlink margin threshold", "resource_projection_pressure_downlink_margin_threshold_values",
+     ["downlink_margin_threshold", "resource_margin_threshold"], [0.75], [0.8]},
+    {"projected downlink shortfall",
+     "resource_projection_pressure_projected_downlink_shortfall_values_mb",
+     "projected_downlink_shortfall_mb", [10.0], [11.0]},
+    {"power margin", "resource_projection_pressure_power_margin_values",
+     ["power_margin", "resource_margin_value"], [0.0], [1.0]},
+    {"power margin threshold", "resource_projection_pressure_power_margin_threshold_values",
+     ["power_margin_threshold", "resource_margin_threshold"], [0.2], [0.3]},
+    {"projected battery overuse",
+     "resource_projection_pressure_projected_battery_overuse_values_wh",
+     "projected_battery_overuse_wh", [5.0], [6.0]},
+    {"thermal margin", "resource_projection_pressure_thermal_margin_values_c",
+     ["thermal_margin_c", "resource_margin_value"], [-1.5], [-1.0]},
+    {"thermal margin threshold", "resource_projection_pressure_thermal_margin_threshold_values_c",
+     ["thermal_margin_c_threshold", "resource_margin_threshold"], [0.0], [1.0]},
+    {"source quality", "resource_projection_pressure_source_quality_values", "source_quality",
+     ["operator_supplied"], ["stale_source_quality"]}
+  ]
+
+  for {description, field, source_field, expected_value, stale_value} <-
+        @resource_projection_resource_context_contracts do
     test "resource-projection #{description} remains source exact across handoffs" do
       assert_risk_context_contract(
         StrategyRecommendationPressureEventsFixture.artifact(),

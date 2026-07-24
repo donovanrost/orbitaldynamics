@@ -72,12 +72,15 @@ defmodule OrbitalDynamics.CampaignPlanner.EventRiskIndicator.BranchSignal do
         "reason" =>
           "resource projection for #{spacecraft_id} constrains activity types #{Enum.join(Map.get(event, "incompatible_activity_types", []), ", ")}",
         "spacecraft_id" => spacecraft_id,
+        "mode" => event["mode"],
         "incompatible_activity_types" => event["incompatible_activity_types"],
+        "source_quality" => event["source_quality"],
         "source_activity_id" => event["source_activity_id"],
         "source_activity_ids" => event["source_activity_ids"],
         "feedback_source" => event["feedback_source"],
         "feedback_scope" => event["feedback_scope"],
-        "trust_boundary" => event["trust_boundary"]
+        "trust_boundary" => event["trust_boundary"],
+        "derivation_reasons" => [reason]
       }
       |> compact_map()
     end)

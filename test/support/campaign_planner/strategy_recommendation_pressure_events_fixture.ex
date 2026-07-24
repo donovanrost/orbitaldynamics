@@ -20,7 +20,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureEventsFi
         },
         approval_policy: %{
           "blocked_risk_types" => [],
-          "operator_review_risk_limit" => 60
+          "operator_review_risk_limit" => 80
         },
         branches: [
           %{id: "baseline"},
@@ -951,6 +951,47 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureEventsFi
                 feedback_scope: "resource_projection",
                 trust_boundary: "mission_state_resource_projection_report"
               },
+              resource_projection_availability_event(
+                "payload_available",
+                "projected_spacecraft_degraded_payload_unavailable",
+                degraded: true
+              ),
+              resource_projection_availability_event(
+                "spacecraft_available",
+                "projected_spacecraft_unavailable"
+              ),
+              resource_projection_availability_event(
+                "antenna_available",
+                "projected_antenna_unavailable"
+              ),
+              resource_projection_compatibility_event(),
+              resource_projection_margin_event(
+                "storage_margin",
+                0.0,
+                0.2,
+                "projected_storage_overflow",
+                projected_storage_overflow_mb: 25.0
+              ),
+              resource_projection_margin_event(
+                "downlink_margin",
+                0.0,
+                0.75,
+                "projected_downlink_shortfall",
+                projected_downlink_shortfall_mb: 10.0
+              ),
+              resource_projection_margin_event(
+                "power_margin",
+                0.0,
+                0.2,
+                "projected_battery_depletion",
+                projected_battery_overuse_wh: 5.0
+              ),
+              resource_projection_margin_event(
+                "thermal_margin_c",
+                -1.5,
+                0.0,
+                "projected_thermal_margin_below_limit"
+              ),
               %{
                 type: "resource_margin_pressure",
                 spacecraft_id: "leo_1",
@@ -1783,6 +1824,65 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureEventsFi
       feedback_source: "mission_state.source_resource_filter_report.suppressed_candidates",
       feedback_scope: "resource_filter",
       trust_boundary: "mission_state_resource_filter_report"
+    }
+    |> Map.put(field, value)
+    |> Map.put("#{field}_threshold", threshold)
+  end
+
+  defp resource_projection_availability_event(field, reason, opts \\ []) do
+    %{
+      type: "resource_availability_constraint",
+      scenario_id: "leo_projection_selected",
+      spacecraft_id: "leo_projection_selected",
+      resource_field: field,
+      available: false,
+      degraded: Keyword.get(opts, :degraded),
+      source_quality: "operator_supplied",
+      source_activity_id: "obs_projection_pressure",
+      source_activity_ids: ["obs_projection_pressure"],
+      derivation_reasons: [reason],
+      feedback_source: "mission_state.source_resource_projection_report",
+      feedback_scope: "resource_projection",
+      trust_boundary: "mission_state_resource_projection_report"
+    }
+    |> Map.put(field, false)
+  end
+
+  defp resource_projection_compatibility_event do
+    %{
+      type: "degraded_spacecraft",
+      scenario_id: "leo_projection_selected",
+      spacecraft_id: "leo_projection_selected",
+      mode: "resource_activity_type_constraint",
+      incompatible_activity_types: ["downlink", "observe"],
+      source_quality: "operator_supplied",
+      source_activity_id: "obs_projection_pressure",
+      source_activity_ids: ["obs_projection_pressure"],
+      derivation_reasons: ["projected_activity_type_incompatible_with_resource_summary"],
+      feedback_source: "mission_state.source_resource_projection_report",
+      feedback_scope: "resource_projection",
+      trust_boundary: "mission_state_resource_projection_report"
+    }
+  end
+
+  defp resource_projection_margin_event(field, value, threshold, reason, opts \\ []) do
+    %{
+      type: "resource_margin_pressure",
+      scenario_id: "leo_projection_selected",
+      spacecraft_id: "leo_projection_selected",
+      resource_field: field,
+      source_quality: "operator_supplied",
+      source_activity_id: "obs_projection_pressure",
+      source_activity_ids: ["obs_projection_pressure"],
+      starts_at_s: 1_590.0,
+      ends_at_s: 1_650.0,
+      derivation_reasons: [reason],
+      feedback_source: "mission_state.source_resource_projection_report",
+      feedback_scope: "resource_projection",
+      trust_boundary: "mission_state_resource_projection_report",
+      projected_storage_overflow_mb: Keyword.get(opts, :projected_storage_overflow_mb),
+      projected_downlink_shortfall_mb: Keyword.get(opts, :projected_downlink_shortfall_mb),
+      projected_battery_overuse_wh: Keyword.get(opts, :projected_battery_overuse_wh)
     }
     |> Map.put(field, value)
     |> Map.put("#{field}_threshold", threshold)

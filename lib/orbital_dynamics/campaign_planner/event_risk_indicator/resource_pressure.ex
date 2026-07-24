@@ -25,6 +25,9 @@ defmodule OrbitalDynamics.CampaignPlanner.EventRiskIndicator.ResourcePressure do
         "resource_margin_threshold" => threshold,
         "resource_margin_field_value" =>
           resource_margin_field_value_context(field, value, threshold),
+        "projected_storage_overflow_mb" => event["projected_storage_overflow_mb"],
+        "projected_downlink_shortfall_mb" => event["projected_downlink_shortfall_mb"],
+        "projected_battery_overuse_wh" => event["projected_battery_overuse_wh"],
         "suppressed_reason" => event["suppressed_reason"],
         "source_quality" => event["source_quality"],
         "resource_trust_boundary_status" => event["resource_trust_boundary_status"],
@@ -67,6 +70,7 @@ defmodule OrbitalDynamics.CampaignPlanner.EventRiskIndicator.ResourcePressure do
         "resource_availability_risk_type" => risk_type,
         "resource_field" => field,
         "resource_availability_value" => value,
+        "degraded" => event["degraded"],
         field => value,
         "suppressed_reason" => event["suppressed_reason"],
         "approval_status" => event["approval_status"],

@@ -5,26 +5,26 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Validate source-exact resource-projection downlink context.
+Complete source-exact resource-projection context.
 
 Status:
 Verified; ready to publish.
 
 Selection evidence:
-- The shared recommendation fixture emits a coherent `17/37` resource-
-  projection subset for a selected projected-downlink shortfall: routing,
-  required/planned contacts and volume, timing, and provenance.
-- Resource-projection context is declared and copied into review/import rows
-  but is absent from the strategy handoff validator's source-pair registry and
-  has no field-specific mutation proofs.
+- Existing source-resource-projection producers emit availability, activity-
+  compatibility, storage/downlink/power, and thermal events for all remaining
+  20 declared context fields.
+- Event-to-risk normalization drops projection-only values, and context
+  extraction does not recover normalized generic availability/margin values;
+  the shared handoff fixture therefore emits only `17/37` fields.
 
 Intended behavior:
-- Require all 17 live resource-projection downlink identity, demand, timing,
-  routing, and provenance fields to remain exact in operator review, direct
-  Cadence import, and review-derived Cadence rows.
-- Reject missing or stale derived context while retaining paired legacy
-  omission compatibility; defer the other 20 declared fields until live
-  fixture evidence supports them.
+- Preserve projection-only availability, degradation, compatibility, overflow,
+  shortfall, battery, margin, threshold, and source-quality evidence through
+  event-to-risk normalization.
+- Require the remaining 20 fields to remain exact in operator review, direct
+  Cadence import, and review-derived Cadence rows, completing `37/37` while
+  retaining paired legacy omission compatibility.
 - Preserve provider and Cadence writes, reservation acceptance, operator
   authority, and execution boundaries.
 
@@ -32,40 +32,45 @@ Level 6 pillar advanced:
 Fleet-scale planning decisions and durable reproducible audit handoffs.
 
 Planned files:
-- strategy handoff validation contracts
-- mutation/schema proofs, docs, exports, and ledger
+- projection event-risk normalization and recommendation context
+- fixture, strategy handoff validation, mutation/schema proofs, docs, exports,
+  and ledger
 
 Verification:
-- Focused handoff contracts: `479 passed`.
+- Focused handoff contracts: `499 passed`.
 - Adjacent resource-projection, operator-review, and Cadence-import contracts:
   `13 passed`.
 - Contact-allocation regression: `213 passed`.
 - Golden artifacts: `12 passed`.
 - Schema lint: `155/155` artifacts passed with zero warnings.
-- Full suite: `4368 passed`.
+- Full suite: `4388 passed`.
 - Canonical strategy SHA-256 remained
   `c13c37c2ae06849c5d8a49cecaf1c113e0ddcf653c34d32f751efd6815891887`.
-- Exact-copy coverage advanced from `0/37` to `17/37` resource-projection
+- Exact-copy coverage advanced from `17/37` to `37/37` resource-projection
   context fields.
 
 Review:
-- Strategy recommendation handoff validation now derives and compares the 17
-  live projected-downlink resource-projection context fields from the source
-  recommendation risks.
-- Mutation proofs cover every direct and review-derived copy, missing review
-  context, paired legacy omission, stale direct context, and missing/stale
-  review-derived context, including the valid zero planned-contact value.
-- The paired-omission fixture recomputes resource-projection context after
-  source mutation so omitting the family-defining feedback scope cannot leave
-  unrelated derived projection fields stale in the legacy fixture.
+- Source-resource-projection availability and activity-compatibility events now
+  retain source quality, and event-risk normalization preserves availability,
+  degradation, compatibility mode, projected overflow/shortfall/battery, and
+  derivation evidence.
+- Field-aware projection context extraction recovers normalized generic margin
+  values and thresholds only for their matching resource field; it does not
+  add field-specific aliases to unrelated canonical risk payloads.
+- The shared fixture now exercises all 37 resource-projection fields, including
+  valid false/zero values and the overlap with generic resource-margin context.
+- Mutation proofs cover every remaining field across direct and review-derived
+  copies, missing review context, paired legacy omission, stale direct context,
+  and missing/stale review-derived context; the prior 17 proofs remain green.
 - Schema exports and the canonical strategy artifact are unchanged because the
-  fields were already declared and emitted.
+  public fields were already declared and the canonical payload shape remains
+  stable.
 - Safety boundaries remain explicit: no provider request or reservation,
   schedule mutation, Cadence write, operator authority, or autonomous
   execution was added.
 
 Last published slice:
-- `32b10e6b` Validate resource margin handoffs (`4351 passed`, `22/22`).
+- `344eeb81` Validate resource projection handoffs (`4368 passed`, `17/37`).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions while preserving explicit
@@ -76,8 +81,8 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-Complete the remaining `20/37` source-exact resource-projection context fields
-only if live fixture evidence supports a coherent follow-up.
+Reassess the next highest-value maturity gap after `37/37` resource-projection
+coverage.
 
 Blocked:
 None.

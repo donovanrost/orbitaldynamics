@@ -82,7 +82,10 @@ defmodule OrbitalDynamics.RecommendationRiskContext.ResourceProjection do
       "resource_projection_pressure_downlink_completion_sources" =>
         risk_context_values(resource_projection_risks, ["downlink_completion_sources"]),
       "resource_projection_pressure_available_values" =>
-        risk_context_values(resource_projection_risks, "available"),
+        risk_context_values(resource_projection_risks, [
+          "available",
+          "resource_availability_value"
+        ]),
       "resource_projection_pressure_degraded_values" =>
         risk_context_values(resource_projection_risks, "degraded"),
       "resource_projection_pressure_payload_available_values" =>
@@ -96,27 +99,27 @@ defmodule OrbitalDynamics.RecommendationRiskContext.ResourceProjection do
       "resource_projection_pressure_incompatible_activity_types" =>
         risk_context_values(resource_projection_risks, ["incompatible_activity_types"]),
       "resource_projection_pressure_storage_margin_values" =>
-        risk_context_values(resource_projection_risks, "storage_margin"),
+        margin_context_values(resource_projection_risks, "storage_margin", :value),
       "resource_projection_pressure_storage_margin_threshold_values" =>
-        risk_context_values(resource_projection_risks, "storage_margin_threshold"),
+        margin_context_values(resource_projection_risks, "storage_margin", :threshold),
       "resource_projection_pressure_projected_storage_overflow_values_mb" =>
         risk_context_values(resource_projection_risks, "projected_storage_overflow_mb"),
       "resource_projection_pressure_downlink_margin_values" =>
-        risk_context_values(resource_projection_risks, "downlink_margin"),
+        margin_context_values(resource_projection_risks, "downlink_margin", :value),
       "resource_projection_pressure_downlink_margin_threshold_values" =>
-        risk_context_values(resource_projection_risks, "downlink_margin_threshold"),
+        margin_context_values(resource_projection_risks, "downlink_margin", :threshold),
       "resource_projection_pressure_projected_downlink_shortfall_values_mb" =>
         risk_context_values(resource_projection_risks, "projected_downlink_shortfall_mb"),
       "resource_projection_pressure_power_margin_values" =>
-        risk_context_values(resource_projection_risks, "power_margin"),
+        margin_context_values(resource_projection_risks, "power_margin", :value),
       "resource_projection_pressure_power_margin_threshold_values" =>
-        risk_context_values(resource_projection_risks, "power_margin_threshold"),
+        margin_context_values(resource_projection_risks, "power_margin", :threshold),
       "resource_projection_pressure_projected_battery_overuse_values_wh" =>
         risk_context_values(resource_projection_risks, "projected_battery_overuse_wh"),
       "resource_projection_pressure_thermal_margin_values_c" =>
-        risk_context_values(resource_projection_risks, "thermal_margin_c"),
+        margin_context_values(resource_projection_risks, "thermal_margin_c", :value),
       "resource_projection_pressure_thermal_margin_threshold_values_c" =>
-        risk_context_values(resource_projection_risks, "thermal_margin_c_threshold"),
+        margin_context_values(resource_projection_risks, "thermal_margin_c", :threshold),
       "resource_projection_pressure_source_quality_values" =>
         risk_context_values(resource_projection_risks, "source_quality"),
       "resource_projection_pressure_feedback_sources" =>
@@ -136,6 +139,21 @@ defmodule OrbitalDynamics.RecommendationRiskContext.ResourceProjection do
 
   defp resource_projection_risk?(%{"feedback_scope" => "resource_projection"}), do: true
   defp resource_projection_risk?(_risk), do: false
+
+  defp margin_context_values(risks, field, value_kind) do
+    field_key = if value_kind == :value, do: field, else: "#{field}_threshold"
+
+    normalized_key =
+      if value_kind == :value,
+        do: "resource_margin_value",
+        else: "resource_margin_threshold"
+
+    risks
+    |> Enum.filter(&(Map.get(&1, "resource_field") == field))
+    |> Enum.map(&(Map.get(&1, field_key) || Map.get(&1, normalized_key)))
+    |> Enum.reject(&is_nil/1)
+    |> Enum.uniq()
+  end
 
   defp risk_context_values(risks, keys) when is_list(keys) do
     risks

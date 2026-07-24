@@ -281,6 +281,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyResourceProjectionPressureTest
              "resource_field" => "payload_available",
              "payload_available" => false,
              "available" => false,
+             "source_quality" => "operator_supplied",
              "source_activity_id" => "obs_payload_pressure",
              "source_activity_ids" => ["obs_payload_pressure"],
              "derivation_reasons" => ["projected_payload_unavailable"],
@@ -329,6 +330,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyResourceProjectionPressureTest
              "spacecraft_id" => "leo_activity_type_pressure",
              "mode" => "resource_activity_type_constraint",
              "incompatible_activity_types" => ["downlink", "observe"],
+             "source_quality" => "operator_supplied",
              "source_activity_id" => "obs_activity_type_pressure",
              "source_activity_ids" => ["obs_activity_type_pressure"],
              "derivation_reasons" => [
@@ -366,7 +368,10 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyResourceProjectionPressureTest
     assert Enum.any?(
              availability_pressure_branch["risk_indicators"],
              &(&1["type"] == "payload_unavailable" and
-                 &1["spacecraft_id"] == "leo_payload_pressure")
+                 &1["spacecraft_id"] == "leo_payload_pressure" and
+                 &1["resource_availability_value"] == false and
+                 &1["payload_available"] == false and
+                 &1["source_quality"] == "operator_supplied")
            )
 
     assert Enum.any?(
@@ -389,7 +394,20 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyResourceProjectionPressureTest
     assert Enum.any?(
              activity_type_pressure_branch["risk_indicators"],
              &(&1["type"] == "activity_type_suppressed_by_resource_summary" and
-                 &1["incompatible_activity_types"] == ["downlink", "observe"])
+                 &1["mode"] == "resource_activity_type_constraint" and
+                 &1["incompatible_activity_types"] == ["downlink", "observe"] and
+                 &1["source_quality"] == "operator_supplied" and
+                 &1["derivation_reasons"] == [
+                   "projected_activity_type_suppressed_by_resource_summary"
+                 ])
+           )
+
+    assert Enum.any?(
+             pressure_branch["risk_indicators"],
+             &(&1["type"] == "power_margin_low" and
+                 &1["resource_margin_value"] == 0.0 and
+                 &1["resource_margin_threshold"] == 0.2 and
+                 &1["projected_battery_overuse_wh"] == 5.0)
            )
 
     assert Enum.any?(
