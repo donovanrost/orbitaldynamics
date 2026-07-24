@@ -82,7 +82,10 @@ Implemented or partially implemented modules and artifacts include:
   impact, operator-action, identity, and provenance fields. Timeline-publication
   handoffs preserve all 29 publication, invalidation, diff, dependency-impact,
   safety-assumption, identity, and provenance fields without publishing or
-  invalidating downstream products.
+  invalidating downstream products. Timeline-lifecycle-state handoffs preserve
+  all 34 lifecycle status, count, transition, review, identity,
+  safety-assumption, and provenance fields without applying lifecycle state or
+  mutating timelines.
 - Operational readiness and quality artifacts: readiness, import-eligibility,
   execution-boundary, quality-gate, safety-case, model-acceptance,
   schema-validation, validation-fixture, operator-training, and unavailable

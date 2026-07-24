@@ -5,26 +5,26 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Validate source-exact timeline-publication context.
+Validate source-exact timeline-lifecycle-state context.
 
 Status:
 Verified; ready to publish.
 
 Selection evidence:
-- The shared recommendation fixture emits all `29/29` timeline-publication
-  identity, status, invalidation, diff, dependency-impact, safety-assumption,
-  and provenance fields from a live `timeline_publication_pressure` risk.
+- Live fixture execution confirms that the source risk and selected review row
+  emit all `34/34` timeline-lifecycle-state status, count, transition, review,
+  identity, safety-assumption, and provenance fields.
 - Operator review and Cadence import copy those fields, but the strategy handoff
-  validator has no timeline-publication source-pair registry, so missing
+  validator has no timeline-lifecycle-state source-pair registry, so missing
   or stale copies are not checked against the source recommendation.
 
 Intended behavior:
-- Require all 29 timeline-publication fields to remain exact in operator review,
-  direct Cadence import, and review-derived Cadence rows.
+- Require all 34 timeline-lifecycle-state fields to remain exact in operator
+  review, direct Cadence import, and review-derived Cadence rows.
 - Reject missing or stale derived context while retaining paired legacy
   omission compatibility when the source risk omits the corresponding field.
-- Preserve provider and Cadence writes, reservation acceptance, operator
-  authority, and execution boundaries.
+- Preserve timeline lifecycle application, timeline mutation, command execution,
+  Cadence writes, operator authority, and autonomous execution boundaries.
 
 Level 6 pillar advanced:
 Fleet-scale planning decisions and durable reproducible audit handoffs.
@@ -34,34 +34,34 @@ Planned files:
 - field-specific mutation/schema proofs, docs, exports, and ledger
 
 Verification:
-- Focused handoff contracts: `656 passed`.
-- Adjacent timeline-publication source, replay, review, import, and schema
-  contracts: `21 passed`.
+- Focused handoff contracts: `690 passed`.
+- Adjacent timeline-lifecycle source, replay, review, import, and schema
+  contracts: `32 passed`.
 - Contact-allocation regression: `213 passed`.
 - Golden artifacts: `12 passed`.
 - Schema lint: `155/155` artifacts passed with zero warnings.
-- Full suite: `4545 passed`.
+- Full suite: `4579 passed`.
 - Canonical strategy SHA-256 remained
   `c13c37c2ae06849c5d8a49cecaf1c113e0ddcf653c34d32f751efd6815891887`.
-- Exact-copy coverage advanced from `0/29` to `29/29`
-  timeline-publication context fields.
+- Exact-copy coverage advanced from `0/34` to `34/34`
+  timeline-lifecycle-state context fields.
 
 Review:
 - Strategy recommendation handoff validation now derives and compares every
-  timeline-publication context field from the source recommendation risk.
-- Twenty-nine generated mutation proofs cover operator review, direct Cadence
+  timeline-lifecycle-state context field from the source recommendation risk.
+- Thirty-four generated mutation proofs cover operator review, direct Cadence
   import, review-derived Cadence rows, the embedded source-review row, missing
   review context, paired legacy omission, stale direct context, and missing or
-  stale review-derived context across invalidation maps, counts, sequence,
-  identities, provenance, and safety assumptions.
+  stale review-derived context across lifecycle counts, transition maps,
+  grouped review identities, provenance, and safety assumptions.
 - Schema exports and the canonical strategy artifact are unchanged because the
-  timeline-publication fields were already public and emitted.
-- Safety boundaries remain explicit: no publication execution, downstream
-  invalidation, notification delivery, import approval, schedule mutation,
-  Cadence write, operator authority, or autonomous execution was added.
+  timeline-lifecycle-state fields were already public and emitted.
+- Safety boundaries remain explicit: no lifecycle application, timeline
+  mutation, command execution, Cadence write, operator authority, or autonomous
+  execution was added.
 
 Last published slice:
-- `27e4ed96` Validate timeline dependency handoffs (`4516 passed`, `19/19`).
+- `0b922982` Validate timeline publication handoffs (`4545 passed`, `29/29`).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions while preserving explicit
@@ -72,8 +72,8 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-Reassess the next highest-value maturity gap after `29/29` timeline-publication
-coverage.
+Reassess the next highest-value maturity gap after `34/34`
+timeline-lifecycle-state coverage.
 
 Blocked:
 None.

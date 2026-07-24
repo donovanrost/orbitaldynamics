@@ -1985,6 +1985,188 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
     end
   end
 
+  @timeline_lifecycle_state_context_contracts [
+    {"status", "timeline_lifecycle_state_statuses", "timeline_lifecycle_state_status",
+     ["review_required"], ["stale_lifecycle_status"]},
+    {"planned-activity count", "timeline_lifecycle_state_planned_activity_count_values",
+     "planned_activity_count", [4], [5]},
+    {"realized-activity count", "timeline_lifecycle_state_realized_activity_count_values",
+     "realized_activity_count", [1], [2]},
+    {"row count", "timeline_lifecycle_state_row_count_values", "row_count", [4], [5]},
+    {"recordable count", "timeline_lifecycle_state_recordable_count_values", "recordable_count",
+     [3], [4]},
+    {"preserved count", "timeline_lifecycle_state_preserved_count_values", "preserved_count", [1],
+     [2]},
+    {"review-required count", "timeline_lifecycle_state_review_required_count_values",
+     "review_required_count", [3], [4]},
+    {"duplicate-identity count", "timeline_lifecycle_state_duplicate_identity_count_values",
+     "duplicate_timeline_identity_count", [1], [2]},
+    {"invalid-activity-input count",
+     "timeline_lifecycle_state_invalid_activity_input_count_values",
+     "invalid_activity_input_count", [1], [2]},
+    {"transition-decision counts", "timeline_lifecycle_state_transition_decision_count_maps",
+     "transition_decision_counts", [%{"record" => 3, "none" => 1}],
+     [%{"record" => 4, "none" => 1}]},
+    {"required-operator-action counts",
+     "timeline_lifecycle_state_required_operator_action_count_maps",
+     "required_operator_action_counts",
+     [
+       %{
+         "review_activity_approval" => 1,
+         "review_duplicate_timeline_identity" => 1,
+         "review_invalid_activity_input" => 1
+       }
+     ],
+     [
+       %{
+         "review_activity_approval" => 2,
+         "review_duplicate_timeline_identity" => 1,
+         "review_invalid_activity_input" => 1
+       }
+     ]},
+    {"operator-action-reason counts",
+     "timeline_lifecycle_state_operator_action_reason_count_maps",
+     "operator_action_reason_counts",
+     [
+       %{
+         "activity_approval_pending" => 1,
+         "duplicate_timeline_identity" => 1,
+         "missing_activity_type" => 1
+       }
+     ],
+     [
+       %{
+         "activity_approval_pending" => 2,
+         "duplicate_timeline_identity" => 1,
+         "missing_activity_type" => 1
+       }
+     ]},
+    {"import-action counts", "timeline_lifecycle_state_import_action_count_maps",
+     "import_action_counts", [%{"review_timeline_diff" => 3}], [%{"review_timeline_diff" => 4}]},
+    {"planned-status-category counts",
+     "timeline_lifecycle_state_planned_status_category_count_maps",
+     "planned_status_category_counts", [%{"planned" => 4}], [%{"planned" => 5}]},
+    {"realized-status-category counts",
+     "timeline_lifecycle_state_realized_status_category_count_maps",
+     "realized_status_category_counts", [%{"executed" => 1}], [%{"executed" => 2}]},
+    {"status-transition-category counts",
+     "timeline_lifecycle_state_status_transition_category_count_maps",
+     "status_transition_category_counts", [%{"changed" => 1}], [%{"changed" => 2}]},
+    {"approval-transition-category counts",
+     "timeline_lifecycle_state_approval_transition_category_count_maps",
+     "approval_transition_category_counts", [%{"changed" => 1}], [%{"changed" => 2}]},
+    {"recordable timeline identities", "timeline_lifecycle_state_recordable_timeline_ids",
+     ["recordable_timeline_ids"],
+     [
+       "timeline:lifecycle:cmd_pending",
+       "timeline:lifecycle:dup",
+       "timeline:invalid_activity_input:lifecycle_bad_missing_type"
+     ], ["timeline:stale_recordable"]},
+    {"preserved timeline identities", "timeline_lifecycle_state_preserved_timeline_ids",
+     ["preserved_timeline_ids"], ["timeline:lifecycle:obs_preserved"],
+     ["timeline:stale_preserved"]},
+    {"review timeline identities", "timeline_lifecycle_state_review_timeline_ids",
+     ["review_timeline_ids"],
+     [
+       "timeline:lifecycle:cmd_pending",
+       "timeline:lifecycle:dup",
+       "timeline:invalid_activity_input:lifecycle_bad_missing_type"
+     ], ["timeline:stale_review"]},
+    {"review activity identities", "timeline_lifecycle_state_review_activity_ids",
+     ["review_activity_ids"],
+     [
+       "lifecycle_cmd_pending",
+       "lifecycle_dup_a",
+       "lifecycle_dup_b",
+       "timeline_row:4:lifecycle_bad_missing_type"
+     ], ["stale_review_activity"]},
+    {"invalid-activity-input identities", "timeline_lifecycle_state_invalid_activity_input_ids",
+     ["invalid_activity_input_ids"], ["timeline_row:4:lifecycle_bad_missing_type"],
+     ["stale_invalid_activity_input"]},
+    {"review timelines by required operator action",
+     "timeline_lifecycle_state_review_timeline_ids_by_required_operator_action",
+     "review_timeline_ids_by_required_operator_action",
+     [
+       %{
+         "review_activity_approval" => ["timeline:lifecycle:cmd_pending"],
+         "review_duplicate_timeline_identity" => ["timeline:lifecycle:dup"],
+         "review_invalid_activity_input" => [
+           "timeline:invalid_activity_input:lifecycle_bad_missing_type"
+         ]
+       }
+     ], [%{"review_activity_approval" => ["timeline:stale_review"]}]},
+    {"review timelines by operator-action reason",
+     "timeline_lifecycle_state_review_timeline_ids_by_operator_action_reason",
+     "review_timeline_ids_by_operator_action_reason",
+     [
+       %{
+         "activity_approval_pending" => ["timeline:lifecycle:cmd_pending"],
+         "duplicate_timeline_identity" => ["timeline:lifecycle:dup"],
+         "missing_activity_type" => [
+           "timeline:invalid_activity_input:lifecycle_bad_missing_type"
+         ]
+       }
+     ], [%{"activity_approval_pending" => ["timeline:stale_review"]}]},
+    {"review timelines by status-transition category",
+     "timeline_lifecycle_state_review_timeline_ids_by_status_transition_category",
+     "review_timeline_ids_by_status_transition_category",
+     [%{"changed" => ["timeline:lifecycle:cmd_pending"]}],
+     [%{"changed" => ["timeline:stale_review"]}]},
+    {"review timelines by approval-transition category",
+     "timeline_lifecycle_state_review_timeline_ids_by_approval_transition_category",
+     "review_timeline_ids_by_approval_transition_category",
+     [%{"changed" => ["timeline:lifecycle:cmd_pending"]}],
+     [%{"changed" => ["timeline:stale_review"]}]},
+    {"required operator actions", "timeline_lifecycle_state_required_operator_actions",
+     "required_operator_action", ["review_timeline_lifecycle_state"], ["stale_operator_action"]},
+    {"operator-review requirement", "timeline_lifecycle_state_requires_operator_review_values",
+     "requires_operator_review", [true], [false]},
+    {"feedback source", "timeline_lifecycle_state_feedback_sources", "feedback_source",
+     ["mission_state.source_timeline_lifecycle_state_summary"],
+     ["mission_state.stale_timeline_lifecycle_state_summary"]},
+    {"feedback scope", "timeline_lifecycle_state_feedback_scopes", "feedback_scope",
+     ["timeline_lifecycle_state"], ["stale_timeline_lifecycle_state"]},
+    {"feedback key", "timeline_lifecycle_state_feedback_keys", "feedback_key",
+     ["mission.lifecycle.summary"], ["stale.lifecycle.summary"]},
+    {"trust boundary", "timeline_lifecycle_state_trust_boundaries", "trust_boundary",
+     ["mission_state_timeline_lifecycle_state_summary"], ["stale_lifecycle_boundary"]},
+    {"derivation reasons", "timeline_lifecycle_state_derivation_reasons", ["derivation_reasons"],
+     ["timeline_lifecycle_state_summary_pressure"], ["stale_lifecycle_derivation"]},
+    {"safety assumptions", "timeline_lifecycle_state_assumption_maps", "assumptions",
+     [
+       %{
+         "cadence_import" => "not_performed_by_strategy_branch",
+         "command_execution" => "not_performed_by_strategy_branch",
+         "operator_authority" => "not_granted_by_strategy_branch",
+         "timeline_lifecycle_application" => "not_performed_by_strategy_branch",
+         "timeline_mutation" => "not_performed_by_strategy_branch"
+       }
+     ],
+     [
+       %{
+         "cadence_import" => "not_performed_by_strategy_branch",
+         "command_execution" => "not_performed_by_strategy_branch",
+         "operator_authority" => "not_granted_by_strategy_branch",
+         "timeline_lifecycle_application" => "stale_lifecycle_application",
+         "timeline_mutation" => "not_performed_by_strategy_branch"
+       }
+     ]}
+  ]
+
+  for {description, field, source_field, expected_value, stale_value} <-
+        @timeline_lifecycle_state_context_contracts do
+    test "timeline-lifecycle-state #{description} remains source exact across handoffs" do
+      assert_risk_context_contract(
+        StrategyRecommendationPressureEventsFixture.artifact(),
+        unquote(field),
+        {"feedback_scope", "timeline_lifecycle_state"},
+        unquote(Macro.escape(source_field)),
+        unquote(Macro.escape(expected_value)),
+        unquote(Macro.escape(stale_value))
+      )
+    end
+  end
+
   test "link-capacity risk type remains source exact across handoffs" do
     assert_risk_context_contract(
       StrategyRecommendationPressureEventsFixture.artifact(),

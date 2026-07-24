@@ -193,6 +193,9 @@ Already implemented or heavily covered:
 - V3 timeline-publication review/import handoffs require all 29 publication,
   invalidation, diff, dependency-impact, safety-assumption, identity, and
   provenance fields to stay source exact without publication authority
+- V3 timeline-lifecycle-state review/import handoffs require all 34 lifecycle
+  status, count, transition, review, identity, safety-assumption, and provenance
+  fields to stay source exact without lifecycle-application authority
 - an executable registry-derived coverage guard confirms all 33 current
   resource/contact/station/link/provider contracts have curated artifact
   reference fixtures and automatically scopes future matching contracts
