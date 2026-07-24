@@ -1310,6 +1310,25 @@ defmodule OrbitalDynamics.Schema.StrategyHandoffContracts do
                                                       @strategy_recommendation_risk_context_specs,
                                                       &elem(&1, 0)
                                                     )
+  @strategy_recommendation_context_key_functions OrbitalDynamics.RecommendationRiskContext.__info__(
+                                                   :functions
+                                                 )
+                                                 |> Enum.filter(fn {function, arity} ->
+                                                   arity == 0 and
+                                                     String.ends_with?(
+                                                       Atom.to_string(function),
+                                                       "_context_keys"
+                                                     )
+                                                 end)
+                                                 |> Enum.map(&elem(&1, 0))
+                                                 |> Enum.sort()
+  @strategy_recommendation_unemitted_risk_context_fields Enum.sort(
+                                                           @timeline_activity_lifecycle_state_unemitted_context_fields ++
+                                                             @timeline_preservation_unemitted_context_fields ++
+                                                             @timeline_activity_precondition_unemitted_context_fields ++
+                                                             @timeline_integrity_unemitted_context_fields ++
+                                                             @validation_refresh_unemitted_context_fields
+                                                         )
   @strategy_recommendation_source_review_fields Enum.map(
                                                   [
                                                     "subject_id",
@@ -1542,6 +1561,52 @@ defmodule OrbitalDynamics.Schema.StrategyHandoffContracts do
                                           ],
                                           &{&1, &1}
                                         )
+
+  def strategy_recommendation_risk_context_coverage do
+    declared_fields =
+      Enum.flat_map(
+        @strategy_recommendation_context_key_functions,
+        &apply(OrbitalDynamics.RecommendationRiskContext, &1, [])
+      )
+
+    registered_fields = Enum.map(@strategy_recommendation_risk_context_field_pairs, &elem(&1, 0))
+    declared_unique_fields = Enum.uniq(declared_fields)
+    registered_unique_fields = Enum.uniq(registered_fields)
+
+    %{
+      family_count: length(@strategy_recommendation_context_key_functions),
+      declared_field_count: length(declared_fields),
+      registered_field_count: length(registered_fields),
+      intentionally_unemitted_field_count:
+        length(@strategy_recommendation_unemitted_risk_context_fields),
+      intentionally_unemitted_fields: @strategy_recommendation_unemitted_risk_context_fields,
+      duplicate_declared_fields: duplicate_fields(declared_fields),
+      duplicate_registered_fields: duplicate_fields(registered_fields),
+      missing_fields:
+        Enum.sort(
+          (declared_unique_fields -- registered_unique_fields) --
+            @strategy_recommendation_unemitted_risk_context_fields
+        ),
+      unexpected_fields: Enum.sort(registered_unique_fields -- declared_unique_fields),
+      stale_unemitted_fields:
+        Enum.sort(
+          @strategy_recommendation_unemitted_risk_context_fields -- declared_unique_fields
+        ),
+      registered_unemitted_fields:
+        Enum.filter(
+          @strategy_recommendation_unemitted_risk_context_fields,
+          &(&1 in registered_unique_fields)
+        )
+    }
+  end
+
+  defp duplicate_fields(fields) do
+    fields
+    |> Enum.frequencies()
+    |> Enum.filter(fn {_field, count} -> count > 1 end)
+    |> Enum.map(&elem(&1, 0))
+    |> Enum.sort()
+  end
 
   def validate_strategy_recommendation_matches_source(
         issues,

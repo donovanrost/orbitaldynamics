@@ -5,75 +5,68 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Validate emitted validation-refresh context.
+Guard strategy handoff context coverage.
 
 Status:
 Verified; ready to publish.
 
 Selection evidence:
-- Live fixture execution confirms `81/82` declared validation-refresh fields
-  with exact derived context on the selected review row across model acceptance,
-  schema validation, validation safety case, refresh budget, and freshness.
-- The sole absent field is `refresh_freshness_unknown_reason_ids`, consistent
-  with the live freshness risk's `stale` status, two stale reasons, and empty
-  unknown reasons.
-- Operator review and Cadence import copy those fields, but the strategy handoff
-  validator has no validation-refresh source-pair registry, so missing
-  or stale copies are not checked against the source recommendation.
+- Live registry inspection finds 30 recommendation-context families declaring
+  962 fields: 953 source-exact handoff fields plus nine intentionally non-emitted
+  selected-fixture fields.
+- The validator has no executable coverage audit tying declared fields,
+  registered fields, and explicit exclusions together.
+- A future field can therefore be omitted from a manual handoff registry, or an
+  exclusion can become stale, without a focused failure naming the drift.
 
 Intended behavior:
-- Require all 81 emitted validation-refresh fields to remain exact in
-  operator review, direct Cadence import, and review-derived Cadence rows.
-- Reject missing or stale derived context while retaining paired legacy
-  omission compatibility when the source risk omits the corresponding field.
-- Leave the absent freshness-unknown reason outside the exact registry until the
-  selected handoff fixture emits it from an internally consistent unknown risk.
-- Preserve model acceptance, schema remediation, refresh execution, Cadence
-  writes, operator authority, and autonomous execution boundaries.
+- Expose one deterministic coverage report over all declared, registered, and
+  intentionally non-emitted strategy recommendation context fields.
+- Fail a focused executable guard on missing, unexpected, duplicate, stale-
+  exclusion, or registered-exclusion fields.
+- Pin the current nine-field exclusion set while allowing no unaccounted field.
+- Preserve all planner behavior, schemas, Cadence writes, operator authority,
+  and autonomous execution boundaries.
 
 Level 6 pillar advanced:
 Fleet-scale planning decisions and durable reproducible audit handoffs.
 
 Planned files:
-- strategy handoff validation contracts
-- field-specific mutation/schema proofs, docs, exports, and ledger
+- strategy handoff coverage accounting
+- focused registry guard, docs, exports, and ledger
 
 Verification:
-- Focused handoff contracts: `954 passed`.
-- Adjacent model-acceptance, schema-validation, safety-case, refresh-budget,
-  freshness, replay, review/import, and fixture contracts: `94 passed`.
+- Focused context-coverage guard: `1 passed`.
+- Existing source-exact strategy handoff matrix: `954 passed`.
+- Adjacent strategy recommendation, review/import, and Cadence-import schema
+  contracts: `27 passed`.
 - Contact-allocation regression: `213 passed`.
 - Golden artifacts: `12 passed`.
 - Schema lint: `155/155` artifacts passed with zero warnings.
-- Full suite: `4843 passed`.
+- Full suite: `4844 passed`.
 - Canonical strategy SHA-256 remained
   `c13c37c2ae06849c5d8a49cecaf1c113e0ddcf653c34d32f751efd6815891887`.
-- Exact-copy coverage advanced from `0/81` to `81/81` emitted
-  validation-refresh fields (`81/82` declared fields live).
+- Coverage accounting is exact: 30 families, 962 declared fields, 953
+  registered fields, nine intentional exclusions, and zero drift findings.
 
 Review:
-- Validation-refresh context derivation now uses one grouped field registry
-  shared by aggregation, handoff validation, and generated proofs across five
-  source scopes.
-- Eighty-one registry-derived mutation proofs cover operator review, direct
-  Cadence import, review-derived Cadence rows, the embedded source-review row,
-  missing review context, paired legacy omission, stale direct context, and
-  missing review-derived context across model acceptance, schema validation,
-  safety-case, refresh-budget, freshness, review, identity, and provenance
-  fields.
-- The non-emitted freshness-unknown reason remains explicitly outside the exact
-  registry because the selected live risk is stale, has two stale reasons, and
-  has no unknown reasons; separate unknown-freshness behavior remains covered by
-  the adjacent suite.
+- The coverage report dynamically discovers every public recommendation
+  `*_context_keys` family and compares its declared fields with the active
+  source-exact handoff registry and explicit non-emitted allowlist.
+- The focused guard rejects missing, unexpected, duplicate-declared,
+  duplicate-registered, stale-exclusion, and registered-exclusion fields while
+  pinning the current nine-field allowlist and `962 = 953 + 9` accounting.
+- The existing 954 mutation proofs remain the behavioral source-exact matrix;
+  the new guard proves that the matrix registry cannot silently omit a declared
+  context field.
 - Schema exports and the canonical strategy artifact are unchanged because the
-  emitted validation-refresh fields were already public.
-- Safety boundaries remain explicit: no model acceptance, schema remediation,
-  refresh execution, Cadence write, operator authority, or autonomous execution
-  was added.
+  coverage report is internal contract accounting.
+- Safety boundaries remain explicit: no planner behavior, schedule mutation,
+  Cadence write, operator authority, or autonomous execution was added.
 
 Last published slice:
-- `9e8a7137` Validate timeline integrity handoffs (`4762 passed`, `17/17`
-  emitted; `17/22` declared live).
+- `d1368cfb` Validate validation refresh handoffs (`4843 passed`, `81/81`
+  emitted; `81/82` declared live).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions while preserving explicit
@@ -84,8 +77,8 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-Reassess the non-emitted freshness-unknown reason and the next highest-value
-maturity slice after `81/81` emitted validation-refresh coverage.
+Use the exhaustive coverage report to reassess the next planner-visible
+candidate/resource or compatibility slice.
 
 Blocked:
 None.

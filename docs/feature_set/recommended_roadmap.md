@@ -217,6 +217,10 @@ Already implemented or heavily covered:
   model-acceptance, schema-validation, safety-case, refresh-budget, freshness,
   review, identity, and provenance fields to stay source exact without model
   acceptance, remediation, or refresh-execution authority
+- an executable V3 recommendation-context coverage guard accounts for all 962
+  declared fields across 30 families, rejects missing, unexpected, duplicate,
+  stale-exclusion, or registered-exclusion drift, and pins the nine currently
+  non-emitted selected-fixture fields
 - an executable registry-derived coverage guard confirms all 33 current
   resource/contact/station/link/provider contracts have curated artifact
   reference fixtures and automatically scopes future matching contracts

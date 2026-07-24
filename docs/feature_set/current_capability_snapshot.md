@@ -105,6 +105,9 @@ Implemented or partially implemented modules and artifacts include:
   acceptance, schema validation, safety-case, refresh-budget, freshness,
   review, identity, and provenance fields without accepting models, applying
   remediations, or executing refreshes.
+  An executable recommendation-context coverage guard accounts for all 962
+  declared fields across 30 families as 953 source-exact contracts and nine
+  pinned, intentionally non-emitted selected-fixture fields.
 - Operational readiness and quality artifacts: readiness, import-eligibility,
   execution-boundary, quality-gate, safety-case, model-acceptance,
   schema-validation, validation-fixture, operator-training, and unavailable
