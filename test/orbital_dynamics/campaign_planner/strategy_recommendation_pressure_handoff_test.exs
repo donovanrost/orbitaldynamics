@@ -721,6 +721,50 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
     )
   end
 
+  test "station hold import execution boundary remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "station_reservation_hold_import_execution_boundaries",
+      {"contact_id", "dl_hold_import_review"},
+      "station_reservation_hold_import_execution_boundary",
+      ["artifact_only_no_provider_or_cadence_writes"],
+      ["provider_and_cadence_writes_allowed"]
+    )
+  end
+
+  test "station hold provider-write boundary remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "station_reservation_hold_provider_write_values",
+      {"contact_id", "dl_hold_import_review"},
+      "station_reservation_hold_provider_write",
+      ["not_performed_by_summary"],
+      ["performed_by_summary"]
+    )
+  end
+
+  test "station hold Cadence-write boundary remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "station_reservation_hold_cadence_write_values",
+      {"contact_id", "dl_hold_import_review"},
+      "station_reservation_hold_cadence_write",
+      ["not_performed_by_summary"],
+      ["performed_by_summary"]
+    )
+  end
+
+  test "station hold reservation-acceptance boundary remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "station_reservation_hold_reservation_acceptance_values",
+      {"contact_id", "dl_hold_import_review"},
+      "station_reservation_hold_reservation_acceptance",
+      ["not_performed_by_summary"],
+      ["performed_by_summary"]
+    )
+  end
+
   test "station hold summary model remains source exact across handoffs" do
     assert_risk_context_contract(
       StrategyRecommendationPressureEventsFixture.artifact(),

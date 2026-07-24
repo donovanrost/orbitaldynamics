@@ -121,6 +121,14 @@ defmodule OrbitalDynamics.Schema.StrategyHandoffContracts do
      "station_reservation_hold_import_status_count_maps"},
     {"station_reservation_hold_required_import_action_count_maps",
      "station_reservation_hold_required_import_action_count_maps"},
+    {"station_reservation_hold_import_execution_boundaries",
+     "station_reservation_hold_import_execution_boundaries"},
+    {"station_reservation_hold_provider_write_values",
+     "station_reservation_hold_provider_write_values"},
+    {"station_reservation_hold_cadence_write_values",
+     "station_reservation_hold_cadence_write_values"},
+    {"station_reservation_hold_reservation_acceptance_values",
+     "station_reservation_hold_reservation_acceptance_values"},
     {"station_reservation_hold_expiration_statuses",
      "station_reservation_hold_expiration_statuses"}
   ]
