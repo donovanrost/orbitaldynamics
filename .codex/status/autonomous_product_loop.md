@@ -5,21 +5,22 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Enforce source-exact objective-tradeoff timing and demand.
+Enforce source-exact objective-tradeoff scoring state.
 
 Status:
 Verified; ready to publish.
 
 Selection evidence:
-- Objective-tradeoff pressure has `12/34` exact-copy fields.
-- Start/end timing, required/planned contacts and downlink, and maximum/planned
-  latency already survive event-risk projection but remain outside validation
-  and public row schemas.
+- Objective-tradeoff pressure has `20/34` exact-copy fields.
+- Source activity IDs and numeric score-term maps survive event-risk projection;
+  focused evidence showed score and delta from selected are dropped at the
+  station/downlink event-risk boundary.
 
 Intended behavior:
-- Declare eight numeric arrays requiring exact copies in operator review,
-  direct Cadence import, and review-derived Cadence rows.
-- Reject missing or stale derived objective-tradeoff timing and demand; retain
+- Declare one stable-ID array, two numeric arrays, and one numeric-map array
+  requiring exact copies in review/direct/review-derived Cadence rows.
+- Preserve score and delta from selected through the event-risk projection.
+- Reject missing or stale derived objective-tradeoff scoring state; retain
   paired legacy omission compatibility for optional source fields.
 - Preserve provider and Cadence writes, reservation acceptance, operator
   authority, and execution boundaries.
@@ -28,25 +29,26 @@ Level 6 pillar advanced:
 Fleet-scale planning decisions and durable reproducible audit handoffs.
 
 Planned files:
-- objective-tradeoff validation and review/import schemas
-- timing/demand mutation and schema proofs, docs, exports, and ledger
+- objective-tradeoff event-risk projection, validation, and review/import schemas
+- scoring-state mutation and schema proofs, docs, exports, and ledger
 
 Verification:
-- Focused handoff and schema contracts: `365 passed`.
+- Focused handoff and schema contracts: `369 passed` after the initial
+  `367/369` run exposed the score projection gap.
 - Contact-allocation regression: `213 passed`.
 - Golden artifacts: `12 passed`.
 - Schema lint: `155/155` artifacts passed with zero warnings.
-- Full suite: `4238 passed`.
+- Full suite: `4242 passed`.
 - Canonical strategy SHA-256 remained
   `f7fc7823d071db82124af4b903e5be730983d1d9cb96f4524c711041c750ca1c`.
-- Exact-copy coverage advanced from `12/34` to `20/34`
+- Exact-copy coverage advanced from `20/34` to `24/34`
   objective-tradeoff fields.
 
 Review:
-- All eight numeric values already survived event-risk projection, so no
-  runtime adapter change was required.
-- Public schemas use numeric arrays consistently across operator review,
-  direct import, and source-review rows.
+- The event already carried score and delta from selected; the shared
+  station/downlink risk adapter now preserves exactly those two fields.
+- Public schemas use one stable-ID array, two numeric arrays, and a strict
+  numeric-map array consistently across all three row surfaces.
 - Mutation proofs cover all four copies, missing review context, paired legacy
   omission, stale direct context, and missing/stale review-derived context.
 - Generated changes are limited to the expected ten schema artifacts; the
@@ -56,8 +58,8 @@ Review:
   execution was added.
 
 Last published slice:
-- `445f1555` Validate objective tradeoff entity routing (`4230 passed`,
-  `12/34`).
+- `fca7ba80` Validate objective tradeoff timing and demand (`4238 passed`,
+  `20/34`).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions while preserving explicit
@@ -68,7 +70,7 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-Assess objective-tradeoff scoring state.
+Assess objective-tradeoff observation geometry.
 
 Blocked:
 None.

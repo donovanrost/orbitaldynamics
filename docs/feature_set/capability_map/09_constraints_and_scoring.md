@@ -71,9 +71,10 @@ Status: **implemented** (core), with **partial**, **near-term**, **later**, and 
   latency-objective flag and collection, product, payload, and instrument
   identities, timing, contact/downlink demand, and latency limits across
   operator review, direct Cadence import, and review-derived import copies.
-  Missing or stale derived routing is rejected while paired legacy omission
-  remains compatible; the evidence cannot approve an import, write to Cadence,
-  or execute a schedule.
+  Source activity IDs, score, delta-from-selected, and numeric score-term maps
+  remain exact as well. Missing or stale derived evidence is rejected while
+  paired legacy omission remains compatible; the evidence cannot approve an
+  import, write to Cadence, or execute a schedule.
 
 ### Objective-satisfaction reports
 

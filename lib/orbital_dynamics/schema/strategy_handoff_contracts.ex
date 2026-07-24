@@ -338,7 +338,13 @@ defmodule OrbitalDynamics.Schema.StrategyHandoffContracts do
     {"objective_tradeoff_pressure_max_latency_values_s",
      "objective_tradeoff_pressure_max_latency_values_s"},
     {"objective_tradeoff_pressure_planned_latency_values_s",
-     "objective_tradeoff_pressure_planned_latency_values_s"}
+     "objective_tradeoff_pressure_planned_latency_values_s"},
+    {"objective_tradeoff_pressure_source_activity_ids",
+     "objective_tradeoff_pressure_source_activity_ids"},
+    {"objective_tradeoff_pressure_score_values", "objective_tradeoff_pressure_score_values"},
+    {"objective_tradeoff_pressure_score_delta_from_selected_values",
+     "objective_tradeoff_pressure_score_delta_from_selected_values"},
+    {"objective_tradeoff_pressure_score_term_maps", "objective_tradeoff_pressure_score_term_maps"}
   ]
   @station_reservation_conflict_context_field_pairs [
     {"station_reservation_conflict_contact_ids", "station_reservation_conflict_contact_ids"},

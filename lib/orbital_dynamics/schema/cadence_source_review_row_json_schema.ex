@@ -297,6 +297,17 @@ defmodule OrbitalDynamics.Schema.CadenceSourceReviewRowJsonSchema do
             schema.(:number_array_schema),
           "objective_tradeoff_pressure_max_latency_values_s" => schema.(:number_array_schema),
           "objective_tradeoff_pressure_planned_latency_values_s" => schema.(:number_array_schema),
+          "objective_tradeoff_pressure_source_activity_ids" => schema.(:stable_id_array_schema),
+          "objective_tradeoff_pressure_score_values" => schema.(:number_array_schema),
+          "objective_tradeoff_pressure_score_delta_from_selected_values" =>
+            schema.(:number_array_schema),
+          "objective_tradeoff_pressure_score_term_maps" => %{
+            "type" => "array",
+            "items" => %{
+              "type" => "object",
+              "additionalProperties" => %{"type" => "number"}
+            }
+          },
           "station_reservation_conflict_contact_ids" => schema.(:stable_id_array_schema),
           "station_reservation_conflict_source_activity_ids" => schema.(:stable_id_array_schema),
           "station_reservation_conflict_ground_station_ids" => schema.(:stable_id_array_schema),

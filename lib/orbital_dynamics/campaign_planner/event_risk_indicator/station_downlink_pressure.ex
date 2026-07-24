@@ -264,6 +264,8 @@ defmodule OrbitalDynamics.CampaignPlanner.EventRiskIndicator.StationDownlinkPres
         "policy_bundle_id" => event["policy_bundle_id"],
         "source_activity_id" => event["source_activity_id"],
         "source_activity_ids" => event["source_activity_ids"],
+        "score" => event["score"],
+        "score_delta_from_selected" => event["score_delta_from_selected"],
         "score_term_key" => event["score_term_key"],
         "score_term_value" => event["score_term_value"],
         "timeline_score" => event["timeline_score"],

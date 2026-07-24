@@ -2318,6 +2318,50 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
     )
   end
 
+  test "objective-tradeoff source activity remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "objective_tradeoff_pressure_source_activity_ids",
+      {"feedback_scope", "objective_tradeoff"},
+      ["source_activity_id", "source_activity_ids"],
+      ["obs_tradeoff_source", "dl_tradeoff_selected"],
+      ["stale_tradeoff_source"]
+    )
+  end
+
+  test "objective-tradeoff score remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "objective_tradeoff_pressure_score_values",
+      {"feedback_scope", "objective_tradeoff"},
+      "score",
+      [7.25],
+      [7.5]
+    )
+  end
+
+  test "objective-tradeoff score delta remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "objective_tradeoff_pressure_score_delta_from_selected_values",
+      {"feedback_scope", "objective_tradeoff"},
+      "score_delta_from_selected",
+      [-2.75],
+      [-2.5]
+    )
+  end
+
+  test "objective-tradeoff score terms remain source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "objective_tradeoff_pressure_score_term_maps",
+      {"feedback_scope", "objective_tradeoff"},
+      "score_terms",
+      [%{"collection_latency_gap_s" => 150.0, "downlink_shortfall_mb" => 45.0}],
+      [%{"collection_latency_gap_s" => 151.0, "downlink_shortfall_mb" => 45.0}]
+    )
+  end
+
   test "station conflict expiration risk context remains source exact across handoffs" do
     assert_risk_expiration_context_contract(
       StrategyRecommendationPressureEventsFixture.artifact(),
