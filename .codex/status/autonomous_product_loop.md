@@ -5,22 +5,22 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Enforce source-exact station-reservation-hold summary state.
+Enforce source-exact station-reservation-hold ID routing maps.
 
 Status:
-Verified; publish pending.
+Verified; ready to publish.
 
 Selection evidence:
-- The selected hold risk carries import status `review_required_before_import`,
-  readiness status `review_required`, classification `review_only`, and hold
-  count `2` across all four handoff copies.
-- Three string lists and the numeric count list survive projection, while their
-  public schemas and source-exact validation remain absent.
+- The selected hold risk carries canonical hold-ID maps by import status,
+  required import action, direction, and direction/ground station across all
+  four handoff copies.
+- All four arrays of stable-ID-array maps survive projection, while their public
+  schemas and source-exact validation remain absent.
 
 Intended behavior:
-- Declare three string arrays and one nonnegative-integer array requiring exact copies in
+- Declare four arrays of stable-ID-array maps requiring exact source-derived copies in
   review/direct/review-derived Cadence rows.
-- Reject missing or stale derived summary state; retain paired
+- Reject missing or stale derived hold-ID routing; retain paired
   legacy omission compatibility for optional source fields.
 - Preserve provider and Cadence writes, reservation acceptance, operator
   authority, and execution boundaries.
@@ -28,34 +28,34 @@ Intended behavior:
 Level 6 pillar advanced:
 Fleet-scale planning decisions and durable reproducible audit handoffs.
 
-Completed files:
+Planned files:
 - station-reservation-hold validation and review/import schemas
-- summary-state mutation/schema proofs, docs, exports, and ledger
+- hold-ID routing mutation/schema proofs, docs, exports, and ledger
 
 Verification:
-- Focused handoff/schema tests: `175 passed`.
-- Contact-allocation tests: `213 passed`.
-- Golden artifacts: `12 passed`; canonical strategy ID remains
-  `fb70d7d366bbdcd287c78aefaa153292035e2e68727f6443befd9bca44b3ec47`.
+- Focused handoff/schema contracts: `179 passed`.
+- Contact-allocation regression: `213 passed`.
+- Golden artifacts: `12 passed`.
 - Schema lint: `155` artifacts, `0` errors, `0` warnings.
-- Full suite: `4048 passed`.
+- Full suite: `4052 passed`.
 - Canonical strategy SHA-256 remains
   `f7fc7823d071db82124af4b903e5be730983d1d9cb96f4524c711041c750ca1c`.
-- Ten expected generated schema surfaces changed; format and
-  `git diff --check` passed.
 
 Review:
-- Exact-copy validation covers operator review, direct selected Cadence import,
-  and review-derived Cadence import, including its embedded source-review row.
-- Mutation proofs cover missing review fields, paired legacy omission, stale
-  direct imports, and missing review-derived fields for all four state arrays.
-- All three public row schemas agree on three string arrays and a nonnegative-
-  integer count array; ten of 28 hold context keys now have exact contracts.
-- Summary state remains descriptive: no provider/Cadence write, reservation
-  acceptance, operator authority, or execution path changed.
+- Four source-exact contract pairs validate the hold-ID maps across operator
+  review, direct Cadence import, and review-derived Cadence import.
+- All three public row-schema positions declare arrays of stable-ID-array maps;
+  export proofs inspect both outer objects and inner stable-ID patterns.
+- Missing review context, paired legacy omission, stale direct context, and
+  missing/stale review-derived context remain covered by the shared mutation
+  helper.
+- Diff is limited to contract/schema code, focused proofs, docs, ten generated
+  schemas, and this ledger; canonical strategy output is unchanged.
+- No provider/Cadence write, reservation acceptance, schedule mutation,
+  operator-authority grant, or execution path was introduced.
 
 Last published slice:
-- `22e65361` Validate station hold summary identity (`4044 passed`).
+- `c68bf145` Validate station hold summary state (`4048 passed`).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions while preserving explicit
@@ -66,7 +66,7 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-Assess source-exact station-reservation-hold routing maps.
+Assess source-exact station-reservation-hold contact routing maps.
 
 Blocked:
 None.

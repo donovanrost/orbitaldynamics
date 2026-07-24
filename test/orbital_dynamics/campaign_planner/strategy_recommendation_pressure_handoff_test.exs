@@ -573,6 +573,72 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
     )
   end
 
+  test "station hold identity routing by import status remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "station_reservation_hold_ids_by_import_status",
+      {"contact_id", "dl_hold_import_review"},
+      "station_reservation_hold_ids_by_import_status",
+      [
+        %{
+          "review_required_before_import" => [
+            "reservation_hold_active",
+            "reservation_hold_missing"
+          ]
+        }
+      ],
+      [%{"review_required_before_import" => ["stale_reservation_hold"]}]
+    )
+  end
+
+  test "station hold identity routing by required action remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "station_reservation_hold_ids_by_required_import_action",
+      {"contact_id", "dl_hold_import_review"},
+      "station_reservation_hold_ids_by_required_import_action",
+      [
+        %{
+          "review_station_provider_contention" => ["reservation_hold_missing"],
+          "review_station_reservation_overlap" => ["reservation_hold_active"]
+        }
+      ],
+      [%{"review_station_provider_contention" => ["stale_reservation_hold"]}]
+    )
+  end
+
+  test "station hold identity routing by direction remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "station_reservation_hold_ids_by_direction",
+      {"contact_id", "dl_hold_import_review"},
+      "station_reservation_hold_ids_by_direction",
+      [
+        %{
+          "downlink" => ["reservation_hold_active"],
+          "uplink" => ["reservation_hold_missing"]
+        }
+      ],
+      [%{"downlink" => ["stale_reservation_hold"]}]
+    )
+  end
+
+  test "station hold identity routing by direction and station remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "station_reservation_hold_ids_by_direction_and_ground_station_id",
+      {"contact_id", "dl_hold_import_review"},
+      "station_reservation_hold_ids_by_direction_and_ground_station_id",
+      [
+        %{
+          "downlink:equator_prime" => ["reservation_hold_active"],
+          "uplink:equator_prime" => ["reservation_hold_missing"]
+        }
+      ],
+      [%{"downlink:equator_prime" => ["stale_reservation_hold"]}]
+    )
+  end
+
   test "station hold contact identity remains source exact across handoffs" do
     assert_risk_context_contract(
       StrategyRecommendationPressureEventsFixture.artifact(),

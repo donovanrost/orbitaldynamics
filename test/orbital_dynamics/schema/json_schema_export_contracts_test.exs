@@ -84,6 +84,10 @@ defmodule OrbitalDynamics.Schema.JsonSchemaExportContractsTest do
       {"station_reservation_hold_import_classifications", "string", nil},
       {"station_reservation_hold_count_values", "integer", nil},
       {"station_reservation_hold_ids", "string", stable_id_pattern},
+      {"station_reservation_hold_ids_by_import_status", "object", nil},
+      {"station_reservation_hold_ids_by_required_import_action", "object", nil},
+      {"station_reservation_hold_ids_by_direction", "object", nil},
+      {"station_reservation_hold_ids_by_direction_and_ground_station_id", "object", nil},
       {"station_reservation_hold_contact_ids", "string", stable_id_pattern},
       {"station_reservation_hold_expiration_statuses", "string", nil},
       {"contact_allocation_pressure_risk_types", "string", nil},
@@ -218,6 +222,13 @@ defmodule OrbitalDynamics.Schema.JsonSchemaExportContractsTest do
       {"station_calendar_pressure_derivation_reasons", "string", nil}
     ]
 
+    stable_id_array_map_fields = [
+      "station_reservation_hold_ids_by_import_status",
+      "station_reservation_hold_ids_by_required_import_action",
+      "station_reservation_hold_ids_by_direction",
+      "station_reservation_hold_ids_by_direction_and_ground_station_id"
+    ]
+
     item_minimums = %{
       "station_calendar_pressure_capacity_fraction_values" => 0.0,
       "station_reservation_hold_count_values" => 0,
@@ -294,6 +305,45 @@ defmodule OrbitalDynamics.Schema.JsonSchemaExportContractsTest do
         if item_maximum = item_maximums[aggregate_field] do
           assert item_schema["maximum"] == item_maximum
         end
+      end)
+    end)
+
+    Enum.each(stable_id_array_map_fields, fn aggregate_field ->
+      item_schemas = [
+        get_in(review_schema, [
+          "properties",
+          "rows",
+          "items",
+          "properties",
+          aggregate_field,
+          "items"
+        ]),
+        get_in(import_schema, [
+          "properties",
+          "rows",
+          "items",
+          "properties",
+          aggregate_field,
+          "items"
+        ]),
+        get_in(import_schema, [
+          "properties",
+          "rows",
+          "items",
+          "properties",
+          "source_review_row",
+          "properties",
+          aggregate_field,
+          "items"
+        ])
+      ]
+
+      Enum.each(item_schemas, fn item_schema ->
+        assert item_schema["type"] == "object"
+        assert get_in(item_schema, ["additionalProperties", "type"]) == "array"
+
+        assert get_in(item_schema, ["additionalProperties", "items", "pattern"]) ==
+                 stable_id_pattern
       end)
     end)
 
