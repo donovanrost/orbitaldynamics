@@ -694,6 +694,33 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
     )
   end
 
+  test "station hold counts by import status remain source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "station_reservation_hold_import_status_count_maps",
+      {"contact_id", "dl_hold_import_review"},
+      "station_reservation_hold_import_status_counts",
+      [%{"review_required_before_import" => 2}],
+      [%{"review_required_before_import" => 3}]
+    )
+  end
+
+  test "station hold counts by required action remain source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "station_reservation_hold_required_import_action_count_maps",
+      {"contact_id", "dl_hold_import_review"},
+      "station_reservation_hold_required_import_action_counts",
+      [
+        %{
+          "review_station_provider_contention" => 1,
+          "review_station_reservation_overlap" => 1
+        }
+      ],
+      [%{"review_station_provider_contention" => 2}]
+    )
+  end
+
   test "station hold summary model remains source exact across handoffs" do
     assert_risk_context_contract(
       StrategyRecommendationPressureEventsFixture.artifact(),

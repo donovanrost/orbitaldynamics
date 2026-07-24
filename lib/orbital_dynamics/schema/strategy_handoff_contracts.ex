@@ -117,6 +117,10 @@ defmodule OrbitalDynamics.Schema.StrategyHandoffContracts do
      "station_reservation_hold_contact_ids_by_direction"},
     {"station_reservation_hold_contact_ids_by_direction_and_ground_station_id",
      "station_reservation_hold_contact_ids_by_direction_and_ground_station_id"},
+    {"station_reservation_hold_import_status_count_maps",
+     "station_reservation_hold_import_status_count_maps"},
+    {"station_reservation_hold_required_import_action_count_maps",
+     "station_reservation_hold_required_import_action_count_maps"},
     {"station_reservation_hold_expiration_statuses",
      "station_reservation_hold_expiration_statuses"}
   ]

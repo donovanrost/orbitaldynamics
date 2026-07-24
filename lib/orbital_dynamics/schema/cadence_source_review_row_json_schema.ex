@@ -130,6 +130,14 @@ defmodule OrbitalDynamics.Schema.CadenceSourceReviewRowJsonSchema do
             "type" => "array",
             "items" => schema.(:stable_id_array_map_schema)
           },
+          "station_reservation_hold_import_status_count_maps" => %{
+            "type" => "array",
+            "items" => schema.(:non_negative_integer_count_map_schema)
+          },
+          "station_reservation_hold_required_import_action_count_maps" => %{
+            "type" => "array",
+            "items" => schema.(:non_negative_integer_count_map_schema)
+          },
           "station_reservation_hold_expiration_statuses" => schema.(:string_array_schema),
           "contact_allocation_pressure_risk_types" => schema.(:string_array_schema),
           "contact_allocation_pressure_contact_ids" => schema.(:stable_id_array_schema),

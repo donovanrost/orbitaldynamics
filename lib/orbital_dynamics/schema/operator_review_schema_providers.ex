@@ -80,6 +80,7 @@ defmodule OrbitalDynamics.Schema.OperatorReviewSchemaProviders do
       boolean_array_schema: &CommonJsonSchema.boolean_array/0,
       lifecycle_transition_json_schema: &TimelineContextJsonSchema.lifecycle_transition/0,
       non_negative_integer_array_schema: &CommonJsonSchema.non_negative_integer_array/0,
+      non_negative_integer_count_map_schema: &CommonJsonSchema.non_negative_integer_count_map/0,
       non_negative_number_map_json_schema: &CommonJsonSchema.non_negative_number_map/0,
       number_array_schema: &CommonJsonSchema.number_array/0,
       number_or_number_array_schema: &CommonJsonSchema.number_or_number_array/0,

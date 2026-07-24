@@ -126,6 +126,7 @@ defmodule OrbitalDynamics.Schema.CadenceReviewSchemaProviders do
       end,
       boolean_array_schema: &CommonJsonSchema.boolean_array/0,
       non_negative_integer_array_schema: &CommonJsonSchema.non_negative_integer_array/0,
+      non_negative_integer_count_map_schema: &CommonJsonSchema.non_negative_integer_count_map/0,
       non_negative_number_map_json_schema: &CommonJsonSchema.non_negative_number_map/0,
       number_array_schema: &CommonJsonSchema.number_array/0,
       number_or_string_json_schema: &CommonJsonSchema.number_or_string/0,
