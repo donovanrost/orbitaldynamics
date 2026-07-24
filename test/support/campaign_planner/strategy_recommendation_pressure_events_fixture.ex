@@ -776,6 +776,18 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureEventsFi
               },
               %{
                 type: "downlink_completion_gap",
+                latency_objective: true,
+                ground_station_id: "madrid_objective",
+                required_contacts: 3,
+                planned_contacts: 1,
+                required_downlink_mb: 120.0,
+                planned_downlink_mb: 70.0,
+                max_latency_s: 300.0,
+                planned_latency_s: 480.0,
+                feedback_scope: "objective_satisfaction"
+              },
+              %{
+                type: "downlink_completion_gap",
                 objective_id: "objective_tradeoff:latency_gap",
                 objective_type: "collection_latency",
                 latency_objective: true,

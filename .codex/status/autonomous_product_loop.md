@@ -5,20 +5,21 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Enforce source-exact objective-satisfaction activity and provenance evidence.
+Enforce source-exact objective-satisfaction downlink and contact evidence.
 
 Status:
 Verified; ready to publish.
 
 Selection evidence:
-- Objective-satisfaction pressure has `28/50` exact-copy fields.
-- Source-activity IDs, feedback source/scope, trust boundary, and derivation
-  reasons survive projection but are not protected against stale copies.
+- Objective-satisfaction pressure has `33/50` exact-copy fields.
+- The handoff fixture covers observation-quality satisfaction only; downlink
+  objective latency, station, contact, and volume evidence lacks exact proofs.
 
 Intended behavior:
-- Declare one stable-ID and four string arrays requiring exact provenance copies
-  in operator review, direct Cadence import, and review-derived Cadence rows.
-- Reject missing or stale derived activity/provenance context; retain
+- Add an explicit objective-satisfaction downlink-gap source event.
+- Declare one boolean, one stable-ID, and six numeric arrays requiring exact
+  copies in operator review, direct Cadence import, and review-derived rows.
+- Reject missing or stale derived downlink/contact context; retain
   paired legacy omission compatibility for optional source fields.
 - Preserve provider and Cadence writes, reservation acceptance, operator
   authority, and execution boundaries.
@@ -28,25 +29,28 @@ Fleet-scale planning decisions and durable reproducible audit handoffs.
 
 Planned files:
 - objective-satisfaction validation schemas
-- activity/provenance mutation and schema proofs, docs, exports, and ledger
+- downlink fixture/snapshot, mutation/schema proofs, docs, exports, and ledger
 
 Verification:
-- Focused handoff and schema contracts: `412 passed`.
+- Focused handoff and schema contracts: `420 passed` after the initial
+  `418/420` run exposed only snapshot and deterministic risk-order updates.
 - Contact-allocation regression: `213 passed`.
 - Golden artifacts: `12 passed`.
 - Schema lint: `155/155` artifacts passed with zero warnings.
-- Full suite: `4285 passed`.
+- Full suite: `4293 passed`.
 - Canonical strategy SHA-256 remained
   `c13c37c2ae06849c5d8a49cecaf1c113e0ddcf653c34d32f751efd6815891887`.
-- Exact-copy coverage advanced from `28/50` to `33/50`
+- Exact-copy coverage advanced from `33/50` to `41/50`
   objective-satisfaction fields.
 
 Review:
-- All five activity/provenance fields already survived observation projection;
+- The fixture now exercises a distinct objective-satisfaction downlink-gap
+  subtype without attaching downlink metrics to an observation-quality event.
+- Existing station/downlink risk projection already preserved all eight fields;
   no runtime adapter change was needed.
-- Public schemas use one stable-ID and four string arrays consistently across
+- Public schemas use boolean, stable-ID, and numeric arrays consistently across
   operator review, direct import, and source-review rows.
-- Mutation proofs cover all five copies, missing review context, paired legacy
+- Mutation proofs cover all eight copies, missing review context, paired legacy
   omission, stale direct context, and missing/stale review-derived context.
 - Generated changes are limited to the expected ten schema artifacts; the
   canonical strategy artifact is unchanged.
@@ -55,8 +59,7 @@ Review:
   execution was added.
 
 Last published slice:
-- `3739f4f2` Validate objective satisfaction quality evidence (`4280 passed`,
-  `28/50`).
+- `0474bdc6` Validate objective satisfaction provenance (`4285 passed`, `33/50`).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions while preserving explicit
@@ -67,7 +70,7 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-Assess objective-satisfaction downlink and contact evidence.
+Assess objective-satisfaction outcome and target-constraint evidence.
 
 Blocked:
 None.

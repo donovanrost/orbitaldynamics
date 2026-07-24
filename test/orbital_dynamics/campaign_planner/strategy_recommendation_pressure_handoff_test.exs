@@ -2104,7 +2104,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
       "objective_satisfaction_pressure_risk_types",
       {"feedback_scope", "objective_satisfaction"},
       ["type", "risk_type"],
-      ["observation_success_rate_low"],
+      ["downlink_completion_gap", "observation_success_rate_low"],
       ["stale_objective_satisfaction_risk"]
     )
   end
@@ -2260,6 +2260,94 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
       "ends_at_s",
       [1_440.0],
       [1_441.0]
+    )
+  end
+
+  test "objective-satisfaction latency objective remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "objective_satisfaction_pressure_latency_objective_values",
+      {"feedback_scope", "objective_satisfaction"},
+      "latency_objective",
+      [true],
+      [false]
+    )
+  end
+
+  test "objective-satisfaction ground station remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "objective_satisfaction_pressure_ground_station_ids",
+      {"feedback_scope", "objective_satisfaction"},
+      "ground_station_id",
+      ["madrid_objective"],
+      ["stale_objective_station"]
+    )
+  end
+
+  test "objective-satisfaction required contacts remain source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "objective_satisfaction_pressure_required_contact_values",
+      {"feedback_scope", "objective_satisfaction"},
+      "required_contacts",
+      [3],
+      [4]
+    )
+  end
+
+  test "objective-satisfaction planned contacts remain source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "objective_satisfaction_pressure_planned_contact_values",
+      {"feedback_scope", "objective_satisfaction"},
+      "planned_contacts",
+      [1],
+      [2]
+    )
+  end
+
+  test "objective-satisfaction required downlink remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "objective_satisfaction_pressure_required_downlink_values_mb",
+      {"feedback_scope", "objective_satisfaction"},
+      "required_downlink_mb",
+      [120.0],
+      [121.0]
+    )
+  end
+
+  test "objective-satisfaction planned downlink remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "objective_satisfaction_pressure_planned_downlink_values_mb",
+      {"feedback_scope", "objective_satisfaction"},
+      "planned_downlink_mb",
+      [70.0],
+      [71.0]
+    )
+  end
+
+  test "objective-satisfaction maximum latency remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "objective_satisfaction_pressure_max_latency_values_s",
+      {"feedback_scope", "objective_satisfaction"},
+      "max_latency_s",
+      [300.0],
+      [301.0]
+    )
+  end
+
+  test "objective-satisfaction planned latency remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "objective_satisfaction_pressure_planned_latency_values_s",
+      {"feedback_scope", "objective_satisfaction"},
+      "planned_latency_s",
+      [480.0],
+      [481.0]
     )
   end
 

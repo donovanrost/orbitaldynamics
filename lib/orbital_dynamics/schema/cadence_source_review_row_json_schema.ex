@@ -280,16 +280,31 @@ defmodule OrbitalDynamics.Schema.CadenceSourceReviewRowJsonSchema do
           "objective_satisfaction_pressure_objective_statuses" => schema.(:string_array_schema),
           "objective_satisfaction_pressure_source_objective_statuses" =>
             schema.(:string_array_schema),
+          "objective_satisfaction_pressure_latency_objective_values" =>
+            schema.(:boolean_array_schema),
           "objective_satisfaction_pressure_target_ids" => schema.(:stable_id_array_schema),
           "objective_satisfaction_pressure_scenario_ids" => schema.(:stable_id_array_schema),
           "objective_satisfaction_pressure_spacecraft_ids" => schema.(:stable_id_array_schema),
           "objective_satisfaction_pressure_branch_ids" => schema.(:stable_id_array_schema),
+          "objective_satisfaction_pressure_ground_station_ids" =>
+            schema.(:stable_id_array_schema),
           "objective_satisfaction_pressure_collection_ids" => schema.(:stable_id_array_schema),
           "objective_satisfaction_pressure_product_ids" => schema.(:stable_id_array_schema),
           "objective_satisfaction_pressure_payload_ids" => schema.(:stable_id_array_schema),
           "objective_satisfaction_pressure_instrument_ids" => schema.(:stable_id_array_schema),
           "objective_satisfaction_pressure_start_values_s" => schema.(:number_array_schema),
           "objective_satisfaction_pressure_end_values_s" => schema.(:number_array_schema),
+          "objective_satisfaction_pressure_required_contact_values" =>
+            schema.(:number_array_schema),
+          "objective_satisfaction_pressure_planned_contact_values" =>
+            schema.(:number_array_schema),
+          "objective_satisfaction_pressure_required_downlink_values_mb" =>
+            schema.(:number_array_schema),
+          "objective_satisfaction_pressure_planned_downlink_values_mb" =>
+            schema.(:number_array_schema),
+          "objective_satisfaction_pressure_max_latency_values_s" => schema.(:number_array_schema),
+          "objective_satisfaction_pressure_planned_latency_values_s" =>
+            schema.(:number_array_schema),
           "objective_satisfaction_pressure_required_observation_values" =>
             schema.(:number_array_schema),
           "objective_satisfaction_pressure_planned_observation_values" =>

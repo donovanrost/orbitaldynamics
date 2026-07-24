@@ -734,17 +734,22 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureExpected
           "score_term_collection_latency_gap",
           "score_term_collection_latency_gap_s"
         ],
-        "objective_satisfaction_pressure_risk_types" => ["observation_success_feedback"],
+        "objective_satisfaction_pressure_risk_types" => [
+          "downlink_completion_gap",
+          "observation_success_feedback"
+        ],
         "objective_satisfaction_pressure_objective_ids" => ["objective:target_quality"],
         "objective_satisfaction_pressure_objective_types" => ["observation_quality"],
         "objective_satisfaction_pressure_objective_statuses" => ["at_risk"],
         "objective_satisfaction_pressure_source_objective_statuses" => [
           "missed_quality_threshold"
         ],
+        "objective_satisfaction_pressure_latency_objective_values" => [true],
         "objective_satisfaction_pressure_target_ids" => ["target_objective_quality"],
         "objective_satisfaction_pressure_scenario_ids" => ["leo_1"],
         "objective_satisfaction_pressure_spacecraft_ids" => ["leo_1"],
         "objective_satisfaction_pressure_branch_ids" => ["urgent"],
+        "objective_satisfaction_pressure_ground_station_ids" => ["madrid_objective"],
         "objective_satisfaction_pressure_collection_ids" => [
           "collection_objective_quality",
           "collection_objective_quality_backup"
@@ -763,6 +768,12 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureExpected
         ],
         "objective_satisfaction_pressure_start_values_s" => [1_380.0],
         "objective_satisfaction_pressure_end_values_s" => [1_440.0],
+        "objective_satisfaction_pressure_required_contact_values" => [3],
+        "objective_satisfaction_pressure_planned_contact_values" => [1],
+        "objective_satisfaction_pressure_required_downlink_values_mb" => [120.0],
+        "objective_satisfaction_pressure_planned_downlink_values_mb" => [70.0],
+        "objective_satisfaction_pressure_max_latency_values_s" => [300.0],
+        "objective_satisfaction_pressure_planned_latency_values_s" => [480.0],
         "objective_satisfaction_pressure_required_observation_values" => [2],
         "objective_satisfaction_pressure_planned_observation_values" => [1],
         "objective_satisfaction_pressure_priorities" => [32.0],
@@ -1991,7 +2002,10 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureExpected
           "instrument_objective_quality_backup"
         ],
         "strategy_operational_feedback_image_quality_score_values" => [0.45, 0.42],
-        "objective_satisfaction_pressure_risk_types" => ["observation_success_rate_low"],
+        "objective_satisfaction_pressure_risk_types" => [
+          "downlink_completion_gap",
+          "observation_success_rate_low"
+        ],
         "strategy_operational_feedback_payload_ids" => [
           "payload_nadir",
           "payload_objective_quality",
