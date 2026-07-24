@@ -340,7 +340,14 @@ defmodule OrbitalDynamics.Schema.StrategyHandoffContracts do
     {"objective_satisfaction_pressure_required_observation_values",
      "objective_satisfaction_pressure_required_observation_values"},
     {"objective_satisfaction_pressure_planned_observation_values",
-     "objective_satisfaction_pressure_planned_observation_values"}
+     "objective_satisfaction_pressure_planned_observation_values"},
+    {"objective_satisfaction_pressure_priorities", "objective_satisfaction_pressure_priorities"},
+    {"objective_satisfaction_pressure_latitude_values_deg",
+     "objective_satisfaction_pressure_latitude_values_deg"},
+    {"objective_satisfaction_pressure_longitude_values_deg",
+     "objective_satisfaction_pressure_longitude_values_deg"},
+    {"objective_satisfaction_pressure_minimum_elevation_values_deg",
+     "objective_satisfaction_pressure_minimum_elevation_values_deg"}
   ]
   @objective_tradeoff_context_field_pairs [
     {"objective_tradeoff_pressure_risk_types", "objective_tradeoff_pressure_risk_types"},

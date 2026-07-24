@@ -404,6 +404,11 @@ defmodule OrbitalDynamics.Schema.OperatorReviewRowJsonSchema do
             schema.(:number_array_schema),
           "objective_satisfaction_pressure_planned_observation_values" =>
             schema.(:number_array_schema),
+          "objective_satisfaction_pressure_priorities" => schema.(:number_array_schema),
+          "objective_satisfaction_pressure_latitude_values_deg" => schema.(:number_array_schema),
+          "objective_satisfaction_pressure_longitude_values_deg" => schema.(:number_array_schema),
+          "objective_satisfaction_pressure_minimum_elevation_values_deg" =>
+            schema.(:number_array_schema),
           "objective_tradeoff_pressure_risk_types" => schema.(:string_array_schema),
           "objective_tradeoff_pressure_objective_ids" => schema.(:stable_id_array_schema),
           "objective_tradeoff_pressure_objective_types" => schema.(:string_array_schema),

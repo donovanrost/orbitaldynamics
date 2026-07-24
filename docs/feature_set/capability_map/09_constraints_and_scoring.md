@@ -89,10 +89,11 @@ Status: **implemented** (core), with **partial**, **near-term**, **later**, and 
   status plus target, scenario, spacecraft, and branch routing across operator
   review, direct Cadence import, and review-derived import copies. Collection,
   product, payload, and instrument identities remain exact as well, together
-  with start/end timing and required/planned observation counts. Missing or
-  stale derived identity/status/timing/demand is rejected while paired legacy
-  omission remains compatible; the evidence cannot approve an import, write to
-  Cadence, or execute a schedule.
+  with start/end timing, required/planned observation counts, priority, and
+  latitude/longitude/minimum-elevation geometry. Missing or stale derived
+  identity/status/timing/demand/geometry is rejected while paired legacy
+  omission remains compatible; the evidence cannot approve an import, write
+  to Cadence, or execute a schedule.
 - `objective_satisfaction_report.v1` rows summarize target coverage, downlink completion, and per-target commitment status from selected activities, with:
   - downlink-completion rows aggregating multiple scoped station/scenario/time/data-volume objectives instead of reporting only the first objective;
   - contact-count plus data-volume requirements treated as conjunctive when both are declared.

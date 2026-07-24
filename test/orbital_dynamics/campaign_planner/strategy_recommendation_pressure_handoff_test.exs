@@ -2285,6 +2285,50 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
     )
   end
 
+  test "objective-satisfaction priority remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "objective_satisfaction_pressure_priorities",
+      {"feedback_scope", "objective_satisfaction"},
+      "priority",
+      [32.0],
+      [33.0]
+    )
+  end
+
+  test "objective-satisfaction latitude remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "objective_satisfaction_pressure_latitude_values_deg",
+      {"feedback_scope", "objective_satisfaction"},
+      "latitude_deg",
+      [34.1],
+      [34.2]
+    )
+  end
+
+  test "objective-satisfaction longitude remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "objective_satisfaction_pressure_longitude_values_deg",
+      {"feedback_scope", "objective_satisfaction"},
+      "longitude_deg",
+      [-118.2],
+      [-118.1]
+    )
+  end
+
+  test "objective-satisfaction minimum elevation remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "objective_satisfaction_pressure_minimum_elevation_values_deg",
+      {"feedback_scope", "objective_satisfaction"},
+      "minimum_elevation_deg",
+      [15.0],
+      [16.0]
+    )
+  end
+
   test "objective-tradeoff risk type remains source exact across handoffs" do
     assert_risk_context_contract(
       StrategyRecommendationPressureEventsFixture.artifact(),
