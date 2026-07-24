@@ -440,6 +440,10 @@ focused repair-action regressions.
 - **Resource-projection report** exposes valid/invalid resource-summary and
   activity counts plus resource quality/trust maps, with row-derived validation
   for projected resource summaries.
+- **Source constraint report** — V2 preserves CandidateRefresh's upstream
+  `constraint_report.v1` independently from the recomputed repaired-plan
+  report, validates it at `source_constraint_report`, and routes exact non-pass
+  rows into review-gated Cadence import without changing feasibility or scores.
 - **Timeline-diff report** also exposes status/action/changed-field count maps,
   duplicate timeline-identity counts, and model limits from the checked-in
   fixture.

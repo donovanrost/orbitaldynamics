@@ -146,6 +146,10 @@ defmodule OrbitalDynamics.Schema.CampaignRepairContracts do
     |> call(callbacks, :validate_optional_constraint_report, [
       Map.get(artifact, "constraint_report")
     ])
+    |> call(callbacks, :validate_optional_source_constraint_report, [
+      "$.source_constraint_report",
+      Map.get(artifact, "source_constraint_report")
+    ])
     |> CampaignRepairConstraintContracts.validate(artifact)
     |> call(callbacks, :validate_optional_contact_allocation_report, [
       Map.get(artifact, "contact_allocation_report")

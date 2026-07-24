@@ -22,6 +22,11 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
       |> :json.decode()
       |> OrbitalDynamics.station_reservation_report()
 
+    source_constraint_report =
+      "study_results/constraint_report_v1.json"
+      |> File.read!()
+      |> :json.decode()
+
     candidate_diff_report =
       candidate_diff_report()
       |> update_in(["invalidated_candidates", Access.at(0)], fn candidate ->
@@ -83,6 +88,7 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
           )
           |> Map.put("source_link_capacity_report", source_link_capacity_report)
           |> Map.put("source_station_reservation_report", source_station_reservation_report)
+          |> Map.put("source_constraint_report", source_constraint_report)
           |> Map.put("source_quality_gate_report", passive_quality_gate_report())
           |> Map.put("operational_feedback", %{
             "station_throughput_factor" => %{"equator_prime" => 0.5}
@@ -383,6 +389,45 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
                artifact["cadence_import_manifest"]["rows"],
                &(get_in(&1, ["source_review_row", "source"]) ==
                    "campaign_repair.source_station_reservation_report.affected_contacts")
+             )
+
+    assert artifact["source_constraint_report"] == source_constraint_report
+
+    assert %{
+             "review_type" => "constraint_review",
+             "source" => "campaign_repair.source_constraint_report.rows",
+             "scenario_id" => "dispersion_2",
+             "constraint_id" => "minimum_operational_altitude",
+             "metric" => "min_altitude_km",
+             "operator" => ">=",
+             "threshold" => 621.5,
+             "value" => 621.19,
+             "score" => -0.31,
+             "constraint_status" => "fail",
+             "source_constraint_row" => %{
+               "scenario_id" => "dispersion_2",
+               "status" => "fail"
+             }
+           } =
+             Enum.find(
+               artifact["operator_review_package"]["rows"],
+               &(&1["source"] == "campaign_repair.source_constraint_report.rows" and
+                   &1["scenario_id"] == "dispersion_2")
+             )
+
+    assert %{
+             "import_action" => "review_constraint",
+             "source_review_type" => "constraint_review",
+             "source" => "campaign_repair.source_constraint_report.rows",
+             "scenario_id" => "dispersion_2",
+             "constraint_id" => "minimum_operational_altitude",
+             "constraint_status" => "fail",
+             "import_status" => "review_required_before_import"
+           } =
+             Enum.find(
+               artifact["cadence_import_manifest"]["rows"],
+               &(&1["source"] == "campaign_repair.source_constraint_report.rows" and
+                   &1["scenario_id"] == "dispersion_2")
              )
 
     assert %{

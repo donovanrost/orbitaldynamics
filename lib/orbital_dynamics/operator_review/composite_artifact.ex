@@ -278,6 +278,10 @@ defmodule OrbitalDynamics.OperatorReview.CompositeArtifact do
         get_in(artifact, ["constraint_report", "rows"]) || [],
         "campaign_repair.constraint_report.rows"
       ) ++
+      ConstraintObjective.constraint_rows(
+        get_in(artifact, ["source_constraint_report", "rows"]) || [],
+        "campaign_repair.source_constraint_report.rows"
+      ) ++
       LinkCapacity.report_rows(
         Map.get(artifact, "link_capacity_report"),
         "campaign_repair.link_capacity_report"

@@ -261,6 +261,9 @@ V2 repair `operator_review_package.v1` now emits:
   - flattened source/replacement Cadence import status, import type, external ID, schema contract, and presence flags alongside invalid non-object source/replacement Cadence import evidence when repair activity contexts are malformed, while sanitizing the nested contexts before operator-review and Cadence-import validation.
 - Approval requirements.
 - Repair score-term and objective-tradeoff review rows.
+- CandidateRefresh source constraint fail/warning rows, preserving exact
+  upstream scenario, threshold, value, score, and status evidence beside the
+  recomputed repaired-plan report without changing feasibility or scoring.
 - Repaired-plan and CandidateRefresh source link-capacity review rows,
   preserving the upstream report independently from the recomputed repair
   report without applying another scoring effect.

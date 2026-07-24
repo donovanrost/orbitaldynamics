@@ -173,6 +173,15 @@ defmodule OrbitalDynamics.Schema.DecisionSupportValidation do
         &validate_constraint_report([], "$", &1)
       )
 
+  def validate_optional_constraint_report_at(issues, path, report),
+    do:
+      validate_optional_report(
+        issues,
+        report,
+        path,
+        &validate_constraint_report([], path, &1)
+      )
+
   def validate_score_term_report(issues, path, report) do
     issues
     |> require_registered_fields(
