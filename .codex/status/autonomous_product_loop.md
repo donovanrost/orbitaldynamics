@@ -5,56 +5,58 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Enforce source-exact contact-allocation reservation context.
+Enforce source-exact contact-allocation calendar context.
 
 Status:
 Verified; publish pending.
 
 Selection evidence:
-- The selected risk carries reservation ID `reservation_conflict_1`, owner
-  `ops_team_b`, status `confirmed`, and match `overlap` across all four handoff
-  copies.
-- All four lists survive projection; schemas and exact-copy validation omit
-  them after policy context was published.
+- The selected risk carries calendar entry ID `calendar_allocation_deferred`,
+  status `reserved`, and direction `downlink` in its source evidence.
+- Entry identity and direction survive projection; entry status needs a passive
+  projection field before all three lists can be source-exact at handoff.
 
 Intended behavior:
-- Declare one stable-ID and three string arrays, requiring exact source-derived
+- Preserve entry status passively, then declare one stable-ID and two string
+  arrays requiring exact source-derived
   copies in review/direct/review-derived Cadence rows.
-- Reject missing or stale derived reservation context; retain paired
+- Reject missing or stale derived calendar context; retain paired
   legacy omission compatibility for optional source fields.
-- Preserve allocation scoring, selection, reservation acceptance/mutation,
+- Preserve allocation scoring, selection, calendar/reservation mutation,
   provider authority, and execution boundaries.
 
 Level 6 pillar advanced:
 Fleet-scale planning decisions and durable reproducible audit handoffs.
 
 Planned files:
-- contact-allocation validation and review/import schemas
-- reservation-context mutation/schema proofs, docs, exports, and ledger
+- passive station-pressure projection plus contact-allocation validation and
+  review/import schemas
+- calendar-context mutation/schema proofs, docs, exports, and ledger
 
 Verification:
-- Focused handoff/schema proof: `130 passed`.
+- Focused event/handoff/schema proof: `134 passed`.
 - Contact-allocation regression: `213 passed`.
 - Golden artifact regression: `12 passed`.
 - Schema lint: `155` artifacts, `0` errors, `0` warnings.
-- Full suite: `4003 passed`.
+- Full suite: `4006 passed`.
 - Canonical strategy SHA-256 remained
   `f7fc7823d071db82124af4b903e5be730983d1d9cb96f4524c711041c750ca1c`.
 - Ten expected generated schema surfaces changed; format and
   `git diff --check` passed.
 
 Review:
-- Exact-copy checks cover reservation identity, owner, status, and match across
-  operator review, direct selected Cadence import, and review-derived import,
-  including missing, stale, and paired legacy omission mutations.
+- Event-to-risk and risk-to-explanation projections now retain calendar entry
+  status passively beside the existing entry identity and directions.
+- Exact-copy checks cover entry identity, status, and direction across operator
+  review, direct selected Cadence import, and review-derived import, including
+  missing, stale, and paired legacy omission mutations.
 - All three public row schemas and generated exports agree on one stable-ID and
-  three string arrays.
-- Reservation evidence grants no authority; allocation scores, recommendation
-  choice, provider requests, reservation acceptance/mutation, schedules,
-  Cadence writes, operator authority, and autonomous execution remain unchanged.
+  two string arrays; no scoring, recommendation choice, calendar/reservation
+  mutation, provider request, schedule, Cadence write, operator-authority, or
+  autonomous-execution behavior changed.
 
 Last published slice:
-- `3a5e78ca` Validate contact allocation policy context (`3999 passed`).
+- `207ef747` Validate contact allocation reservation context (`4003 passed`).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions while preserving explicit
@@ -65,7 +67,7 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-Assess source-exact contact-allocation calendar context.
+Assess source-exact contact-allocation demand/completion provenance.
 
 Blocked:
 None.

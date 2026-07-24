@@ -110,6 +110,7 @@ defmodule OrbitalDynamics.CampaignPlanner.RecommendationRiskDriver do
       "derivation_reasons" => risk["derivation_reasons"],
       "direction" => risk["direction"],
       "station_calendar_entry_id" => risk["station_calendar_entry_id"],
+      "station_calendar_entry_status" => risk["station_calendar_entry_status"],
       "station_calendar_provider_id" => risk["station_calendar_provider_id"],
       "station_calendar_provider_entry_id" => risk["station_calendar_provider_entry_id"],
       "station_calendar_directions" => risk["station_calendar_directions"],

@@ -1054,6 +1054,39 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
     )
   end
 
+  test "contact allocation calendar entry identity remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "contact_allocation_pressure_station_calendar_entry_ids",
+      {"contact_id", "dl_reservation_conflict"},
+      "station_calendar_entry_id",
+      ["calendar_allocation_deferred"],
+      ["stale_calendar_allocation_deferred"]
+    )
+  end
+
+  test "contact allocation calendar entry status remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "contact_allocation_pressure_station_calendar_entry_statuses",
+      {"contact_id", "dl_reservation_conflict"},
+      "station_calendar_entry_status",
+      ["reserved"],
+      ["available"]
+    )
+  end
+
+  test "contact allocation calendar direction remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "contact_allocation_pressure_station_calendar_directions",
+      {"contact_id", "dl_reservation_conflict"},
+      "station_calendar_directions",
+      ["downlink"],
+      ["uplink"]
+    )
+  end
+
   test "contact intent risk type remains source exact across handoffs" do
     assert_risk_context_contract(
       StrategyRecommendationPressureEventsFixture.artifact(),

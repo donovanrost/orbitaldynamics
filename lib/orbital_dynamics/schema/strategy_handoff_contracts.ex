@@ -90,7 +90,13 @@ defmodule OrbitalDynamics.Schema.StrategyHandoffContracts do
     {"contact_allocation_pressure_station_reservation_statuses",
      "contact_allocation_pressure_station_reservation_statuses"},
     {"contact_allocation_pressure_station_reservation_match_statuses",
-     "contact_allocation_pressure_station_reservation_match_statuses"}
+     "contact_allocation_pressure_station_reservation_match_statuses"},
+    {"contact_allocation_pressure_station_calendar_entry_ids",
+     "contact_allocation_pressure_station_calendar_entry_ids"},
+    {"contact_allocation_pressure_station_calendar_entry_statuses",
+     "contact_allocation_pressure_station_calendar_entry_statuses"},
+    {"contact_allocation_pressure_station_calendar_directions",
+     "contact_allocation_pressure_station_calendar_directions"}
   ]
   @contact_intent_context_field_pairs [
     {"contact_intent_pressure_risk_types", "contact_intent_pressure_risk_types"},

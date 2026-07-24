@@ -685,6 +685,9 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureEventsTe
              "station_reservation_expiration_status" => "active",
              "station_reservation_match_status" => "overlap",
              "station_reservation_expires_at_s" => 360.0,
+             "station_calendar_entry_id" => "calendar_allocation_deferred",
+             "station_calendar_entry_status" => "reserved",
+             "station_calendar_directions" => ["downlink"],
              "derivation_reasons" => ["contact_allocation_reservation_conflict"],
              "feedback_source" =>
                "mission_state.source_contact_allocation_reservation_conflict_summary",
