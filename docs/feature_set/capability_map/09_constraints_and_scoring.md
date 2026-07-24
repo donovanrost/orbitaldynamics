@@ -84,6 +84,12 @@ Status: **implemented** (core), with **partial**, **near-term**, **later**, and 
   candidate/selected counts and durations, selected activity IDs, and status are
   reconciled with candidate activities, selected activities, and matching
   objective-satisfaction target rows.
+- Derived objective-satisfaction pressure recommendation rows preserve
+  source-exact risk type plus objective identity, type, status, and source
+  status across operator review, direct Cadence import, and review-derived
+  import copies. Missing or stale derived identity/status is rejected while
+  paired legacy omission remains compatible; the evidence cannot approve an
+  import, write to Cadence, or execute a schedule.
 - `objective_satisfaction_report.v1` rows summarize target coverage, downlink completion, and per-target commitment status from selected activities, with:
   - downlink-completion rows aggregating multiple scoped station/scenario/time/data-volume objectives instead of reporting only the first objective;
   - contact-count plus data-volume requirements treated as conjunctive when both are declared.

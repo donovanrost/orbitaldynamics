@@ -2098,6 +2098,61 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
     )
   end
 
+  test "objective-satisfaction risk type remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "objective_satisfaction_pressure_risk_types",
+      {"feedback_scope", "objective_satisfaction"},
+      ["type", "risk_type"],
+      ["observation_success_rate_low"],
+      ["stale_objective_satisfaction_risk"]
+    )
+  end
+
+  test "objective-satisfaction objective identity remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "objective_satisfaction_pressure_objective_ids",
+      {"feedback_scope", "objective_satisfaction"},
+      "objective_id",
+      ["objective:target_quality"],
+      ["objective:stale_target_quality"]
+    )
+  end
+
+  test "objective-satisfaction objective type remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "objective_satisfaction_pressure_objective_types",
+      {"feedback_scope", "objective_satisfaction"},
+      "objective_type",
+      ["observation_quality"],
+      ["stale_observation_quality"]
+    )
+  end
+
+  test "objective-satisfaction objective status remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "objective_satisfaction_pressure_objective_statuses",
+      {"feedback_scope", "objective_satisfaction"},
+      "objective_status",
+      ["at_risk"],
+      ["stale_at_risk"]
+    )
+  end
+
+  test "objective-satisfaction source objective status remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "objective_satisfaction_pressure_source_objective_statuses",
+      {"feedback_scope", "objective_satisfaction"},
+      "source_objective_status",
+      ["missed_quality_threshold"],
+      ["stale_quality_threshold"]
+    )
+  end
+
   test "objective-tradeoff risk type remains source exact across handoffs" do
     assert_risk_context_contract(
       StrategyRecommendationPressureEventsFixture.artifact(),

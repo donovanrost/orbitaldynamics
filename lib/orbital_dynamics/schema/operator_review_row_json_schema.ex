@@ -384,6 +384,12 @@ defmodule OrbitalDynamics.Schema.OperatorReviewRowJsonSchema do
           "score_term_pressure_feedback_scopes" => schema.(:string_array_schema),
           "score_term_pressure_trust_boundaries" => schema.(:string_array_schema),
           "score_term_pressure_derivation_reasons" => schema.(:string_array_schema),
+          "objective_satisfaction_pressure_risk_types" => schema.(:string_array_schema),
+          "objective_satisfaction_pressure_objective_ids" => schema.(:stable_id_array_schema),
+          "objective_satisfaction_pressure_objective_types" => schema.(:string_array_schema),
+          "objective_satisfaction_pressure_objective_statuses" => schema.(:string_array_schema),
+          "objective_satisfaction_pressure_source_objective_statuses" =>
+            schema.(:string_array_schema),
           "objective_tradeoff_pressure_risk_types" => schema.(:string_array_schema),
           "objective_tradeoff_pressure_objective_ids" => schema.(:stable_id_array_schema),
           "objective_tradeoff_pressure_objective_types" => schema.(:string_array_schema),
