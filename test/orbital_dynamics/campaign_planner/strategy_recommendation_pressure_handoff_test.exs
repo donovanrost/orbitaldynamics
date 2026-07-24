@@ -1006,6 +1006,61 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
     )
   end
 
+  test "contact-contention resource scope remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "contact_contention_pressure_resource_scopes",
+      {"contact_id", "dl_contention_conflict"},
+      "contention_resource_scope",
+      ["ground_station"],
+      ["spacecraft"]
+    )
+  end
+
+  test "contact-contention contact set remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "contact_contention_pressure_contention_contact_ids",
+      {"contact_id", "dl_contention_conflict"},
+      ["contention_contact_ids"],
+      ["dl_contention_primary", "dl_contention_conflict"],
+      ["stale_dl_contention"]
+    )
+  end
+
+  test "contact-contention required operator action remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "contact_contention_pressure_required_operator_actions",
+      {"contact_id", "dl_contention_conflict"},
+      "required_operator_action",
+      ["review_contact_contention"],
+      ["accept_contact_contention"]
+    )
+  end
+
+  test "contact-contention approval status remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "contact_contention_pressure_approval_statuses",
+      {"contact_id", "dl_contention_conflict"},
+      "approval_status",
+      ["operator_review_required"],
+      ["approved"]
+    )
+  end
+
+  test "contact-contention operator-action reason remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "contact_contention_pressure_operator_action_reasons",
+      {"contact_id", "dl_contention_conflict"},
+      "operator_action_reason",
+      ["same_station_overlapping_contact_windows"],
+      ["stale_contention_reason"]
+    )
+  end
+
   test "station conflict expiration risk context remains source exact across handoffs" do
     assert_risk_expiration_context_contract(
       StrategyRecommendationPressureEventsFixture.artifact(),

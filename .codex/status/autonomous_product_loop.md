@@ -5,21 +5,22 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Enforce source-exact contact-contention demand and timing.
+Enforce source-exact contact-contention operational review state.
 
 Status:
 Verified; ready to publish.
 
 Selection evidence:
-- Contact-contention routing now covers `8/25` fields, leaving six unvalidated
-  demand/timing fields before operational state and provenance.
-- Required/planned contact and downlink demand plus start/end bounds already
-  survive the event-risk adapter but lack source-exact/public contracts.
+- Contact-contention routing and demand/timing now cover `14/25` fields, leaving
+  five operational review-state fields and six provenance fields.
+- Required action and approval survive event-risk projection, while resource
+  scope, contending contacts, and operator-action reason are dropped.
 
 Intended behavior:
-- Declare six numeric arrays requiring exact copies in
+- Preserve the three missing operational fields at the event-risk boundary.
+- Declare five string/stable-ID arrays requiring exact copies in
   review/direct/review-derived Cadence rows.
-- Reject missing or stale derived contact-contention demand/timing; retain paired
+- Reject missing or stale derived contact-contention review state; retain paired
   legacy omission compatibility for optional source fields.
 - Preserve provider and Cadence writes, reservation acceptance, operator
   authority, and execution boundaries.
@@ -28,34 +29,34 @@ Level 6 pillar advanced:
 Fleet-scale planning decisions and durable reproducible audit handoffs.
 
 Planned files:
-- contact-contention validation and review/import schemas
-- demand/timing mutation/schema proofs, docs, exports, and ledger
+- contact-contention projection, validation, and review/import schemas
+- review-state mutation/schema proofs, docs, exports, and ledger
 
 Verification:
-- Focused handoff/schema contracts: `247 passed`.
+- Focused handoff/schema contracts: `252 passed`.
 - Contact-allocation regression: `213 passed`.
 - Golden artifacts: `12 passed`.
 - Schema lint: `155` artifacts, `0` errors, `0` warnings.
-- Full suite: `4120 passed`.
+- Full suite: `4125 passed`.
 - Canonical strategy SHA-256 remains
   `f7fc7823d071db82124af4b903e5be730983d1d9cb96f4524c711041c750ca1c`.
 
 Review:
-- Contact-contention coverage reaches `14/25` fields across operator review,
+- Contact-contention coverage reaches `19/25` fields across operator review,
   direct Cadence import, and review-derived import.
-- All six selected source fields already survived event-risk projection; no
-  adapter repair was needed.
-- Public schemas type required/planned contact and downlink demand plus start/end
-  bounds as numeric arrays; aggregate export-shape proofs cover every field.
+- Event-risk projection now preserves resource scope, contending-contact IDs,
+  and operator-action reason; required action and approval already survived.
+- Public schemas type contending contacts as stable IDs and the four state values
+  as string arrays; aggregate export-shape proofs cover every field.
 - Shared mutation coverage proves missing review context, paired legacy
   omission, stale direct context, and missing/stale review-derived context.
-- Diff is limited to validation/schema surfaces, focused proofs, docs, ten
-  generated schemas, and this ledger; canonical strategy is unchanged.
+- Diff is limited to projection/validation/schema surfaces, focused proofs,
+  docs, ten generated schemas, and this ledger; canonical strategy is unchanged.
 - No provider/Cadence write, reservation acceptance, schedule mutation,
   operator-authority grant, or execution path was introduced.
 
 Last published slice:
-- `9a0077b5` Validate contact contention routing (`4114 passed`, `8/25`).
+- `283c4243` Validate contact contention demand (`4120 passed`, `14/25`).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions while preserving explicit
@@ -66,7 +67,7 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-Assess contact-contention operational review state.
+Assess contact-contention provenance.
 
 Blocked:
 None.

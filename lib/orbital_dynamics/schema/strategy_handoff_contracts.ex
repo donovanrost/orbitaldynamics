@@ -156,7 +156,17 @@ defmodule OrbitalDynamics.Schema.StrategyHandoffContracts do
      "contact_contention_pressure_planned_downlink_values_mb"},
     {"contact_contention_pressure_start_values_s", "contact_contention_pressure_start_values_s"},
     {"contact_contention_pressure_end_values_s", "contact_contention_pressure_end_values_s"},
-    {"contact_contention_pressure_group_ids", "contact_contention_pressure_group_ids"}
+    {"contact_contention_pressure_group_ids", "contact_contention_pressure_group_ids"},
+    {"contact_contention_pressure_resource_scopes",
+     "contact_contention_pressure_resource_scopes"},
+    {"contact_contention_pressure_contention_contact_ids",
+     "contact_contention_pressure_contention_contact_ids"},
+    {"contact_contention_pressure_required_operator_actions",
+     "contact_contention_pressure_required_operator_actions"},
+    {"contact_contention_pressure_approval_statuses",
+     "contact_contention_pressure_approval_statuses"},
+    {"contact_contention_pressure_operator_action_reasons",
+     "contact_contention_pressure_operator_action_reasons"}
   ]
   @station_reservation_conflict_context_field_pairs [
     {"station_reservation_conflict_contact_ids", "station_reservation_conflict_contact_ids"},
