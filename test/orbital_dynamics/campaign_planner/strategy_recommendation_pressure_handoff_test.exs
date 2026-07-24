@@ -562,6 +562,28 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
     )
   end
 
+  test "station hold identity remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "station_reservation_hold_ids",
+      {"contact_id", "dl_hold_import_review"},
+      "station_reservation_hold_ids",
+      ["reservation_hold_active", "reservation_hold_missing"],
+      ["stale_reservation_hold_active"]
+    )
+  end
+
+  test "station hold contact identity remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "station_reservation_hold_contact_ids",
+      {"contact_id", "dl_hold_import_review"},
+      "contact_id",
+      ["dl_hold_import_review"],
+      ["stale_dl_hold_import_review"]
+    )
+  end
+
   test "station calendar expiration risk context remains source exact across handoffs" do
     assert_risk_expiration_context_contract(
       StrategyRecommendationPressureEventsFixture.artifact(),
