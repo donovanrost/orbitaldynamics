@@ -288,6 +288,50 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
     )
   end
 
+  test "station conflict reservation owner remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "station_reservation_conflict_reserved_by",
+      {"contact_id", "dl_reservation_conflict"},
+      "station_reserved_by",
+      ["ops_team_b"],
+      ["stale_ops_team_b"]
+    )
+  end
+
+  test "station conflict reservation status remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "station_reservation_conflict_statuses",
+      {"contact_id", "dl_reservation_conflict"},
+      "station_reservation_status",
+      ["confirmed"],
+      ["cancelled"]
+    )
+  end
+
+  test "station conflict match status remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "station_reservation_conflict_match_statuses",
+      {"contact_id", "dl_reservation_conflict"},
+      "station_reservation_match_status",
+      ["overlap"],
+      ["matched"]
+    )
+  end
+
+  test "station conflict reservation deadline remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "station_reservation_conflict_expires_at_values_s",
+      {"contact_id", "dl_reservation_conflict"},
+      "station_reservation_expires_at_s",
+      [360.0],
+      [361.0]
+    )
+  end
+
   test "station hold expiration risk context remains source exact across handoffs" do
     assert_risk_expiration_context_contract(
       StrategyRecommendationPressureEventsFixture.artifact(),

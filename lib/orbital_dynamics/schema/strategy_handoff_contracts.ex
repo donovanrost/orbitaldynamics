@@ -44,6 +44,12 @@ defmodule OrbitalDynamics.Schema.StrategyHandoffContracts do
      "station_reservation_conflict_ground_station_ids"},
     {"station_reservation_conflict_reservation_ids",
      "station_reservation_conflict_reservation_ids"},
+    {"station_reservation_conflict_reserved_by", "station_reservation_conflict_reserved_by"},
+    {"station_reservation_conflict_statuses", "station_reservation_conflict_statuses"},
+    {"station_reservation_conflict_match_statuses",
+     "station_reservation_conflict_match_statuses"},
+    {"station_reservation_conflict_expires_at_values_s",
+     "station_reservation_conflict_expires_at_values_s"},
     {"station_reservation_conflict_expiration_statuses",
      "station_reservation_conflict_expiration_statuses"}
   ]
