@@ -68,10 +68,11 @@ Status: **implemented** (core), with **partial**, **near-term**, **later**, and 
 - V1 campaign artifacts emit `objective_tradeoff_report.v1` rows that expose ranked-timeline score-term deltas and selected activity IDs.
 - Derived objective-tradeoff pressure recommendation rows preserve source-exact
   risk, objective, target, scenario, branch, and station routing plus the
-  latency-objective flag across operator review, direct Cadence import, and
-  review-derived import copies. Missing or stale derived routing is rejected
-  while paired legacy omission remains compatible; the evidence cannot approve
-  an import, write to Cadence, or execute a schedule.
+  latency-objective flag and collection, product, payload, and instrument
+  identities across operator review, direct Cadence import, and review-derived
+  import copies. Missing or stale derived routing is rejected while paired
+  legacy omission remains compatible; the evidence cannot approve an import,
+  write to Cadence, or execute a schedule.
 
 ### Objective-satisfaction reports
 

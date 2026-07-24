@@ -2186,6 +2186,50 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
     )
   end
 
+  test "objective-tradeoff collection identities remain source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "objective_tradeoff_pressure_collection_ids",
+      {"feedback_scope", "objective_tradeoff"},
+      ["collection_id", "collection_ids"],
+      ["collection_tradeoff_alpha", "collection_tradeoff_beta"],
+      ["stale_collection_tradeoff"]
+    )
+  end
+
+  test "objective-tradeoff product identities remain source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "objective_tradeoff_pressure_product_ids",
+      {"feedback_scope", "objective_tradeoff"},
+      ["product_id", "product_ids"],
+      ["product_tradeoff_alpha", "product_tradeoff_beta"],
+      ["stale_product_tradeoff"]
+    )
+  end
+
+  test "objective-tradeoff payload identities remain source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "objective_tradeoff_pressure_payload_ids",
+      {"feedback_scope", "objective_tradeoff"},
+      ["payload_id", "payload_ids"],
+      ["payload_tradeoff_alpha", "payload_tradeoff_beta"],
+      ["stale_payload_tradeoff"]
+    )
+  end
+
+  test "objective-tradeoff instrument identities remain source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "objective_tradeoff_pressure_instrument_ids",
+      {"feedback_scope", "objective_tradeoff"},
+      ["instrument_id", "instrument_ids"],
+      ["instrument_tradeoff_alpha", "instrument_tradeoff_beta"],
+      ["stale_instrument_tradeoff"]
+    )
+  end
+
   test "station conflict expiration risk context remains source exact across handoffs" do
     assert_risk_expiration_context_contract(
       StrategyRecommendationPressureEventsFixture.artifact(),

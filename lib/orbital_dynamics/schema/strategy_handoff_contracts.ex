@@ -320,7 +320,11 @@ defmodule OrbitalDynamics.Schema.StrategyHandoffContracts do
     {"objective_tradeoff_pressure_scenario_ids", "objective_tradeoff_pressure_scenario_ids"},
     {"objective_tradeoff_pressure_branch_ids", "objective_tradeoff_pressure_branch_ids"},
     {"objective_tradeoff_pressure_ground_station_ids",
-     "objective_tradeoff_pressure_ground_station_ids"}
+     "objective_tradeoff_pressure_ground_station_ids"},
+    {"objective_tradeoff_pressure_collection_ids", "objective_tradeoff_pressure_collection_ids"},
+    {"objective_tradeoff_pressure_product_ids", "objective_tradeoff_pressure_product_ids"},
+    {"objective_tradeoff_pressure_payload_ids", "objective_tradeoff_pressure_payload_ids"},
+    {"objective_tradeoff_pressure_instrument_ids", "objective_tradeoff_pressure_instrument_ids"}
   ]
   @station_reservation_conflict_context_field_pairs [
     {"station_reservation_conflict_contact_ids", "station_reservation_conflict_contact_ids"},

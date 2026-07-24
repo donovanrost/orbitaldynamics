@@ -5,23 +5,21 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Enforce source-exact objective-tradeoff decision routing.
+Enforce source-exact objective-tradeoff entity routing.
 
 Status:
 Verified; ready to publish.
 
 Selection evidence:
-- Objective-tradeoff pressure has `0/34` exact-copy fields despite existing
-  derived operator-review and Cadence-import context.
-- The first eight risk/objective/target/scenario/branch/station routing values
-  already survive event-risk projection.
+- Objective-tradeoff pressure has `8/34` exact-copy fields.
+- Collection, product, payload, and instrument IDs already survive event-risk
+  projection but remain outside validation and public row schemas.
 
 Intended behavior:
-- Declare five stable-ID, two string, and one boolean arrays requiring exact
-  copies in
-  review/direct/review-derived Cadence rows.
-- Reject missing or stale derived objective-tradeoff decision routing; retain paired
-  legacy omission compatibility for optional source fields.
+- Declare four stable-ID arrays requiring exact copies in operator review,
+  direct Cadence import, and review-derived Cadence rows.
+- Reject missing or stale derived objective-tradeoff entity routing; retain
+  paired legacy omission compatibility for optional source fields.
 - Preserve provider and Cadence writes, reservation acceptance, operator
   authority, and execution boundaries.
 
@@ -30,25 +28,24 @@ Fleet-scale planning decisions and durable reproducible audit handoffs.
 
 Planned files:
 - objective-tradeoff validation and review/import schemas
-- routing mutation/schema proofs, docs, exports, and ledger
+- entity-routing mutation/schema proofs, docs, exports, and ledger
 
 Verification:
-- Focused handoff and schema contracts: `353 passed`.
+- Focused handoff and schema contracts: `357 passed`.
 - Contact-allocation regression: `213 passed`.
 - Golden artifacts: `12 passed`.
 - Schema lint: `155/155` artifacts passed with zero warnings.
-- Full suite: `4226 passed`.
+- Full suite: `4230 passed`.
 - Canonical strategy SHA-256 remained
   `f7fc7823d071db82124af4b903e5be730983d1d9cb96f4524c711041c750ca1c`.
-- Exact-copy coverage advanced from `0/34` to `8/34` objective-tradeoff
-  fields.
+- Exact-copy coverage advanced from `8/34` to `12/34`
+  objective-tradeoff fields.
 
 Review:
-- Eight routing fields already survived the event-risk projection, so no
+- All four entity ID sets already survived event-risk projection, so no
   runtime adapter change was required.
-- Public schemas use five stable-ID arrays, two string arrays, and one boolean
-  array consistently across operator review, direct import, and source-review
-  rows.
+- Public schemas use stable-ID arrays consistently across operator review,
+  direct import, and source-review rows.
 - Mutation proofs cover all four copies, missing review context, paired legacy
   omission, stale direct context, and missing/stale review-derived context.
 - Generated changes are limited to the expected ten schema artifacts; the
@@ -58,7 +55,8 @@ Review:
   execution was added.
 
 Last published slice:
-- `2be22748` Validate score term provenance (`4218 passed`, `37/37`).
+- `e740217f` Validate objective tradeoff decision routing (`4226 passed`,
+  `8/34`).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions while preserving explicit
@@ -69,7 +67,7 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-Assess objective-tradeoff entity routing.
+Assess objective-tradeoff timing and demand.
 
 Blocked:
 None.
