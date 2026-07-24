@@ -20,6 +20,7 @@ defmodule OrbitalDynamics.Schema.CampaignRepairReplacementRankingContracts do
     "schedule_move_penalty",
     "station_calendar_pressure_penalty",
     "contact_intent_pressure_penalty",
+    "contact_contention_resolution_pressure_penalty",
     "link_capacity_pressure_penalty",
     "resource_projection_pressure_penalty"
   ]
@@ -211,6 +212,7 @@ defmodule OrbitalDynamics.Schema.CampaignRepairReplacementRankingContracts do
     |> expect_number(path, row, "schedule_move_penalty")
     |> expect_number(path, row, "station_calendar_pressure_penalty")
     |> expect_optional_number(path, row, "contact_intent_pressure_penalty")
+    |> expect_optional_number(path, row, "contact_contention_resolution_pressure_penalty")
     |> expect_number(path, row, "link_capacity_pressure_penalty")
     |> expect_number(path, row, "resource_projection_pressure_penalty")
     |> expect_number(path, row, "ranking_score")
@@ -223,6 +225,9 @@ defmodule OrbitalDynamics.Schema.CampaignRepairReplacementRankingContracts do
     |> expect_optional_list(path, row, "contact_intent_pressure_statuses")
     |> validate_string_list_items(path, row, "contact_intent_pressure_statuses")
     |> validate_contact_intent_pressure_statuses(path, row)
+    |> expect_optional_list(path, row, "contact_contention_resolution_group_ids")
+    |> validate_string_list_items(path, row, "contact_contention_resolution_group_ids")
+    |> validate_contact_contention_resolution_group_ids(path, row)
     |> expect_optional_non_negative_number(path, row, "link_capacity_pressure_shortfall_mb")
     |> validate_positive_optional_number(path, row, "link_capacity_pressure_shortfall_mb")
     |> expect_optional_list(path, row, "resource_projection_pressure_risk_indicators")
@@ -325,6 +330,35 @@ defmodule OrbitalDynamics.Schema.CampaignRepairReplacementRankingContracts do
     end
   end
 
+  defp validate_contact_contention_resolution_group_ids(issues, path, row) do
+    case Map.get(row, "contact_contention_resolution_group_ids") do
+      group_ids when is_list(group_ids) and group_ids != [] ->
+        if group_ids == group_ids |> Enum.uniq() |> Enum.sort() do
+          issues
+        else
+          [
+            error(
+              path <> ".contact_contention_resolution_group_ids",
+              "must be unique and lexically sorted"
+            )
+            | issues
+          ]
+        end
+
+      [] ->
+        [
+          error(
+            path <> ".contact_contention_resolution_group_ids",
+            "must be omitted instead of empty"
+          )
+          | issues
+        ]
+
+      _value ->
+        issues
+    end
+  end
+
   defp validate_resource_risk_indicators(issues, path, row) do
     case Map.get(row, "resource_projection_pressure_risk_indicators") do
       indicators when is_list(indicators) and indicators != [] ->
@@ -414,8 +448,12 @@ defmodule OrbitalDynamics.Schema.CampaignRepairReplacementRankingContracts do
     end
   end
 
-  defp penalty_value(row, "contact_intent_pressure_penalty"),
-    do: Map.get(row, "contact_intent_pressure_penalty", 0.0)
+  defp penalty_value(row, field)
+       when field in [
+              "contact_intent_pressure_penalty",
+              "contact_contention_resolution_pressure_penalty"
+            ],
+       do: Map.get(row, field, 0.0)
 
   defp penalty_value(row, field), do: Map.get(row, field)
 
@@ -433,6 +471,13 @@ defmodule OrbitalDynamics.Schema.CampaignRepairReplacementRankingContracts do
       row,
       "contact_intent_pressure_penalty",
       "contact_intent_pressure_statuses",
+      &nonempty_list?/1
+    )
+    |> require_nonzero_penalty_evidence(
+      path,
+      row,
+      "contact_contention_resolution_pressure_penalty",
+      "contact_contention_resolution_group_ids",
       &nonempty_list?/1
     )
     |> require_nonzero_penalty_evidence(

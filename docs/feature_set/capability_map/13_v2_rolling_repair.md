@@ -265,7 +265,10 @@ V2 repair `operator_review_package.v1` now emits:
 - Repaired-plan and source contact-allocation review rows.
 - Source contact-contention resolution recommendation rows, preserving exact
   selected/deferred contact identities for review-gated Cadence import without
-  applying the recommendation to ranking or schedules.
+  applying the recommendation to candidate eligibility or schedules. Exact
+  deferred IDs contribute one advisory `risk_weight` unit to replacement
+  ranking and selected-plan scoring, with sorted resolution group IDs retained
+  as the explanation; selected/recommended and unrelated IDs remain neutral.
 - Source candidate-diff rows.
 - Source contact/resource-suppression rows.
 - Source refresh-freshness and refresh-budget review rows.

@@ -288,7 +288,12 @@ schema-type their stable IDs, invalid-input flags, and protected/change counts.
   rows, exact selected/deferred contention recommendations, allocation
   reservation evidence, and spacecraft resource decisions caused by unavailable
   ground-network or resource constraints. The contention-resolution handoff is
-  audit/review-only and does not alter replacement ranking or schedules.
+  recommendation-only and does not suppress candidates or alter schedules. If
+  an otherwise viable replacement candidate is named exactly in a preserved
+  recommendation's `deferred_contact_ids`, replacement ranking applies one
+  calibrated `risk_weight` unit and records the contributing resolution group
+  IDs. Recommended and unrelated candidates remain neutral, and the selected-
+  plan score reconciles the same advisory evidence.
 - `source_station_calendar_report` when repair-time `ground_network` or
   `station_calendar` intervals annotate source contact candidates. Reserved,
   unavailable, or reduced-capacity affected rows participate in repair scoring

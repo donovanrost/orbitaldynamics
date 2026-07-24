@@ -9,6 +9,7 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairScoreTerms do
     OperationalReadinessPressureEvents,
     QualityGatePressureEvents,
     RepairContactAllocationPressure,
+    RepairContactContentionResolutionPressure,
     RepairReadinessPressure,
     RepairRefreshPressure,
     RepairSourceFilterPressure,
@@ -26,6 +27,7 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairScoreTerms do
         station_calendar_report,
         contact_filter_report,
         contact_allocation_report,
+        contact_contention_resolution_report,
         contact_intents,
         resource_filter_report,
         candidate_diff_report,
@@ -44,6 +46,7 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairScoreTerms do
       station_calendar_report,
       contact_filter_report,
       contact_allocation_report,
+      contact_contention_resolution_report,
       contact_intents,
       resource_filter_report,
       candidate_diff_report,
@@ -65,6 +68,7 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairScoreTerms do
         station_calendar_report,
         contact_filter_report,
         contact_allocation_report,
+        contact_contention_resolution_report,
         contact_intents,
         resource_filter_report,
         candidate_diff_report,
@@ -114,6 +118,12 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairScoreTerms do
       RepairContactAllocationPressure.unusable_count(
         contact_allocation_report,
         contact_allocation_callbacks(callbacks)
+      )
+
+    contact_contention_resolution_pressure_count =
+      RepairContactContentionResolutionPressure.selected_count(
+        contact_contention_resolution_report,
+        activities
       )
 
     contact_intent_pressure_count =
@@ -166,6 +176,10 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairScoreTerms do
 
     contact_allocation_pressure_penalty =
       -contact_allocation_pressure_count *
+        numeric_policy_value.(scoring_policy, "risk_weight", 1.0)
+
+    contact_contention_resolution_pressure_penalty =
+      -contact_contention_resolution_pressure_count *
         numeric_policy_value.(scoring_policy, "risk_weight", 1.0)
 
     contact_intent_pressure_penalty =
@@ -231,6 +245,11 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairScoreTerms do
       contact_allocation_pressure_count,
       "contact_allocation_pressure_penalty",
       contact_allocation_pressure_penalty
+    )
+    |> maybe_put_positive_pressure_term(
+      contact_contention_resolution_pressure_count,
+      "contact_contention_resolution_pressure_penalty",
+      contact_contention_resolution_pressure_penalty
     )
     |> maybe_put_positive_pressure_term(
       contact_intent_pressure_count,

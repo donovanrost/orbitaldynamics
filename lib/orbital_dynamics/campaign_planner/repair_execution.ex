@@ -11,6 +11,7 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairExecution do
     RepairActivityDispatch,
     RepairCandidateDiff,
     RepairCandidateInputs,
+    RepairContactContentionResolutionPressure,
     RepairManeuverTransitions,
     RepairPolicySemantics,
     RepairRealizedState,
@@ -112,6 +113,8 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairExecution do
       candidate_diff_replacements: candidate_diff_replacements(request.candidate_refresh),
       contact_intent_pressure_by_candidate_id:
         contact_intent_pressure_by_candidate_id(request.candidate_refresh),
+      contact_contention_resolution_group_ids_by_candidate_id:
+        contact_contention_resolution_group_ids_by_candidate_id(request.candidate_refresh),
       station_pressure_sources_by_candidate_id:
         RepairStationPressure.sources_by_candidate_id(
           station_calendar_report,
@@ -128,6 +131,12 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairExecution do
     |> Enum.filter(&is_map/1)
     |> Enum.map(&{&1, "campaign_repair.source_contact_intents"})
     |> ContactIntentPressureBranches.pressure_statuses_by_contact_id()
+  end
+
+  defp contact_contention_resolution_group_ids_by_candidate_id(candidate_refresh) do
+    candidate_refresh
+    |> RepairSourceReports.contact_contention_resolution()
+    |> RepairContactContentionResolutionPressure.group_ids_by_candidate_id()
   end
 
   defp candidate_diff_replacements(nil), do: %{}

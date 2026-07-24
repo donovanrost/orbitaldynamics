@@ -33,6 +33,7 @@ defmodule OrbitalDynamics.Schema.CampaignRepairSourceHandoffContractsTest do
              "candidate_diff_priority" => 1,
              "candidate_id" => "dl_ready",
              "candidate_score" => 10.0,
+             "contact_contention_resolution_pressure_penalty" => 0.0,
              "contact_intent_pressure_penalty" => 0.0,
              "link_capacity_pressure_penalty" => 0.0,
              "rank" => 1,

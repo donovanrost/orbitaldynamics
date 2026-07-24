@@ -91,12 +91,22 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairReplacementSelection do
     contact_intent_pressure =
       contact_intent_pressure_penalty(contact_intent_pressure_statuses, context)
 
+    contact_contention_resolution_group_ids =
+      contact_contention_resolution_group_ids(candidate, context)
+
+    contact_contention_resolution_pressure =
+      contact_contention_resolution_pressure_penalty(
+        contact_contention_resolution_group_ids,
+        context
+      )
+
     link_pressure = link_capacity_pressure(source, candidate, acc, context)
     resource_pressure = resource_projection_pressure(source, candidate, acc, context)
 
     ranking_score =
       candidate_score(candidate) - churn_cost - churn_s * move_cost - station_pressure -
-        contact_intent_pressure - link_pressure.penalty - resource_pressure.penalty
+        contact_intent_pressure - contact_contention_resolution_pressure -
+        link_pressure.penalty - resource_pressure.penalty
 
     row =
       %{
@@ -109,6 +119,8 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairReplacementSelection do
         "schedule_move_penalty" => -(churn_s * move_cost),
         "station_calendar_pressure_penalty" => negative_penalty(station_pressure),
         "contact_intent_pressure_penalty" => negative_penalty(contact_intent_pressure),
+        "contact_contention_resolution_pressure_penalty" =>
+          negative_penalty(contact_contention_resolution_pressure),
         "link_capacity_pressure_penalty" => negative_penalty(link_pressure.penalty),
         "resource_projection_pressure_penalty" => negative_penalty(resource_pressure.penalty),
         "ranking_score" => ranking_score
@@ -120,6 +132,10 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairReplacementSelection do
       |> maybe_put_nonempty(
         "contact_intent_pressure_statuses",
         contact_intent_pressure_statuses
+      )
+      |> maybe_put_nonempty(
+        "contact_contention_resolution_group_ids",
+        contact_contention_resolution_group_ids
       )
       |> maybe_put_non_nil(
         "link_capacity_pressure_shortfall_mb",
@@ -220,6 +236,17 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairReplacementSelection do
   defp contact_intent_pressure_penalty([], _context), do: 0.0
 
   defp contact_intent_pressure_penalty(_statuses, context),
+    do: numeric_policy_value(context.scoring_policy, "risk_weight", 1.0)
+
+  defp contact_contention_resolution_group_ids(candidate, context) do
+    context
+    |> Map.get(:contact_contention_resolution_group_ids_by_candidate_id, %{})
+    |> Map.get(ActivityIdentity.activity_id(candidate), [])
+  end
+
+  defp contact_contention_resolution_pressure_penalty([], _context), do: 0.0
+
+  defp contact_contention_resolution_pressure_penalty(_group_ids, context),
     do: numeric_policy_value(context.scoring_policy, "risk_weight", 1.0)
 
   defp link_capacity_pressure(source, candidate, acc, context) do

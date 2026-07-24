@@ -166,6 +166,7 @@ defmodule OrbitalDynamics.Schema.CampaignRepairJsonSchema do
       "schedule_move_penalty",
       "station_calendar_pressure_penalty",
       "contact_intent_pressure_penalty",
+      "contact_contention_resolution_pressure_penalty",
       "link_capacity_pressure_penalty",
       "resource_projection_pressure_penalty",
       "ranking_score"
@@ -205,6 +206,12 @@ defmodule OrbitalDynamics.Schema.CampaignRepairJsonSchema do
               "invalid_activity_input"
             ]
           }
+        },
+        "contact_contention_resolution_group_ids" => %{
+          "type" => "array",
+          "minItems" => 1,
+          "uniqueItems" => true,
+          "items" => stable_id_schema
         },
         "link_capacity_pressure_shortfall_mb" => %{
           "type" => "number",
