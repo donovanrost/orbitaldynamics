@@ -324,7 +324,21 @@ defmodule OrbitalDynamics.Schema.StrategyHandoffContracts do
     {"objective_tradeoff_pressure_collection_ids", "objective_tradeoff_pressure_collection_ids"},
     {"objective_tradeoff_pressure_product_ids", "objective_tradeoff_pressure_product_ids"},
     {"objective_tradeoff_pressure_payload_ids", "objective_tradeoff_pressure_payload_ids"},
-    {"objective_tradeoff_pressure_instrument_ids", "objective_tradeoff_pressure_instrument_ids"}
+    {"objective_tradeoff_pressure_instrument_ids", "objective_tradeoff_pressure_instrument_ids"},
+    {"objective_tradeoff_pressure_start_values_s", "objective_tradeoff_pressure_start_values_s"},
+    {"objective_tradeoff_pressure_end_values_s", "objective_tradeoff_pressure_end_values_s"},
+    {"objective_tradeoff_pressure_required_contact_values",
+     "objective_tradeoff_pressure_required_contact_values"},
+    {"objective_tradeoff_pressure_planned_contact_values",
+     "objective_tradeoff_pressure_planned_contact_values"},
+    {"objective_tradeoff_pressure_required_downlink_values_mb",
+     "objective_tradeoff_pressure_required_downlink_values_mb"},
+    {"objective_tradeoff_pressure_planned_downlink_values_mb",
+     "objective_tradeoff_pressure_planned_downlink_values_mb"},
+    {"objective_tradeoff_pressure_max_latency_values_s",
+     "objective_tradeoff_pressure_max_latency_values_s"},
+    {"objective_tradeoff_pressure_planned_latency_values_s",
+     "objective_tradeoff_pressure_planned_latency_values_s"}
   ]
   @station_reservation_conflict_context_field_pairs [
     {"station_reservation_conflict_contact_ids", "station_reservation_conflict_contact_ids"},

@@ -2230,6 +2230,94 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
     )
   end
 
+  test "objective-tradeoff start timing remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "objective_tradeoff_pressure_start_values_s",
+      {"feedback_scope", "objective_tradeoff"},
+      "starts_at_s",
+      [1_460.0],
+      [1_461.0]
+    )
+  end
+
+  test "objective-tradeoff end timing remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "objective_tradeoff_pressure_end_values_s",
+      {"feedback_scope", "objective_tradeoff"},
+      "ends_at_s",
+      [1_580.0],
+      [1_581.0]
+    )
+  end
+
+  test "objective-tradeoff required contacts remain source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "objective_tradeoff_pressure_required_contact_values",
+      {"feedback_scope", "objective_tradeoff"},
+      "required_contacts",
+      [2],
+      [3]
+    )
+  end
+
+  test "objective-tradeoff planned contacts remain source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "objective_tradeoff_pressure_planned_contact_values",
+      {"feedback_scope", "objective_tradeoff"},
+      "planned_contacts",
+      [1],
+      [2]
+    )
+  end
+
+  test "objective-tradeoff required downlink remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "objective_tradeoff_pressure_required_downlink_values_mb",
+      {"feedback_scope", "objective_tradeoff"},
+      "required_downlink_mb",
+      [90.0],
+      [91.0]
+    )
+  end
+
+  test "objective-tradeoff planned downlink remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "objective_tradeoff_pressure_planned_downlink_values_mb",
+      {"feedback_scope", "objective_tradeoff"},
+      "planned_downlink_mb",
+      [45.0],
+      [46.0]
+    )
+  end
+
+  test "objective-tradeoff maximum latency remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "objective_tradeoff_pressure_max_latency_values_s",
+      {"feedback_scope", "objective_tradeoff"},
+      "max_latency_s",
+      [240.0],
+      [241.0]
+    )
+  end
+
+  test "objective-tradeoff planned latency remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "objective_tradeoff_pressure_planned_latency_values_s",
+      {"feedback_scope", "objective_tradeoff"},
+      "planned_latency_s",
+      [390.0],
+      [391.0]
+    )
+  end
+
   test "station conflict expiration risk context remains source exact across handoffs" do
     assert_risk_expiration_context_contract(
       StrategyRecommendationPressureEventsFixture.artifact(),
