@@ -1664,6 +1664,145 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
     end
   end
 
+  @execution_success_feedback_context_contracts [
+    {"risk types", "execution_success_feedback_risk_types", ["type", "risk_type"],
+     ["command_success_rate_low", "maneuver_success_rate_low"], ["stale_success_rate_low"]},
+    {"activity identities", "execution_success_feedback_activity_ids", "activity_id",
+     ["cmd_success_review", "burn_success_review"], ["stale_success_activity"]},
+    {"scenario identity", "execution_success_feedback_scenario_ids", "scenario_id", ["leo_1"],
+     ["stale_leo_1"]},
+    {"timeline identities", "execution_success_feedback_timeline_ids", "timeline_id",
+     ["timeline:cmd_success_review", "timeline:burn_success_review"], ["timeline:stale_success"]},
+    {"source-activity identities", "execution_success_feedback_source_activity_ids",
+     ["source_activity_id", "source_activity_ids"],
+     ["cmd_success_source", "cmd_success_review", "burn_success_source", "burn_success_review"],
+     ["stale_success_source"]},
+    {"replacement-activity identities", "execution_success_feedback_replacement_activity_ids",
+     "replacement_activity_id", ["cmd_success_review", "burn_success_review"],
+     ["stale_success_replacement"]},
+    {"command success factor", "execution_success_feedback_command_success_factor_values",
+     "command_success_factor", [0.25], [0.5]},
+    {"maneuver success factor", "execution_success_feedback_maneuver_success_factor_values",
+     "maneuver_success_factor", [0.4], [0.5]},
+    {"command result", "execution_success_feedback_command_results", "command_result",
+     ["timeout"], ["stale_command_result"]},
+    {"maneuver result", "execution_success_feedback_maneuver_results", "maneuver_result",
+     ["accepted, failed"], ["stale_maneuver_result"]},
+    {"realized status", "execution_success_feedback_realized_statuses", "realized_status",
+     ["failed"], ["stale_realized_status"]},
+    {"ground-station identity", "execution_success_feedback_ground_station_ids",
+     "ground_station_id", ["equator_prime"], ["stale_equator_prime"]},
+    {"planned ground-station identity", "execution_success_feedback_planned_ground_station_ids",
+     "planned_ground_station_id", ["polar_prime"], ["stale_polar_prime"]},
+    {"realized ground-station identity", "execution_success_feedback_realized_ground_station_ids",
+     "realized_ground_station_id", ["equator_prime"], ["stale_equator_prime"]},
+    {"ground-station match status", "execution_success_feedback_ground_station_match_statuses",
+     "ground_station_match_status", ["mismatch"], ["stale_match"]},
+    {"direction", "execution_success_feedback_directions", "direction", ["command"],
+     ["stale_direction"]},
+    {"planned direction", "execution_success_feedback_planned_directions", "planned_direction",
+     ["uplink"], ["stale_planned_direction"]},
+    {"realized direction", "execution_success_feedback_realized_directions", "realized_direction",
+     ["command"], ["stale_realized_direction"]},
+    {"direction match status", "execution_success_feedback_direction_match_statuses",
+     "direction_match_status", ["mismatch"], ["stale_match"]},
+    {"source-window identity", "execution_success_feedback_source_window_ids", "source_window_id",
+     ["window_equator_command"], ["stale_source_window"]},
+    {"planned source-window identity", "execution_success_feedback_planned_source_window_ids",
+     "planned_source_window_id", ["window_polar_uplink"], ["stale_planned_window"]},
+    {"realized source-window identity", "execution_success_feedback_realized_source_window_ids",
+     "realized_source_window_id", ["window_equator_command"], ["stale_realized_window"]},
+    {"source-window match status", "execution_success_feedback_source_window_match_statuses",
+     "source_window_match_status", ["mismatch"], ["stale_match"]},
+    {"command identity mismatch fields",
+     "execution_success_feedback_command_identity_mismatch_fields",
+     ["command_identity_mismatch_fields"], ["direction", "ground_station", "source_window"],
+     ["stale_identity_field"]},
+    {"start timing", "execution_success_feedback_start_values_s", "starts_at_s", [700.0, 760.0],
+     [701.0]},
+    {"end timing", "execution_success_feedback_end_values_s", "ends_at_s", [730.0, 760.0],
+     [731.0]},
+    {"changed fields", "execution_success_feedback_changed_fields", ["changed_fields"],
+     ["command_result", "command_success_factor", "maneuver_result", "maneuver_success_factor"],
+     ["stale_changed_field"]},
+    {"status transitions", "execution_success_feedback_status_transition_maps",
+     "status_transition",
+     [
+       %{
+         "field" => "status",
+         "from" => "planned",
+         "requires_operator_review" => true,
+         "to" => "failed",
+         "transition_category" => "terminal_exception",
+         "transition_reason" => "command execution timed out",
+         "transition_type" => "status_changed"
+       },
+       %{
+         "field" => "status",
+         "from" => "planned",
+         "requires_operator_review" => true,
+         "to" => "failed",
+         "transition_category" => "terminal_exception",
+         "transition_reason" => "maneuver failed after acceptance",
+         "transition_type" => "status_changed"
+       }
+     ],
+     [
+       %{
+         "field" => "status",
+         "from" => "planned",
+         "requires_operator_review" => true,
+         "to" => "stale",
+         "transition_category" => "terminal_exception",
+         "transition_reason" => "stale transition",
+         "transition_type" => "status_changed"
+       }
+     ]},
+    {"transition type", "execution_success_feedback_transition_types", "transition_type",
+     ["status_changed"], ["stale_transition_type"]},
+    {"transition category", "execution_success_feedback_transition_categories",
+     "transition_category", ["terminal_exception"], ["stale_transition_category"]},
+    {"transition reasons", "execution_success_feedback_transition_reasons", "transition_reason",
+     ["command execution timed out", "maneuver failed after acceptance"],
+     ["stale_transition_reason"]},
+    {"required operator actions", "execution_success_feedback_required_operator_actions",
+     "required_operator_action",
+     ["review_command_execution_feedback", "review_maneuver_execution_feedback"],
+     ["stale_operator_action"]},
+    {"operator-review requirement", "execution_success_feedback_requires_operator_review_values",
+     "requires_operator_review", [true], [false]},
+    {"feedback sources", "execution_success_feedback_feedback_sources", "feedback_source",
+     [
+       "mission_state.source_command_window_report.rows",
+       "mission_state.source_maneuver_review.rows"
+     ], ["mission_state.stale_execution_feedback.rows"]},
+    {"feedback scopes", "execution_success_feedback_feedback_scopes", "feedback_scope",
+     ["command_execution_feedback", "maneuver_execution_feedback"], ["stale_execution_feedback"]},
+    {"feedback keys", "execution_success_feedback_feedback_keys", "feedback_key",
+     ["cmd_success_review", "burn_success_review"], ["stale_success_feedback"]},
+    {"trust boundaries", "execution_success_feedback_trust_boundaries", "trust_boundary",
+     ["mission_state_command_window_report", "mission_state_maneuver_review"],
+     ["stale_execution_feedback_boundary"]},
+    {"derivation reasons", "execution_success_feedback_derivation_reasons",
+     ["derivation_reasons"],
+     ["command_window_execution_feedback_pressure", "maneuver_review_success_feedback_pressure"],
+     ["stale_execution_feedback_derivation"]}
+  ]
+
+  for {description, field, source_field, expected_value, stale_value} <-
+        @execution_success_feedback_context_contracts do
+    test "execution-success feedback #{description} remains source exact across handoffs" do
+      assert_risk_context_contract(
+        StrategyRecommendationPressureEventsFixture.artifact(),
+        unquote(field),
+        {"type", ["command_success_rate_low", "maneuver_success_rate_low"]},
+        unquote(Macro.escape(source_field)),
+        unquote(Macro.escape(expected_value)),
+        unquote(Macro.escape(stale_value))
+      )
+    end
+  end
+
   test "link-capacity risk type remains source exact across handoffs" do
     assert_risk_context_contract(
       StrategyRecommendationPressureEventsFixture.artifact(),
@@ -5685,6 +5824,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
       OrbitalDynamics.RecommendationRiskContext.ResourceFilter.context_keys() ++
         OrbitalDynamics.RecommendationRiskContext.ResourceMargin.context_keys() ++
         OrbitalDynamics.RecommendationRiskContext.ResourceProjection.context_keys() ++
+        OrbitalDynamics.RecommendationRiskContext.ExecutionSuccessFeedback.context_keys() ++
         OrbitalDynamics.RecommendationRiskContext.RelayDataPath.context_keys()
 
     context =
@@ -5692,6 +5832,9 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
       |> OrbitalDynamics.RecommendationRiskContext.ResourceFilter.context()
       |> Map.merge(OrbitalDynamics.RecommendationRiskContext.ResourceMargin.context(risks))
       |> Map.merge(OrbitalDynamics.RecommendationRiskContext.ResourceProjection.context(risks))
+      |> Map.merge(
+        OrbitalDynamics.RecommendationRiskContext.ExecutionSuccessFeedback.context(risks)
+      )
       |> Map.merge(OrbitalDynamics.RecommendationRiskContext.RelayDataPath.context(risks))
 
     row

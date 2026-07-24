@@ -75,7 +75,9 @@ Implemented or partially implemented modules and artifacts include:
   assumption, and provenance fields with the same source-exact guarantees.
   Maneuver-execution-uncertainty handoffs preserve all 25 identity, covariance,
   delta-v, threshold, timing, review, and provenance fields without granting
-  maneuver execution authority.
+  maneuver execution authority. Execution-success-feedback handoffs preserve
+  all 38 command/maneuver identity, realized-result, success-factor, transition,
+  mismatch, review, and provenance fields for closed-loop planning evidence.
 - Operational readiness and quality artifacts: readiness, import-eligibility,
   execution-boundary, quality-gate, safety-case, model-acceptance,
   schema-validation, validation-fixture, operator-training, and unavailable

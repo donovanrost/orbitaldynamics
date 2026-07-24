@@ -184,6 +184,9 @@ Already implemented or heavily covered:
 - V3 maneuver-execution-uncertainty review/import handoffs require all 25
   identity, covariance, delta-v, threshold, timing, review, and provenance
   fields to stay source exact without granting maneuver execution authority
+- V3 execution-success-feedback review/import handoffs require all 38 command
+  and maneuver identity, realized-result, success-factor, transition, mismatch,
+  review, and provenance fields to stay source exact
 - an executable registry-derived coverage guard confirms all 33 current
   resource/contact/station/link/provider contracts have curated artifact
   reference fixtures and automatically scopes future matching contracts
