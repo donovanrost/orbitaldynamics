@@ -97,7 +97,19 @@ defmodule OrbitalDynamics.Schema.StrategyHandoffContracts do
     {"contact_contention_resolution_pressure_source_activity_ids",
      "contact_contention_resolution_pressure_source_activity_ids"},
     {"contact_contention_resolution_pressure_source_window_ids",
-     "contact_contention_resolution_pressure_source_window_ids"}
+     "contact_contention_resolution_pressure_source_window_ids"},
+    {"contact_contention_resolution_pressure_required_contact_values",
+     "contact_contention_resolution_pressure_required_contact_values"},
+    {"contact_contention_resolution_pressure_planned_contact_values",
+     "contact_contention_resolution_pressure_planned_contact_values"},
+    {"contact_contention_resolution_pressure_required_downlink_values_mb",
+     "contact_contention_resolution_pressure_required_downlink_values_mb"},
+    {"contact_contention_resolution_pressure_planned_downlink_values_mb",
+     "contact_contention_resolution_pressure_planned_downlink_values_mb"},
+    {"contact_contention_resolution_pressure_start_values_s",
+     "contact_contention_resolution_pressure_start_values_s"},
+    {"contact_contention_resolution_pressure_end_values_s",
+     "contact_contention_resolution_pressure_end_values_s"}
   ]
   @station_reservation_conflict_context_field_pairs [
     {"station_reservation_conflict_contact_ids", "station_reservation_conflict_contact_ids"},

@@ -654,6 +654,72 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
     )
   end
 
+  test "contention-resolution required-contact demand remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "contact_contention_resolution_pressure_required_contact_values",
+      {"contact_id", "dl_capacity_overflow"},
+      "required_contacts",
+      [1],
+      [2]
+    )
+  end
+
+  test "contention-resolution planned-contact demand remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "contact_contention_resolution_pressure_planned_contact_values",
+      {"contact_id", "dl_capacity_overflow"},
+      "planned_contacts",
+      [0],
+      [1]
+    )
+  end
+
+  test "contention-resolution required-downlink demand remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "contact_contention_resolution_pressure_required_downlink_values_mb",
+      {"contact_id", "dl_capacity_overflow"},
+      "required_downlink_mb",
+      [47.0],
+      [48.0]
+    )
+  end
+
+  test "contention-resolution planned-downlink demand remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "contact_contention_resolution_pressure_planned_downlink_values_mb",
+      {"contact_id", "dl_capacity_overflow"},
+      "planned_downlink_mb",
+      [0.0],
+      [1.0]
+    )
+  end
+
+  test "contention-resolution start bound remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "contact_contention_resolution_pressure_start_values_s",
+      {"contact_id", "dl_capacity_overflow"},
+      "starts_at_s",
+      [1_560.0],
+      [1_559.0]
+    )
+  end
+
+  test "contention-resolution end bound remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "contact_contention_resolution_pressure_end_values_s",
+      {"contact_id", "dl_capacity_overflow"},
+      "ends_at_s",
+      [1_620.0],
+      [1_621.0]
+    )
+  end
+
   test "station conflict expiration risk context remains source exact across handoffs" do
     assert_risk_expiration_context_contract(
       StrategyRecommendationPressureEventsFixture.artifact(),
