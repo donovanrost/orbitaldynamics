@@ -2251,6 +2251,38 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
     end
   end
 
+  @timeline_integrity_unemitted_context_fields [
+    "timeline_integrity_missing_dependency_timeline_ids",
+    "timeline_integrity_dependency_cycle_activity_ids",
+    "timeline_integrity_dependency_cycle_timeline_ids",
+    "timeline_integrity_dependency_order_violation_activity_ids",
+    "timeline_integrity_dependency_order_violation_timeline_ids"
+  ]
+  @timeline_integrity_context_contracts OrbitalDynamics.RecommendationRiskContext.TimelineIntegrity.field_pairs()
+                                        |> Enum.reject(fn {field, _source_fields} ->
+                                          field in @timeline_integrity_unemitted_context_fields
+                                        end)
+
+  for {field, source_fields} <- @timeline_integrity_context_contracts do
+    test "timeline-integrity #{field} remains source exact across handoffs" do
+      artifact = StrategyRecommendationPressureEventsFixture.artifact()
+
+      expected_value =
+        artifact["operator_review_package"]["rows"]
+        |> Enum.find(&(&1["review_type"] == "strategy_recommendation"))
+        |> Map.fetch!(unquote(field))
+
+      assert_risk_context_contract(
+        artifact,
+        unquote(field),
+        {"feedback_scope", "timeline_integrity"},
+        unquote(Macro.escape(source_fields)),
+        expected_value,
+        stale_context_value(expected_value)
+      )
+    end
+  end
+
   @operational_feedback_risk_types [
     "contact_success_rate_low",
     "observation_success_rate_low",
@@ -6309,6 +6341,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
   defp stale_context_value([value]) when is_integer(value), do: [value + 1]
   defp stale_context_value([value]) when is_float(value), do: [value + 1.0]
   defp stale_context_value([value]) when is_binary(value), do: ["stale_" <> value]
+  defp stale_context_value([values]) when is_list(values), do: [Enum.reverse(values)]
 
   defp stale_context_value([%{} = value]) do
     {key, current_value} = Enum.at(value, 0)
@@ -6333,7 +6366,8 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
         OrbitalDynamics.RecommendationRiskContext.OperationalFeedback.context_keys() ++
         OrbitalDynamics.RecommendationRiskContext.TimelineActivityLifecycleState.context_keys() ++
         OrbitalDynamics.RecommendationRiskContext.TimelinePreservation.context_keys() ++
-        OrbitalDynamics.RecommendationRiskContext.TimelineActivityPrecondition.context_keys()
+        OrbitalDynamics.RecommendationRiskContext.TimelineActivityPrecondition.context_keys() ++
+        OrbitalDynamics.RecommendationRiskContext.TimelineIntegrity.context_keys()
 
     context =
       risks
@@ -6353,6 +6387,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
       |> Map.merge(
         OrbitalDynamics.RecommendationRiskContext.TimelineActivityPrecondition.context(risks)
       )
+      |> Map.merge(OrbitalDynamics.RecommendationRiskContext.TimelineIntegrity.context(risks))
 
     row
     |> Map.drop(context_keys)

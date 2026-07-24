@@ -210,6 +210,9 @@ Already implemented or heavily covered:
   emitted dependency, exclusivity, duplicate-edge, overlap, review,
   safety-assumption, identity, and provenance fields to stay source exact
   without precondition-evaluation authority
+- V3 timeline-integrity review/import handoffs require all 17 currently emitted
+  issue, dependency, exclusivity, review, identity, and provenance fields to
+  stay source exact without integrity-remediation authority
 - an executable registry-derived coverage guard confirms all 33 current
   resource/contact/station/link/provider contracts have curated artifact
   reference fixtures and automatically scopes future matching contracts

@@ -1,87 +1,46 @@
 defmodule OrbitalDynamics.RecommendationRiskContext.TimelineIntegrity do
   @moduledoc false
 
-  @context_keys [
-    "timeline_integrity_risk_types",
-    "timeline_integrity_activity_ids",
-    "timeline_integrity_timeline_ids",
-    "timeline_integrity_statuses",
-    "timeline_integrity_issue_count_values",
-    "timeline_integrity_issue_types",
-    "timeline_integrity_issue_maps",
-    "timeline_integrity_missing_dependency_activity_ids",
-    "timeline_integrity_missing_dependency_timeline_ids",
-    "timeline_integrity_dependency_cycle_activity_ids",
-    "timeline_integrity_dependency_cycle_timeline_ids",
-    "timeline_integrity_dependency_order_violation_activity_ids",
-    "timeline_integrity_dependency_order_violation_timeline_ids",
-    "timeline_integrity_exclusivity_violation_activity_ids",
-    "timeline_integrity_exclusivity_violation_timeline_ids",
-    "timeline_integrity_exclusivity_violation_groups",
-    "timeline_integrity_required_operator_actions",
-    "timeline_integrity_feedback_sources",
-    "timeline_integrity_feedback_scopes",
-    "timeline_integrity_feedback_keys",
-    "timeline_integrity_trust_boundaries",
-    "timeline_integrity_derivation_reasons"
+  @fields [
+    {"timeline_integrity_risk_types", ["type", "risk_type"]},
+    {"timeline_integrity_activity_ids", "activity_id"},
+    {"timeline_integrity_timeline_ids", "timeline_id"},
+    {"timeline_integrity_statuses", "timeline_integrity_status"},
+    {"timeline_integrity_issue_count_values", "timeline_integrity_issue_count"},
+    {"timeline_integrity_issue_types", ["timeline_integrity_issue_types"]},
+    {"timeline_integrity_issue_maps", "timeline_integrity_issues"},
+    {"timeline_integrity_missing_dependency_activity_ids", ["missing_dependency_activity_ids"]},
+    {"timeline_integrity_missing_dependency_timeline_ids", ["missing_dependency_timeline_ids"]},
+    {"timeline_integrity_dependency_cycle_activity_ids", ["dependency_cycle_activity_ids"]},
+    {"timeline_integrity_dependency_cycle_timeline_ids", ["dependency_cycle_timeline_ids"]},
+    {"timeline_integrity_dependency_order_violation_activity_ids",
+     ["dependency_order_violation_activity_ids"]},
+    {"timeline_integrity_dependency_order_violation_timeline_ids",
+     ["dependency_order_violation_timeline_ids"]},
+    {"timeline_integrity_exclusivity_violation_activity_ids",
+     ["exclusivity_violation_activity_ids"]},
+    {"timeline_integrity_exclusivity_violation_timeline_ids",
+     ["exclusivity_violation_timeline_ids"]},
+    {"timeline_integrity_exclusivity_violation_groups", "exclusivity_violation_group"},
+    {"timeline_integrity_required_operator_actions", "required_operator_action"},
+    {"timeline_integrity_feedback_sources", "feedback_source"},
+    {"timeline_integrity_feedback_scopes", "feedback_scope"},
+    {"timeline_integrity_feedback_keys", "feedback_key"},
+    {"timeline_integrity_trust_boundaries", "trust_boundary"},
+    {"timeline_integrity_derivation_reasons", ["derivation_reasons"]}
   ]
 
-  def context_keys, do: @context_keys
+  def field_pairs, do: @fields
+  def context_keys, do: Enum.map(@fields, &elem(&1, 0))
 
   def context(risks) when is_list(risks) do
     risks = Enum.map(risks, &stringify_keys/1)
     timeline_integrity_risks = Enum.filter(risks, &risk?/1)
 
-    %{
-      "timeline_integrity_risk_types" =>
-        risk_context_values(timeline_integrity_risks, ["type", "risk_type"]),
-      "timeline_integrity_activity_ids" =>
-        risk_context_values(timeline_integrity_risks, "activity_id"),
-      "timeline_integrity_timeline_ids" =>
-        risk_context_values(timeline_integrity_risks, "timeline_id"),
-      "timeline_integrity_statuses" =>
-        risk_context_values(timeline_integrity_risks, "timeline_integrity_status"),
-      "timeline_integrity_issue_count_values" =>
-        risk_context_values(timeline_integrity_risks, "timeline_integrity_issue_count"),
-      "timeline_integrity_issue_types" =>
-        risk_context_values(timeline_integrity_risks, ["timeline_integrity_issue_types"]),
-      "timeline_integrity_issue_maps" =>
-        risk_context_values(timeline_integrity_risks, "timeline_integrity_issues"),
-      "timeline_integrity_missing_dependency_activity_ids" =>
-        risk_context_values(timeline_integrity_risks, ["missing_dependency_activity_ids"]),
-      "timeline_integrity_missing_dependency_timeline_ids" =>
-        risk_context_values(timeline_integrity_risks, ["missing_dependency_timeline_ids"]),
-      "timeline_integrity_dependency_cycle_activity_ids" =>
-        risk_context_values(timeline_integrity_risks, ["dependency_cycle_activity_ids"]),
-      "timeline_integrity_dependency_cycle_timeline_ids" =>
-        risk_context_values(timeline_integrity_risks, ["dependency_cycle_timeline_ids"]),
-      "timeline_integrity_dependency_order_violation_activity_ids" =>
-        risk_context_values(timeline_integrity_risks, [
-          "dependency_order_violation_activity_ids"
-        ]),
-      "timeline_integrity_dependency_order_violation_timeline_ids" =>
-        risk_context_values(timeline_integrity_risks, [
-          "dependency_order_violation_timeline_ids"
-        ]),
-      "timeline_integrity_exclusivity_violation_activity_ids" =>
-        risk_context_values(timeline_integrity_risks, ["exclusivity_violation_activity_ids"]),
-      "timeline_integrity_exclusivity_violation_timeline_ids" =>
-        risk_context_values(timeline_integrity_risks, ["exclusivity_violation_timeline_ids"]),
-      "timeline_integrity_exclusivity_violation_groups" =>
-        risk_context_values(timeline_integrity_risks, "exclusivity_violation_group"),
-      "timeline_integrity_required_operator_actions" =>
-        risk_context_values(timeline_integrity_risks, "required_operator_action"),
-      "timeline_integrity_feedback_sources" =>
-        risk_context_values(timeline_integrity_risks, "feedback_source"),
-      "timeline_integrity_feedback_scopes" =>
-        risk_context_values(timeline_integrity_risks, "feedback_scope"),
-      "timeline_integrity_feedback_keys" =>
-        risk_context_values(timeline_integrity_risks, "feedback_key"),
-      "timeline_integrity_trust_boundaries" =>
-        risk_context_values(timeline_integrity_risks, "trust_boundary"),
-      "timeline_integrity_derivation_reasons" =>
-        risk_context_values(timeline_integrity_risks, ["derivation_reasons"])
-    }
+    @fields
+    |> Enum.map(fn {output_key, risk_keys} ->
+      {output_key, risk_context_values(timeline_integrity_risks, risk_keys)}
+    end)
     |> Enum.reject(fn {_key, values} -> values == [] end)
     |> Map.new()
   end

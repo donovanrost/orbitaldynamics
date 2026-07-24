@@ -624,6 +624,20 @@ defmodule OrbitalDynamics.Schema.StrategyHandoffContracts do
                                                       |> Enum.map(fn {field, _source_fields} ->
                                                         {field, field}
                                                       end)
+  @timeline_integrity_unemitted_context_fields [
+    "timeline_integrity_missing_dependency_timeline_ids",
+    "timeline_integrity_dependency_cycle_activity_ids",
+    "timeline_integrity_dependency_cycle_timeline_ids",
+    "timeline_integrity_dependency_order_violation_activity_ids",
+    "timeline_integrity_dependency_order_violation_timeline_ids"
+  ]
+  @timeline_integrity_context_field_pairs OrbitalDynamics.RecommendationRiskContext.TimelineIntegrity.field_pairs()
+                                          |> Enum.reject(fn {field, _source_fields} ->
+                                            field in @timeline_integrity_unemitted_context_fields
+                                          end)
+                                          |> Enum.map(fn {field, _source_fields} ->
+                                            {field, field}
+                                          end)
   @maneuver_execution_uncertainty_context_field_pairs [
     {"maneuver_execution_uncertainty_risk_types", "maneuver_execution_uncertainty_risk_types"},
     {"maneuver_execution_uncertainty_activity_ids",
@@ -1266,6 +1280,7 @@ defmodule OrbitalDynamics.Schema.StrategyHandoffContracts do
     {@timeline_preservation_context_field_pairs, :timeline_preservation_context},
     {@timeline_activity_precondition_context_field_pairs,
      :timeline_activity_precondition_context},
+    {@timeline_integrity_context_field_pairs, :timeline_integrity_context},
     {@maneuver_execution_uncertainty_context_field_pairs,
      :maneuver_execution_uncertainty_context},
     {@relay_data_path_context_field_pairs, :relay_data_path_context},

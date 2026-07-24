@@ -98,6 +98,9 @@ Implemented or partially implemented modules and artifacts include:
   Activity-precondition handoffs preserve all 26 currently emitted dependency,
   exclusivity, duplicate-edge, overlap, review, safety-assumption, identity,
   and provenance fields without evaluating preconditions or executing commands.
+  Timeline-integrity handoffs preserve all 17 currently emitted issue,
+  dependency, exclusivity, review, identity, and provenance fields without
+  remediating integrity issues or mutating timelines.
 - Operational readiness and quality artifacts: readiness, import-eligibility,
   execution-boundary, quality-gate, safety-case, model-acceptance,
   schema-validation, validation-fixture, operator-training, and unavailable
