@@ -1933,7 +1933,8 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureExpected
       |> Map.merge(%{
         "strategy_operational_feedback_collection_ids" => [
           "collection_hot",
-          "collection_objective_quality"
+          "collection_objective_quality",
+          "collection_objective_quality_backup"
         ],
         "strategy_operational_feedback_start_values_s" => [790.0, 870.0, 1380.0, 950.0],
         "strategy_operational_feedback_feedback_sources" => [
@@ -1942,7 +1943,6 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureExpected
           "mission_state.source_objective_satisfaction_report.rows",
           "mission_state.source_station_throughput_review.rows"
         ],
-        "objective_satisfaction_pressure_payload_ids" => ["payload_objective_quality"],
         "strategy_operational_feedback_source_activity_ids" => [
           "contact_feedback_source",
           "contact_feedback_review",
@@ -1987,15 +1987,15 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureExpected
         "strategy_operational_feedback_blur_score_values" => [0.25, 0.31],
         "strategy_operational_feedback_instrument_ids" => [
           "camera_nadir",
-          "instrument_objective_quality"
+          "instrument_objective_quality",
+          "instrument_objective_quality_backup"
         ],
         "strategy_operational_feedback_image_quality_score_values" => [0.45, 0.42],
-        "objective_satisfaction_pressure_instrument_ids" => ["instrument_objective_quality"],
         "objective_satisfaction_pressure_risk_types" => ["observation_success_rate_low"],
-        "objective_satisfaction_pressure_collection_ids" => ["collection_objective_quality"],
         "strategy_operational_feedback_payload_ids" => [
           "payload_nadir",
-          "payload_objective_quality"
+          "payload_objective_quality",
+          "payload_objective_quality_backup"
         ]
       })
 

@@ -87,7 +87,8 @@ Status: **implemented** (core), with **partial**, **near-term**, **later**, and 
 - Derived objective-satisfaction pressure recommendation rows preserve
   source-exact risk type plus objective identity, type, status, and source
   status plus target, scenario, spacecraft, and branch routing across operator
-  review, direct Cadence import, and review-derived import copies. Missing or
+  review, direct Cadence import, and review-derived import copies. Collection,
+  product, payload, and instrument identities remain exact as well. Missing or
   stale derived identity/status is rejected while paired legacy omission
   remains compatible; the evidence cannot approve an import, write to Cadence,
   or execute a schedule.

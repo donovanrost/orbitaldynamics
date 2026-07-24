@@ -324,7 +324,15 @@ defmodule OrbitalDynamics.Schema.StrategyHandoffContracts do
      "objective_satisfaction_pressure_scenario_ids"},
     {"objective_satisfaction_pressure_spacecraft_ids",
      "objective_satisfaction_pressure_spacecraft_ids"},
-    {"objective_satisfaction_pressure_branch_ids", "objective_satisfaction_pressure_branch_ids"}
+    {"objective_satisfaction_pressure_branch_ids", "objective_satisfaction_pressure_branch_ids"},
+    {"objective_satisfaction_pressure_collection_ids",
+     "objective_satisfaction_pressure_collection_ids"},
+    {"objective_satisfaction_pressure_product_ids",
+     "objective_satisfaction_pressure_product_ids"},
+    {"objective_satisfaction_pressure_payload_ids",
+     "objective_satisfaction_pressure_payload_ids"},
+    {"objective_satisfaction_pressure_instrument_ids",
+     "objective_satisfaction_pressure_instrument_ids"}
   ]
   @objective_tradeoff_context_field_pairs [
     {"objective_tradeoff_pressure_risk_types", "objective_tradeoff_pressure_risk_types"},

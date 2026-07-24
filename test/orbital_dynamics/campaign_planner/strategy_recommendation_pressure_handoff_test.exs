@@ -2197,6 +2197,50 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
     )
   end
 
+  test "objective-satisfaction collection identities remain source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "objective_satisfaction_pressure_collection_ids",
+      {"feedback_scope", "objective_satisfaction"},
+      ["collection_id", "collection_ids"],
+      ["collection_objective_quality", "collection_objective_quality_backup"],
+      ["stale_collection_objective_quality"]
+    )
+  end
+
+  test "objective-satisfaction product identities remain source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "objective_satisfaction_pressure_product_ids",
+      {"feedback_scope", "objective_satisfaction"},
+      ["product_id", "product_ids"],
+      ["product_objective_quality", "product_objective_quality_backup"],
+      ["stale_product_objective_quality"]
+    )
+  end
+
+  test "objective-satisfaction payload identities remain source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "objective_satisfaction_pressure_payload_ids",
+      {"feedback_scope", "objective_satisfaction"},
+      ["payload_id", "payload_ids"],
+      ["payload_objective_quality", "payload_objective_quality_backup"],
+      ["stale_payload_objective_quality"]
+    )
+  end
+
+  test "objective-satisfaction instrument identities remain source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "objective_satisfaction_pressure_instrument_ids",
+      {"feedback_scope", "objective_satisfaction"},
+      ["instrument_id", "instrument_ids"],
+      ["instrument_objective_quality", "instrument_objective_quality_backup"],
+      ["stale_instrument_objective_quality"]
+    )
+  end
+
   test "objective-tradeoff risk type remains source exact across handoffs" do
     assert_risk_context_contract(
       StrategyRecommendationPressureEventsFixture.artifact(),
