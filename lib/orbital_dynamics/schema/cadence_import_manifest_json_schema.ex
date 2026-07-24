@@ -430,6 +430,24 @@ defmodule OrbitalDynamics.Schema.CadenceImportManifestJsonSchema do
             schema.(:string_array_schema),
           "objective_satisfaction_pressure_source_activity_ids" =>
             schema.(:stable_id_array_schema),
+          "objective_satisfaction_pressure_missed_downlink_activity_ids" =>
+            schema.(:stable_id_array_schema),
+          "objective_satisfaction_pressure_realized_statuses" => schema.(:string_array_schema),
+          "objective_satisfaction_pressure_contact_results" => schema.(:string_array_schema),
+          "objective_satisfaction_pressure_candidate_window_maps" => %{
+            "type" => "array",
+            "items" => %{"type" => "object", "additionalProperties" => true}
+          },
+          "objective_satisfaction_pressure_allowed_scenario_ids" =>
+            schema.(:stable_id_array_schema),
+          "objective_satisfaction_pressure_spacecraft_constraint_maps" =>
+            schema.(:stable_id_array_schema),
+          "objective_satisfaction_pressure_coverage_objective_ids" =>
+            schema.(:stable_id_array_schema),
+          "objective_satisfaction_pressure_downlink_demand_sources" =>
+            schema.(:string_array_schema),
+          "objective_satisfaction_pressure_downlink_completion_sources" =>
+            schema.(:string_array_schema),
           "objective_satisfaction_pressure_feedback_sources" => schema.(:string_array_schema),
           "objective_satisfaction_pressure_feedback_scopes" => schema.(:string_array_schema),
           "objective_satisfaction_pressure_trust_boundaries" => schema.(:string_array_schema),

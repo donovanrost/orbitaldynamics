@@ -784,6 +784,12 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureExpected
           "obs_objective_quality_source",
           "obs_objective_quality_selected"
         ],
+        "objective_satisfaction_pressure_missed_downlink_activity_ids" => [
+          "dl_objective_missed",
+          "dl_objective_selected"
+        ],
+        "objective_satisfaction_pressure_realized_statuses" => ["missed"],
+        "objective_satisfaction_pressure_contact_results" => ["missed"],
         "objective_satisfaction_pressure_observation_success_factor_values" => [0.35],
         "objective_satisfaction_pressure_image_quality_score_values" => [0.42],
         "objective_satisfaction_pressure_image_quality_statuses" => ["marginal"],
@@ -794,6 +800,25 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureExpected
         "objective_satisfaction_pressure_blur_score_values" => [0.31],
         "objective_satisfaction_pressure_quality_feedback_sources" => [
           "mission_state.source_imagery_quality.rows"
+        ],
+        "objective_satisfaction_pressure_candidate_window_maps" => [
+          %{
+            "id" => "window_objective_quality_primary",
+            "scenario_id" => "leo_1",
+            "starts_at_s" => 1_380.0,
+            "ends_at_s" => 1_440.0
+          }
+        ],
+        "objective_satisfaction_pressure_allowed_scenario_ids" => ["leo_1", "leo_2"],
+        "objective_satisfaction_pressure_spacecraft_constraint_maps" => ["leo_1", "leo_2"],
+        "objective_satisfaction_pressure_coverage_objective_ids" => [
+          "coverage:target_quality"
+        ],
+        "objective_satisfaction_pressure_downlink_demand_sources" => [
+          "objective_satisfaction.required_downlink"
+        ],
+        "objective_satisfaction_pressure_downlink_completion_sources" => [
+          "objective_satisfaction.realized_downlink"
         ],
         "objective_satisfaction_pressure_feedback_sources" => [
           "mission_state.source_objective_satisfaction_report.rows"

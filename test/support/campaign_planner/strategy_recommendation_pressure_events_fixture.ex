@@ -754,6 +754,17 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureEventsFi
                 latitude_deg: 34.1,
                 longitude_deg: -118.2,
                 minimum_elevation_deg: 15.0,
+                candidate_windows: [
+                  %{
+                    id: "window_objective_quality_primary",
+                    scenario_id: "leo_1",
+                    starts_at_s: 1_380.0,
+                    ends_at_s: 1_440.0
+                  }
+                ],
+                allowed_scenario_ids: ["leo_1", "leo_2"],
+                spacecraft_constraints: ["leo_1", "leo_2"],
+                coverage_objective_id: "coverage:target_quality",
                 observation_success_factor: 0.35,
                 image_quality_score: 0.42,
                 image_quality_status: "marginal",
@@ -784,6 +795,15 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureEventsFi
                 planned_downlink_mb: 70.0,
                 max_latency_s: 300.0,
                 planned_latency_s: 480.0,
+                missed_downlink_activity_id: "dl_objective_missed",
+                missed_downlink_activity_ids: [
+                  "dl_objective_selected",
+                  "dl_objective_missed"
+                ],
+                realized_status: "missed",
+                contact_result: "missed",
+                downlink_demand_sources: ["objective_satisfaction.required_downlink"],
+                downlink_completion_sources: ["objective_satisfaction.realized_downlink"],
                 feedback_scope: "objective_satisfaction"
               },
               %{

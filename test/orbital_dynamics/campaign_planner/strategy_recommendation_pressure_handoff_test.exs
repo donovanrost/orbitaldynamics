@@ -2552,6 +2552,112 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
     )
   end
 
+  test "objective-satisfaction missed downlink activity remains exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "objective_satisfaction_pressure_missed_downlink_activity_ids",
+      {"feedback_scope", "objective_satisfaction"},
+      ["missed_downlink_activity_id", "missed_downlink_activity_ids"],
+      ["dl_objective_missed", "dl_objective_selected"],
+      ["stale_objective_missed_downlink"]
+    )
+  end
+
+  test "objective-satisfaction realized status remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "objective_satisfaction_pressure_realized_statuses",
+      {"feedback_scope", "objective_satisfaction"},
+      "realized_status",
+      ["missed"],
+      ["stale_realized_status"]
+    )
+  end
+
+  test "objective-satisfaction contact result remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "objective_satisfaction_pressure_contact_results",
+      {"feedback_scope", "objective_satisfaction"},
+      "contact_result",
+      ["missed"],
+      ["stale_contact_result"]
+    )
+  end
+
+  test "objective-satisfaction candidate windows remain source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "objective_satisfaction_pressure_candidate_window_maps",
+      {"feedback_scope", "objective_satisfaction"},
+      ["candidate_windows"],
+      [
+        %{
+          "id" => "window_objective_quality_primary",
+          "scenario_id" => "leo_1",
+          "starts_at_s" => 1_380.0,
+          "ends_at_s" => 1_440.0
+        }
+      ],
+      [%{"id" => "window_objective_quality_stale"}]
+    )
+  end
+
+  test "objective-satisfaction allowed scenarios remain source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "objective_satisfaction_pressure_allowed_scenario_ids",
+      {"feedback_scope", "objective_satisfaction"},
+      ["allowed_scenario_ids"],
+      ["leo_1", "leo_2"],
+      ["stale_objective_scenario"]
+    )
+  end
+
+  test "objective-satisfaction spacecraft constraints remain exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "objective_satisfaction_pressure_spacecraft_constraint_maps",
+      {"feedback_scope", "objective_satisfaction"},
+      ["spacecraft_constraints"],
+      ["leo_1", "leo_2"],
+      ["stale_objective_spacecraft"]
+    )
+  end
+
+  test "objective-satisfaction coverage objective remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "objective_satisfaction_pressure_coverage_objective_ids",
+      {"feedback_scope", "objective_satisfaction"},
+      "coverage_objective_id",
+      ["coverage:target_quality"],
+      ["coverage:stale_target_quality"]
+    )
+  end
+
+  test "objective-satisfaction downlink demand source remains exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "objective_satisfaction_pressure_downlink_demand_sources",
+      {"feedback_scope", "objective_satisfaction"},
+      ["downlink_demand_sources"],
+      ["objective_satisfaction.required_downlink"],
+      ["stale_objective_downlink_demand"]
+    )
+  end
+
+  test "objective-satisfaction downlink completion source remains exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "objective_satisfaction_pressure_downlink_completion_sources",
+      {"feedback_scope", "objective_satisfaction"},
+      ["downlink_completion_sources"],
+      ["objective_satisfaction.realized_downlink"],
+      ["stale_objective_downlink_completion"]
+    )
+  end
+
   test "objective-tradeoff risk type remains source exact across handoffs" do
     assert_risk_context_contract(
       StrategyRecommendationPressureEventsFixture.artifact(),
