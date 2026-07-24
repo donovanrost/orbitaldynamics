@@ -5,21 +5,23 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Enforce source-exact contention-resolution demand and timing.
+Enforce source-exact contention-resolution selection state.
 
 Status:
 Verified; ready to publish.
 
 Selection evidence:
-- Contention-resolution routing now covers `8/26` projected fields, leaving 18
-  fields outside source-exact validation and public row schemas.
-- Required/planned contact and downlink demand plus start/end bounds form the
-  quantitative basis for the selected/deferred decision.
+- Contention-resolution routing and demand/timing now cover `14/26` fields,
+  leaving 12 fields outside source-exact validation and public row schemas.
+- Review status survives the event-risk boundary, but five related selection
+  fields are dropped there despite being defined by the context module.
 
 Intended behavior:
-- Declare six numeric arrays requiring exact source-derived copies in
+- Preserve priority source, selection reason/rule, override count/contact IDs,
+  and review status from the event through all four handoff copies.
+- Declare typed public arrays and require exact source-derived copies in
   review/direct/review-derived Cadence rows.
-- Reject missing or stale derived contention-resolution demand/timing; retain paired
+- Reject missing or stale derived contention-resolution selection state; retain paired
   legacy omission compatibility for optional source fields.
 - Preserve provider and Cadence writes, reservation acceptance, operator
   authority, and execution boundaries.
@@ -28,32 +30,33 @@ Level 6 pillar advanced:
 Fleet-scale planning decisions and durable reproducible audit handoffs.
 
 Planned files:
-- contention-resolution validation and review/import schemas
-- demand/timing mutation/schema proofs, docs, exports, and ledger
+- contention-resolution projection, validation, and review/import schemas
+- selection-state mutation/schema proofs, docs, exports, and ledger
 
 Verification:
-- Focused handoff/schema contracts: `221 passed`.
+- Focused handoff/schema contracts: `227 passed`.
 - Contact-allocation regression: `213 passed`.
 - Golden artifacts: `12 passed`.
 - Schema lint: `155` artifacts, `0` errors, `0` warnings.
-- Full suite: `4094 passed`.
+- Full suite: `4100 passed`.
 - Canonical strategy SHA-256 remains
   `f7fc7823d071db82124af4b903e5be730983d1d9cb96f4524c711041c750ca1c`.
 
 Review:
-- The contention-resolution family now covers `14/26` fields across operator
+- The contention-resolution family now covers `20/26` fields across operator
   review, direct Cadence import, and review-derived import.
-- All six demand/timing fields are numeric arrays in each public row schema and
-  in aggregate export-shape proofs.
+- The event-risk adapter now preserves five selection fields; override count is
+  non-negative, override IDs are stable IDs, and the other arrays are strings.
 - Shared mutation coverage proves missing review context, paired legacy
   omission, stale direct context, and missing/stale review-derived context.
-- Diff is limited to validation/schema surfaces, focused proofs, docs, ten
-  generated schemas, and this ledger; canonical strategy is unchanged.
+- Diff is limited to five projection repairs, validation/schema surfaces,
+  focused proofs, docs, ten generated schemas, and this ledger; canonical
+  strategy is unchanged.
 - No provider/Cadence write, reservation acceptance, schedule mutation,
   operator-authority grant, or execution path was introduced.
 
 Last published slice:
-- `f2b83f9f` Validate contention resolution routing (`4088 passed`, `8/26`).
+- `0218a019` Validate contention resolution demand (`4094 passed`, `14/26`).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions while preserving explicit
@@ -64,7 +67,7 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-Assess contention-resolution selection and review state.
+Assess contention-resolution provenance.
 
 Blocked:
 None.

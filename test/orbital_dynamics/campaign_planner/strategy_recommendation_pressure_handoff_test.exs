@@ -720,6 +720,72 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
     )
   end
 
+  test "contention-resolution selected priority source remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "contact_contention_resolution_pressure_selected_priority_sources",
+      {"contact_id", "dl_capacity_overflow"},
+      "selected_priority_source",
+      ["policy_contact_priority"],
+      ["stale_contact_priority"]
+    )
+  end
+
+  test "contention-resolution selection reason remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "contact_contention_resolution_pressure_selection_reasons",
+      {"contact_id", "dl_capacity_overflow"},
+      "selection_reason",
+      ["highest_priority_highest_score"],
+      ["stale_selection_reason"]
+    )
+  end
+
+  test "contention-resolution selection rule remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "contact_contention_resolution_pressure_resolution_selection_rules",
+      {"contact_id", "dl_capacity_overflow"},
+      "resolution_selection_rule",
+      ["highest_priority_highest_score"],
+      ["stale_selection_rule"]
+    )
+  end
+
+  test "contention-resolution priority override count remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "contact_contention_resolution_pressure_priority_override_count_values",
+      {"contact_id", "dl_capacity_overflow"},
+      "resolution_priority_override_count",
+      [2],
+      [3]
+    )
+  end
+
+  test "contention-resolution priority override contacts remain source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "contact_contention_resolution_pressure_priority_override_contact_ids",
+      {"contact_id", "dl_capacity_overflow"},
+      "resolution_priority_override_contact_ids",
+      ["dl_capacity_selected", "dl_capacity_overflow"],
+      ["stale_dl_capacity_selected"]
+    )
+  end
+
+  test "contention-resolution review status remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "contact_contention_resolution_pressure_review_statuses",
+      {"contact_id", "dl_capacity_overflow"},
+      "review_status",
+      ["operator_review_required"],
+      ["stale_review_status"]
+    )
+  end
+
   test "station conflict expiration risk context remains source exact across handoffs" do
     assert_risk_expiration_context_contract(
       StrategyRecommendationPressureEventsFixture.artifact(),

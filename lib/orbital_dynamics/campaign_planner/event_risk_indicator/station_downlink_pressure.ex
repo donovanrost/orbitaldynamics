@@ -222,6 +222,12 @@ defmodule OrbitalDynamics.CampaignPlanner.EventRiskIndicator.StationDownlinkPres
         "suppression_status" => event["suppression_status"],
         "contact_id" => event["contact_id"],
         "selected_contact_id" => event["selected_contact_id"],
+        "selected_priority_source" => event["selected_priority_source"],
+        "selection_reason" => event["selection_reason"],
+        "resolution_selection_rule" => event["resolution_selection_rule"],
+        "resolution_priority_override_count" => event["resolution_priority_override_count"],
+        "resolution_priority_override_contact_ids" =>
+          event["resolution_priority_override_contact_ids"],
         "contact_result" => event["contact_result"],
         "realized_status" => event["realized_status"],
         "allocation_status" => event["allocation_status"],

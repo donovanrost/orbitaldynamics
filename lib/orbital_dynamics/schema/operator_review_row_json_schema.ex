@@ -229,6 +229,18 @@ defmodule OrbitalDynamics.Schema.OperatorReviewRowJsonSchema do
           "contact_contention_resolution_pressure_start_values_s" =>
             schema.(:number_array_schema),
           "contact_contention_resolution_pressure_end_values_s" => schema.(:number_array_schema),
+          "contact_contention_resolution_pressure_selected_priority_sources" =>
+            schema.(:string_array_schema),
+          "contact_contention_resolution_pressure_selection_reasons" =>
+            schema.(:string_array_schema),
+          "contact_contention_resolution_pressure_resolution_selection_rules" =>
+            schema.(:string_array_schema),
+          "contact_contention_resolution_pressure_priority_override_count_values" =>
+            schema.(:non_negative_integer_array_schema),
+          "contact_contention_resolution_pressure_priority_override_contact_ids" =>
+            schema.(:stable_id_array_schema),
+          "contact_contention_resolution_pressure_review_statuses" =>
+            schema.(:string_array_schema),
           "station_reservation_conflict_contact_ids" => schema.(:stable_id_array_schema),
           "station_reservation_conflict_source_activity_ids" => schema.(:stable_id_array_schema),
           "station_reservation_conflict_ground_station_ids" => schema.(:stable_id_array_schema),
