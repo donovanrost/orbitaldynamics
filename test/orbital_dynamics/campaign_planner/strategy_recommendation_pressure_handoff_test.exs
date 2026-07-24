@@ -1616,6 +1616,72 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
     )
   end
 
+  test "link-capacity downlink-demand source remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "link_capacity_pressure_downlink_demand_sources",
+      {"ground_station_id", "equator_prime"},
+      ["downlink_demand_sources"],
+      ["mission_objective:relay_collection"],
+      ["stale_link_capacity_demand_source"]
+    )
+  end
+
+  test "link-capacity completion source remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "link_capacity_pressure_downlink_completion_sources",
+      {"ground_station_id", "equator_prime"},
+      ["downlink_completion_sources"],
+      ["link_capacity_report:selected_contacts"],
+      ["stale_link_capacity_completion_source"]
+    )
+  end
+
+  test "link-capacity feedback source remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "link_capacity_pressure_feedback_sources",
+      {"ground_station_id", "equator_prime"},
+      "feedback_source",
+      ["mission_state.source_link_capacity_report.rows"],
+      ["stale_link_capacity_feedback_source"]
+    )
+  end
+
+  test "link-capacity feedback scope remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "link_capacity_pressure_feedback_scopes",
+      {"ground_station_id", "equator_prime"},
+      "feedback_scope",
+      ["link_capacity"],
+      ["stale_link_capacity"]
+    )
+  end
+
+  test "link-capacity trust boundary remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "link_capacity_pressure_trust_boundaries",
+      {"ground_station_id", "equator_prime"},
+      "trust_boundary",
+      ["mission_state_link_capacity_report"],
+      ["stale_link_capacity_boundary"]
+    )
+  end
+
+  test "link-capacity derivation reasons remain source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "link_capacity_pressure_derivation_reasons",
+      {"ground_station_id", "equator_prime"},
+      ["derivation_reasons"],
+      ["link_capacity_selected_downlink_shortfall"],
+      ["stale_link_capacity_derivation"]
+    )
+  end
+
   test "station conflict expiration risk context remains source exact across handoffs" do
     assert_risk_expiration_context_contract(
       StrategyRecommendationPressureEventsFixture.artifact(),

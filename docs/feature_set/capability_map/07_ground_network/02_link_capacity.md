@@ -433,10 +433,12 @@ ground-station, source-activity, and source-window identity; required/planned
 contact and downlink demand; start/end bounds; selected adjusted throughput and
 shortfall; actual throughput, completion ratio, and shortfall; and planned and
 actual requirement status across operator review, direct Cadence import, and
-review-derived import copies. Executable validation rejects missing or stale
-derived routing, demand, timing, or throughput state while paired legacy
-omission remains compatible; the evidence remains descriptive and cannot grant
-operator authority, reserve station time, or mutate a schedule.
+review-derived import copies. Demand and completion sources, feedback source and
+scope, trust boundary, and derivation reasons preserve the evidence lineage for
+those values. Executable validation rejects missing or stale derived routing,
+demand, timing, throughput state, or provenance while paired legacy omission
+remains compatible; the evidence remains descriptive and cannot grant operator
+authority, reserve station time, or mutate a schedule.
 
 `LinkCapacity.capabilities/0` advertises the accepted actual-throughput aliases
 (`actual_throughput_mb`, `actual_downlink_mb`, `actual_data_volume_mb`,

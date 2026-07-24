@@ -250,7 +250,15 @@ defmodule OrbitalDynamics.Schema.StrategyHandoffContracts do
     {"link_capacity_pressure_downlink_requirement_statuses",
      "link_capacity_pressure_downlink_requirement_statuses"},
     {"link_capacity_pressure_actual_downlink_requirement_statuses",
-     "link_capacity_pressure_actual_downlink_requirement_statuses"}
+     "link_capacity_pressure_actual_downlink_requirement_statuses"},
+    {"link_capacity_pressure_downlink_demand_sources",
+     "link_capacity_pressure_downlink_demand_sources"},
+    {"link_capacity_pressure_downlink_completion_sources",
+     "link_capacity_pressure_downlink_completion_sources"},
+    {"link_capacity_pressure_feedback_sources", "link_capacity_pressure_feedback_sources"},
+    {"link_capacity_pressure_feedback_scopes", "link_capacity_pressure_feedback_scopes"},
+    {"link_capacity_pressure_trust_boundaries", "link_capacity_pressure_trust_boundaries"},
+    {"link_capacity_pressure_derivation_reasons", "link_capacity_pressure_derivation_reasons"}
   ]
   @station_reservation_conflict_context_field_pairs [
     {"station_reservation_conflict_contact_ids", "station_reservation_conflict_contact_ids"},
