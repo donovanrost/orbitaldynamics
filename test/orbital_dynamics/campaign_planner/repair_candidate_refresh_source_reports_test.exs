@@ -42,6 +42,11 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
       |> File.read!()
       |> :json.decode()
 
+    source_timeline_diff_report =
+      "study_results/timeline_diff_report_v1.json"
+      |> File.read!()
+      |> :json.decode()
+
     candidate_diff_report =
       candidate_diff_report()
       |> update_in(["invalidated_candidates", Access.at(0)], fn candidate ->
@@ -110,6 +115,7 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
           )
           |> Map.put("source_objective_tradeoff_report", source_objective_tradeoff_report)
           |> Map.put("source_score_term_report", source_score_term_report)
+          |> Map.put("source_timeline_diff_report", source_timeline_diff_report)
           |> Map.put("source_quality_gate_report", passive_quality_gate_report())
           |> Map.put("operational_feedback", %{
             "station_throughput_factor" => %{"equator_prime" => 0.5}
@@ -585,6 +591,62 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
                artifact["cadence_import_manifest"]["rows"],
                &(&1["source"] == "campaign_repair.source_score_term_report.rows" and
                    &1["term_key"] == "activity_count_penalty")
+             )
+
+    assert artifact["source_timeline_diff_report"] == source_timeline_diff_report
+
+    assert %{
+             "review_type" => "timeline_diff_review",
+             "source" => "campaign_repair.source_timeline_diff_report.rows",
+             "subject_id" => "timeline:obs_1",
+             "timeline_id" => "timeline:obs_1",
+             "diff_status" => "changed",
+             "source_activity_id" => "obs_1",
+             "replacement_activity_id" => "obs_1b",
+             "source_approval_status" => "approved",
+             "replacement_approval_status" => "pending",
+             "start_delta_s" => 2.0,
+             "end_delta_s" => 2.0,
+             "changed_fields" => [
+               "activity_id",
+               "status",
+               "approval_status",
+               "starts_at_s",
+               "ends_at_s"
+             ],
+             "transition_decision" => "preserve_source",
+             "required_operator_action" => "review_changed_protected_activity",
+             "source_timeline_diff" => %{
+               "id" => "timeline_diff:timeline:obs_1",
+               "rank" => 3,
+               "requires_operator_review" => true
+             }
+           } =
+             Enum.find(
+               artifact["operator_review_package"]["rows"],
+               &(&1["source"] == "campaign_repair.source_timeline_diff_report.rows" and
+                   &1["timeline_id"] == "timeline:obs_1")
+             )
+
+    assert %{
+             "import_action" => "review_timeline_diff",
+             "source_review_type" => "timeline_diff_review",
+             "subject_id" => "timeline:obs_1",
+             "timeline_id" => "timeline:obs_1",
+             "diff_status" => "changed",
+             "source_activity_id" => "obs_1",
+             "replacement_activity_id" => "obs_1b",
+             "transition_decision" => "preserve_source",
+             "import_status" => "review_required_before_import",
+             "source_review_row" => %{
+               "source" => "campaign_repair.source_timeline_diff_report.rows"
+             }
+           } =
+             Enum.find(
+               artifact["cadence_import_manifest"]["rows"],
+               &(get_in(&1, ["source_review_row", "source"]) ==
+                   "campaign_repair.source_timeline_diff_report.rows" and
+                   &1["timeline_id"] == "timeline:obs_1")
              )
 
     assert %{
