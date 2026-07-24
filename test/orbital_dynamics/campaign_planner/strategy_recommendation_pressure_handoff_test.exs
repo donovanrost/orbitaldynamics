@@ -2028,6 +2028,76 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
     )
   end
 
+  test "score-term downlink-demand source remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "score_term_pressure_downlink_demand_sources",
+      {"feedback_scope", "score_term"},
+      ["downlink_demand_sources"],
+      ["score_term:score_term:downlink_shortfall:collection_latency_gap_s"],
+      ["stale_score_term_demand_source"]
+    )
+  end
+
+  test "score-term completion source remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "score_term_pressure_downlink_completion_sources",
+      {"feedback_scope", "score_term"},
+      ["downlink_completion_sources"],
+      ["score_term:score_term:downlink_shortfall:collection_latency_gap_s"],
+      ["stale_score_term_completion_source"]
+    )
+  end
+
+  test "score-term feedback source remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "score_term_pressure_feedback_sources",
+      {"feedback_scope", "score_term"},
+      "feedback_source",
+      ["mission_state.source_score_term_report.rows"],
+      ["stale_score_term_feedback_source"]
+    )
+  end
+
+  test "score-term feedback scope remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "score_term_pressure_feedback_scopes",
+      {"feedback_scope", "score_term"},
+      "feedback_scope",
+      ["score_term"],
+      ["stale_score_term"]
+    )
+  end
+
+  test "score-term trust boundary remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "score_term_pressure_trust_boundaries",
+      {"feedback_scope", "score_term"},
+      "trust_boundary",
+      ["mission_state_score_term_report"],
+      ["stale_score_term_boundary"]
+    )
+  end
+
+  test "score-term derivation reasons remain source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "score_term_pressure_derivation_reasons",
+      {"feedback_scope", "score_term"},
+      ["derivation_reasons"],
+      [
+        "collection_latency_gap",
+        "score_term_collection_latency_gap",
+        "score_term_collection_latency_gap_s"
+      ],
+      ["stale_score_term_derivation"]
+    )
+  end
+
   test "station conflict expiration risk context remains source exact across handoffs" do
     assert_risk_expiration_context_contract(
       StrategyRecommendationPressureEventsFixture.artifact(),

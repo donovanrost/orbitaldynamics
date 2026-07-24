@@ -57,9 +57,11 @@ Status: **implemented** (core), with **partial**, **near-term**, **later**, and 
   latency. Observation demand, priority, and target geometry remain source exact
   alongside source activity, score-term key/value/map, and timeline score across
   operator review, direct Cadence import, and review-derived import copies.
-  Missing or stale derived routing, timing, demand, geometry, or score state is
-  rejected while paired legacy omission remains compatible; the evidence cannot
-  approve an import, write to Cadence, or execute a schedule.
+  Demand/completion sources, feedback source/scope, trust boundary, and
+  derivation reasons preserve the scoring lineage. Missing or stale derived
+  routing, timing, demand, geometry, score state, or provenance is rejected while
+  paired legacy omission remains compatible; the evidence cannot approve an
+  import, write to Cadence, or execute a schedule.
 
 ### Objective-tradeoff reports
 
