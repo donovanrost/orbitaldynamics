@@ -5,54 +5,58 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Preserve V2 source timeline-diff handoff.
+Preserve V2 source schema-validation handoff.
 
 Status:
 Verified; ready to publish.
 
 Selection evidence:
-- CandidateRefresh already retains exact timeline IDs, diff status, changed
-  fields, status/approval transitions, transition decisions/reasons,
-  source/replacement activity contexts, and required operator actions in a
-  schema-valid `timeline_diff_report.v1`.
-- V2 repair derives its own plan deltas and transition-application report but
-  drops the distinct CandidateRefresh source diff, so upstream timeline-change
-  evidence is no longer independently auditable after repair.
-- Existing timeline-diff operator-review/Cadence mapping can lift exact review-
-  required rows; the missing V2 source path is a bounded compatibility gap, not
-  a reason to reapply the source transition decision.
+- CandidateRefresh already retains the exact validated contract/family,
+  artifact path, validation mode/status, issue path/message/severity, counts,
+  and remediation evidence in a schema-valid `schema_validation_report.v1`.
+- V2 validates its own repair artifact but drops the distinct CandidateRefresh
+  source validation report, so upstream input-contract failures are no longer
+  independently auditable after repair.
+- Existing schema-validation operator-review/Cadence mapping can lift exact
+  errors and warnings; the missing V2 source path is a bounded compatibility
+  gap, not a reason to change repair validity or import eligibility.
 
 Intended behavior:
-- Resolve the CandidateRefresh timeline-diff report from its source or canonical
-  field and preserve it on V2 as `source_timeline_diff_report` without
-  recomputation.
+- Resolve the CandidateRefresh schema-validation report from its source or
+  canonical field and preserve it on V2 as `source_schema_validation_report`
+  without recomputation.
 - Validate the optional V2 source field against
-  `timeline_diff_report.v1` at its distinct source path and export the property.
-- Reuse the existing timeline-diff review/import mapping so exact upstream
-  review-required rows remain visible beside V2's derived deltas.
-- Preserve transition application, timeline protection, feasibility, scores,
-  ranking, candidate eligibility, schedules, provider/Cadence writes, operator
-  authority, and autonomous execution behavior.
+  `schema_validation_report.v1` at its distinct source path and export the
+  property.
+- Reuse the existing schema-validation review/import mapping so exact upstream
+  errors, warnings, and remediation remain visible after repair.
+- Preserve repair validation, import eligibility, feasibility, scores, ranking,
+  candidate eligibility, schedules, provider/Cadence writes, operator authority,
+  and autonomous execution behavior.
 
 Level 6 pillar advanced:
 Fleet-scale planning decisions and durable reproducible audit handoffs.
 
 Planned files:
 - V2 repair source-report resolution and artifact assembly
-- V2 path-aware schema validation, registry/type hints, and timeline routing
+- V2 path-aware schema validation, registry/type hints, and validation routing
 - focused repair/schema review-import proofs, docs, exports, and ledger
 
 Verification:
 - Focused source resolver, repair handoff, and V2 source-contract proofs:
-  `16 passed`.
-- Adjacent timeline-diff review/import, CandidateRefresh source, timeline-report,
-  and V2 repair contract proofs: `115 passed`.
+  `14 passed`.
+- Adjacent schema-validation review/import and V2 repair contract proofs:
+  `115 passed`.
 - Contact-allocation regression family: `213 passed`.
 - Golden artifacts: `12 passed`.
 - Schema lint: `155` checked artifacts, all pass.
-- Full repository suite: `4892 passed` in `521.7s`.
+- Full repository suite: `4897 passed` in `528.2s`.
 - Regenerated schema exports changed only `campaign_repair.v2` and the schema
-  bundle; the manifest schema remained byte-stable.
+  bundle; the manifest schema remained byte-stable:
+  - repair schema SHA-256:
+    `05152656a71bd0e024097420d739d51a307fead0da56ddc6f9e6036fb4f68535`
+  - schema bundle SHA-256:
+    `62839d137cf6d2a7f1aa65c197f008a69528bec9acc0dfbf3b024ad83c25da03`
 - Canonical V2 repair and strategy runs remained byte-stable:
   - repair SHA-256:
     `867928e8aa95ba8473fffe017e7d1efda9d9e83799516a2a938ef7bb8c25f7fa`
@@ -63,27 +67,25 @@ Review:
 - Source resolution accepts the explicit source field, collected-list shape,
   and canonical CandidateRefresh field, selects the first exact object, and is
   nil-safe.
-- V2 preserves the report unchanged beside its derived repair deltas, validates
-  the optional source field with the full `timeline_diff_report.v1` contract at
-  `$.source_timeline_diff_report`, and exports the nested definition.
-- Existing review/import mapping lifts only rows already marked
-  `requires_operator_review`, preserving exact timeline identity, changed
-  fields, status/approval transitions, source/replacement contexts, transition
-  decision/reason, and required operator action.
-- Focused integration proof pins the exact source artifact, protected-activity
-  review row, and review-gated Cadence import row; review delta numbers retain
-  the established float normalization while the source artifact is unchanged.
-- Canonical inputs have no source timeline-diff report, so omission preserves
-  canonical bytes and stable IDs.
-- The new field is consumed only by preservation, validation, and review/import
-  assembly. It is absent from repair transition application, timeline
-  protection, scoring, ranking, candidate eligibility, schedule mutation,
-  provider request/reservation, Cadence write, operator authority, and
-  autonomous execution paths.
+- V2 preserves the report unchanged, validates the optional source field with
+  the full `schema_validation_report.v1` contract at
+  `$.source_schema_validation_report`, and exports the nested definition.
+- Existing review/import mapping lifts exact source errors and warnings with
+  validated contract/family, artifact path, validation mode/status,
+  severity/path/message, counts, and remediation intact.
+- Focused integration proof pins the exact failing source artifact, operator-
+  review row, and review-gated Cadence import row.
+- Canonical inputs have no source schema-validation report, so omission
+  preserves canonical bytes and stable IDs.
+- The new field is consumed only by preservation, contract validation, and
+  review/import assembly. It is absent from repair validity and import-
+  eligibility decisions, feasibility, scoring, ranking, candidate selection,
+  schedule mutation, provider request/reservation, Cadence write, operator
+  authority, and autonomous execution paths.
 
 Last published slice:
-- `98645b11` Preserve V2 source score term handoff (`4887 passed`; exact
-  upstream score decomposition plus review/import handoff, no decision effect).
+- `60982f0d` Preserve V2 source timeline diff handoff (`4892 passed`; exact
+  upstream timeline-change evidence plus review/import, no transition effect).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions while preserving explicit
@@ -94,8 +96,8 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-After source timeline-diff evidence is durable, reassess the next exact-identity
-validation or compatibility gap.
+After source schema-validation evidence is durable, reassess the adjacent
+source model-acceptance compatibility gap.
 
 Blocked:
 None.

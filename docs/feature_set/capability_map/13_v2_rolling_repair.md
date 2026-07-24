@@ -276,6 +276,9 @@ V2 repair `operator_review_package.v1` now emits:
 - CandidateRefresh source timeline-diff review rows, preserving exact timeline
   identity, changed fields, status/approval transitions, source/replacement
   contexts, and required operator action without applying source transitions.
+- CandidateRefresh source schema-validation issue rows, preserving exact
+  contract/family, artifact path, validation mode/status, issue severity/path/
+  message, counts, and remediation without changing V2 validation outcomes.
 - Repaired-plan and CandidateRefresh source link-capacity review rows,
   preserving the upstream report independently from the recomputed repair
   report without applying another scoring effect.

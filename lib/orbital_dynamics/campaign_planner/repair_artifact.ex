@@ -164,6 +164,10 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairArtifact do
       RepairSourceReports.timeline_diff(request.candidate_refresh)
     )
     |> put_source_report(
+      "source_schema_validation_report",
+      RepairSourceReports.schema_validation(request.candidate_refresh)
+    )
+    |> put_source_report(
       "source_resource_filter_report",
       RepairSourceReports.resource_filter(request.candidate_refresh)
     )

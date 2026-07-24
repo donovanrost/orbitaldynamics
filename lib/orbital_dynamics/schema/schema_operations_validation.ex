@@ -1,7 +1,15 @@
 defmodule OrbitalDynamics.Schema.SchemaOperationsValidation do
   @moduledoc false
 
-  import OrbitalDynamics.Schema.PrimitiveValidation, only: [require_fields: 4]
+  import OrbitalDynamics.Schema.PrimitiveValidation, only: [error: 2, require_fields: 4]
+
+  def validate_optional_schema_validation_report(issues, _path, nil), do: issues
+
+  def validate_optional_schema_validation_report(issues, path, %{} = report),
+    do: validate(issues, path, report, "schema_validation_report.v1")
+
+  def validate_optional_schema_validation_report(issues, path, _report),
+    do: [error(path, "must be an object") | issues]
 
   def validate(issues, path, artifact, contract_name) do
     issues

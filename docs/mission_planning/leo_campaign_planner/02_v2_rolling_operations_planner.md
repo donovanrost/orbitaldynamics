@@ -286,8 +286,9 @@ schema-type their stable IDs, invalid-input flags, and protected/change counts.
   `source_contact_contention_resolution_report`, `source_link_capacity_report`,
   `source_station_reservation_report`, `source_constraint_report`,
   `source_objective_satisfaction_report`, `source_objective_tradeoff_report`,
-  `source_score_term_report`, `source_timeline_diff_report`, and
-  `source_resource_filter_report` when present on the refresh artifact,
+  `source_score_term_report`, `source_timeline_diff_report`,
+  `source_schema_validation_report`, and `source_resource_filter_report` when
+  present on the refresh artifact,
   preserving candidate suppression reasons, allocated/deferred contact review
   rows, exact conflict-group/invalid-input evidence, exact selected/deferred
   contention recommendations, allocation reservation evidence, and spacecraft
@@ -303,7 +304,9 @@ schema-type their stable IDs, invalid-input flags, and protected/change counts.
   score-term report also remains review-only and does not feed repaired-plan
   score calculation. The source timeline-diff report remains distinct from V2's
   derived deltas and does not apply source transition decisions. The contention
-  and resolution handoffs do not suppress candidates or alter schedules. If
+  and resolution handoffs do not suppress candidates or alter schedules. Source
+  schema-validation evidence is review-only and does not determine V2 repair
+  validity or import eligibility. If
   an otherwise viable replacement candidate is named exactly in a preserved
   recommendation's `deferred_contact_ids`, replacement ranking applies one
   calibrated `risk_weight` unit and records the contributing resolution group

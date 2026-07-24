@@ -298,6 +298,10 @@ defmodule OrbitalDynamics.OperatorReview.CompositeArtifact do
         get_in(artifact, ["source_timeline_diff_report", "rows"]) || [],
         "campaign_repair.source_timeline_diff_report.rows"
       ) ++
+      SchemaValidation.rows(
+        Map.get(artifact, "source_schema_validation_report") || %{},
+        "campaign_repair.source_schema_validation_report"
+      ) ++
       LinkCapacity.report_rows(
         Map.get(artifact, "link_capacity_report"),
         "campaign_repair.link_capacity_report"

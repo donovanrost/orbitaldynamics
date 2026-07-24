@@ -23,6 +23,7 @@ defmodule OrbitalDynamics.Schema.CampaignArtifactValidation do
     ProposedContactRegistryContracts,
     RefreshBudgetReportContracts,
     ResourceValidation,
+    SchemaOperationsValidation,
     StationReservationValidation,
     StrategyManeuverRegistryContracts,
     TimelineArtifactValidation,
@@ -235,6 +236,8 @@ defmodule OrbitalDynamics.Schema.CampaignArtifactValidation do
         &OperationalReadinessValidation.validate_optional_operational_readiness_report/3,
       validate_optional_quality_gate_report:
         &OperationalReadinessValidation.validate_optional_quality_gate_report/3,
+      validate_optional_schema_validation_report:
+        &SchemaOperationsValidation.validate_optional_schema_validation_report/3,
       validate_optional_objective_tradeoff_report:
         &DecisionSupportValidation.validate_optional_objective_tradeoff_report/2,
       validate_optional_source_objective_tradeoff_report:

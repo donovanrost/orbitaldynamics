@@ -47,6 +47,28 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
       |> File.read!()
       |> :json.decode()
 
+    source_schema_validation_report =
+      "study_results/schema_validation_report_v1.json"
+      |> File.read!()
+      |> :json.decode()
+      |> Map.merge(%{
+        "status" => "fail",
+        "artifact_path" => "study_results/bad_campaign.json",
+        "error_count" => 1,
+        "errors" => [
+          %{"path" => "$.plan_id", "message" => "is required", "severity" => "error"}
+        ],
+        "remediation_count" => 1,
+        "remediation" => [
+          %{
+            "path" => "$.plan_id",
+            "category" => "missing_required_field",
+            "action" => "Populate this required field",
+            "source_message" => "is required"
+          }
+        ]
+      })
+
     candidate_diff_report =
       candidate_diff_report()
       |> update_in(["invalidated_candidates", Access.at(0)], fn candidate ->
@@ -116,6 +138,7 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
           |> Map.put("source_objective_tradeoff_report", source_objective_tradeoff_report)
           |> Map.put("source_score_term_report", source_score_term_report)
           |> Map.put("source_timeline_diff_report", source_timeline_diff_report)
+          |> Map.put("source_schema_validation_report", source_schema_validation_report)
           |> Map.put("source_quality_gate_report", passive_quality_gate_report())
           |> Map.put("operational_feedback", %{
             "station_throughput_factor" => %{"equator_prime" => 0.5}
@@ -647,6 +670,54 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
                &(get_in(&1, ["source_review_row", "source"]) ==
                    "campaign_repair.source_timeline_diff_report.rows" and
                    &1["timeline_id"] == "timeline:obs_1")
+             )
+
+    assert artifact["source_schema_validation_report"] == source_schema_validation_report
+
+    assert %{
+             "review_type" => "schema_validation_review",
+             "source" => "campaign_repair.source_schema_validation_report.errors",
+             "subject_id" => "campaign_plan.v1",
+             "action" => "review_schema_validation_failure",
+             "validation_status" => "fail",
+             "validation_mode" => "artifact_file",
+             "validated_contract" => "campaign_plan.v1",
+             "validated_artifact_family" => "campaign_plan",
+             "artifact_path" => "study_results/bad_campaign.json",
+             "issue_severity" => "error",
+             "issue_path" => "$.plan_id",
+             "issue_message" => "is required",
+             "remediation_category" => "missing_required_field",
+             "remediation_action" => "Populate this required field",
+             "source_validation_issue" => %{
+               "path" => "$.plan_id",
+               "message" => "is required"
+             },
+             "source_schema_validation_report" => %{
+               "status" => "fail",
+               "error_count" => 1
+             }
+           } =
+             Enum.find(
+               artifact["operator_review_package"]["rows"],
+               &(&1["source"] == "campaign_repair.source_schema_validation_report.errors")
+             )
+
+    assert %{
+             "import_action" => "review_schema_validation",
+             "source_review_type" => "schema_validation_review",
+             "source" => "campaign_repair.source_schema_validation_report.errors",
+             "subject_id" => "campaign_plan.v1",
+             "schema_validation_gate" => "artifact_contract_validation",
+             "schema_validation_gate_status" => "fail",
+             "schema_validation_issue_count" => 1,
+             "issue_path" => "$.plan_id",
+             "remediation_category" => "missing_required_field",
+             "import_status" => "review_required_before_import"
+           } =
+             Enum.find(
+               artifact["cadence_import_manifest"]["rows"],
+               &(&1["source"] == "campaign_repair.source_schema_validation_report.errors")
              )
 
     assert %{
