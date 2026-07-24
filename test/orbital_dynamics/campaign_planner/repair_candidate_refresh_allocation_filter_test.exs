@@ -103,6 +103,18 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshAllocationFilter
            } = artifact["source_contact_allocation_report"]
 
     assert %{
+             "schema_contract" => "contact_contention_resolution_report.v1",
+             "recommendations" => [
+               %{
+                 "group_id" => "station:equator_prime:contention:1",
+                 "selected_contact_id" => "dl_refreshed",
+                 "deferred_contact_ids" => ["dl_deferred"],
+                 "review_status" => "operator_review_required"
+               }
+             ]
+           } = artifact["source_contact_contention_resolution_report"]
+
+    assert %{
              "contact_id" => "dl_deferred",
              "allocation_status" => "deferred",
              "effective_allocation_status" => "deferred"
@@ -163,6 +175,15 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshAllocationFilter
            )
 
     assert Enum.any?(
+             artifact["operator_review_package"]["rows"],
+             &(&1["review_type"] == "contact_contention_recommendation" and
+                 &1["source"] ==
+                   "campaign_repair.source_contact_contention_resolution_report.recommendations" and
+                 &1["selected_contact_id"] == "dl_refreshed" and
+                 &1["deferred_contact_ids"] == ["dl_deferred"])
+           )
+
+    assert Enum.any?(
              artifact["cadence_import_manifest"]["rows"],
              &(&1["import_action"] == "review_contact_allocation" and
                  &1["source_review_type"] == "contact_allocation_review" and
@@ -184,6 +205,15 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshAllocationFilter
                  &1["source_review_type"] == "contact_allocation_review" and
                  &1["contact_id"] == "dl_policy_blocked" and
                  &1["effective_allocation_status"] == "policy_blocked")
+           )
+
+    assert Enum.any?(
+             artifact["cadence_import_manifest"]["rows"],
+             &(&1["import_action"] == "review_contact_contention_resolution" and
+                 &1["source_review_type"] == "contact_contention_recommendation" and
+                 &1["selected_contact_id"] == "dl_refreshed" and
+                 &1["deferred_contact_ids"] == ["dl_deferred"] and
+                 &1["import_status"] == "review_required_before_import")
            )
 
     assert {:ok, %{"schema_contract" => "campaign_repair.v2"}} =

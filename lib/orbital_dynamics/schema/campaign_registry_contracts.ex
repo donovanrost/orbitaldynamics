@@ -123,6 +123,7 @@ defmodule OrbitalDynamics.Schema.CampaignRegistryContracts do
           "source_freshness_report",
           "source_refresh_budget_report",
           "source_contact_allocation_report",
+          "source_contact_contention_resolution_report",
           "source_station_calendar_report",
           "source_contact_filter_report",
           "source_resource_filter_report",
@@ -159,6 +160,7 @@ defmodule OrbitalDynamics.Schema.CampaignRegistryContracts do
           "objective_tradeoff_report.v1",
           "constraint_report.v1",
           "contact_allocation_report.v1",
+          "contact_contention_resolution_report.v1",
           "score_term_report.v1",
           "link_capacity_report.v1",
           "candidate_rejection_report.v1"

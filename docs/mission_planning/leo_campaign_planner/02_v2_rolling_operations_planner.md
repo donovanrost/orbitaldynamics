@@ -281,11 +281,14 @@ schema-type their stable IDs, invalid-input flags, and protected/change counts.
   global contact optimization.
 - `link_capacity_report.v1` over repaired downlink activities, preserving the
   same fixed-rate throughput summary shape used by V1 campaign artifacts.
-- `source_contact_filter_report`, `source_contact_allocation_report`, and
+- `source_contact_filter_report`, `source_contact_allocation_report`,
+  `source_contact_contention_resolution_report`, and
   `source_resource_filter_report` when present on the refresh artifact,
   preserving candidate suppression reasons, allocated/deferred contact review
-  rows, allocation reservation evidence, and spacecraft resource decisions
-  caused by unavailable ground-network or resource constraints.
+  rows, exact selected/deferred contention recommendations, allocation
+  reservation evidence, and spacecraft resource decisions caused by unavailable
+  ground-network or resource constraints. The contention-resolution handoff is
+  audit/review-only and does not alter replacement ranking or schedules.
 - `source_station_calendar_report` when repair-time `ground_network` or
   `station_calendar` intervals annotate source contact candidates. Reserved,
   unavailable, or reduced-capacity affected rows participate in repair scoring

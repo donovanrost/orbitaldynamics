@@ -24,6 +24,35 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairSourceReports do
   def contact_allocation(%{} = candidate_refresh, callbacks),
     do: direct_report(candidate_refresh, "contact_allocation_report", callbacks)
 
+  def contact_contention_resolution(candidate_refresh),
+    do: contact_contention_resolution(candidate_refresh, default_callbacks())
+
+  def contact_contention_resolution(nil, _callbacks), do: nil
+
+  def contact_contention_resolution(%{} = candidate_refresh, callbacks) do
+    stringify_keys = Keyword.fetch!(callbacks, :stringify_keys)
+    candidate_refresh = stringify_keys.(candidate_refresh)
+
+    [
+      Map.get(candidate_refresh, "source_contact_contention_resolution_report"),
+      Map.get(candidate_refresh, "contact_contention_resolution_report"),
+      get_in(candidate_refresh, [
+        "contact_allocation_report",
+        "contact_contention_resolution_report"
+      ]),
+      get_in(candidate_refresh, [
+        "source_contact_allocation_report",
+        "contact_contention_resolution_report"
+      ])
+    ]
+    |> Enum.flat_map(&List.wrap/1)
+    |> Enum.find(&is_map/1)
+    |> case do
+      %{} = report -> stringify_keys.(report)
+      _report -> nil
+    end
+  end
+
   def resource_filter(candidate_refresh),
     do: resource_filter(candidate_refresh, default_callbacks())
 

@@ -73,18 +73,26 @@ defmodule OrbitalDynamics.Schema.ContactReportValidation do
   def validate_optional_contention_report(issues, _report),
     do: [error("$.contact_contention_report", "must be an object") | issues]
 
-  def validate_optional_contention_resolution_report(issues, nil), do: issues
+  def validate_optional_contention_resolution_report(issues, report),
+    do:
+      validate_optional_contention_resolution_report(
+        issues,
+        "$.contact_contention_resolution_report",
+        report
+      )
 
-  def validate_optional_contention_resolution_report(issues, %{} = report) do
+  def validate_optional_contention_resolution_report(issues, _path, nil), do: issues
+
+  def validate_optional_contention_resolution_report(issues, path, %{} = report) do
     OrbitalDynamics.Schema.ContactContentionReportContracts.validate_resolution_report(
       issues,
-      "$.contact_contention_resolution_report",
+      path,
       report
     )
   end
 
-  def validate_optional_contention_resolution_report(issues, _report),
-    do: [error("$.contact_contention_resolution_report", "must be an object") | issues]
+  def validate_optional_contention_resolution_report(issues, path, _report),
+    do: [error(path, "must be an object") | issues]
 
   defp required_fields(contract_name) do
     [

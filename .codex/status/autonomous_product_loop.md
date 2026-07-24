@@ -5,68 +5,82 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Guard strategy handoff context coverage.
+Preserve V2 contact-contention resolution handoff.
 
 Status:
 Verified; ready to publish.
 
 Selection evidence:
-- Live registry inspection finds 30 recommendation-context families declaring
-  962 fields: 953 source-exact handoff fields plus nine intentionally non-emitted
-  selected-fixture fields.
-- The validator has no executable coverage audit tying declared fields,
-  registered fields, and explicit exclusions together.
-- A future field can therefore be omitted from a manual handoff registry, or an
-  exclusion can become stale, without a focused failure naming the drift.
+- CandidateRefresh already retains exact selected and deferred contact
+  identities in a schema-valid `contact_contention_resolution_report.v1`.
+- V2 repair preserves neighboring contact-filter and contact-allocation source
+  reports but drops the contention-resolution report entirely.
+- V2 therefore loses both the auditable source evidence and its existing
+  operator/Cadence review rows before any safe candidate-ranking use can be
+  considered.
 
 Intended behavior:
-- Expose one deterministic coverage report over all declared, registered, and
-  intentionally non-emitted strategy recommendation context fields.
-- Fail a focused executable guard on missing, unexpected, duplicate, stale-
-  exclusion, or registered-exclusion fields.
-- Pin the current nine-field exclusion set while allowing no unaccounted field.
-- Preserve all planner behavior, schemas, Cadence writes, operator authority,
-  and autonomous execution boundaries.
+- Resolve the CandidateRefresh resolution report from its source/canonical
+  field or the canonical contact-allocation embedding and preserve it on V2 as
+  `source_contact_contention_resolution_report`.
+- Validate the optional V2 source field against
+  `contact_contention_resolution_report.v1` and export its nested contract.
+- Reuse the existing contention-recommendation review/import mapping so review-
+  required selected/deferred evidence remains visible after repair.
+- Preserve ranking, candidate eligibility, schedule mutation, provider writes,
+  Cadence writes, operator authority, and autonomous execution behavior.
 
 Level 6 pillar advanced:
 Fleet-scale planning decisions and durable reproducible audit handoffs.
 
 Planned files:
-- strategy handoff coverage accounting
-- focused registry guard, docs, exports, and ledger
+- V2 repair source-report resolution and artifact assembly
+- V2 schema validation, registry/type hints, operator-review routing
+- focused repair/schema review-import proofs, docs, exports, and ledger
 
 Verification:
-- Focused context-coverage guard: `1 passed`.
-- Existing source-exact strategy handoff matrix: `954 passed`.
-- Adjacent strategy recommendation, review/import, and Cadence-import schema
-  contracts: `27 passed`.
+- Focused source resolution, repair handoff, review/import, and schema proofs:
+  `7 passed`.
+- Adjacent repair/strategy CandidateRefresh proofs: `18 passed`.
+- Adjacent operator-review, Cadence-import, and V2 schema contracts:
+  `176 passed`.
 - Contact-allocation regression: `213 passed`.
 - Golden artifacts: `12 passed`.
 - Schema lint: `155/155` artifacts passed with zero warnings.
-- Full suite: `4844 passed`.
-- Canonical strategy SHA-256 remained
-  `c13c37c2ae06849c5d8a49cecaf1c113e0ddcf653c34d32f751efd6815891887`.
-- Coverage accounting is exact: 30 families, 962 declared fields, 953
-  registered fields, nine intentional exclusions, and zero drift findings.
+- Full suite: `4849 passed`.
+- Schema regeneration changed only `campaign_repair.v2` and the aggregate
+  bundle; the manifest schema remained unchanged.
+- Canonical repair SHA-256 is
+  `564d0db6a61264c3a498f332b681933756b07f733d9b09afe8b80faa1cdb269b`.
+- Canonical strategy SHA-256 is
+  `32bb9af131598458bba59ba3bb424b50ee685cde389277b4bf1004b98c1cde4f`;
+  its deterministic strategy ID is
+  `109bd2594f43bdaa813f587392806114fdd28bf44281b4ff82dff36a8b6e8ee9`.
 
 Review:
-- The coverage report dynamically discovers every public recommendation
-  `*_context_keys` family and compares its declared fields with the active
-  source-exact handoff registry and explicit non-emitted allowlist.
-- The focused guard rejects missing, unexpected, duplicate-declared,
-  duplicate-registered, stale-exclusion, and registered-exclusion fields while
-  pinning the current nine-field allowlist and `962 = 953 + 9` accounting.
-- The existing 954 mutation proofs remain the behavioral source-exact matrix;
-  the new guard proves that the matrix registry cannot silently omit a declared
-  context field.
-- Schema exports and the canonical strategy artifact are unchanged because the
-  coverage report is internal contract accounting.
-- Safety boundaries remain explicit: no planner behavior, schedule mutation,
-  Cadence write, operator authority, or autonomous execution was added.
+- Repair source resolution accepts the direct canonical field, a collected
+  source field, or the canonical report nested under contact allocation, and
+  preserves the first exact report without recomputation.
+- The optional V2 field validates at its own source path against
+  `contact_contention_resolution_report.v1`; its exported property and nested
+  contract are present in both the standalone repair schema and bundle.
+- Existing contention-review mapping lifts exact selected/deferred contact IDs
+  into `contact_contention_recommendation` and review-gated Cadence import rows.
+  The focused proof exercises one review-required recommendation end to end.
+- Canonical repair inputs carry zero recommendations, so review/import counts,
+  branch selection, and scores are unchanged. Twenty-five of 27 canonical
+  strategy branch repairs preserve their available report; branches without a
+  CandidateRefresh report correctly omit the optional field.
+- The additive audit field changes deterministic repair/strategy artifact
+  content and the derived strategy ID, so both checked canonical examples and
+  the golden ID were regenerated together.
+- The source report is not read by replacement ranking, eligibility, or
+  scheduling code. No provider request/reservation, schedule mutation, Cadence
+  write, operator authority, or autonomous execution was added.
 
 Last published slice:
-- `d1368cfb` Validate validation refresh handoffs (`4843 passed`, `81/81`
-  emitted; `81/82` declared live).
+- `125bfebf` Guard strategy handoff context coverage (`4844 passed`, 30
+  families, `962 = 953 + 9`, zero findings).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions while preserving explicit
@@ -77,8 +91,9 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-Use the exhaustive coverage report to reassess the next planner-visible
-candidate/resource or compatibility slice.
+After the audit handoff exists, assess whether exact deferred candidate IDs
+should add an advisory contention-resolution pressure term to V2 replacement
+ranking without hard suppression.
 
 Blocked:
 None.
