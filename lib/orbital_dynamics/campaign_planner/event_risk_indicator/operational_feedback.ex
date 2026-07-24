@@ -115,6 +115,8 @@ defmodule OrbitalDynamics.CampaignPlanner.EventRiskIndicator.OperationalFeedback
         "timeline_id" => event["timeline_id"],
         "starts_at_s" => event["starts_at_s"] || event["source_starts_at_s"],
         "ends_at_s" => event["ends_at_s"] || event["source_ends_at_s"],
+        "required_observations" => event["required_observations"],
+        "planned_observations" => event["planned_observations"],
         "observation_success_factor" => event["observation_success_factor"],
         "target_id" => event["target_id"],
         "objective_id" => event["objective_id"],

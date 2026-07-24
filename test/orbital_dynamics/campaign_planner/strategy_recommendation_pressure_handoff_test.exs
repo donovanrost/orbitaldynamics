@@ -2241,6 +2241,50 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
     )
   end
 
+  test "objective-satisfaction start timing remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "objective_satisfaction_pressure_start_values_s",
+      {"feedback_scope", "objective_satisfaction"},
+      "starts_at_s",
+      [1_380.0],
+      [1_381.0]
+    )
+  end
+
+  test "objective-satisfaction end timing remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "objective_satisfaction_pressure_end_values_s",
+      {"feedback_scope", "objective_satisfaction"},
+      "ends_at_s",
+      [1_440.0],
+      [1_441.0]
+    )
+  end
+
+  test "objective-satisfaction required observations remain source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "objective_satisfaction_pressure_required_observation_values",
+      {"feedback_scope", "objective_satisfaction"},
+      "required_observations",
+      [2],
+      [3]
+    )
+  end
+
+  test "objective-satisfaction planned observations remain source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "objective_satisfaction_pressure_planned_observation_values",
+      {"feedback_scope", "objective_satisfaction"},
+      "planned_observations",
+      [1],
+      [2]
+    )
+  end
+
   test "objective-tradeoff risk type remains source exact across handoffs" do
     assert_risk_context_contract(
       StrategyRecommendationPressureEventsFixture.artifact(),
