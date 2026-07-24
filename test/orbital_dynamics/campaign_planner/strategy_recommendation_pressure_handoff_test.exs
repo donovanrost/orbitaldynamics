@@ -4982,6 +4982,113 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
     end
   end
 
+  @resource_margin_context_contracts [
+    {"risk type", "resource_margin_risk_types", "resource_margin_risk_type",
+     [
+       "downlink_margin_low",
+       "fuel_margin_low",
+       "power_margin_low",
+       "storage_margin_low",
+       "thermal_margin_c_low"
+     ], ["stale_resource_margin_risk"]},
+    {"spacecraft identity", "resource_margin_spacecraft_ids", "spacecraft_id", ["leo_1"],
+     ["stale_spacecraft"]},
+    {"scenario identity", "resource_margin_scenario_ids", "scenario_id", ["leo_1"],
+     ["stale_scenario"]},
+    {"timeline identity", "resource_margin_timeline_ids", "timeline_id",
+     ["timeline:resource_margin:power"], ["timeline:stale_resource_margin"]},
+    {"source activity identity", "resource_margin_source_activity_ids",
+     ["source_activity_id", "source_activity_ids"],
+     [
+       "dl_resource_filter_downlink",
+       "obs_resource_filter_fuel",
+       "obs_power_pressure",
+       "obs_resource_filter_power",
+       "obs_resource_filter_storage",
+       "obs_resource_filter_thermal"
+     ], ["stale_resource_margin_activity"]},
+    {"replacement activity identity", "resource_margin_replacement_activity_ids",
+     "replacement_activity_id", ["obs_power_pressure_replanned"],
+     ["stale_resource_margin_replacement"]},
+    {"resource field", "resource_margin_fields", "resource_field",
+     [
+       "downlink_margin",
+       "fuel_margin",
+       "power_margin",
+       "storage_margin",
+       "thermal_margin_c"
+     ], ["stale_margin"]},
+    {"margin value", "resource_margin_values", "resource_margin_value",
+     [8.0, 0.05, 0.08, 12.0, 2.0], [999.0]},
+    {"margin threshold", "resource_margin_threshold_values", "resource_margin_threshold",
+     [15.0, 0.1, 0.2, 20.0, 5.0], [1_000.0]},
+    {"field value map", "resource_margin_field_value_maps", "resource_margin_field_value",
+     [
+       %{"field" => "downlink_margin", "threshold" => 15.0, "value" => 8.0},
+       %{"field" => "fuel_margin", "threshold" => 0.1, "value" => 0.05},
+       %{"field" => "power_margin", "threshold" => 0.2, "value" => 0.08},
+       %{"field" => "storage_margin", "threshold" => 20.0, "value" => 12.0},
+       %{"field" => "thermal_margin_c", "threshold" => 5.0, "value" => 2.0}
+     ], [%{"field" => "stale_margin", "threshold" => 1_000.0, "value" => 999.0}]},
+    {"source quality", "resource_margin_source_quality_values", "source_quality",
+     ["operator_supplied", "declared"], ["stale_source_quality"]},
+    {"start timing", "resource_margin_start_values_s", "starts_at_s",
+     [1_510.0, 1_300.0, 500.0, 1_370.0, 1_440.0, 1_580.0], [999.0]},
+    {"end timing", "resource_margin_end_values_s", "ends_at_s",
+     [1_570.0, 1_360.0, 560.0, 1_430.0, 1_500.0, 1_640.0], [1_000.0]},
+    {"diff status", "resource_margin_diff_statuses", "diff_status", ["changed"], ["unchanged"]},
+    {"changed field", "resource_margin_changed_fields", ["changed_fields"], ["power_margin"],
+     ["stale_margin"]},
+    {"required operator action", "resource_margin_required_operator_actions",
+     "required_operator_action", ["review_resource_margin"], ["stale_operator_action"]},
+    {"operator review requirement", "resource_margin_requires_operator_review_values",
+     "requires_operator_review", [true], [false]},
+    {"feedback source", "resource_margin_feedback_sources", "feedback_source",
+     [
+       "mission_state.source_resource_filter_report.suppressed_candidates",
+       "mission_state.source_resource_projection_report.rows"
+     ], ["mission_state.stale_resource_margin_report.rows"]},
+    {"feedback scope", "resource_margin_feedback_scopes", "feedback_scope",
+     ["resource_filter", "resource_margin"], ["stale_resource_margin"]},
+    {"feedback key", "resource_margin_feedback_keys", "feedback_key", ["leo_1.power_margin"],
+     ["stale_spacecraft.power_margin"]},
+    {"trust boundary", "resource_margin_trust_boundaries", "trust_boundary",
+     ["mission_state_resource_filter_report", "mission_state_resource_projection_report"],
+     ["stale_resource_margin_boundary"]},
+    {"derivation reason", "resource_margin_derivation_reasons", ["derivation_reasons"],
+     [
+       "resource_filter_suppressed",
+       "downlink_margin_below_policy",
+       "fuel_margin_below_policy",
+       "resource_projection_power_margin_low",
+       "power_margin_below_observe_policy",
+       "storage_margin_below_observe_policy",
+       "thermal_margin_below_policy"
+     ], ["stale_resource_margin_derivation"]}
+  ]
+
+  @resource_margin_risk_types [
+    "downlink_margin_low",
+    "fuel_margin_low",
+    "power_margin_low",
+    "storage_margin_low",
+    "thermal_margin_c_low"
+  ]
+
+  for {description, field, source_field, expected_value, stale_value} <-
+        @resource_margin_context_contracts do
+    test "resource-margin #{description} remains source exact across handoffs" do
+      assert_risk_context_contract(
+        StrategyRecommendationPressureEventsFixture.artifact(),
+        unquote(field),
+        {"resource_margin_risk_type", @resource_margin_risk_types},
+        unquote(Macro.escape(source_field)),
+        unquote(Macro.escape(expected_value)),
+        unquote(Macro.escape(stale_value))
+      )
+    end
+  end
+
   defp assert_risk_expiration_context_contract(
          artifact,
          field,
@@ -5142,7 +5249,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
     |> Map.delete(field)
     |> update_in(["source_recommendation", "risks_remaining"], fn risks ->
       Enum.map(risks, fn risk ->
-        if risk[identity_field] == identity_value do
+        if risk_identity_matches?(risk, identity_field, identity_value) do
           Enum.reduce(List.wrap(source_fields), risk, &Map.delete(&2, &1))
         else
           risk
@@ -5151,13 +5258,14 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
     end)
     |> update_in(["source_recommendation", "explanation"], fn explanation ->
       Enum.map(explanation, fn explanation_row ->
-        if explanation_row[identity_field] == identity_value do
+        if risk_identity_matches?(explanation_row, identity_field, identity_value) do
           Enum.reduce(List.wrap(source_fields), explanation_row, &Map.delete(&2, &1))
         else
           explanation_row
         end
       end)
     end)
+    |> sync_resource_risk_contexts()
   end
 
   defp legacy_risk_context_row(
@@ -5171,11 +5279,38 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
     risks =
       row
       |> get_in(["source_recommendation", "risks_remaining"])
-      |> Enum.reject(&(&1[identity_field] == identity_value))
+      |> Enum.reject(&risk_identity_matches?(&1, identity_field, identity_value))
 
     row
     |> Map.delete(field)
     |> put_in(["source_recommendation", "risks_remaining"], risks)
     |> Map.put("risk_count", length(risks))
+    |> sync_resource_risk_contexts()
+  end
+
+  defp sync_resource_risk_contexts(row) do
+    risks = get_in(row, ["source_recommendation", "risks_remaining"])
+
+    resource_context_keys =
+      OrbitalDynamics.RecommendationRiskContext.ResourceFilter.context_keys() ++
+        OrbitalDynamics.RecommendationRiskContext.ResourceMargin.context_keys()
+
+    resource_context =
+      risks
+      |> OrbitalDynamics.RecommendationRiskContext.ResourceFilter.context()
+      |> Map.merge(OrbitalDynamics.RecommendationRiskContext.ResourceMargin.context(risks))
+
+    row
+    |> Map.drop(resource_context_keys)
+    |> Map.merge(resource_context)
+  end
+
+  defp risk_identity_matches?(risk, identity_field, identity_values)
+       when is_list(identity_values) do
+    risk[identity_field] in identity_values
+  end
+
+  defp risk_identity_matches?(risk, identity_field, identity_value) do
+    risk[identity_field] == identity_value
   end
 end

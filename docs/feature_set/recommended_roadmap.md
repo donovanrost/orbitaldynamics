@@ -168,6 +168,9 @@ Already implemented or heavily covered:
   availability booleans, all five margin value/threshold pairs, and operator-
   training counts/roles; all 27 identity, timing, status, value, and provenance
   fields must stay source exact across direct and review-derived Cadence rows
+- V3 resource-margin review/import handoffs require all 22 identity, margin,
+  threshold, timing, review, and provenance fields to stay source exact across
+  direct and review-derived Cadence rows
 - an executable registry-derived coverage guard confirms all 33 current
   resource/contact/station/link/provider contracts have curated artifact
   reference fixtures and automatically scopes future matching contracts

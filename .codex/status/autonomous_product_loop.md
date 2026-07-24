@@ -5,28 +5,24 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Complete source-exact resource-filter margin and training context.
+Complete source-exact resource-margin context.
 
 Status:
 Verified; ready to publish.
 
 Selection evidence:
-- Resource-filter margin risks normalize field-specific values and thresholds
-  into generic `resource_margin_value` and `resource_margin_threshold` keys,
-  while family context extraction still reads only pre-normalization keys.
-- Resource-filter margin events carry operator-training count/roles, but the
-  risk normalizer and recommendation context omit both fields.
-- The remaining bounded subset is 12 of 27 declared resource-filter context
-  fields: five value/threshold pairs plus training count and roles.
+- The shared recommendation fixture emits all `22/22` declared resource-margin
+  context fields across fuel, power, storage, downlink, and thermal risks.
+- Resource-margin context is declared and copied into review/import rows but is
+  absent from the strategy handoff validator's source-pair registry and has no
+  field-specific mutation proofs.
 
 Intended behavior:
-- Recover each field-specific margin value/threshold from normalized generic
-  risk evidence without mixing values across resource fields.
-- Preserve operator-training requirement counts and roles through event-to-risk
-  normalization.
-- Require all 12 fields to remain exact in operator review, direct Cadence
-  import, and review-derived Cadence rows, retaining paired legacy omission
-  compatibility for optional source fields.
+- Require all 22 resource-margin identity, value/threshold, timing, review,
+  status, and provenance fields to remain exact in operator review, direct
+  Cadence import, and review-derived Cadence rows.
+- Reject missing or stale derived context while retaining paired legacy
+  omission compatibility for optional source fields.
 - Preserve provider and Cadence writes, reservation acceptance, operator
   authority, and execution boundaries.
 
@@ -34,41 +30,40 @@ Level 6 pillar advanced:
 Fleet-scale planning decisions and durable reproducible audit handoffs.
 
 Planned files:
-- resource-margin risk normalization and resource-filter context
-- fixture, mutation/schema proofs, docs, exports, and ledger
+- strategy handoff validation contracts
+- mutation/schema proofs, docs, exports, and ledger
 
 Verification:
-- Focused handoff contracts: `440 passed`.
-- Adjacent normalization, resource-filter, and review/import contracts:
-  `13 passed`.
+- Focused handoff contracts: `462 passed`.
+- Adjacent resource-margin, resource-filter, operator-review, and Cadence-import
+  contracts: `33 passed`.
 - Contact-allocation regression: `213 passed`.
 - Golden artifacts: `12 passed`.
 - Schema lint: `155/155` artifacts passed with zero warnings.
-- Full suite: `4329 passed`.
+- Full suite: `4351 passed`.
 - Canonical strategy SHA-256 remained
   `c13c37c2ae06849c5d8a49cecaf1c113e0ddcf653c34d32f751efd6815891887`.
-- Exact-copy coverage advanced from `15/27` to `27/27` resource-filter
+- Exact-copy coverage advanced from `0/22` to `22/22` resource-margin
   context fields.
 
 Review:
-- Resource-margin risk normalization now retains suppression/trust context and
-  operator-training counts/roles carried by resource-filter events.
-- Field-aware extraction recovers each normalized generic margin value and
-  threshold only for its matching fuel, power, storage, downlink, or thermal
-  resource field; values cannot leak across margin families.
-- The shared fixture covers all five margin families and preserves their valid
-  contribution to the generic resource-margin aggregate.
-- Mutation proofs cover all 12 new copies, missing review context, paired
-  legacy omission, stale direct context, and missing/stale review-derived
-  context; the prior 15 availability/common fields remain covered.
-- Schema exports and the canonical strategy artifact are unchanged.
+- Strategy recommendation handoff validation now derives and compares all 22
+  resource-margin context fields from the source recommendation risks.
+- Mutation proofs cover every direct and review-derived copy, missing review
+  context, paired legacy omission, stale direct context, and missing/stale
+  review-derived context.
+- The paired-omission fixture now recomputes overlapping resource-filter and
+  resource-margin aggregates after source mutation, preventing one valid
+  legacy omission from leaving the other derived family stale.
+- Schema exports and the canonical strategy artifact are unchanged because the
+  fields were already declared and emitted.
 - Safety boundaries remain explicit: no provider request or reservation,
   schedule mutation, Cadence write, operator authority, or autonomous
   execution was added.
 
 Last published slice:
-- `f08de6ae` Validate resource filter availability handoffs (`4317 passed`,
-  `15/27`).
+- `133228c2` Complete resource filter handoff coverage (`4329 passed`,
+  `27/27`).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions while preserving explicit
@@ -79,7 +74,7 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-Reassess the next highest-value maturity gap after `27/27` resource-filter
+Reassess the next highest-value maturity gap after `22/22` resource-margin
 coverage.
 
 Blocked:

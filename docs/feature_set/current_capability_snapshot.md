@@ -62,7 +62,9 @@ Implemented or partially implemented modules and artifacts include:
   Strategy recommendation review/import handoffs also require all 27 resource-
   filter availability, margin, operator-training, identity, timing, status,
   value, and provenance fields to stay source exact across direct and review-
-  derived Cadence rows.
+  derived Cadence rows. The parallel resource-margin context preserves all 22
+  field/value, threshold, timing, review, identity, and provenance fields with
+  the same source-exact guarantees.
 - Operational readiness and quality artifacts: readiness, import-eligibility,
   execution-boundary, quality-gate, safety-case, model-acceptance,
   schema-validation, validation-fixture, operator-training, and unavailable
