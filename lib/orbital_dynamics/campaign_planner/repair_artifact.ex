@@ -148,6 +148,10 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairArtifact do
       RepairSourceReports.constraint(request.candidate_refresh)
     )
     |> put_source_report(
+      "source_objective_satisfaction_report",
+      RepairSourceReports.objective_satisfaction(request.candidate_refresh)
+    )
+    |> put_source_report(
       "source_resource_filter_report",
       RepairSourceReports.resource_filter(request.candidate_refresh)
     )

@@ -264,6 +264,9 @@ V2 repair `operator_review_package.v1` now emits:
 - CandidateRefresh source constraint fail/warning rows, preserving exact
   upstream scenario, threshold, value, score, and status evidence beside the
   recomputed repaired-plan report without changing feasibility or scoring.
+- CandidateRefresh source objective-satisfaction gap rows, preserving exact
+  upstream objective, target, count, selected/candidate identity, and status
+  evidence without changing objective evaluation, scores, or ranking.
 - Repaired-plan and CandidateRefresh source link-capacity review rows,
   preserving the upstream report independently from the recomputed repair
   report without applying another scoring effect.

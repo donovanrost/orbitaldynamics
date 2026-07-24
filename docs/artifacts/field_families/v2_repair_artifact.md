@@ -444,6 +444,11 @@ focused repair-action regressions.
   `constraint_report.v1` independently from the recomputed repaired-plan
   report, validates it at `source_constraint_report`, and routes exact non-pass
   rows into review-gated Cadence import without changing feasibility or scores.
+- **Source objective-satisfaction report** — V2 preserves CandidateRefresh's
+  upstream `objective_satisfaction_report.v1`, validates it at
+  `source_objective_satisfaction_report`, and routes exact partial, unmet, and
+  no-candidate-window rows into review-gated Cadence import without changing
+  objective evaluation, scores, or ranking.
 - **Timeline-diff report** also exposes status/action/changed-field count maps,
   duplicate timeline-identity counts, and model limits from the checked-in
   fixture.

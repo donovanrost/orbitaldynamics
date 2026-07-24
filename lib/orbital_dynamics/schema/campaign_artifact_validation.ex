@@ -239,6 +239,8 @@ defmodule OrbitalDynamics.Schema.CampaignArtifactValidation do
         &DecisionSupportValidation.validate_optional_constraint_report/2,
       validate_optional_source_constraint_report:
         &DecisionSupportValidation.validate_optional_constraint_report_at/3,
+      validate_optional_source_objective_satisfaction_report:
+        &DecisionSupportValidation.validate_optional_objective_satisfaction_report_at/3,
       validate_optional_contact_allocation_report:
         &ContactAllocationValidation.validate_optional_report/2,
       validate_optional_score_term_report:

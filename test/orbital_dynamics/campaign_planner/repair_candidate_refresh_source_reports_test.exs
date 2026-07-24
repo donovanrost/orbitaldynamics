@@ -27,6 +27,11 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
       |> File.read!()
       |> :json.decode()
 
+    source_objective_satisfaction_report =
+      "study_results/objective_satisfaction_report_v1.json"
+      |> File.read!()
+      |> :json.decode()
+
     candidate_diff_report =
       candidate_diff_report()
       |> update_in(["invalidated_candidates", Access.at(0)], fn candidate ->
@@ -89,6 +94,10 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
           |> Map.put("source_link_capacity_report", source_link_capacity_report)
           |> Map.put("source_station_reservation_report", source_station_reservation_report)
           |> Map.put("source_constraint_report", source_constraint_report)
+          |> Map.put(
+            "source_objective_satisfaction_report",
+            source_objective_satisfaction_report
+          )
           |> Map.put("source_quality_gate_report", passive_quality_gate_report())
           |> Map.put("operational_feedback", %{
             "station_throughput_factor" => %{"equator_prime" => 0.5}
@@ -428,6 +437,55 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
                artifact["cadence_import_manifest"]["rows"],
                &(&1["source"] == "campaign_repair.source_constraint_report.rows" and
                    &1["scenario_id"] == "dispersion_2")
+             )
+
+    assert artifact["source_objective_satisfaction_report"] ==
+             source_objective_satisfaction_report
+
+    assert %{
+             "review_type" => "objective_satisfaction_review",
+             "source" => "campaign_repair.source_objective_satisfaction_report.rows",
+             "subject_id" => "objective:target_coverage",
+             "objective" => "target_coverage",
+             "objective_status" => "partial",
+             "required_count" => 2,
+             "candidate_count" => 1,
+             "selected_count" => 1,
+             "satisfied_count" => 1,
+             "candidate_target_ids" => ["target_a"],
+             "selected_target_ids" => ["target_a"],
+             "source_objective_satisfaction" => %{
+               "id" => "objective:target_coverage",
+               "status" => "partial"
+             }
+           } =
+             Enum.find(
+               artifact["operator_review_package"]["rows"],
+               &(&1["source"] ==
+                   "campaign_repair.source_objective_satisfaction_report.rows" and
+                   &1["objective"] == "target_coverage")
+             )
+
+    assert %{
+             "import_action" => "review_objective_satisfaction",
+             "source_review_type" => "objective_satisfaction_review",
+             "subject_id" => "objective:target_coverage",
+             "objective" => "target_coverage",
+             "objective_status" => "partial",
+             "required_count" => 2,
+             "candidate_count" => 1,
+             "selected_count" => 1,
+             "satisfied_count" => 1,
+             "import_status" => "review_required_before_import",
+             "source_review_row" => %{
+               "source" => "campaign_repair.source_objective_satisfaction_report.rows"
+             }
+           } =
+             Enum.find(
+               artifact["cadence_import_manifest"]["rows"],
+               &(get_in(&1, ["source_review_row", "source"]) ==
+                   "campaign_repair.source_objective_satisfaction_report.rows" and
+                   &1["objective"] == "target_coverage")
              )
 
     assert %{

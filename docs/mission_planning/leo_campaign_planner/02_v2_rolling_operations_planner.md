@@ -284,8 +284,9 @@ schema-type their stable IDs, invalid-input flags, and protected/change counts.
 - `source_contact_filter_report`, `source_contact_allocation_report`,
   `source_contact_contention_report`,
   `source_contact_contention_resolution_report`, `source_link_capacity_report`,
-  `source_station_reservation_report`, `source_constraint_report`, and
-  `source_resource_filter_report` when present on the refresh artifact,
+  `source_station_reservation_report`, `source_constraint_report`,
+  `source_objective_satisfaction_report`, and `source_resource_filter_report`
+  when present on the refresh artifact,
   preserving candidate suppression reasons, allocated/deferred contact review
   rows, exact conflict-group/invalid-input evidence, exact selected/deferred
   contention recommendations, allocation reservation evidence, and spacecraft
@@ -294,8 +295,10 @@ schema-type their stable IDs, invalid-input flags, and protected/change counts.
   repaired-plan report, and the station-reservation source remains distinct
   from the repair-time station calendar; both are review-only. The source
   constraint report likewise remains distinct from repaired-plan constraint
-  evaluation and does not alter feasibility or scoring. The contention and
-  resolution handoffs do not suppress candidates or alter schedules. If
+  evaluation and does not alter feasibility or scoring. Source objective-
+  satisfaction evidence remains review-only and does not change repair scores
+  or ranking. The contention and resolution handoffs do not suppress
+  candidates or alter schedules. If
   an otherwise viable replacement candidate is named exactly in a preserved
   recommendation's `deferred_contact_ids`, replacement ranking applies one
   calibrated `risk_weight` unit and records the contributing resolution group

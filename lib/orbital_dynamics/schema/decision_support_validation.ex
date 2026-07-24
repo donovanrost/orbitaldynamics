@@ -227,6 +227,15 @@ defmodule OrbitalDynamics.Schema.DecisionSupportValidation do
         validate_contract
       )
 
+  def validate_optional_objective_satisfaction_report_at(issues, path, report),
+    do:
+      validate_optional_report(
+        issues,
+        report,
+        path,
+        &validate_objective_satisfaction_report([], path, &1)
+      )
+
   def validate_optional_branch_comparison_report(issues, report),
     do:
       validate_optional_branch_comparison_report(
