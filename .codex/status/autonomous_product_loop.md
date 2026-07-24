@@ -5,21 +5,21 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Enforce source-exact objective-satisfaction priority and observation geometry.
+Enforce source-exact objective-satisfaction observation-quality evidence.
 
 Status:
 Verified; ready to publish.
 
 Selection evidence:
-- Objective-satisfaction pressure has `17/50` exact-copy fields.
-- Priority, latitude, longitude, and minimum elevation exist in the source
-  observation event but are dropped at the observation-feedback boundary.
+- Objective-satisfaction pressure has `21/50` exact-copy fields.
+- Observation success, imagery quality, and cloud/blur evidence survives
+  projection, while its quality-feedback source is dropped at that boundary.
 
 Intended behavior:
-- Preserve priority and observation geometry through observation feedback.
-- Declare four numeric arrays requiring exact copies in operator review, direct
-  Cadence import, and review-derived Cadence rows.
-- Reject missing or stale derived priority/geometry context; retain
+- Preserve the quality-feedback source through observation projection.
+- Declare seven numeric/string arrays requiring exact quality-evidence copies
+  in operator review, direct Cadence import, and review-derived Cadence rows.
+- Reject missing or stale derived observation-quality context; retain
   paired legacy omission compatibility for optional source fields.
 - Preserve provider and Cadence writes, reservation acceptance, operator
   authority, and execution boundaries.
@@ -29,38 +29,36 @@ Fleet-scale planning decisions and durable reproducible audit handoffs.
 
 Planned files:
 - observation-feedback projection and objective-satisfaction validation schemas
-- priority/geometry mutation, schema and golden proofs, docs, exports, canonical
-  artifact if changed, and ledger
+- quality-evidence mutation/schema proofs, docs, exports, canonical artifact if
+  changed, and ledger
 
 Verification:
-- Focused handoff and schema contracts: `400 passed`.
+- Focused handoff and schema contracts: `407 passed`.
 - Contact-allocation regression: `213 passed`.
 - Golden artifacts: `12 passed`.
 - Schema lint: `155/155` artifacts passed with zero warnings.
-- Full suite: `4273 passed`.
-- Canonical strategy SHA-256 advanced intentionally to
+- Full suite: `4280 passed`.
+- Canonical strategy SHA-256 remained
   `c13c37c2ae06849c5d8a49cecaf1c113e0ddcf653c34d32f751efd6815891887`.
-- Exact-copy coverage advanced from `17/50` to `21/50`
+- Exact-copy coverage advanced from `21/50` to `28/50`
   objective-satisfaction fields.
 
 Review:
-- Observation feedback now preserves exactly the priority and geometry values
-  its source event carries.
-- Public schemas use numeric arrays consistently across operator review,
+- Observation feedback now preserves the quality-feedback source carried by
+  its source event; the other six quality fields needed no adapter change.
+- Public schemas use numeric/string arrays consistently across operator review,
   direct import, and source-review rows.
-- Mutation proofs cover all four copies, missing review context, paired legacy
+- Mutation proofs cover all seven copies, missing review context, paired legacy
   omission, stale direct context, and missing/stale review-derived context.
-- Generated changes are limited to the expected ten schema artifacts.
-- The canonical diff adds `priority: 12` to two derived branch risk indicators
-  and updates five content-derived IDs; branch count, recommendation, ordering,
-  scores, and schedules are unchanged.
+- Generated changes are limited to the expected ten schema artifacts; the
+  canonical strategy artifact is unchanged.
 - Safety boundaries remain explicit: no provider request or reservation,
   schedule mutation, Cadence write, operator authority, or autonomous
   execution was added.
 
 Last published slice:
-- `776c4cc9` Validate objective satisfaction timing and demand (`4269 passed`,
-  `17/50`).
+- `b90fd003` Validate objective satisfaction observation geometry (`4273 passed`,
+  `21/50`).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions while preserving explicit
@@ -71,7 +69,7 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-Assess objective-satisfaction observation-quality evidence.
+Assess objective-satisfaction source-activity and provenance evidence.
 
 Blocked:
 None.

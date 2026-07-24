@@ -347,7 +347,21 @@ defmodule OrbitalDynamics.Schema.StrategyHandoffContracts do
     {"objective_satisfaction_pressure_longitude_values_deg",
      "objective_satisfaction_pressure_longitude_values_deg"},
     {"objective_satisfaction_pressure_minimum_elevation_values_deg",
-     "objective_satisfaction_pressure_minimum_elevation_values_deg"}
+     "objective_satisfaction_pressure_minimum_elevation_values_deg"},
+    {"objective_satisfaction_pressure_observation_success_factor_values",
+     "objective_satisfaction_pressure_observation_success_factor_values"},
+    {"objective_satisfaction_pressure_image_quality_score_values",
+     "objective_satisfaction_pressure_image_quality_score_values"},
+    {"objective_satisfaction_pressure_image_quality_statuses",
+     "objective_satisfaction_pressure_image_quality_statuses"},
+    {"objective_satisfaction_pressure_image_quality_sources",
+     "objective_satisfaction_pressure_image_quality_sources"},
+    {"objective_satisfaction_pressure_cloud_cover_fraction_values",
+     "objective_satisfaction_pressure_cloud_cover_fraction_values"},
+    {"objective_satisfaction_pressure_blur_score_values",
+     "objective_satisfaction_pressure_blur_score_values"},
+    {"objective_satisfaction_pressure_quality_feedback_sources",
+     "objective_satisfaction_pressure_quality_feedback_sources"}
   ]
   @objective_tradeoff_context_field_pairs [
     {"objective_tradeoff_pressure_risk_types", "objective_tradeoff_pressure_risk_types"},

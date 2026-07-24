@@ -2329,6 +2329,83 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
     )
   end
 
+  test "objective-satisfaction observation success remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "objective_satisfaction_pressure_observation_success_factor_values",
+      {"feedback_scope", "objective_satisfaction"},
+      "observation_success_factor",
+      [0.35],
+      [0.36]
+    )
+  end
+
+  test "objective-satisfaction image quality score remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "objective_satisfaction_pressure_image_quality_score_values",
+      {"feedback_scope", "objective_satisfaction"},
+      "image_quality_score",
+      [0.42],
+      [0.43]
+    )
+  end
+
+  test "objective-satisfaction image quality status remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "objective_satisfaction_pressure_image_quality_statuses",
+      {"feedback_scope", "objective_satisfaction"},
+      "image_quality_status",
+      ["marginal"],
+      ["stale_quality_status"]
+    )
+  end
+
+  test "objective-satisfaction image quality source remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "objective_satisfaction_pressure_image_quality_sources",
+      {"feedback_scope", "objective_satisfaction"},
+      "image_quality_source",
+      ["provider_imagery_quality"],
+      ["stale_imagery_source"]
+    )
+  end
+
+  test "objective-satisfaction cloud cover remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "objective_satisfaction_pressure_cloud_cover_fraction_values",
+      {"feedback_scope", "objective_satisfaction"},
+      "cloud_cover_fraction",
+      [0.62],
+      [0.63]
+    )
+  end
+
+  test "objective-satisfaction blur score remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "objective_satisfaction_pressure_blur_score_values",
+      {"feedback_scope", "objective_satisfaction"},
+      "blur_score",
+      [0.31],
+      [0.32]
+    )
+  end
+
+  test "objective-satisfaction quality feedback source remains exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "objective_satisfaction_pressure_quality_feedback_sources",
+      {"feedback_scope", "objective_satisfaction"},
+      "quality_feedback_source",
+      ["mission_state.source_imagery_quality.rows"],
+      ["stale_quality_feedback_source"]
+    )
+  end
+
   test "objective-tradeoff risk type remains source exact across handoffs" do
     assert_risk_context_contract(
       StrategyRecommendationPressureEventsFixture.artifact(),

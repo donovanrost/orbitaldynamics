@@ -184,6 +184,7 @@ defmodule OrbitalDynamics.CampaignPlanner.EventRiskIndicator.OperationalFeedback
         "image_quality_source" => event["image_quality_source"],
         "cloud_cover_fraction" => event["cloud_cover_fraction"],
         "blur_score" => event["blur_score"],
+        "quality_feedback_source" => event["quality_feedback_source"],
         "status_transition" => event["status_transition"],
         "transition_type" => event["transition_type"],
         "transition_category" => event["transition_category"],
