@@ -5,58 +5,59 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Enforce source-exact station-reservation-conflict state and deadline context.
+Enforce source-exact station-reservation-conflict provenance.
 
 Status:
 Verified; publish pending.
 
 Selection evidence:
-- The selected conflict risk carries owner `ops_team_b`, reservation status
-  `confirmed`, match status `overlap`, and expiry `360.0` seconds across all four
-  handoff copies.
-- All four lists survive projection; expiration classification and routing are
-  exact today, while state/deadline schemas and validation remain absent.
+- The selected conflict risk carries derivation reason
+  `contact_allocation_reservation_conflict`, feedback source
+  `mission_state.source_contact_allocation_reservation_conflict_summary`, scope
+  `contact_allocation`, and trust boundary
+  `mission_state_reservation_conflict_summary` across all four handoff copies.
+- All four lists survive projection; routing, state/deadline, and expiration
+  context are exact today, while provenance schemas and validation are absent.
 
 Intended behavior:
-- Declare three string arrays and one numeric array requiring exact source-derived copies in
+- Declare four string arrays requiring exact source-derived copies in
   review/direct/review-derived Cadence rows.
-- Reject missing or stale derived conflict state/deadline context; retain paired
+- Reject missing or stale derived conflict provenance; retain paired
   legacy omission compatibility for optional source fields.
-- Preserve conflict detection, expiration classification, provider/reservation
-  authority, operator authority, and execution boundaries.
+- Preserve conflict detection, provider/reservation authority, operator
+  authority, and execution boundaries.
 
 Level 6 pillar advanced:
 Fleet-scale planning decisions and durable reproducible audit handoffs.
 
 Planned files:
 - station-reservation-conflict validation and review/import schemas
-- state/deadline mutation/schema proofs, docs, exports, and ledger
+- provenance mutation/schema proofs, docs, exports, and ledger
 
 Verification:
-- Focused handoff/schema proof: `148 passed`.
+- Focused handoff/schema proof: `152 passed`.
 - Contact-allocation regression: `213 passed`.
 - Golden artifact regression: `12 passed`.
 - Schema lint: `155` artifacts, `0` errors, `0` warnings.
-- Full suite: `4020 passed`.
+- Full suite: `4024 passed`.
 - Canonical strategy SHA-256 remained
   `f7fc7823d071db82124af4b903e5be730983d1d9cb96f4524c711041c750ca1c`.
 - Ten expected generated schema surfaces changed; format and
   `git diff --check` passed.
 
 Review:
-- Exact-copy checks cover owner, reservation status, match status, and numeric
-  deadline across operator review, direct selected Cadence import, and
+- Exact-copy checks cover derivation reason, feedback source/scope, and trust
+  boundary across operator review, direct selected Cadence import, and
   review-derived import, including missing, stale, and paired legacy omission
   mutations.
-- All three public row schemas and generated exports agree on three string
-  arrays and one numeric array; the existing expiration classification remains
-  separately source-exact.
-- State/deadline evidence grants no authority; conflict detection, expiration
-  classification, provider requests, reservation/schedule mutation, Cadence
-  writes, operator authority, and autonomous execution remain unchanged.
+- All three public row schemas and generated exports agree on four string arrays;
+  all 13 station-reservation-conflict context keys now have exact contracts.
+- Provenance evidence grants no authority; conflict detection, provider requests,
+  reservation/schedule mutation, Cadence writes, operator authority, and
+  autonomous execution remain unchanged.
 
 Last published slice:
-- `9884d093` Validate station conflict routing identity (`4016 passed`).
+- `39101971` Validate station conflict state context (`4020 passed`).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions while preserving explicit
@@ -67,7 +68,7 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-Assess source-exact station-reservation-conflict provenance.
+Assess the next uncovered recommendation-risk family.
 
 Blocked:
 None.

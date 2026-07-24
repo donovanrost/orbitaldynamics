@@ -51,7 +51,15 @@ defmodule OrbitalDynamics.Schema.StrategyHandoffContracts do
     {"station_reservation_conflict_expires_at_values_s",
      "station_reservation_conflict_expires_at_values_s"},
     {"station_reservation_conflict_expiration_statuses",
-     "station_reservation_conflict_expiration_statuses"}
+     "station_reservation_conflict_expiration_statuses"},
+    {"station_reservation_conflict_derivation_reasons",
+     "station_reservation_conflict_derivation_reasons"},
+    {"station_reservation_conflict_feedback_sources",
+     "station_reservation_conflict_feedback_sources"},
+    {"station_reservation_conflict_feedback_scopes",
+     "station_reservation_conflict_feedback_scopes"},
+    {"station_reservation_conflict_trust_boundaries",
+     "station_reservation_conflict_trust_boundaries"}
   ]
   @station_reservation_hold_expiration_context_field_pairs [
     {"station_reservation_hold_expiration_statuses",
