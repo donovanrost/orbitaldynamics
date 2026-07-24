@@ -269,7 +269,11 @@ defmodule OrbitalDynamics.Schema.StrategyHandoffContracts do
     {"score_term_pressure_target_ids", "score_term_pressure_target_ids"},
     {"score_term_pressure_scenario_ids", "score_term_pressure_scenario_ids"},
     {"score_term_pressure_branch_ids", "score_term_pressure_branch_ids"},
-    {"score_term_pressure_ground_station_ids", "score_term_pressure_ground_station_ids"}
+    {"score_term_pressure_ground_station_ids", "score_term_pressure_ground_station_ids"},
+    {"score_term_pressure_collection_ids", "score_term_pressure_collection_ids"},
+    {"score_term_pressure_product_ids", "score_term_pressure_product_ids"},
+    {"score_term_pressure_payload_ids", "score_term_pressure_payload_ids"},
+    {"score_term_pressure_instrument_ids", "score_term_pressure_instrument_ids"}
   ]
   @station_reservation_conflict_context_field_pairs [
     {"station_reservation_conflict_contact_ids", "station_reservation_conflict_contact_ids"},

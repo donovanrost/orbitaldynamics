@@ -1770,6 +1770,50 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
     )
   end
 
+  test "score-term collection identity remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "score_term_pressure_collection_ids",
+      {"feedback_scope", "score_term"},
+      ["collection_id", "collection_ids"],
+      ["collection_score_alpha", "collection_score_beta"],
+      ["stale_collection_score"]
+    )
+  end
+
+  test "score-term product identity remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "score_term_pressure_product_ids",
+      {"feedback_scope", "score_term"},
+      ["product_id", "product_ids"],
+      ["product_score_alpha", "product_score_beta"],
+      ["stale_product_score"]
+    )
+  end
+
+  test "score-term payload identity remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "score_term_pressure_payload_ids",
+      {"feedback_scope", "score_term"},
+      ["payload_id", "payload_ids"],
+      ["payload_score_alpha", "payload_score_beta"],
+      ["stale_payload_score"]
+    )
+  end
+
+  test "score-term instrument identity remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "score_term_pressure_instrument_ids",
+      {"feedback_scope", "score_term"},
+      ["instrument_id", "instrument_ids"],
+      ["instrument_score_alpha", "instrument_score_beta"],
+      ["stale_instrument_score"]
+    )
+  end
+
   test "station conflict expiration risk context remains source exact across handoffs" do
     assert_risk_expiration_context_contract(
       StrategyRecommendationPressureEventsFixture.artifact(),
