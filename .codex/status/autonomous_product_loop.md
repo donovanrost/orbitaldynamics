@@ -5,21 +5,21 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Enforce source-exact link-capacity risk routing.
+Enforce source-exact link-capacity demand and timing.
 
 Status:
 Verified; ready to publish.
 
 Selection evidence:
-- Contact-filter is complete at `27/27`, exposing adjacent link-capacity context
-  as the next fleet-scale communication handoff gap.
-- Its 23 fields lack source-exact/public contracts; risk type plus station,
-  activity, and window identity already survive event-risk projection.
+- Link-capacity routing now covers `4/23` fields, leaving six unvalidated
+  demand/timing fields before throughput state and provenance.
+- Required/planned contact and downlink demand plus start/end bounds already
+  survive the event-risk adapter but lack source-exact/public contracts.
 
 Intended behavior:
-- Declare one risk-type and three stable-ID arrays requiring exact copies in
+- Declare six numeric arrays requiring exact copies in
   review/direct/review-derived Cadence rows.
-- Reject missing or stale derived link-capacity routing; retain paired
+- Reject missing or stale derived link-capacity demand/timing; retain paired
   legacy omission compatibility for optional source fields.
 - Preserve provider and Cadence writes, reservation acceptance, operator
   authority, and execution boundaries.
@@ -29,24 +29,24 @@ Fleet-scale planning decisions and durable reproducible audit handoffs.
 
 Planned files:
 - link-capacity validation and review/import schemas
-- routing mutation/schema proofs, docs, exports, and ledger
+- demand/timing mutation/schema proofs, docs, exports, and ledger
 
 Verification:
-- Focused handoff/schema contracts: `289 passed`.
+- Focused handoff/schema contracts: `295 passed`.
 - Contact-allocation regression: `213 passed`.
 - Golden artifacts: `12 passed`.
 - Schema lint: `155` artifacts, `0` errors, `0` warnings.
-- Full suite: `4162 passed`.
+- Full suite: `4168 passed`.
 - Canonical strategy SHA-256 remains
   `f7fc7823d071db82124af4b903e5be730983d1d9cb96f4524c711041c750ca1c`.
 
 Review:
-- Link-capacity routing now covers `4/23` fields across operator review, direct
+- Link-capacity coverage reaches `10/23` fields across operator review, direct
   Cadence import, and review-derived import.
-- All four selected source fields already survived event-risk projection; no
+- All six selected source fields already survived event-risk projection; no
   adapter repair was needed.
-- Public schemas type the risk value as a string array and all three identities
-  as stable-ID arrays; aggregate export-shape proofs cover every field.
+- Public schemas type required/planned contact and downlink demand plus start/end
+  bounds as numeric arrays; aggregate export-shape proofs cover every field.
 - Shared mutation coverage proves missing review context, paired legacy
   omission, stale direct context, and missing/stale review-derived context.
 - Diff is limited to validation/schema surfaces, focused proofs, docs, ten
@@ -55,7 +55,7 @@ Review:
   operator-authority grant, or execution path was introduced.
 
 Last published slice:
-- `8398a201` Validate contact filter provenance (`4158 passed`, `27/27`).
+- `97b693fa` Validate link capacity routing (`4162 passed`, `4/23`).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions while preserving explicit
@@ -66,7 +66,7 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-Assess link-capacity demand and timing context.
+Assess link-capacity selected and realized throughput state.
 
 Blocked:
 None.

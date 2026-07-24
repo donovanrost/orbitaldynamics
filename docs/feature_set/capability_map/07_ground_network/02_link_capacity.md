@@ -428,12 +428,13 @@ so actual delivery evidence remains visible even when no stable contact ID is
 available. Actual-throughput evidence contributes to the composed downlink and
 storage/downlink pressure flags without being classified as shortfall pressure.
 
-Link-capacity pressure recommendation rows preserve canonical risk type plus
-ground-station, source-activity, and source-window identity across operator
-review, direct Cadence import, and review-derived import copies. Executable
-validation rejects missing or stale derived routing while paired legacy
-omission remains compatible; the evidence remains descriptive and cannot grant
-operator authority, reserve station time, or mutate a schedule.
+Link-capacity pressure recommendation rows preserve canonical risk type;
+ground-station, source-activity, and source-window identity; required/planned
+contact and downlink demand; and start/end bounds across operator review, direct
+Cadence import, and review-derived import copies. Executable validation rejects
+missing or stale derived routing, demand, or timing while paired legacy omission
+remains compatible; the evidence remains descriptive and cannot grant operator
+authority, reserve station time, or mutate a schedule.
 
 `LinkCapacity.capabilities/0` advertises the accepted actual-throughput aliases
 (`actual_throughput_mb`, `actual_downlink_mb`, `actual_data_volume_mb`,

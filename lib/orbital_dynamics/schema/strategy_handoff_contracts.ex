@@ -225,6 +225,16 @@ defmodule OrbitalDynamics.Schema.StrategyHandoffContracts do
   @link_capacity_context_field_pairs [
     {"link_capacity_pressure_risk_types", "link_capacity_pressure_risk_types"},
     {"link_capacity_pressure_ground_station_ids", "link_capacity_pressure_ground_station_ids"},
+    {"link_capacity_pressure_required_contact_values",
+     "link_capacity_pressure_required_contact_values"},
+    {"link_capacity_pressure_planned_contact_values",
+     "link_capacity_pressure_planned_contact_values"},
+    {"link_capacity_pressure_required_downlink_values_mb",
+     "link_capacity_pressure_required_downlink_values_mb"},
+    {"link_capacity_pressure_planned_downlink_values_mb",
+     "link_capacity_pressure_planned_downlink_values_mb"},
+    {"link_capacity_pressure_start_values_s", "link_capacity_pressure_start_values_s"},
+    {"link_capacity_pressure_end_values_s", "link_capacity_pressure_end_values_s"},
     {"link_capacity_pressure_source_activity_ids", "link_capacity_pressure_source_activity_ids"},
     {"link_capacity_pressure_source_window_ids", "link_capacity_pressure_source_window_ids"}
   ]

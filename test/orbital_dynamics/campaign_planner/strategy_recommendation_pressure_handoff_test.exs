@@ -1451,6 +1451,72 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
     )
   end
 
+  test "link-capacity required-contact demand remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "link_capacity_pressure_required_contact_values",
+      {"ground_station_id", "equator_prime"},
+      "required_contacts",
+      [1],
+      [2]
+    )
+  end
+
+  test "link-capacity planned-contact demand remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "link_capacity_pressure_planned_contact_values",
+      {"ground_station_id", "equator_prime"},
+      "planned_contacts",
+      [0],
+      [1]
+    )
+  end
+
+  test "link-capacity required-downlink demand remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "link_capacity_pressure_required_downlink_values_mb",
+      {"ground_station_id", "equator_prime"},
+      "required_downlink_mb",
+      [45.0],
+      [46.0]
+    )
+  end
+
+  test "link-capacity planned-downlink demand remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "link_capacity_pressure_planned_downlink_values_mb",
+      {"ground_station_id", "equator_prime"},
+      "planned_downlink_mb",
+      [10.0],
+      [11.0]
+    )
+  end
+
+  test "link-capacity start bound remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "link_capacity_pressure_start_values_s",
+      {"ground_station_id", "equator_prime"},
+      "starts_at_s",
+      [1_020.0],
+      [1_019.0]
+    )
+  end
+
+  test "link-capacity end bound remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "link_capacity_pressure_end_values_s",
+      {"ground_station_id", "equator_prime"},
+      "ends_at_s",
+      [1_080.0],
+      [1_081.0]
+    )
+  end
+
   test "link-capacity source-activity identity remains source exact across handoffs" do
     assert_risk_context_contract(
       StrategyRecommendationPressureEventsFixture.artifact(),
