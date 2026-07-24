@@ -115,6 +115,17 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshAllocationFilter
            } = artifact["source_contact_contention_resolution_report"]
 
     assert %{
+             "schema_contract" => "contact_contention_report.v1",
+             "conflict_groups" => [
+               %{
+                 "id" => "station:equator_prime:contention:1",
+                 "contact_ids" => ["dl_refreshed", "dl_deferred"],
+                 "required_operator_action" => "review_contact_contention"
+               }
+             ]
+           } = artifact["source_contact_contention_report"]
+
+    assert %{
              "contact_id" => "dl_deferred",
              "allocation_status" => "deferred",
              "effective_allocation_status" => "deferred"
@@ -176,6 +187,15 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshAllocationFilter
 
     assert Enum.any?(
              artifact["operator_review_package"]["rows"],
+             &(&1["review_type"] == "contact_contention_review" and
+                 &1["source"] ==
+                   "campaign_repair.source_contact_contention_report.conflict_groups" and
+                 &1["subject_id"] == "station:equator_prime:contention:1" and
+                 &1["contact_ids"] == ["dl_refreshed", "dl_deferred"])
+           )
+
+    assert Enum.any?(
+             artifact["operator_review_package"]["rows"],
              &(&1["review_type"] == "contact_contention_recommendation" and
                  &1["source"] ==
                    "campaign_repair.source_contact_contention_resolution_report.recommendations" and
@@ -205,6 +225,15 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshAllocationFilter
                  &1["source_review_type"] == "contact_allocation_review" and
                  &1["contact_id"] == "dl_policy_blocked" and
                  &1["effective_allocation_status"] == "policy_blocked")
+           )
+
+    assert Enum.any?(
+             artifact["cadence_import_manifest"]["rows"],
+             &(&1["import_action"] == "review_contact_contention" and
+                 &1["source_review_type"] == "contact_contention_review" and
+                 &1["subject_id"] == "station:equator_prime:contention:1" and
+                 &1["contact_ids"] == ["dl_refreshed", "dl_deferred"] and
+                 &1["import_status"] == "review_required_before_import")
            )
 
     assert Enum.any?(

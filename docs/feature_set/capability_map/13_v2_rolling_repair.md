@@ -263,6 +263,9 @@ V2 repair `operator_review_package.v1` now emits:
 - Repair score-term and objective-tradeoff review rows.
 - Repaired-plan link-capacity review rows.
 - Repaired-plan and source contact-allocation review rows.
+- Source contact-contention conflict-group and invalid-input rows, preserving
+  the exact audit context for review-gated Cadence import without applying the
+  group evidence to candidate eligibility or schedules.
 - Source contact-contention resolution recommendation rows, preserving exact
   selected/deferred contact identities for review-gated Cadence import without
   applying the recommendation to candidate eligibility or schedules. Exact

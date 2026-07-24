@@ -128,6 +128,10 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairArtifact do
       RepairSourceReports.contact_allocation(request.candidate_refresh)
     )
     |> put_source_report(
+      "source_contact_contention_report",
+      RepairSourceReports.contact_contention(request.candidate_refresh)
+    )
+    |> put_source_report(
       "source_contact_contention_resolution_report",
       RepairSourceReports.contact_contention_resolution(request.candidate_refresh)
     )

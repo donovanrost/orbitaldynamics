@@ -5,32 +5,30 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Internalize exact V2 deferred-contention ranking pressure.
+Preserve V2 contact-contention evidence handoff.
 
 Status:
 Verified; ready to publish.
 
 Selection evidence:
-- Published V2 repair artifacts now preserve exact selected/deferred contact
-  identities and resolution group IDs from
-  `contact_contention_resolution_report.v1`.
-- Canonical allocation rows already remove deferred contacts from repair
-  candidates, but a direct resolution source can exist without equivalent
-  allocation suppression or can disagree with that source.
-- Current replacement ranking internalizes exact station, contact-intent,
-  link-capacity, and resource-projection evidence but remains neutral to an
-  otherwise viable candidate named explicitly in `deferred_contact_ids`.
+- CandidateRefresh already retains exact conflict groups and invalid contact
+  inputs in a schema-valid `contact_contention_report.v1`.
+- V2 repair now preserves the paired contention-resolution report but drops a
+  direct contention report unless it happens to remain nested inside a contact-
+  allocation envelope.
+- The existing operator-review/Cadence mapping can already lift the exact group
+  and invalid-input rows, so the missing V2 source path is a bounded audit and
+  compatibility gap rather than a reason to invent new planning behavior.
 
 Intended behavior:
-- Apply one calibrated `risk_weight` unit to an otherwise viable replacement
-  candidate only when its exact ID appears in a preserved resolution
-  recommendation's `deferred_contact_ids`.
-- Carry sorted unique resolution group IDs on pressured ranking rows, keep
-  selected/recommended and unrelated candidates neutral, and reconcile the
-  selected-plan score term to the same exact evidence.
-- Validate ranking evidence, penalty, final score, and exported schema shape
-  against `source_contact_contention_resolution_report`.
-- Preserve candidate eligibility, semantic-diff priority, provider writes,
+- Resolve the CandidateRefresh contention report from its source/canonical
+  field or either contact-allocation embedding and preserve it on V2 as
+  `source_contact_contention_report` without recomputation.
+- Validate the optional V2 source field against `contact_contention_report.v1`
+  and export its nested contract.
+- Reuse the existing conflict-group and invalid-input review/import mappings so
+  exact contention context remains visible after repair.
+- Preserve ranking, candidate eligibility, provider requests/reservations,
   schedule mutation, Cadence writes, operator authority, and autonomous
   execution behavior.
 
@@ -38,53 +36,55 @@ Level 6 pillar advanced:
 Fleet-scale planning decisions and durable reproducible audit handoffs.
 
 Planned files:
-- exact deferred-contact pressure extraction and V2 ranking/scoring wiring
-- V2 ranking, score, and JSON-schema reconciliation contracts
-- focused selection/neutrality/drift proofs, docs, exports, and ledger
+- V2 repair source-report resolution and artifact assembly
+- V2 schema validation, registry/type hints, and operator-review routing
+- focused repair/schema review-import proofs, docs, exports, and ledger
 
 Verification:
-- Focused extraction, selection, neutrality, scoring, schema, and drift proofs:
-  `3 passed`; focused fixture parity adds one adjacent proof (`4 passed`).
-- Expanded V2 repair and schema matrix: `158 passed`.
+- Focused source resolution, repair handoff, review/import, and schema proofs:
+  `7 passed`.
+- Adjacent repair, contention, operator-review, Cadence-import, and schema
+  contracts: `129 passed`.
 - Contact-allocation regression: `213 passed`.
 - Golden artifacts: `12 passed`.
 - Schema lint: `155/155` artifacts passed with zero warnings.
-- Full suite: `4852 passed`.
+- Full suite: `4857 passed`.
 - Schema regeneration changed only `campaign_repair.v2` and the aggregate
   bundle; the manifest schema remained unchanged.
-- Canonical repair SHA-256 remains
-  `564d0db6a61264c3a498f332b681933756b07f733d9b09afe8b80faa1cdb269b`.
-- Canonical strategy SHA-256 remains
-  `32bb9af131598458bba59ba3bb424b50ee685cde389277b4bf1004b98c1cde4f`;
-  its deterministic strategy ID remains
-  `109bd2594f43bdaa813f587392806114fdd28bf44281b4ff82dff36a8b6e8ee9`.
+- Canonical repair SHA-256 is
+  `867928e8aa95ba8473fffe017e7d1efda9d9e83799516a2a938ef7bb8c25f7fa`;
+  its deterministic repair ID remains
+  `2861de04a1feea9da43cee52e2ad6cdc7e6fcedf91dad323b67517b8cac87a0a`.
+- Canonical strategy SHA-256 is
+  `9e2e9bae5d1bef69f36ac288b7cb63a803960b14fc1edf4a841598aa2e947d91`;
+  its deterministic strategy ID is
+  `7fbc8347e361d95e7d43cde2a43c2a2ddbd4050420999c879587aba5cf18ee8b`.
 
 Review:
-- A shared extractor maps exact deferred contact IDs to sorted unique
-  resolution group IDs and counts unique selected deferred IDs. Duplicate
-  recommendation evidence does not multiply pressure.
-- Replacement ranking applies exactly one negative `risk_weight` unit when a
-  candidate ID has deferred evidence, carries the exact group IDs, and keeps an
-  ID named only as selected plus unrelated IDs neutral.
-- The focused selection proof shows a `10.0` deferred candidate losing to a
-  `9.8` neutral candidate at weight `1.0`, but still winning at weight `0.1`;
-  when it wins, the final score and score-term report carry the same `-0.1`
-  penalty. This proves advisory ranking rather than suppression.
-- Runtime and exported schemas accept the two new explanation fields as
-  optional for legacy compatibility. Once either current field appears, every
-  ranking row must carry the penalty, exact source-derived group evidence is
-  reconciled, and ranking/final-score drift is rejected.
-- The deterministic readiness fixture gained only the neutral `0.0` ranking
-  field with unchanged ranking score. Canonical V2/V3 artifacts, IDs, branch
-  choice, scores, review/import counts, and hashes remain unchanged because no
-  canonical selected candidate has otherwise viable deferred evidence.
-- Candidate eligibility and semantic-diff priority are unchanged. No provider
-  request/reservation, schedule mutation, Cadence write, operator authority, or
-  autonomous execution was added.
+- Repair source resolution accepts the direct canonical field, a collected
+  source field, or either contact-allocation embedding and preserves the first
+  exact report without recomputation.
+- The optional V2 field validates at its own source path against
+  `contact_contention_report.v1`; its exported property and nested contract are
+  present in both the standalone repair schema and bundle.
+- Existing contention mapping lifts exact conflict-group and invalid-contact-
+  input evidence into `contact_contention_review` rows and review-gated Cadence
+  import actions. The focused end-to-end proof pins the group identity and both
+  contact IDs across the V2 source, review, and import copies.
+- Canonical repair input carries zero conflict groups and invalid inputs, so its
+  score, review/import counts, and repair ID are unchanged. Twenty-five of 27
+  canonical strategy branch repairs preserve their available source report;
+  branches without CandidateRefresh evidence correctly omit the optional field.
+- The additive audit field changes deterministic repair/strategy content and
+  the derived strategy ID, so both canonical artifacts and the golden strategy
+  ID were regenerated together.
+- The source report is not read by replacement ranking, eligibility, or
+  scheduling code. No provider request/reservation, schedule mutation, Cadence
+  write, operator authority, or autonomous execution was added.
 
 Last published slice:
-- `b52e8986` Preserve V2 contention resolution handoff (`4849 passed`; exact
-  source report plus review/import handoff).
+- `39c9c29f` Score deferred contention evidence in V2 repair (`4852 passed`;
+  advisory exact-identity ranking and final-score pressure).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions while preserving explicit
@@ -95,8 +95,8 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-Reassess the next exact-identity allocation/resource or compatibility gap after
-the deferred-contention ranking effect is validated.
+After the paired contention evidence is durable, reassess the next exact-
+identity allocation/resource or compatibility gap.
 
 Blocked:
 None.

@@ -478,6 +478,11 @@ focused repair-action regressions.
   contact-allocation pressure also normalizes allocation, review/approval, and
   policy-classification status case/whitespace/hyphen variants before deriving
   deferred, blocked, or policy-blocked downlink pressure.
+- **V2 source contention reports** preserve the exact conflict groups and
+  invalid contact inputs alongside the paired resolution recommendations,
+  validate both source artifacts at their V2 paths, and route their existing
+  review rows into review-gated Cadence import without applying group evidence
+  to candidate eligibility or schedules.
 - **Standalone contention-resolution recommendations** can also feed
   branch-local refresh by converting deferred downlink recommendations into
   `downlink_completion_gap` events with selected contact, priority source,
