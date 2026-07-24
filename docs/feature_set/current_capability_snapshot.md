@@ -92,6 +92,9 @@ Implemented or partially implemented modules and artifacts include:
   emitted activity identity, transition, status, approval, protection, review,
   safety-assumption, and provenance fields without applying lifecycle state;
   invalid-input reasons remain unclaimed while the live risk emits none.
+  Timeline-preservation handoffs likewise preserve all 25 currently emitted
+  identity, protection, affected-activity, review, safety-assumption, and
+  provenance fields without applying preservation or mutating timelines.
 - Operational readiness and quality artifacts: readiness, import-eligibility,
   execution-boundary, quality-gate, safety-case, model-acceptance,
   schema-validation, validation-fixture, operator-training, and unavailable

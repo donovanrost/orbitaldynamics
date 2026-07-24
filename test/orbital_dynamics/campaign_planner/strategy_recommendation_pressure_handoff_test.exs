@@ -2195,6 +2195,34 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
     end
   end
 
+  @timeline_preservation_unemitted_context_fields [
+    "timeline_preservation_invalid_activity_input_reasons"
+  ]
+  @timeline_preservation_context_contracts OrbitalDynamics.RecommendationRiskContext.TimelinePreservation.field_pairs()
+                                           |> Enum.reject(fn {field, _source_fields} ->
+                                             field in @timeline_preservation_unemitted_context_fields
+                                           end)
+
+  for {field, source_fields} <- @timeline_preservation_context_contracts do
+    test "timeline-preservation #{field} remains source exact across handoffs" do
+      artifact = StrategyRecommendationPressureEventsFixture.artifact()
+
+      expected_value =
+        artifact["operator_review_package"]["rows"]
+        |> Enum.find(&(&1["review_type"] == "strategy_recommendation"))
+        |> Map.fetch!(unquote(field))
+
+      assert_risk_context_contract(
+        artifact,
+        unquote(field),
+        {"feedback_scope", "timeline_preservation"},
+        unquote(Macro.escape(source_fields)),
+        expected_value,
+        stale_context_value(expected_value)
+      )
+    end
+  end
+
   @operational_feedback_risk_types [
     "contact_success_rate_low",
     "observation_success_rate_low",
@@ -6275,7 +6303,8 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
         OrbitalDynamics.RecommendationRiskContext.RelayDataPath.context_keys() ++
         OrbitalDynamics.RecommendationRiskContext.ObjectiveSatisfaction.context_keys() ++
         OrbitalDynamics.RecommendationRiskContext.OperationalFeedback.context_keys() ++
-        OrbitalDynamics.RecommendationRiskContext.TimelineActivityLifecycleState.context_keys()
+        OrbitalDynamics.RecommendationRiskContext.TimelineActivityLifecycleState.context_keys() ++
+        OrbitalDynamics.RecommendationRiskContext.TimelinePreservation.context_keys()
 
     context =
       risks
@@ -6291,6 +6320,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
       |> Map.merge(
         OrbitalDynamics.RecommendationRiskContext.TimelineActivityLifecycleState.context(risks)
       )
+      |> Map.merge(OrbitalDynamics.RecommendationRiskContext.TimelinePreservation.context(risks))
 
     row
     |> Map.drop(context_keys)
