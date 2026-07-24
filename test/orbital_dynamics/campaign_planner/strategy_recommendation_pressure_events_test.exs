@@ -688,6 +688,8 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureEventsTe
              "station_calendar_entry_id" => "calendar_allocation_deferred",
              "station_calendar_entry_status" => "reserved",
              "station_calendar_directions" => ["downlink"],
+             "downlink_demand_sources" => ["contact_allocation:dl_reservation_conflict"],
+             "downlink_completion_sources" => ["contact_allocation_report:selected_contacts"],
              "derivation_reasons" => ["contact_allocation_reservation_conflict"],
              "feedback_source" =>
                "mission_state.source_contact_allocation_reservation_conflict_summary",

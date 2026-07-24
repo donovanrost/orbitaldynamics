@@ -79,6 +79,8 @@ defmodule OrbitalDynamics.Schema.JsonSchemaExportContractsTest do
       {"contact_allocation_pressure_station_calendar_entry_ids", "string", stable_id_pattern},
       {"contact_allocation_pressure_station_calendar_entry_statuses", "string", nil},
       {"contact_allocation_pressure_station_calendar_directions", "string", nil},
+      {"contact_allocation_pressure_downlink_demand_sources", "string", nil},
+      {"contact_allocation_pressure_downlink_completion_sources", "string", nil},
       {"contact_intent_pressure_risk_types", "string", nil},
       {"contact_intent_pressure_contact_ids", "string", stable_id_pattern},
       {"contact_intent_pressure_source_activity_ids", "string", stable_id_pattern},

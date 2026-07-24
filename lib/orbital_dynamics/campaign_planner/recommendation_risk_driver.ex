@@ -46,6 +46,8 @@ defmodule OrbitalDynamics.CampaignPlanner.RecommendationRiskDriver do
       "planned_contacts" => risk["planned_contacts"],
       "required_downlink_mb" => risk["required_downlink_mb"],
       "planned_downlink_mb" => risk["planned_downlink_mb"],
+      "downlink_demand_sources" => risk["downlink_demand_sources"],
+      "downlink_completion_sources" => risk["downlink_completion_sources"],
       "contact_result" => risk["contact_result"],
       "command_result" => risk["command_result"],
       "maneuver_result" => risk["maneuver_result"],

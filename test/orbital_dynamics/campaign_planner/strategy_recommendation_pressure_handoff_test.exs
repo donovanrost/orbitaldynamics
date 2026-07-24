@@ -1087,6 +1087,28 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
     )
   end
 
+  test "contact allocation downlink demand source remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "contact_allocation_pressure_downlink_demand_sources",
+      {"contact_id", "dl_reservation_conflict"},
+      "downlink_demand_sources",
+      ["contact_allocation:dl_reservation_conflict"],
+      ["stale_contact_allocation:dl_reservation_conflict"]
+    )
+  end
+
+  test "contact allocation downlink completion source remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "contact_allocation_pressure_downlink_completion_sources",
+      {"contact_id", "dl_reservation_conflict"},
+      "downlink_completion_sources",
+      ["contact_allocation_report:selected_contacts"],
+      ["stale_contact_allocation_report:selected_contacts"]
+    )
+  end
+
   test "contact intent risk type remains source exact across handoffs" do
     assert_risk_context_contract(
       StrategyRecommendationPressureEventsFixture.artifact(),

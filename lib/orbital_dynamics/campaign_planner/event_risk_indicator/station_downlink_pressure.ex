@@ -211,6 +211,8 @@ defmodule OrbitalDynamics.CampaignPlanner.EventRiskIndicator.StationDownlinkPres
         "planned_contacts" => event["planned_contacts"],
         "required_downlink_mb" => event["required_downlink_mb"],
         "planned_downlink_mb" => event["planned_downlink_mb"],
+        "downlink_demand_sources" => event["downlink_demand_sources"],
+        "downlink_completion_sources" => event["downlink_completion_sources"],
         "link_capacity_status" => event["link_capacity_status"],
         "downlink_requirement_status" => event["downlink_requirement_status"],
         "actual_downlink_requirement_status" => event["actual_downlink_requirement_status"],
