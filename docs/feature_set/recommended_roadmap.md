@@ -175,6 +175,9 @@ Already implemented or heavily covered:
   degradation, compatibility, margin, projected-pressure, identity, demand,
   timing, routing, and provenance fields to stay source exact across direct and
   review-derived Cadence rows
+- V3 approval-boundary review/import handoffs require all 14 policy, status,
+  authority, operator-action, execution-boundary, and provenance fields to stay
+  source exact without granting approval or execution authority
 - an executable registry-derived coverage guard confirms all 33 current
   resource/contact/station/link/provider contracts have curated artifact
   reference fixtures and automatically scopes future matching contracts

@@ -226,6 +226,52 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
            )
   end
 
+  @approval_boundary_context_contracts [
+    {"identity", "approval_boundary_ids", "approval_boundary", ["command_execution"],
+     ["stale_command_execution"]},
+    {"status", "approval_boundary_statuses", "approval_boundary_status",
+     ["operator_review_required"], ["stale_operator_review_required"]},
+    {"reason", "approval_boundary_reasons", "approval_boundary_reason",
+     ["command execution requires flight director approval"], ["stale_approval_reason"]},
+    {"automation boundary", "automation_boundaries", "automation_boundary",
+     ["no_command_execution"], ["stale_automation_boundary"]},
+    {"execution boundary", "execution_boundaries", "execution_boundary",
+     ["flight_director_approval"], ["stale_execution_boundary"]},
+    {"import classification", "approval_boundary_import_classifications", "import_classification",
+     ["review_only"], ["stale_import_classification"]},
+    {"required operator action", "approval_boundary_required_operator_actions",
+     "required_operator_action", ["review_approval_boundary"], ["stale_operator_action"]},
+    {"required authority", "approval_boundary_required_authorities", "required_authority",
+     ["flight_director"], ["stale_authority"]},
+    {"policy bundle", "approval_boundary_policy_bundle_ids", "policy_bundle_id",
+     ["flight_rules_v3"], ["stale_policy_bundle"]},
+    {"rule identity", "approval_boundary_rule_ids", "rule_id",
+     ["no_unapproved_command_execution"], ["stale_rule"]},
+    {"feedback source", "approval_boundary_feedback_sources", "feedback_source",
+     ["mission_state.source_approval_boundary_policy.rules"],
+     ["mission_state.stale_approval_boundary_policy.rules"]},
+    {"feedback scope", "approval_boundary_feedback_scopes", "feedback_scope",
+     ["approval_boundary"], ["stale_approval_boundary"]},
+    {"feedback key", "approval_boundary_feedback_keys", "feedback_key",
+     ["no_unapproved_command_execution"], ["stale_feedback_key"]},
+    {"trust boundary", "approval_boundary_trust_boundaries", "trust_boundary",
+     ["mission_state_approval_boundary_policy"], ["stale_approval_boundary_policy"]}
+  ]
+
+  for {description, field, source_field, expected_value, stale_value} <-
+        @approval_boundary_context_contracts do
+    test "approval-boundary #{description} remains source exact across handoffs" do
+      assert_risk_context_contract(
+        StrategyRecommendationPressureEventsFixture.artifact(),
+        unquote(field),
+        {"feedback_scope", "approval_boundary"},
+        unquote(source_field),
+        unquote(expected_value),
+        unquote(stale_value)
+      )
+    end
+  end
+
   test "provider request expiration risk context remains source exact across handoffs" do
     assert_risk_expiration_context_contract(
       StrategyRecommendationPressureEventsFixture.artifact(),

@@ -67,7 +67,10 @@ Implemented or partially implemented modules and artifacts include:
   the same source-exact guarantees. Resource-projection handoffs preserve all
   37 availability, degradation, compatibility, margin, projected-overflow,
   projected-shortfall, battery, identity, demand, timing, routing, and
-  provenance fields with equivalent source-exact validation.
+  provenance fields with equivalent source-exact validation. Approval-boundary
+  handoffs likewise require all 14 policy, status, authority, operator-action,
+  execution-boundary, and provenance fields to remain source exact without
+  granting approval or execution authority.
 - Operational readiness and quality artifacts: readiness, import-eligibility,
   execution-boundary, quality-gate, safety-case, model-acceptance,
   schema-validation, validation-fixture, operator-training, and unavailable

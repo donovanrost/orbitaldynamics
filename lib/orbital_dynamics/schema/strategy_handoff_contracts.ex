@@ -32,6 +32,23 @@ defmodule OrbitalDynamics.Schema.StrategyHandoffContracts do
     {"branch_station_reservation_expiration_statuses",
      "branch_station_reservation_expiration_statuses"}
   ]
+  @approval_boundary_context_field_pairs [
+    {"approval_boundary_ids", "approval_boundary_ids"},
+    {"approval_boundary_statuses", "approval_boundary_statuses"},
+    {"approval_boundary_reasons", "approval_boundary_reasons"},
+    {"automation_boundaries", "automation_boundaries"},
+    {"execution_boundaries", "execution_boundaries"},
+    {"approval_boundary_import_classifications", "approval_boundary_import_classifications"},
+    {"approval_boundary_required_operator_actions",
+     "approval_boundary_required_operator_actions"},
+    {"approval_boundary_required_authorities", "approval_boundary_required_authorities"},
+    {"approval_boundary_policy_bundle_ids", "approval_boundary_policy_bundle_ids"},
+    {"approval_boundary_rule_ids", "approval_boundary_rule_ids"},
+    {"approval_boundary_feedback_sources", "approval_boundary_feedback_sources"},
+    {"approval_boundary_feedback_scopes", "approval_boundary_feedback_scopes"},
+    {"approval_boundary_feedback_keys", "approval_boundary_feedback_keys"},
+    {"approval_boundary_trust_boundaries", "approval_boundary_trust_boundaries"}
+  ]
   @provider_reservation_request_context_field_pairs [
     {"provider_reservation_request_contact_ids", "provider_reservation_request_contact_ids"},
     {"provider_reservation_request_source_activity_ids",
@@ -900,6 +917,7 @@ defmodule OrbitalDynamics.Schema.StrategyHandoffContracts do
      "station_calendar_pressure_derivation_reasons"}
   ]
   @strategy_recommendation_risk_context_specs [
+    {@approval_boundary_context_field_pairs, :approval_boundary_context},
     {@provider_reservation_request_context_field_pairs, :provider_reservation_request_context},
     {@capacity_pack_context_field_pairs, :capacity_pack_context},
     {@contact_contention_resolution_context_field_pairs, :contact_contention_resolution_context},
