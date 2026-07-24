@@ -62,6 +62,12 @@ defmodule OrbitalDynamics.Schema.StrategyHandoffContracts do
     {"provider_reservation_request_station_reservation_expiration_statuses",
      "provider_reservation_request_station_reservation_expiration_statuses"}
   ]
+  @capacity_pack_context_field_pairs [
+    {"capacity_pack_risk_contact_ids", "capacity_pack_risk_contact_ids"},
+    {"capacity_pack_risk_source_activity_ids", "capacity_pack_risk_source_activity_ids"},
+    {"capacity_pack_risk_ground_station_ids", "capacity_pack_risk_ground_station_ids"},
+    {"capacity_pack_risk_group_ids", "capacity_pack_risk_group_ids"}
+  ]
   @station_reservation_conflict_context_field_pairs [
     {"station_reservation_conflict_contact_ids", "station_reservation_conflict_contact_ids"},
     {"station_reservation_conflict_source_activity_ids",
@@ -357,6 +363,7 @@ defmodule OrbitalDynamics.Schema.StrategyHandoffContracts do
   ]
   @strategy_recommendation_risk_context_specs [
     {@provider_reservation_request_context_field_pairs, :provider_reservation_request_context},
+    {@capacity_pack_context_field_pairs, :capacity_pack_context},
     {@station_reservation_conflict_context_field_pairs, :station_reservation_conflict_context},
     {@station_reservation_hold_context_field_pairs,
      :station_reservation_hold_import_readiness_context},

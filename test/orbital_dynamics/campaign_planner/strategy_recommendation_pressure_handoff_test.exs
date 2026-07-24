@@ -412,6 +412,50 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
     )
   end
 
+  test "capacity-pack risk contact identity remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "capacity_pack_risk_contact_ids",
+      {"contact_id", "dl_capacity_overflow"},
+      "contact_id",
+      ["dl_capacity_overflow"],
+      ["stale_dl_capacity_overflow"]
+    )
+  end
+
+  test "capacity-pack risk source activity identity remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "capacity_pack_risk_source_activity_ids",
+      {"contact_id", "dl_capacity_overflow"},
+      ["source_activity_id", "source_activity_ids"],
+      ["dl_capacity_overflow"],
+      ["stale_dl_capacity_overflow"]
+    )
+  end
+
+  test "capacity-pack risk ground-station identity remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "capacity_pack_risk_ground_station_ids",
+      {"contact_id", "dl_capacity_overflow"},
+      "ground_station_id",
+      ["equator_prime"],
+      ["stale_equator_prime"]
+    )
+  end
+
+  test "capacity-pack risk group identity remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "capacity_pack_risk_group_ids",
+      {"contact_id", "dl_capacity_overflow"},
+      "capacity_pack_group_id",
+      ["capacity_pack_equator_prime"],
+      ["stale_capacity_pack_equator_prime"]
+    )
+  end
+
   test "station conflict expiration risk context remains source exact across handoffs" do
     assert_risk_expiration_context_contract(
       StrategyRecommendationPressureEventsFixture.artifact(),
