@@ -236,7 +236,21 @@ defmodule OrbitalDynamics.Schema.StrategyHandoffContracts do
     {"link_capacity_pressure_start_values_s", "link_capacity_pressure_start_values_s"},
     {"link_capacity_pressure_end_values_s", "link_capacity_pressure_end_values_s"},
     {"link_capacity_pressure_source_activity_ids", "link_capacity_pressure_source_activity_ids"},
-    {"link_capacity_pressure_source_window_ids", "link_capacity_pressure_source_window_ids"}
+    {"link_capacity_pressure_source_window_ids", "link_capacity_pressure_source_window_ids"},
+    {"link_capacity_pressure_selected_capacity_adjusted_throughput_values_mb",
+     "link_capacity_pressure_selected_capacity_adjusted_throughput_values_mb"},
+    {"link_capacity_pressure_selected_downlink_shortfall_values_mb",
+     "link_capacity_pressure_selected_downlink_shortfall_values_mb"},
+    {"link_capacity_pressure_actual_throughput_values_mb",
+     "link_capacity_pressure_actual_throughput_values_mb"},
+    {"link_capacity_pressure_actual_downlink_completion_ratio_values",
+     "link_capacity_pressure_actual_downlink_completion_ratio_values"},
+    {"link_capacity_pressure_actual_downlink_shortfall_values_mb",
+     "link_capacity_pressure_actual_downlink_shortfall_values_mb"},
+    {"link_capacity_pressure_downlink_requirement_statuses",
+     "link_capacity_pressure_downlink_requirement_statuses"},
+    {"link_capacity_pressure_actual_downlink_requirement_statuses",
+     "link_capacity_pressure_actual_downlink_requirement_statuses"}
   ]
   @station_reservation_conflict_context_field_pairs [
     {"station_reservation_conflict_contact_ids", "station_reservation_conflict_contact_ids"},

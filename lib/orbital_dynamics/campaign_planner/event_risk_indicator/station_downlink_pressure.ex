@@ -211,6 +211,12 @@ defmodule OrbitalDynamics.CampaignPlanner.EventRiskIndicator.StationDownlinkPres
         "planned_contacts" => event["planned_contacts"],
         "required_downlink_mb" => event["required_downlink_mb"],
         "planned_downlink_mb" => event["planned_downlink_mb"],
+        "selected_capacity_adjusted_throughput_mb" =>
+          event["selected_capacity_adjusted_throughput_mb"],
+        "selected_downlink_shortfall_mb" => event["selected_downlink_shortfall_mb"],
+        "actual_throughput_mb" => event["actual_throughput_mb"],
+        "actual_downlink_completion_ratio" => event["actual_downlink_completion_ratio"],
+        "actual_downlink_shortfall_mb" => event["actual_downlink_shortfall_mb"],
         "downlink_demand_sources" => event["downlink_demand_sources"],
         "downlink_completion_sources" => event["downlink_completion_sources"],
         "link_capacity_status" => event["link_capacity_status"],

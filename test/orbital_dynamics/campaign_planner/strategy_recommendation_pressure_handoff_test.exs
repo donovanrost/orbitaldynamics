@@ -1539,6 +1539,83 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
     )
   end
 
+  test "link-capacity selected adjusted throughput remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "link_capacity_pressure_selected_capacity_adjusted_throughput_values_mb",
+      {"ground_station_id", "equator_prime"},
+      "selected_capacity_adjusted_throughput_mb",
+      [10.0],
+      [11.0]
+    )
+  end
+
+  test "link-capacity selected shortfall remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "link_capacity_pressure_selected_downlink_shortfall_values_mb",
+      {"ground_station_id", "equator_prime"},
+      "selected_downlink_shortfall_mb",
+      [35.0],
+      [34.0]
+    )
+  end
+
+  test "link-capacity actual throughput remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "link_capacity_pressure_actual_throughput_values_mb",
+      {"ground_station_id", "equator_prime"},
+      "actual_throughput_mb",
+      [8.0],
+      [9.0]
+    )
+  end
+
+  test "link-capacity actual completion ratio remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "link_capacity_pressure_actual_downlink_completion_ratio_values",
+      {"ground_station_id", "equator_prime"},
+      "actual_downlink_completion_ratio",
+      [0.22],
+      [0.5]
+    )
+  end
+
+  test "link-capacity actual shortfall remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "link_capacity_pressure_actual_downlink_shortfall_values_mb",
+      {"ground_station_id", "equator_prime"},
+      "actual_downlink_shortfall_mb",
+      [37.0],
+      [36.0]
+    )
+  end
+
+  test "link-capacity requirement status remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "link_capacity_pressure_downlink_requirement_statuses",
+      {"ground_station_id", "equator_prime"},
+      "downlink_requirement_status",
+      ["shortfall"],
+      ["satisfied"]
+    )
+  end
+
+  test "link-capacity actual requirement status remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "link_capacity_pressure_actual_downlink_requirement_statuses",
+      {"ground_station_id", "equator_prime"},
+      "actual_downlink_requirement_status",
+      ["shortfall"],
+      ["satisfied"]
+    )
+  end
+
   test "station conflict expiration risk context remains source exact across handoffs" do
     assert_risk_expiration_context_contract(
       StrategyRecommendationPressureEventsFixture.artifact(),
