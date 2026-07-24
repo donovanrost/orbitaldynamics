@@ -1132,6 +1132,83 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
     )
   end
 
+  test "contact-filter risk type remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "contact_filter_pressure_risk_types",
+      {"contact_id", "dl_contact_filter_suppressed"},
+      ["type", "risk_type"],
+      ["downlink_completion_gap"],
+      ["stale_contact_filter_risk"]
+    )
+  end
+
+  test "contact-filter contact identity remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "contact_filter_pressure_contact_ids",
+      {"contact_id", "dl_contact_filter_suppressed"},
+      "contact_id",
+      ["dl_contact_filter_suppressed"],
+      ["stale_dl_contact_filter_suppressed"]
+    )
+  end
+
+  test "contact-filter scenario identity remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "contact_filter_pressure_scenario_ids",
+      {"contact_id", "dl_contact_filter_suppressed"},
+      "scenario_id",
+      ["leo_1"],
+      ["stale_leo_1"]
+    )
+  end
+
+  test "contact-filter spacecraft identity remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "contact_filter_pressure_spacecraft_ids",
+      {"contact_id", "dl_contact_filter_suppressed"},
+      "spacecraft_id",
+      ["leo_1"],
+      ["stale_leo_1"]
+    )
+  end
+
+  test "contact-filter ground-station identity remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "contact_filter_pressure_ground_station_ids",
+      {"contact_id", "dl_contact_filter_suppressed"},
+      "ground_station_id",
+      ["goldstone"],
+      ["stale_goldstone"]
+    )
+  end
+
+  test "contact-filter source-activity identity remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "contact_filter_pressure_source_activity_ids",
+      {"contact_id", "dl_contact_filter_suppressed"},
+      ["source_activity_id", "source_activity_ids"],
+      ["dl_contact_filter_suppressed"],
+      ["stale_dl_contact_filter_suppressed"]
+    )
+  end
+
+  test "contact-filter source-window identity remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "contact_filter_pressure_source_window_ids",
+      {"contact_id", "dl_contact_filter_suppressed"},
+      "source_window_id",
+      ["window_contact_filter_suppressed"],
+      ["stale_window_contact_filter_suppressed"]
+    )
+  end
+
   test "station conflict expiration risk context remains source exact across handoffs" do
     assert_risk_expiration_context_contract(
       StrategyRecommendationPressureEventsFixture.artifact(),
