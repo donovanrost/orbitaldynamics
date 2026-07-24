@@ -1109,6 +1109,50 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
     )
   end
 
+  test "contact allocation feedback source remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "contact_allocation_pressure_feedback_sources",
+      {"contact_id", "dl_reservation_conflict"},
+      "feedback_source",
+      ["mission_state.source_contact_allocation_reservation_conflict_summary"],
+      ["stale.source_contact_allocation_reservation_conflict_summary"]
+    )
+  end
+
+  test "contact allocation feedback scope remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "contact_allocation_pressure_feedback_scopes",
+      {"contact_id", "dl_reservation_conflict"},
+      "feedback_scope",
+      ["contact_allocation"],
+      ["stale_contact_allocation"]
+    )
+  end
+
+  test "contact allocation trust boundary remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "contact_allocation_pressure_trust_boundaries",
+      {"contact_id", "dl_reservation_conflict"},
+      "trust_boundary",
+      ["mission_state_reservation_conflict_summary"],
+      ["stale_mission_state_reservation_conflict_summary"]
+    )
+  end
+
+  test "contact allocation derivation reason remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "contact_allocation_pressure_derivation_reasons",
+      {"contact_id", "dl_reservation_conflict"},
+      "derivation_reasons",
+      ["contact_allocation_reservation_conflict"],
+      ["stale_contact_allocation_reservation_conflict"]
+    )
+  end
+
   test "contact intent risk type remains source exact across handoffs" do
     assert_risk_context_contract(
       StrategyRecommendationPressureEventsFixture.artifact(),

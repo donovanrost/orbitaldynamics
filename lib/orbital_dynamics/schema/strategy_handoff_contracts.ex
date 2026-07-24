@@ -100,7 +100,15 @@ defmodule OrbitalDynamics.Schema.StrategyHandoffContracts do
     {"contact_allocation_pressure_downlink_demand_sources",
      "contact_allocation_pressure_downlink_demand_sources"},
     {"contact_allocation_pressure_downlink_completion_sources",
-     "contact_allocation_pressure_downlink_completion_sources"}
+     "contact_allocation_pressure_downlink_completion_sources"},
+    {"contact_allocation_pressure_feedback_sources",
+     "contact_allocation_pressure_feedback_sources"},
+    {"contact_allocation_pressure_feedback_scopes",
+     "contact_allocation_pressure_feedback_scopes"},
+    {"contact_allocation_pressure_trust_boundaries",
+     "contact_allocation_pressure_trust_boundaries"},
+    {"contact_allocation_pressure_derivation_reasons",
+     "contact_allocation_pressure_derivation_reasons"}
   ]
   @contact_intent_context_field_pairs [
     {"contact_intent_pressure_risk_types", "contact_intent_pressure_risk_types"},
