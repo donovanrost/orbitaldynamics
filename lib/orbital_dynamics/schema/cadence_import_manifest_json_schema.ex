@@ -154,6 +154,11 @@ defmodule OrbitalDynamics.Schema.CadenceImportManifestJsonSchema do
             schema.(:stable_id_array_schema),
           "branch_station_reservation_conflict_match_statuses" => schema.(:string_array_schema),
           "branch_station_reservation_expiration_statuses" => schema.(:string_array_schema),
+          "provider_reservation_request_contact_ids" => schema.(:stable_id_array_schema),
+          "provider_reservation_request_source_activity_ids" => schema.(:stable_id_array_schema),
+          "provider_reservation_request_ground_station_ids" => schema.(:stable_id_array_schema),
+          "provider_reservation_request_station_reservation_ids" =>
+            schema.(:stable_id_array_schema),
           "provider_reservation_request_station_reservation_expiration_statuses" =>
             schema.(:string_array_schema),
           "station_reservation_conflict_contact_ids" => schema.(:stable_id_array_schema),

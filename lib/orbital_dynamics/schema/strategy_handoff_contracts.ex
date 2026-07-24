@@ -32,7 +32,14 @@ defmodule OrbitalDynamics.Schema.StrategyHandoffContracts do
     {"branch_station_reservation_expiration_statuses",
      "branch_station_reservation_expiration_statuses"}
   ]
-  @provider_reservation_request_expiration_context_field_pairs [
+  @provider_reservation_request_context_field_pairs [
+    {"provider_reservation_request_contact_ids", "provider_reservation_request_contact_ids"},
+    {"provider_reservation_request_source_activity_ids",
+     "provider_reservation_request_source_activity_ids"},
+    {"provider_reservation_request_ground_station_ids",
+     "provider_reservation_request_ground_station_ids"},
+    {"provider_reservation_request_station_reservation_ids",
+     "provider_reservation_request_station_reservation_ids"},
     {"provider_reservation_request_station_reservation_expiration_statuses",
      "provider_reservation_request_station_reservation_expiration_statuses"}
   ]
@@ -284,8 +291,7 @@ defmodule OrbitalDynamics.Schema.StrategyHandoffContracts do
      "station_calendar_pressure_derivation_reasons"}
   ]
   @strategy_recommendation_risk_context_specs [
-    {@provider_reservation_request_expiration_context_field_pairs,
-     :provider_reservation_request_context},
+    {@provider_reservation_request_context_field_pairs, :provider_reservation_request_context},
     {@station_reservation_conflict_context_field_pairs, :station_reservation_conflict_context},
     {@station_reservation_hold_expiration_context_field_pairs,
      :station_reservation_hold_import_readiness_context},

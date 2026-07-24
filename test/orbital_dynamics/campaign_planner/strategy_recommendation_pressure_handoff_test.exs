@@ -235,6 +235,50 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
     )
   end
 
+  test "provider request contact identity remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "provider_reservation_request_contact_ids",
+      {"contact_id", "dl_provider_review"},
+      "contact_id",
+      ["dl_provider_review"],
+      ["stale_dl_provider_review"]
+    )
+  end
+
+  test "provider request source activity identity remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "provider_reservation_request_source_activity_ids",
+      {"contact_id", "dl_provider_review"},
+      ["source_activity_id", "source_activity_ids"],
+      ["dl_provider_review"],
+      ["stale_dl_provider_review"]
+    )
+  end
+
+  test "provider request ground-station identity remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "provider_reservation_request_ground_station_ids",
+      {"contact_id", "dl_provider_review"},
+      "ground_station_id",
+      ["equator_prime"],
+      ["stale_equator_prime"]
+    )
+  end
+
+  test "provider request reservation identity remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "provider_reservation_request_station_reservation_ids",
+      {"contact_id", "dl_provider_review"},
+      "station_reservation_id",
+      ["provider_reservation_review"],
+      ["stale_provider_reservation_review"]
+    )
+  end
+
   test "station conflict expiration risk context remains source exact across handoffs" do
     assert_risk_expiration_context_contract(
       StrategyRecommendationPressureEventsFixture.artifact(),

@@ -47,6 +47,10 @@ defmodule OrbitalDynamics.Schema.JsonSchemaExportContractsTest do
     stable_id_pattern = Schema.identity_policy()["stable_id_pattern"]
 
     aggregate_fields = [
+      {"provider_reservation_request_contact_ids", "string", stable_id_pattern},
+      {"provider_reservation_request_source_activity_ids", "string", stable_id_pattern},
+      {"provider_reservation_request_ground_station_ids", "string", stable_id_pattern},
+      {"provider_reservation_request_station_reservation_ids", "string", stable_id_pattern},
       {"provider_reservation_request_station_reservation_expiration_statuses", "string", nil},
       {"station_reservation_conflict_contact_ids", "string", stable_id_pattern},
       {"station_reservation_conflict_source_activity_ids", "string", stable_id_pattern},

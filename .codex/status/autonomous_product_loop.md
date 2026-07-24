@@ -5,59 +5,55 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Enforce source-exact station-reservation-conflict provenance.
+Enforce source-exact provider-reservation-request routing identity.
 
 Status:
 Verified; publish pending.
 
 Selection evidence:
-- The selected conflict risk carries derivation reason
-  `contact_allocation_reservation_conflict`, feedback source
-  `mission_state.source_contact_allocation_reservation_conflict_summary`, scope
-  `contact_allocation`, and trust boundary
-  `mission_state_reservation_conflict_summary` across all four handoff copies.
-- All four lists survive projection; routing, state/deadline, and expiration
-  context are exact today, while provenance schemas and validation are absent.
+- The selected provider-review risk carries contact/source-activity ID
+  `dl_provider_review`, ground-station ID `equator_prime`, and reservation ID
+  `provider_reservation_review` across all four handoff copies.
+- At selection, all four stable-ID lists survived projection, but only expiration
+  classification was exact; routing schemas and validation were absent.
 
 Intended behavior:
-- Declare four string arrays requiring exact source-derived copies in
+- Declare four stable-ID arrays requiring exact source-derived copies in
   review/direct/review-derived Cadence rows.
-- Reject missing or stale derived conflict provenance; retain paired
+- Reject missing or stale derived provider-request routing; retain paired
   legacy omission compatibility for optional source fields.
-- Preserve conflict detection, provider/reservation authority, operator
-  authority, and execution boundaries.
+- Preserve request generation/submission, provider/reservation authority,
+  operator authority, and execution boundaries.
 
 Level 6 pillar advanced:
 Fleet-scale planning decisions and durable reproducible audit handoffs.
 
-Planned files:
-- station-reservation-conflict validation and review/import schemas
-- provenance mutation/schema proofs, docs, exports, and ledger
+Completed files:
+- provider-reservation-request validation and review/import schemas
+- routing-identity mutation/schema proofs, docs, exports, and ledger
 
 Verification:
-- Focused handoff/schema proof: `152 passed`.
-- Contact-allocation regression: `213 passed`.
-- Golden artifact regression: `12 passed`.
+- Focused handoff/schema tests: `155 passed`.
+- Contact-allocation tests: `213 passed`.
+- Golden artifacts: `12 passed`; canonical strategy ID remains
+  `fb70d7d366bbdcd287c78aefaa153292035e2e68727f6443befd9bca44b3ec47`.
 - Schema lint: `155` artifacts, `0` errors, `0` warnings.
-- Full suite: `4024 passed`.
-- Canonical strategy SHA-256 remained
+- Full suite: `4028 passed`.
+- Canonical strategy SHA-256 remains
   `f7fc7823d071db82124af4b903e5be730983d1d9cb96f4524c711041c750ca1c`.
 - Ten expected generated schema surfaces changed; format and
   `git diff --check` passed.
 
 Review:
-- Exact-copy checks cover derivation reason, feedback source/scope, and trust
-  boundary across operator review, direct selected Cadence import, and
-  review-derived import, including missing, stale, and paired legacy omission
-  mutations.
-- All three public row schemas and generated exports agree on four string arrays;
-  all 13 station-reservation-conflict context keys now have exact contracts.
-- Provenance evidence grants no authority; conflict detection, provider requests,
-  reservation/schedule mutation, Cadence writes, operator authority, and
-  autonomous execution remain unchanged.
+- Exact-copy validation covers operator review, direct selected Cadence import,
+  and review-derived Cadence import, including its embedded source-review row.
+- Mutation proofs cover missing review fields, paired legacy omission, stale
+  direct imports, and missing review-derived fields for each routing array.
+- The diff remains descriptive-only: no request submission, provider acceptance,
+  reservation/schedule mutation, operator authority, or execution path changed.
 
 Last published slice:
-- `39101971` Validate station conflict state context (`4020 passed`).
+- `241d4b00` Validate station conflict provenance (`4024 passed`).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions while preserving explicit
@@ -68,7 +64,7 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-Assess the next uncovered recommendation-risk family.
+Assess source-exact provider-reservation-request state context.
 
 Blocked:
 None.
