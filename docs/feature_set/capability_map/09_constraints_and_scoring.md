@@ -50,6 +50,12 @@ Status: **implemented** (core), with **partial**, **near-term**, **later**, and 
 - V2 repair artifacts emit the same `score_term_report.v1` and `objective_tradeoff_report.v1` contracts over repaired activity score, churn, and schedule-move terms.
 - V3 strategy artifacts now emit branch-level `score_term_report.v1` rows for expected score, mission value, resource, feedback, risk, approval-load, and schedule-stability terms, carrying `branch_id` through operator-review and Cadence-import handoff, plus `objective_tradeoff_report.v1` rows that compare branch scores against the recommended branch while preserving the same branch ID and score-term map.
 - Standalone score-term and objective-tradeoff reports normalize into `score_term_review` and `objective_tradeoff_review` operator-review rows plus typed `review_score_term` and `review_objective_tradeoff` Cadence import gates, while preserving source scoring rows.
+- Derived score-term pressure recommendation rows preserve source-exact risk,
+  objective, target, scenario, branch, and ground-station routing plus the
+  latency-objective flag across operator review, direct Cadence import, and
+  review-derived import copies. Missing or stale derived routing is rejected
+  while paired legacy omission remains compatible; the evidence cannot approve
+  an import, write to Cadence, or execute a schedule.
 
 ### Objective-tradeoff reports
 

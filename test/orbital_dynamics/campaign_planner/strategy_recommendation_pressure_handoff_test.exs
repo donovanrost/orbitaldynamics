@@ -1682,6 +1682,94 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
     )
   end
 
+  test "score-term risk type remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "score_term_pressure_risk_types",
+      {"feedback_scope", "score_term"},
+      ["type", "risk_type"],
+      ["downlink_completion_gap"],
+      ["stale_score_term_risk"]
+    )
+  end
+
+  test "score-term objective identity remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "score_term_pressure_objective_ids",
+      {"feedback_scope", "score_term"},
+      "objective_id",
+      ["score_term:downlink_shortfall"],
+      ["score_term:stale"]
+    )
+  end
+
+  test "score-term objective type remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "score_term_pressure_objective_types",
+      {"feedback_scope", "score_term"},
+      "objective_type",
+      ["score_term_gap"],
+      ["stale_score_term_gap"]
+    )
+  end
+
+  test "score-term latency-objective flag remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "score_term_pressure_latency_objective_values",
+      {"feedback_scope", "score_term"},
+      "latency_objective",
+      [true],
+      [false]
+    )
+  end
+
+  test "score-term target identity remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "score_term_pressure_target_ids",
+      {"feedback_scope", "score_term"},
+      "target_id",
+      ["target_score_term"],
+      ["stale_target_score_term"]
+    )
+  end
+
+  test "score-term scenario identity remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "score_term_pressure_scenario_ids",
+      {"feedback_scope", "score_term"},
+      "scenario_id",
+      ["leo_1"],
+      ["stale_leo_1"]
+    )
+  end
+
+  test "score-term branch identity remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "score_term_pressure_branch_ids",
+      {"feedback_scope", "score_term"},
+      "branch_id",
+      ["urgent"],
+      ["stale_urgent"]
+    )
+  end
+
+  test "score-term station identity remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "score_term_pressure_ground_station_ids",
+      {"feedback_scope", "score_term"},
+      "ground_station_id",
+      ["polar_prime"],
+      ["stale_polar_prime"]
+    )
+  end
+
   test "station conflict expiration risk context remains source exact across handoffs" do
     assert_risk_expiration_context_contract(
       StrategyRecommendationPressureEventsFixture.artifact(),

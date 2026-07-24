@@ -190,6 +190,7 @@ defmodule OrbitalDynamics.CampaignPlanner.EventRiskIndicator.StationDownlinkPres
         "ends_at_s" => event["ends_at_s"],
         "direction" => event["direction"],
         "scenario_id" => event["scenario_id"],
+        "branch_id" => event["branch_id"],
         "spacecraft_id" => event["spacecraft_id"],
         "target_id" => event["target_id"],
         "collection_id" => event["collection_id"],

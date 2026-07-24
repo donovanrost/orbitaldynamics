@@ -260,6 +260,17 @@ defmodule OrbitalDynamics.Schema.StrategyHandoffContracts do
     {"link_capacity_pressure_trust_boundaries", "link_capacity_pressure_trust_boundaries"},
     {"link_capacity_pressure_derivation_reasons", "link_capacity_pressure_derivation_reasons"}
   ]
+  @score_term_context_field_pairs [
+    {"score_term_pressure_risk_types", "score_term_pressure_risk_types"},
+    {"score_term_pressure_objective_ids", "score_term_pressure_objective_ids"},
+    {"score_term_pressure_objective_types", "score_term_pressure_objective_types"},
+    {"score_term_pressure_latency_objective_values",
+     "score_term_pressure_latency_objective_values"},
+    {"score_term_pressure_target_ids", "score_term_pressure_target_ids"},
+    {"score_term_pressure_scenario_ids", "score_term_pressure_scenario_ids"},
+    {"score_term_pressure_branch_ids", "score_term_pressure_branch_ids"},
+    {"score_term_pressure_ground_station_ids", "score_term_pressure_ground_station_ids"}
+  ]
   @station_reservation_conflict_context_field_pairs [
     {"station_reservation_conflict_contact_ids", "station_reservation_conflict_contact_ids"},
     {"station_reservation_conflict_source_activity_ids",
@@ -560,6 +571,7 @@ defmodule OrbitalDynamics.Schema.StrategyHandoffContracts do
     {@contact_contention_context_field_pairs, :contact_contention_context},
     {@contact_filter_context_field_pairs, :contact_filter_context},
     {@link_capacity_context_field_pairs, :link_capacity_context},
+    {@score_term_context_field_pairs, :score_term_context},
     {@station_reservation_conflict_context_field_pairs, :station_reservation_conflict_context},
     {@station_reservation_hold_context_field_pairs,
      :station_reservation_hold_import_readiness_context},
