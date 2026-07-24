@@ -5,22 +5,27 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Complete source-exact objective-satisfaction outcome and constraint evidence.
+Complete source-exact resource-filter availability context.
 
 Status:
 Verified; ready to publish.
 
 Selection evidence:
-- Objective-satisfaction pressure has `41/50` exact-copy fields.
-- Its remaining gaps are downlink outcome/source evidence and target candidate
-  window, scenario, spacecraft-constraint, and coverage-objective evidence.
+- Resource-filter availability risks retain `false` in
+  `resource_availability_value`, but recommendation context extraction only
+  reads the absent pre-normalization `available` key.
+- The family has no field-specific mutation proofs; the bounded availability
+  subset is 15 of 27 declared context fields, leaving margin and operator-
+  training evidence for later slices.
 
 Intended behavior:
-- Preserve four target-constraint fields through observation projection.
-- Declare nine stable-ID/string/object arrays requiring exact copies in operator
-  review, direct Cadence import, and review-derived Cadence rows.
-- Reject missing or stale derived outcome/constraint context; retain
-  paired legacy omission compatibility for optional source fields.
+- Recover the normalized boolean availability value from each resource-filter
+  risk without treating `false` as absent.
+- Require all 15 availability identity, timing, status, provenance, and value
+  fields to remain exact in operator review, direct Cadence import, and review-
+  derived Cadence rows.
+- Reject missing or stale derived availability context while retaining paired
+  legacy omission compatibility for optional source fields.
 - Preserve provider and Cadence writes, reservation acceptance, operator
   authority, and execution boundaries.
 
@@ -28,38 +33,40 @@ Level 6 pillar advanced:
 Fleet-scale planning decisions and durable reproducible audit handoffs.
 
 Planned files:
-- observation-feedback projection and objective-satisfaction validation schemas
-- fixture/snapshot, mutation/schema proofs, docs, exports, and ledger
+- resource-filter recommendation context
+- fixture, mutation/schema proofs, docs, exports, and ledger
 
 Verification:
-- Focused handoff and schema contracts: `429 passed`.
+- Focused handoff contracts: `428 passed`.
+- Adjacent resource-filter and review/import contracts: `12 passed`.
 - Contact-allocation regression: `213 passed`.
 - Golden artifacts: `12 passed`.
 - Schema lint: `155/155` artifacts passed with zero warnings.
-- Full suite: `4302 passed`.
+- Full suite: `4317 passed`.
 - Canonical strategy SHA-256 remained
   `c13c37c2ae06849c5d8a49cecaf1c113e0ddcf653c34d32f751efd6815891887`.
-- Exact-copy coverage advanced from `41/50` to `50/50`
-  objective-satisfaction fields.
+- Exact-copy coverage advanced from `0/27` to `15/27` resource-filter
+  context fields.
 
 Review:
-- Observation feedback now preserves the candidate-window, allowed-scenario,
-  spacecraft-constraint, and coverage-objective evidence its source carries.
-- Existing station/downlink projection already preserved the five outcome and
-  source fields; no changes were needed there.
-- Public schemas use four stable-ID arrays, four string arrays, and one object
-  array consistently across operator review, direct import, and source rows.
-- Mutation proofs cover all nine copies, missing review context, paired legacy
-  omission, stale direct context, and missing/stale review-derived context.
-- Generated changes are limited to the expected ten schema artifacts; the
-  canonical strategy artifact is unchanged.
+- Normalized resource-availability risks retain the source boolean under
+  `resource_availability_value`; context extraction now accepts that canonical
+  key as well as the legacy pre-normalization `available` key, including
+  `false`.
+- The strategy handoff validator now covers the 15-field resource-filter
+  availability subset; previously the family was declared and emitted but not
+  registered for source-pair validation.
+- Mutation proofs cover every availability copy, missing review context,
+  paired legacy omission, stale direct context, and missing/stale review-
+  derived context.
+- Schema exports and the canonical strategy artifact are unchanged.
 - Safety boundaries remain explicit: no provider request or reservation,
   schedule mutation, Cadence write, operator authority, or autonomous
   execution was added.
 
 Last published slice:
-- `22ac9e31` Validate objective satisfaction downlink evidence (`4293 passed`,
-  `41/50`).
+- `e36b62d7` Complete objective satisfaction handoff coverage (`4302 passed`,
+  `50/50`).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions while preserving explicit
@@ -70,7 +77,8 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-Reassess the next highest-value maturity gap after `50/50` coverage.
+Complete the remaining `12/27` source-exact resource-filter margin and
+operator-training context fields if live fixture evidence supports them.
 
 Blocked:
 None.

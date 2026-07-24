@@ -222,6 +222,27 @@ defmodule OrbitalDynamics.Schema.StrategyHandoffContracts do
     {"contact_filter_pressure_trust_boundaries", "contact_filter_pressure_trust_boundaries"},
     {"contact_filter_pressure_derivation_reasons", "contact_filter_pressure_derivation_reasons"}
   ]
+  @resource_filter_availability_context_field_pairs [
+    {"resource_filter_pressure_risk_types", "resource_filter_pressure_risk_types"},
+    {"resource_filter_pressure_scenario_ids", "resource_filter_pressure_scenario_ids"},
+    {"resource_filter_pressure_spacecraft_ids", "resource_filter_pressure_spacecraft_ids"},
+    {"resource_filter_pressure_resource_fields", "resource_filter_pressure_resource_fields"},
+    {"resource_filter_pressure_available_values", "resource_filter_pressure_available_values"},
+    {"resource_filter_pressure_source_activity_ids",
+     "resource_filter_pressure_source_activity_ids"},
+    {"resource_filter_pressure_start_values_s", "resource_filter_pressure_start_values_s"},
+    {"resource_filter_pressure_end_values_s", "resource_filter_pressure_end_values_s"},
+    {"resource_filter_pressure_suppressed_reasons",
+     "resource_filter_pressure_suppressed_reasons"},
+    {"resource_filter_pressure_source_quality_values",
+     "resource_filter_pressure_source_quality_values"},
+    {"resource_filter_pressure_resource_trust_boundary_statuses",
+     "resource_filter_pressure_resource_trust_boundary_statuses"},
+    {"resource_filter_pressure_feedback_sources", "resource_filter_pressure_feedback_sources"},
+    {"resource_filter_pressure_feedback_scopes", "resource_filter_pressure_feedback_scopes"},
+    {"resource_filter_pressure_trust_boundaries", "resource_filter_pressure_trust_boundaries"},
+    {"resource_filter_pressure_derivation_reasons", "resource_filter_pressure_derivation_reasons"}
+  ]
   @link_capacity_context_field_pairs [
     {"link_capacity_pressure_risk_types", "link_capacity_pressure_risk_types"},
     {"link_capacity_pressure_ground_station_ids", "link_capacity_pressure_ground_station_ids"},
@@ -763,6 +784,7 @@ defmodule OrbitalDynamics.Schema.StrategyHandoffContracts do
     {@contact_contention_resolution_context_field_pairs, :contact_contention_resolution_context},
     {@contact_contention_context_field_pairs, :contact_contention_context},
     {@contact_filter_context_field_pairs, :contact_filter_context},
+    {@resource_filter_availability_context_field_pairs, :resource_filter_context},
     {@link_capacity_context_field_pairs, :link_capacity_context},
     {@score_term_context_field_pairs, :score_term_context},
     {@objective_satisfaction_context_field_pairs, :objective_satisfaction_context},

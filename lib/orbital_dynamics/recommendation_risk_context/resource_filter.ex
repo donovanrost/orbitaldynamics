@@ -46,7 +46,7 @@ defmodule OrbitalDynamics.RecommendationRiskContext.ResourceFilter do
       "resource_filter_pressure_resource_fields" =>
         risk_context_values(filter_risks, "resource_field"),
       "resource_filter_pressure_available_values" =>
-        risk_context_values(filter_risks, "available"),
+        risk_context_values(filter_risks, ["available", "resource_availability_value"]),
       "resource_filter_pressure_source_activity_ids" =>
         risk_context_values(filter_risks, ["source_activity_id", "source_activity_ids"]),
       "resource_filter_pressure_start_values_s" =>

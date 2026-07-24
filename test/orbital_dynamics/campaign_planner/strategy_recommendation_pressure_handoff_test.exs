@@ -4852,6 +4852,54 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
     )
   end
 
+  @resource_filter_availability_context_contracts [
+    {"risk type", "resource_filter_pressure_risk_types", "type", ["payload_unavailable"],
+     ["spacecraft_unavailable"]},
+    {"scenario identity", "resource_filter_pressure_scenario_ids", "scenario_id", ["leo_1"],
+     ["stale_scenario"]},
+    {"spacecraft identity", "resource_filter_pressure_spacecraft_ids", "spacecraft_id", ["leo_1"],
+     ["stale_spacecraft"]},
+    {"resource field", "resource_filter_pressure_resource_fields", "resource_field",
+     ["payload_available"], ["antenna_available"]},
+    {"availability value", "resource_filter_pressure_available_values",
+     ["available", "resource_availability_value"], [false], [true]},
+    {"source activity identity", "resource_filter_pressure_source_activity_ids",
+     ["source_activity_id", "source_activity_ids"], ["obs_resource_filter_suppressed"],
+     ["stale_resource_filter_activity"]},
+    {"start timing", "resource_filter_pressure_start_values_s", "starts_at_s", [1_230.0],
+     [1_231.0]},
+    {"end timing", "resource_filter_pressure_end_values_s", "ends_at_s", [1_290.0], [1_291.0]},
+    {"suppression reason", "resource_filter_pressure_suppressed_reasons", "suppressed_reason",
+     ["payload_unavailable"], ["spacecraft_unavailable"]},
+    {"source quality", "resource_filter_pressure_source_quality_values", "source_quality",
+     ["operator_supplied"], ["stale_source_quality"]},
+    {"resource trust status", "resource_filter_pressure_resource_trust_boundary_statuses",
+     "resource_trust_boundary_status", ["declared"], ["unknown"]},
+    {"feedback source", "resource_filter_pressure_feedback_sources", "feedback_source",
+     ["mission_state.source_resource_filter_report.suppressed_candidates"],
+     ["mission_state.stale_resource_filter_report.suppressed_candidates"]},
+    {"feedback scope", "resource_filter_pressure_feedback_scopes", "feedback_scope",
+     ["resource_filter"], ["stale_resource_filter"]},
+    {"trust boundary", "resource_filter_pressure_trust_boundaries", "trust_boundary",
+     ["mission_state_resource_filter_report"], ["stale_resource_filter_boundary"]},
+    {"derivation reasons", "resource_filter_pressure_derivation_reasons", ["derivation_reasons"],
+     ["resource_filter_suppressed", "payload_unavailable"], ["stale_resource_filter_derivation"]}
+  ]
+
+  for {description, field, source_field, expected_value, stale_value} <-
+        @resource_filter_availability_context_contracts do
+    test "resource-filter #{description} remains source exact across handoffs" do
+      assert_risk_context_contract(
+        StrategyRecommendationPressureEventsFixture.artifact(),
+        unquote(field),
+        {"source_activity_id", "obs_resource_filter_suppressed"},
+        unquote(Macro.escape(source_field)),
+        unquote(Macro.escape(expected_value)),
+        unquote(Macro.escape(stale_value))
+      )
+    end
+  end
+
   defp assert_risk_expiration_context_contract(
          artifact,
          field,
