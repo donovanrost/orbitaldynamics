@@ -32,6 +32,11 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
       |> File.read!()
       |> :json.decode()
 
+    source_objective_tradeoff_report =
+      "study_results/objective_tradeoff_report_v1.json"
+      |> File.read!()
+      |> :json.decode()
+
     candidate_diff_report =
       candidate_diff_report()
       |> update_in(["invalidated_candidates", Access.at(0)], fn candidate ->
@@ -98,6 +103,7 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
             "source_objective_satisfaction_report",
             source_objective_satisfaction_report
           )
+          |> Map.put("source_objective_tradeoff_report", source_objective_tradeoff_report)
           |> Map.put("source_quality_gate_report", passive_quality_gate_report())
           |> Map.put("operational_feedback", %{
             "station_throughput_factor" => %{"equator_prime" => 0.5}
@@ -486,6 +492,52 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
                &(get_in(&1, ["source_review_row", "source"]) ==
                    "campaign_repair.source_objective_satisfaction_report.rows" and
                    &1["objective"] == "target_coverage")
+             )
+
+    assert artifact["source_objective_tradeoff_report"] == source_objective_tradeoff_report
+
+    assert %{
+             "review_type" => "objective_tradeoff_review",
+             "source" => "campaign_repair.source_objective_tradeoff_report.tradeoffs",
+             "subject_id" => "leo_1",
+             "scenario_id" => "leo_1",
+             "score" => 1417.2731832107565,
+             "score_delta_from_selected" => 0,
+             "activity_count" => 1,
+             "selected_observation_count" => 1,
+             "selected_contact_count" => 0,
+             "activity_ids" => ["leo_1_observe_target_a_1"],
+             "score_terms" => %{
+               "activity_score" => 1417.2731832107565,
+               "target_value" => 1417.2731832107565
+             },
+             "source_objective_tradeoff" => %{
+               "scenario_id" => "leo_1",
+               "rank" => 1
+             }
+           } =
+             Enum.find(
+               artifact["operator_review_package"]["rows"],
+               &(&1["source"] ==
+                   "campaign_repair.source_objective_tradeoff_report.tradeoffs")
+             )
+
+    assert %{
+             "import_action" => "review_objective_tradeoff",
+             "source_review_type" => "objective_tradeoff_review",
+             "source" => "campaign_repair.source_objective_tradeoff_report.tradeoffs",
+             "subject_id" => "leo_1",
+             "scenario_id" => "leo_1",
+             "score" => 1417.2731832107565,
+             "score_delta_from_selected" => 0,
+             "activity_count" => 1,
+             "activity_ids" => ["leo_1_observe_target_a_1"],
+             "import_status" => "review_required_before_import"
+           } =
+             Enum.find(
+               artifact["cadence_import_manifest"]["rows"],
+               &(&1["source"] ==
+                   "campaign_repair.source_objective_tradeoff_report.tradeoffs")
              )
 
     assert %{

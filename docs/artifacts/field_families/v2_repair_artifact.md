@@ -449,6 +449,11 @@ focused repair-action regressions.
   `source_objective_satisfaction_report`, and routes exact partial, unmet, and
   no-candidate-window rows into review-gated Cadence import without changing
   objective evaluation, scores, or ranking.
+- **Source objective-tradeoff report** — V2 preserves CandidateRefresh's
+  upstream `objective_tradeoff_report.v1` independently from the recomputed
+  repaired-plan report, validates it at `source_objective_tradeoff_report`, and
+  routes exact ranking rows into review-gated Cadence import without changing
+  repair scores or ranking.
 - **Timeline-diff report** also exposes status/action/changed-field count maps,
   duplicate timeline-identity counts, and model limits from the checked-in
   fixture.

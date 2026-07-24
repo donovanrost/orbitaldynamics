@@ -286,6 +286,10 @@ defmodule OrbitalDynamics.OperatorReview.CompositeArtifact do
         get_in(artifact, ["source_objective_satisfaction_report", "rows"]) || [],
         "campaign_repair.source_objective_satisfaction_report.rows"
       ) ++
+      OptimizationReview.objective_tradeoff_rows(
+        get_in(artifact, ["source_objective_tradeoff_report", "tradeoffs"]) || [],
+        "campaign_repair.source_objective_tradeoff_report.tradeoffs"
+      ) ++
       LinkCapacity.report_rows(
         Map.get(artifact, "link_capacity_report"),
         "campaign_repair.link_capacity_report"

@@ -5,31 +5,31 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Preserve V2 source objective-satisfaction handoff.
+Preserve V2 source objective-tradeoff handoff.
 
 Status:
 Verified; ready to publish.
 
 Selection evidence:
-- CandidateRefresh already retains exact objective, target, required,
-  candidate, selected, and satisfied counts plus selected/candidate target IDs
-  and partial/unmet/no-candidate-window status in a schema-valid
-  `objective_satisfaction_report.v1`.
-- V2 repair currently drops that distinct source report, so upstream objective
-  gaps are no longer independently auditable after repair.
-- Existing objective-satisfaction operator-review/Cadence mapping can lift the
-  exact non-pass rows; the missing V2 source path is a bounded compatibility
-  gap rather than a reason to change repair scores or ranking.
+- CandidateRefresh already retains exact scenario, rank, score, selected-score
+  delta, activity IDs/counts, and score-term values in a schema-valid
+  `objective_tradeoff_report.v1`.
+- V2 repair recomputes an `objective_tradeoff_report` over repaired activities
+  but drops the distinct CandidateRefresh source report, so upstream ranking
+  evidence is no longer independently auditable after repair.
+- Existing objective-tradeoff operator-review/Cadence mapping can lift the
+  exact source rows; the missing V2 source path is a bounded compatibility gap
+  rather than a reason to change repair scores or ranking.
 
 Intended behavior:
-- Resolve the CandidateRefresh objective-satisfaction report from its source or
+- Resolve the CandidateRefresh objective-tradeoff report from its source or
   canonical field and preserve it on V2 as
-  `source_objective_satisfaction_report` without recomputation.
+  `source_objective_tradeoff_report` without recomputation.
 - Validate the optional V2 source field against
-  `objective_satisfaction_report.v1` at its distinct source path and export the
+  `objective_tradeoff_report.v1` at its distinct source path and export the
   property.
-- Reuse the existing objective-satisfaction review/import mapping so exact
-  upstream gap rows remain visible after repair.
+- Reuse the existing objective-tradeoff review/import mapping so exact upstream
+  ranking rows remain visible beside the recomputed repaired-plan report.
 - Preserve objective evaluation, feasibility, scores, ranking, candidate
   eligibility, schedules, provider/Cadence writes, operator authority, and
   autonomous execution behavior.
@@ -50,7 +50,7 @@ Verification:
 - Contact-allocation regression family: `213 passed`.
 - Golden artifacts: `12 passed`.
 - Schema lint: `155` checked artifacts, all pass.
-- Full repository suite: `4877 passed` in `513.2s`.
+- Full repository suite: `4882 passed` in `537.0s`.
 - Regenerated schema exports changed only `campaign_repair.v2` and the schema
   bundle; the manifest schema remained byte-stable.
 - Canonical V2 repair and strategy runs remained byte-stable:
@@ -63,25 +63,24 @@ Review:
 - Source resolution accepts the explicit source field, collected-list shape,
   and canonical CandidateRefresh field, selects the first exact object, and is
   nil-safe.
-- V2 preserves the report unchanged, validates the optional field with the
-  full `objective_satisfaction_report.v1` contract at
-  `$.source_objective_satisfaction_report`, and exports the nested schema
-  definition.
-- Existing review/import mapping lifts exact partial, unmet, and no-candidate-
-  window rows with objective/target identity, counts, selected/candidate IDs,
-  status, and the nested source row; selected/pass rows remain neutral.
-- Focused integration proof pins the exact source artifact and review row; the
-  Cadence row remains review-gated and preserves the source path in its nested
-  `source_review_row`, matching the established manifest contract.
-- Canonical inputs have no source objective-satisfaction report, so omission
+- V2 preserves the report unchanged beside its recomputed repaired-plan report,
+  validates the optional source field with the full
+  `objective_tradeoff_report.v1` contract at
+  `$.source_objective_tradeoff_report`, and exports the nested definition.
+- Existing review/import mapping lifts exact scenario, rank, score,
+  selected-score delta, activity IDs/counts, and score-term values from the
+  source rows while retaining the distinct source path.
+- Focused integration proof pins the exact source artifact, review row, and
+  review-gated Cadence import row.
+- Canonical inputs have no source objective-tradeoff report, so omission
   preserves canonical bytes and stable IDs.
 - No objective evaluation, feasibility, scoring, ranking, candidate
   eligibility, schedule mutation, provider request/reservation, Cadence write,
   operator authority, or autonomous execution behavior changed.
 
 Last published slice:
-- `0f3af9d0` Preserve V2 source constraint handoff (`4872 passed`; exact source
-  constraint evidence plus review/import handoff, no decision effect).
+- `598bfb65` Preserve V2 source objective satisfaction handoff (`4877 passed`;
+  exact objective-gap evidence plus review/import handoff, no decision effect).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions while preserving explicit
@@ -92,8 +91,8 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-After source objective-satisfaction evidence is durable, reassess the adjacent
-source objective-tradeoff or score-term compatibility gap.
+After source objective-tradeoff evidence is durable, reassess the adjacent
+source score-term compatibility gap.
 
 Blocked:
 None.

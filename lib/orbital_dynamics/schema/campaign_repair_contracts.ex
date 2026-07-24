@@ -143,6 +143,10 @@ defmodule OrbitalDynamics.Schema.CampaignRepairContracts do
     |> call(callbacks, :validate_optional_objective_tradeoff_report, [
       Map.get(artifact, "objective_tradeoff_report")
     ])
+    |> call(callbacks, :validate_optional_source_objective_tradeoff_report, [
+      "$.source_objective_tradeoff_report",
+      Map.get(artifact, "source_objective_tradeoff_report")
+    ])
     |> call(callbacks, :validate_optional_constraint_report, [
       Map.get(artifact, "constraint_report")
     ])

@@ -235,6 +235,8 @@ defmodule OrbitalDynamics.Schema.CampaignArtifactValidation do
         &OperationalReadinessValidation.validate_optional_quality_gate_report/3,
       validate_optional_objective_tradeoff_report:
         &DecisionSupportValidation.validate_optional_objective_tradeoff_report/2,
+      validate_optional_source_objective_tradeoff_report:
+        &DecisionSupportValidation.validate_optional_objective_tradeoff_report_at/3,
       validate_optional_constraint_report:
         &DecisionSupportValidation.validate_optional_constraint_report/2,
       validate_optional_source_constraint_report:

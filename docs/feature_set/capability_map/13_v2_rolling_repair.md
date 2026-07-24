@@ -267,6 +267,9 @@ V2 repair `operator_review_package.v1` now emits:
 - CandidateRefresh source objective-satisfaction gap rows, preserving exact
   upstream objective, target, count, selected/candidate identity, and status
   evidence without changing objective evaluation, scores, or ranking.
+- CandidateRefresh source objective-tradeoff rows, preserving exact upstream
+  scenario, rank, score delta, activity identity, and score-term evidence beside
+  the recomputed repaired-plan report without changing scores or ranking.
 - Repaired-plan and CandidateRefresh source link-capacity review rows,
   preserving the upstream report independently from the recomputed repair
   report without applying another scoring effect.

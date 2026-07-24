@@ -210,6 +210,15 @@ defmodule OrbitalDynamics.Schema.DecisionSupportValidation do
         validate_contract
       )
 
+  def validate_optional_objective_tradeoff_report_at(issues, path, report),
+    do:
+      validate_optional_report(
+        issues,
+        report,
+        path,
+        &validate_objective_tradeoff_report([], path, &1)
+      )
+
   def validate_optional_objective_satisfaction_report(issues, report),
     do:
       validate_optional_objective_satisfaction_report(
