@@ -218,6 +218,22 @@ defmodule OrbitalDynamics.Schema.CadenceImportManifestJsonSchema do
             "items" => schema.(:stable_id_array_map_schema)
           },
           "station_reservation_hold_contact_ids" => schema.(:stable_id_array_schema),
+          "station_reservation_hold_contact_ids_by_import_status" => %{
+            "type" => "array",
+            "items" => schema.(:stable_id_array_map_schema)
+          },
+          "station_reservation_hold_contact_ids_by_expiration_status" => %{
+            "type" => "array",
+            "items" => schema.(:stable_id_array_map_schema)
+          },
+          "station_reservation_hold_contact_ids_by_direction" => %{
+            "type" => "array",
+            "items" => schema.(:stable_id_array_map_schema)
+          },
+          "station_reservation_hold_contact_ids_by_direction_and_ground_station_id" => %{
+            "type" => "array",
+            "items" => schema.(:stable_id_array_map_schema)
+          },
           "station_reservation_hold_expiration_statuses" => schema.(:string_array_schema),
           "contact_allocation_pressure_risk_types" => schema.(:string_array_schema),
           "contact_allocation_pressure_contact_ids" => schema.(:stable_id_array_schema),

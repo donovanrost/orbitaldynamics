@@ -650,6 +650,50 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
     )
   end
 
+  test "station hold contact routing by import status remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "station_reservation_hold_contact_ids_by_import_status",
+      {"contact_id", "dl_hold_import_review"},
+      "station_reservation_hold_contact_ids_by_import_status",
+      [%{"review_required_before_import" => ["dl_hold_import_review"]}],
+      [%{"review_required_before_import" => ["stale_hold_contact"]}]
+    )
+  end
+
+  test "station hold contact routing by expiration status remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "station_reservation_hold_contact_ids_by_expiration_status",
+      {"contact_id", "dl_hold_import_review"},
+      "station_reservation_hold_contact_ids_by_expiration_status",
+      [%{"active" => ["dl_hold_import_review"]}],
+      [%{"active" => ["stale_hold_contact"]}]
+    )
+  end
+
+  test "station hold contact routing by direction remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "station_reservation_hold_contact_ids_by_direction",
+      {"contact_id", "dl_hold_import_review"},
+      "station_reservation_hold_contact_ids_by_direction",
+      [%{"downlink" => ["dl_hold_import_review"]}],
+      [%{"downlink" => ["stale_hold_contact"]}]
+    )
+  end
+
+  test "station hold contact routing by direction and station remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "station_reservation_hold_contact_ids_by_direction_and_ground_station_id",
+      {"contact_id", "dl_hold_import_review"},
+      "station_reservation_hold_contact_ids_by_direction_and_ground_station_id",
+      [%{"downlink:equator_prime" => ["dl_hold_import_review"]}],
+      [%{"downlink:equator_prime" => ["stale_hold_contact"]}]
+    )
+  end
+
   test "station hold summary model remains source exact across handoffs" do
     assert_risk_context_contract(
       StrategyRecommendationPressureEventsFixture.artifact(),

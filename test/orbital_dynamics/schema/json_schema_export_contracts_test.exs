@@ -89,6 +89,10 @@ defmodule OrbitalDynamics.Schema.JsonSchemaExportContractsTest do
       {"station_reservation_hold_ids_by_direction", "object", nil},
       {"station_reservation_hold_ids_by_direction_and_ground_station_id", "object", nil},
       {"station_reservation_hold_contact_ids", "string", stable_id_pattern},
+      {"station_reservation_hold_contact_ids_by_import_status", "object", nil},
+      {"station_reservation_hold_contact_ids_by_expiration_status", "object", nil},
+      {"station_reservation_hold_contact_ids_by_direction", "object", nil},
+      {"station_reservation_hold_contact_ids_by_direction_and_ground_station_id", "object", nil},
       {"station_reservation_hold_expiration_statuses", "string", nil},
       {"contact_allocation_pressure_risk_types", "string", nil},
       {"contact_allocation_pressure_contact_ids", "string", stable_id_pattern},
@@ -226,7 +230,11 @@ defmodule OrbitalDynamics.Schema.JsonSchemaExportContractsTest do
       "station_reservation_hold_ids_by_import_status",
       "station_reservation_hold_ids_by_required_import_action",
       "station_reservation_hold_ids_by_direction",
-      "station_reservation_hold_ids_by_direction_and_ground_station_id"
+      "station_reservation_hold_ids_by_direction_and_ground_station_id",
+      "station_reservation_hold_contact_ids_by_import_status",
+      "station_reservation_hold_contact_ids_by_expiration_status",
+      "station_reservation_hold_contact_ids_by_direction",
+      "station_reservation_hold_contact_ids_by_direction_and_ground_station_id"
     ]
 
     item_minimums = %{
