@@ -852,6 +852,94 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
     )
   end
 
+  test "contact-contention risk type remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "contact_contention_pressure_risk_types",
+      {"contact_id", "dl_contention_conflict"},
+      ["type", "risk_type"],
+      ["downlink_completion_gap"],
+      ["stale_contact_contention_risk"]
+    )
+  end
+
+  test "contact-contention contact identity remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "contact_contention_pressure_contact_ids",
+      {"contact_id", "dl_contention_conflict"},
+      "contact_id",
+      ["dl_contention_conflict"],
+      ["stale_dl_contention_conflict"]
+    )
+  end
+
+  test "contact-contention scenario identity remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "contact_contention_pressure_scenario_ids",
+      {"contact_id", "dl_contention_conflict"},
+      "scenario_id",
+      ["leo_1"],
+      ["stale_leo_1"]
+    )
+  end
+
+  test "contact-contention spacecraft identity remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "contact_contention_pressure_spacecraft_ids",
+      {"contact_id", "dl_contention_conflict"},
+      "spacecraft_id",
+      ["leo_1"],
+      ["stale_leo_1"]
+    )
+  end
+
+  test "contact-contention ground-station identity remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "contact_contention_pressure_ground_station_ids",
+      {"contact_id", "dl_contention_conflict"},
+      "ground_station_id",
+      ["equator_prime"],
+      ["stale_equator_prime"]
+    )
+  end
+
+  test "contact-contention source-activity identity remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "contact_contention_pressure_source_activity_ids",
+      {"contact_id", "dl_contention_conflict"},
+      ["source_activity_id", "source_activity_ids"],
+      ["dl_contention_conflict"],
+      ["stale_dl_contention_conflict"]
+    )
+  end
+
+  test "contact-contention source-window identity remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "contact_contention_pressure_source_window_ids",
+      {"contact_id", "dl_contention_conflict"},
+      ["source_window_id", "source_window_ids"],
+      ["window_contention_conflict", "window_contention_primary"],
+      ["stale_window_contention"]
+    )
+  end
+
+  test "contact-contention group identity remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "contact_contention_pressure_group_ids",
+      {"contact_id", "dl_contention_conflict"},
+      "contention_group_id",
+      ["station:equator_prime:contention:selected"],
+      ["station:equator_prime:contention:stale"]
+    )
+  end
+
   test "station conflict expiration risk context remains source exact across handoffs" do
     assert_risk_expiration_context_contract(
       StrategyRecommendationPressureEventsFixture.artifact(),

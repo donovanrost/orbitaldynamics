@@ -228,6 +228,7 @@ defmodule OrbitalDynamics.CampaignPlanner.EventRiskIndicator.StationDownlinkPres
         "resolution_priority_override_count" => event["resolution_priority_override_count"],
         "resolution_priority_override_contact_ids" =>
           event["resolution_priority_override_contact_ids"],
+        "contention_group_id" => event["contention_group_id"],
         "contact_result" => event["contact_result"],
         "realized_status" => event["realized_status"],
         "allocation_status" => event["allocation_status"],
