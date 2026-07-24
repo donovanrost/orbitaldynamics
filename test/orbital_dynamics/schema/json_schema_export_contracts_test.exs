@@ -76,9 +76,13 @@ defmodule OrbitalDynamics.Schema.JsonSchemaExportContractsTest do
       {"station_reservation_conflict_feedback_sources", "string", nil},
       {"station_reservation_conflict_feedback_scopes", "string", nil},
       {"station_reservation_conflict_trust_boundaries", "string", nil},
+      {"station_reservation_hold_import_statuses", "string", nil},
       {"station_reservation_hold_import_readiness_summary_models", "string", nil},
       {"station_reservation_hold_import_readiness_sources", "string", nil},
       {"station_reservation_hold_import_readiness_source_artifact_types", "string", nil},
+      {"station_reservation_hold_import_readiness_statuses", "string", nil},
+      {"station_reservation_hold_import_classifications", "string", nil},
+      {"station_reservation_hold_count_values", "integer", nil},
       {"station_reservation_hold_ids", "string", stable_id_pattern},
       {"station_reservation_hold_contact_ids", "string", stable_id_pattern},
       {"station_reservation_hold_expiration_statuses", "string", nil},
@@ -216,6 +220,7 @@ defmodule OrbitalDynamics.Schema.JsonSchemaExportContractsTest do
 
     item_minimums = %{
       "station_calendar_pressure_capacity_fraction_values" => 0.0,
+      "station_reservation_hold_count_values" => 0,
       "station_calendar_pressure_station_calendar_overlap_count_values" => 0,
       "station_calendar_pressure_station_calendar_ambiguous_entry_count_values" => 0,
       "station_calendar_pressure_station_calendar_reservation_overlap_count_values" => 0

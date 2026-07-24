@@ -5,23 +5,22 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Enforce source-exact station-reservation-hold summary identity.
+Enforce source-exact station-reservation-hold summary state.
 
 Status:
 Verified; publish pending.
 
 Selection evidence:
-- The selected hold risk carries summary model
-  `artifact_only_station_reservation_hold_import_readiness_summary`, source
-  `station_calendar_report.reservation_evidence`, and source artifact type
-  `station_reservation_report.v1` across all four handoff copies.
-- All three identity lists survive projection, while their public schemas and
-  source-exact validation remain absent.
+- The selected hold risk carries import status `review_required_before_import`,
+  readiness status `review_required`, classification `review_only`, and hold
+  count `2` across all four handoff copies.
+- Three string lists and the numeric count list survive projection, while their
+  public schemas and source-exact validation remain absent.
 
 Intended behavior:
-- Declare three string arrays requiring exact source-derived copies in
+- Declare three string arrays and one nonnegative-integer array requiring exact copies in
   review/direct/review-derived Cadence rows.
-- Reject missing or stale derived summary identity; retain paired
+- Reject missing or stale derived summary state; retain paired
   legacy omission compatibility for optional source fields.
 - Preserve provider and Cadence writes, reservation acceptance, operator
   authority, and execution boundaries.
@@ -31,15 +30,15 @@ Fleet-scale planning decisions and durable reproducible audit handoffs.
 
 Completed files:
 - station-reservation-hold validation and review/import schemas
-- summary-identity mutation/schema proofs, docs, exports, and ledger
+- summary-state mutation/schema proofs, docs, exports, and ledger
 
 Verification:
-- Focused handoff/schema tests: `171 passed`.
+- Focused handoff/schema tests: `175 passed`.
 - Contact-allocation tests: `213 passed`.
 - Golden artifacts: `12 passed`; canonical strategy ID remains
   `fb70d7d366bbdcd287c78aefaa153292035e2e68727f6443befd9bca44b3ec47`.
 - Schema lint: `155` artifacts, `0` errors, `0` warnings.
-- Full suite: `4044 passed`.
+- Full suite: `4048 passed`.
 - Canonical strategy SHA-256 remains
   `f7fc7823d071db82124af4b903e5be730983d1d9cb96f4524c711041c750ca1c`.
 - Ten expected generated schema surfaces changed; format and
@@ -49,14 +48,14 @@ Review:
 - Exact-copy validation covers operator review, direct selected Cadence import,
   and review-derived Cadence import, including its embedded source-review row.
 - Mutation proofs cover missing review fields, paired legacy omission, stale
-  direct imports, and missing review-derived fields for all three identity arrays.
-- All three public row schemas and generated exports agree on string arrays;
-  six of 28 station-reservation-hold context keys now have exact contracts.
-- Summary identity remains descriptive: no provider/Cadence write, reservation
+  direct imports, and missing review-derived fields for all four state arrays.
+- All three public row schemas agree on three string arrays and a nonnegative-
+  integer count array; ten of 28 hold context keys now have exact contracts.
+- Summary state remains descriptive: no provider/Cadence write, reservation
   acceptance, operator authority, or execution path changed.
 
 Last published slice:
-- `64e9e7c1` Validate station hold routing identity (`4041 passed`).
+- `22e65361` Validate station hold summary identity (`4044 passed`).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions while preserving explicit
@@ -67,7 +66,7 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-Assess source-exact station-reservation-hold summary state.
+Assess source-exact station-reservation-hold routing maps.
 
 Blocked:
 None.
