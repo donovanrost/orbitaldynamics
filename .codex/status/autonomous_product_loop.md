@@ -5,21 +5,20 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Enforce source-exact objective-satisfaction observation-quality evidence.
+Enforce source-exact objective-satisfaction activity and provenance evidence.
 
 Status:
 Verified; ready to publish.
 
 Selection evidence:
-- Objective-satisfaction pressure has `21/50` exact-copy fields.
-- Observation success, imagery quality, and cloud/blur evidence survives
-  projection, while its quality-feedback source is dropped at that boundary.
+- Objective-satisfaction pressure has `28/50` exact-copy fields.
+- Source-activity IDs, feedback source/scope, trust boundary, and derivation
+  reasons survive projection but are not protected against stale copies.
 
 Intended behavior:
-- Preserve the quality-feedback source through observation projection.
-- Declare seven numeric/string arrays requiring exact quality-evidence copies
+- Declare one stable-ID and four string arrays requiring exact provenance copies
   in operator review, direct Cadence import, and review-derived Cadence rows.
-- Reject missing or stale derived observation-quality context; retain
+- Reject missing or stale derived activity/provenance context; retain
   paired legacy omission compatibility for optional source fields.
 - Preserve provider and Cadence writes, reservation acceptance, operator
   authority, and execution boundaries.
@@ -28,27 +27,26 @@ Level 6 pillar advanced:
 Fleet-scale planning decisions and durable reproducible audit handoffs.
 
 Planned files:
-- observation-feedback projection and objective-satisfaction validation schemas
-- quality-evidence mutation/schema proofs, docs, exports, canonical artifact if
-  changed, and ledger
+- objective-satisfaction validation schemas
+- activity/provenance mutation and schema proofs, docs, exports, and ledger
 
 Verification:
-- Focused handoff and schema contracts: `407 passed`.
+- Focused handoff and schema contracts: `412 passed`.
 - Contact-allocation regression: `213 passed`.
 - Golden artifacts: `12 passed`.
 - Schema lint: `155/155` artifacts passed with zero warnings.
-- Full suite: `4280 passed`.
+- Full suite: `4285 passed`.
 - Canonical strategy SHA-256 remained
   `c13c37c2ae06849c5d8a49cecaf1c113e0ddcf653c34d32f751efd6815891887`.
-- Exact-copy coverage advanced from `21/50` to `28/50`
+- Exact-copy coverage advanced from `28/50` to `33/50`
   objective-satisfaction fields.
 
 Review:
-- Observation feedback now preserves the quality-feedback source carried by
-  its source event; the other six quality fields needed no adapter change.
-- Public schemas use numeric/string arrays consistently across operator review,
-  direct import, and source-review rows.
-- Mutation proofs cover all seven copies, missing review context, paired legacy
+- All five activity/provenance fields already survived observation projection;
+  no runtime adapter change was needed.
+- Public schemas use one stable-ID and four string arrays consistently across
+  operator review, direct import, and source-review rows.
+- Mutation proofs cover all five copies, missing review context, paired legacy
   omission, stale direct context, and missing/stale review-derived context.
 - Generated changes are limited to the expected ten schema artifacts; the
   canonical strategy artifact is unchanged.
@@ -57,8 +55,8 @@ Review:
   execution was added.
 
 Last published slice:
-- `b90fd003` Validate objective satisfaction observation geometry (`4273 passed`,
-  `21/50`).
+- `3739f4f2` Validate objective satisfaction quality evidence (`4280 passed`,
+  `28/50`).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions while preserving explicit
@@ -69,7 +67,7 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-Assess objective-satisfaction source-activity and provenance evidence.
+Assess objective-satisfaction downlink and contact evidence.
 
 Blocked:
 None.

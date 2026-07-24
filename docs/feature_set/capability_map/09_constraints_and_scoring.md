@@ -92,9 +92,11 @@ Status: **implemented** (core), with **partial**, **near-term**, **later**, and 
   with start/end timing, required/planned observation counts, priority, and
   latitude/longitude/minimum-elevation geometry. Observation-success factor,
   image score/status/source, cloud cover, blur, and quality-feedback source
-  remain exact too. Missing or stale derived identity/status/timing/demand/
-  geometry/quality is rejected while paired legacy omission remains compatible;
-  the evidence cannot approve an import, write to Cadence, or execute a schedule.
+  remain exact too, along with source-activity IDs, feedback source/scope, trust
+  boundary, and derivation reasons. Missing or stale derived identity/status/
+  timing/demand/geometry/quality/provenance is rejected while paired legacy
+  omission remains compatible; the evidence cannot approve an import, write to
+  Cadence, or execute a schedule.
 - `objective_satisfaction_report.v1` rows summarize target coverage, downlink completion, and per-target commitment status from selected activities, with:
   - downlink-completion rows aggregating multiple scoped station/scenario/time/data-volume objectives instead of reporting only the first objective;
   - contact-count plus data-volume requirements treated as conjunctive when both are declared.

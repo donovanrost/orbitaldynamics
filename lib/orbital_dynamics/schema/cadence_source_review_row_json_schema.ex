@@ -312,6 +312,12 @@ defmodule OrbitalDynamics.Schema.CadenceSourceReviewRowJsonSchema do
           "objective_satisfaction_pressure_blur_score_values" => schema.(:number_array_schema),
           "objective_satisfaction_pressure_quality_feedback_sources" =>
             schema.(:string_array_schema),
+          "objective_satisfaction_pressure_source_activity_ids" =>
+            schema.(:stable_id_array_schema),
+          "objective_satisfaction_pressure_feedback_sources" => schema.(:string_array_schema),
+          "objective_satisfaction_pressure_feedback_scopes" => schema.(:string_array_schema),
+          "objective_satisfaction_pressure_trust_boundaries" => schema.(:string_array_schema),
+          "objective_satisfaction_pressure_derivation_reasons" => schema.(:string_array_schema),
           "objective_tradeoff_pressure_risk_types" => schema.(:string_array_schema),
           "objective_tradeoff_pressure_objective_ids" => schema.(:stable_id_array_schema),
           "objective_tradeoff_pressure_objective_types" => schema.(:string_array_schema),

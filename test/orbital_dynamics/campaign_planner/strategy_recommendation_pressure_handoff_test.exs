@@ -2406,6 +2406,64 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
     )
   end
 
+  test "objective-satisfaction source activity remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "objective_satisfaction_pressure_source_activity_ids",
+      {"feedback_scope", "objective_satisfaction"},
+      ["source_activity_id", "source_activity_ids"],
+      ["obs_objective_quality_source", "obs_objective_quality_selected"],
+      ["stale_objective_satisfaction_activity"]
+    )
+  end
+
+  test "objective-satisfaction feedback source remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "objective_satisfaction_pressure_feedback_sources",
+      {"feedback_scope", "objective_satisfaction"},
+      "feedback_source",
+      ["mission_state.source_objective_satisfaction_report.rows"],
+      ["stale_objective_satisfaction_source"]
+    )
+  end
+
+  test "objective-satisfaction feedback scope remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "objective_satisfaction_pressure_feedback_scopes",
+      {"feedback_scope", "objective_satisfaction"},
+      "feedback_scope",
+      ["objective_satisfaction"],
+      ["stale_objective_satisfaction_scope"]
+    )
+  end
+
+  test "objective-satisfaction trust boundary remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "objective_satisfaction_pressure_trust_boundaries",
+      {"feedback_scope", "objective_satisfaction"},
+      "trust_boundary",
+      ["mission_state_objective_satisfaction_report"],
+      ["stale_objective_satisfaction_boundary"]
+    )
+  end
+
+  test "objective-satisfaction derivation reasons remain source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "objective_satisfaction_pressure_derivation_reasons",
+      {"feedback_scope", "objective_satisfaction"},
+      ["derivation_reasons"],
+      [
+        "objective_satisfaction_observation_quality_gap",
+        "objective_satisfaction_image_quality_marginal"
+      ],
+      ["stale_objective_satisfaction_derivation"]
+    )
+  end
+
   test "objective-tradeoff risk type remains source exact across handoffs" do
     assert_risk_context_contract(
       StrategyRecommendationPressureEventsFixture.artifact(),
