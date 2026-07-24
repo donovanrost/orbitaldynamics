@@ -1814,6 +1814,94 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
     )
   end
 
+  test "score-term start bound remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "score_term_pressure_start_values_s",
+      {"feedback_scope", "score_term"},
+      "starts_at_s",
+      [1_240.0],
+      [1_239.0]
+    )
+  end
+
+  test "score-term end bound remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "score_term_pressure_end_values_s",
+      {"feedback_scope", "score_term"},
+      "ends_at_s",
+      [1_360.0],
+      [1_361.0]
+    )
+  end
+
+  test "score-term required contact demand remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "score_term_pressure_required_contact_values",
+      {"feedback_scope", "score_term"},
+      "required_contacts",
+      [2],
+      [3]
+    )
+  end
+
+  test "score-term planned contact demand remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "score_term_pressure_planned_contact_values",
+      {"feedback_scope", "score_term"},
+      "planned_contacts",
+      [1],
+      [0]
+    )
+  end
+
+  test "score-term required downlink demand remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "score_term_pressure_required_downlink_values_mb",
+      {"feedback_scope", "score_term"},
+      "required_downlink_mb",
+      [80.0],
+      [81.0]
+    )
+  end
+
+  test "score-term planned downlink demand remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "score_term_pressure_planned_downlink_values_mb",
+      {"feedback_scope", "score_term"},
+      "planned_downlink_mb",
+      [35.0],
+      [34.0]
+    )
+  end
+
+  test "score-term maximum latency remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "score_term_pressure_max_latency_values_s",
+      {"feedback_scope", "score_term"},
+      "max_latency_s",
+      [300.0],
+      [301.0]
+    )
+  end
+
+  test "score-term planned latency remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "score_term_pressure_planned_latency_values_s",
+      {"feedback_scope", "score_term"},
+      "planned_latency_s",
+      [420.0],
+      [419.0]
+    )
+  end
+
   test "station conflict expiration risk context remains source exact across handoffs" do
     assert_risk_expiration_context_contract(
       StrategyRecommendationPressureEventsFixture.artifact(),

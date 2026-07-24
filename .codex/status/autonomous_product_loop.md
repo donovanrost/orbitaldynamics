@@ -5,21 +5,21 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Enforce source-exact score-term entity routing.
+Enforce source-exact score-term timing and demand.
 
 Status:
 Verified; ready to publish.
 
 Selection evidence:
-- Score-term decision routing now covers `8/37` fields, leaving four entity-ID
-  fields before timing, demand, score state, and provenance.
-- Collection, product, payload, and instrument identity already survive
-  event-risk projection but lack exact-copy/public contracts.
+- Score-term decision/entity routing now covers `12/37` fields, leaving eight
+  timing/contact/downlink/latency fields before observation and score state.
+- All eight selected numeric values already survive event-risk projection but
+  lack exact-copy/public contracts.
 
 Intended behavior:
-- Declare four stable-ID arrays requiring exact copies in
+- Declare eight numeric arrays requiring exact copies in
   review/direct/review-derived Cadence rows.
-- Reject missing or stale derived score-term entity routing; retain paired
+- Reject missing or stale derived score-term timing/demand; retain paired
   legacy omission compatibility for optional source fields.
 - Preserve provider and Cadence writes, reservation acceptance, operator
   authority, and execution boundaries.
@@ -29,24 +29,24 @@ Fleet-scale planning decisions and durable reproducible audit handoffs.
 
 Planned files:
 - score-term validation and review/import schemas
-- entity-routing mutation/schema proofs, docs, exports, and ledger
+- timing/demand mutation/schema proofs, docs, exports, and ledger
 
 Verification:
-- Focused handoff/schema contracts: `320 passed`.
+- Focused handoff/schema contracts: `328 passed`.
 - Contact-allocation regression: `213 passed`.
 - Golden artifacts: `12 passed`.
 - Schema lint: `155` artifacts, `0` errors, `0` warnings.
-- Full suite: `4193 passed`.
+- Full suite: `4201 passed`.
 - Canonical strategy SHA-256 remains
   `f7fc7823d071db82124af4b903e5be730983d1d9cb96f4524c711041c750ca1c`.
 
 Review:
-- Score-term coverage reaches `12/37` fields across operator review, direct
+- Score-term coverage reaches `20/37` fields across operator review, direct
   Cadence import, and review-derived import.
-- All four entity-ID fields already survived event-risk projection; no adapter
-  repair was needed.
-- Public schemas type collection, product, payload, and instrument identity as
-  stable-ID arrays.
+- All eight timing/demand fields already survived event-risk projection; no
+  adapter repair was needed.
+- Public schemas type start/end, contact/downlink demand, and latency state as
+  numeric arrays.
 - Shared mutation coverage proves exact copies plus missing review, paired
   legacy omission, stale direct, and missing/stale review-derived contexts.
 - Diff is limited to validation/schema surfaces, focused proofs, docs, ten
@@ -55,7 +55,7 @@ Review:
   operator-authority grant, or execution path was introduced.
 
 Last published slice:
-- `2a53b99c` Validate score term decision routing (`4189 passed`, `8/37`).
+- `fa7ae63b` Validate score term entity routing (`4193 passed`, `12/37`).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions while preserving explicit
@@ -66,7 +66,7 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-Assess score-term timing and demand.
+Assess score-term observation and geometry state.
 
 Blocked:
 None.

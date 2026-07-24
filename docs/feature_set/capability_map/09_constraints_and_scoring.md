@@ -53,10 +53,11 @@ Status: **implemented** (core), with **partial**, **near-term**, **later**, and 
 - Derived score-term pressure recommendation rows preserve source-exact risk,
   objective, target, scenario, branch, and ground-station routing plus the
   latency-objective flag and collection, product, payload, and instrument
-  identity across operator review, direct Cadence import, and review-derived
-  import copies. Missing or stale derived routing is rejected while paired
-  legacy omission remains compatible; the evidence cannot approve an import,
-  write to Cadence, or execute a schedule.
+  identity; start/end bounds; contact and downlink demand; and maximum/planned
+  latency across operator review, direct Cadence import, and review-derived
+  import copies. Missing or stale derived routing, timing, or demand is rejected
+  while paired legacy omission remains compatible; the evidence cannot approve
+  an import, write to Cadence, or execute a schedule.
 
 ### Objective-tradeoff reports
 

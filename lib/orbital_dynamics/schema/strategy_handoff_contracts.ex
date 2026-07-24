@@ -273,7 +273,19 @@ defmodule OrbitalDynamics.Schema.StrategyHandoffContracts do
     {"score_term_pressure_collection_ids", "score_term_pressure_collection_ids"},
     {"score_term_pressure_product_ids", "score_term_pressure_product_ids"},
     {"score_term_pressure_payload_ids", "score_term_pressure_payload_ids"},
-    {"score_term_pressure_instrument_ids", "score_term_pressure_instrument_ids"}
+    {"score_term_pressure_instrument_ids", "score_term_pressure_instrument_ids"},
+    {"score_term_pressure_start_values_s", "score_term_pressure_start_values_s"},
+    {"score_term_pressure_end_values_s", "score_term_pressure_end_values_s"},
+    {"score_term_pressure_required_contact_values",
+     "score_term_pressure_required_contact_values"},
+    {"score_term_pressure_planned_contact_values", "score_term_pressure_planned_contact_values"},
+    {"score_term_pressure_required_downlink_values_mb",
+     "score_term_pressure_required_downlink_values_mb"},
+    {"score_term_pressure_planned_downlink_values_mb",
+     "score_term_pressure_planned_downlink_values_mb"},
+    {"score_term_pressure_max_latency_values_s", "score_term_pressure_max_latency_values_s"},
+    {"score_term_pressure_planned_latency_values_s",
+     "score_term_pressure_planned_latency_values_s"}
   ]
   @station_reservation_conflict_context_field_pairs [
     {"station_reservation_conflict_contact_ids", "station_reservation_conflict_contact_ids"},
