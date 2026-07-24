@@ -446,6 +446,12 @@ focused repair-action regressions.
   classification, readiness status, gate counts, source identity, assumptions,
   and no-approval/no-import model limits. The Cadence manifest is an artifact
   handoff only and performs no write.
+- **Source operational-readiness gate summary** — V2 preserves the normalized
+  `operational_readiness_gate_summary.v1` at
+  `source_operational_readiness_gate_summary`, including exact gate rows,
+  status/classification routing maps, non-passed gate IDs, source lineage,
+  assumptions, and summary-only model limits without changing readiness or
+  approving an import.
 - **Source constraint report** — V2 preserves CandidateRefresh's upstream
   `constraint_report.v1` independently from the recomputed repaired-plan
   report, validates it at `source_constraint_report`, and routes exact non-pass

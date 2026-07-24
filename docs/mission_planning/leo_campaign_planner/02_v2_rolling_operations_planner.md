@@ -313,7 +313,9 @@ schema-type their stable IDs, invalid-input flags, and protected/change counts.
   review-only and does not grant certification, import, or execution authority.
   Source operational import-eligibility summaries preserve the upstream
   eligibility decision and gate counts as a no-write Cadence handoff; they do
-  not approve or perform an import.
+  not approve or perform an import. Source operational-readiness gate summaries
+  also preserve normalized gate routing and non-passed identities without
+  recomputing readiness.
   Source provider-counteroffer evidence, including preserved plan-impact
   timing/cost deltas, lock-deadline context, and explicit import-readiness
   classification, remains review-gated and does not change the repaired

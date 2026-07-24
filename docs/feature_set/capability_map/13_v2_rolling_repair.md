@@ -265,6 +265,10 @@ V2 repair `operator_review_package.v1` now emits:
   exact eligibility, classification, readiness status, gate counts, source
   identity, assumptions, and explicit no-approval/no-import limits without
   performing a Cadence write.
+- CandidateRefresh source operational-readiness gate summaries, preserving exact
+  gate rows, status/classification routing maps, non-passed gate IDs, source
+  lineage, assumptions, and summary-only model limits without recomputing or
+  changing readiness.
 - CandidateRefresh source constraint fail/warning rows, preserving exact
   upstream scenario, threshold, value, score, and status evidence beside the
   recomputed repaired-plan report without changing feasibility or scoring.

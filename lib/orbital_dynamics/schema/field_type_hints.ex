@@ -614,6 +614,7 @@ defmodule OrbitalDynamics.Schema.FieldTypeHints do
     "source_invalid_contact_input" => "object",
     "source_link_capacity_report" => "object",
     "source_operational_import_eligibility_summary" => "object",
+    "source_operational_readiness_gate_summary" => "object",
     "source_provider_counteroffer_report" => "object",
     "source_provider_counteroffer_plan_impact_summary" => "object",
     "source_provider_counteroffer_import_readiness_summary" => "object",
