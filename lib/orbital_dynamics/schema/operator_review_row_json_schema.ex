@@ -367,6 +367,17 @@ defmodule OrbitalDynamics.Schema.OperatorReviewRowJsonSchema do
           "score_term_pressure_latitude_values_deg" => schema.(:number_array_schema),
           "score_term_pressure_longitude_values_deg" => schema.(:number_array_schema),
           "score_term_pressure_minimum_elevation_values_deg" => schema.(:number_array_schema),
+          "score_term_pressure_source_activity_ids" => schema.(:stable_id_array_schema),
+          "score_term_pressure_keys" => schema.(:string_array_schema),
+          "score_term_pressure_values" => schema.(:number_array_schema),
+          "score_term_pressure_timeline_score_values" => schema.(:number_array_schema),
+          "score_term_pressure_score_term_maps" => %{
+            "type" => "array",
+            "items" => %{
+              "type" => "object",
+              "additionalProperties" => %{"type" => "number"}
+            }
+          },
           "station_reservation_conflict_contact_ids" => schema.(:stable_id_array_schema),
           "station_reservation_conflict_source_activity_ids" => schema.(:stable_id_array_schema),
           "station_reservation_conflict_ground_station_ids" => schema.(:stable_id_array_schema),

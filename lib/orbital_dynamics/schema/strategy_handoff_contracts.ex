@@ -294,7 +294,12 @@ defmodule OrbitalDynamics.Schema.StrategyHandoffContracts do
     {"score_term_pressure_latitude_values_deg", "score_term_pressure_latitude_values_deg"},
     {"score_term_pressure_longitude_values_deg", "score_term_pressure_longitude_values_deg"},
     {"score_term_pressure_minimum_elevation_values_deg",
-     "score_term_pressure_minimum_elevation_values_deg"}
+     "score_term_pressure_minimum_elevation_values_deg"},
+    {"score_term_pressure_source_activity_ids", "score_term_pressure_source_activity_ids"},
+    {"score_term_pressure_keys", "score_term_pressure_keys"},
+    {"score_term_pressure_values", "score_term_pressure_values"},
+    {"score_term_pressure_timeline_score_values", "score_term_pressure_timeline_score_values"},
+    {"score_term_pressure_score_term_maps", "score_term_pressure_score_term_maps"}
   ]
   @station_reservation_conflict_context_field_pairs [
     {"station_reservation_conflict_contact_ids", "station_reservation_conflict_contact_ids"},

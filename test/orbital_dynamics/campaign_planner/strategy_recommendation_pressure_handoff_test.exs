@@ -1968,6 +1968,66 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
     )
   end
 
+  test "score-term source activity remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "score_term_pressure_source_activity_ids",
+      {"feedback_scope", "score_term"},
+      ["source_activity_id", "source_activity_ids"],
+      ["obs_score_source", "dl_score_source"],
+      ["stale_score_source"]
+    )
+  end
+
+  test "score-term key remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "score_term_pressure_keys",
+      {"feedback_scope", "score_term"},
+      "score_term_key",
+      ["collection_latency_gap_s"],
+      ["stale_score_term_key"]
+    )
+  end
+
+  test "score-term value remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "score_term_pressure_values",
+      {"feedback_scope", "score_term"},
+      "score_term_value",
+      [120.0],
+      [121.0]
+    )
+  end
+
+  test "score-term timeline score remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "score_term_pressure_timeline_score_values",
+      {"feedback_scope", "score_term"},
+      "timeline_score",
+      [9.5],
+      [9.6]
+    )
+  end
+
+  test "score-term map remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "score_term_pressure_score_term_maps",
+      {"feedback_scope", "score_term"},
+      "score_terms",
+      [
+        %{
+          "collection_latency_gap_s" => 120.0,
+          "downlink_shortfall_mb" => 45.0
+        }
+      ],
+      [%{"collection_latency_gap_s" => 121.0}]
+    )
+  end
+
   test "station conflict expiration risk context remains source exact across handoffs" do
     assert_risk_expiration_context_contract(
       StrategyRecommendationPressureEventsFixture.artifact(),
