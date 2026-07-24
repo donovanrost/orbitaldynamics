@@ -186,6 +186,17 @@ defmodule OrbitalDynamics.Schema.CadenceSourceReviewRowJsonSchema do
           "contact_filter_pressure_planned_downlink_values_mb" => schema.(:number_array_schema),
           "contact_filter_pressure_start_values_s" => schema.(:number_array_schema),
           "contact_filter_pressure_end_values_s" => schema.(:number_array_schema),
+          "contact_filter_pressure_suppressed_reasons" => schema.(:string_array_schema),
+          "contact_filter_pressure_review_statuses" => schema.(:string_array_schema),
+          "contact_filter_pressure_station_reservation_ids" => schema.(:stable_id_array_schema),
+          "contact_filter_pressure_station_reserved_by" => schema.(:string_array_schema),
+          "contact_filter_pressure_station_reservation_statuses" => schema.(:string_array_schema),
+          "contact_filter_pressure_station_reservation_match_statuses" =>
+            schema.(:string_array_schema),
+          "contact_filter_pressure_station_calendar_entry_ids" =>
+            schema.(:stable_id_array_schema),
+          "contact_filter_pressure_station_calendar_entry_statuses" =>
+            schema.(:string_array_schema),
           "station_reservation_conflict_contact_ids" => schema.(:stable_id_array_schema),
           "station_reservation_conflict_source_activity_ids" => schema.(:stable_id_array_schema),
           "station_reservation_conflict_ground_station_ids" => schema.(:stable_id_array_schema),

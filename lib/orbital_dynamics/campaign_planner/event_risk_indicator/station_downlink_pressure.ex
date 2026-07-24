@@ -220,6 +220,7 @@ defmodule OrbitalDynamics.CampaignPlanner.EventRiskIndicator.StationDownlinkPres
         "projected_resource_status" => event["projected_resource_status"],
         "contact_filter_status" => event["contact_filter_status"],
         "suppression_status" => event["suppression_status"],
+        "suppressed_reason" => event["suppressed_reason"],
         "contact_id" => event["contact_id"],
         "selected_contact_id" => event["selected_contact_id"],
         "selected_priority_source" => event["selected_priority_source"],

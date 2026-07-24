@@ -1275,6 +1275,94 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
     )
   end
 
+  test "contact-filter suppression reason remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "contact_filter_pressure_suppressed_reasons",
+      {"contact_id", "dl_contact_filter_suppressed"},
+      "suppressed_reason",
+      ["station_reserved"],
+      ["stale_suppression_reason"]
+    )
+  end
+
+  test "contact-filter review status remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "contact_filter_pressure_review_statuses",
+      {"contact_id", "dl_contact_filter_suppressed"},
+      "review_status",
+      ["operator_review_required"],
+      ["not_required"]
+    )
+  end
+
+  test "contact-filter reservation identity remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "contact_filter_pressure_station_reservation_ids",
+      {"contact_id", "dl_contact_filter_suppressed"},
+      "station_reservation_id",
+      ["reservation_contact_filter"],
+      ["stale_reservation_contact_filter"]
+    )
+  end
+
+  test "contact-filter reservation owner remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "contact_filter_pressure_station_reserved_by",
+      {"contact_id", "dl_contact_filter_suppressed"},
+      "station_reserved_by",
+      ["partner_calendar"],
+      ["stale_partner_calendar"]
+    )
+  end
+
+  test "contact-filter reservation status remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "contact_filter_pressure_station_reservation_statuses",
+      {"contact_id", "dl_contact_filter_suppressed"},
+      "station_reservation_status",
+      ["confirmed"],
+      ["cancelled"]
+    )
+  end
+
+  test "contact-filter reservation match remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "contact_filter_pressure_station_reservation_match_statuses",
+      {"contact_id", "dl_contact_filter_suppressed"},
+      "station_reservation_match_status",
+      ["overlap"],
+      ["matched"]
+    )
+  end
+
+  test "contact-filter calendar-entry identity remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "contact_filter_pressure_station_calendar_entry_ids",
+      {"contact_id", "dl_contact_filter_suppressed"},
+      "station_calendar_entry_id",
+      ["calendar_contact_filter_suppressed"],
+      ["stale_calendar_contact_filter_suppressed"]
+    )
+  end
+
+  test "contact-filter calendar-entry status remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "contact_filter_pressure_station_calendar_entry_statuses",
+      {"contact_id", "dl_contact_filter_suppressed"},
+      "station_calendar_entry_status",
+      ["reserved"],
+      ["available"]
+    )
+  end
+
   test "station conflict expiration risk context remains source exact across handoffs" do
     assert_risk_expiration_context_contract(
       StrategyRecommendationPressureEventsFixture.artifact(),
