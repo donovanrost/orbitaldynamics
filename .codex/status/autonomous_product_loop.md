@@ -5,22 +5,21 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Enforce source-exact station-reservation-hold execution boundaries.
+Enforce source-exact station-reservation-hold provenance.
 
 Status:
 Verified; ready to publish.
 
 Selection evidence:
-- The selected hold risk carries canonical import-execution, provider-write,
-  Cadence-write, and reservation-acceptance boundary values across all four
-  handoff copies.
-- All four string arrays survive projection, while their public schemas and
+- The selected hold risk carries canonical feedback source, feedback scope,
+  and source trust boundary across all four handoff copies.
+- All three string arrays survive projection, while their public schemas and
   source-exact validation remain absent.
 
 Intended behavior:
-- Declare four string arrays requiring exact source-derived
+- Declare three string arrays requiring exact source-derived
   copies in review/direct/review-derived Cadence rows.
-- Reject missing or stale derived hold execution boundaries; retain paired
+- Reject missing or stale derived hold provenance; retain paired
   legacy omission compatibility for optional source fields.
 - Preserve provider and Cadence writes, reservation acceptance, operator
   authority, and execution boundaries.
@@ -30,31 +29,31 @@ Fleet-scale planning decisions and durable reproducible audit handoffs.
 
 Planned files:
 - station-reservation-hold validation and review/import schemas
-- hold-boundary mutation/schema proofs, docs, exports, and ledger
+- hold-provenance mutation/schema proofs, docs, exports, and ledger
 
 Verification:
-- Focused handoff/schema contracts: `189 passed`.
+- Focused handoff/schema contracts: `192 passed`.
 - Contact-allocation regression: `213 passed`.
 - Golden artifacts: `12 passed`.
 - Schema lint: `155` artifacts, `0` errors, `0` warnings.
-- Full suite: `4062 passed`.
+- Full suite: `4065 passed`.
 - Canonical strategy SHA-256 remains
   `f7fc7823d071db82124af4b903e5be730983d1d9cb96f4524c711041c750ca1c`.
 
 Review:
-- Four source-exact contract pairs validate negative-authority boundary values
-  across operator review, direct Cadence import, and review-derived import.
-- All three public row-schema positions declare string-array items, and focused
-  stale mutations replace each no-action value with an action claim.
-- Shared mutation coverage still proves missing review context, paired legacy
+- Three source-exact contract pairs validate feedback source/scope and source
+  trust boundary across operator review and both Cadence import paths.
+- All three public row-schema positions declare string-array items; focused
+  stale mutations relabel each provenance dimension independently.
+- Shared mutation coverage proves missing review context, paired legacy
   omission, stale direct context, and missing/stale review-derived context.
-- Diff excludes writer, adapter, reservation, scheduling, and execution modules;
-  canonical strategy output is unchanged.
+- Diff is limited to validation/schema surfaces, focused proofs, docs, ten
+  generated schemas, and this ledger; canonical strategy is unchanged.
 - No provider/Cadence write, reservation acceptance, schedule mutation,
   operator-authority grant, or execution path was introduced.
 
 Last published slice:
-- `1dbe16cb` Validate station hold count maps (`4058 passed`).
+- `76739f3c` Validate station hold execution boundaries (`4062 passed`).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions while preserving explicit
@@ -65,7 +64,7 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-Assess source-exact station-reservation-hold provenance.
+Assess source-exact station-reservation-hold summary evidence.
 
 Blocked:
 None.

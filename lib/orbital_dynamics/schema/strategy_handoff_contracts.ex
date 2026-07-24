@@ -129,6 +129,9 @@ defmodule OrbitalDynamics.Schema.StrategyHandoffContracts do
      "station_reservation_hold_cadence_write_values"},
     {"station_reservation_hold_reservation_acceptance_values",
      "station_reservation_hold_reservation_acceptance_values"},
+    {"station_reservation_hold_feedback_sources", "station_reservation_hold_feedback_sources"},
+    {"station_reservation_hold_feedback_scopes", "station_reservation_hold_feedback_scopes"},
+    {"station_reservation_hold_trust_boundaries", "station_reservation_hold_trust_boundaries"},
     {"station_reservation_hold_expiration_statuses",
      "station_reservation_hold_expiration_statuses"}
   ]

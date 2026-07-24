@@ -765,6 +765,39 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
     )
   end
 
+  test "station hold feedback source remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "station_reservation_hold_feedback_sources",
+      {"contact_id", "dl_hold_import_review"},
+      "feedback_source",
+      ["mission_state.source_station_reservation_hold_import_readiness_summary"],
+      ["mission_state.stale_station_reservation_hold_import_readiness_summary"]
+    )
+  end
+
+  test "station hold feedback scope remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "station_reservation_hold_feedback_scopes",
+      {"contact_id", "dl_hold_import_review"},
+      "feedback_scope",
+      ["station_reservation_hold_import_readiness"],
+      ["stale_station_reservation_hold_import_readiness"]
+    )
+  end
+
+  test "station hold trust boundary remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "station_reservation_hold_trust_boundaries",
+      {"contact_id", "dl_hold_import_review"},
+      "trust_boundary",
+      ["mission_state_station_reservation_hold_import_readiness_summary"],
+      ["mission_state_stale_station_reservation_hold_import_readiness_summary"]
+    )
+  end
+
   test "station hold summary model remains source exact across handoffs" do
     assert_risk_context_contract(
       StrategyRecommendationPressureEventsFixture.artifact(),
