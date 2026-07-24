@@ -176,6 +176,10 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairArtifact do
       RepairSourceReports.validation_safety_case(request.candidate_refresh)
     )
     |> put_source_report(
+      "source_provider_counteroffer_report",
+      RepairSourceReports.provider_counteroffer(request.candidate_refresh)
+    )
+    |> put_source_report(
       "source_resource_filter_report",
       RepairSourceReports.resource_filter(request.candidate_refresh)
     )

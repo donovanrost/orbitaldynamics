@@ -477,6 +477,11 @@ focused repair-action regressions.
   `source_validation_safety_case_summary`, and exposes exact review-required
   and blocked evidence for operator review. Safety-case review remains excluded
   from Cadence import and does not grant certification or execution authority.
+- **Source provider-counteroffer report** — V2 preserves CandidateRefresh's
+  upstream `provider_counteroffer_report.v1`, validates it at
+  `source_provider_counteroffer_report`, and routes exact reviewable offers into
+  review-gated Cadence import without requesting, accepting, reserving, or
+  executing a provider offer.
 - **Timeline-diff report** also exposes status/action/changed-field count maps,
   duplicate timeline-identity counts, and model limits from the checked-in
   fixture.

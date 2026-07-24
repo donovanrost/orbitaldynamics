@@ -310,6 +310,10 @@ defmodule OrbitalDynamics.OperatorReview.CompositeArtifact do
         Map.get(artifact, "source_validation_safety_case_summary") || %{},
         "campaign_repair.source_validation_safety_case_summary.evidence"
       ) ++
+      ProviderCounteroffer.rows(
+        get_in(artifact, ["source_provider_counteroffer_report", "rows"]) || [],
+        "campaign_repair.source_provider_counteroffer_report.rows"
+      ) ++
       LinkCapacity.report_rows(
         Map.get(artifact, "link_capacity_report"),
         "campaign_repair.link_capacity_report"

@@ -1,7 +1,15 @@
 defmodule OrbitalDynamics.Schema.ProviderCounterofferValidation do
   @moduledoc false
 
-  import OrbitalDynamics.Schema.PrimitiveValidation, only: [require_fields: 4]
+  import OrbitalDynamics.Schema.PrimitiveValidation, only: [error: 2, require_fields: 4]
+
+  def validate_optional_report(issues, _path, nil), do: issues
+
+  def validate_optional_report(issues, path, %{} = report),
+    do: validate_report(issues, path, report)
+
+  def validate_optional_report(issues, path, _report),
+    do: [error(path, "must be an object") | issues]
 
   def validate_report(issues, path, artifact),
     do: validate(issues, path, artifact, "provider_counteroffer_report.v1")

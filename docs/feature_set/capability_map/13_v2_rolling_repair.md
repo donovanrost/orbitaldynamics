@@ -287,6 +287,10 @@ V2 repair `operator_review_package.v1` now emits:
   evidence identity, source contract/reference, evidence status, rollup counts,
   routing maps, and model-limit context without granting certification/import
   authority or adding Cadence import rows.
+- CandidateRefresh source provider-counteroffer rows, preserving exact offer,
+  provider/station, negotiation, reason, cost/timing, lock-deadline, and source-
+  calendar context in review-gated Cadence rows without requesting, accepting,
+  reserving, or executing an offer.
 - Repaired-plan and CandidateRefresh source link-capacity review rows,
   preserving the upstream report independently from the recomputed repair
   report without applying another scoring effect.

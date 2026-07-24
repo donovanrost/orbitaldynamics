@@ -21,6 +21,7 @@ defmodule OrbitalDynamics.Schema.CampaignArtifactValidation do
     PolicyValidation,
     ProposedContactContracts,
     ProposedContactRegistryContracts,
+    ProviderCounterofferValidation,
     RefreshBudgetReportContracts,
     ResourceValidation,
     SchemaOperationsValidation,
@@ -243,6 +244,8 @@ defmodule OrbitalDynamics.Schema.CampaignArtifactValidation do
         &ValidationArtifactValidation.validate_optional_model_acceptance_report/3,
       validate_optional_safety_case_summary:
         &ValidationArtifactValidation.validate_optional_safety_case_summary/3,
+      validate_optional_provider_counteroffer_report:
+        &ProviderCounterofferValidation.validate_optional_report/3,
       validate_optional_objective_tradeoff_report:
         &DecisionSupportValidation.validate_optional_objective_tradeoff_report/2,
       validate_optional_source_objective_tradeoff_report:
