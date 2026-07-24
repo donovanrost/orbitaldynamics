@@ -101,6 +101,10 @@ Implemented or partially implemented modules and artifacts include:
   Timeline-integrity handoffs preserve all 17 currently emitted issue,
   dependency, exclusivity, review, identity, and provenance fields without
   remediating integrity issues or mutating timelines.
+  Validation-refresh handoffs preserve all 81 currently emitted model
+  acceptance, schema validation, safety-case, refresh-budget, freshness,
+  review, identity, and provenance fields without accepting models, applying
+  remediations, or executing refreshes.
 - Operational readiness and quality artifacts: readiness, import-eligibility,
   execution-boundary, quality-gate, safety-case, model-acceptance,
   schema-validation, validation-fixture, operator-training, and unavailable

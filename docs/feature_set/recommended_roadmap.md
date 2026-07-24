@@ -213,6 +213,10 @@ Already implemented or heavily covered:
 - V3 timeline-integrity review/import handoffs require all 17 currently emitted
   issue, dependency, exclusivity, review, identity, and provenance fields to
   stay source exact without integrity-remediation authority
+- V3 validation-refresh review/import handoffs require all 81 currently emitted
+  model-acceptance, schema-validation, safety-case, refresh-budget, freshness,
+  review, identity, and provenance fields to stay source exact without model
+  acceptance, remediation, or refresh-execution authority
 - an executable registry-derived coverage guard confirms all 33 current
   resource/contact/station/link/provider contracts have curated artifact
   reference fixtures and automatically scopes future matching contracts

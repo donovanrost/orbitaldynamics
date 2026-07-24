@@ -638,6 +638,16 @@ defmodule OrbitalDynamics.Schema.StrategyHandoffContracts do
                                           |> Enum.map(fn {field, _source_fields} ->
                                             {field, field}
                                           end)
+  @validation_refresh_unemitted_context_fields [
+    "refresh_freshness_unknown_reason_ids"
+  ]
+  @validation_refresh_context_field_pairs OrbitalDynamics.RecommendationRiskContext.ValidationRefresh.field_pairs()
+                                          |> Enum.reject(fn {field, _source_fields} ->
+                                            field in @validation_refresh_unemitted_context_fields
+                                          end)
+                                          |> Enum.map(fn {field, _source_fields} ->
+                                            {field, field}
+                                          end)
   @maneuver_execution_uncertainty_context_field_pairs [
     {"maneuver_execution_uncertainty_risk_types", "maneuver_execution_uncertainty_risk_types"},
     {"maneuver_execution_uncertainty_activity_ids",
@@ -1281,6 +1291,7 @@ defmodule OrbitalDynamics.Schema.StrategyHandoffContracts do
     {@timeline_activity_precondition_context_field_pairs,
      :timeline_activity_precondition_context},
     {@timeline_integrity_context_field_pairs, :timeline_integrity_context},
+    {@validation_refresh_context_field_pairs, :validation_refresh_context},
     {@maneuver_execution_uncertainty_context_field_pairs,
      :maneuver_execution_uncertainty_context},
     {@relay_data_path_context_field_pairs, :relay_data_path_context},

@@ -2283,6 +2283,34 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
     end
   end
 
+  @validation_refresh_unemitted_context_fields [
+    "refresh_freshness_unknown_reason_ids"
+  ]
+  @validation_refresh_context_contracts OrbitalDynamics.RecommendationRiskContext.ValidationRefresh.field_specs()
+                                        |> Enum.reject(fn {field, _source_fields, _feedback_scope} ->
+                                          field in @validation_refresh_unemitted_context_fields
+                                        end)
+
+  for {field, source_fields, feedback_scope} <- @validation_refresh_context_contracts do
+    test "validation-refresh #{field} remains source exact across handoffs" do
+      artifact = StrategyRecommendationPressureEventsFixture.artifact()
+
+      expected_value =
+        artifact["operator_review_package"]["rows"]
+        |> Enum.find(&(&1["review_type"] == "strategy_recommendation"))
+        |> Map.fetch!(unquote(field))
+
+      assert_risk_context_contract(
+        artifact,
+        unquote(field),
+        {"feedback_scope", unquote(feedback_scope)},
+        unquote(Macro.escape(source_fields)),
+        expected_value,
+        stale_context_value(expected_value)
+      )
+    end
+  end
+
   @operational_feedback_risk_types [
     "contact_success_rate_low",
     "observation_success_rate_low",
@@ -6352,6 +6380,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
   defp stale_context_scalar(value) when is_integer(value), do: value + 1
   defp stale_context_scalar(value) when is_float(value), do: value + 1.0
   defp stale_context_scalar(value) when is_binary(value), do: "stale_" <> value
+  defp stale_context_scalar([value | rest]), do: [stale_context_scalar(value) | rest]
 
   defp sync_mutated_risk_contexts(row) do
     risks = get_in(row, ["source_recommendation", "risks_remaining"])
@@ -6367,7 +6396,8 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
         OrbitalDynamics.RecommendationRiskContext.TimelineActivityLifecycleState.context_keys() ++
         OrbitalDynamics.RecommendationRiskContext.TimelinePreservation.context_keys() ++
         OrbitalDynamics.RecommendationRiskContext.TimelineActivityPrecondition.context_keys() ++
-        OrbitalDynamics.RecommendationRiskContext.TimelineIntegrity.context_keys()
+        OrbitalDynamics.RecommendationRiskContext.TimelineIntegrity.context_keys() ++
+        OrbitalDynamics.RecommendationRiskContext.ValidationRefresh.context_keys()
 
     context =
       risks
@@ -6388,6 +6418,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
         OrbitalDynamics.RecommendationRiskContext.TimelineActivityPrecondition.context(risks)
       )
       |> Map.merge(OrbitalDynamics.RecommendationRiskContext.TimelineIntegrity.context(risks))
+      |> Map.merge(OrbitalDynamics.RecommendationRiskContext.ValidationRefresh.context(risks))
 
     row
     |> Map.drop(context_keys)

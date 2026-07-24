@@ -99,29 +99,31 @@ defmodule OrbitalDynamics.RecommendationRiskContext.ValidationRefresh do
     {"refresh_freshness_trust_boundaries", "trust_boundary"}
   ]
 
-  @context_fields @model_acceptance_fields ++
-                    @schema_validation_fields ++
-                    @validation_safety_case_fields ++
-                    @refresh_budget_fields ++ @refresh_freshness_fields
+  @field_groups [
+    {"model_acceptance", "model_acceptance_pressure", @model_acceptance_fields},
+    {"schema_validation", "schema_validation_pressure", @schema_validation_fields},
+    {"validation_safety_case", "validation_safety_case_pressure", @validation_safety_case_fields},
+    {"refresh_budget", "refresh_budget_pressure", @refresh_budget_fields},
+    {"refresh_freshness", "refresh_freshness_pressure", @refresh_freshness_fields}
+  ]
+  @context_fields Enum.flat_map(@field_groups, fn {_feedback_scope, _type, fields} -> fields end)
+  @field_specs Enum.flat_map(@field_groups, fn {feedback_scope, _type, fields} ->
+                 Enum.map(fields, fn {context_key, risk_keys} ->
+                   {context_key, risk_keys, feedback_scope}
+                 end)
+               end)
 
+  def field_pairs, do: @context_fields
+  def field_specs, do: @field_specs
   def context_keys, do: Enum.map(@context_fields, &elem(&1, 0))
 
   def context(risks) when is_list(risks) do
     risks = Enum.map(risks, &stringify_keys/1)
 
-    [
-      {matching_risks(risks, "model_acceptance", "model_acceptance_pressure"),
-       @model_acceptance_fields},
-      {matching_risks(risks, "schema_validation", "schema_validation_pressure"),
-       @schema_validation_fields},
-      {matching_risks(risks, "validation_safety_case", "validation_safety_case_pressure"),
-       @validation_safety_case_fields},
-      {matching_risks(risks, "refresh_budget", "refresh_budget_pressure"),
-       @refresh_budget_fields},
-      {matching_risks(risks, "refresh_freshness", "refresh_freshness_pressure"),
-       @refresh_freshness_fields}
-    ]
-    |> Enum.flat_map(fn {matching, fields} ->
+    @field_groups
+    |> Enum.flat_map(fn {feedback_scope, type, fields} ->
+      matching = matching_risks(risks, feedback_scope, type)
+
       Enum.map(fields, fn {context_key, risk_keys} ->
         {context_key, risk_context_values(matching, risk_keys)}
       end)
