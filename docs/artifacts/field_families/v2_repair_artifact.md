@@ -488,6 +488,12 @@ focused repair-action regressions.
   timing/cost deltas, lock-deadline status, affected calendar identity, and
   source lineage. Reviewable impact rows remain review-gated and do not alter
   the repaired schedule or provider state.
+- **Source provider-counteroffer import readiness** — V2 preserves the upstream
+  `provider_counteroffer_import_readiness_summary.v1` at
+  `source_provider_counteroffer_import_readiness_summary`, including exact
+  import classification/status, required action, lock-deadline evidence, and
+  source lineage. A review-required row remains an instruction for review, not
+  an import, provider write, offer acceptance, reservation, or execution.
 - **Timeline-diff report** also exposes status/action/changed-field count maps,
   duplicate timeline-identity counts, and model limits from the checked-in
   fixture.

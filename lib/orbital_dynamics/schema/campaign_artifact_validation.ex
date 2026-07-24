@@ -248,6 +248,8 @@ defmodule OrbitalDynamics.Schema.CampaignArtifactValidation do
         &ProviderCounterofferValidation.validate_optional_report/3,
       validate_optional_provider_counteroffer_plan_impact_summary:
         &ProviderCounterofferValidation.validate_optional_plan_impact_summary/3,
+      validate_optional_provider_counteroffer_import_readiness_summary:
+        &ProviderCounterofferValidation.validate_optional_import_readiness_summary/3,
       validate_optional_objective_tradeoff_report:
         &DecisionSupportValidation.validate_optional_objective_tradeoff_report/2,
       validate_optional_source_objective_tradeoff_report:

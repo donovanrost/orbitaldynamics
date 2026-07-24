@@ -295,6 +295,10 @@ V2 repair `operator_review_package.v1` now emits:
   preserving exact proposed timing/cost deltas, lock-deadline status, affected
   calendar identity, assumptions, and source lineage in review-gated handoffs
   without changing the repaired schedule or provider state.
+- CandidateRefresh source provider-counteroffer import-readiness summaries,
+  preserving exact review-only classification, review-before-import status,
+  required action, lock-deadline evidence, assumptions, and source lineage
+  without performing an import or provider action.
 - Repaired-plan and CandidateRefresh source link-capacity review rows,
   preserving the upstream report independently from the recomputed repair
   report without applying another scoring effect.

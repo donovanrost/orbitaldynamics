@@ -52,4 +52,29 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairProviderCounterofferSourceTest d
     assert RepairSourceReports.provider_counteroffer_plan_impact(%{}) == nil
     assert RepairSourceReports.provider_counteroffer_plan_impact(nil) == nil
   end
+
+  test "resolves source, collected, and canonical provider-counteroffer import-readiness summaries" do
+    summary = %{
+      "schema_contract" => "provider_counteroffer_import_readiness_summary.v1",
+      "import_readiness_status" => "review_required",
+      "import_classification" => "review_only"
+    }
+
+    assert RepairSourceReports.provider_counteroffer_import_readiness(%{
+             "source_provider_counteroffer_import_readiness_summary" => summary
+           }) == summary
+
+    assert RepairSourceReports.provider_counteroffer_import_readiness(%{
+             "source_provider_counteroffer_import_readiness_summary" => [summary]
+           }) == summary
+
+    assert RepairSourceReports.provider_counteroffer_import_readiness(%{
+             "provider_counteroffer_import_readiness_summary" => summary
+           }) == summary
+  end
+
+  test "returns nil when candidate refresh has no provider-counteroffer import readiness" do
+    assert RepairSourceReports.provider_counteroffer_import_readiness(%{}) == nil
+    assert RepairSourceReports.provider_counteroffer_import_readiness(nil) == nil
+  end
 end

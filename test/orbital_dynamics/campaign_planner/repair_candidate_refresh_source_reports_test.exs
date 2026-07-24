@@ -106,6 +106,11 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
       |> File.read!()
       |> :json.decode()
 
+    source_provider_counteroffer_import_readiness_summary =
+      "study_results/provider_counteroffer_import_readiness_summary_v1.json"
+      |> File.read!()
+      |> :json.decode()
+
     candidate_diff_report =
       candidate_diff_report()
       |> update_in(["invalidated_candidates", Access.at(0)], fn candidate ->
@@ -185,6 +190,10 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
           |> Map.put(
             "source_provider_counteroffer_plan_impact_summary",
             [source_provider_counteroffer_plan_impact_summary]
+          )
+          |> Map.put(
+            "source_provider_counteroffer_import_readiness_summary",
+            [source_provider_counteroffer_import_readiness_summary]
           )
           |> Map.put("source_quality_gate_report", passive_quality_gate_report())
           |> Map.put("operational_feedback", %{
@@ -995,6 +1004,62 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
              )
 
     assert import_duration_delta == 0.0
+
+    assert artifact["source_provider_counteroffer_import_readiness_summary"] ==
+             source_provider_counteroffer_import_readiness_summary
+
+    assert %{
+             "review_type" => "provider_counteroffer_review",
+             "source" =>
+               "campaign_repair.source_provider_counteroffer_import_readiness_summary.import_readiness_rows",
+             "subject_id" => "provider_offer_1",
+             "provider_counteroffer_id" => "provider_offer_1",
+             "provider_counteroffer_lock_deadline_s" => 150.0,
+             "required_operator_action" => "review_provider_counteroffer",
+             "source_provider_counteroffer" => %{
+               "provider_counteroffer_import_status" => "review_required_before_import",
+               "provider_counteroffer_lock_deadline_status" => "expired",
+               "source_provider_counteroffer_summary" => %{
+                 "schema_contract" => "provider_counteroffer_import_readiness_summary.v1",
+                 "import_readiness_status" => "review_required",
+                 "import_classification" => "review_only",
+                 "provider_counteroffer_import_status_counts" => %{
+                   "review_required_before_import" => 1
+                 },
+                 "required_import_action_counts" => %{
+                   "review_provider_counteroffer" => 1
+                 }
+               }
+             }
+           } =
+             Enum.find(
+               artifact["operator_review_package"]["rows"],
+               &(&1["source"] ==
+                   "campaign_repair.source_provider_counteroffer_import_readiness_summary.import_readiness_rows")
+             )
+
+    assert %{
+             "import_action" => "review_provider_counteroffer",
+             "source_review_type" => "provider_counteroffer_review",
+             "source" =>
+               "campaign_repair.source_provider_counteroffer_import_readiness_summary.import_readiness_rows",
+             "subject_id" => "provider_offer_1",
+             "import_status" => "review_required_before_import",
+             "source_review_row" => %{
+               "source_provider_counteroffer" => %{
+                 "provider_counteroffer_import_status" => "review_required_before_import",
+                 "source_provider_counteroffer_summary" => %{
+                   "import_classification" => "review_only",
+                   "import_readiness_status" => "review_required"
+                 }
+               }
+             }
+           } =
+             Enum.find(
+               artifact["cadence_import_manifest"]["rows"],
+               &(&1["source"] ==
+                   "campaign_repair.source_provider_counteroffer_import_readiness_summary.import_readiness_rows")
+             )
 
     assert %{
              "contact_allocation_review_count" => 3
