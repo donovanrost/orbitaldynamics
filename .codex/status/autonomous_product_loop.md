@@ -5,23 +5,21 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Enforce source-exact objective-satisfaction identity and status.
+Enforce source-exact objective-satisfaction routing identities.
 
 Status:
 Verified; ready to publish.
 
 Selection evidence:
-- Objective-satisfaction pressure has `0/50` exact-copy fields despite existing
-  derived operator-review and Cadence-import context.
-- Risk type survives projection, while objective ID, type, status, and source
-  status exist in the source event but are dropped by observation feedback.
+- Objective-satisfaction pressure has `5/50` exact-copy fields.
+- Target and scenario IDs survive observation feedback, while spacecraft and
+  branch IDs exist in the source event but are dropped at that boundary.
 
 Intended behavior:
-- Preserve objective ID, type, status, and source status through observation
-  feedback projection.
-- Declare one stable-ID and four string arrays requiring exact copies in
-  review/direct/review-derived Cadence rows.
-- Reject missing or stale derived objective identity/status; retain
+- Preserve spacecraft and branch IDs through observation feedback projection.
+- Declare four stable-ID arrays requiring exact copies in operator review,
+  direct Cadence import, and review-derived Cadence rows.
+- Reject missing or stale derived routing identity; retain
   paired legacy omission compatibility for optional source fields.
 - Preserve provider and Cadence writes, reservation acceptance, operator
   authority, and execution boundaries.
@@ -31,24 +29,24 @@ Fleet-scale planning decisions and durable reproducible audit handoffs.
 
 Planned files:
 - observation-feedback projection and objective-satisfaction validation schemas
-- identity/status mutation and schema proofs, docs, exports, and ledger
+- routing mutation and schema proofs, docs, exports, and ledger
 
 Verification:
-- Focused handoff and schema contracts: `384 passed`.
+- Focused handoff and schema contracts: `388 passed`.
 - Contact-allocation regression: `213 passed`.
 - Golden artifacts: `12 passed`.
 - Schema lint: `155/155` artifacts passed with zero warnings.
-- Full suite: `4257 passed`.
+- Full suite: `4261 passed`.
 - Canonical strategy SHA-256 remained
   `f7fc7823d071db82124af4b903e5be730983d1d9cb96f4524c711041c750ca1c`.
-- Exact-copy coverage advanced from `0/50` to `5/50`
+- Exact-copy coverage advanced from `5/50` to `9/50`
   objective-satisfaction fields.
 
 Review:
-- Observation feedback now preserves exactly the four objective identity/status
-  values that its source event already carried.
-- Public schemas use one stable-ID and four string arrays consistently across
-  operator review, direct import, and source-review rows.
+- Observation feedback now preserves exactly the spacecraft and branch IDs
+  that its source event already carried; target and scenario needed no adapter.
+- Public schemas use stable-ID arrays consistently across operator review,
+  direct import, and source-review rows.
 - Mutation proofs cover all four copies, missing review context, paired legacy
   omission, stale direct context, and missing/stale review-derived context.
 - Generated changes are limited to the expected ten schema artifacts; the
@@ -58,7 +56,8 @@ Review:
   execution was added.
 
 Last published slice:
-- `f356b9e5` Validate objective tradeoff provenance (`4252 passed`, `34/34`).
+- `4dda0a36` Validate objective satisfaction identity and status (`4257 passed`,
+  `5/50`).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions while preserving explicit
@@ -69,7 +68,7 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-Assess objective-satisfaction routing identities.
+Assess objective-satisfaction entity routing.
 
 Blocked:
 None.

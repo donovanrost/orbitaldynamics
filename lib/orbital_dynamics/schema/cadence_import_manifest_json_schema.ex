@@ -381,6 +381,10 @@ defmodule OrbitalDynamics.Schema.CadenceImportManifestJsonSchema do
           "objective_satisfaction_pressure_objective_statuses" => schema.(:string_array_schema),
           "objective_satisfaction_pressure_source_objective_statuses" =>
             schema.(:string_array_schema),
+          "objective_satisfaction_pressure_target_ids" => schema.(:stable_id_array_schema),
+          "objective_satisfaction_pressure_scenario_ids" => schema.(:stable_id_array_schema),
+          "objective_satisfaction_pressure_spacecraft_ids" => schema.(:stable_id_array_schema),
+          "objective_satisfaction_pressure_branch_ids" => schema.(:stable_id_array_schema),
           "objective_tradeoff_pressure_risk_types" => schema.(:string_array_schema),
           "objective_tradeoff_pressure_objective_ids" => schema.(:stable_id_array_schema),
           "objective_tradeoff_pressure_objective_types" => schema.(:string_array_schema),

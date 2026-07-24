@@ -2153,6 +2153,50 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
     )
   end
 
+  test "objective-satisfaction target identity remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "objective_satisfaction_pressure_target_ids",
+      {"feedback_scope", "objective_satisfaction"},
+      "target_id",
+      ["target_objective_quality"],
+      ["stale_target_objective_quality"]
+    )
+  end
+
+  test "objective-satisfaction scenario identity remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "objective_satisfaction_pressure_scenario_ids",
+      {"feedback_scope", "objective_satisfaction"},
+      "scenario_id",
+      ["leo_1"],
+      ["stale_leo_1"]
+    )
+  end
+
+  test "objective-satisfaction spacecraft identity remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "objective_satisfaction_pressure_spacecraft_ids",
+      {"feedback_scope", "objective_satisfaction"},
+      "spacecraft_id",
+      ["leo_1"],
+      ["stale_leo_1"]
+    )
+  end
+
+  test "objective-satisfaction branch identity remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "objective_satisfaction_pressure_branch_ids",
+      {"feedback_scope", "objective_satisfaction"},
+      "branch_id",
+      ["urgent"],
+      ["stale_urgent"]
+    )
+  end
+
   test "objective-tradeoff risk type remains source exact across handoffs" do
     assert_risk_context_contract(
       StrategyRecommendationPressureEventsFixture.artifact(),

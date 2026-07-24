@@ -110,6 +110,8 @@ defmodule OrbitalDynamics.CampaignPlanner.EventRiskIndicator.OperationalFeedback
         "value" => event["observation_success_factor"],
         "activity_id" => event["activity_id"],
         "scenario_id" => event["scenario_id"],
+        "spacecraft_id" => event["spacecraft_id"],
+        "branch_id" => event["branch_id"],
         "timeline_id" => event["timeline_id"],
         "starts_at_s" => event["starts_at_s"] || event["source_starts_at_s"],
         "ends_at_s" => event["ends_at_s"] || event["source_ends_at_s"],
