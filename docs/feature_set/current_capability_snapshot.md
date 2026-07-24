@@ -88,7 +88,10 @@ Implemented or partially implemented modules and artifacts include:
   mutating timelines. Operational-feedback handoffs preserve all 77 contact,
   observation, station-throughput, realized-result, identity, transition,
   review, and provenance fields without executing activities or mutating
-  station capacity.
+  station capacity. Activity-lifecycle-state handoffs preserve all 38 currently
+  emitted activity identity, transition, status, approval, protection, review,
+  safety-assumption, and provenance fields without applying lifecycle state;
+  invalid-input reasons remain unclaimed while the live risk emits none.
 - Operational readiness and quality artifacts: readiness, import-eligibility,
   execution-boundary, quality-gate, safety-case, model-acceptance,
   schema-validation, validation-fixture, operator-training, and unavailable

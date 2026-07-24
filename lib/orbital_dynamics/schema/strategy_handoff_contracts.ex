@@ -594,6 +594,16 @@ defmodule OrbitalDynamics.Schema.StrategyHandoffContracts do
                                               OrbitalDynamics.RecommendationRiskContext.OperationalFeedback.field_pairs(),
                                               fn {field, _source_fields} -> {field, field} end
                                             )
+  @timeline_activity_lifecycle_state_unemitted_context_fields [
+    "timeline_activity_lifecycle_state_invalid_activity_input_reasons"
+  ]
+  @timeline_activity_lifecycle_state_context_field_pairs OrbitalDynamics.RecommendationRiskContext.TimelineActivityLifecycleState.field_pairs()
+                                                         |> Enum.reject(fn {field, _source_fields} ->
+                                                           field in @timeline_activity_lifecycle_state_unemitted_context_fields
+                                                         end)
+                                                         |> Enum.map(fn {field, _source_fields} ->
+                                                           {field, field}
+                                                         end)
   @maneuver_execution_uncertainty_context_field_pairs [
     {"maneuver_execution_uncertainty_risk_types", "maneuver_execution_uncertainty_risk_types"},
     {"maneuver_execution_uncertainty_activity_ids",
@@ -1231,6 +1241,8 @@ defmodule OrbitalDynamics.Schema.StrategyHandoffContracts do
     {@timeline_publication_context_field_pairs, :timeline_publication_context},
     {@timeline_lifecycle_state_context_field_pairs, :timeline_lifecycle_state_context},
     {@operational_feedback_context_field_pairs, :operational_feedback_context},
+    {@timeline_activity_lifecycle_state_context_field_pairs,
+     :timeline_activity_lifecycle_state_context},
     {@maneuver_execution_uncertainty_context_field_pairs,
      :maneuver_execution_uncertainty_context},
     {@relay_data_path_context_field_pairs, :relay_data_path_context},
