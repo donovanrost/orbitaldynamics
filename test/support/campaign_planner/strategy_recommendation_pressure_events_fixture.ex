@@ -811,6 +811,12 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureEventsFi
                 planned_downlink_mb: 45.0,
                 max_latency_s: 240.0,
                 planned_latency_s: 390.0,
+                required_observations: 2,
+                planned_observations: 1,
+                priority: 24.0,
+                latitude_deg: 34.1,
+                longitude_deg: -118.2,
+                minimum_elevation_deg: 15.0,
                 source_activity_id: "obs_tradeoff_source",
                 source_activity_ids: [
                   "dl_tradeoff_selected",

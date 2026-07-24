@@ -72,9 +72,10 @@ Status: **implemented** (core), with **partial**, **near-term**, **later**, and 
   identities, timing, contact/downlink demand, and latency limits across
   operator review, direct Cadence import, and review-derived import copies.
   Source activity IDs, score, delta-from-selected, and numeric score-term maps
-  remain exact as well. Missing or stale derived evidence is rejected while
-  paired legacy omission remains compatible; the evidence cannot approve an
-  import, write to Cadence, or execute a schedule.
+  remain exact as well, together with observation commitments, priority, and
+  target geometry. Missing or stale derived evidence is rejected while paired
+  legacy omission remains compatible; the evidence cannot approve an import,
+  write to Cadence, or execute a schedule.
 
 ### Objective-satisfaction reports
 

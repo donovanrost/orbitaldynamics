@@ -5,22 +5,22 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Enforce source-exact objective-tradeoff scoring state.
+Enforce source-exact objective-tradeoff observation geometry.
 
 Status:
 Verified; ready to publish.
 
 Selection evidence:
-- Objective-tradeoff pressure has `20/34` exact-copy fields.
-- Source activity IDs and numeric score-term maps survive event-risk projection;
-  focused evidence showed score and delta from selected are dropped at the
-  station/downlink event-risk boundary.
+- Objective-tradeoff pressure has `24/34` exact-copy fields.
+- Required/planned observations, priority, latitude, longitude, and minimum
+  elevation are supported by context and event-risk projection but lack an
+  explicit objective-tradeoff source fixture and exact-copy contracts.
 
 Intended behavior:
-- Declare one stable-ID array, two numeric arrays, and one numeric-map array
-  requiring exact copies in review/direct/review-derived Cadence rows.
-- Preserve score and delta from selected through the event-risk projection.
-- Reject missing or stale derived objective-tradeoff scoring state; retain
+- Add explicit objective-tradeoff observation and geometry source evidence.
+- Declare six numeric arrays requiring exact copies in operator review, direct
+  Cadence import, and review-derived Cadence rows.
+- Reject missing or stale derived observation geometry; retain
   paired legacy omission compatibility for optional source fields.
 - Preserve provider and Cadence writes, reservation acceptance, operator
   authority, and execution boundaries.
@@ -29,26 +29,25 @@ Level 6 pillar advanced:
 Fleet-scale planning decisions and durable reproducible audit handoffs.
 
 Planned files:
-- objective-tradeoff event-risk projection, validation, and review/import schemas
-- scoring-state mutation and schema proofs, docs, exports, and ledger
+- objective-tradeoff pressure fixture, validation, and review/import schemas
+- observation-geometry mutation and schema proofs, docs, exports, and ledger
 
 Verification:
-- Focused handoff and schema contracts: `369 passed` after the initial
-  `367/369` run exposed the score projection gap.
+- Focused handoff and schema contracts: `375 passed`.
 - Contact-allocation regression: `213 passed`.
 - Golden artifacts: `12 passed`.
 - Schema lint: `155/155` artifacts passed with zero warnings.
-- Full suite: `4242 passed`.
+- Full suite: `4248 passed`.
 - Canonical strategy SHA-256 remained
   `f7fc7823d071db82124af4b903e5be730983d1d9cb96f4524c711041c750ca1c`.
-- Exact-copy coverage advanced from `20/34` to `24/34`
+- Exact-copy coverage advanced from `24/34` to `30/34`
   objective-tradeoff fields.
 
 Review:
-- The event already carried score and delta from selected; the shared
-  station/downlink risk adapter now preserves exactly those two fields.
-- Public schemas use one stable-ID array, two numeric arrays, and a strict
-  numeric-map array consistently across all three row surfaces.
+- The bounded fixture now supplies the six observation and target-geometry
+  values already supported by context and event-risk projection.
+- Public schemas use numeric arrays consistently across operator review,
+  direct import, and source-review rows.
 - Mutation proofs cover all four copies, missing review context, paired legacy
   omission, stale direct context, and missing/stale review-derived context.
 - Generated changes are limited to the expected ten schema artifacts; the
@@ -58,8 +57,8 @@ Review:
   execution was added.
 
 Last published slice:
-- `fca7ba80` Validate objective tradeoff timing and demand (`4238 passed`,
-  `20/34`).
+- `38940c03` Validate objective tradeoff scoring state (`4242 passed`,
+  `24/34`).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions while preserving explicit
@@ -70,7 +69,7 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-Assess objective-tradeoff observation geometry.
+Assess objective-tradeoff provenance.
 
 Blocked:
 None.

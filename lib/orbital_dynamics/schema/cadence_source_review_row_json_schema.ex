@@ -308,6 +308,15 @@ defmodule OrbitalDynamics.Schema.CadenceSourceReviewRowJsonSchema do
               "additionalProperties" => %{"type" => "number"}
             }
           },
+          "objective_tradeoff_pressure_required_observation_values" =>
+            schema.(:number_array_schema),
+          "objective_tradeoff_pressure_planned_observation_values" =>
+            schema.(:number_array_schema),
+          "objective_tradeoff_pressure_priorities" => schema.(:number_array_schema),
+          "objective_tradeoff_pressure_latitude_values_deg" => schema.(:number_array_schema),
+          "objective_tradeoff_pressure_longitude_values_deg" => schema.(:number_array_schema),
+          "objective_tradeoff_pressure_minimum_elevation_values_deg" =>
+            schema.(:number_array_schema),
           "station_reservation_conflict_contact_ids" => schema.(:stable_id_array_schema),
           "station_reservation_conflict_source_activity_ids" => schema.(:stable_id_array_schema),
           "station_reservation_conflict_ground_station_ids" => schema.(:stable_id_array_schema),

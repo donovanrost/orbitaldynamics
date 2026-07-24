@@ -2362,6 +2362,72 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
     )
   end
 
+  test "objective-tradeoff required observations remain source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "objective_tradeoff_pressure_required_observation_values",
+      {"feedback_scope", "objective_tradeoff"},
+      "required_observations",
+      [2],
+      [3]
+    )
+  end
+
+  test "objective-tradeoff planned observations remain source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "objective_tradeoff_pressure_planned_observation_values",
+      {"feedback_scope", "objective_tradeoff"},
+      "planned_observations",
+      [1],
+      [2]
+    )
+  end
+
+  test "objective-tradeoff priority remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "objective_tradeoff_pressure_priorities",
+      {"feedback_scope", "objective_tradeoff"},
+      "priority",
+      [24.0],
+      [25.0]
+    )
+  end
+
+  test "objective-tradeoff latitude remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "objective_tradeoff_pressure_latitude_values_deg",
+      {"feedback_scope", "objective_tradeoff"},
+      "latitude_deg",
+      [34.1],
+      [34.2]
+    )
+  end
+
+  test "objective-tradeoff longitude remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "objective_tradeoff_pressure_longitude_values_deg",
+      {"feedback_scope", "objective_tradeoff"},
+      "longitude_deg",
+      [-118.2],
+      [-118.1]
+    )
+  end
+
+  test "objective-tradeoff minimum elevation remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "objective_tradeoff_pressure_minimum_elevation_values_deg",
+      {"feedback_scope", "objective_tradeoff"},
+      "minimum_elevation_deg",
+      [15.0],
+      [16.0]
+    )
+  end
+
   test "station conflict expiration risk context remains source exact across handoffs" do
     assert_risk_expiration_context_contract(
       StrategyRecommendationPressureEventsFixture.artifact(),
