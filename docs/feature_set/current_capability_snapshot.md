@@ -59,9 +59,10 @@ Implemented or partially implemented modules and artifacts include:
   expose schema-validated operator-review evidence for directionality,
   reservation pressure, station availability, capacity effects, storage/downlink
   roll-forward, and ignored terminal or approval-rejected activity effects.
-  Strategy recommendation review/import handoffs also require source-exact
-  resource-filter availability identity, timing, status, boolean value, and
-  provenance context across direct and review-derived Cadence rows.
+  Strategy recommendation review/import handoffs also require all 27 resource-
+  filter availability, margin, operator-training, identity, timing, status,
+  value, and provenance fields to stay source exact across direct and review-
+  derived Cadence rows.
 - Operational readiness and quality artifacts: readiness, import-eligibility,
   execution-boundary, quality-gate, safety-case, model-acceptance,
   schema-validation, validation-fixture, operator-training, and unavailable

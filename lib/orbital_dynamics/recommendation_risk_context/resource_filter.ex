@@ -59,25 +59,25 @@ defmodule OrbitalDynamics.RecommendationRiskContext.ResourceFilter do
       "resource_filter_pressure_resource_trust_boundary_statuses" =>
         risk_context_values(filter_risks, "resource_trust_boundary_status"),
       "resource_filter_pressure_fuel_margin_values" =>
-        risk_context_values(filter_risks, "fuel_margin"),
+        margin_context_values(filter_risks, "fuel_margin", :value),
       "resource_filter_pressure_fuel_margin_threshold_values" =>
-        risk_context_values(filter_risks, "fuel_margin_threshold"),
+        margin_context_values(filter_risks, "fuel_margin", :threshold),
       "resource_filter_pressure_power_margin_values" =>
-        risk_context_values(filter_risks, "power_margin"),
+        margin_context_values(filter_risks, "power_margin", :value),
       "resource_filter_pressure_power_margin_threshold_values" =>
-        risk_context_values(filter_risks, "power_margin_threshold"),
+        margin_context_values(filter_risks, "power_margin", :threshold),
       "resource_filter_pressure_storage_margin_values" =>
-        risk_context_values(filter_risks, "storage_margin"),
+        margin_context_values(filter_risks, "storage_margin", :value),
       "resource_filter_pressure_storage_margin_threshold_values" =>
-        risk_context_values(filter_risks, "storage_margin_threshold"),
+        margin_context_values(filter_risks, "storage_margin", :threshold),
       "resource_filter_pressure_downlink_margin_values" =>
-        risk_context_values(filter_risks, "downlink_margin"),
+        margin_context_values(filter_risks, "downlink_margin", :value),
       "resource_filter_pressure_downlink_margin_threshold_values" =>
-        risk_context_values(filter_risks, "downlink_margin_threshold"),
+        margin_context_values(filter_risks, "downlink_margin", :threshold),
       "resource_filter_pressure_thermal_margin_values_c" =>
-        risk_context_values(filter_risks, "thermal_margin_c"),
+        margin_context_values(filter_risks, "thermal_margin_c", :value),
       "resource_filter_pressure_thermal_margin_threshold_values_c" =>
-        risk_context_values(filter_risks, "thermal_margin_c_threshold"),
+        margin_context_values(filter_risks, "thermal_margin_c", :threshold),
       "resource_filter_pressure_operator_training_requirement_count_values" =>
         risk_context_values(filter_risks, "operator_training_requirement_count"),
       "resource_filter_pressure_required_operator_roles" =>
@@ -99,6 +99,21 @@ defmodule OrbitalDynamics.RecommendationRiskContext.ResourceFilter do
 
   defp filter_risk?(%{"feedback_scope" => "resource_filter"}), do: true
   defp filter_risk?(_risk), do: false
+
+  defp margin_context_values(risks, field, value_kind) do
+    field_key = if value_kind == :value, do: field, else: "#{field}_threshold"
+
+    normalized_key =
+      if value_kind == :value,
+        do: "resource_margin_value",
+        else: "resource_margin_threshold"
+
+    risks
+    |> Enum.filter(&(Map.get(&1, "resource_field") == field))
+    |> Enum.map(&(Map.get(&1, field_key) || Map.get(&1, normalized_key)))
+    |> Enum.reject(&is_nil/1)
+    |> Enum.uniq()
+  end
 
   defp risk_context_values(risks, keys) when is_list(keys) do
     risks

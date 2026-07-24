@@ -165,9 +165,9 @@ Already implemented or heavily covered:
 - candidate-refresh challenge fixture coverage for contradictory
   provider-calendar, station-reservation, and contact-allocation evidence
 - V3 recommendation review/import handoffs recover normalized resource-filter
-  availability booleans, including `false`, and require the 15-field
-  availability identity, timing, status, value, and provenance context to stay
-  source exact across direct and review-derived Cadence rows
+  availability booleans, all five margin value/threshold pairs, and operator-
+  training counts/roles; all 27 identity, timing, status, value, and provenance
+  fields must stay source exact across direct and review-derived Cadence rows
 - an executable registry-derived coverage guard confirms all 33 current
   resource/contact/station/link/provider contracts have curated artifact
   reference fixtures and automatically scopes future matching contracts

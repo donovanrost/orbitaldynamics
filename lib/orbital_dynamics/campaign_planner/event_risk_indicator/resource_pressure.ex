@@ -25,7 +25,11 @@ defmodule OrbitalDynamics.CampaignPlanner.EventRiskIndicator.ResourcePressure do
         "resource_margin_threshold" => threshold,
         "resource_margin_field_value" =>
           resource_margin_field_value_context(field, value, threshold),
+        "suppressed_reason" => event["suppressed_reason"],
         "source_quality" => event["source_quality"],
+        "resource_trust_boundary_status" => event["resource_trust_boundary_status"],
+        "operator_training_requirement_count" => event["operator_training_requirement_count"],
+        "required_operator_roles" => event["required_operator_roles"],
         "starts_at_s" => event["starts_at_s"],
         "ends_at_s" => event["ends_at_s"],
         "diff_status" => event["diff_status"],

@@ -4853,24 +4853,53 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
   end
 
   @resource_filter_availability_context_contracts [
-    {"risk type", "resource_filter_pressure_risk_types", "type", ["payload_unavailable"],
-     ["spacecraft_unavailable"]},
+    {"risk type", "resource_filter_pressure_risk_types", "type",
+     [
+       "downlink_margin_low",
+       "fuel_margin_low",
+       "payload_unavailable",
+       "power_margin_low",
+       "storage_margin_low",
+       "thermal_margin_c_low"
+     ], ["spacecraft_unavailable"]},
     {"scenario identity", "resource_filter_pressure_scenario_ids", "scenario_id", ["leo_1"],
      ["stale_scenario"]},
     {"spacecraft identity", "resource_filter_pressure_spacecraft_ids", "spacecraft_id", ["leo_1"],
      ["stale_spacecraft"]},
     {"resource field", "resource_filter_pressure_resource_fields", "resource_field",
-     ["payload_available"], ["antenna_available"]},
+     [
+       "downlink_margin",
+       "fuel_margin",
+       "payload_available",
+       "power_margin",
+       "storage_margin",
+       "thermal_margin_c"
+     ], ["antenna_available"]},
     {"availability value", "resource_filter_pressure_available_values",
      ["available", "resource_availability_value"], [false], [true]},
     {"source activity identity", "resource_filter_pressure_source_activity_ids",
-     ["source_activity_id", "source_activity_ids"], ["obs_resource_filter_suppressed"],
-     ["stale_resource_filter_activity"]},
-    {"start timing", "resource_filter_pressure_start_values_s", "starts_at_s", [1_230.0],
-     [1_231.0]},
-    {"end timing", "resource_filter_pressure_end_values_s", "ends_at_s", [1_290.0], [1_291.0]},
+     ["source_activity_id", "source_activity_ids"],
+     [
+       "dl_resource_filter_downlink",
+       "obs_resource_filter_fuel",
+       "obs_resource_filter_suppressed",
+       "obs_resource_filter_power",
+       "obs_resource_filter_storage",
+       "obs_resource_filter_thermal"
+     ], ["stale_resource_filter_activity"]},
+    {"start timing", "resource_filter_pressure_start_values_s", "starts_at_s",
+     [1_510.0, 1_300.0, 1_230.0, 1_370.0, 1_440.0, 1_580.0], [1_231.0]},
+    {"end timing", "resource_filter_pressure_end_values_s", "ends_at_s",
+     [1_570.0, 1_360.0, 1_290.0, 1_430.0, 1_500.0, 1_640.0], [1_291.0]},
     {"suppression reason", "resource_filter_pressure_suppressed_reasons", "suppressed_reason",
-     ["payload_unavailable"], ["spacecraft_unavailable"]},
+     [
+       "downlink_margin_below_policy",
+       "fuel_margin_below_policy",
+       "payload_unavailable",
+       "power_margin_below_observe_policy",
+       "storage_margin_below_observe_policy",
+       "thermal_margin_below_policy"
+     ], ["spacecraft_unavailable"]},
     {"source quality", "resource_filter_pressure_source_quality_values", "source_quality",
      ["operator_supplied"], ["stale_source_quality"]},
     {"resource trust status", "resource_filter_pressure_resource_trust_boundary_statuses",
@@ -4883,7 +4912,15 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
     {"trust boundary", "resource_filter_pressure_trust_boundaries", "trust_boundary",
      ["mission_state_resource_filter_report"], ["stale_resource_filter_boundary"]},
     {"derivation reasons", "resource_filter_pressure_derivation_reasons", ["derivation_reasons"],
-     ["resource_filter_suppressed", "payload_unavailable"], ["stale_resource_filter_derivation"]}
+     [
+       "resource_filter_suppressed",
+       "downlink_margin_below_policy",
+       "fuel_margin_below_policy",
+       "payload_unavailable",
+       "power_margin_below_observe_policy",
+       "storage_margin_below_observe_policy",
+       "thermal_margin_below_policy"
+     ], ["stale_resource_filter_derivation"]}
   ]
 
   for {description, field, source_field, expected_value, stale_value} <-
@@ -4892,7 +4929,52 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
       assert_risk_context_contract(
         StrategyRecommendationPressureEventsFixture.artifact(),
         unquote(field),
-        {"source_activity_id", "obs_resource_filter_suppressed"},
+        {"feedback_scope", "resource_filter"},
+        unquote(Macro.escape(source_field)),
+        unquote(Macro.escape(expected_value)),
+        unquote(Macro.escape(stale_value))
+      )
+    end
+  end
+
+  @resource_filter_margin_context_contracts [
+    {"fuel margin", "resource_filter_pressure_fuel_margin_values", "fuel_margin",
+     ["fuel_margin", "resource_margin_value"], [0.05], [0.06]},
+    {"fuel margin threshold", "resource_filter_pressure_fuel_margin_threshold_values",
+     "fuel_margin", ["fuel_margin_threshold", "resource_margin_threshold"], [0.1], [0.11]},
+    {"power margin", "resource_filter_pressure_power_margin_values", "power_margin",
+     ["power_margin", "resource_margin_value"], [0.08], [0.09]},
+    {"power margin threshold", "resource_filter_pressure_power_margin_threshold_values",
+     "power_margin", ["power_margin_threshold", "resource_margin_threshold"], [0.2], [0.21]},
+    {"storage margin", "resource_filter_pressure_storage_margin_values", "storage_margin",
+     ["storage_margin", "resource_margin_value"], [12.0], [13.0]},
+    {"storage margin threshold", "resource_filter_pressure_storage_margin_threshold_values",
+     "storage_margin", ["storage_margin_threshold", "resource_margin_threshold"], [20.0], [21.0]},
+    {"downlink margin", "resource_filter_pressure_downlink_margin_values", "downlink_margin",
+     ["downlink_margin", "resource_margin_value"], [8.0], [9.0]},
+    {"downlink margin threshold", "resource_filter_pressure_downlink_margin_threshold_values",
+     "downlink_margin", ["downlink_margin_threshold", "resource_margin_threshold"], [15.0],
+     [16.0]},
+    {"thermal margin", "resource_filter_pressure_thermal_margin_values_c", "thermal_margin_c",
+     ["thermal_margin_c", "resource_margin_value"], [2.0], [3.0]},
+    {"thermal margin threshold", "resource_filter_pressure_thermal_margin_threshold_values_c",
+     "thermal_margin_c", ["thermal_margin_c_threshold", "resource_margin_threshold"], [5.0],
+     [6.0]},
+    {"operator training count",
+     "resource_filter_pressure_operator_training_requirement_count_values", "power_margin",
+     "operator_training_requirement_count", [2], [3]},
+    {"required operator roles", "resource_filter_pressure_required_operator_roles",
+     "power_margin", ["required_operator_roles"], ["contact_operator", "resource_operator"],
+     ["stale_operator_role"]}
+  ]
+
+  for {description, field, resource_field, source_field, expected_value, stale_value} <-
+        @resource_filter_margin_context_contracts do
+    test "resource-filter #{description} remains source exact across handoffs" do
+      assert_risk_context_contract(
+        StrategyRecommendationPressureEventsFixture.artifact(),
+        unquote(field),
+        {"resource_field", unquote(resource_field)},
         unquote(Macro.escape(source_field)),
         unquote(Macro.escape(expected_value)),
         unquote(Macro.escape(stale_value))

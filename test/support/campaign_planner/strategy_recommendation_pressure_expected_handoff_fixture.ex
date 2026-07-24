@@ -972,37 +972,100 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureExpected
         "resource_projection_pressure_derivation_reasons" => [
           "projected_downlink_shortfall"
         ],
-        "resource_margin_risk_types" => ["power_margin_low"],
+        "resource_margin_risk_types" => [
+          "downlink_margin_low",
+          "fuel_margin_low",
+          "power_margin_low",
+          "storage_margin_low",
+          "thermal_margin_c_low"
+        ],
         "resource_margin_spacecraft_ids" => ["leo_1"],
         "resource_margin_scenario_ids" => ["leo_1"],
         "resource_margin_timeline_ids" => ["timeline:resource_margin:power"],
-        "resource_margin_source_activity_ids" => ["obs_power_pressure"],
+        "resource_margin_source_activity_ids" => [
+          "dl_resource_filter_downlink",
+          "obs_resource_filter_fuel",
+          "obs_power_pressure",
+          "obs_resource_filter_power",
+          "obs_resource_filter_storage",
+          "obs_resource_filter_thermal"
+        ],
         "resource_margin_replacement_activity_ids" => ["obs_power_pressure_replanned"],
-        "resource_margin_fields" => ["power_margin"],
-        "resource_margin_values" => [0.08],
-        "resource_margin_threshold_values" => [0.2],
+        "resource_margin_fields" => [
+          "downlink_margin",
+          "fuel_margin",
+          "power_margin",
+          "storage_margin",
+          "thermal_margin_c"
+        ],
+        "resource_margin_values" => [8.0, 0.05, 0.08, 12.0, 2.0],
+        "resource_margin_threshold_values" => [15.0, 0.1, 0.2, 20.0, 5.0],
         "resource_margin_field_value_maps" => [
+          %{
+            "field" => "downlink_margin",
+            "value" => 8.0,
+            "threshold" => 15.0
+          },
+          %{
+            "field" => "fuel_margin",
+            "value" => 0.05,
+            "threshold" => 0.1
+          },
           %{
             "field" => "power_margin",
             "value" => 0.08,
             "threshold" => 0.2
+          },
+          %{
+            "field" => "storage_margin",
+            "value" => 12.0,
+            "threshold" => 20.0
+          },
+          %{
+            "field" => "thermal_margin_c",
+            "value" => 2.0,
+            "threshold" => 5.0
           }
         ],
-        "resource_margin_source_quality_values" => ["declared"],
-        "resource_margin_start_values_s" => [500.0],
-        "resource_margin_end_values_s" => [560.0],
+        "resource_margin_source_quality_values" => ["operator_supplied", "declared"],
+        "resource_margin_start_values_s" => [
+          1_510.0,
+          1_300.0,
+          500.0,
+          1_370.0,
+          1_440.0,
+          1_580.0
+        ],
+        "resource_margin_end_values_s" => [
+          1_570.0,
+          1_360.0,
+          560.0,
+          1_430.0,
+          1_500.0,
+          1_640.0
+        ],
         "resource_margin_diff_statuses" => ["changed"],
         "resource_margin_changed_fields" => ["power_margin"],
         "resource_margin_required_operator_actions" => ["review_resource_margin"],
         "resource_margin_requires_operator_review_values" => [true],
         "resource_margin_feedback_sources" => [
+          "mission_state.source_resource_filter_report.suppressed_candidates",
           "mission_state.source_resource_projection_report.rows"
         ],
-        "resource_margin_feedback_scopes" => ["resource_margin"],
+        "resource_margin_feedback_scopes" => ["resource_filter", "resource_margin"],
         "resource_margin_feedback_keys" => ["leo_1.power_margin"],
-        "resource_margin_trust_boundaries" => ["mission_state_resource_projection_report"],
+        "resource_margin_trust_boundaries" => [
+          "mission_state_resource_filter_report",
+          "mission_state_resource_projection_report"
+        ],
         "resource_margin_derivation_reasons" => [
-          "resource_projection_power_margin_low"
+          "resource_filter_suppressed",
+          "downlink_margin_below_policy",
+          "fuel_margin_below_policy",
+          "resource_projection_power_margin_low",
+          "power_margin_below_observe_policy",
+          "storage_margin_below_observe_policy",
+          "thermal_margin_below_policy"
         ],
         "maneuver_execution_uncertainty_risk_types" => [
           "maneuver_execution_uncertainty_high"
@@ -1650,19 +1713,74 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureExpected
           "contact_filter_suppressed",
           "station_reserved"
         ],
-        "resource_filter_pressure_risk_types" => ["payload_unavailable"],
+        "resource_filter_pressure_risk_types" => [
+          "downlink_margin_low",
+          "fuel_margin_low",
+          "payload_unavailable",
+          "power_margin_low",
+          "storage_margin_low",
+          "thermal_margin_c_low"
+        ],
         "resource_filter_pressure_scenario_ids" => ["leo_1"],
         "resource_filter_pressure_spacecraft_ids" => ["leo_1"],
-        "resource_filter_pressure_resource_fields" => ["payload_available"],
+        "resource_filter_pressure_resource_fields" => [
+          "downlink_margin",
+          "fuel_margin",
+          "payload_available",
+          "power_margin",
+          "storage_margin",
+          "thermal_margin_c"
+        ],
         "resource_filter_pressure_available_values" => [false],
         "resource_filter_pressure_source_activity_ids" => [
-          "obs_resource_filter_suppressed"
+          "dl_resource_filter_downlink",
+          "obs_resource_filter_fuel",
+          "obs_resource_filter_suppressed",
+          "obs_resource_filter_power",
+          "obs_resource_filter_storage",
+          "obs_resource_filter_thermal"
         ],
-        "resource_filter_pressure_start_values_s" => [1_230.0],
-        "resource_filter_pressure_end_values_s" => [1_290.0],
-        "resource_filter_pressure_suppressed_reasons" => ["payload_unavailable"],
+        "resource_filter_pressure_start_values_s" => [
+          1_510.0,
+          1_300.0,
+          1_230.0,
+          1_370.0,
+          1_440.0,
+          1_580.0
+        ],
+        "resource_filter_pressure_end_values_s" => [
+          1_570.0,
+          1_360.0,
+          1_290.0,
+          1_430.0,
+          1_500.0,
+          1_640.0
+        ],
+        "resource_filter_pressure_suppressed_reasons" => [
+          "downlink_margin_below_policy",
+          "fuel_margin_below_policy",
+          "payload_unavailable",
+          "power_margin_below_observe_policy",
+          "storage_margin_below_observe_policy",
+          "thermal_margin_below_policy"
+        ],
         "resource_filter_pressure_source_quality_values" => ["operator_supplied"],
         "resource_filter_pressure_resource_trust_boundary_statuses" => ["declared"],
+        "resource_filter_pressure_fuel_margin_values" => [0.05],
+        "resource_filter_pressure_fuel_margin_threshold_values" => [0.1],
+        "resource_filter_pressure_power_margin_values" => [0.08],
+        "resource_filter_pressure_power_margin_threshold_values" => [0.2],
+        "resource_filter_pressure_storage_margin_values" => [12.0],
+        "resource_filter_pressure_storage_margin_threshold_values" => [20.0],
+        "resource_filter_pressure_downlink_margin_values" => [8.0],
+        "resource_filter_pressure_downlink_margin_threshold_values" => [15.0],
+        "resource_filter_pressure_thermal_margin_values_c" => [2.0],
+        "resource_filter_pressure_thermal_margin_threshold_values_c" => [5.0],
+        "resource_filter_pressure_operator_training_requirement_count_values" => [2],
+        "resource_filter_pressure_required_operator_roles" => [
+          "contact_operator",
+          "resource_operator"
+        ],
         "resource_filter_pressure_feedback_sources" => [
           "mission_state.source_resource_filter_report.suppressed_candidates"
         ],
@@ -1672,7 +1790,12 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureExpected
         ],
         "resource_filter_pressure_derivation_reasons" => [
           "resource_filter_suppressed",
-          "payload_unavailable"
+          "downlink_margin_below_policy",
+          "fuel_margin_below_policy",
+          "payload_unavailable",
+          "power_margin_below_observe_policy",
+          "storage_margin_below_observe_policy",
+          "thermal_margin_below_policy"
         ],
         "station_reservation_conflict_contact_ids" => ["dl_reservation_conflict"],
         "station_reservation_conflict_source_activity_ids" => ["dl_reservation_conflict"],

@@ -20,7 +20,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureEventsFi
         },
         approval_policy: %{
           "blocked_risk_types" => [],
-          "operator_review_risk_limit" => 50
+          "operator_review_risk_limit" => 60
         },
         branches: [
           %{id: "baseline"},
@@ -1697,7 +1697,54 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureEventsFi
                 feedback_scope: "refresh_freshness",
                 feedback_key: "freshness:stale",
                 trust_boundary: "mission_state_freshness_report"
-              }
+              },
+              resource_filter_margin_pressure_event(
+                "fuel_margin",
+                0.05,
+                0.1,
+                "fuel_margin_below_policy",
+                "obs_resource_filter_fuel",
+                1_300.0,
+                1_360.0
+              ),
+              resource_filter_margin_pressure_event(
+                "power_margin",
+                0.08,
+                0.2,
+                "power_margin_below_observe_policy",
+                "obs_resource_filter_power",
+                1_370.0,
+                1_430.0,
+                operator_training_requirement_count: 2,
+                required_operator_roles: ["contact_operator", "resource_operator"]
+              ),
+              resource_filter_margin_pressure_event(
+                "storage_margin",
+                12.0,
+                20.0,
+                "storage_margin_below_observe_policy",
+                "obs_resource_filter_storage",
+                1_440.0,
+                1_500.0
+              ),
+              resource_filter_margin_pressure_event(
+                "downlink_margin",
+                8.0,
+                15.0,
+                "downlink_margin_below_policy",
+                "dl_resource_filter_downlink",
+                1_510.0,
+                1_570.0
+              ),
+              resource_filter_margin_pressure_event(
+                "thermal_margin_c",
+                2.0,
+                5.0,
+                "thermal_margin_below_policy",
+                "obs_resource_filter_thermal",
+                1_580.0,
+                1_640.0
+              )
             ]
           }
         ],
@@ -1705,6 +1752,40 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureEventsFi
       )
 
     artifact
+  end
+
+  defp resource_filter_margin_pressure_event(
+         field,
+         value,
+         threshold,
+         suppressed_reason,
+         source_activity_id,
+         starts_at_s,
+         ends_at_s,
+         opts \\ []
+       ) do
+    %{
+      type: "resource_margin_pressure",
+      scenario_id: "leo_1",
+      spacecraft_id: "leo_1",
+      resource_field: field,
+      source_activity_id: source_activity_id,
+      source_activity_ids: [source_activity_id],
+      starts_at_s: starts_at_s,
+      ends_at_s: ends_at_s,
+      suppressed_reason: suppressed_reason,
+      source_quality: "operator_supplied",
+      resource_trust_boundary_status: "declared",
+      operator_training_requirement_count:
+        Keyword.get(opts, :operator_training_requirement_count),
+      required_operator_roles: Keyword.get(opts, :required_operator_roles),
+      derivation_reasons: ["resource_filter_suppressed", suppressed_reason],
+      feedback_source: "mission_state.source_resource_filter_report.suppressed_candidates",
+      feedback_scope: "resource_filter",
+      trust_boundary: "mission_state_resource_filter_report"
+    }
+    |> Map.put(field, value)
+    |> Map.put("#{field}_threshold", threshold)
   end
 
   def invalid_contact_intent_artifact do
