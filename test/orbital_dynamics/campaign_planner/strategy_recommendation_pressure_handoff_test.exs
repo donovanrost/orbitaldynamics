@@ -1209,6 +1209,72 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
     )
   end
 
+  test "contact-filter required-contact demand remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "contact_filter_pressure_required_contact_values",
+      {"contact_id", "dl_contact_filter_suppressed"},
+      "required_contacts",
+      [1],
+      [2]
+    )
+  end
+
+  test "contact-filter planned-contact demand remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "contact_filter_pressure_planned_contact_values",
+      {"contact_id", "dl_contact_filter_suppressed"},
+      "planned_contacts",
+      [0],
+      [1]
+    )
+  end
+
+  test "contact-filter required-downlink demand remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "contact_filter_pressure_required_downlink_values_mb",
+      {"contact_id", "dl_contact_filter_suppressed"},
+      "required_downlink_mb",
+      [38.0],
+      [39.0]
+    )
+  end
+
+  test "contact-filter planned-downlink demand remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "contact_filter_pressure_planned_downlink_values_mb",
+      {"contact_id", "dl_contact_filter_suppressed"},
+      "planned_downlink_mb",
+      [0.0],
+      [1.0]
+    )
+  end
+
+  test "contact-filter start bound remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "contact_filter_pressure_start_values_s",
+      {"contact_id", "dl_contact_filter_suppressed"},
+      "starts_at_s",
+      [1_165.0],
+      [1_164.0]
+    )
+  end
+
+  test "contact-filter end bound remains source exact across handoffs" do
+    assert_risk_context_contract(
+      StrategyRecommendationPressureEventsFixture.artifact(),
+      "contact_filter_pressure_end_values_s",
+      {"contact_id", "dl_contact_filter_suppressed"},
+      "ends_at_s",
+      [1_225.0],
+      [1_226.0]
+    )
+  end
+
   test "station conflict expiration risk context remains source exact across handoffs" do
     assert_risk_expiration_context_contract(
       StrategyRecommendationPressureEventsFixture.artifact(),

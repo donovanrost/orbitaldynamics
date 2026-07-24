@@ -188,7 +188,17 @@ defmodule OrbitalDynamics.Schema.StrategyHandoffContracts do
     {"contact_filter_pressure_ground_station_ids", "contact_filter_pressure_ground_station_ids"},
     {"contact_filter_pressure_source_activity_ids",
      "contact_filter_pressure_source_activity_ids"},
-    {"contact_filter_pressure_source_window_ids", "contact_filter_pressure_source_window_ids"}
+    {"contact_filter_pressure_source_window_ids", "contact_filter_pressure_source_window_ids"},
+    {"contact_filter_pressure_required_contact_values",
+     "contact_filter_pressure_required_contact_values"},
+    {"contact_filter_pressure_planned_contact_values",
+     "contact_filter_pressure_planned_contact_values"},
+    {"contact_filter_pressure_required_downlink_values_mb",
+     "contact_filter_pressure_required_downlink_values_mb"},
+    {"contact_filter_pressure_planned_downlink_values_mb",
+     "contact_filter_pressure_planned_downlink_values_mb"},
+    {"contact_filter_pressure_start_values_s", "contact_filter_pressure_start_values_s"},
+    {"contact_filter_pressure_end_values_s", "contact_filter_pressure_end_values_s"}
   ]
   @station_reservation_conflict_context_field_pairs [
     {"station_reservation_conflict_contact_ids", "station_reservation_conflict_contact_ids"},
