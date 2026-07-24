@@ -607,6 +607,7 @@ defmodule OrbitalDynamics.Schema.FieldTypeHints do
     "source_policy_escalation" => "object",
     "source_quality_gate_report" => "object",
     "source_invalid_contact_input" => "object",
+    "source_link_capacity_report" => "object",
     "source_provider_counteroffer_report" => "object",
     "source_readiness_report_id" => "string",
     "source_recommendation" => "object",

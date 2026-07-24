@@ -167,6 +167,10 @@ defmodule OrbitalDynamics.Schema.CampaignRepairContracts do
     |> call(callbacks, :validate_optional_link_capacity_report, [
       Map.get(artifact, "link_capacity_report")
     ])
+    |> call(callbacks, :validate_optional_source_link_capacity_report, [
+      "$.source_link_capacity_report",
+      Map.get(artifact, "source_link_capacity_report")
+    ])
     |> call(callbacks, :validate_optional_candidate_diff_report, [
       "$.source_candidate_diff_report",
       Map.get(artifact, "source_candidate_diff_report")

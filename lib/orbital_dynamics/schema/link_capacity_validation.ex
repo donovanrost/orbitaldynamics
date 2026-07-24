@@ -33,6 +33,14 @@ defmodule OrbitalDynamics.Schema.LinkCapacityValidation do
   def validate_optional_report(issues, _report),
     do: [error("$.link_capacity_report", "must be an object") | issues]
 
+  def validate_optional_report_at(issues, _path, nil), do: issues
+
+  def validate_optional_report_at(issues, path, %{} = report),
+    do: validate_report(issues, path, report)
+
+  def validate_optional_report_at(issues, path, _report),
+    do: [error(path, "must be an object") | issues]
+
   defp required_fields(contract_name) do
     [
       OrbitalDynamics.Schema.LinkCapacityRegistryContracts,

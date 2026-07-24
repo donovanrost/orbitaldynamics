@@ -125,6 +125,7 @@ defmodule OrbitalDynamics.Schema.CampaignRegistryContracts do
           "source_contact_allocation_report",
           "source_contact_contention_report",
           "source_contact_contention_resolution_report",
+          "source_link_capacity_report",
           "source_station_calendar_report",
           "source_contact_filter_report",
           "source_resource_filter_report",

@@ -414,6 +414,11 @@ focused repair-action regressions.
   exposes selected-utilization, downlink-shortfall,
   ignored/unmatched/ambiguous selected contact, duplicate-contact, and
   model-limit summary fields from the checked-in fixture.
+- **Source link-capacity report** — V2 preserves CandidateRefresh's upstream
+  `link_capacity_report.v1` independently from the repaired-plan report,
+  validates it at `source_link_capacity_report`, and routes its existing exact
+  review fields into review-gated Cadence import without scoring the evidence a
+  second time.
 - **Operational-timeline report** exposes status/action/kind count maps,
   dependency and exclusivity issue counts, duplicate timeline-identity counts,
   invalid activity IDs, and model limits, with executable validation that

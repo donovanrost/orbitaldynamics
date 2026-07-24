@@ -11,6 +11,11 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
     refreshed_candidate = refreshed_downlink("dl_refreshed", 500.0, 560.0)
     source_reports = passive_candidate_refresh_source_reports()
 
+    source_link_capacity_report =
+      "study_results/link_capacity_report_v1.json"
+      |> File.read!()
+      |> :json.decode()
+
     candidate_diff_report =
       candidate_diff_report()
       |> update_in(["invalidated_candidates", Access.at(0)], fn candidate ->
@@ -70,6 +75,7 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
             "source_operational_readiness_report",
             source_reports["source_operational_readiness_report"]
           )
+          |> Map.put("source_link_capacity_report", source_link_capacity_report)
           |> Map.put("source_quality_gate_report", passive_quality_gate_report())
           |> Map.put("operational_feedback", %{
             "station_throughput_factor" => %{"equator_prime" => 0.5}
@@ -303,6 +309,36 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
                }
              ]
            } = artifact["contact_allocation_report"]
+
+    assert artifact["source_link_capacity_report"] == source_link_capacity_report
+
+    assert %{
+             "review_type" => "link_capacity_review",
+             "source" => "campaign_repair.source_link_capacity_report.rows",
+             "subject_id" => "equator_prime",
+             "contact_ids" => ["leo_1_downlink_equator_prime_1"],
+             "capacity_adjusted_throughput_mb" => 172.71212086982393,
+             "source_link_capacity" => %{
+               "station_availability" => "reduced_capacity"
+             }
+           } =
+             Enum.find(
+               artifact["operator_review_package"]["rows"],
+               &(&1["source"] == "campaign_repair.source_link_capacity_report.rows")
+             )
+
+    assert %{
+             "import_action" => "review_link_capacity",
+             "source_review_type" => "link_capacity_review",
+             "source" => "campaign_repair.source_link_capacity_report.rows",
+             "ground_station_id" => "equator_prime",
+             "contact_ids" => ["leo_1_downlink_equator_prime_1"],
+             "import_status" => "review_required_before_import"
+           } =
+             Enum.find(
+               artifact["cadence_import_manifest"]["rows"],
+               &(&1["source"] == "campaign_repair.source_link_capacity_report.rows")
+             )
 
     assert %{
              "contact_allocation_review_count" => 3
