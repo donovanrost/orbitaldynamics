@@ -5,59 +5,58 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Enforce source-exact contact-allocation feedback provenance.
+Enforce source-exact station-reservation-conflict routing identity.
 
 Status:
 Verified; publish pending.
 
 Selection evidence:
-- The selected risk carries feedback source
-  `mission_state.source_contact_allocation_reservation_conflict_summary`, scope
-  `contact_allocation`, trust boundary
-  `mission_state_reservation_conflict_summary`, and derivation reason
-  `contact_allocation_reservation_conflict` across all four handoff copies.
-- All four lists survive projection; schemas and exact-copy validation omit them
-  after demand/completion provenance was published.
+- The selected conflict risk carries contact/source-activity ID
+  `dl_reservation_conflict`, ground-station ID `equator_prime`, and reservation
+  ID `reservation_conflict_1` across all four handoff copies.
+- All four stable-ID lists survive projection; only the family expiration status
+  is exact today, while routing schemas and exact-copy validation are absent.
 
 Intended behavior:
-- Declare four string arrays requiring exact source-derived copies in
+- Declare four stable-ID arrays requiring exact source-derived copies in
   review/direct/review-derived Cadence rows.
-- Reject missing or stale derived feedback provenance; retain paired
+- Reject missing or stale derived conflict routing; retain paired
   legacy omission compatibility for optional source fields.
-- Preserve allocation scoring/selection, provider/reservation authority,
-  operator authority, and execution boundaries.
+- Preserve conflict detection, allocation scoring/selection, provider/reservation
+  authority, operator authority, and execution boundaries.
 
 Level 6 pillar advanced:
 Fleet-scale planning decisions and durable reproducible audit handoffs.
 
 Planned files:
-- contact-allocation validation and review/import schemas
-- feedback-provenance mutation/schema proofs, docs, exports, and ledger
+- station-reservation-conflict validation and review/import schemas
+- routing-identity mutation/schema proofs, docs, exports, and ledger
 
 Verification:
-- Focused handoff/schema proof: `140 passed`.
+- Focused handoff/schema proof: `144 passed`.
 - Contact-allocation regression: `213 passed`.
 - Golden artifact regression: `12 passed`.
 - Schema lint: `155` artifacts, `0` errors, `0` warnings.
-- Full suite: `4012 passed`.
+- Full suite: `4016 passed`.
 - Canonical strategy SHA-256 remained
   `f7fc7823d071db82124af4b903e5be730983d1d9cb96f4524c711041c750ca1c`.
 - Ten expected generated schema surfaces changed; format and
   `git diff --check` passed.
 
 Review:
-- Exact-copy checks cover feedback source/scope, trust boundary, and derivation
-  reason across operator review, direct selected Cadence import, and
-  review-derived import, including missing, stale, and paired legacy omission
-  mutations.
-- All three public row schemas and generated exports agree on four string arrays;
-  all 35 contact-allocation context keys now have exact handoff contracts.
-- Feedback evidence grants no authority; allocation scoring/selection, provider
-  requests, reservation/schedule mutation, Cadence writes, operator authority,
-  and autonomous execution remain unchanged.
+- Exact-copy checks cover contact, source-activity, ground-station, and
+  reservation identity across operator review, direct selected Cadence import,
+  and review-derived import, including missing, stale, and paired legacy
+  omission mutations.
+- All three public row schemas and generated exports agree on four stable-ID
+  arrays; the existing expiration-status contract remains intact under the
+  generalized family field-pair name.
+- Routing evidence grants no authority; conflict detection, allocation
+  scoring/selection, provider requests, reservation/schedule mutation, Cadence
+  writes, operator authority, and autonomous execution remain unchanged.
 
 Last published slice:
-- `f8c8eb4a` Validate contact allocation source provenance (`4008 passed`).
+- `24ebe1ae` Validate contact allocation feedback provenance (`4012 passed`).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions while preserving explicit
@@ -68,7 +67,7 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-Assess the next uncovered recommendation-risk family.
+Assess source-exact station-reservation-conflict state and deadline context.
 
 Blocked:
 None.

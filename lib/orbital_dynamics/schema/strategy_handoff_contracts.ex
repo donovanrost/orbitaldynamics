@@ -36,7 +36,14 @@ defmodule OrbitalDynamics.Schema.StrategyHandoffContracts do
     {"provider_reservation_request_station_reservation_expiration_statuses",
      "provider_reservation_request_station_reservation_expiration_statuses"}
   ]
-  @station_reservation_conflict_expiration_context_field_pairs [
+  @station_reservation_conflict_context_field_pairs [
+    {"station_reservation_conflict_contact_ids", "station_reservation_conflict_contact_ids"},
+    {"station_reservation_conflict_source_activity_ids",
+     "station_reservation_conflict_source_activity_ids"},
+    {"station_reservation_conflict_ground_station_ids",
+     "station_reservation_conflict_ground_station_ids"},
+    {"station_reservation_conflict_reservation_ids",
+     "station_reservation_conflict_reservation_ids"},
     {"station_reservation_conflict_expiration_statuses",
      "station_reservation_conflict_expiration_statuses"}
   ]
@@ -265,8 +272,7 @@ defmodule OrbitalDynamics.Schema.StrategyHandoffContracts do
   @strategy_recommendation_risk_context_specs [
     {@provider_reservation_request_expiration_context_field_pairs,
      :provider_reservation_request_context},
-    {@station_reservation_conflict_expiration_context_field_pairs,
-     :station_reservation_conflict_context},
+    {@station_reservation_conflict_context_field_pairs, :station_reservation_conflict_context},
     {@station_reservation_hold_expiration_context_field_pairs,
      :station_reservation_hold_import_readiness_context},
     {@contact_allocation_context_field_pairs, :contact_allocation_context},
