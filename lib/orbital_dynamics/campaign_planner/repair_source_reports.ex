@@ -378,6 +378,27 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairSourceReports do
     )
   end
 
+  def operational_import_eligibility(candidate_refresh),
+    do: operational_import_eligibility(candidate_refresh, default_callbacks())
+
+  def operational_import_eligibility(nil, _callbacks), do: nil
+
+  def operational_import_eligibility(%{} = candidate_refresh, callbacks) do
+    stringify_keys = Keyword.fetch!(callbacks, :stringify_keys)
+    candidate_refresh = stringify_keys.(candidate_refresh)
+
+    [
+      Map.get(candidate_refresh, "source_operational_import_eligibility_summary"),
+      Map.get(candidate_refresh, "operational_import_eligibility_summary")
+    ]
+    |> Enum.flat_map(&List.wrap/1)
+    |> Enum.find(&is_map/1)
+    |> case do
+      %{} = summary -> stringify_keys.(summary)
+      _summary -> nil
+    end
+  end
+
   def quality_gate(candidate_refresh), do: quality_gate(candidate_refresh, default_callbacks())
 
   def quality_gate(candidate_refresh, callbacks) do

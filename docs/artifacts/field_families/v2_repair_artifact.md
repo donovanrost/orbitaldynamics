@@ -440,6 +440,12 @@ focused repair-action regressions.
 - **Resource-projection report** exposes valid/invalid resource-summary and
   activity counts plus resource quality/trust maps, with row-derived validation
   for projected resource summaries.
+- **Source operational import eligibility** — V2 preserves CandidateRefresh's
+  `operational_import_eligibility_summary.v1` at
+  `source_operational_import_eligibility_summary`, including exact eligibility,
+  classification, readiness status, gate counts, source identity, assumptions,
+  and no-approval/no-import model limits. The Cadence manifest is an artifact
+  handoff only and performs no write.
 - **Source constraint report** — V2 preserves CandidateRefresh's upstream
   `constraint_report.v1` independently from the recomputed repaired-plan
   report, validates it at `source_constraint_report`, and routes exact non-pass

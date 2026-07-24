@@ -139,6 +139,10 @@ defmodule OrbitalDynamics.Schema.CampaignRepairContracts do
       "$.source_operational_readiness_report",
       Map.get(artifact, "source_operational_readiness_report")
     ])
+    |> call(callbacks, :validate_optional_operational_import_eligibility_summary, [
+      "$.source_operational_import_eligibility_summary",
+      Map.get(artifact, "source_operational_import_eligibility_summary")
+    ])
     |> call(callbacks, :validate_optional_quality_gate_report, [
       "$.source_quality_gate_report",
       Map.get(artifact, "source_quality_gate_report")

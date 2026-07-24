@@ -112,6 +112,10 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairArtifact do
       RepairSourceReports.operational_readiness(request.candidate_refresh)
     )
     |> put_source_report(
+      "source_operational_import_eligibility_summary",
+      RepairSourceReports.operational_import_eligibility(request.candidate_refresh)
+    )
+    |> put_source_report(
       "source_quality_gate_report",
       RepairSourceReports.quality_gate(request.candidate_refresh)
     )

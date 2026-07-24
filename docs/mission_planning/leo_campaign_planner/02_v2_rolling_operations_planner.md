@@ -311,6 +311,9 @@ schema-type their stable IDs, invalid-input flags, and protected/change counts.
   review-only, remains excluded from Cadence import, and neither certifies a
   model nor changes planning. Source validation-safety-case evidence is likewise
   review-only and does not grant certification, import, or execution authority.
+  Source operational import-eligibility summaries preserve the upstream
+  eligibility decision and gate counts as a no-write Cadence handoff; they do
+  not approve or perform an import.
   Source provider-counteroffer evidence, including preserved plan-impact
   timing/cost deltas, lock-deadline context, and explicit import-readiness
   classification, remains review-gated and does not change the repaired

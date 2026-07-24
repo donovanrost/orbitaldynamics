@@ -111,6 +111,11 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
       |> File.read!()
       |> :json.decode()
 
+    source_operational_import_eligibility_summary =
+      "study_results/operational_import_eligibility_summary_v1.json"
+      |> File.read!()
+      |> :json.decode()
+
     candidate_diff_report =
       candidate_diff_report()
       |> update_in(["invalidated_candidates", Access.at(0)], fn candidate ->
@@ -169,6 +174,10 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
           |> Map.put(
             "source_operational_readiness_report",
             source_reports["source_operational_readiness_report"]
+          )
+          |> Map.put(
+            "source_operational_import_eligibility_summary",
+            [source_operational_import_eligibility_summary]
           )
           |> Map.put("source_link_capacity_report", source_link_capacity_report)
           |> Map.put("source_station_reservation_report", source_station_reservation_report)
@@ -317,6 +326,9 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
     assert artifact["source_operational_readiness_report"]["schema_contract"] ==
              "operational_readiness_report.v1"
 
+    assert artifact["source_operational_import_eligibility_summary"] ==
+             source_operational_import_eligibility_summary
+
     assert artifact["source_quality_gate_report"]["schema_contract"] ==
              "quality_gate_report.v1"
 
@@ -348,7 +360,7 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
              )
 
     assert %{
-             "operational_readiness_review_count" => 2,
+             "operational_readiness_review_count" => 3,
              "quality_gate_review_count" => 1
            } = artifact["operator_review_package"]
 
@@ -364,6 +376,63 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
              Enum.find(
                artifact["operator_review_package"]["rows"],
                &(&1["review_type"] == "operational_readiness_review")
+             )
+
+    assert %{
+             "review_type" => "operational_readiness_review",
+             "source" => "campaign_repair.source_operational_import_eligibility_summary",
+             "subject_id" => "activity_1",
+             "required_operator_action" => "record_operational_readiness_importable",
+             "approval_status" => "auto_approvable",
+             "cadence_import_status" => "present",
+             "readiness_level" => "import_eligible",
+             "import_classification" => "importable",
+             "operational_readiness_status" => "passed",
+             "gate_count" => 5,
+             "passed_gate_count" => 5,
+             "source_operational_readiness_report" => %{
+               "schema_contract" => "operational_import_eligibility_summary.v1",
+               "source_summary_schema_contract" => "operational_import_eligibility_summary.v1",
+               "source_summary_model" => "artifact_only_import_eligibility_summary",
+               "model_limits" => [
+                 "operational_import_eligibility_summary_routes_only",
+                 "operational_import_eligibility_summary_does_not_approve_or_import"
+               ],
+               "assumptions" => %{
+                 "execution_boundary" => "artifact_only_no_cadence_write",
+                 "operator_authority" => "not_granted_by_summary"
+               }
+             }
+           } =
+             Enum.find(
+               artifact["operator_review_package"]["rows"],
+               &(&1["source"] ==
+                   "campaign_repair.source_operational_import_eligibility_summary")
+             )
+
+    assert %{
+             "import_action" => "review_operational_readiness",
+             "source_review_type" => "operational_readiness_review",
+             "source_review_action" => "record_operational_readiness_importable",
+             "source" => "campaign_repair.source_operational_import_eligibility_summary",
+             "subject_id" => "activity_1",
+             "import_status" => "ready_for_import",
+             "has_cadence_import" => false,
+             "approval_status" => "auto_approvable",
+             "required_operator_action" => "record_operational_readiness_importable",
+             "source_review_row" => %{
+               "source_operational_readiness_report" => %{
+                 "source_summary_schema_contract" => "operational_import_eligibility_summary.v1",
+                 "assumptions" => %{
+                   "operator_authority" => "not_granted_by_summary"
+                 }
+               }
+             }
+           } =
+             Enum.find(
+               artifact["cadence_import_manifest"]["rows"],
+               &(&1["source"] ==
+                   "campaign_repair.source_operational_import_eligibility_summary")
              )
 
     assert %{

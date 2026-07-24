@@ -402,6 +402,10 @@ defmodule OrbitalDynamics.OperatorReview.CompositeArtifact do
         Map.get(artifact, "source_operational_readiness_report"),
         "campaign_repair.source_operational_readiness_report"
       ) ++
+      OperationalReadiness.source_report_rows(
+        Map.get(artifact, "source_operational_import_eligibility_summary"),
+        "campaign_repair.source_operational_import_eligibility_summary"
+      ) ++
       QualityGate.source_report_rows(
         Map.get(artifact, "source_quality_gate_report"),
         "campaign_repair.source_quality_gate_report"
