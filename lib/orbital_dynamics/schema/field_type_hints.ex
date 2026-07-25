@@ -617,6 +617,7 @@ defmodule OrbitalDynamics.Schema.FieldTypeHints do
     "source_timeline_integrity_report" => "object",
     "source_timeline_dependency_impact_summary" => "object",
     "source_timeline_lifecycle_state_summary" => "object",
+    "source_timeline_activity_precondition_summaries" => "array",
     "source_timeline_preservation_report" => "object",
     "source_timeline_transition_application_report" => "object",
     "source_timeline_transition_application_summary" => "object",

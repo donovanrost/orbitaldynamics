@@ -149,6 +149,14 @@ context, and approval changes. Existing review and Cadence adapters preserve
 exact actionable rows without applying lifecycle or approval transitions,
 mutating or publishing the repaired timeline, writing to Cadence, commanding,
 or granting approval/operator authority.
+CandidateRefresh activity-precondition evidence is retained as the ordered,
+plural `source_timeline_activity_precondition_summaries` collection. Direct
+source summaries precede canonical summaries, and every map is retained without
+deduplication or first-map selection. Full executable validation reports drift
+at each exact array index; existing review and Cadence adapters preserve that
+indexed provenance and complete source context without changing repair scores,
+mutating a schedule, writing to Cadence, commanding activity, or granting
+operator authority.
 CandidateRefresh transition-application evidence is likewise retained at
 `source_timeline_transition_application_report`, distinct from V2's repair-time
 `timeline_transition_application_report`. Full executable validation pins

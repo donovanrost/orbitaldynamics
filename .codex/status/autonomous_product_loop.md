@@ -5,93 +5,104 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Preserve V2 source realized-state snapshot handoff.
+Preserve plural V2 source activity-precondition summaries.
 
 Status:
-Verified; publish pending.
+Complete; verified and ready to publish.
 
 Selection evidence:
-- CandidateRefresh accepts `realized_state_snapshot.v1` containers from
+- CandidateRefresh accepts `timeline_activity_precondition_summary.v1` from
   direct/canonical, accepted-planning-state, mission-state, result-artifact,
-  and list-valued source paths when deriving realized operational feedback.
-- One snapshot is a versioned aggregate that retains exact realized activities,
-  spacecraft states, provider/trust-boundary metadata, row-derived counts,
-  assumptions, and model limits.
-- Repair V2 has its own current `realized_state_snapshot` from the repair
-  request but does not preserve the distinct upstream CandidateRefresh
-  snapshot, so accepted operational provenance is discarded at handoff.
-- Existing realized-state review conversion maps snapshot activities into
-  typed realized-feedback rows. It grants no schedule mutation, import
-  approval, command authority, or execution authority.
+  operator-review, Cadence-import, and list-valued paths.
+- The singular source key is collection-valued across distinct activities, so
+  first-map coercion would silently discard operational evidence.
+- Repair V2 currently preserves no accepted precondition summaries, even though
+  the campaign schema already has an executable array validator and the
+  operator-review adapter already accepts summary lists.
+- Each summary is artifact-only evidence with explicit no-mutation, no-command,
+  and no-resource-authority limits; review conversion grants no approval or
+  execution authority.
 
 Intended behavior:
-- Resolve source/canonical/list-valued realized-state snapshots and preserve the
-  first accepted aggregate map exactly at `source_realized_state_snapshot` on
-  repair V2, independently from the request's current snapshot.
-- Validate the optional field against its full executable contract at the
-  distinct source path and export the versioned property.
-- Extend the existing realized-state conversion with a source-aware row API so
-  realized activities and exact snapshot context reach review-gated Cadence
-  handoff.
-- Keep the source snapshot out of repair scoring, candidate selection, current
-  realized-state derivation, schedule/timeline mutation, publication,
-  provider/Cadence writes, import approval/operator authority, commanding, and
-  autonomous execution.
+- Collect every direct source/canonical/list-valued precondition summary in
+  stable source-before-canonical order, without deduplication, at the explicitly
+  plural `source_timeline_activity_precondition_summaries` field on repair V2.
+- Validate every array element against its full executable contract at its
+  indexed source path and export the versioned nested property.
+- Reuse existing list-aware conversion so blocked/review/clear preconditions,
+  activity/timeline identities, dependency/exclusivity evidence, invalid-input
+  context, and exact source summaries reach review-gated Cadence handoff.
+- Keep the summaries out of repair scoring, candidate selection, schedule or
+  timeline mutation, publication, provider/Cadence writes, approval/operator
+  authority, commanding, and autonomous execution.
 
 Level 6 pillar advanced:
 Fleet-scale resource decisions and durable reproducible audit handoffs.
 
 Planned files:
-- V2 CandidateRefresh realized-state-snapshot resolution and artifact assembly
-- source-aware realized-state review conversion
-- V2 path-aware validation, registry/type hints, and review/Cadence routing
-- focused source/schema/integration proofs, docs, exports, and ledger
+- Added lossless plural V2 CandidateRefresh precondition-summary resolution and
+  artifact assembly.
+- Added V2 indexed validation, registry/type hints, and existing list-aware
+  review/Cadence routing.
+- Added focused source/schema/integration proofs, compatibility documentation,
+  generated schema exports, and this compact ledger handoff.
 
 Verification:
-- Focused resolver/schema/adapter proofs: `8 passed` in 8.9s.
-- Focused repair handoff proof: `11 passed` in 11.4s.
-- Realized-state and operational-feedback regression family: `85 passed` in
-  11.6s.
-- Contact-allocation regression suite: `238 passed` in 16.3s.
-- Golden artifacts: `12 passed` in 20.7s.
-- Schema lint: 155 artifacts, 0 errors, 0 warnings.
-- Pre-export full suite: expected checked-in-schema mismatch only,
-  `5109/5110 passed` in 695.4s.
-- Regenerated repair schema and bundle only; repair, strategy, and manifest
-  canonical hashes remained stable.
-- Schema-export proof: `3 passed` in 50.9s.
-- Final full suite: `5110 passed` in 688.0s.
+- Focused source, schema, and full repair-handoff proofs: `16 passed` in 12.1s.
+- Adjacent strategy, CandidateRefresh, operator-review, and Cadence-import
+  activity-precondition family: `21 passed` in 11.1s.
+- Contact-allocation regression family: `238 passed` in 15.8s.
+- Golden artifacts: `12 passed` in 22.4s.
+- Schema lint: `155` artifacts, `0` errors, `0` warnings.
+- Pre-export full suite: `5114/5115 passed` in 751.4s; the sole failure was the
+  expected checked-in JSON Schema export mismatch.
+- Regenerated all JSON Schemas, the manifest schema, and canonical repair and
+  strategy artifacts. Generated diff is exactly the one-line repair schema and
+  one-line schema-bundle update.
+- Schema-export verification: `3 passed` in 58.4s.
+- Final full suite: `5115 passed` in 778.2s.
+- Canonical hashes remain stable: repair
+  `867928e8aa95ba8473fffe017e7d1efda9d9e83799516a2a938ef7bb8c25f7fa`,
+  strategy
+  `9e2e9bae5d1bef69f36ac288b7cb63a803960b14fc1edf4a841598aa2e947d91`,
+  and manifest
+  `7a44a6e58754aae967ee8319c8768b7270d7d7982667c4a6bad8ff1c274c0594`.
 
 Review:
-The exact upstream snapshot stays on repair V2 while each source activity is
-converted through the existing realized-feedback semantics and retains the
-snapshot's complete activity, spacecraft-state, metadata, trust-boundary,
-count, and model-limit context through review-gated Cadence handoff. The source
-snapshot remains distinct from the repair request's operative
-`realized_state_snapshot` and does not affect current-state derivation, repair
-scoring or candidate selection, mutate or publish a schedule, write to Cadence,
-grant import/operator authority, command, or execute work. Generated drift is
-limited to `campaign_repair.v2.schema.json` and the bundle.
+- Source and canonical summaries are collected in stable source-before-canonical
+  order; every map is retained and string-key normalized without deduplication
+  or first-map coercion.
+- Empty collections omit the optional V2 field; non-map input members do not
+  become artifact evidence.
+- Every retained summary is validated at an indexed path and reaches distinct
+  operator-review and Cadence-import rows with its exact summary and indexed
+  provenance.
+- The slice reuses existing list-aware conversion and does not alter repair
+  scoring, candidate selection, schedule/timeline state, publication, provider
+  reservations, Cadence writes, approval/operator authority, commanding, or
+  autonomous execution.
+- Scoped diff and generated artifacts are clean under `git diff --check`; no
+  unrelated work is present.
 
 Last published slice:
-- `1e32cbea` Preserve V2 source transition application summary (`5104 passed`;
-  exact aggregate transition review evidence reaches review and Cadence
-  handoff without applying transitions, mutating schedules, granting authority,
-  or executing work).
+- `cfeb387f` Preserve V2 source realized state snapshot (`5110 passed`; exact
+  upstream realized activities, spacecraft states, and trust-boundary context
+  reach review and Cadence handoff without replacing operative repair state,
+  changing decisions, granting authority, or executing work).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions while preserving explicit
   provider and Cadence execution boundaries.
 - Add planner effects only for allocation/resource evidence with selected
   candidate identity; keep compact aggregate maps provenance-only.
-- Preserve per-activity precondition collections only after choosing an
-  explicitly lossless plural V2 shape rather than a first-map coercion.
+- Preserve other per-activity source state collections only with explicitly
+  lossless plural V2 shapes rather than first-map coercion.
 - Continue broader schema/versioned compatibility discipline and stale-input
   challenge fixtures.
 
 Next candidate:
-After source realized-state-snapshot evidence is durable, audit the next
-bounded CandidateRefresh aggregate source-report gap by product value and
+After plural source activity-precondition evidence is durable, audit the next
+bounded CandidateRefresh source-state collection by product value and
 distinctness.
 
 Blocked:

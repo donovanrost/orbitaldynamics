@@ -632,6 +632,13 @@ focused repair-action regressions.
   approval, protection, duplicate-identity, and operator-action evidence into
   review-gated Cadence import without applying a transition or granting
   approval authority.
+- **Source timeline-activity-precondition summaries** — V2 preserves every
+  CandidateRefresh `timeline_activity_precondition_summary.v1` at the explicitly
+  plural `source_timeline_activity_precondition_summaries` path. Direct source
+  summaries precede canonical summaries, with no first-map collapse or
+  deduplication. Each indexed summary is validated and routed with exact source
+  provenance into review-gated Cadence import without changing repair scoring,
+  mutating a schedule, commanding activity, or granting operator authority.
 - **Source timeline-preservation report** — V2 preserves CandidateRefresh's
   upstream `timeline_preservation_report.v1` independently from derived
   `preserved_activities`, validates it at `source_timeline_preservation_report`,

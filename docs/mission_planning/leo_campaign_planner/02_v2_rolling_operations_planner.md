@@ -302,6 +302,7 @@ schema-type their stable IDs, invalid-input flags, and protected/change counts.
   `source_timeline_integrity_report`,
   `source_timeline_dependency_impact_summary`,
   `source_timeline_lifecycle_state_summary`,
+  `source_timeline_activity_precondition_summaries`,
   `source_timeline_preservation_report`,
   `source_timeline_transition_application_report`,
   `source_timeline_transition_application_summary`,
@@ -327,10 +328,13 @@ schema-type their stable IDs, invalid-input flags, and protected/change counts.
   repair-time filtering and preserve only validated aggregate suppression
   evidence for review. Source
   timeline-diff summaries, integrity, dependency-impact, lifecycle-state,
-  preservation, transition-application, operational-timeline, command-window,
-  and maneuver-review reports likewise remain distinct from repaired timeline
-  state and cannot apply lifecycle or approval transitions, mutate or publish
-  it, approve maneuvers, or execute commands.
+  activity-precondition summaries, preservation, transition-application,
+  operational-timeline, command-window, and maneuver-review reports likewise
+  remain distinct from repaired timeline state and cannot apply lifecycle or
+  approval transitions, mutate or publish it, approve maneuvers, or execute
+  commands. Activity-precondition evidence uses an explicitly plural typed
+  collection: direct source summaries precede canonical summaries and all maps
+  are retained without deduplication or first-map collapse.
   Source provider-reservation request summaries retain exact
   request-ready/review-required rows plus match, station, direction,
   reservation, and contact routing as

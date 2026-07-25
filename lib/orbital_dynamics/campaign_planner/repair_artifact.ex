@@ -277,6 +277,10 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairArtifact do
       "source_timeline_lifecycle_state_summary",
       RepairSourceReports.timeline_lifecycle_state(request.candidate_refresh)
     )
+    |> put_source_reports(
+      "source_timeline_activity_precondition_summaries",
+      RepairSourceReports.timeline_activity_precondition_summaries(request.candidate_refresh)
+    )
     |> put_source_report(
       "source_timeline_preservation_report",
       RepairSourceReports.timeline_preservation(request.candidate_refresh)
@@ -376,6 +380,11 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairArtifact do
 
   defp put_source_report(artifact, _key, nil), do: artifact
   defp put_source_report(artifact, key, %{} = report), do: Map.put(artifact, key, report)
+
+  defp put_source_reports(artifact, _key, []), do: artifact
+
+  defp put_source_reports(artifact, key, reports) when is_list(reports),
+    do: Map.put(artifact, key, reports)
 
   defp attach_operator_review(artifact) do
     Map.put(artifact, "operator_review_package", OperatorReview.from_repair_artifact(artifact))
