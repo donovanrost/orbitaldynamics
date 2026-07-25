@@ -479,6 +479,10 @@ defmodule OrbitalDynamics.OperatorReview.CompositeArtifact do
         Map.get(artifact, "source_contact_intents", []),
         "campaign_repair.source_contact_intents"
       ) ++
+      ContactIntent.source_summary_rows(
+        Map.get(artifact, "source_contact_intent_summary"),
+        "campaign_repair.source_contact_intent_summary"
+      ) ++
       Suppression.resource_rows(
         resource_suppressed_candidates(artifact, "source_resource_filter_report"),
         "campaign_repair.source_resource_filter_report.suppressed_candidates"

@@ -10,6 +10,7 @@ defmodule OrbitalDynamics.Schema.CampaignArtifactValidation do
     CandidateRejectionValidation,
     CommandWindowValidation,
     ContactAllocationValidation,
+    ContactIntentValidation,
     ContactReportValidation,
     DecisionSupportValidation,
     LinkCapacityValidation,
@@ -213,6 +214,8 @@ defmodule OrbitalDynamics.Schema.CampaignArtifactValidation do
       validate_activity: &OrbitalDynamics.Schema.ActivityContracts.validate/3,
       validate_policy_rule_match: &PolicyValidation.validate_rule_match/3,
       validate_contact_intent: &OrbitalDynamics.Schema.ContactIntentContracts.validate/3,
+      validate_optional_contact_intent_summary:
+        &ContactIntentValidation.validate_optional_summary/3,
       validate_resource_summary: &OrbitalDynamics.Schema.ResourceSummaryContracts.validate/3,
       validate_optional_contact_filter_report:
         &ContactReportValidation.validate_optional_filter_report/3,

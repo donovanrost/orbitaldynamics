@@ -91,6 +91,10 @@ defmodule OrbitalDynamics.Schema.CampaignRepairContracts do
       Map.get(artifact, "source_contact_intents"),
       callback(callbacks, :validate_contact_intent)
     ])
+    |> call(callbacks, :validate_optional_contact_intent_summary, [
+      "$.source_contact_intent_summary",
+      Map.get(artifact, "source_contact_intent_summary")
+    ])
     |> call(callbacks, :validate_optional_rows, [
       "$.source_resource_summaries",
       Map.get(artifact, "source_resource_summaries"),

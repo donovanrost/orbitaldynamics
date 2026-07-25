@@ -185,9 +185,11 @@ schema-type their stable IDs, invalid-input flags, and protected/change counts.
 - `source_candidate_activities` so later V3 strategy branches can reuse the
   repair search space. This is either the prior plan candidate set or the
   refreshed candidates from a supplied or repair-generated `candidate_refresh.v1`.
-- `source_contact_intents` and `source_resource_summaries` when repair consumes
-  a `candidate_refresh.v1`, preserving Cadence-facing contact rows and thin
-  resource summaries alongside the refreshed candidate set. Repair-generated
+- `source_contact_intents`, `source_contact_intent_summary`, and
+  `source_resource_summaries` when repair consumes a `candidate_refresh.v1`,
+  preserving Cadence-facing contact rows, exact aggregate direction/station
+  capacity demand, and thin resource summaries alongside the refreshed
+  candidate set. Repair-generated
   refreshes inherit the repair approval policy unless the nested refresh request
   declares its own policy, so contact-intent evidence remains tied to the repair
   authority bundle. Standalone `candidate_refresh.v1` artifacts can now be
@@ -306,8 +308,8 @@ schema-type their stable IDs, invalid-input flags, and protected/change counts.
   `source_maneuver_review_report`,
   `source_schema_validation_report`, `source_model_acceptance_report`,
   `source_validation_safety_case_summary`, `source_provider_counteroffer_report`,
-  `source_resource_filter_report`, and `source_resource_filter_summary` when
-  present on the refresh artifact,
+  `source_contact_intent_summary`, `source_resource_filter_report`, and
+  `source_resource_filter_summary` when present on the refresh artifact,
   preserving candidate suppression reasons, allocated/deferred contact review
   rows, exact conflict-group/invalid-input evidence, exact selected/deferred
   contention recommendations, allocation reservation evidence, and spacecraft
@@ -316,8 +318,11 @@ schema-type their stable IDs, invalid-input flags, and protected/change counts.
   relay data-path and resource-projection-flow summaries remain distinct from
   the repaired-plan reports, and the station-reservation source remains
   distinct from the repair-time station calendar; all are review-only. Source
-  resource-filter summaries likewise remain distinct from repair-time filtering
-  and preserve only validated aggregate suppression evidence for review. Source
+  contact-intent summaries likewise remain distinct from repair-time contact
+  allocation and preserve only validated aggregate capacity-demand evidence for
+  review. Source resource-filter summaries likewise remain distinct from
+  repair-time filtering and preserve only validated aggregate suppression
+  evidence for review. Source
   timeline-diff summaries, integrity, dependency-impact, lifecycle-state,
   preservation, transition-application, operational-timeline, command-window,
   and maneuver-review reports likewise remain distinct from repaired timeline
@@ -481,6 +486,10 @@ schema-type their stable IDs, invalid-input flags, and protected/change counts.
   source arrays backed by direct `contact_intent.v1` and `resource_summary.v1`
   definitions. Their existing standalone row validators run before V2 uses the
   inputs for scoring, replacement ranking, and strategy handoff.
+- `source_contact_intent_summary` is an optional direct
+  `contact_intent_summary.v1` contract. Its standalone validator pins exact
+  aggregate direction/station capacity routing before existing adapters emit
+  review-gated rows; V2 does not allocate or reserve contacts from the summary.
 - `source_contact_allocation_report` and `source_station_calendar_report` are
   optional direct nested V1 contracts. Their standalone validators run before
   V2 consumes station availability, capacity, reservation, allocation, and

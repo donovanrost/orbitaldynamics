@@ -8,6 +8,27 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairSourceReports do
     ValueEncoding
   }
 
+  def contact_intent_summary(candidate_refresh),
+    do: contact_intent_summary(candidate_refresh, default_callbacks())
+
+  def contact_intent_summary(nil, _callbacks), do: nil
+
+  def contact_intent_summary(%{} = candidate_refresh, callbacks) do
+    stringify_keys = Keyword.fetch!(callbacks, :stringify_keys)
+    candidate_refresh = stringify_keys.(candidate_refresh)
+
+    [
+      Map.get(candidate_refresh, "source_contact_intent_summary"),
+      Map.get(candidate_refresh, "contact_intent_summary")
+    ]
+    |> Enum.flat_map(&List.wrap/1)
+    |> Enum.find(&is_map/1)
+    |> case do
+      %{} = summary -> stringify_keys.(summary)
+      _summary -> nil
+    end
+  end
+
   def contact_filter(candidate_refresh),
     do: contact_filter(candidate_refresh, default_callbacks())
 

@@ -36,6 +36,11 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
       |> File.read!()
       |> :json.decode()
 
+    source_contact_intent_summary =
+      "study_results/contact_intent_summary_v1.json"
+      |> File.read!()
+      |> :json.decode()
+
     source_contact_allocation_provider_reservation_request_summary =
       "study_results/contact_allocation_provider_reservation_request_summary_v1.json"
       |> File.read!()
@@ -395,6 +400,7 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
             [source_resource_projection_flow_summary]
           )
           |> Map.put("source_resource_filter_summary", [source_resource_filter_summary])
+          |> Map.put("source_contact_intent_summary", [source_contact_intent_summary])
           |> Map.put("source_station_reservation_report", source_station_reservation_report)
           |> Map.put(
             "source_station_reservation_review_summary",
@@ -493,6 +499,59 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
 
     assert [%{"activity_id" => "dl_refreshed", "direction" => "downlink"}] =
              artifact["source_contact_intents"]
+
+    assert artifact["source_contact_intent_summary"] == source_contact_intent_summary
+
+    assert %{
+             "review_type" => "contact_intent_review",
+             "source" => "campaign_repair.source_contact_intent_summary.summary_contacts",
+             "activity_type" => "contact_intent_summary",
+             "direction" => "downlink",
+             "ground_station_id" => "equator_prime",
+             "contact_id" => "direct_capacity_contact",
+             "contact_ids" => ["direct_capacity_contact"],
+             "capacity_pack_contact_ids" => ["direct_capacity_contact"],
+             "required_capacity_fraction" => 0.25,
+             "required_capacity_fraction_source" => "contact_intent_summary.direction_routing",
+             "source_summary_model" => "artifact_only_contact_intent_summary",
+             "source_summary_schema_contract" => "contact_intent_summary.v1",
+             "required_operator_action" => "review_contact_intent",
+             "required_authority" => "contact_schedule_authority",
+             "source_contact_intent_summary" => %{
+               "schema_contract" => "contact_intent_summary.v1",
+               "contact_intent_count" => 3,
+               "directions" => ["command", "downlink", "tracking"]
+             }
+           } =
+             Enum.find(
+               artifact["operator_review_package"]["rows"],
+               &(&1["source"] ==
+                   "campaign_repair.source_contact_intent_summary.summary_contacts" and
+                   &1["direction"] == "downlink")
+             )
+
+    assert %{
+             "import_action" => "review_contact_intent",
+             "source_review_type" => "contact_intent_review",
+             "direction" => "downlink",
+             "ground_station_id" => "equator_prime",
+             "required_capacity_fraction" => 0.25,
+             "required_operator_action" => "review_contact_intent",
+             "required_authority" => "contact_schedule_authority",
+             "source_contact_intent_summary" => %{
+               "schema_contract" => "contact_intent_summary.v1",
+               "contact_intent_count" => 3
+             },
+             "source_review_row" => %{
+               "source" => "campaign_repair.source_contact_intent_summary.summary_contacts"
+             }
+           } =
+             Enum.find(
+               artifact["cadence_import_manifest"]["rows"],
+               &(get_in(&1, ["source_review_row", "source"]) ==
+                   "campaign_repair.source_contact_intent_summary.summary_contacts" and
+                   &1["direction"] == "downlink")
+             )
 
     assert [%{"spacecraft_id" => "leo_1", "antenna_available" => true}] =
              artifact["source_resource_summaries"]

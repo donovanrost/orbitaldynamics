@@ -210,6 +210,9 @@ defmodule OrbitalDynamics.OperatorReview.ContactIntent do
     direct_rows ++ candidate_refresh_contact_intent_container_rows(artifact)
   end
 
+  def source_summary_rows(summary_or_summaries, source),
+    do: source_rows(summary_or_summaries, source)
+
   defp source_rows(intents, source) when is_list(intents) do
     intents
     |> Enum.with_index()

@@ -669,6 +669,13 @@ check contact and capacity-pack counts, direction/station/direction-and-station
 routing maps, required-capacity source routing, capacity fractions, model
 limits, and artifact-only no-provider-reservation/no-schedule-mutation
 assumptions.
+V2 repair artifacts separately preserve an accepted CandidateRefresh summary at
+`source_contact_intent_summary`. Full nested validation pins exact aggregate
+counts, contact identities, direction/station and capacity-pack routing,
+required capacity fractions, provenance, and boundary assumptions before
+existing operator-review and Cadence adapters derive direction-scoped review
+rows. This handoff does not allocate or reserve provider capacity, mutate a
+schedule, write to Cadence, or grant operator authority.
 
 `study_results/candidate_refresh_v1.json` now feeds a curated
 `candidate_refresh.v1` validation-reference fixture. The observations check the

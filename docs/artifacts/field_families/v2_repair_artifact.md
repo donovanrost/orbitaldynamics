@@ -190,6 +190,11 @@ freshness, contact/resource preservation, and station calendar reports.
   invalid-summary inputs, kept/suppressed counts and IDs, reason/resource/trust
   routing maps, source quality, and model limits in review-gated Cadence rows.
   The source summary does not filter, score, select, or mutate repair candidates.
+- **Source contact-intent summaries** from `candidate_refresh.v1`, preserving
+  the exact aggregate `contact_intent_summary.v1` plus direction/station routing,
+  contact identities, capacity-pack membership, required capacity fractions,
+  provenance, and boundary assumptions in review-gated Cadence rows without
+  allocating or reserving provider capacity or mutating the schedule.
 - **Source contact allocation reports** from `candidate_refresh.v1`, preserving
   allocated/deferred/blocked contact rows for repair review without station
   reservations.
