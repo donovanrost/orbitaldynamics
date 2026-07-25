@@ -440,6 +440,11 @@ focused repair-action regressions.
   reservation counts, expiration routing, provider ownership, and complete
   review rows without creating, accepting, renewing, expiring, or mutating a
   reservation.
+- **Source station-calendar precedence summary** — V2 preserves
+  `station_calendar_precedence_summary.v1` at
+  `source_station_calendar_precedence_summary`, including applied/overlap
+  availability, affected contacts, and reserved-under-higher-precedence
+  ownership/status routing without provider reservation or schedule mutation.
 - **Operational-timeline report** exposes status/action/kind count maps,
   dependency and exclusivity issue counts, duplicate timeline-identity counts,
   invalid activity IDs, and model limits, with executable validation that

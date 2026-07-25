@@ -304,7 +304,10 @@ schema-type their stable IDs, invalid-input flags, and protected/change counts.
   ownership, and complete review rows without reservation or schedule mutation.
   Source station-reservation review summaries retain row-derived reservation
   counts, active/expired/missing routing, provider ownership, and complete
-  review rows under the same non-mutating boundary. The source
+  review rows under the same non-mutating boundary. Source station-calendar
+  precedence summaries retain applied/overlap availability, affected contacts,
+  and reserved-under-higher-precedence ownership/status routing without provider
+  reservation or schedule mutation. The source
   constraint report likewise remains distinct from repaired-plan constraint
   evaluation and does not alter feasibility or scoring. Source objective-
   satisfaction evidence remains review-only and does not change repair scores

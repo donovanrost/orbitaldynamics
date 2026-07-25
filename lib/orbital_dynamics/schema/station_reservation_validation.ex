@@ -44,6 +44,14 @@ defmodule OrbitalDynamics.Schema.StationReservationValidation do
   def validate_calendar_precedence_artifact(issues, path, artifact),
     do: validate_artifact(issues, path, artifact, "station_calendar_precedence_summary.v1")
 
+  def validate_optional_calendar_precedence_summary(issues, _path, nil), do: issues
+
+  def validate_optional_calendar_precedence_summary(issues, path, %{} = summary),
+    do: validate_calendar_precedence_artifact(issues, path, summary)
+
+  def validate_optional_calendar_precedence_summary(issues, path, _summary),
+    do: [error(path, "must be an object") | issues]
+
   def validate_optional_calendar_report(issues, report),
     do: validate_optional_calendar_report(issues, "$.station_calendar_report", report)
 

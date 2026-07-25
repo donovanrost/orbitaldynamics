@@ -100,6 +100,27 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairSourceReports do
     end
   end
 
+  def station_calendar_precedence_summary(candidate_refresh),
+    do: station_calendar_precedence_summary(candidate_refresh, default_callbacks())
+
+  def station_calendar_precedence_summary(nil, _callbacks), do: nil
+
+  def station_calendar_precedence_summary(%{} = candidate_refresh, callbacks) do
+    stringify_keys = Keyword.fetch!(callbacks, :stringify_keys)
+    candidate_refresh = stringify_keys.(candidate_refresh)
+
+    [
+      Map.get(candidate_refresh, "source_station_calendar_precedence_summary"),
+      Map.get(candidate_refresh, "station_calendar_precedence_summary")
+    ]
+    |> Enum.flat_map(&List.wrap/1)
+    |> Enum.find(&is_map/1)
+    |> case do
+      %{} = summary -> stringify_keys.(summary)
+      _summary -> nil
+    end
+  end
+
   def station_reservation(candidate_refresh),
     do: station_reservation(candidate_refresh, default_callbacks())
 

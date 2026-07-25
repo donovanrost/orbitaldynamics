@@ -122,16 +122,17 @@ defmodule OrbitalDynamics.SchemaExportTest do
   end
 
   test "checked-in JSON Schema exports match the executable registry" do
+    bundle = Schema.json_schema_bundle()
+
     Enum.each(Schema.contracts(), fn {contract_name, _contract} ->
       path = "schemas/#{contract_name}.schema.json"
       assert File.exists?(path), "missing checked-in schema export #{path}"
 
-      assert {:ok, expected_schema} = Schema.json_schema(contract_name)
+      expected_schema = Map.fetch!(bundle["schemas"], contract_name)
       assert read_json!(path) == expected_schema
     end)
 
-    assert read_json!("schemas/orbital_dynamics.schema_bundle.v1.json") ==
-             Schema.json_schema_bundle()
+    assert read_json!("schemas/orbital_dynamics.schema_bundle.v1.json") == bundle
   end
 
   defp read_json!(path) do

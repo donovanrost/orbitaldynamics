@@ -358,6 +358,10 @@ V2 repair `operator_review_package.v1` now emits:
   row-derived reservation counts, active/expired/missing routing, provider
   ownership, and complete review rows without creating, accepting, renewing,
   expiring, or mutating a reservation.
+- CandidateRefresh source station-calendar precedence summaries, preserving
+  applied/overlap availability, affected contacts, and
+  reserved-under-higher-precedence ownership/status routing without provider
+  reservation or schedule mutation.
 - Source candidate-diff rows.
 - Source contact/resource-suppression rows.
 - Source refresh-freshness and refresh-budget review rows.

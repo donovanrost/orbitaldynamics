@@ -37,6 +37,11 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
       |> File.read!()
       |> :json.decode()
 
+    source_station_calendar_precedence_summary =
+      "study_results/station_calendar_precedence_summary_v1.json"
+      |> File.read!()
+      |> :json.decode()
+
     source_constraint_report =
       "study_results/constraint_report_v1.json"
       |> File.read!()
@@ -280,6 +285,10 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
           |> Map.put(
             "source_station_reservation_hold_summary",
             [source_station_reservation_hold_summary]
+          )
+          |> Map.put(
+            "source_station_calendar_precedence_summary",
+            [source_station_calendar_precedence_summary]
           )
           |> Map.put("source_constraint_report", source_constraint_report)
           |> Map.put(
@@ -1066,6 +1075,9 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
     assert artifact["source_station_reservation_hold_summary"] ==
              source_station_reservation_hold_summary
 
+    assert artifact["source_station_calendar_precedence_summary"] ==
+             source_station_calendar_precedence_summary
+
     assert %{
              "review_type" => "station_reservation_review",
              "source" => "campaign_repair.source_station_reservation_report.affected_contacts",
@@ -1099,6 +1111,71 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
                artifact["cadence_import_manifest"]["rows"],
                &(get_in(&1, ["source_review_row", "source"]) ==
                    "campaign_repair.source_station_reservation_report.affected_contacts")
+             )
+
+    assert %{
+             "review_type" => "station_calendar_review",
+             "source" => "campaign_repair.source_station_calendar_precedence_summary",
+             "subject_id" => "ops_calendar",
+             "required_operator_action" => "review_station_calendar",
+             "station_calendar_precedence_review_status" => "review_required",
+             "station_calendar_precedence_affected_contact_count" => 1,
+             "station_calendar_precedence_applied_availability_counts" => %{
+               "unavailable" => 1
+             },
+             "station_calendar_precedence_overlap_availability_counts" => %{
+               "reduced_capacity" => 1,
+               "reserved" => 1,
+               "unavailable" => 1
+             },
+             "station_calendar_precedence_reserved_under_higher_precedence_contact_ids" => [
+               "dl_1"
+             ],
+             "station_calendar_precedence_model_limits" => [
+               "declared_data_only",
+               "no_network_calls",
+               "no_provider_reservation",
+               "no_schedule_mutation",
+               "no_conflict_resolution"
+             ],
+             "source_station_calendar_precedence_summary" => %{
+               "schema_contract" => "station_calendar_precedence_summary.v1",
+               "source_summary_model" => "artifact_only_station_calendar_precedence_summary",
+               "reserved_under_higher_precedence_reservation_ids_by_reserved_by" => %{
+                 "ops_team_b" => ["reservation_42"]
+               },
+               "assumptions" => %{
+                 "execution_boundary" => "artifact_only_no_provider_reservation",
+                 "operator_authority" => "not_granted_by_summary"
+               }
+             }
+           } =
+             Enum.find(
+               artifact["operator_review_package"]["rows"],
+               &(&1["source"] ==
+                   "campaign_repair.source_station_calendar_precedence_summary")
+             )
+
+    assert %{
+             "import_action" => "review_station_calendar",
+             "source_review_type" => "station_calendar_review",
+             "import_status" => "review_required_before_import",
+             "has_cadence_import" => false,
+             "source_review_row" => %{
+               "source" => "campaign_repair.source_station_calendar_precedence_summary",
+               "station_calendar_precedence_review_status" => "review_required",
+               "source_station_calendar_precedence_summary" => %{
+                 "schema_contract" => "station_calendar_precedence_summary.v1",
+                 "reserved_under_higher_precedence_contact_ids_by_reserved_by" => %{
+                   "ops_team_b" => ["dl_1"]
+                 }
+               }
+             }
+           } =
+             Enum.find(
+               artifact["cadence_import_manifest"]["rows"],
+               &(get_in(&1, ["source_review_row", "source"]) ==
+                   "campaign_repair.source_station_calendar_precedence_summary")
              )
 
     assert %{

@@ -257,6 +257,10 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairArtifact do
       "source_station_calendar_report",
       Map.fetch!(attrs, :station_calendar_report)
     )
+    |> put_source_report(
+      "source_station_calendar_precedence_summary",
+      RepairSourceReports.station_calendar_precedence_summary(request.candidate_refresh)
+    )
     |> attach_operator_review()
     |> attach_cadence_import()
   end

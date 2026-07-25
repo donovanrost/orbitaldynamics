@@ -295,6 +295,10 @@ defmodule OrbitalDynamics.Schema.CampaignRepairContracts do
       "$.source_station_reservation_hold_summary",
       Map.get(artifact, "source_station_reservation_hold_summary")
     ])
+    |> call(callbacks, :validate_optional_source_station_calendar_precedence_summary, [
+      "$.source_station_calendar_precedence_summary",
+      Map.get(artifact, "source_station_calendar_precedence_summary")
+    ])
     |> call(callbacks, :validate_optional_station_calendar_report, [
       "$.source_station_calendar_report",
       Map.get(artifact, "source_station_calendar_report")

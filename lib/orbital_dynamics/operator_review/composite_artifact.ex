@@ -350,6 +350,10 @@ defmodule OrbitalDynamics.OperatorReview.CompositeArtifact do
         get_in(artifact, ["source_station_calendar_report", "affected_contacts"]) || [],
         "campaign_repair.source_station_calendar_report.affected_contacts"
       ) ++
+      StationCalendar.source_report_rows(
+        Map.get(artifact, "source_station_calendar_precedence_summary"),
+        "campaign_repair.source_station_calendar_precedence_summary"
+      ) ++
       RepairReview.timeline_protection_rows(
         get_in(artifact, ["repair_metadata", "timeline_protection"]),
         "campaign_repair.repair_metadata.timeline_protection"
