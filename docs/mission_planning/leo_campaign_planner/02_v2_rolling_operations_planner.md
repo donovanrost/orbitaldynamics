@@ -299,7 +299,10 @@ schema-type their stable IDs, invalid-input flags, and protected/change counts.
   from the repair-time station calendar; both are review-only. Source
   station-reservation hold import-readiness summaries retain exact hold,
   provider, expiration, and required-action evidence without accepting,
-  renewing, reserving, importing, or writing a hold. The source
+  renewing, reserving, importing, or writing a hold. Source station-reservation
+  hold summaries also retain aggregate counts, earliest expiration, provider
+  ownership, and complete review rows without reservation or schedule mutation.
+  The source
   constraint report likewise remains distinct from repaired-plan constraint
   evaluation and does not alter feasibility or scoring. Source objective-
   satisfaction evidence remains review-only and does not change repair scores

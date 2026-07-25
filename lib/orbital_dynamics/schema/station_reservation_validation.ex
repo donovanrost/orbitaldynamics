@@ -75,6 +75,14 @@ defmodule OrbitalDynamics.Schema.StationReservationValidation do
     )
   end
 
+  def validate_optional_hold_summary(issues, _path, nil), do: issues
+
+  def validate_optional_hold_summary(issues, path, %{} = summary),
+    do: validate_hold_artifact(issues, path, summary)
+
+  def validate_optional_hold_summary(issues, path, _summary),
+    do: [error(path, "must be an object") | issues]
+
   def validate_hold_import_readiness_summary(issues, path, summary) do
     OrbitalDynamics.Schema.StationReservationSummaryContracts.validate_hold_import_readiness(
       issues,

@@ -198,6 +198,7 @@ defmodule OrbitalDynamics.OperatorReview.StationReservation do
         "reservation_hold_contact_ids_by_expiration_status" =>
           summary["reservation_hold_contact_ids_by_expiration_status"],
         "review_contact_ids" => summary["review_contact_ids"],
+        "model_limits" => summary["model_limits"],
         "assumptions" => summary["assumptions"]
       }
       |> compact_map()

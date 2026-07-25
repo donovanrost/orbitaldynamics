@@ -429,6 +429,11 @@ focused repair-action regressions.
   `source_station_reservation_hold_import_readiness_summary`, including exact
   hold/provider/expiration evidence and review actions without accepting,
   renewing, reserving, importing, or writing a hold.
+- **Source station-reservation hold summary** — V2 preserves
+  `station_reservation_hold_summary.v1` at
+  `source_station_reservation_hold_summary`, including aggregate hold counts,
+  earliest expiration, provider ownership, and complete review rows without
+  creating, accepting, renewing, expiring, or mutating a reservation.
 - **Operational-timeline report** exposes status/action/kind count maps,
   dependency and exclusivity issue counts, duplicate timeline-identity counts,
   invalid activity IDs, and model limits, with executable validation that

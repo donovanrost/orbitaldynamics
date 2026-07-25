@@ -190,6 +190,10 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairArtifact do
       )
     )
     |> put_source_report(
+      "source_station_reservation_hold_summary",
+      RepairSourceReports.station_reservation_hold_summary(request.candidate_refresh)
+    )
+    |> put_source_report(
       "source_constraint_report",
       RepairSourceReports.constraint(request.candidate_refresh)
     )
