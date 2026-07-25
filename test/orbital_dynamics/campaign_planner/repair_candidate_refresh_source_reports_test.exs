@@ -31,6 +31,11 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
       |> File.read!()
       |> :json.decode()
 
+    source_resource_filter_summary =
+      "study_results/resource_filter_summary_v1.json"
+      |> File.read!()
+      |> :json.decode()
+
     source_contact_allocation_provider_reservation_request_summary =
       "study_results/contact_allocation_provider_reservation_request_summary_v1.json"
       |> File.read!()
@@ -389,6 +394,7 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
             "source_resource_projection_flow_summary",
             [source_resource_projection_flow_summary]
           )
+          |> Map.put("source_resource_filter_summary", [source_resource_filter_summary])
           |> Map.put("source_station_reservation_report", source_station_reservation_report)
           |> Map.put(
             "source_station_reservation_review_summary",
@@ -490,6 +496,58 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
 
     assert [%{"spacecraft_id" => "leo_1", "antenna_available" => true}] =
              artifact["source_resource_summaries"]
+
+    assert artifact["source_resource_filter_summary"] == source_resource_filter_summary
+
+    assert %{
+             "review_type" => "resource_suppression",
+             "source" => "campaign_repair.source_resource_filter_summary.review_rows",
+             "subject_id" => "leo_1_observe_target_a_1",
+             "activity_id" => "leo_1_observe_target_a_1",
+             "activity_type" => "observe",
+             "required_operator_action" => "review_suppressed_observation",
+             "suppressed_reason" => "storage_margin_below_observe_policy",
+             "resource_blocking_dimension" => "storage",
+             "resource_source_quality" => "operator_supplied",
+             "resource_trust_boundary_status" => "missing",
+             "source_resource_suppression" => %{
+               "source_resource_filter_summary" => %{
+                 "schema_contract" => "resource_filter_summary.v1",
+                 "input_candidate_count" => 3,
+                 "kept_candidate_count" => 1,
+                 "suppressed_candidate_count" => 2,
+                 "suppression_review_status" => "review_required"
+               }
+             }
+           } =
+             Enum.find(
+               artifact["operator_review_package"]["rows"],
+               &(&1["source"] == "campaign_repair.source_resource_filter_summary.review_rows" and
+                   &1["activity_id"] == "leo_1_observe_target_a_1")
+             )
+
+    assert %{
+             "import_action" => "review_resource_suppression",
+             "source_review_type" => "resource_suppression",
+             "activity_id" => "leo_1_observe_target_a_1",
+             "required_operator_action" => "review_suppressed_observation",
+             "resource_blocking_dimension" => "storage",
+             "source_resource_suppression" => %{
+               "source_resource_filter_summary" => %{
+                 "schema_contract" => "resource_filter_summary.v1",
+                 "suppressed_candidate_count" => 2
+               }
+             },
+             "source_review_row" => %{
+               "source" => "campaign_repair.source_resource_filter_summary.review_rows"
+             }
+           } =
+             Enum.find(
+               artifact["cadence_import_manifest"]["rows"],
+               &(get_in(&1, ["source_review_row", "source"]) ==
+                   "campaign_repair.source_resource_filter_summary.review_rows" and
+                   &1["activity_id"] == "leo_1_observe_target_a_1")
+             )
 
     assert artifact["source_resource_projection_flow_summary"] ==
              source_resource_projection_flow_summary

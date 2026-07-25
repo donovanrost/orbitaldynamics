@@ -1372,6 +1372,13 @@ check input/kept/suppressed/invalid counts, suppression review status,
 suppressed IDs by reason, scenario, resource blocking dimension, source quality,
 and trust-boundary status, duplicate counters, review rows, model limits, and
 artifact-only no-resource-propagation/no-schedule-mutation assumptions.
+V2 repair artifacts separately preserve an accepted CandidateRefresh summary at
+`source_resource_filter_summary`. Full nested validation pins its exact counts,
+ID and routing maps, review rows, invalid-summary inputs, source quality, trust
+status, and model limits before existing operator-review and Cadence adapters
+route its suppression evidence. This review-only handoff does not filter,
+score, or select candidates, mutate a schedule, write to Cadence, or grant
+operator authority.
 `study_results/objective_satisfaction_report_v1.json` and
 `study_results/objective_tradeoff_report_v1.json` are observed for objective
 status maps, selected/satisfied/required totals, planned-not-executed

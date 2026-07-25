@@ -218,6 +218,8 @@ defmodule OrbitalDynamics.Schema.CampaignArtifactValidation do
         &ContactReportValidation.validate_optional_filter_report/3,
       validate_optional_resource_filter_report:
         &ResourceValidation.validate_optional_resource_filter_report/3,
+      validate_optional_resource_filter_summary:
+        &ResourceValidation.validate_optional_resource_filter_summary/3,
       validate_optional_resource_projection_report:
         &ResourceValidation.validate_optional_resource_projection_report/3,
       validate_optional_resource_projection_flow_summary:

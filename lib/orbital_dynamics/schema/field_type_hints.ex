@@ -649,6 +649,7 @@ defmodule OrbitalDynamics.Schema.FieldTypeHints do
     "source_requirement" => "object",
     "source_resource_suppression" => "object",
     "source_resource_filter_report" => "object",
+    "source_resource_filter_summary" => "object",
     "source_resource_projection_report" => "object",
     "source_resource_summaries" => "array",
     "source_risk" => "object",

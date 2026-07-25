@@ -50,6 +50,14 @@ defmodule OrbitalDynamics.Schema.ResourceValidation do
   def validate_optional_resource_projection_flow_summary(issues, path, _summary, _callbacks),
     do: [error(path, "must be an object") | issues]
 
+  def validate_optional_resource_filter_summary(issues, _path, nil), do: issues
+
+  def validate_optional_resource_filter_summary(issues, path, %{} = summary),
+    do: validate_artifact(issues, path, summary, "resource_filter_summary.v1")
+
+  def validate_optional_resource_filter_summary(issues, path, _summary),
+    do: [error(path, "must be an object") | issues]
+
   def validate_resource_projection_report(issues, path, report),
     do: validate_resource_projection_report(issues, path, report, default_callbacks())
 

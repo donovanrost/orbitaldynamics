@@ -306,7 +306,8 @@ schema-type their stable IDs, invalid-input flags, and protected/change counts.
   `source_maneuver_review_report`,
   `source_schema_validation_report`, `source_model_acceptance_report`,
   `source_validation_safety_case_summary`, `source_provider_counteroffer_report`,
-  and `source_resource_filter_report` when present on the refresh artifact,
+  `source_resource_filter_report`, and `source_resource_filter_summary` when
+  present on the refresh artifact,
   preserving candidate suppression reasons, allocated/deferred contact review
   rows, exact conflict-group/invalid-input evidence, exact selected/deferred
   contention recommendations, allocation reservation evidence, and spacecraft
@@ -315,6 +316,8 @@ schema-type their stable IDs, invalid-input flags, and protected/change counts.
   relay data-path and resource-projection-flow summaries remain distinct from
   the repaired-plan reports, and the station-reservation source remains
   distinct from the repair-time station calendar; all are review-only. Source
+  resource-filter summaries likewise remain distinct from repair-time filtering
+  and preserve only validated aggregate suppression evidence for review. Source
   timeline-diff summaries, integrity, dependency-impact, lifecycle-state,
   preservation, transition-application, operational-timeline, command-window,
   and maneuver-review reports likewise remain distinct from repaired timeline
@@ -483,7 +486,7 @@ schema-type their stable IDs, invalid-input flags, and protected/change counts.
   V2 consumes station availability, capacity, reservation, allocation, and
   deferral evidence in station-pressure scoring and replacement ranking.
 - `source_contact_filter_report`, `source_resource_filter_report`,
-  `source_resource_projection_report`, and
+  `source_resource_filter_summary`, `source_resource_projection_report`, and
   `source_resource_projection_flow_summary` are also optional direct nested V1
   contracts. Their existing standalone validators keep suppression and
   projected-resource pressure tied to typed rows, counts, activity flow, trust

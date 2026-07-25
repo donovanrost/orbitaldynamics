@@ -104,6 +104,10 @@ defmodule OrbitalDynamics.Schema.CampaignRepairContracts do
       "$.source_resource_filter_report",
       Map.get(artifact, "source_resource_filter_report")
     ])
+    |> call(callbacks, :validate_optional_resource_filter_summary, [
+      "$.source_resource_filter_summary",
+      Map.get(artifact, "source_resource_filter_summary")
+    ])
     |> call(callbacks, :validate_optional_resource_projection_report, [
       "$.source_resource_projection_report",
       Map.get(artifact, "source_resource_projection_report")

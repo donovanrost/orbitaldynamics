@@ -185,6 +185,11 @@ freshness, contact/resource preservation, and station calendar reports.
   spacecraft projection, activity resource-flow, pressure, latency,
   source-quality, trust, and policy context in review-gated Cadence rows without
   affecting the repair's recomputed resource projection or score.
+- **Source resource-filter summaries** from `candidate_refresh.v1`, preserving
+  the exact aggregate `resource_filter_summary.v1` plus suppression review rows,
+  invalid-summary inputs, kept/suppressed counts and IDs, reason/resource/trust
+  routing maps, source quality, and model limits in review-gated Cadence rows.
+  The source summary does not filter, score, select, or mutate repair candidates.
 - **Source contact allocation reports** from `candidate_refresh.v1`, preserving
   allocated/deferred/blocked contact rows for repair review without station
   reservations.

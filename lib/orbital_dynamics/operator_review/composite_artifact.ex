@@ -483,6 +483,10 @@ defmodule OrbitalDynamics.OperatorReview.CompositeArtifact do
         resource_suppressed_candidates(artifact, "source_resource_filter_report"),
         "campaign_repair.source_resource_filter_report.suppressed_candidates"
       ) ++
+      FilterReview.resource_rows(
+        Map.get(artifact, "source_resource_filter_summary") || %{},
+        "campaign_repair.source_resource_filter_summary"
+      ) ++
       ResourceProjection.rows(
         ResourceProjection.projected_resource_rows(
           Map.get(artifact, "source_resource_projection_report")
