@@ -189,6 +189,19 @@ schema-type their stable IDs, invalid-input flags, and protected/change counts.
   exact invalidated/replacement candidate-to-window provenance. The preserved
   collection is validated and review-only; it does not influence repair
   matching, ranking, selection, or schedule state.
+- `source_candidate_refresh_provenance` so repair audit consumers can retain the
+  exact non-empty CandidateRefresh provenance map instead of relying only on
+  the compact `provenance.candidate_source` summary. The source-report summaries
+  and run-input source paths keep their CandidateRefresh schema and executable
+  validation, while run, manifest, Git, accepted-state, and feedback payloads
+  remain deliberately open provenance values. This context is not routed into
+  operator/Cadence rows or used for matching, scoring, ranking, or execution.
+  Planner-generated repair and strategy refreshes derive their run ID from the
+  stable refresh study ID and requested generation timestamp so identical
+  campaign requests keep deterministic artifact content. They omit the volatile
+  checkout revision from their nested refresh provenance to avoid a
+  self-referential golden artifact; supplied refresh artifacts retain their
+  supplied run ID and Git revision unchanged.
 - `source_contact_intents`, `source_contact_intent_summary`,
   `source_realized_state_snapshot`, and `source_resource_summaries` when repair
   consumes a `candidate_refresh.v1`,
@@ -298,7 +311,7 @@ schema-type their stable IDs, invalid-input flags, and protected/change counts.
   `source_contact_contention_resolution_report`,
   `source_contact_contention_resolution_summary`, `source_link_capacity_report`,
   `source_link_capacity_summary`, `source_relay_data_path_summary`,
-  `source_window_lineage`,
+  `source_window_lineage`, `source_candidate_refresh_provenance`,
   `source_resource_projection_flow_summary`,
   `source_station_reservation_report`, `source_constraint_report`,
   `source_objective_satisfaction_report`, `source_objective_tradeoff_report`,

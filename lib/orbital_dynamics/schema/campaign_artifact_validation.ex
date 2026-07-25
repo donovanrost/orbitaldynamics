@@ -8,6 +8,7 @@ defmodule OrbitalDynamics.Schema.CampaignArtifactValidation do
     CampaignRepairContracts,
     CampaignStrategyContracts,
     CandidateDiffContracts,
+    CandidateRefreshReportContracts,
     CandidateRejectionValidation,
     CommandWindowValidation,
     ContactAllocationValidation,
@@ -333,6 +334,8 @@ defmodule OrbitalDynamics.Schema.CampaignArtifactValidation do
       validate_optional_source_relay_data_path_summary:
         &LinkCapacityValidation.validate_optional_relay_data_path_summary_at/3,
       validate_optional_candidate_diff_report: &CandidateDiffContracts.validate_optional_report/3,
+      validate_optional_candidate_refresh_provenance:
+        &CandidateRefreshReportContracts.validate_optional_provenance/3,
       validate_optional_source_window_lineage:
         &CandidateDiffContracts.validate_optional_source_window_lineage/3,
       validate_optional_candidate_rejection_report:

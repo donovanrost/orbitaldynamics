@@ -9,6 +9,7 @@ defmodule OrbitalDynamics.Schema.CampaignRepairJsonSchema do
     "approval_policy",
     "policy_decision",
     "score_terms",
+    "source_candidate_refresh_provenance",
     "timeline_transition_application_report",
     "warnings"
   ]
@@ -44,6 +45,12 @@ defmodule OrbitalDynamics.Schema.CampaignRepairJsonSchema do
 
   def property_opts("policy_decision", deps) do
     [policy_decision_schema: fetch_dep!(deps, :policy_decision_schema)]
+  end
+
+  def property_opts("source_candidate_refresh_provenance", deps) do
+    [
+      candidate_refresh_provenance_schema: fetch_dep!(deps, :candidate_refresh_provenance_schema)
+    ]
   end
 
   def property_opts("timeline_transition_application_report", deps) do
@@ -83,6 +90,10 @@ defmodule OrbitalDynamics.Schema.CampaignRepairJsonSchema do
 
   def property("policy_decision", opts) do
     Keyword.fetch!(opts, :policy_decision_schema)
+  end
+
+  def property("source_candidate_refresh_provenance", opts) do
+    Keyword.fetch!(opts, :candidate_refresh_provenance_schema)
   end
 
   def property("score_terms", _opts) do

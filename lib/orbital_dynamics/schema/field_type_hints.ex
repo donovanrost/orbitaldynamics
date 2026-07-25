@@ -585,6 +585,7 @@ defmodule OrbitalDynamics.Schema.FieldTypeHints do
     "source_candidate_rejection" => "object",
     "source_candidate_rejection_report" => "object",
     "source_candidate_diff_report" => "object",
+    "source_candidate_refresh_provenance" => "object",
     "source_cadence_import_status_counts" => "object",
     "source_review_action_counts" => "object",
     "source_review_queue_counts" => "object",

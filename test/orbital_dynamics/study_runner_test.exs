@@ -141,6 +141,20 @@ defmodule OrbitalDynamics.StudyRunnerTest do
            ]) == "station_calendar_demo"
   end
 
+  test "honors explicit deterministic run provenance overrides" do
+    earth = CentralBody.earth()
+    study = Study.new!(:deterministic_run, [scenario(:a, earth)], outputs: [:trajectories])
+
+    assert {:ok, result_set} =
+             OrbitalDynamics.run_study(study,
+               run_id: "deterministic_run-1",
+               git_revision: nil
+             )
+
+    assert result_set.metadata.run["id"] == "deterministic_run-1"
+    assert result_set.metadata.run["metadata"]["git_revision"] == nil
+  end
+
   test "supports access windows without returning trajectories" do
     earth = CentralBody.earth()
     study = Study.new!(:access_only, [scenario(:a, earth)], outputs: [:access_windows])

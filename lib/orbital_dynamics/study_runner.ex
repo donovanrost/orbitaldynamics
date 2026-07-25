@@ -796,7 +796,7 @@ defmodule OrbitalDynamics.StudyRunner do
       backend_selection_policy: Keyword.fetch!(run_data, :backend_selection_policy),
       execution_plan: Keyword.fetch!(run_data, :execution_plan),
       manifest: Keyword.get(opts, :manifest),
-      git_revision: git_revision()
+      git_revision: Keyword.get_lazy(opts, :git_revision, &git_revision/0)
     }
   end
 

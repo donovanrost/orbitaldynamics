@@ -56,7 +56,13 @@ defmodule OrbitalDynamics.Schema.CampaignArtifactPropertyRouter do
        fn -> provider(context, :plan_delta_json_schema, []) end,
        fn -> provider(context, :approval_requirement_json_schema, []) end,
        fn -> provider(context, :policy_action_rule_json_schema, []) end,
-       fn -> provider(context, :policy_decision_json_schema, []) end}
+       fn -> provider(context, :policy_decision_json_schema, []) end,
+       fn ->
+         candidate_refresh_contract =
+           provider(context, :registry_contract!, ["candidate_refresh.v1"])
+
+         property_fun.("provenance", "candidate_refresh.v1", candidate_refresh_contract)
+       end}
     )
   end
 end

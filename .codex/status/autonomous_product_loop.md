@@ -5,98 +5,84 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Preserve CandidateRefresh source-window lineage in repair V2.
+Preserve CandidateRefresh source provenance in repair V2.
 
 Status:
 Implemented, reviewed, and verified; ready for scoped publication.
 
 Selection evidence:
-- Every generated CandidateRefresh artifact carries a stable ordered
-  `source_window_lineage` collection linking candidate activity IDs to exact
-  source-window IDs, types, source-window payloads, and scoped planning context.
-- Repair V2 already retains candidate activities and the candidate-diff report,
-  but drops the top-level lineage collection.
-- The existing candidate-diff review adapter accepts lineage context. Without
-  it, repair review and Cadence rows cannot attach exact invalidated or
-  replacement source-window evidence even when CandidateRefresh supplied it.
-- This is provenance-only evidence: it can improve operator inspection without
-  changing candidate matching, repair ranking, selection, or schedule state.
+- CandidateRefresh carries accepted-state, operational-feedback, run,
+  source-report, and run-input provenance that repair previously reduced to a
+  compact `provenance.candidate_source` summary.
+- Its JSON Schema deeply describes `source_reports` and constrains
+  `run_input_sources`, but executable validation previously covered only the
+  source-report summaries.
+- A two-run audit found planner-generated refresh run IDs used wall-clock study
+  start time. Retaining them directly made identical repair artifacts differ;
+  checkout revision would also make checked-in artifacts self-referential.
 
-Intended behavior:
-- Preserve every CandidateRefresh `source_window_lineage.v1` map in its existing
-  stable order at repair V2's `source_window_lineage` field, without
-  deduplication or reconstruction.
-- Validate every array element against the embedded lineage contract at its
-  exact indexed path, reject any declared version drift while retaining legacy
-  accepted rows without an explicit contract tag, and export the nested
-  contract definition.
-- Pass the preserved collection only to the existing candidate-diff review
-  conversion so invalidated and replacement review/Cadence rows carry the exact
-  matching lineage and source-window payload.
-- Keep lineage out of candidate matching, repair scoring/ranking/selection,
-  schedule or timeline mutation, provider/Cadence writes, approval/operator
-  authority, commanding, and autonomous execution.
+Delivered behavior:
+- Repair V2 preserves every non-empty supplied CandidateRefresh provenance map
+  losslessly at optional `source_candidate_refresh_provenance`, recursively
+  stringifying encodable keys without summarizing or reconstructing values.
+- The repair field reuses the CandidateRefresh provenance JSON Schema and
+  path-aware executable validation for source-report summaries and
+  run-input-source string arrays. CandidateRefresh now enforces the latter at
+  its original path too.
+- Repair- and strategy-generated refreshes derive run IDs from stable study ID
+  plus requested generation time and omit the volatile checkout revision.
+  Supplied CandidateRefresh artifacts retain their supplied run ID and Git
+  revision unchanged.
+- The source map remains artifact-level audit context only. It is not routed to
+  operator/Cadence rows and cannot affect matching, scoring, ranking, selection,
+  schedule/timeline state, provider/Cadence writes, approvals, commanding, or
+  autonomous execution.
 
 Level 6 pillar advanced:
-Fleet-scale resource decisions and durable reproducible audit handoffs.
-
-Planned files:
-- lossless CandidateRefresh lineage resolution and repair artifact assembly
-- indexed validation, registry metadata, and existing candidate-diff
-  review/Cadence routing
-- focused source/schema/integration proofs, docs, exports, and ledger
+Durable reproducible audit handoffs and schema/version compatibility.
 
 Verification:
-- Focused resolver, schema, and end-to-end repair proofs: `16 passed` in 20.0s.
-- Adjacent candidate-diff and CandidateRefresh contract family: `49 passed` in
-  2.1s, including legacy lineage rows without explicit contract tags.
-- Contact-allocation regression family: `238 passed` in 18.2s.
-- Schema lint: `155` artifacts passed with `0` errors and `0` warnings.
-- Pre-export full suite: `5138/5140 passed` in 701.8s; the two expected failures
-  were the checked-in repair schema export and canonical strategy snapshot.
-- A temporary canonical comparison found exactly `256` changed leaves: lineage
-  additions under branch repair results and candidate-diff review/Cadence rows,
-  plus the five content-derived strategy/review/manifest identifiers. No score,
-  rank, decision, count, or schedule value changed.
+- Focused provenance, generated-refresh, schema, and StudyRunner family:
+  `44 passed` in 25.6s; the final edited run-ID unit proof also passed alone.
+- Adjacent CandidateRefresh/repair schema family: `287 passed` in 127.7s.
+- Contact-allocation regression family: `238 passed` in 15.6s.
+- Schema lint before and after export: `155` artifacts passed with `0` errors
+  and `0` warnings.
+- Pre-export full suite: `5142/5145 passed` in 692.3s; the three expected
+  failures were the repair schema export plus canonical repair and strategy.
+- Two identical canonical repair runs produced the same
+  `73a7bf68eaaf0be783a758619cc65a99b13f3e2c2b9794c210b5bb0583e98b4d`
+  hash; two identical strategy runs produced the same
+  `b9efd194296f5da6955516e4fff16f6ee4d21d0b73c4744619921550a7aeb861`
+  hash. Generated nested provenance contained no checkout revision.
 - Regenerated all schema exports, the manifest schema, and both canonical
   campaigns. Changed generated files are limited to the repair schema, schema
-  bundle, and canonical strategy artifact.
-- Canonical repair and manifest hashes remained
-  `867928e8aa95ba8473fffe017e7d1efda9d9e83799516a2a938ef7bb8c25f7fa`
-  and `7a44a6e58754aae967ee8319c8768b7270d7d7982667c4a6bad8ff1c274c0594`.
-  The deterministic strategy hash is now
-  `db375d99bfb50a1a189ceed4ed206d88f8036347bd42d2772bc2d8426489fa60`
-  with content-derived strategy ID
-  `5f902662c10e34697c88a438b700eaadb9bd392823ceff83abe315eee0035aac`.
-- Checked-in schema export gate: `3 passed` in 59.4s.
-- Golden artifact gate: `12 passed` in 44.4s.
-- Final full suite: `5140 passed` in 755.5s.
-- `git diff --check` passed.
+  bundle, canonical repair, and canonical strategy; the manifest schema stayed
+  at `7a44a6e58754aae967ee8319c8768b7270d7d7982667c4a6bad8ff1c274c0594`.
+- Canonical strategy comparison found `31` changed leaves: `26` branch repair
+  provenance-map additions and five content-derived identity changes. No score,
+  rank, decision, count, schedule, or timeline value changed.
+- Checked-in schema export gate: `3 passed` in 52.4s.
+- Golden artifact gate: `12 passed` in 39.6s.
+- Final full suite: `5147 passed` in 720.6s.
+- `mix format --check-formatted` and `git diff --check` passed.
 
 Review:
-- Scope is additive: one optional repair collection, indexed embedded-contract
-  validation, registry/schema metadata, and a lineage argument to the existing
-  candidate-diff review conversion.
-- Resolution retains source map order and contents, stringifies keys, and does
-  not deduplicate or reconstruct lineage rows.
-- Generated CandidateRefresh rows retain their explicit
-  `source_window_lineage.v1` tag. Legacy accepted rows without a tag remain
-  compatible; any explicitly declared wrong tag is rejected at its exact index.
-- Candidate-diff review and Cadence rows gain only matching source/replacement
-  lineage, source-window payload, and type context. The collection is not read
-  by repair execution, matching, scoring, ranking, or selection.
-- Canonical strategy identity changed because repair-result content is hashed.
-  The curated golden assertion now pins the new deterministic ID, while all
-  branch scores, recommendation decisions, review/import counts, and schedule
-  surfaces remain unchanged.
-- The slice does not mutate a schedule or timeline, write Cadence/provider
-  state, reserve contacts, command activity, grant approval/operator authority,
+- Resolution omits absent, empty, or invalid provenance and otherwise retains
+  the exact normalized source map. Prebuilt provenance is never scrubbed.
+- Path-aware validation preserves all existing source-report checks and adds
+  run-input-source list/item checks at exact CandidateRefresh or repair paths.
+- Planner-generated refresh provenance is deterministic across repeated repair
+  and strategy requests and remains stable across the publishing commit.
+- Review/import adapters receive no new provenance field or row; generated
+  deltas are contextual audit evidence plus content-derived IDs only.
+- The slice does not mutate schedules/timelines, reserve contacts, write
+  provider/Cadence state, command activity, grant approval/operator authority,
   or execute autonomously.
 
 Last published slice:
-- `659903a0` Preserve plural V2 publication summaries (`5135 passed`; distinct
-  publication events are retained in stable source-before-canonical order and
-  remain review-only without accepting publication authority).
+- `500546c1` Preserve V2 source window lineage (`5140 passed`; exact lineage is
+  retained and enriches only existing candidate-diff review/Cadence rows).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions while preserving explicit
@@ -109,12 +95,12 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-After source-window lineage is durable, audit the next bounded CandidateRefresh
-source collection by product value and distinctness.
+Audit exact CandidateRefresh validation records versus refreshed-window
+retention by product value and distinctness.
 
 Blocked:
 None.
 
 Notes:
-Runtime policy disallows subagent delegation; the parent performs bounded
-mapping, implementation, review, verification, and publish checks.
+Runtime policy disallows subagent delegation; the parent performed mapping,
+implementation, review, verification, and publication checks.

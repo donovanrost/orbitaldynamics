@@ -20,6 +20,17 @@ defmodule OrbitalDynamics.CampaignPlanner.CandidateRefreshRequest do
     |> put_in(["metadata"], Map.merge(Map.get(manifest, "metadata", %{}), metadata))
   end
 
+  def run_id(study_id, %DateTime{} = generated_at) when is_binary(study_id) do
+    "#{study_id}-#{DateTime.to_unix(generated_at, :microsecond)}"
+  end
+
+  def deterministic_run_opts(run_opts, study_id, %DateTime{} = generated_at)
+      when is_list(run_opts) and is_binary(study_id) do
+    run_opts
+    |> Keyword.put(:run_id, run_id(study_id, generated_at))
+    |> Keyword.put(:git_revision, nil)
+  end
+
   defp ensure_trust_boundaries(manifest) do
     case get_in(manifest, ["candidate_refresh", "accepted_planning_state"]) do
       %{} = accepted_state ->

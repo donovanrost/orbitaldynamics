@@ -126,7 +126,15 @@ defmodule OrbitalDynamics.CampaignPlanner.BranchCandidateRefresh do
       )
 
     with {:ok, manifest} <- Manifest.from_map(manifest_source),
-         {:ok, result_set} <- StudyRunner.run(manifest.study, manifest.run_opts) do
+         {:ok, result_set} <-
+           StudyRunner.run(
+             manifest.study,
+             CandidateRefreshRequest.deterministic_run_opts(
+               manifest.run_opts,
+               manifest.study.id,
+               request.generated_at
+             )
+           ) do
       CandidateRefresh.build(result_set,
         candidate_refresh: manifest.study.metadata["candidate_refresh"],
         generated_at: request.generated_at

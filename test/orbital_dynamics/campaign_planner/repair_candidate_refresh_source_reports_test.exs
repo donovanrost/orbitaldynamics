@@ -408,6 +408,21 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
         ])
       end)
 
+    candidate_refresh_provenance = %{
+      "accepted_planning_state" => %{"snapshot_id" => "ops-state-1"},
+      "run_id" => "run:candidate-refresh:test",
+      "git_revision" => "test-revision",
+      "source_reports" => %{
+        "freshness_report" => %{
+          "paths" => ["study_results/freshness_report_v1.json"],
+          "count" => 1
+        }
+      },
+      "run_input_sources" => %{
+        "campaign_request" => ["studies/candidate_refresh_test.json"]
+      }
+    }
+
     artifact =
       repair(
         %{
@@ -445,7 +460,8 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
             contact_filter_report: contact_filter_report(),
             contact_allocation_report: contact_allocation_report(),
             resource_filter_report: resource_filter_report(),
-            refresh_budget_report: refresh_budget_report()
+            refresh_budget_report: refresh_budget_report(),
+            provenance: candidate_refresh_provenance
           )
           |> Map.put(
             "source_operational_readiness_report",
@@ -658,6 +674,22 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
 
     assert artifact["provenance"]["candidate_source"]["type"] == "candidate_refresh.v1"
     assert artifact["repair_metadata"]["candidate_source"]["candidate_count"] == 1
+
+    assert artifact["source_candidate_refresh_provenance"] ==
+             Map.put(candidate_refresh_provenance, "operational_feedback", %{
+               "trust_boundary_status" => "declared",
+               "trust_boundary" => "candidate_refresh_feedback",
+               "input_keys" => ["station_throughput_factor"],
+               "source_path" => "operational_feedback"
+             })
+
+    refute Enum.any?(artifact["operator_review_package"]["rows"], fn row ->
+             Map.has_key?(row, "source_candidate_refresh_provenance")
+           end)
+
+    refute Enum.any?(artifact["cadence_import_manifest"]["rows"], fn row ->
+             Map.has_key?(row, "source_candidate_refresh_provenance")
+           end)
 
     assert [%{"activity_id" => "dl_refreshed", "direction" => "downlink"}] =
              artifact["source_contact_intents"]
@@ -4684,7 +4716,7 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
       "validation_records" => [],
       "warnings" => [],
       "assumptions" => %{},
-      "provenance" => %{},
+      "provenance" => Keyword.get(opts, :provenance, %{}),
       "source_window_lineage" =>
         Enum.map(candidates, fn candidate ->
           %{

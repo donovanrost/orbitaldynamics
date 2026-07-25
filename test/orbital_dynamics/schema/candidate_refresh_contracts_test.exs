@@ -320,6 +320,32 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshContractsTest do
            ]) == "string"
   end
 
+  test "validates CandidateRefresh run-input source provenance" do
+    artifact =
+      candidate_refresh_artifact()
+      |> put_in(
+        ["provenance", "run_input_sources"],
+        %{"campaign_request" => ["studies/leo_campaign.json"]}
+      )
+
+    assert {:ok, %{"schema_contract" => "candidate_refresh.v1"}} =
+             Schema.validate_artifact(artifact)
+
+    invalid_sources =
+      put_in(
+        artifact,
+        ["provenance", "run_input_sources", "campaign_request", Access.at(0)],
+        42
+      )
+
+    assert {:error, report} = Schema.validate_artifact(invalid_sources)
+
+    assert Enum.any?(
+             report["errors"],
+             &(&1["path"] == "$.provenance.run_input_sources.campaign_request[0]")
+           )
+  end
+
   test "validates named candidate refresh objective-gap source-report provenance schemas" do
     artifact =
       candidate_refresh_artifact()

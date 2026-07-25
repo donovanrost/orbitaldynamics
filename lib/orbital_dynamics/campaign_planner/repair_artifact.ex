@@ -100,6 +100,10 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairArtifact do
       RepairSourceReports.source_window_lineage(request.candidate_refresh)
     )
     |> put_source_report(
+      "source_candidate_refresh_provenance",
+      RepairSourceReports.candidate_refresh_provenance(request.candidate_refresh)
+    )
+    |> put_source_report(
       "source_candidate_diff_report",
       candidate_diff_report(request.candidate_refresh)
     )

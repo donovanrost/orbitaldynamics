@@ -24,6 +24,24 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairSourceReports do
     |> Enum.map(stringify_keys)
   end
 
+  def candidate_refresh_provenance(candidate_refresh),
+    do: candidate_refresh_provenance(candidate_refresh, default_callbacks())
+
+  def candidate_refresh_provenance(nil, _callbacks), do: nil
+
+  def candidate_refresh_provenance(%{} = candidate_refresh, callbacks) do
+    stringify_keys = Keyword.fetch!(callbacks, :stringify_keys)
+
+    candidate_refresh
+    |> stringify_keys.()
+    |> Map.get("provenance")
+    |> case do
+      provenance when provenance == %{} -> nil
+      %{} = provenance -> provenance
+      _provenance -> nil
+    end
+  end
+
   def contact_intent_summary(candidate_refresh),
     do: contact_intent_summary(candidate_refresh, default_callbacks())
 
