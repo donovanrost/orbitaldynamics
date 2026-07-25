@@ -1080,6 +1080,13 @@ activities before schema validation, pinning row issue evidence and review
 routing to the public facade.
 Executable validation rejects stale issue counts and stale row-derived
 issue-type maps before integrity summaries can steer review/import routing.
+Campaign-repair V2 preserves the incoming report at the distinct
+`source_timeline_integrity_report` path. Full executable validation rejects
+stale row-derived issue counts, dependency/exclusivity identity routing, or
+non-object values. Existing operator-review and Cadence adapters retain exact
+pre-repair rows and source summary context for review; the path performs no
+repair scoring, candidate selection, timeline mutation, Cadence write, or
+grant of operator authority.
 `study_results/timeline_transition_application_summary_v1.json` now feeds a
 curated `timeline_transition_application_summary.v1` validation-reference
 fixture. `study_results/timeline_transition_application_selected_integrity_summary_v1.json`

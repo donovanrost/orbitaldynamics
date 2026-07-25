@@ -582,6 +582,11 @@ focused repair-action regressions.
   `timeline_diff_report.v1` independently from derived repair deltas, validates
   it at `source_timeline_diff_report`, and routes exact review-required timeline
   rows into review-gated Cadence import without applying source transitions.
+- **Source timeline-integrity report** — V2 preserves CandidateRefresh's
+  upstream `timeline_integrity_report.v1` independently from repaired timeline
+  state, validates it at `source_timeline_integrity_report`, and routes exact
+  dependency, exclusivity, invalid-input, and stable timeline identity evidence
+  into review-gated Cadence import without mutating the repaired schedule.
 - **Source schema-validation report** — V2 preserves CandidateRefresh's upstream
   `schema_validation_report.v1`, validates it at
   `source_schema_validation_report`, and routes exact errors, warnings, and

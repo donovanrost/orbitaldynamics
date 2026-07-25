@@ -224,6 +224,8 @@ defmodule OrbitalDynamics.Schema.CampaignArtifactValidation do
         &TimelineArtifactValidation.validate_optional_timeline_feedback_report/3,
       validate_optional_timeline_diff_report:
         &TimelineArtifactValidation.validate_optional_timeline_diff_report/3,
+      validate_optional_timeline_integrity_report:
+        &TimelineSourceValidation.validate_optional_timeline_integrity_report/3,
       validate_optional_operational_timeline_report:
         &OperationalTimelineValidation.validate_optional_report/2,
       validate_optional_timeline_transition_application_report:

@@ -102,6 +102,11 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
       |> File.read!()
       |> :json.decode()
 
+    source_timeline_integrity_report =
+      "study_results/timeline_integrity_report_v1.json"
+      |> File.read!()
+      |> :json.decode()
+
     source_schema_validation_report =
       "study_results/schema_validation_report_v1.json"
       |> File.read!()
@@ -360,6 +365,7 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
           |> Map.put("source_objective_tradeoff_report", source_objective_tradeoff_report)
           |> Map.put("source_score_term_report", source_score_term_report)
           |> Map.put("source_timeline_diff_report", source_timeline_diff_report)
+          |> Map.put("source_timeline_integrity_report", [source_timeline_integrity_report])
           |> Map.put("source_schema_validation_report", source_schema_validation_report)
           |> Map.put("source_model_acceptance_report", [source_model_acceptance_report])
           |> Map.put(
@@ -1809,6 +1815,58 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
                &(get_in(&1, ["source_review_row", "source"]) ==
                    "campaign_repair.source_timeline_diff_report.rows" and
                    &1["timeline_id"] == "timeline:obs_1")
+             )
+
+    assert artifact["source_timeline_integrity_report"] == source_timeline_integrity_report
+
+    assert %{
+             "review_type" => "timeline_integrity_review",
+             "source" => "campaign_repair.source_timeline_integrity_report.rows",
+             "subject_id" => "timeline:command:dss_14:10.0",
+             "activity_id" => "cmd_main",
+             "timeline_id" => "timeline:command:dss_14:10.0",
+             "timeline_integrity_status" => "review_required",
+             "timeline_integrity_issue_count" => 3,
+             "timeline_integrity_issue_types" => [
+               "dependency_order_violation",
+               "exclusivity_overlap",
+               "missing_dependency_activity"
+             ],
+             "dependency_order_violation_activity_ids" => ["health_gate"],
+             "missing_dependency_activity_ids" => ["missing_gate"],
+             "exclusivity_violation_activity_ids" => ["dl_conflict"],
+             "source_activity_count" => 3,
+             "source_dependency_issue_count" => 2,
+             "source_exclusivity_issue_count" => 1,
+             "source_timeline_integrity" => %{
+               "activity_id" => "cmd_main",
+               "timeline_id" => "timeline:command:dss_14:10.0",
+               "required_operator_action" => "review_timeline_integrity"
+             }
+           } =
+             Enum.find(
+               artifact["operator_review_package"]["rows"],
+               &(&1["source"] == "campaign_repair.source_timeline_integrity_report.rows")
+             )
+
+    assert %{
+             "import_action" => "review_timeline_integrity",
+             "source_review_type" => "timeline_integrity_review",
+             "activity_id" => "cmd_main",
+             "timeline_id" => "timeline:command:dss_14:10.0",
+             "import_status" => "review_required_before_import",
+             "source_review_row" => %{
+               "source" => "campaign_repair.source_timeline_integrity_report.rows",
+               "source_timeline_integrity" => %{
+                 "activity_id" => "cmd_main",
+                 "timeline_id" => "timeline:command:dss_14:10.0"
+               }
+             }
+           } =
+             Enum.find(
+               artifact["cadence_import_manifest"]["rows"],
+               &(get_in(&1, ["source_review_row", "source"]) ==
+                   "campaign_repair.source_timeline_integrity_report.rows")
              )
 
     assert artifact["source_schema_validation_report"] == source_schema_validation_report
