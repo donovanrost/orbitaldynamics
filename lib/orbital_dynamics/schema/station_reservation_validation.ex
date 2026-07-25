@@ -84,6 +84,14 @@ defmodule OrbitalDynamics.Schema.StationReservationValidation do
     )
   end
 
+  def validate_optional_hold_import_readiness_summary(issues, _path, nil), do: issues
+
+  def validate_optional_hold_import_readiness_summary(issues, path, %{} = summary),
+    do: validate_hold_import_artifact(issues, path, summary)
+
+  def validate_optional_hold_import_readiness_summary(issues, path, _summary),
+    do: [error(path, "must be an object") | issues]
+
   defp validate_registered_artifact(issues, path, artifact, "station_reservation_report.v1") do
     OrbitalDynamics.Schema.StationReservationReportContracts.validate(
       issues,

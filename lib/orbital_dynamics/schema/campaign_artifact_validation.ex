@@ -300,6 +300,8 @@ defmodule OrbitalDynamics.Schema.CampaignArtifactValidation do
         &ContactReportValidation.validate_optional_contention_resolution_report/3,
       validate_optional_source_station_reservation_report:
         &StationReservationValidation.validate_optional_report/3,
+      validate_optional_source_station_reservation_hold_import_readiness_summary:
+        &StationReservationValidation.validate_optional_hold_import_readiness_summary/3,
       validate_optional_station_calendar_report:
         &StationReservationValidation.validate_optional_calendar_report/3,
       validate_plan_delta: &OrbitalDynamics.Schema.PlanDeltaContracts.validate/3,

@@ -424,6 +424,11 @@ focused repair-action regressions.
   station calendar, validates the nested contract, and routes affected-contact
   and provider-contention rows into review-gated Cadence import without any
   provider reservation write or acceptance.
+- **Source station-reservation hold import-readiness summary** — V2 preserves
+  `station_reservation_hold_import_readiness_summary.v1` at
+  `source_station_reservation_hold_import_readiness_summary`, including exact
+  hold/provider/expiration evidence and review actions without accepting,
+  renewing, reserving, importing, or writing a hold.
 - **Operational-timeline report** exposes status/action/kind count maps,
   dependency and exclusivity issue counts, duplicate timeline-identity counts,
   invalid activity IDs, and model limits, with executable validation that

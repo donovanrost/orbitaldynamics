@@ -5,34 +5,35 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Preserve V2 source import-readiness quality-gate handoff.
+Preserve V2 source station-reservation hold import-readiness handoff.
 
 Status:
 Verified; ready to publish.
 
 Selection evidence:
 - CandidateRefresh retains a schema-valid
-  `operational_quality_gate_import_readiness_summary.v1` that retains freshness,
-  import-preparation, blocked/missing/invalid-import counts, status aggregates,
-  and stable gate/row routing IDs.
-- The summary binds stale/unknown, preparation-required, and blocked-import
-  evidence to exact quality-gate rows and optional publication lineage,
-  preserving a compact audit contract beyond the full report row.
-- Existing quality-gate review/Cadence mapping can carry the exact readiness
-  handoff without treating readiness evidence as approval or performing an
-  import, write, or command execution.
+  `station_reservation_hold_import_readiness_summary.v1` that retains exact
+  expired/missing hold IDs, provider ownership, expiration status, review
+  actions, and import-readiness classifications.
+- The summary binds affected contacts and provider-contention groups to exact
+  held-reservation evidence and explicit no-provider-write, no-Cadence-write,
+  and no-reservation-acceptance assumptions.
+- Existing station-reservation review/Cadence mapping can carry the exact hold
+  handoff without accepting, renewing, reserving, importing, writing, or
+  executing anything.
 
 Intended behavior:
-- Resolve the CandidateRefresh import-readiness quality-gate summary from its
+- Resolve the CandidateRefresh station-reservation hold import-readiness summary
+  from its
   source or canonical field and preserve it on V2 as
-  `source_operational_quality_gate_import_readiness_summary` without
+  `source_station_reservation_hold_import_readiness_summary` without
   recomputation.
 - Validate the optional V2 source field against
-  `operational_quality_gate_import_readiness_summary.v1` at its distinct source
+  `station_reservation_hold_import_readiness_summary.v1` at its distinct source
   path and export the property.
-- Reuse the existing quality-gate review/import mapping so exact freshness,
-  preparation, blocked/missing/invalid, and review routing remains visible without
-  approval, import, write, or execution.
+- Reuse the existing station-reservation review/import mapping so exact hold,
+  provider, expiration, and required-action routing remains visible without
+  acceptance, renewal, reservation, import, write, or execution.
 - Preserve feasibility, scores, ranking, candidate eligibility, schedules,
   provider/Cadence writes, operator authority, and autonomous execution
   behavior.
@@ -42,22 +43,23 @@ Fleet-scale planning decisions and durable reproducible audit handoffs.
 
 Planned files:
 - V2 repair source-report resolution and artifact assembly
-- V2 path-aware import-readiness quality-gate validation, registry/type
+- V2 path-aware station-reservation hold import-readiness validation,
+  registry/type
   hints, and review/import routing
 - focused repair/schema review-import proofs, docs, exports, and ledger
 
 Verification:
 - Focused repair/source/schema contract proofs: `16 passed`.
-- Adjacent quality-gate and operational-readiness family: `183 passed`.
+- Adjacent station-calendar/reservation/provider family: `166 passed`.
 - Contact-allocation family: `213 passed`.
 - Golden artifacts: `12 passed`.
 - Schema lint: all `155` schema contracts passed.
-- Full suite: `4963 passed` in `636.1s`.
+- Full suite: `4968 passed` in `683.5s`.
 - Generated schema diff is limited to the campaign-repair schema and aggregate
   bundle. SHA-256: repair
-  `94b907c878489a7ef00bab6d8a188966e610d472bb8e487e66f0fce6015ea408`,
+  `53c8e5e4af99c1094769b04f2909c5d6bce1db916a86ebee4576af21f8136eb7`,
   bundle
-  `7f6b4f7c87411a049b48f1933317de283b1f44e069c13a183353140f8354109a`.
+  `9764762b3d0c6a839700067f6a3f22d015c17941fca791ac2694cbb49b1c29b5`.
 - Canonical repair, strategy, and manifest artifacts are byte-stable. Repair ID
   remains `2861de04a1feea9da43cee52e2ad6cdc7e6fcedf91dad323b67517b8cac87a0a`;
   strategy ID remains
@@ -66,27 +68,27 @@ Verification:
 Review:
 - Source resolution accepts the explicit source field, canonical field, or
   first map in a list, stringifies keys, and remains nil-safe.
-- The preserved artifact is validated by the existing full import-readiness
-  summary contract at the exact
-  `$.source_operational_quality_gate_import_readiness_summary` path.
-- Review mapping retains freshness, preparation, blocked/missing/invalid-import
-  counts, status aggregates, stable row IDs, assumptions, model limits, and
-  optional publication lineage.
-- Focused proofs pin exact artifact preservation, exact operator/Cadence rows,
-  and `has_cadence_import: false`. In the fixture, `ready_for_import_count: 1`
-  is only source evidence; stale freshness still produces
-  `review_required_before_import` and no import action.
-- The negative proof uses the existing freshness count-map consistency
-  invariant, and canonical omission remains byte-stable.
-- The field is consumed only by artifact preservation, validation, and review
-  handoff. It cannot approve or perform an import, grant operator authority,
-  change allocation/reservation/schedules, write to a provider/Cadence, or
-  execute a command.
+- The preserved artifact is validated by the existing full station-reservation
+  hold import-readiness contract at the exact
+  `$.source_station_reservation_hold_import_readiness_summary` path.
+- Existing station-reservation conversion now has a reusable V2 source entry
+  point and retains exact affected-contact/provider rows, hold IDs, ownership,
+  expiration status, required actions, assumptions, and model limits.
+- Focused proofs pin exact artifact preservation, both exact operator row types,
+  and the affected-contact Cadence row with `has_cadence_import: false`,
+  `provider_write: not_performed_by_summary`, `cadence_write:
+  not_performed_by_summary`, and `reservation_acceptance:
+  not_performed_by_summary`.
+- The negative proof uses the existing hold-count/row consistency invariant,
+  and canonical omission remains byte-stable.
+- The V2 field is consumed only by preservation, validation, and review/Cadence
+  handoff. It cannot accept, renew, reserve, expire, allocate, import, write, or
+  mutate a schedule, and grants no operator or execution authority.
 
 Last published slice:
-- `ad49b75a` Preserve V2 source schema-validation quality-gate handoff (`4958
-  passed`; exact validation counts and blocked routing, no approval, operator
-  authority, import, write, or execution).
+- `09a0c3db` Preserve V2 source import-readiness quality-gate handoff (`4963
+  passed`; exact freshness/import-state routing, no approval, operator authority,
+  import, write, or execution).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions while preserving explicit
@@ -97,8 +99,8 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-After source import-readiness quality-gate evidence is durable, reassess the
-adjacent station-reservation hold import-readiness compatibility gap.
+After station-reservation hold import-readiness evidence is durable, reassess
+the adjacent station-reservation hold-summary compatibility gap.
 
 Blocked:
 None.

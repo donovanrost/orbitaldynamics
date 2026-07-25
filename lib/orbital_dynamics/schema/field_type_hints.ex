@@ -642,6 +642,7 @@ defmodule OrbitalDynamics.Schema.FieldTypeHints do
     "source_station_calendar_review" => "object",
     "source_station_calendar_report" => "object",
     "source_station_reservation_report" => "object",
+    "source_station_reservation_hold_import_readiness_summary" => "object",
     "source_status" => "string",
     "source_starts_at_s" => "number",
     "source_ends_at_s" => "number",

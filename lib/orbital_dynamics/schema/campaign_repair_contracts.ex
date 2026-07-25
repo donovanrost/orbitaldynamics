@@ -279,6 +279,14 @@ defmodule OrbitalDynamics.Schema.CampaignRepairContracts do
       "$.source_station_reservation_report",
       Map.get(artifact, "source_station_reservation_report")
     ])
+    |> call(
+      callbacks,
+      :validate_optional_source_station_reservation_hold_import_readiness_summary,
+      [
+        "$.source_station_reservation_hold_import_readiness_summary",
+        Map.get(artifact, "source_station_reservation_hold_import_readiness_summary")
+      ]
+    )
     |> call(callbacks, :validate_optional_station_calendar_report, [
       "$.source_station_calendar_report",
       Map.get(artifact, "source_station_calendar_report")

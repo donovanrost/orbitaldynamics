@@ -334,6 +334,10 @@ defmodule OrbitalDynamics.OperatorReview.CompositeArtifact do
         Map.get(artifact, "source_station_reservation_report") || %{},
         "campaign_repair.source_station_reservation_report"
       ) ++
+      StationReservation.source_report_rows(
+        Map.get(artifact, "source_station_reservation_hold_import_readiness_summary"),
+        "campaign_repair.source_station_reservation_hold_import_readiness_summary"
+      ) ++
       StationCalendar.rows(
         get_in(artifact, ["source_station_calendar_report", "affected_contacts"]) || [],
         "campaign_repair.source_station_calendar_report.affected_contacts"

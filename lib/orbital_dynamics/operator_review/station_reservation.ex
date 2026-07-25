@@ -103,6 +103,9 @@ defmodule OrbitalDynamics.OperatorReview.StationReservation do
     direct_rows ++ candidate_refresh_result_artifact_rows(artifact)
   end
 
+  def source_report_rows(reports, source),
+    do: source_station_reservation_report_rows(reports, source)
+
   defp source_station_reservation_report_rows(reports, source) when is_list(reports) do
     reports
     |> Enum.with_index()
@@ -299,6 +302,7 @@ defmodule OrbitalDynamics.OperatorReview.StationReservation do
           summary["reservation_hold_contact_ids_by_direction"],
         "reservation_hold_contact_ids_by_direction_and_ground_station_id" =>
           summary["reservation_hold_contact_ids_by_direction_and_ground_station_id"],
+        "model_limits" => summary["model_limits"],
         "assumptions" => summary["assumptions"]
       }
       |> compact_map()

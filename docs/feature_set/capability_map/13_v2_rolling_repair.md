@@ -346,6 +346,10 @@ V2 repair `operator_review_package.v1` now emits:
   contention rows, preserving exact reservation identities for review-gated
   Cadence import without requesting, accepting, expiring, or mutating a
   reservation.
+- CandidateRefresh source station-reservation hold import-readiness summaries,
+  preserving exact expired/missing hold IDs, provider ownership, expiration
+  status, and review actions without accepting, renewing, reserving, importing,
+  or writing a hold.
 - Source candidate-diff rows.
 - Source contact/resource-suppression rows.
 - Source refresh-freshness and refresh-budget review rows.
