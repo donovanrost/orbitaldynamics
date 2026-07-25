@@ -487,6 +487,27 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairSourceReports do
     end
   end
 
+  def operational_quality_gate_operator_training_summary(candidate_refresh),
+    do: operational_quality_gate_operator_training_summary(candidate_refresh, default_callbacks())
+
+  def operational_quality_gate_operator_training_summary(nil, _callbacks), do: nil
+
+  def operational_quality_gate_operator_training_summary(%{} = candidate_refresh, callbacks) do
+    stringify_keys = Keyword.fetch!(callbacks, :stringify_keys)
+    candidate_refresh = stringify_keys.(candidate_refresh)
+
+    [
+      Map.get(candidate_refresh, "source_operational_quality_gate_operator_training_summary"),
+      Map.get(candidate_refresh, "operational_quality_gate_operator_training_summary")
+    ]
+    |> Enum.flat_map(&List.wrap/1)
+    |> Enum.find(&is_map/1)
+    |> case do
+      %{} = summary -> stringify_keys.(summary)
+      _summary -> nil
+    end
+  end
+
   def quality_gate(candidate_refresh), do: quality_gate(candidate_refresh, default_callbacks())
 
   def quality_gate(candidate_refresh, callbacks) do

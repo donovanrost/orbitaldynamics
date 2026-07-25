@@ -321,7 +321,9 @@ schema-type their stable IDs, invalid-input flags, and protected/change counts.
   quality-gate summaries retain normalized non-pass routing without recalculating
   gates or changing readiness. Source unavailable-resource quality-gate
   summaries retain blocked-contact routing without changing allocation or
-  reserving a station.
+  reserving a station. Source operator-training quality-gate summaries retain
+  exact prerequisite IDs without granting certification, approval, or operator
+  authority.
   Source provider-counteroffer evidence, including preserved plan-impact
   timing/cost deltas, lock-deadline context, and explicit import-readiness
   classification, remains review-gated and does not change the repaired

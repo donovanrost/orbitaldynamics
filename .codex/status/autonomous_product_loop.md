@@ -5,35 +5,34 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Preserve V2 source unavailable-resource quality-gate handoff.
+Preserve V2 source operator-training quality-gate handoff.
 
 Status:
 Verified; ready to publish.
 
 Selection evidence:
 - CandidateRefresh retains a schema-valid
-  `operational_quality_gate_unavailable_resource_summary.v1` with unavailable
-  resource counts/reasons and quality-gate routing.
-- Unlike the already-preserved full quality-gate row, the summary contract also
-  carries blocked contact IDs grouped by blocking dimension, spacecraft, and
-  status, preserving stable contact-level audit routing when present.
-- Existing quality-gate review/Cadence mapping can carry the exact resource
-  handoff without changing allocation, reserving a station, mutating a schedule,
-  approving an import, or performing a write.
+  `operational_quality_gate_operator_training_summary.v1` that normalizes five
+  requirements into typed counts and stable operator-role, training,
+  certification, and qualification ID sets.
+- The summary binds those requirement sets to exact review-only quality-gate
+  gate/row identities, preserving a compact auditable training prerequisite
+  contract beyond the full report row.
+- Existing quality-gate review/Cadence mapping can carry the exact prerequisite
+  handoff without granting certification, approval, operator authority, import,
+  write, or command execution.
 
 Intended behavior:
-- Resolve the CandidateRefresh unavailable-resource quality-gate summary from
-  its
+- Resolve the CandidateRefresh operator-training quality-gate summary from its
   source or canonical field and preserve it on V2 as
-  `source_operational_quality_gate_unavailable_resource_summary` without
+  `source_operational_quality_gate_operator_training_summary` without
   recomputation.
 - Validate the optional V2 source field against
-  `operational_quality_gate_unavailable_resource_summary.v1` at its distinct
-  source path and export the property.
-- Reuse the existing quality-gate review/import mapping so exact unavailable
-  resource and blocked-contact routing remains visible after repair without
-  changing allocation or performing an import, write, reservation, schedule
-  mutation, or command execution.
+  `operational_quality_gate_operator_training_summary.v1` at its distinct source
+  path and export the property.
+- Reuse the existing quality-gate review/import mapping so exact requirement and
+  review-only routing remains visible after repair without granting
+  certification, approval, operator authority, import, write, or execution.
 - Preserve feasibility, scores, ranking, candidate eligibility, schedules,
   provider/Cadence writes, operator authority, and autonomous execution
   behavior.
@@ -43,58 +42,49 @@ Fleet-scale planning decisions and durable reproducible audit handoffs.
 
 Planned files:
 - V2 repair source-report resolution and artifact assembly
-- V2 path-aware unavailable-resource quality-gate validation, registry/type
+- V2 path-aware operator-training quality-gate validation, registry/type
   hints, and review/import routing
 - focused repair/schema review-import proofs, docs, exports, and ledger
 
 Verification:
-- Focused source resolver, repair handoff, and V2 source-contract proofs:
-  `16 passed`.
-- Adjacent operational quality-gate/readiness review, replay, fixture, and
-  schema-contract proofs: `156 passed`.
-- Contact-allocation regression family: `213 passed`.
+- Focused repair/source/schema contract proofs: `16 passed`.
+- Adjacent quality-gate and operational-readiness family: `161 passed`.
+- Contact-allocation family: `213 passed`.
 - Golden artifacts: `12 passed`.
-- Schema lint: `155` checked artifacts, all pass.
-- Full repository suite: `4948 passed` in `651.7s`.
-- Regenerated schema exports changed only `campaign_repair.v2` and the schema
-  bundle; the manifest schema remained byte-stable:
-  - repair schema SHA-256:
-    `bda7e49a2cf9f42ace524d8484b881c400a428330244a4c262eea6647fad22a4`
-  - schema bundle SHA-256:
-    `850ba445cb426745eb0ea77542e2de15d14f7546f64005bcc664a1e866f7e409`
-- Canonical V2 repair and strategy runs remained byte-stable:
-  - repair SHA-256:
-    `867928e8aa95ba8473fffe017e7d1efda9d9e83799516a2a938ef7bb8c25f7fa`
-  - strategy SHA-256:
-    `9e2e9bae5d1bef69f36ac288b7cb63a803960b14fc1edf4a841598aa2e947d91`
+- Schema lint: all `155` schema contracts passed.
+- Full suite: `4953 passed` in `607.9s`.
+- Generated schema diff is limited to the campaign-repair schema and aggregate
+  bundle. SHA-256: repair
+  `f70bbbd352c9521de5c0d6828da9a9af7fabe91b48d9c704482b6c2f14d24da2`,
+  bundle
+  `7d1ece277c4ad68f9f9d2e1d694237d95d650c50f3ed7640e306bf9f299eaa37`.
+- Canonical repair, strategy, and manifest artifacts are byte-stable. Repair ID
+  remains `2861de04a1feea9da43cee52e2ad6cdc7e6fcedf91dad323b67517b8cac87a0a`;
+  strategy ID remains
+  `7fbc8347e361d95e7d43cde2a43c2a2ddbd4050420999c879587aba5cf18ee8b`.
 
 Review:
-- Source resolution accepts the explicit source field, collected-list shape,
-  and canonical CandidateRefresh field, selects the first exact object, and is
-  nil-safe.
-- V2 preserves the complete summary unchanged, validates the optional source
-  field with the full
-  `operational_quality_gate_unavailable_resource_summary.v1` contract at its
-  distinct source path, and exports its nested definition.
-- Existing quality-gate mapping preserves exact unavailable-resource counts and
-  reasons, quality-gate routing, blocked contact IDs by blocking dimension,
-  spacecraft, and status, assumptions, and model limits in operator review and
-  the Cadence handoff.
-- Focused integration proof uses non-empty blocked-contact maps, pins the exact
-  source artifact and both handoff rows, and pins `has_cadence_import: false`.
-  No allocation, reservation, schedule mutation, approval, write, or import is
-  performed.
-- Canonical inputs have no source unavailable-resource quality-gate summary, so
-  omission preserves canonical bytes and stable repair/strategy IDs.
-- The new V2 field is consumed only by preservation, contract validation, and
-  review/import assembly. It is absent from feasibility, scoring, ranking,
-  candidate selection, allocation, reservation, schedule mutation,
-  provider/Cadence write, operator authority, and autonomous execution paths.
+- Source resolution accepts the explicit source field, canonical field, or
+  first map in a list, stringifies keys, and remains nil-safe.
+- The preserved artifact is validated by the existing full operator-training
+  summary contract at the exact
+  `$.source_operational_quality_gate_operator_training_summary` path.
+- Review mapping retains typed requirement counts, stable requirement/role/
+  training/certification/qualification IDs, assumptions, and model limits.
+- Focused proofs pin exact artifact preservation, exact operator/Cadence rows,
+  and `has_cadence_import: false`. The negative proof uses the existing
+  requirement-count consistency invariant; blank role strings are permitted by
+  the established source contract and were not tightened in this slice.
+- Canonical omission remains stable when no source summary is present.
+- The field is consumed only by artifact preservation, validation, and review
+  handoff. It cannot grant certification, approval, operator authority, import,
+  allocation, reservation, schedule mutation, provider/Cadence write, or
+  execution.
 
 Last published slice:
-- `babca0ff` Preserve V2 source operational quality-gate summary handoff (`4943
-  passed`; exact normalized non-pass routing plus no-write Cadence handoff, no
-  approval, import, reservation, schedule mutation, write, or execution).
+- `f5bb18c1` Preserve V2 source unavailable-resource quality-gate handoff (`4948
+  passed`; exact blocked-contact audit routing, no allocation, reservation,
+  schedule mutation, approval, import, write, or execution).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions while preserving explicit
@@ -105,8 +95,8 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-After source unavailable-resource quality-gate evidence is durable, reassess the
-adjacent operator-training quality-gate summary compatibility gap.
+After source operator-training quality-gate evidence is durable, reassess the
+adjacent schema-validation quality-gate summary compatibility gap.
 
 Blocked:
 None.

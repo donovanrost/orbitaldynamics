@@ -146,6 +146,11 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
         "review_required" => ["contact:resource_blocked"]
       })
 
+    source_operational_quality_gate_operator_training_summary =
+      "study_results/operational_quality_gate_operator_training_summary_v1.json"
+      |> File.read!()
+      |> :json.decode()
+
     candidate_diff_report =
       candidate_diff_report()
       |> update_in(["invalidated_candidates", Access.at(0)], fn candidate ->
@@ -224,6 +229,10 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
           |> Map.put(
             "source_operational_quality_gate_unavailable_resource_summary",
             [source_operational_quality_gate_unavailable_resource_summary]
+          )
+          |> Map.put(
+            "source_operational_quality_gate_operator_training_summary",
+            [source_operational_quality_gate_operator_training_summary]
           )
           |> Map.put("source_link_capacity_report", source_link_capacity_report)
           |> Map.put("source_station_reservation_report", source_station_reservation_report)
@@ -387,6 +396,9 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
     assert artifact["source_operational_quality_gate_unavailable_resource_summary"] ==
              source_operational_quality_gate_unavailable_resource_summary
 
+    assert artifact["source_operational_quality_gate_operator_training_summary"] ==
+             source_operational_quality_gate_operator_training_summary
+
     assert artifact["source_quality_gate_report"]["schema_contract"] ==
              "quality_gate_report.v1"
 
@@ -419,7 +431,7 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
 
     assert %{
              "operational_readiness_review_count" => 5,
-             "quality_gate_review_count" => 5
+             "quality_gate_review_count" => 6
            } = artifact["operator_review_package"]
 
     assert %{
@@ -606,6 +618,68 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
                artifact["cadence_import_manifest"]["rows"],
                &(&1["source"] ==
                    "campaign_repair.source_operational_execution_boundary_summary")
+             )
+
+    assert %{
+             "review_type" => "quality_gate_review",
+             "source" =>
+               "campaign_repair.source_operational_quality_gate_operator_training_summary",
+             "required_operator_action" => "review_quality_gate",
+             "quality_gate_id" => "operator_training",
+             "quality_gate_status" => "review_required",
+             "quality_gate_classification" => "review_only",
+             "operator_training_requirement_count" => 5,
+             "operator_training_requirement_counts" => %{
+               "certification" => 1,
+               "operator_role" => 2,
+               "qualification" => 1,
+               "training" => 1
+             },
+             "operator_training_requirement_ids" => [
+               "certification",
+               "operator_role",
+               "qualification",
+               "training"
+             ],
+             "required_operator_roles" => ["contact_operator", "mission_director"],
+             "required_training_ids" => ["contact_replan_drill"],
+             "required_certification_ids" => ["cadence_import_cert"],
+             "required_qualification_ids" => ["sat_ops_current"],
+             "source_quality_gate_report" => %{
+               "source_summary_schema_contract" =>
+                 "operational_quality_gate_operator_training_summary.v1",
+               "source_summary_model" => "artifact_only_quality_gate_operator_training_summary",
+               "model_limits" => [
+                 "quality_gate_operator_training_summary_routes_only",
+                 "quality_gate_operator_training_summary_does_not_approve_or_import"
+               ]
+             }
+           } =
+             Enum.find(
+               artifact["operator_review_package"]["rows"],
+               &(&1["source"] ==
+                   "campaign_repair.source_operational_quality_gate_operator_training_summary")
+             )
+
+    assert %{
+             "import_action" => "review_quality_gate",
+             "source_review_type" => "quality_gate_review",
+             "source" =>
+               "campaign_repair.source_operational_quality_gate_operator_training_summary",
+             "import_status" => "review_required_before_import",
+             "has_cadence_import" => false,
+             "source_review_row" => %{
+               "operator_training_requirement_count" => 5,
+               "required_operator_roles" => ["contact_operator", "mission_director"],
+               "required_training_ids" => ["contact_replan_drill"],
+               "required_certification_ids" => ["cadence_import_cert"],
+               "required_qualification_ids" => ["sat_ops_current"]
+             }
+           } =
+             Enum.find(
+               artifact["cadence_import_manifest"]["rows"],
+               &(&1["source"] ==
+                   "campaign_repair.source_operational_quality_gate_operator_training_summary")
              )
 
     assert %{

@@ -246,6 +246,8 @@ defmodule OrbitalDynamics.Schema.CampaignArtifactValidation do
         &OperationalReadinessValidation.validate_optional_operational_quality_gate_summary/3,
       validate_optional_operational_quality_gate_unavailable_resource_summary:
         &OperationalReadinessValidation.validate_optional_operational_quality_gate_unavailable_resource_summary/3,
+      validate_optional_operational_quality_gate_operator_training_summary:
+        &OperationalReadinessValidation.validate_optional_operational_quality_gate_operator_training_summary/3,
       validate_optional_quality_gate_report:
         &OperationalReadinessValidation.validate_optional_quality_gate_report/3,
       validate_optional_schema_validation_report:

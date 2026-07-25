@@ -139,6 +139,23 @@ defmodule OrbitalDynamics.Schema.OperationalReadinessValidation do
       ),
       do: [error(path, "must be an object") | issues]
 
+  def validate_optional_operational_quality_gate_operator_training_summary(issues, _path, nil),
+    do: issues
+
+  def validate_optional_operational_quality_gate_operator_training_summary(
+        issues,
+        path,
+        %{} = summary
+      ),
+      do: validate_operational_quality_gate_operator_training_summary(issues, path, summary)
+
+  def validate_optional_operational_quality_gate_operator_training_summary(
+        issues,
+        path,
+        _summary
+      ),
+      do: [error(path, "must be an object") | issues]
+
   def validate_optional_quality_gate_report(issues, _path, nil), do: issues
 
   def validate_optional_quality_gate_report(issues, path, %{} = report),

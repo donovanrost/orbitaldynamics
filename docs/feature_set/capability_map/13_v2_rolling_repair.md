@@ -281,6 +281,10 @@ V2 repair `operator_review_package.v1` now emits:
   preserving exact resource pressure reasons and blocked contact routing by
   blocking dimension, spacecraft, and status without changing allocation,
   reserving a station, or mutating a schedule.
+- CandidateRefresh source operator-training quality-gate summaries, preserving
+  exact typed requirement counts and stable operator-role, training,
+  certification, and qualification IDs without granting certification,
+  approval, or operator authority.
 - CandidateRefresh source constraint fail/warning rows, preserving exact
   upstream scenario, threshold, value, score, and status evidence beside the
   recomputed repaired-plan report without changing feasibility or scoring.
