@@ -42,6 +42,22 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairSourceReports do
     end
   end
 
+  def validation_records(candidate_refresh),
+    do: validation_records(candidate_refresh, default_callbacks())
+
+  def validation_records(nil, _callbacks), do: []
+
+  def validation_records(%{} = candidate_refresh, callbacks) do
+    stringify_keys = Keyword.fetch!(callbacks, :stringify_keys)
+
+    candidate_refresh
+    |> stringify_keys.()
+    |> Map.get("validation_records")
+    |> List.wrap()
+    |> Enum.filter(&is_map/1)
+    |> Enum.map(stringify_keys)
+  end
+
   def contact_intent_summary(candidate_refresh),
     do: contact_intent_summary(candidate_refresh, default_callbacks())
 

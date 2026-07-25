@@ -62,6 +62,12 @@ defmodule OrbitalDynamics.Schema.CampaignArtifactPropertyRouter do
            provider(context, :registry_contract!, ["candidate_refresh.v1"])
 
          property_fun.("provenance", "candidate_refresh.v1", candidate_refresh_contract)
+       end,
+       fn ->
+         candidate_refresh_contract =
+           provider(context, :registry_contract!, ["candidate_refresh.v1"])
+
+         property_fun.("validation_records", "candidate_refresh.v1", candidate_refresh_contract)
        end}
     )
   end

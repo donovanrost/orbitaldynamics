@@ -202,6 +202,14 @@ schema-type their stable IDs, invalid-input flags, and protected/change counts.
   checkout revision from their nested refresh provenance to avoid a
   self-referential golden artifact; supplied refresh artifacts retain their
   supplied run ID and Git revision unchanged.
+- `source_validation_records` so repair audit consumers retain the exact ordered
+  CandidateRefresh model-validation evidence rather than relying only on
+  acceptance and safety-case summaries. Every row keeps the embedded
+  `validation_record.v1` executable and JSON Schema contract, including
+  registered model, known-limit, and tolerance checks. These records remain
+  artifact-level evidence only: they are not translated into acceptance
+  authority or operator/Cadence rows and cannot affect scoring, ranking,
+  selection, schedule state, commanding, or autonomous execution.
 - `source_contact_intents`, `source_contact_intent_summary`,
   `source_realized_state_snapshot`, and `source_resource_summaries` when repair
   consumes a `candidate_refresh.v1`,
@@ -312,6 +320,7 @@ schema-type their stable IDs, invalid-input flags, and protected/change counts.
   `source_contact_contention_resolution_summary`, `source_link_capacity_report`,
   `source_link_capacity_summary`, `source_relay_data_path_summary`,
   `source_window_lineage`, `source_candidate_refresh_provenance`,
+  `source_validation_records`,
   `source_resource_projection_flow_summary`,
   `source_station_reservation_report`, `source_constraint_report`,
   `source_objective_satisfaction_report`, `source_objective_tradeoff_report`,

@@ -131,6 +131,7 @@ defmodule OrbitalDynamics.Schema.CampaignRegistryContracts do
           "source_resource_summaries",
           "source_candidate_diff_report",
           "source_candidate_refresh_provenance",
+          "source_validation_records",
           "source_window_lineage",
           "source_freshness_report",
           "source_refresh_budget_report",

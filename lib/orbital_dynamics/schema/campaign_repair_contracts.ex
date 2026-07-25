@@ -347,6 +347,10 @@ defmodule OrbitalDynamics.Schema.CampaignRepairContracts do
       "$.source_candidate_refresh_provenance",
       Map.get(artifact, "source_candidate_refresh_provenance")
     ])
+    |> call(callbacks, :validate_optional_validation_records, [
+      "$.source_validation_records",
+      Map.get(artifact, "source_validation_records")
+    ])
     |> call(callbacks, :validate_optional_source_window_lineage, [
       "$.source_window_lineage",
       Map.get(artifact, "source_window_lineage")

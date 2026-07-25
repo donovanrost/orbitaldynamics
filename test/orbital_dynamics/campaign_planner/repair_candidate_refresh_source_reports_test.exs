@@ -11,6 +11,11 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
     refreshed_candidate = refreshed_downlink("dl_refreshed", 500.0, 560.0)
     source_reports = passive_candidate_refresh_source_reports()
 
+    source_validation_record =
+      "study_results/validation_record_v1.json"
+      |> File.read!()
+      |> :json.decode()
+
     source_link_capacity_report =
       "study_results/link_capacity_report_v1.json"
       |> File.read!()
@@ -461,7 +466,8 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
             contact_allocation_report: contact_allocation_report(),
             resource_filter_report: resource_filter_report(),
             refresh_budget_report: refresh_budget_report(),
-            provenance: candidate_refresh_provenance
+            provenance: candidate_refresh_provenance,
+            validation_records: [source_validation_record]
           )
           |> Map.put(
             "source_operational_readiness_report",
@@ -683,12 +689,16 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
                "source_path" => "operational_feedback"
              })
 
+    assert artifact["source_validation_records"] == [source_validation_record]
+
     refute Enum.any?(artifact["operator_review_package"]["rows"], fn row ->
-             Map.has_key?(row, "source_candidate_refresh_provenance")
+             Map.has_key?(row, "source_candidate_refresh_provenance") or
+               Map.has_key?(row, "source_validation_records")
            end)
 
     refute Enum.any?(artifact["cadence_import_manifest"]["rows"], fn row ->
-             Map.has_key?(row, "source_candidate_refresh_provenance")
+             Map.has_key?(row, "source_candidate_refresh_provenance") or
+               Map.has_key?(row, "source_validation_records")
            end)
 
     assert [%{"activity_id" => "dl_refreshed", "direction" => "downlink"}] =
@@ -4713,7 +4723,7 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
       "candidate_diff_report" => Keyword.get(opts, :candidate_diff_report),
       "freshness_report" => Keyword.get(opts, :freshness_report),
       "invalidated_candidates" => [],
-      "validation_records" => [],
+      "validation_records" => Keyword.get(opts, :validation_records, []),
       "warnings" => [],
       "assumptions" => %{},
       "provenance" => Keyword.get(opts, :provenance, %{}),

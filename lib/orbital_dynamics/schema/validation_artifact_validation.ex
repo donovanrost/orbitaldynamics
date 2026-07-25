@@ -4,6 +4,7 @@ defmodule OrbitalDynamics.Schema.ValidationArtifactValidation do
   import OrbitalDynamics.Schema.PrimitiveValidation, only: [error: 2, require_fields: 4]
 
   alias OrbitalDynamics.Schema.{
+    CollectionValidation,
     ValidationAcceptanceReportContracts,
     ValidationCapabilityContext,
     ValidationRecordContracts,
@@ -25,6 +26,15 @@ defmodule OrbitalDynamics.Schema.ValidationArtifactValidation do
 
   def validate_optional_safety_case_summary(issues, path, _summary),
     do: [error(path, "must be an object") | issues]
+
+  def validate_optional_validation_records(issues, path, records) do
+    CollectionValidation.validate_optional_rows(
+      issues,
+      path,
+      records,
+      &ValidationRecordContracts.validate_embedded/3
+    )
+  end
 
   def validate(issues, path, artifact, "validation_reference_fixture_report.v1" = name),
     do:
