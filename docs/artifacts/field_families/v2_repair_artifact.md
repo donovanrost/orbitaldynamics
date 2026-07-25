@@ -464,6 +464,11 @@ focused repair-action regressions.
   status/classification routing maps, non-passed gate and row IDs, non-passed
   rows, source report identity, assumptions, and model limits without
   recalculating a gate or approving an import.
+- **Source unavailable-resource quality-gate summary** — V2 preserves
+  `operational_quality_gate_unavailable_resource_summary.v1` at
+  `source_operational_quality_gate_unavailable_resource_summary`, including
+  resource pressure reasons and blocked contact IDs grouped by dimension,
+  spacecraft, and status without changing allocation or reserving a station.
 - **Source constraint report** — V2 preserves CandidateRefresh's upstream
   `constraint_report.v1` independently from the recomputed repaired-plan
   report, validates it at `source_constraint_report`, and routes exact non-pass

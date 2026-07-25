@@ -277,6 +277,10 @@ V2 repair `operator_review_package.v1` now emits:
   rows, normalized status/classification routing maps, non-passed gate and row
   IDs, source report identity, assumptions, and model limits without
   recalculating gates or changing readiness.
+- CandidateRefresh source unavailable-resource quality-gate summaries,
+  preserving exact resource pressure reasons and blocked contact routing by
+  blocking dimension, spacecraft, and status without changing allocation,
+  reserving a station, or mutating a schedule.
 - CandidateRefresh source constraint fail/warning rows, preserving exact
   upstream scenario, threshold, value, score, and status evidence beside the
   recomputed repaired-plan report without changing feasibility or scoring.

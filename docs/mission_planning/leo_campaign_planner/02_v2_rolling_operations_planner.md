@@ -319,7 +319,9 @@ schema-type their stable IDs, invalid-input flags, and protected/change counts.
   the explicit handoff-only and no-execution/no-write/no-operator-authority
   contract without granting authority or executing a command. Source operational
   quality-gate summaries retain normalized non-pass routing without recalculating
-  gates or changing readiness.
+  gates or changing readiness. Source unavailable-resource quality-gate
+  summaries retain blocked-contact routing without changing allocation or
+  reserving a station.
   Source provider-counteroffer evidence, including preserved plan-impact
   timing/cost deltas, lock-deadline context, and explicit import-readiness
   classification, remains review-gated and does not change the repaired
