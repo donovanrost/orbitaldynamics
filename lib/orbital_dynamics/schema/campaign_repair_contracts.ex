@@ -160,6 +160,10 @@ defmodule OrbitalDynamics.Schema.CampaignRepairContracts do
       "$.source_timeline_activity_states",
       Map.get(artifact, "source_timeline_activity_states")
     ])
+    |> call(callbacks, :validate_optional_timeline_preservation_statuses, [
+      "$.source_timeline_preservation_statuses",
+      Map.get(artifact, "source_timeline_preservation_statuses")
+    ])
     |> call(callbacks, :validate_optional_timeline_preservation_report, [
       "$.source_timeline_preservation_report",
       Map.get(artifact, "source_timeline_preservation_report")

@@ -289,6 +289,10 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairArtifact do
       "source_timeline_activity_states",
       RepairSourceReports.timeline_activity_states(request.candidate_refresh)
     )
+    |> put_source_reports(
+      "source_timeline_preservation_statuses",
+      RepairSourceReports.timeline_preservation_statuses(request.candidate_refresh)
+    )
     |> put_source_report(
       "source_timeline_preservation_report",
       RepairSourceReports.timeline_preservation(request.candidate_refresh)

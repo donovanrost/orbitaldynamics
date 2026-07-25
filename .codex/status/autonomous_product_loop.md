@@ -5,39 +5,38 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Preserve plural V2 source activity-state evidence.
+Preserve plural V2 source timeline-preservation statuses.
 
 Status:
 Complete; verified and ready to publish.
 
 Selection evidence:
-- CandidateRefresh deliberately treats `timeline_activity_state.v1`,
-  `timeline_activity_status_state.v1`, and
-  `timeline_activity_approval_state.v1` as one heterogeneous, list-valued
-  source-state family across direct, canonical, mission-state, and
-  result-artifact paths.
-- These contracts retain distinct evidence: aggregate planned/realized feedback
-  state, status transitions, and approval transitions. Repair V2 currently
-  preserves none of them.
-- Singular fields or first-map coercion would discard states for other
-  activities or contracts; the accepted source collection already defines
-  stable per-contract source/canonical ordering.
-- The existing activity-state review adapter consumes all three contracts and
-  maps exact state evidence into review-gated Cadence rows without applying a
-  transition or granting authority.
+- CandidateRefresh collects direct, canonical, mission-state, and
+  result-artifact `timeline_preservation_status.v1` evidence as lists across
+  distinct activities.
+- A preservation status carries per-activity lock, approval, lifecycle,
+  protection decision/category/reason, and review-routing context. The curated
+  status fixture identifies `dl_locked`, which is absent from the currently
+  preserved aggregate report's rows, so this is distinct evidence rather than
+  a duplicate view.
+- Repair V2 currently preserves the aggregate timeline-preservation report but
+  drops every accepted standalone status; singular or first-map coercion would
+  also discard other activities.
+- The existing preservation review adapter consumes status maps and lists and
+  routes exact evidence into review-gated Cadence rows without changing the
+  schedule or granting authority.
 
 Intended behavior:
-- Collect every direct source/canonical/list-valued activity, status, and
-  approval state in stable family order with source before canonical for each
-  family, without deduplication, at the explicitly plural
-  `source_timeline_activity_states` field on repair V2.
-- Validate every array element against the executable contract declared by its
-  state family at its indexed source path and export all three versioned nested
-  contracts.
-- Reuse existing activity-state conversion so exact feedback, planned/realized
-  status, approval, protection, invalid-input, transition, and source context
-  reach review-gated Cadence handoff with indexed provenance.
-- Keep source states out of repair scoring, candidate selection, current-state
+- Collect every direct source/canonical/list-valued preservation status in
+  stable source-before-canonical order, without deduplication, at the explicitly
+  plural `source_timeline_preservation_statuses` field on repair V2.
+- Validate every array element against the full
+  `timeline_preservation_status.v1` executable contract at its indexed source
+  path and export the versioned nested property.
+- Reuse existing preservation conversion so exact lock, approval, lifecycle,
+  protection, review, identity, and source-status context reach review-gated
+  Cadence handoff with indexed provenance.
+- Keep source statuses out of repair scoring, candidate selection, preservation
   derivation, schedule/timeline mutation, transition application, publication,
   provider/Cadence writes, approval/operator authority, commanding, and
   autonomous execution.
@@ -46,27 +45,27 @@ Level 6 pillar advanced:
 Fleet-scale resource decisions and durable reproducible audit handoffs.
 
 Planned files:
-- Added lossless heterogeneous V2 CandidateRefresh activity-state resolution
-  and artifact assembly.
-- Added indexed contract-dispatch validation, registry/type hints, and existing
-  activity-state review/Cadence routing.
+- Added lossless plural V2 CandidateRefresh preservation-status resolution and
+  artifact assembly.
+- Added indexed validation, registry/type hints, and existing preservation
+  review/Cadence routing.
 - Added focused source/schema/integration proofs, compatibility documentation,
   generated schema exports, and this compact ledger handoff.
 
 Verification:
-- Focused source, schema, and full repair-handoff proofs: `16 passed` in 14.4s.
-- Adjacent strategy, CandidateRefresh, activity-state, operator-review, and
-  Cadence-import family: `43 passed` in 6.8s.
-- Contact-allocation regression family: `238 passed` in 16.0s.
-- Golden artifacts: `12 passed` in 21.5s.
+- Focused source, schema, and full repair-handoff proofs: `16 passed` in 12.6s.
+- Adjacent strategy, CandidateRefresh, preservation, operator-review, and
+  Cadence-import family: `27 passed` in 10.5s.
+- Contact-allocation regression family: `238 passed` in 15.5s.
+- Golden artifacts: `12 passed` in 35.1s.
 - Schema lint: `155` artifacts, `0` errors, `0` warnings.
-- Pre-export full suite: `5124/5125 passed` in 715.3s; the sole failure was the
+- Pre-export full suite: `5129/5130 passed` in 680.5s; the sole failure was the
   expected checked-in JSON Schema export mismatch.
 - Regenerated all JSON Schemas, the manifest schema, and canonical repair and
   strategy artifacts. Generated diff is exactly the one-line repair schema and
   one-line schema-bundle update.
-- Schema-export verification: `3 passed` in 51.2s.
-- Final full suite: `5125 passed` in 683.1s.
+- Schema-export verification: `3 passed` in 51.3s.
+- Final full suite: `5130 passed` in 682.0s.
 - Canonical hashes remain stable: repair
   `867928e8aa95ba8473fffe017e7d1efda9d9e83799516a2a938ef7bb8c25f7fa`,
   strategy
@@ -75,27 +74,27 @@ Verification:
   `7a44a6e58754aae967ee8319c8768b7270d7d7982667c4a6bad8ff1c274c0594`.
 
 Review:
-- Activity, status, and approval states are collected in stable family order,
-  source before canonical within each family; every map is string-key
-  normalized and retained without deduplication or first-map coercion.
+- Source and canonical statuses are collected in stable source-before-canonical
+  order; every map is string-key normalized and retained without deduplication
+  or first-map coercion.
 - Empty collections omit the optional V2 field; non-map input members do not
   become artifact evidence.
-- Indexed validation dispatches each retained map only to its declared or
-  model-derived supported contract; unsupported declarations fail at the exact
-  indexed `schema_contract` path.
-- Every retained state reaches a distinct operator-review and Cadence-import
-  row with exact feedback/transition context and indexed provenance.
-- The slice reuses existing activity-state conversion and does not alter repair
-  scoring, candidate selection, current-state derivation, schedule/timeline
-  state, transition application, publication, provider reservations, Cadence
-  writes, approval/operator authority, commanding, or autonomous execution.
+- Every retained status is validated at an indexed path and reaches distinct
+  operator-review and Cadence-import rows with exact lifecycle, lock, approval,
+  protection, identity, and indexed source context.
+- Standalone statuses remain independent from the aggregate source preservation
+  report and do not change preservation derivation or repair decisions.
+- The slice reuses existing preservation conversion and does not alter repair
+  scoring, candidate selection, schedule/timeline state, transition application,
+  publication, provider reservations, Cadence writes, approval/operator
+  authority, commanding, or autonomous execution.
 - Scoped diff and generated artifacts are clean under `git diff --check`; no
   unrelated work is present.
 
 Last published slice:
-- `2096ce0e` Preserve plural V2 lifecycle states (`5120 passed`; every source
-  and canonical per-activity lifecycle state is retained with indexed
-  review/Cadence provenance and no transition or execution authority).
+- `38722a36` Preserve plural V2 activity states (`5125 passed`; heterogeneous
+  activity, status, and approval state evidence is retained with indexed
+  contract validation and no transition or execution authority).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions while preserving explicit
@@ -108,7 +107,7 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-After plural source activity-state evidence is durable, audit the next bounded
+After plural source preservation statuses are durable, audit the next bounded
 CandidateRefresh source-state collection by product value and distinctness.
 
 Blocked:

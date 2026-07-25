@@ -305,6 +305,7 @@ schema-type their stable IDs, invalid-input flags, and protected/change counts.
   `source_timeline_activity_precondition_summaries`,
   `source_timeline_activity_lifecycle_states`,
   `source_timeline_activity_states`,
+  `source_timeline_preservation_statuses`,
   `source_timeline_preservation_report`,
   `source_timeline_transition_application_report`,
   `source_timeline_transition_application_summary`,
@@ -337,9 +338,10 @@ schema-type their stable IDs, invalid-input flags, and protected/change counts.
   approve maneuvers, or execute commands. Activity-precondition and
   activity-lifecycle evidence use explicitly plural typed collections; the
   heterogeneous activity-state collection additionally retains activity,
-  status, and approval contracts in stable family order. Direct source maps
-  precede canonical maps within each family, and all maps are retained without
-  deduplication or first-map collapse.
+  status, and approval contracts in stable family order. Standalone
+  preservation statuses remain distinct from the aggregate preservation report.
+  Direct source maps precede canonical maps within each family, and all maps are
+  retained without deduplication or first-map collapse.
   Source provider-reservation request summaries retain exact
   request-ready/review-required rows plus match, station, direction,
   reservation, and contact routing as

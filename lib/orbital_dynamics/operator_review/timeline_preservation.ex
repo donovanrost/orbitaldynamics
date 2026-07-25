@@ -154,10 +154,20 @@ defmodule OrbitalDynamics.OperatorReview.TimelinePreservation do
 
   def source_report_rows(_report, _source), do: []
 
-  defp source_status_rows(%{} = status, source) do
+  def source_status_rows(statuses, source) when is_list(statuses) do
+    statuses
+    |> Enum.with_index()
+    |> Enum.flat_map(fn {status, index} ->
+      source_status_rows(status, "#{source}[#{index}]")
+    end)
+  end
+
+  def source_status_rows(%{} = status, source) do
     status = stringify_keys(status)
     [review_row(status, 1, "#{source}.status", status, status)]
   end
+
+  def source_status_rows(_status, _source), do: []
 
   defp candidate_refresh_result_artifact_rows(artifact) do
     [

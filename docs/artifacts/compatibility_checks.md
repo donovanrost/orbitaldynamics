@@ -175,6 +175,15 @@ its declared contract; existing review and Cadence adapters retain exact state
 and indexed provenance without affecting current-state derivation, changing
 repair decisions, applying a transition, mutating a schedule, writing to
 Cadence, commanding activity, or granting authority.
+CandidateRefresh standalone preservation-status evidence is retained as the
+ordered, plural `source_timeline_preservation_statuses` collection, independently
+from `source_timeline_preservation_report`. Direct source statuses precede
+canonical statuses, and every map is retained without deduplication or first-map
+selection. Full executable validation pins lifecycle, lock, approval,
+protection, identity, and review fields at each exact array index; existing
+review and Cadence adapters preserve the exact source status without changing
+derived preservation decisions, mutating a schedule, writing to Cadence,
+commanding activity, or granting authority.
 CandidateRefresh transition-application evidence is likewise retained at
 `source_timeline_transition_application_report`, distinct from V2's repair-time
 `timeline_transition_application_report`. Full executable validation pins

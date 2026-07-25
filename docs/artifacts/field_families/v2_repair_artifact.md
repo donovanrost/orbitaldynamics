@@ -657,6 +657,14 @@ focused repair-action regressions.
   approval, protection, and transition context into review-gated Cadence import
   without changing repair decisions, applying transitions, mutating a schedule,
   or granting authority.
+- **Source timeline-preservation statuses** — V2 preserves every standalone
+  CandidateRefresh `timeline_preservation_status.v1` at the explicitly plural
+  `source_timeline_preservation_statuses` path, independently from the aggregate
+  preservation report. Direct source statuses precede canonical statuses, with
+  no first-map collapse or deduplication. Each indexed status routes exact
+  lifecycle, lock, approval, protection, identity, and review evidence into
+  review-gated Cadence import without changing derived preservation decisions,
+  mutating a schedule, or granting authority.
 - **Source timeline-preservation report** — V2 preserves CandidateRefresh's
   upstream `timeline_preservation_report.v1` independently from derived
   `preserved_activities`, validates it at `source_timeline_preservation_report`,
