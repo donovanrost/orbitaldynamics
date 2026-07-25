@@ -302,7 +302,9 @@ schema-type their stable IDs, invalid-input flags, and protected/change counts.
   renewing, reserving, importing, or writing a hold. Source station-reservation
   hold summaries also retain aggregate counts, earliest expiration, provider
   ownership, and complete review rows without reservation or schedule mutation.
-  The source
+  Source station-reservation review summaries retain row-derived reservation
+  counts, active/expired/missing routing, provider ownership, and complete
+  review rows under the same non-mutating boundary. The source
   constraint report likewise remains distinct from repaired-plan constraint
   evaluation and does not alter feasibility or scoring. Source objective-
   satisfaction evidence remains review-only and does not change repair scores

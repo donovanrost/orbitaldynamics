@@ -184,6 +184,10 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairArtifact do
       RepairSourceReports.station_reservation(request.candidate_refresh)
     )
     |> put_source_report(
+      "source_station_reservation_review_summary",
+      RepairSourceReports.station_reservation_review_summary(request.candidate_refresh)
+    )
+    |> put_source_report(
       "source_station_reservation_hold_import_readiness_summary",
       RepairSourceReports.station_reservation_hold_import_readiness_summary(
         request.candidate_refresh

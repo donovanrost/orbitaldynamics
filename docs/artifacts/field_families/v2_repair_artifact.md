@@ -434,6 +434,12 @@ focused repair-action regressions.
   `source_station_reservation_hold_summary`, including aggregate hold counts,
   earliest expiration, provider ownership, and complete review rows without
   creating, accepting, renewing, expiring, or mutating a reservation.
+- **Source station-reservation review summary** — V2 preserves
+  `station_reservation_review_summary.v1` at
+  `source_station_reservation_review_summary`, including row-derived
+  reservation counts, expiration routing, provider ownership, and complete
+  review rows without creating, accepting, renewing, expiring, or mutating a
+  reservation.
 - **Operational-timeline report** exposes status/action/kind count maps,
   dependency and exclusivity issue counts, duplicate timeline-identity counts,
   invalid activity IDs, and model limits, with executable validation that
