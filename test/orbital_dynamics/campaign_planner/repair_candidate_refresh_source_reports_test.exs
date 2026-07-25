@@ -36,6 +36,11 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
       |> File.read!()
       |> :json.decode()
 
+    source_contact_allocation_summary =
+      "study_results/contact_allocation_summary_v1.json"
+      |> File.read!()
+      |> :json.decode()
+
     source_station_reservation_report =
       "study_results/station_calendar_report_v1.json"
       |> File.read!()
@@ -264,6 +269,10 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
           |> Map.put(
             "source_operational_readiness_report",
             source_reports["source_operational_readiness_report"]
+          )
+          |> Map.put(
+            "source_contact_allocation_summary",
+            [source_contact_allocation_summary]
           )
           |> Map.put(
             "source_contact_allocation_station_pressure_summary",
@@ -1076,6 +1085,9 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
 
     assert artifact["source_contact_allocation_capacity_pack_summary"] ==
              source_contact_allocation_capacity_pack_summary
+
+    assert artifact["source_contact_allocation_summary"] ==
+             source_contact_allocation_summary
 
     assert %{
              "schema_contract" => "contact_allocation_report.v1",
@@ -2077,7 +2089,7 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
              )
 
     assert %{
-             "contact_allocation_review_count" => 10,
+             "contact_allocation_review_count" => 13,
              "contact_allocation_capacity_pack_review_count" => 1,
              "station_pressure_contact_count" => 1,
              "station_pressure_review_contact_count" => 1,
@@ -2107,25 +2119,33 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
              },
              "station_reservation_match_status_counts" => %{
                "matched" => 1,
-               "overlap" => 1
+               "overlap" => 2
              },
              "station_reservation_contact_ids_by_match_status" => %{
                "matched" => ["dl_reserved_owner"],
-               "overlap" => ["dl_reserved_intruder"]
+               "overlap" => ["dl_3", "dl_reserved_intruder"]
              },
-             "station_reservation_status_counts" => %{"confirmed" => 2},
+             "station_reservation_status_counts" => %{"confirmed" => 2, "reserved" => 1},
              "station_reservation_contact_ids_by_status" => %{
-               "confirmed" => ["dl_reserved_intruder", "dl_reserved_owner"]
+               "confirmed" => ["dl_reserved_intruder", "dl_reserved_owner"],
+               "reserved" => ["dl_3"]
              },
-             "station_reserved_by_counts" => %{"ops_team_b" => 2},
+             "station_reserved_by_counts" => %{"network_partner" => 1, "ops_team_b" => 2},
              "station_reservation_contact_ids_by_reserved_by" => %{
+               "network_partner" => ["dl_3"],
                "ops_team_b" => ["dl_reserved_intruder", "dl_reserved_owner"]
              },
-             "station_reservation_expiration_status_counts" => %{"expired" => 2},
+             "station_reservation_expiration_status_counts" => %{
+               "declared" => 1,
+               "expired" => 2
+             },
              "station_reservation_contact_ids_by_expiration_status" => %{
+               "declared" => ["dl_3"],
                "expired" => ["dl_reserved_intruder", "dl_reserved_owner"]
              },
              "station_reservation_ids" => ["reservation_1"],
+             "station_reservation_expires_at_s" => [360.0, 420.0],
+             "earliest_station_reservation_expires_at_s" => 360.0,
              "station_reservation_ids_by_match_status" => %{
                "matched" => ["reservation_1"],
                "overlap" => ["reservation_1"]
@@ -2188,6 +2208,55 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
              "provider_reservation_no_request_contact_count" => 2,
              "provider_reservation_request_status_counts" => %{"review_required" => 1}
            } = artifact["operator_review_package"]
+
+    assert %{
+             "review_type" => "contact_allocation_review",
+             "source" => "campaign_repair.source_contact_allocation_summary.review_rows",
+             "contact_id" => "dl_2",
+             "ground_station_id" => "equator_prime",
+             "allocation_status" => "deferred",
+             "required_operator_action" => "review_contact_allocation",
+             "source_contact_allocation" => %{
+               "source_contact_allocation_summary" => %{
+                 "schema_contract" => "contact_allocation_summary.v1",
+                 "allocated_contact_count" => 1,
+                 "returned_allocated_contact_count" => 1,
+                 "deferred_contact_count" => 1,
+                 "blocked_contact_count" => 1,
+                 "review_contact_ids" => ["dl_1", "dl_2", "dl_3"],
+                 "assumptions" => %{
+                   "execution_boundary" =>
+                     "artifact_only_no_provider_reservation_or_schedule_mutation",
+                   "operator_authority" => "not_granted_by_summary"
+                 }
+               }
+             }
+           } =
+             Enum.find(
+               artifact["operator_review_package"]["rows"],
+               &(&1["source"] ==
+                   "campaign_repair.source_contact_allocation_summary.review_rows" and
+                   &1["contact_id"] == "dl_2")
+             )
+
+    assert %{
+             "import_action" => "review_contact_allocation",
+             "source_review_type" => "contact_allocation_review",
+             "contact_id" => "dl_2",
+             "has_cadence_import" => false,
+             "source_review_row" => %{
+               "source" => "campaign_repair.source_contact_allocation_summary.review_rows",
+               "source_contact_allocation" => %{
+                 "source_contact_allocation_summary" => %{
+                   "schema_contract" => "contact_allocation_summary.v1"
+                 }
+               }
+             }
+           } =
+             Enum.find(
+               artifact["cadence_import_manifest"]["rows"],
+               &(&1["contact_id"] == "dl_2")
+             )
 
     assert %{
              "review_type" => "contact_allocation_review",
@@ -2368,7 +2437,8 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
            } =
              Enum.find(
                artifact["cadence_import_manifest"]["rows"],
-               &(&1["contact_id"] == "dl_3")
+               &(get_in(&1, ["source_review_row", "source"]) ==
+                   "campaign_repair.source_contact_allocation_station_pressure_summary.review_rows")
              )
 
     assert %{

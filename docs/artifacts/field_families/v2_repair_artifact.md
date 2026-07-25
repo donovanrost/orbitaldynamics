@@ -183,6 +183,12 @@ freshness, contact/resource preservation, and station calendar reports.
 - **Source contact allocation reports** from `candidate_refresh.v1`, preserving
   allocated/deferred/blocked contact rows for repair review without station
   reservations.
+- **Source compact contact-allocation summaries** — V2 preserves the separately
+  versioned `contact_allocation_summary.v1` at
+  `source_contact_allocation_summary`, including exact review rows and
+  row-derived allocation, trust, reservation, resource, station, capacity, and
+  provenance aggregates. The compact boundary remains review-only and can be
+  supplied independently of the full report.
 - **Source contact-allocation station-pressure summaries** — V2 preserves the
   exact `contact_allocation_station_pressure_summary.v1` review subset at
   `source_contact_allocation_station_pressure_summary`. Operator review and

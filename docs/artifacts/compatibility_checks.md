@@ -1439,6 +1439,13 @@ Standalone `contact_allocation_capacity_pack_summary.v1` and
 direct operator-review packages and Cadence import manifests, preserving the
 compact summary context in source review rows instead of requiring the full
 allocation report or a candidate-refresh wrapper.
+Campaign-repair V2 preserves a CandidateRefresh `contact_allocation_summary.v1`
+at `source_contact_allocation_summary` as a distinct compact compatibility
+boundary. Executable validation rejects stale row-derived allocation, trust,
+reservation, resource, station, or capacity evidence and non-object source
+values. The exact review rows and compact summary context flow through
+operator-review and Cadence adapters without provider reservation, schedule
+mutation, Cadence writes, or operator authority.
 Campaign-repair V2 additionally preserves a CandidateRefresh
 `contact_allocation_station_pressure_summary.v1` at the distinct
 `source_contact_allocation_station_pressure_summary` path. Executable

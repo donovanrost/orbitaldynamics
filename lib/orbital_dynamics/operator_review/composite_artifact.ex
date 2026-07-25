@@ -68,6 +68,7 @@ defmodule OrbitalDynamics.OperatorReview.CompositeArtifact do
     |> ContactAllocationSummary.put_from_paths(artifact, [
       ["source_contact_allocation_report"],
       ["contact_allocation_report"],
+      ["source_contact_allocation_summary"],
       ["source_contact_allocation_station_pressure_summary"],
       ["source_contact_allocation_reservation_conflict_summary"],
       ["source_contact_allocation_capacity_pack_summary"],
@@ -379,6 +380,10 @@ defmodule OrbitalDynamics.OperatorReview.CompositeArtifact do
           "reduced_capacity_pack_groups"
         ]) || [],
         "campaign_repair.source_contact_allocation_report.reduced_capacity_pack_groups"
+      ) ++
+      ContactAllocation.source_report_rows(
+        Map.get(artifact, "source_contact_allocation_summary"),
+        "campaign_repair.source_contact_allocation_summary"
       ) ++
       ContactAllocation.source_report_rows(
         Map.get(artifact, "source_contact_allocation_station_pressure_summary"),
