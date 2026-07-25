@@ -116,6 +116,10 @@ defmodule OrbitalDynamics.Schema.CampaignRepairContracts do
       "$.source_timeline_diff_report",
       Map.get(artifact, "source_timeline_diff_report")
     ])
+    |> call(callbacks, :validate_optional_timeline_diff_summary, [
+      "$.source_timeline_diff_summary",
+      Map.get(artifact, "source_timeline_diff_summary")
+    ])
     |> call(callbacks, :validate_optional_timeline_integrity_report, [
       "$.source_timeline_integrity_report",
       Map.get(artifact, "source_timeline_integrity_report")

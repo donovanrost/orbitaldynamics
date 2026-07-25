@@ -314,6 +314,10 @@ defmodule OrbitalDynamics.OperatorReview.CompositeArtifact do
         get_in(artifact, ["source_timeline_diff_report", "rows"]) || [],
         "campaign_repair.source_timeline_diff_report.rows"
       ) ++
+      TimelineDiff.summary_rows(
+        Map.get(artifact, "source_timeline_diff_summary") || %{},
+        "campaign_repair.source_timeline_diff_summary.review_rows"
+      ) ++
       TimelineIntegrity.source_report_rows(
         Map.get(artifact, "source_timeline_integrity_report"),
         "campaign_repair.source_timeline_integrity_report"

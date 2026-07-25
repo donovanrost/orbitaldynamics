@@ -22,4 +22,28 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairTimelineDiffSourceTest do
     assert RepairSourceReports.timeline_diff(%{}) == nil
     assert RepairSourceReports.timeline_diff(nil) == nil
   end
+
+  test "resolves source, collected, and canonical timeline-diff summaries" do
+    summary = %{
+      "schema_contract" => "timeline_diff_summary.v1",
+      "review_required_count" => 1,
+      "review_rows" => [%{"timeline_id" => "timeline:obs_1", "diff_status" => "changed"}]
+    }
+
+    assert RepairSourceReports.timeline_diff_summary(%{
+             "source_timeline_diff_summary" => summary
+           }) == summary
+
+    assert RepairSourceReports.timeline_diff_summary(%{
+             "source_timeline_diff_summary" => [summary]
+           }) == summary
+
+    assert RepairSourceReports.timeline_diff_summary(%{"timeline_diff_summary" => summary}) ==
+             summary
+  end
+
+  test "returns nil when candidate refresh has no timeline-diff summary" do
+    assert RepairSourceReports.timeline_diff_summary(%{}) == nil
+    assert RepairSourceReports.timeline_diff_summary(nil) == nil
+  end
 end

@@ -102,6 +102,11 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
       |> File.read!()
       |> :json.decode()
 
+    source_timeline_diff_summary =
+      "study_results/timeline_diff_summary_v1.json"
+      |> File.read!()
+      |> :json.decode()
+
     source_timeline_integrity_report =
       "study_results/timeline_integrity_report_v1.json"
       |> File.read!()
@@ -400,6 +405,7 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
           |> Map.put("source_objective_tradeoff_report", source_objective_tradeoff_report)
           |> Map.put("source_score_term_report", source_score_term_report)
           |> Map.put("source_timeline_diff_report", source_timeline_diff_report)
+          |> Map.put("source_timeline_diff_summary", [source_timeline_diff_summary])
           |> Map.put("source_timeline_integrity_report", [source_timeline_integrity_report])
           |> Map.put(
             "source_timeline_dependency_impact_summary",
@@ -1871,6 +1877,58 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
                artifact["cadence_import_manifest"]["rows"],
                &(get_in(&1, ["source_review_row", "source"]) ==
                    "campaign_repair.source_timeline_diff_report.rows" and
+                   &1["timeline_id"] == "timeline:obs_1")
+             )
+
+    assert artifact["source_timeline_diff_summary"] == source_timeline_diff_summary
+
+    assert %{
+             "review_type" => "timeline_diff_review",
+             "source" => "campaign_repair.source_timeline_diff_summary.review_rows",
+             "subject_id" => "timeline:obs_1",
+             "timeline_id" => "timeline:obs_1",
+             "diff_status" => "changed",
+             "source_activity_id" => "obs_1",
+             "replacement_activity_id" => "obs_1b",
+             "transition_decision" => "preserve_source",
+             "required_operator_action" => "review_changed_protected_activity",
+             "source_timeline_diff_summary_row_count" => 3,
+             "source_timeline_diff_summary_review_required_count" => 3,
+             "source_timeline_diff_summary_changed_count" => 1,
+             "source_timeline_diff_summary" => %{
+               "schema_contract" => "timeline_diff_summary.v1",
+               "review_timeline_ids" => [
+                 "timeline:cmd_added",
+                 "timeline:dl_removed",
+                 "timeline:obs_1"
+               ]
+             }
+           } =
+             Enum.find(
+               artifact["operator_review_package"]["rows"],
+               &(&1["source"] ==
+                   "campaign_repair.source_timeline_diff_summary.review_rows" and
+                   &1["timeline_id"] == "timeline:obs_1")
+             )
+
+    assert %{
+             "import_action" => "review_timeline_diff",
+             "source_review_type" => "timeline_diff_review",
+             "timeline_id" => "timeline:obs_1",
+             "transition_decision" => "preserve_source",
+             "source_timeline_diff_summary_review_required_count" => 3,
+             "source_timeline_diff_summary_changed_count" => 1,
+             "source_timeline_diff_summary" => %{
+               "schema_contract" => "timeline_diff_summary.v1"
+             },
+             "source_review_row" => %{
+               "source" => "campaign_repair.source_timeline_diff_summary.review_rows"
+             }
+           } =
+             Enum.find(
+               artifact["cadence_import_manifest"]["rows"],
+               &(get_in(&1, ["source_review_row", "source"]) ==
+                   "campaign_repair.source_timeline_diff_summary.review_rows" and
                    &1["timeline_id"] == "timeline:obs_1")
              )
 

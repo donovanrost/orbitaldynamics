@@ -254,6 +254,10 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairArtifact do
       RepairSourceReports.timeline_diff(request.candidate_refresh)
     )
     |> put_source_report(
+      "source_timeline_diff_summary",
+      RepairSourceReports.timeline_diff_summary(request.candidate_refresh)
+    )
+    |> put_source_report(
       "source_timeline_integrity_report",
       RepairSourceReports.timeline_integrity(request.candidate_refresh)
     )
