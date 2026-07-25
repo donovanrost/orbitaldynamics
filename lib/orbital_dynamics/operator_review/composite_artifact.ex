@@ -377,6 +377,13 @@ defmodule OrbitalDynamics.OperatorReview.CompositeArtifact do
         ]) || [],
         "campaign_repair.source_contact_allocation_report.reduced_capacity_pack_groups"
       ) ++
+      ContactAllocation.source_report_rows(
+        Map.get(
+          artifact,
+          "source_contact_allocation_provider_reservation_request_summary"
+        ),
+        "campaign_repair.source_contact_allocation_provider_reservation_request_summary"
+      ) ++
       ContactContention.invalid_input_rows(
         get_in(artifact, ["source_contact_contention_report", "invalid_contact_inputs"]) || [],
         "campaign_repair.source_contact_contention_report.invalid_contact_inputs"

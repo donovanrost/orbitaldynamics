@@ -45,6 +45,14 @@ defmodule OrbitalDynamics.Schema.ContactAllocationValidation do
         "contact_allocation_provider_reservation_request_summary.v1"
       )
 
+  def validate_optional_provider_reservation_request_summary(issues, _path, nil), do: issues
+
+  def validate_optional_provider_reservation_request_summary(issues, path, %{} = summary),
+    do: validate_provider_reservation_request_artifact(issues, path, summary)
+
+  def validate_optional_provider_reservation_request_summary(issues, path, _summary),
+    do: [error(path, "must be an object") | issues]
+
   def validate_optional_report(issues, report),
     do: validate_optional_report(issues, report, default_callbacks())
 

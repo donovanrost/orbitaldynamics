@@ -333,6 +333,10 @@ V2 repair `operator_review_package.v1` now emits:
   preserving the upstream report independently from the recomputed repair
   report without applying another scoring effect.
 - Repaired-plan and source contact-allocation review rows.
+- CandidateRefresh source contact-allocation provider-reservation request
+  summaries, preserving exact request-ready/review-required rows plus match,
+  station, direction, reservation, and contact routing as review-only Cadence
+  handoffs without creating a provider reservation or schedule mutation.
 - Source contact-contention conflict-group and invalid-input rows, preserving
   the exact audit context for review-gated Cadence import without applying the
   group evidence to candidate eligibility or schedules.

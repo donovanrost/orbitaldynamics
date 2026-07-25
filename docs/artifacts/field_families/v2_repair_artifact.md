@@ -183,6 +183,12 @@ freshness, contact/resource preservation, and station calendar reports.
 - **Source contact allocation reports** from `candidate_refresh.v1`, preserving
   allocated/deferred/blocked contact rows for repair review without station
   reservations.
+- **Source contact-allocation provider-reservation request summaries** — V2
+  preserves `contact_allocation_provider_reservation_request_summary.v1` at
+  `source_contact_allocation_provider_reservation_request_summary`, including
+  exact request-ready/review-required rows and match-status, ground-station,
+  direction, reservation-ID, and contact-ID routing. The handoff creates only
+  review actions; it performs no provider reservation or schedule mutation.
 - **Source contact filter reports** can preserve reserved-station suppression
   rows with station availability, contention status, reservation ID, owner, and
   reservation status.

@@ -282,6 +282,7 @@ schema-type their stable IDs, invalid-input flags, and protected/change counts.
 - `link_capacity_report.v1` over repaired downlink activities, preserving the
   same fixed-rate throughput summary shape used by V1 campaign artifacts.
 - `source_contact_filter_report`, `source_contact_allocation_report`,
+  `source_contact_allocation_provider_reservation_request_summary`,
   `source_contact_contention_report`,
   `source_contact_contention_resolution_report`, `source_link_capacity_report`,
   `source_station_reservation_report`, `source_constraint_report`,
@@ -296,7 +297,11 @@ schema-type their stable IDs, invalid-input flags, and protected/change counts.
   resource decisions caused by unavailable ground-network or resource
   constraints. The source link-capacity report remains distinct from the
   repaired-plan report, and the station-reservation source remains distinct
-  from the repair-time station calendar; both are review-only. Source
+  from the repair-time station calendar; both are review-only. Source provider-
+  reservation request summaries retain exact request-ready/review-required rows
+  plus match, station, direction, reservation, and contact routing as
+  review-gated Cadence handoffs without creating a provider reservation or
+  schedule mutation. Source
   station-reservation hold import-readiness summaries retain exact hold,
   provider, expiration, and required-action evidence without accepting,
   renewing, reserving, importing, or writing a hold. Source station-reservation
