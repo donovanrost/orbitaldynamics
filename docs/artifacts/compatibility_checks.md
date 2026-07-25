@@ -149,6 +149,13 @@ withholding, integrity evidence, and operator-action routing. Existing review
 and Cadence adapters preserve those exact source decisions without applying the
 source timeline, mutating the repair result, writing to Cadence, or granting
 operator authority.
+The aggregate transition evidence is separately retained at
+`source_timeline_transition_application_summary`. Full executable validation
+pins exact application, selection, review, transition, integrity, and
+operator-action counts and identity collections. Existing review and Cadence
+adapters preserve the summary's complete review applications and aggregate
+source context without applying a transition, mutating the repair result,
+writing to Cadence, or granting operator authority.
 Incoming operational-timeline evidence is retained separately at
 `source_operational_timeline_report` rather than being overwritten by V2's
 repair-time `operational_timeline_report`. Full executable validation pins row

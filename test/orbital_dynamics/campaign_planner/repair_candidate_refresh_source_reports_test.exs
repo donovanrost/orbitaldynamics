@@ -147,6 +147,11 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
       |> File.read!()
       |> :json.decode()
 
+    source_timeline_transition_application_summary =
+      "study_results/timeline_transition_application_summary_v1.json"
+      |> File.read!()
+      |> :json.decode()
+
     source_operational_timeline_report =
       "study_results/operational_timeline_report_v1.json"
       |> File.read!()
@@ -466,6 +471,10 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
           |> Map.put(
             "source_timeline_transition_application_report",
             [source_timeline_transition_application_report]
+          )
+          |> Map.put(
+            "source_timeline_transition_application_summary",
+            [source_timeline_transition_application_summary]
           )
           |> Map.put(
             "source_operational_timeline_report",
@@ -2436,6 +2445,57 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
                artifact["cadence_import_manifest"]["rows"],
                &(get_in(&1, ["source_review_row", "source"]) ==
                    "campaign_repair.source_timeline_transition_application_report.applications" and
+                   &1["timeline_id"] == "timeline:cmd_lock")
+             )
+
+    assert artifact["source_timeline_transition_application_summary"] ==
+             source_timeline_transition_application_summary
+
+    assert %{
+             "review_type" => "timeline_diff_review",
+             "source" =>
+               "campaign_repair.source_timeline_transition_application_summary.review_applications",
+             "timeline_id" => "timeline:cmd_lock",
+             "activity_id" => "cmd_lock",
+             "transition_decision" => "preserve_source",
+             "application_status" => "source_preserved_pending_review",
+             "source_transition_application_count" => 3,
+             "source_transition_application_review_required_count" => 2,
+             "source_timeline_transition_application_summary" => %{
+               "schema_contract" => "timeline_transition_application_summary.v1",
+               "application_count" => 3,
+               "review_required_count" => 2,
+               "review_activity_ids" => ["cmd_lock", "new_cmd"]
+             }
+           } =
+             Enum.find(
+               artifact["operator_review_package"]["rows"],
+               &(&1["source"] ==
+                   "campaign_repair.source_timeline_transition_application_summary.review_applications" and
+                   &1["timeline_id"] == "timeline:cmd_lock")
+             )
+
+    assert %{
+             "import_action" => "review_timeline_diff",
+             "source_review_type" => "timeline_diff_review",
+             "timeline_id" => "timeline:cmd_lock",
+             "activity_id" => "cmd_lock",
+             "transition_decision" => "preserve_source",
+             "required_operator_action" => "review_changed_protected_activity",
+             "source_review_row" => %{
+               "source" =>
+                 "campaign_repair.source_timeline_transition_application_summary.review_applications",
+               "source_timeline_transition_application_summary" => %{
+                 "schema_contract" => "timeline_transition_application_summary.v1",
+                 "application_count" => 3,
+                 "review_required_count" => 2
+               }
+             }
+           } =
+             Enum.find(
+               artifact["cadence_import_manifest"]["rows"],
+               &(get_in(&1, ["source_review_row", "source"]) ==
+                   "campaign_repair.source_timeline_transition_application_summary.review_applications" and
                    &1["timeline_id"] == "timeline:cmd_lock")
              )
 

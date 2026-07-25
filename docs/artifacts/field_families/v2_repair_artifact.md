@@ -632,6 +632,13 @@ focused repair-action regressions.
   validates it at `source_timeline_transition_application_report`, and routes
   exact withheld changes, selected source, transition decisions, integrity
   evidence, and required operator actions without applying the source timeline.
+- **Source timeline-transition-application summary** — V2 separately preserves
+  CandidateRefresh's aggregate `timeline_transition_application_summary.v1` at
+  `source_timeline_transition_application_summary`, validates exact application,
+  selection, review, transition, integrity, and operator-action counts and
+  identity collections, and routes its complete review applications with the
+  aggregate source context into review-gated Cadence import without applying a
+  transition, mutating the schedule, or granting operator authority.
 - **Source operational-timeline report** — V2 preserves CandidateRefresh's
   upstream `operational_timeline_report.v1` independently from repair-time
   `operational_timeline_report`, validates it at

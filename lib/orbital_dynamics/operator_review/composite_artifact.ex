@@ -338,6 +338,10 @@ defmodule OrbitalDynamics.OperatorReview.CompositeArtifact do
         Map.get(artifact, "source_timeline_transition_application_report"),
         "campaign_repair.source_timeline_transition_application_report"
       ) ++
+      TimelineTransitionApplication.source_summary_rows(
+        Map.get(artifact, "source_timeline_transition_application_summary"),
+        "campaign_repair.source_timeline_transition_application_summary"
+      ) ++
       SchemaValidation.rows(
         Map.get(artifact, "source_schema_validation_report") || %{},
         "campaign_repair.source_schema_validation_report"

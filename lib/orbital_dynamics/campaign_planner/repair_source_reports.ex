@@ -650,6 +650,27 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairSourceReports do
     end
   end
 
+  def timeline_transition_application_summary(candidate_refresh),
+    do: timeline_transition_application_summary(candidate_refresh, default_callbacks())
+
+  def timeline_transition_application_summary(nil, _callbacks), do: nil
+
+  def timeline_transition_application_summary(%{} = candidate_refresh, callbacks) do
+    stringify_keys = Keyword.fetch!(callbacks, :stringify_keys)
+    candidate_refresh = stringify_keys.(candidate_refresh)
+
+    [
+      Map.get(candidate_refresh, "source_timeline_transition_application_summary"),
+      Map.get(candidate_refresh, "timeline_transition_application_summary")
+    ]
+    |> Enum.flat_map(&List.wrap/1)
+    |> Enum.find(&is_map/1)
+    |> case do
+      %{} = summary -> stringify_keys.(summary)
+      _summary -> nil
+    end
+  end
+
   def operational_timeline(candidate_refresh),
     do: operational_timeline(candidate_refresh, default_callbacks())
 

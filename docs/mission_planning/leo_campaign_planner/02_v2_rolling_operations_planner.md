@@ -303,6 +303,7 @@ schema-type their stable IDs, invalid-input flags, and protected/change counts.
   `source_timeline_lifecycle_state_summary`,
   `source_timeline_preservation_report`,
   `source_timeline_transition_application_report`,
+  `source_timeline_transition_application_summary`,
   `source_operational_timeline_report`,
   `source_command_window_report`,
   `source_maneuver_review_report`,
