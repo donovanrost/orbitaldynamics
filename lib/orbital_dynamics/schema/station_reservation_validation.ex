@@ -38,6 +38,14 @@ defmodule OrbitalDynamics.Schema.StationReservationValidation do
   def validate_calendar_provider_artifact(issues, path, artifact),
     do: validate_artifact(issues, path, artifact, "station_calendar_provider.v1")
 
+  def validate_optional_calendar_provider(issues, _path, nil), do: issues
+
+  def validate_optional_calendar_provider(issues, path, %{} = provider),
+    do: validate_calendar_provider_artifact(issues, path, provider)
+
+  def validate_optional_calendar_provider(issues, path, _provider),
+    do: [error(path, "must be an object") | issues]
+
   def validate_calendar_report_artifact(issues, path, artifact),
     do: validate_artifact(issues, path, artifact, "station_calendar_report.v1")
 

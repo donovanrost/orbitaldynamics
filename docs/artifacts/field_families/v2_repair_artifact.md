@@ -445,6 +445,12 @@ focused repair-action regressions.
   `source_station_calendar_precedence_summary`, including applied/overlap
   availability, affected contacts, and reserved-under-higher-precedence
   ownership/status routing without provider reservation or schedule mutation.
+- **Source station-calendar provider** — when repair receives a declared
+  `station_calendar_provider.v1` object directly, V2 preserves it at
+  `source_station_calendar_provider`, including entries that affect no repair
+  candidate plus top-level provider identity, provenance, and assumptions. The
+  raw source remains distinct from the derived station-calendar report and does
+  not create review/import rows, provider reservations, or schedule mutations.
 - **Source provider-counteroffer review summary** — V2 preserves
   `provider_counteroffer_review_summary.v1` at
   `source_provider_counteroffer_review_summary`, including status,

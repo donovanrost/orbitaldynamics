@@ -307,9 +307,13 @@ schema-type their stable IDs, invalid-input flags, and protected/change counts.
   review rows under the same non-mutating boundary. Source station-calendar
   precedence summaries retain applied/overlap availability, affected contacts,
   and reserved-under-higher-precedence ownership/status routing without provider
-  reservation or schedule mutation. Source provider-counteroffer review
-  summaries retain status, negotiation-state, lock-deadline, review-ID, and
-  exact review-row evidence without offer acceptance, provider writes, or
+  reservation or schedule mutation. When repair receives a declared
+  `station_calendar_provider.v1` object directly, the exact raw provider input
+  is retained separately as `source_station_calendar_provider`, including
+  unaffected entries and top-level provenance; it does not create a second
+  overlay, review/import rows, or a provider action. Source provider-counteroffer
+  review summaries retain status, negotiation-state, lock-deadline, review-ID,
+  and exact review-row evidence without offer acceptance, provider writes, or
   schedule mutation. The source
   constraint report likewise remains distinct from repaired-plan constraint
   evaluation and does not alter feasibility or scoring. Source objective-

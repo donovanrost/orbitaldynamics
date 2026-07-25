@@ -258,6 +258,10 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairArtifact do
       Map.fetch!(attrs, :source_timeline_feedback_report)
     )
     |> put_source_report(
+      "source_station_calendar_provider",
+      Map.get(request, :source_station_calendar_provider)
+    )
+    |> put_source_report(
       "source_station_calendar_report",
       Map.fetch!(attrs, :station_calendar_report)
     )

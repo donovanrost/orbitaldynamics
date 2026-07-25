@@ -5,36 +5,31 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Preserve V2 source provider-counteroffer review-summary handoff.
+Preserve V2 declared station-calendar provider source handoff.
 
 Status:
 Verified; ready to publish.
 
 Selection evidence:
-- CandidateRefresh retains a schema-valid
-  `provider_counteroffer_review_summary.v1` with counteroffer status,
-  negotiation-state, lock-deadline status/count/ID routing, exact review IDs,
-  and complete review rows.
-- The compact review contract is distinct from the already-preserved full
-  counteroffer report and plan-impact/import-readiness summaries and explicitly
-  declares artifact-only, no-provider-write, and no-operator-authority
-  boundaries.
-- Existing provider-counteroffer review/Cadence mapping can carry the exact
-  review rows without accepting an offer, reserving a station, mutating a
-  schedule, importing, writing, or executing anything.
+- Repair accepts a declared `station_calendar_provider.v1` object directly via
+  `station_calendar` or `ground_network` and normalizes its entries before the
+  existing station-calendar overlay.
+- The derived `source_station_calendar_report` retains affected contacts and
+  provider-contention groups, but it cannot retain unaffected declared entries
+  or the provider artifact's top-level identity, provenance, and assumptions.
+- The standalone provider contract and executable validator already exist, so
+  V2 can preserve the exact declared input as distinct source evidence without
+  adding a provider call, reservation, schedule mutation, or planner effect.
 
 Intended behavior:
-- Resolve the CandidateRefresh provider-counteroffer review summary from its
-  source or canonical field and preserve it on V2 as
-  `source_provider_counteroffer_review_summary` without
-  recomputation.
-- Validate the optional V2 source field against
-  `provider_counteroffer_review_summary.v1` at its distinct source
-  path and export the property.
-- Reuse the existing provider-counteroffer review/import mapping so exact
-  status, negotiation-state, lock-deadline, review-ID, and row routing remains
-  visible without acceptance, reservation, schedule mutation, import, write,
-  or execution.
+- Retain an exact string-keyed provider object when the direct repair
+  station-calendar input declares `station_calendar_provider.v1`, and preserve
+  it on V2 as `source_station_calendar_provider`.
+- Validate the optional V2 source field against `station_calendar_provider.v1`
+  at its distinct source path and export the property.
+- Keep the declared source artifact separate from the derived station-calendar
+  report and operator/Cadence rows; it is audit evidence, not a second overlay
+  or an import instruction.
 - Preserve feasibility, scores, ranking, candidate eligibility, schedules,
   provider/Cadence writes, operator authority, and autonomous execution
   behavior.
@@ -43,24 +38,23 @@ Level 6 pillar advanced:
 Fleet-scale planning decisions and durable reproducible audit handoffs.
 
 Planned files:
-- V2 repair source-report resolution and artifact assembly
-- V2 path-aware provider-counteroffer review-summary validation, registry/type
-  hints, and review/import routing
-- focused repair/schema review-import proofs, docs, exports, and ledger
+- repair request normalization and V2 source-artifact assembly
+- V2 path-aware station-calendar provider validation, registry/type hints, and
+  generated schemas
+- focused exact-preservation/schema proofs, docs, exports, and ledger
 
 Verification:
-- Focused repair/source/schema contract proofs: `16 passed`.
-- Adjacent provider-counteroffer family: `47 passed`.
-- Adjacent station/calendar/provider family: `214 passed`.
+- Focused repair/input/schema contract proofs: `10 passed`.
+- Adjacent station/calendar/provider family: `220 passed`.
 - Contact-allocation family: `213 passed`.
 - Golden artifacts: `12 passed`.
 - Schema lint: all `155` schema contracts passed with no errors or warnings.
-- Full suite: all `4988` tests passed in `626.0s`.
+- Full suite: all `4994` tests passed in `614.6s`.
 - Generated schema diff is limited to the campaign-repair schema and aggregate
   bundle. SHA-256: repair
-  `b37d580814f95a92a7b6c63fe069ce3bcc409831fe4c19d7fbe066cf7f74661b`,
+  `19c79ef8f97e89023a4c10ac8a4b10541cba10a62d210a2ce68b091978c0d193`,
   bundle
-  `b107280e7bfa73708add52b0d0be21aa5a895e69da7928e67ebb0f1996d6da07`.
+  `b9a249b3ab597c888e60d8e095e3e6efe6401d0bbda886f3e8d5ad76a7ed94b3`.
 - Canonical repair, strategy, and manifest-schema artifacts are byte-stable.
   Repair ID remains
   `2861de04a1feea9da43cee52e2ad6cdc7e6fcedf91dad323b67517b8cac87a0a`;
@@ -68,29 +62,30 @@ Verification:
   `7fbc8347e361d95e7d43cde2a43c2a2ddbd4050420999c879587aba5cf18ee8b`.
 
 Review:
-- Source resolution accepts the explicit source field, canonical field, or
-  first map in a list, stringifies keys, and remains nil-safe.
-- The preserved artifact is validated by the existing full provider-
-  counteroffer review-summary contract at the exact
-  `$.source_provider_counteroffer_review_summary` path.
-- Existing provider-counteroffer conversion retains each exact review row and
-  now carries status and negotiation-state counts, lock-deadline counts and
-  earliest deadline, review IDs, deadline-status routing, and assumptions in
-  its source-summary context.
-- Focused proofs pin exact artifact preservation, the exact operator row, and
-  its Cadence review row with `has_cadence_import: false`.
-- Negative proofs cover count inconsistency and non-object shape at the source
-  path; the generated property remains optional, and canonical omission remains
-  byte-stable.
-- The V2 field is consumed only by preservation, validation, and review/Cadence
-  handoff. It cannot accept an offer, request or create a provider reservation,
-  allocate, import, write, execute, mutate a schedule, or grant operator
-  authority.
+- Request normalization preserves only a direct object that declares
+  `station_calendar_provider.v1` and passes the executable full contract. A
+  legacy or invalid claimed provider remains usable by the established overlay
+  but is not mislabeled as contract-backed source evidence.
+- The preserved provider is string-keyed but otherwise exact, retaining
+  top-level identity, provenance, assumptions, and entries that affect no
+  repair candidate.
+- The optional V2 field delegates full provider validation at the exact
+  `$.source_station_calendar_provider` path; negative proofs cover missing
+  trust-boundary evidence and non-object shape.
+- Focused proofs distinguish the raw source from the derived
+  `source_station_calendar_report`, pin an unaffected entry, and prove
+  normalized ground-network rows do not synthesize the source field.
+- No operator-review or Cadence-import module consumes the raw provider field,
+  and focused proofs reject any generated review/import row from its source
+  path. The field cannot create a provider call or reservation, allocate,
+  import, write, execute, mutate a schedule, grant authority, or add a second
+  overlay.
 
 Last published slice:
-- `61e26939` Preserve V2 source station-calendar precedence-summary handoff
-  (`4983 passed`; exact precedence/ownership/status review routing, no provider
-  reservation, schedule mutation, import, write, or execution).
+- `a170df9e` Preserve V2 source provider-counteroffer review-summary handoff
+  (`4988 passed`; exact status/negotiation/deadline review routing, no offer
+  acceptance, provider reservation, schedule mutation, import, write, or
+  execution).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions while preserving explicit
@@ -101,8 +96,9 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-After provider-counteroffer review-summary evidence is durable, reassess the
-adjacent station-calendar-provider compatibility gap.
+After declared station-calendar provider evidence is durable, reassess the
+adjacent contact-allocation provider-reservation request-summary compatibility
+gap.
 
 Blocked:
 None.

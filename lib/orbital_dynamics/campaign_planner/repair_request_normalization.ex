@@ -19,7 +19,7 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairRequestNormalization do
     ValueEncoding
   }
 
-  alias OrbitalDynamics.{CandidateRefresh, StudyRunner}
+  alias OrbitalDynamics.{CandidateRefresh, Schema, StudyRunner}
 
   def from_map(request) do
     %ReplanRequest{
@@ -91,6 +91,10 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairRequestNormalization do
 
     repair_policy = RepairPolicySemantics.normalize(request.repair_policy || %{})
     approval_policy = StrategyPolicyNormalization.approval(request.approval_policy || %{})
+
+    source_station_calendar_provider =
+      source_station_calendar_provider(request.ground_network)
+
     ground_network = normalize_ground_network(request.ground_network)
 
     %{
@@ -120,6 +124,7 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairRequestNormalization do
           candidate_refresh,
           candidate_refresh_request
         ),
+      source_station_calendar_provider: source_station_calendar_provider,
       ground_network: ground_network,
       generated_at: generated_at,
       metadata: ValueEncoding.stringify_keys(request.metadata || %{})
@@ -178,6 +183,22 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairRequestNormalization do
   defp normalize_ground_network(_ground_network) do
     raise ArgumentError, "ground_network must be a list or station calendar provider object"
   end
+
+  defp source_station_calendar_provider(%{} = provider) do
+    provider = ValueEncoding.stringify_keys(provider)
+
+    with "station_calendar_provider.v1" <- Map.get(provider, "schema_contract"),
+         {:ok, _report} <-
+           Schema.validate_artifact(provider,
+             schema_contract: "station_calendar_provider.v1"
+           ) do
+      provider
+    else
+      _invalid_or_legacy_provider -> nil
+    end
+  end
+
+  defp source_station_calendar_provider(_ground_network), do: nil
 
   def normalize_generated_at(%DateTime{} = generated_at), do: generated_at
 

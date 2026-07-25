@@ -362,6 +362,11 @@ V2 repair `operator_review_package.v1` now emits:
   applied/overlap availability, affected contacts, and
   reserved-under-higher-precedence ownership/status routing without provider
   reservation or schedule mutation.
+- Direct repair `station_calendar_provider.v1` inputs, preserving every
+  declared entry plus provider identity, provenance, and assumptions as
+  `source_station_calendar_provider`. The raw input remains distinct from the
+  derived station-calendar report and creates no review/import row or provider
+  action.
 - CandidateRefresh source provider-counteroffer review summaries, preserving
   status, negotiation state, expired/missing/active lock-deadline routing,
   review IDs, and exact review rows without accepting an offer, provider writes,
