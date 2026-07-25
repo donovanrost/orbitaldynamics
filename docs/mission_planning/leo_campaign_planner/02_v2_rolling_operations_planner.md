@@ -325,7 +325,9 @@ schema-type their stable IDs, invalid-input flags, and protected/change counts.
   exact prerequisite IDs without granting certification, approval, or operator
   authority. Source schema-validation quality-gate summaries retain exact
   validation counts and blocked/review routing without treating validation
-  evidence as approval or performing an import.
+  evidence as approval or performing an import. Source import-readiness
+  quality-gate summaries retain exact freshness and import-state routing plus
+  publication lineage without approving or performing an import.
   Source provider-counteroffer evidence, including preserved plan-impact
   timing/cost deltas, lock-deadline context, and explicit import-readiness
   classification, remains review-gated and does not change the repaired

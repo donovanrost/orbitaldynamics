@@ -638,6 +638,7 @@ defmodule OrbitalDynamics.OperatorReview.QualityGate do
       "analysis_only_gate_ids" =>
         quality_gate_import_readiness_gate_ids(summary, "analysis_only"),
       "blocked_gate_ids" => quality_gate_import_readiness_gate_ids(summary, "blocked"),
+      "model_limits" => summary["model_limits"],
       "assumptions" => summary["assumptions"],
       "rows" => quality_gate_import_readiness_rows(summary, row_ids_by_status)
     }

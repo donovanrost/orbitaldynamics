@@ -288,6 +288,9 @@ V2 repair `operator_review_package.v1` now emits:
 - CandidateRefresh source schema-validation quality-gate summaries, preserving
   exact pass/fail/error/warning/remediation counts and blocked/review row IDs
   without treating validation evidence as approval or performing an import.
+- CandidateRefresh source import-readiness quality-gate summaries, preserving
+  exact freshness, preparation, blocked/missing/invalid-import counts, row IDs,
+  and publication lineage without approving or performing an import.
 - CandidateRefresh source constraint fail/warning rows, preserving exact
   upstream scenario, threshold, value, score, and status evidence beside the
   recomputed repaired-plan report without changing feasibility or scoring.
