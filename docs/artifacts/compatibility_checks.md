@@ -142,6 +142,14 @@ station and timing context, policy/integrity evidence, provider results, and
 Cadence readiness. Existing review and Cadence adapters preserve exact
 actionable source rows without mutating the schedule, executing a command,
 writing to Cadence, or granting command authority.
+Incoming maneuver-review evidence is retained at
+`source_maneuver_review_report`. Full executable validation pins maneuver and
+review-required counts, stable scenario/maneuver identity, timing, frame,
+delta-v, model and execution-uncertainty context, and any approval/escalation
+evidence. Existing review and Cadence adapters preserve exact actionable rows
+under the report's `review_only_no_command_execution` boundary without
+changing repair scoring or selection, approving a maneuver, commanding,
+executing, or writing to Cadence.
 `study_results/timeline_preservation_status_v1.json` now feeds a curated
 `timeline_preservation_status.v1` validation-reference fixture. The observations
 check locked/protected activity preservation status, timeline identity,

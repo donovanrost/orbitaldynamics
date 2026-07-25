@@ -591,6 +591,7 @@ defmodule OrbitalDynamics.Schema.FieldTypeHints do
     "source_review_type_counts" => "object",
     "source_command_window" => "object",
     "source_command_window_report" => "object",
+    "source_maneuver_review_report" => "object",
     "source_contact_filter_report" => "object",
     "source_contact_allocation_report" => "object",
     "source_contact_allocation_summary" => "object",

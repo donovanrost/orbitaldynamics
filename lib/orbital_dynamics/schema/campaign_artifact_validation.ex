@@ -236,6 +236,8 @@ defmodule OrbitalDynamics.Schema.CampaignArtifactValidation do
         &TimelineTransitionValidation.validate_optional_timeline_transition_application_report/3,
       validate_optional_source_command_window_report:
         &CommandWindowValidation.validate_optional_report_at_path/3,
+      validate_optional_source_maneuver_review_report:
+        &DecisionSupportValidation.validate_optional_maneuver_review_artifact/3,
       validate_optional_command_window_report:
         &CommandWindowValidation.validate_optional_report/2,
       validate_optional_operator_review_package:

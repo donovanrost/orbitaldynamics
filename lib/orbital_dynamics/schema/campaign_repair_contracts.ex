@@ -144,6 +144,10 @@ defmodule OrbitalDynamics.Schema.CampaignRepairContracts do
       "$.source_command_window_report",
       Map.get(artifact, "source_command_window_report")
     ])
+    |> call(callbacks, :validate_optional_source_maneuver_review_report, [
+      "$.source_maneuver_review_report",
+      Map.get(artifact, "source_maneuver_review_report")
+    ])
     |> call(callbacks, :validate_optional_command_window_report, [
       Map.get(artifact, "command_window_report")
     ])

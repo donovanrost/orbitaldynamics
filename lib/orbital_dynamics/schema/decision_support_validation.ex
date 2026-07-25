@@ -42,6 +42,14 @@ defmodule OrbitalDynamics.Schema.DecisionSupportValidation do
     |> validate_maneuver_review_report(path, report)
   end
 
+  def validate_optional_maneuver_review_artifact(issues, _path, nil), do: issues
+
+  def validate_optional_maneuver_review_artifact(issues, path, %{} = report),
+    do: validate_maneuver_review_artifact(issues, path, report)
+
+  def validate_optional_maneuver_review_artifact(issues, path, _report),
+    do: [error(path, "must be an object") | issues]
+
   def validate_maneuver_recommendation(issues, path, maneuver),
     do:
       validate_maneuver_recommendation(

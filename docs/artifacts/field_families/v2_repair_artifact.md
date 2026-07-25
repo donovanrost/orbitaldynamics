@@ -610,6 +610,12 @@ focused repair-action regressions.
   routes exact command/contact direction, station/timing context, policy and
   integrity evidence, provider results, Cadence readiness, and operator actions
   without mutating the schedule or executing a command.
+- **Source maneuver-review report** — V2 preserves CandidateRefresh's upstream
+  `maneuver_review_report.v1` at `source_maneuver_review_report`, validates its
+  exact maneuver counts and rows, and routes scenario/maneuver identity,
+  timing, frame, delta-v, model, execution-uncertainty, approval, escalation,
+  and operator-action evidence into review-gated Cadence import without
+  approving, commanding, or executing a maneuver.
 - **Source schema-validation report** — V2 preserves CandidateRefresh's upstream
   `schema_validation_report.v1`, validates it at
   `source_schema_validation_report`, and routes exact errors, warnings, and

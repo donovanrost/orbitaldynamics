@@ -608,6 +608,27 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairSourceReports do
     end
   end
 
+  def maneuver_review(candidate_refresh),
+    do: maneuver_review(candidate_refresh, default_callbacks())
+
+  def maneuver_review(nil, _callbacks), do: nil
+
+  def maneuver_review(%{} = candidate_refresh, callbacks) do
+    stringify_keys = Keyword.fetch!(callbacks, :stringify_keys)
+    candidate_refresh = stringify_keys.(candidate_refresh)
+
+    [
+      Map.get(candidate_refresh, "source_maneuver_review_report"),
+      Map.get(candidate_refresh, "maneuver_review_report")
+    ]
+    |> Enum.flat_map(&List.wrap/1)
+    |> Enum.find(&is_map/1)
+    |> case do
+      %{} = report -> stringify_keys.(report)
+      _report -> nil
+    end
+  end
+
   def schema_validation(candidate_refresh),
     do: schema_validation(candidate_refresh, default_callbacks())
 

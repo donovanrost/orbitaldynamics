@@ -54,7 +54,7 @@ defmodule OrbitalDynamics.OperatorReview.ManeuverReview do
     }
   end
 
-  defp source_report_rows(reports, source) when is_list(reports) do
+  def source_report_rows(reports, source) when is_list(reports) do
     reports
     |> Enum.with_index()
     |> Enum.flat_map(fn {report, index} ->
@@ -62,14 +62,14 @@ defmodule OrbitalDynamics.OperatorReview.ManeuverReview do
     end)
   end
 
-  defp source_report_rows(%{} = report, source) do
+  def source_report_rows(%{} = report, source) do
     report
     |> stringify_keys()
     |> Map.get("rows", [])
     |> rows("#{source}.rows")
   end
 
-  defp source_report_rows(_report, _source), do: []
+  def source_report_rows(_report, _source), do: []
 
   defp candidate_refresh_result_artifact_rows(artifact) do
     [

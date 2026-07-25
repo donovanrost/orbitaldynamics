@@ -127,6 +127,11 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
       |> File.read!()
       |> :json.decode()
 
+    source_maneuver_review_report =
+      "study_results/maneuver_review_report_v1.json"
+      |> File.read!()
+      |> :json.decode()
+
     source_schema_validation_report =
       "study_results/schema_validation_report_v1.json"
       |> File.read!()
@@ -399,6 +404,7 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
             [source_operational_timeline_report]
           )
           |> Map.put("source_command_window_report", [source_command_window_report])
+          |> Map.put("source_maneuver_review_report", [source_maneuver_review_report])
           |> Map.put("source_schema_validation_report", source_schema_validation_report)
           |> Map.put("source_model_acceptance_report", [source_model_acceptance_report])
           |> Map.put(
@@ -2123,6 +2129,74 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
                    "campaign_repair.source_command_window_report.rows" and
                    &1["activity_id"] == "cmd_window")
              )
+
+    assert artifact["source_maneuver_review_report"] == source_maneuver_review_report
+
+    maneuver_review_row =
+      Enum.find(
+        artifact["operator_review_package"]["rows"],
+        &(&1["source"] == "campaign_repair.source_maneuver_review_report.rows" and
+            &1["maneuver_id"] == "trim_burn")
+      )
+
+    assert %{
+             "review_type" => "maneuver_review",
+             "source" => "campaign_repair.source_maneuver_review_report.rows",
+             "subject_id" => "trim_burn",
+             "maneuver_id" => "trim_burn",
+             "scenario_id" => "ops_checkout",
+             "maneuver_type" => "impulsive_burn",
+             "epoch_s" => 180.0,
+             "epoch_scale" => "tdb",
+             "frame" => "eci_j2000",
+             "delta_v_magnitude_km_s" => 0.01,
+             "maneuver_model" => "impulsive_burns",
+             "approval_status" => "operator_review_required",
+             "required_operator_action" => "review_maneuver_recommendation",
+             "execution_boundary" => "recommendation_only_no_command_execution",
+             "source_maneuver_review" => %{
+               "maneuver_id" => "trim_burn",
+               "execution_uncertainty_status" => "missing"
+             }
+           } = maneuver_review_row
+
+    assert maneuver_review_row["delta_v_km_s"] == [0.0, 0.01, 0.0]
+
+    cadence_maneuver_review_row =
+      Enum.find(
+        artifact["cadence_import_manifest"]["rows"],
+        &(get_in(&1, ["source_review_row", "source"]) ==
+            "campaign_repair.source_maneuver_review_report.rows" and
+            &1["maneuver_id"] == "trim_burn")
+      )
+
+    assert %{
+             "import_action" => "review_maneuver",
+             "import_status" => "review_required_before_import",
+             "source_review_type" => "maneuver_review",
+             "source_review_action" => "review_maneuver_recommendation",
+             "maneuver_id" => "trim_burn",
+             "scenario_id" => "ops_checkout",
+             "maneuver_type" => "impulsive_burn",
+             "epoch_s" => 180.0,
+             "epoch_scale" => "tdb",
+             "frame" => "eci_j2000",
+             "delta_v_magnitude_km_s" => 0.01,
+             "maneuver_model" => "impulsive_burns",
+             "approval_status" => "operator_review_required",
+             "required_operator_action" => "review_maneuver_recommendation",
+             "execution_boundary" => "recommendation_only_no_command_execution",
+             "source_maneuver_review" => %{
+               "maneuver_id" => "trim_burn",
+               "execution_uncertainty_status" => "missing"
+             },
+             "source_review_row" => %{
+               "source" => "campaign_repair.source_maneuver_review_report.rows",
+               "maneuver_id" => "trim_burn"
+             }
+           } = cadence_maneuver_review_row
+
+    assert cadence_maneuver_review_row["delta_v_km_s"] == [0.0, 0.01, 0.0]
 
     assert artifact["source_schema_validation_report"] == source_schema_validation_report
 
