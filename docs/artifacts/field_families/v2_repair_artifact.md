@@ -655,6 +655,12 @@ focused repair-action regressions.
   validate both source artifacts at their V2 paths, and route their existing
   review rows into review-gated Cadence import without applying group evidence
   to candidate eligibility or schedules.
+- **V2 compact contention-resolution summaries** preserve the separately
+  versioned `contact_contention_resolution_summary.v1` at
+  `source_contact_contention_resolution_summary`. Existing adapters synthesize
+  one review-gated recommendation per group with exact selected, deferred, and
+  review contact identity, resource scope, selection reason, action, and
+  capacity provenance; the summary never feeds repair scoring or execution.
 - **Standalone contention-resolution recommendations** can also feed
   branch-local refresh by converting deferred downlink recommendations into
   `downlink_completion_gap` events with selected contact, priority source,

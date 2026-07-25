@@ -77,6 +77,11 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshAllocationFilter
           ]
       end)
 
+    contention_resolution_summary =
+      "study_results/contact_contention_resolution_summary_v1.json"
+      |> File.read!()
+      |> :json.decode()
+
     artifact =
       repair(
         %{
@@ -88,6 +93,10 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshAllocationFilter
         candidate_refresh:
           [deferred_candidate, blocked_candidate, policy_blocked_candidate, allocated_candidate]
           |> candidate_refresh_artifact(contact_allocation_report: allocation_report)
+          |> Map.put(
+            "source_contact_contention_resolution_summary",
+            [contention_resolution_summary]
+          )
       )
 
     assert [%{"id" => "dl_refreshed", "repair" => %{"action" => "moved"}}] =
@@ -113,6 +122,9 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshAllocationFilter
                }
              ]
            } = artifact["source_contact_contention_resolution_report"]
+
+    assert artifact["source_contact_contention_resolution_summary"] ==
+             contention_resolution_summary
 
     assert %{
              "schema_contract" => "contact_contention_report.v1",
@@ -203,6 +215,38 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshAllocationFilter
                  &1["deferred_contact_ids"] == ["dl_deferred"])
            )
 
+    assert %{
+             "review_type" => "contact_contention_recommendation",
+             "source" =>
+               "campaign_repair.source_contact_contention_resolution_summary.summary_recommendations",
+             "subject_id" => "station:equator_prime:contention:1",
+             "selected_contact_id" => "dl_1",
+             "selected_contact_ids" => ["dl_1"],
+             "deferred_contact_ids" => ["dl_2"],
+             "source_summary_schema_contract" => "contact_contention_resolution_summary.v1",
+             "source_contact_contention_resolution_summary" => %{
+               "schema_contract" => "contact_contention_resolution_summary.v1",
+               "recommendation_group_ids" => [
+                 "spacecraft:sat_1:contention:1",
+                 "station:equator_prime:contention:1"
+               ],
+               "selected_contact_ids" => ["dl_1", "dl_3"],
+               "deferred_contact_ids" => ["dl_2", "dl_4"],
+               "assumptions" => %{
+                 "candidate_mutation" => "none",
+                 "execution_boundary" =>
+                   "artifact_only_no_provider_reservation_or_schedule_mutation",
+                 "operator_authority" => "not_granted_by_summary"
+               }
+             }
+           } =
+             Enum.find(
+               artifact["operator_review_package"]["rows"],
+               &(&1["source"] ==
+                   "campaign_repair.source_contact_contention_resolution_summary.summary_recommendations" and
+                   &1["subject_id"] == "station:equator_prime:contention:1")
+             )
+
     assert Enum.any?(
              artifact["cadence_import_manifest"]["rows"],
              &(&1["import_action"] == "review_contact_allocation" and
@@ -244,6 +288,28 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshAllocationFilter
                  &1["deferred_contact_ids"] == ["dl_deferred"] and
                  &1["import_status"] == "review_required_before_import")
            )
+
+    assert %{
+             "import_action" => "review_contact_contention_resolution",
+             "source_review_type" => "contact_contention_recommendation",
+             "selected_contact_id" => "dl_1",
+             "selected_contact_ids" => ["dl_1"],
+             "deferred_contact_ids" => ["dl_2"],
+             "has_cadence_import" => false,
+             "source_review_row" => %{
+               "source" =>
+                 "campaign_repair.source_contact_contention_resolution_summary.summary_recommendations",
+               "source_contact_contention_resolution_summary" => %{
+                 "schema_contract" => "contact_contention_resolution_summary.v1"
+               }
+             }
+           } =
+             Enum.find(
+               artifact["cadence_import_manifest"]["rows"],
+               &(get_in(&1, ["source_review_row", "source"]) ==
+                   "campaign_repair.source_contact_contention_resolution_summary.summary_recommendations" and
+                   &1["subject_id"] == "station:equator_prime:contention:1")
+             )
 
     assert {:ok, %{"schema_contract" => "campaign_repair.v2"}} =
              Schema.validate_artifact(artifact)

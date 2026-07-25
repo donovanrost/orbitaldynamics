@@ -1550,6 +1550,13 @@ also include a generated cross-station same-spacecraft contention challenge, so
 spacecraft-scope contention routing and row-derived resource-scope maps are
 checked without provider reservation, schedule mutation, or candidate
 suppression.
+Campaign-repair V2 preserves that compact artifact at the distinct
+`source_contact_contention_resolution_summary` path. Executable validation
+rejects stale row-derived counts, identity routes, capacity provenance, or
+non-object values. Existing operator-review and Cadence adapters synthesize one
+review-gated recommendation per group while preserving compact summary context;
+the path performs no candidate selection, provider reservation, schedule
+mutation, Cadence write, or grant of operator authority.
 Candidate-refresh validation fixtures replay that same generated contention
 challenge through source-report provenance, pinning branch-local resource-scope,
 direction, contact-ID, and operator-action summaries without performing contact

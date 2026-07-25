@@ -310,6 +310,8 @@ defmodule OrbitalDynamics.Schema.CampaignArtifactValidation do
         &ContactReportValidation.validate_optional_contention_report/3,
       validate_optional_source_contact_contention_resolution_report:
         &ContactReportValidation.validate_optional_contention_resolution_report/3,
+      validate_optional_source_contact_contention_resolution_summary:
+        &ContactReportValidation.validate_optional_contention_resolution_summary/3,
       validate_optional_source_station_reservation_report:
         &StationReservationValidation.validate_optional_report/3,
       validate_optional_source_station_reservation_review_summary:

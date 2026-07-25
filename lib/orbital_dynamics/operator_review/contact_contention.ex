@@ -442,7 +442,7 @@ defmodule OrbitalDynamics.OperatorReview.ContactContention do
     direct_rows ++ candidate_refresh_result_artifact_resolution_rows(artifact)
   end
 
-  defp source_resolution_report_rows(reports, source) when is_list(reports) do
+  def source_resolution_report_rows(reports, source) when is_list(reports) do
     reports
     |> Enum.with_index()
     |> Enum.flat_map(fn {report, index} ->
@@ -450,7 +450,7 @@ defmodule OrbitalDynamics.OperatorReview.ContactContention do
     end)
   end
 
-  defp source_resolution_report_rows(%{} = report, source) do
+  def source_resolution_report_rows(%{} = report, source) do
     report = stringify_keys(report)
 
     if resolution_summary?(report) do
@@ -462,7 +462,7 @@ defmodule OrbitalDynamics.OperatorReview.ContactContention do
     end
   end
 
-  defp source_resolution_report_rows(_report, _source), do: []
+  def source_resolution_report_rows(_report, _source), do: []
 
   defp source_resolution_summary_rows(%{} = summary, source) do
     summary = stringify_keys(summary)

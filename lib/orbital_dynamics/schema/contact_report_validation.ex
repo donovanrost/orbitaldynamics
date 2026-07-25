@@ -97,6 +97,14 @@ defmodule OrbitalDynamics.Schema.ContactReportValidation do
   def validate_optional_contention_resolution_report(issues, path, _report),
     do: [error(path, "must be an object") | issues]
 
+  def validate_optional_contention_resolution_summary(issues, _path, nil), do: issues
+
+  def validate_optional_contention_resolution_summary(issues, path, %{} = summary),
+    do: validate_contention_resolution_summary_artifact(issues, path, summary)
+
+  def validate_optional_contention_resolution_summary(issues, path, _summary),
+    do: [error(path, "must be an object") | issues]
+
   defp required_fields(contract_name) do
     [
       OrbitalDynamics.Schema.ContactFilterRegistryContracts,

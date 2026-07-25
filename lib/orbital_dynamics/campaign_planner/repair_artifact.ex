@@ -200,6 +200,10 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairArtifact do
       RepairSourceReports.contact_contention_resolution(request.candidate_refresh)
     )
     |> put_source_report(
+      "source_contact_contention_resolution_summary",
+      RepairSourceReports.contact_contention_resolution_summary(request.candidate_refresh)
+    )
+    |> put_source_report(
       "source_link_capacity_report",
       RepairSourceReports.link_capacity(request.candidate_refresh)
     )
