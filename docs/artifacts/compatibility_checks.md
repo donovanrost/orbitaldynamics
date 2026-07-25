@@ -184,6 +184,15 @@ protection, identity, and review fields at each exact array index; existing
 review and Cadence adapters preserve the exact source status without changing
 derived preservation decisions, mutating a schedule, writing to Cadence,
 commanding activity, or granting authority.
+CandidateRefresh publication evidence is retained as the ordered, plural
+`source_timeline_publication_summaries` collection. Direct source summaries
+precede canonical summaries, and every map is retained without deduplication or
+first-map selection. Full executable validation pins publication sequence and
+lineage, source and superseded artifacts, downstream invalidations, dependency
+and diff context, and the declared publication-authority claim at each exact
+array index. Existing review and Cadence adapters always require operator review
+and do not publish, republish, execute invalidations, accept source authority,
+mutate a schedule, write to Cadence, command activity, or grant authority.
 CandidateRefresh transition-application evidence is likewise retained at
 `source_timeline_transition_application_report`, distinct from V2's repair-time
 `timeline_transition_application_report`. Full executable validation pins

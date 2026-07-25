@@ -128,7 +128,7 @@ defmodule OrbitalDynamics.OperatorReview.TimelinePublication do
     direct_rows ++ candidate_refresh_result_artifact_publication_rows(artifact)
   end
 
-  defp source_publication_rows(summaries, source) when is_list(summaries) do
+  def source_publication_rows(summaries, source) when is_list(summaries) do
     summaries
     |> Enum.with_index()
     |> Enum.flat_map(fn {summary, index} ->
@@ -136,13 +136,13 @@ defmodule OrbitalDynamics.OperatorReview.TimelinePublication do
     end)
   end
 
-  defp source_publication_rows(%{} = summary, source) do
+  def source_publication_rows(%{} = summary, source) do
     summary
     |> stringify_keys()
     |> publication_rows(source)
   end
 
-  defp source_publication_rows(_summary, _source), do: []
+  def source_publication_rows(_summary, _source), do: []
 
   defp candidate_refresh_result_artifact_publication_rows(artifact) do
     [

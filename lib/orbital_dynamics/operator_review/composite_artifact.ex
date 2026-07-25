@@ -351,6 +351,10 @@ defmodule OrbitalDynamics.OperatorReview.CompositeArtifact do
         Map.get(artifact, "source_timeline_preservation_statuses"),
         "campaign_repair.source_timeline_preservation_statuses"
       ) ++
+      TimelinePublication.source_publication_rows(
+        Map.get(artifact, "source_timeline_publication_summaries"),
+        "campaign_repair.source_timeline_publication_summaries"
+      ) ++
       TimelinePreservation.source_report_rows(
         Map.get(artifact, "source_timeline_preservation_report"),
         "campaign_repair.source_timeline_preservation_report"

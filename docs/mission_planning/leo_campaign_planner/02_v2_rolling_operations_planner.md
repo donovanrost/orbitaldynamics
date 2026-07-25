@@ -306,6 +306,7 @@ schema-type their stable IDs, invalid-input flags, and protected/change counts.
   `source_timeline_activity_lifecycle_states`,
   `source_timeline_activity_states`,
   `source_timeline_preservation_statuses`,
+  `source_timeline_publication_summaries`,
   `source_timeline_preservation_report`,
   `source_timeline_transition_application_report`,
   `source_timeline_transition_application_summary`,
@@ -340,6 +341,9 @@ schema-type their stable IDs, invalid-input flags, and protected/change counts.
   heterogeneous activity-state collection additionally retains activity,
   status, and approval contracts in stable family order. Standalone
   preservation statuses remain distinct from the aggregate preservation report.
+  Source publication summaries remain historical audit evidence and cannot
+  publish, republish, execute downstream invalidations, or grant publication
+  authority.
   Direct source maps precede canonical maps within each family, and all maps are
   retained without deduplication or first-map collapse.
   Source provider-reservation request summaries retain exact

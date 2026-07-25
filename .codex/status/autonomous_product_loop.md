@@ -5,110 +5,102 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Preserve plural V2 source timeline-preservation statuses.
+Preserve plural V2 source timeline-publication summaries.
 
 Status:
-Complete; verified and ready to publish.
+Implemented, reviewed, and verified; ready for scoped publication.
 
 Selection evidence:
 - CandidateRefresh collects direct, canonical, mission-state, and
-  result-artifact `timeline_preservation_status.v1` evidence as lists across
-  distinct activities.
-- A preservation status carries per-activity lock, approval, lifecycle,
-  protection decision/category/reason, and review-routing context. The curated
-  status fixture identifies `dl_locked`, which is absent from the currently
-  preserved aggregate report's rows, so this is distinct evidence rather than
-  a duplicate view.
-- Repair V2 currently preserves the aggregate timeline-preservation report but
-  drops every accepted standalone status; singular or first-map coercion would
-  also discard other activities.
-- The existing preservation review adapter consumes status maps and lists and
-  routes exact evidence into review-gated Cadence rows without changing the
-  schedule or granting authority.
+  result-artifact `timeline_publication_summary.v1` evidence as lists across
+  distinct publication events.
+- A publication summary retains publication sequence and lineage, source and
+  superseded artifacts, downstream invalidations, dependency impacts, timeline
+  diffs, and declared publication authority. Repair V2 currently drops this
+  accepted audit evidence.
+- Singular or first-map coercion would discard other publication events and
+  their downstream invalidation lineage.
+- The existing publication adapter always maps a summary to operator review and
+  review-gated Cadence import. Preserving an upstream claim that publication
+  occurred must not publish, republish, accept its authority, or mutate state.
 
 Intended behavior:
-- Collect every direct source/canonical/list-valued preservation status in
+- Collect every direct source/canonical/list-valued publication summary in
   stable source-before-canonical order, without deduplication, at the explicitly
-  plural `source_timeline_preservation_statuses` field on repair V2.
+  plural `source_timeline_publication_summaries` field on repair V2.
 - Validate every array element against the full
-  `timeline_preservation_status.v1` executable contract at its indexed source
+  `timeline_publication_summary.v1` executable contract at its indexed source
   path and export the versioned nested property.
-- Reuse existing preservation conversion so exact lock, approval, lifecycle,
-  protection, review, identity, and source-status context reach review-gated
-  Cadence handoff with indexed provenance.
-- Keep source statuses out of repair scoring, candidate selection, preservation
-  derivation, schedule/timeline mutation, transition application, publication,
-  provider/Cadence writes, approval/operator authority, commanding, and
-  autonomous execution.
+- Reuse existing publication conversion so exact sequence, lineage,
+  invalidation, dependency, diff, authority-claim, and source-summary context
+  reach review-gated Cadence handoff with indexed provenance.
+- Keep source summaries out of repair scoring, candidate selection, schedule or
+  timeline mutation, publication state, downstream invalidation execution,
+  provider/Cadence writes, approval/operator/publication authority, commanding,
+  and autonomous execution.
 
 Level 6 pillar advanced:
 Fleet-scale resource decisions and durable reproducible audit handoffs.
 
 Planned files:
-- Added lossless plural V2 CandidateRefresh preservation-status resolution and
-  artifact assembly.
-- Added indexed validation, registry/type hints, and existing preservation
-  review/Cadence routing.
-- Added focused source/schema/integration proofs, compatibility documentation,
-  generated schema exports, and this compact ledger handoff.
+- lossless plural V2 CandidateRefresh publication-summary resolution and
+  artifact assembly
+- indexed validation, registry/type hints, and existing review/Cadence routing
+- focused source/schema/integration proofs, docs, exports, and ledger
 
 Verification:
-- Focused source, schema, and full repair-handoff proofs: `16 passed` in 12.6s.
-- Adjacent strategy, CandidateRefresh, preservation, operator-review, and
-  Cadence-import family: `27 passed` in 10.5s.
-- Contact-allocation regression family: `238 passed` in 15.5s.
-- Golden artifacts: `12 passed` in 35.1s.
-- Schema lint: `155` artifacts, `0` errors, `0` warnings.
-- Pre-export full suite: `5129/5130 passed` in 680.5s; the sole failure was the
-  expected checked-in JSON Schema export mismatch.
-- Regenerated all JSON Schemas, the manifest schema, and canonical repair and
-  strategy artifacts. Generated diff is exactly the one-line repair schema and
-  one-line schema-bundle update.
-- Schema-export verification: `3 passed` in 51.3s.
-- Final full suite: `5130 passed` in 682.0s.
-- Canonical hashes remain stable: repair
+- Focused source, schema, and end-to-end repair proofs: `16 passed` in 13.3s.
+- Adjacent publication/replay/review/Cadence proofs: `11 passed, 87 excluded`
+  in 6.5s.
+- Contact-allocation regression family: `238 passed` in 22.4s.
+- Golden artifact gate: `12 passed` in 21.1s.
+- Schema lint: `155` artifacts passed with `0` errors and `0` warnings.
+- Pre-export full suite: `5134/5135 passed` in 704.0s; the sole failure was
+  the expected checked-in schema-export mismatch for the new optional field.
+- Regenerated all schema exports, the manifest schema, and both canonical
+  campaign artifacts. Only `campaign_repair.v2.schema.json` and the schema
+  bundle changed; canonical repair, strategy, and manifest hashes remained
   `867928e8aa95ba8473fffe017e7d1efda9d9e83799516a2a938ef7bb8c25f7fa`,
-  strategy
   `9e2e9bae5d1bef69f36ac288b7cb63a803960b14fc1edf4a841598aa2e947d91`,
-  and manifest
-  `7a44a6e58754aae967ee8319c8768b7270d7d7982667c4a6bad8ff1c274c0594`.
+  and `7a44a6e58754aae967ee8319c8768b7270d7d7982667c4a6bad8ff1c274c0594`.
+- Checked-in schema export gate: `3 passed` in 51.6s.
+- Final full suite: `5135 passed` in 682.9s.
+- `git diff --check` passed.
 
 Review:
-- Source and canonical statuses are collected in stable source-before-canonical
-  order; every map is string-key normalized and retained without deduplication
-  or first-map coercion.
-- Empty collections omit the optional V2 field; non-map input members do not
-  become artifact evidence.
-- Every retained status is validated at an indexed path and reaches distinct
-  operator-review and Cadence-import rows with exact lifecycle, lock, approval,
-  protection, identity, and indexed source context.
-- Standalone statuses remain independent from the aggregate source preservation
-  report and do not change preservation derivation or repair decisions.
-- The slice reuses existing preservation conversion and does not alter repair
-  scoring, candidate selection, schedule/timeline state, transition application,
-  publication, provider reservations, Cadence writes, approval/operator
-  authority, commanding, or autonomous execution.
-- Scoped diff and generated artifacts are clean under `git diff --check`; no
-  unrelated work is present.
+- Scope is additive: one explicitly plural optional repair field, its executable
+  indexed validator/schema metadata, and reuse of the existing publication
+  review adapter.
+- Resolution retains all source maps before all canonical maps, preserves
+  duplicates, and stringifies keys without modifying the source summaries.
+- Every emitted review/Cadence row carries its exact indexed repair provenance
+  and full source summary. The existing adapter still forces
+  `review_timeline_publication` and `review_required_before_import`.
+- Publication authority remains a reported upstream claim only. The slice does
+  not publish or republish, execute downstream invalidations, mutate a schedule
+  or timeline, select candidates, write Cadence/provider state, command
+  activity, grant operator/publication authority, or execute autonomously.
+- Generated output is limited to the two expected one-line schema files; both
+  canonical campaign outputs and the manifest schema are byte-stable.
 
 Last published slice:
-- `38722a36` Preserve plural V2 activity states (`5125 passed`; heterogeneous
-  activity, status, and approval state evidence is retained with indexed
-  contract validation and no transition or execution authority).
+- `89c296c7` Preserve plural V2 preservation statuses (`5130 passed`; distinct
+  standalone preservation status evidence is retained without changing
+  aggregate preservation decisions or granting authority).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions while preserving explicit
   provider and Cadence execution boundaries.
 - Add planner effects only for allocation/resource evidence with selected
   candidate identity; keep compact aggregate maps provenance-only.
-- Preserve remaining per-activity source collections only with explicitly
-  lossless plural V2 shapes rather than first-map coercion.
+- Preserve remaining source collections only with explicitly lossless plural
+  V2 shapes rather than first-map coercion.
 - Continue broader schema/versioned compatibility discipline and stale-input
   challenge fixtures.
 
 Next candidate:
-After plural source preservation statuses are durable, audit the next bounded
-CandidateRefresh source-state collection by product value and distinctness.
+After plural source publication summaries are durable, audit the next bounded
+CandidateRefresh source-report gap by product value and distinctness.
 
 Blocked:
 None.

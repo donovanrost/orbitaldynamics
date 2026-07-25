@@ -665,6 +665,14 @@ focused repair-action regressions.
   lifecycle, lock, approval, protection, identity, and review evidence into
   review-gated Cadence import without changing derived preservation decisions,
   mutating a schedule, or granting authority.
+- **Source timeline-publication summaries** — V2 preserves every
+  CandidateRefresh `timeline_publication_summary.v1` at the explicitly plural
+  `source_timeline_publication_summaries` path. Direct source summaries precede
+  canonical summaries, with no first-map collapse or deduplication. Each
+  indexed summary routes exact sequence, lineage, downstream invalidation,
+  dependency, diff, and declared publication-authority evidence into
+  operator-review-required Cadence handoff without publishing, republishing,
+  executing invalidations, accepting authority, or mutating a schedule.
 - **Source timeline-preservation report** — V2 preserves CandidateRefresh's
   upstream `timeline_preservation_report.v1` independently from derived
   `preserved_activities`, validates it at `source_timeline_preservation_report`,

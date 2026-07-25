@@ -207,6 +207,18 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
       |> String.replace("dl_locked", "cmd_preservation_canonical")
       |> :json.decode()
 
+    source_timeline_publication_summary =
+      "study_results/timeline_publication_summary_v1.json"
+      |> File.read!()
+      |> :json.decode()
+
+    canonical_timeline_publication_summary =
+      source_timeline_publication_summary
+      |> :json.encode()
+      |> IO.iodata_to_binary()
+      |> String.replace("published_plan", "canonical_plan")
+      |> :json.decode()
+
     source_timeline_preservation_report =
       "study_results/timeline_preservation_report_v1.json"
       |> File.read!()
@@ -568,6 +580,14 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
           |> Map.put(
             "timeline_preservation_status",
             canonical_timeline_preservation_status
+          )
+          |> Map.put(
+            "source_timeline_publication_summary",
+            [source_timeline_publication_summary]
+          )
+          |> Map.put(
+            "timeline_publication_summary",
+            canonical_timeline_publication_summary
           )
           |> Map.put(
             "source_timeline_preservation_report",
@@ -2756,6 +2776,66 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
                artifact["cadence_import_manifest"]["rows"],
                &(get_in(&1, ["source_review_row", "source"]) ==
                    "campaign_repair.source_timeline_preservation_statuses[0].status")
+             )
+
+    assert artifact["source_timeline_publication_summaries"] == [
+             source_timeline_publication_summary,
+             canonical_timeline_publication_summary
+           ]
+
+    assert %{
+             "review_type" => "timeline_publication_review",
+             "source" => "campaign_repair.source_timeline_publication_summaries[0]",
+             "subject_id" =>
+               "timeline_publication:7:timeline:published_plan:v2:timeline:published_plan:v1",
+             "publication_id" =>
+               "timeline_publication:7:timeline:published_plan:v2:timeline:published_plan:v1",
+             "publication_sequence" => 7,
+             "publication_status" => "published_with_downstream_invalidations",
+             "downstream_invalidation_status" => "invalidated",
+             "publication_authority" => "mission_operations",
+             "source_artifact_id" => "timeline:published_plan:v2",
+             "required_operator_action" => "review_timeline_publication",
+             "approval_status" => "operator_review_required",
+             "operator_action_reason" => "publication_invalidates_downstream_products",
+             "source_timeline_publication_summary" => ^source_timeline_publication_summary
+           } =
+             Enum.find(
+               artifact["operator_review_package"]["rows"],
+               &(&1["source"] == "campaign_repair.source_timeline_publication_summaries[0]")
+             )
+
+    assert %{
+             "source" => "campaign_repair.source_timeline_publication_summaries[1]",
+             "publication_id" =>
+               "timeline_publication:7:timeline:canonical_plan:v2:timeline:canonical_plan:v1",
+             "source_artifact_id" => "timeline:canonical_plan:v2",
+             "source_timeline_publication_summary" => ^canonical_timeline_publication_summary
+           } =
+             Enum.find(
+               artifact["operator_review_package"]["rows"],
+               &(&1["source"] == "campaign_repair.source_timeline_publication_summaries[1]")
+             )
+
+    assert %{
+             "import_action" => "review_timeline_publication",
+             "import_status" => "review_required_before_import",
+             "source_review_type" => "timeline_publication_review",
+             "source_review_action" => "review_timeline_publication",
+             "publication_id" =>
+               "timeline_publication:7:timeline:published_plan:v2:timeline:published_plan:v1",
+             "publication_status" => "published_with_downstream_invalidations",
+             "publication_authority" => "mission_operations",
+             "source_timeline_publication_summary" => ^source_timeline_publication_summary,
+             "source_review_row" => %{
+               "source" => "campaign_repair.source_timeline_publication_summaries[0]",
+               "source_timeline_publication_summary" => ^source_timeline_publication_summary
+             }
+           } =
+             Enum.find(
+               artifact["cadence_import_manifest"]["rows"],
+               &(get_in(&1, ["source_review_row", "source"]) ==
+                   "campaign_repair.source_timeline_publication_summaries[0]")
              )
 
     assert artifact["source_timeline_preservation_report"] ==

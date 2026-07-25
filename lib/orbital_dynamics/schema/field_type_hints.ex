@@ -621,6 +621,7 @@ defmodule OrbitalDynamics.Schema.FieldTypeHints do
     "source_timeline_activity_lifecycle_states" => "array",
     "source_timeline_activity_states" => "array",
     "source_timeline_preservation_statuses" => "array",
+    "source_timeline_publication_summaries" => "array",
     "source_timeline_preservation_report" => "object",
     "source_timeline_transition_application_report" => "object",
     "source_timeline_transition_application_summary" => "object",
