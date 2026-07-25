@@ -180,6 +180,11 @@ freshness, contact/resource preservation, and station calendar reports.
 - **Source resource projection reports** over repaired activities and source
   resource summaries, preserving storage/downlink pressure rows in top-level
   repair `resource_projection_review` and `review_resource_projection` queues.
+- **Source resource-projection-flow summaries** from `candidate_refresh.v1`,
+  preserving the exact aggregate `resource_projection_flow_summary.v1` plus
+  spacecraft projection, activity resource-flow, pressure, latency,
+  source-quality, trust, and policy context in review-gated Cadence rows without
+  affecting the repair's recomputed resource projection or score.
 - **Source contact allocation reports** from `candidate_refresh.v1`, preserving
   allocated/deferred/blocked contact rows for repair review without station
   reservations.

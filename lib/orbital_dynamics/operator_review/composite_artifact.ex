@@ -489,6 +489,10 @@ defmodule OrbitalDynamics.OperatorReview.CompositeArtifact do
         ),
         "campaign_repair.source_resource_projection_report.projected_resources"
       ) ++
+      ResourceProjection.flow_summary_rows(
+        Map.get(artifact, "source_resource_projection_flow_summary") || %{},
+        "campaign_repair.source_resource_projection_flow_summary.projected_resources"
+      ) ++
       RefreshState.freshness_rows(
         Map.get(artifact, "source_freshness_report"),
         "campaign_repair.source_freshness_report"

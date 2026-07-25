@@ -291,6 +291,7 @@ schema-type their stable IDs, invalid-input flags, and protected/change counts.
   `source_contact_contention_resolution_report`,
   `source_contact_contention_resolution_summary`, `source_link_capacity_report`,
   `source_link_capacity_summary`, `source_relay_data_path_summary`,
+  `source_resource_projection_flow_summary`,
   `source_station_reservation_report`, `source_constraint_report`,
   `source_objective_satisfaction_report`, `source_objective_tradeoff_report`,
   `source_score_term_report`, `source_timeline_diff_report`,
@@ -311,14 +312,14 @@ schema-type their stable IDs, invalid-input flags, and protected/change counts.
   contention recommendations, allocation reservation evidence, and spacecraft
   resource decisions caused by unavailable ground-network or resource
   constraints. The source link-capacity report, compact capacity summary, and
-  relay data-path summary remain distinct from the repaired-plan report, and
-  the station-reservation source remains distinct from the repair-time station
-  calendar; all are review-only. Source timeline-diff summaries, integrity,
-  dependency-impact, lifecycle-state, preservation, transition-application,
-  operational-timeline, command-window, and maneuver-review reports likewise
-  remain distinct from repaired timeline state and cannot apply lifecycle or
-  approval transitions, mutate or publish it, approve maneuvers, or execute
-  commands.
+  relay data-path and resource-projection-flow summaries remain distinct from
+  the repaired-plan reports, and the station-reservation source remains
+  distinct from the repair-time station calendar; all are review-only. Source
+  timeline-diff summaries, integrity, dependency-impact, lifecycle-state,
+  preservation, transition-application, operational-timeline, command-window,
+  and maneuver-review reports likewise remain distinct from repaired timeline
+  state and cannot apply lifecycle or approval transitions, mutate or publish
+  it, approve maneuvers, or execute commands.
   Source provider-reservation request summaries retain exact
   request-ready/review-required rows plus match, station, direction,
   reservation, and contact routing as
@@ -481,11 +482,12 @@ schema-type their stable IDs, invalid-input flags, and protected/change counts.
   optional direct nested V1 contracts. Their standalone validators run before
   V2 consumes station availability, capacity, reservation, allocation, and
   deferral evidence in station-pressure scoring and replacement ranking.
-- `source_contact_filter_report`, `source_resource_filter_report`, and
-  `source_resource_projection_report` are also optional direct nested V1
+- `source_contact_filter_report`, `source_resource_filter_report`,
+  `source_resource_projection_report`, and
+  `source_resource_projection_flow_summary` are also optional direct nested V1
   contracts. Their existing standalone validators keep suppression and
-  projected-resource pressure tied to typed rows, counts, trust context, and
-  exact thin-model limits.
+  projected-resource pressure tied to typed rows, counts, activity flow, trust
+  context, and exact thin-model limits.
 - `source_timeline_feedback_report` is an optional direct nested
   `timeline_feedback_report.v1` contract. V2 validates its row-derived counts,
   exact model limits, operational feedback, and nested operator-review package

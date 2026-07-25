@@ -847,6 +847,27 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairSourceReports do
   def resource_filter(%{} = candidate_refresh, callbacks),
     do: direct_report(candidate_refresh, "resource_filter_report", callbacks)
 
+  def resource_projection_flow_summary(candidate_refresh),
+    do: resource_projection_flow_summary(candidate_refresh, default_callbacks())
+
+  def resource_projection_flow_summary(nil, _callbacks), do: nil
+
+  def resource_projection_flow_summary(%{} = candidate_refresh, callbacks) do
+    stringify_keys = Keyword.fetch!(callbacks, :stringify_keys)
+    candidate_refresh = stringify_keys.(candidate_refresh)
+
+    [
+      Map.get(candidate_refresh, "source_resource_projection_flow_summary"),
+      Map.get(candidate_refresh, "resource_projection_flow_summary")
+    ]
+    |> Enum.flat_map(&List.wrap/1)
+    |> Enum.find(&is_map/1)
+    |> case do
+      %{} = summary -> stringify_keys.(summary)
+      _summary -> nil
+    end
+  end
+
   def freshness(candidate_refresh), do: freshness(candidate_refresh, default_callbacks())
 
   def freshness(nil, _callbacks), do: nil

@@ -609,6 +609,7 @@ defmodule OrbitalDynamics.Schema.FieldTypeHints do
     "source_objective_satisfaction_report" => "object",
     "source_objective_tradeoff_report" => "object",
     "source_score_term_report" => "object",
+    "source_resource_projection_flow_summary" => "object",
     "source_timeline_diff_report" => "object",
     "source_timeline_diff_summary" => "object",
     "source_timeline_integrity_report" => "object",

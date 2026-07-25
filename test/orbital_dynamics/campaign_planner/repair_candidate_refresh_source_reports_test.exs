@@ -26,6 +26,11 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
       |> File.read!()
       |> :json.decode()
 
+    source_resource_projection_flow_summary =
+      "study_results/resource_projection_flow_summary_v1.json"
+      |> File.read!()
+      |> :json.decode()
+
     source_contact_allocation_provider_reservation_request_summary =
       "study_results/contact_allocation_provider_reservation_request_summary_v1.json"
       |> File.read!()
@@ -380,6 +385,10 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
           |> Map.put("source_link_capacity_report", source_link_capacity_report)
           |> Map.put("source_link_capacity_summary", [source_link_capacity_summary])
           |> Map.put("source_relay_data_path_summary", [source_relay_data_path_summary])
+          |> Map.put(
+            "source_resource_projection_flow_summary",
+            [source_resource_projection_flow_summary]
+          )
           |> Map.put("source_station_reservation_report", source_station_reservation_report)
           |> Map.put(
             "source_station_reservation_review_summary",
@@ -481,6 +490,56 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
 
     assert [%{"spacecraft_id" => "leo_1", "antenna_available" => true}] =
              artifact["source_resource_summaries"]
+
+    assert artifact["source_resource_projection_flow_summary"] ==
+             source_resource_projection_flow_summary
+
+    assert %{
+             "review_type" => "resource_projection_review",
+             "source" =>
+               "campaign_repair.source_resource_projection_flow_summary.projected_resources",
+             "subject_id" => "leo_1",
+             "spacecraft_id" => "leo_1",
+             "activity_count" => 1,
+             "resource_flow_count" => 1,
+             "total_battery_energy_consumed_wh" => 120,
+             "projected_storage_remaining_mb" => 750,
+             "source_resource_projection_flow_summary" => %{
+               "schema_contract" => "resource_projection_flow_summary.v1",
+               "resource_flow_status" => "clear",
+               "resource_pressure_count" => 0
+             },
+             "source_resource_projection" => %{
+               "activity_resource_flow" => [
+                 %{"activity_id" => "leo_1_observe_target_a_1"}
+               ]
+             }
+           } =
+             Enum.find(
+               artifact["operator_review_package"]["rows"],
+               &(&1["source"] ==
+                   "campaign_repair.source_resource_projection_flow_summary.projected_resources")
+             )
+
+    assert %{
+             "import_action" => "review_resource_projection",
+             "source_review_type" => "resource_projection_review",
+             "spacecraft_id" => "leo_1",
+             "resource_flow_count" => 1,
+             "total_battery_energy_consumed_wh" => 120,
+             "source_resource_projection_flow_summary" => %{
+               "schema_contract" => "resource_projection_flow_summary.v1"
+             },
+             "source_review_row" => %{
+               "source" =>
+                 "campaign_repair.source_resource_projection_flow_summary.projected_resources"
+             }
+           } =
+             Enum.find(
+               artifact["cadence_import_manifest"]["rows"],
+               &(get_in(&1, ["source_review_row", "source"]) ==
+                   "campaign_repair.source_resource_projection_flow_summary.projected_resources")
+             )
 
     assert %{
              "schema_contract" => "candidate_diff_report.v1",

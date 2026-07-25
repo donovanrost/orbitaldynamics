@@ -326,6 +326,10 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairArtifact do
       Map.fetch!(attrs, :source_resource_projection_report)
     )
     |> put_source_report(
+      "source_resource_projection_flow_summary",
+      RepairSourceReports.resource_projection_flow_summary(request.candidate_refresh)
+    )
+    |> put_source_report(
       "source_timeline_feedback_report",
       Map.fetch!(attrs, :source_timeline_feedback_report)
     )

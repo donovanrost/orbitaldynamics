@@ -1300,6 +1300,14 @@ energy/storage/downlink totals, actual data-volume evidence counts and
 under/over/exact variance routing, model limits, and artifact-only boundaries
 for no resource-state reconciliation, no subsystem simulation, no Cadence
 writes, no activity imports, no command execution, and no schedule mutation.
+Campaign-repair V2 preserves that incoming aggregate separately at
+`source_resource_projection_flow_summary`. Full executable validation pins its
+spacecraft projections, activity resource flow, row-derived pressure and
+latency routing, storage/downlink/battery totals, invalid inputs, source
+quality, trust boundaries, and model limits. Existing review and Cadence
+adapters route exact spacecraft and activity-flow evidence without changing
+repair scoring, recomputing resource state, mutating the schedule, writing to
+Cadence, commanding, or granting operator authority.
 `study_results/resource_projection_battery_handoff_v1.json`,
 `study_results/operator_review_resource_projection_battery_handoff_v1.json`,
 and `study_results/cadence_import_resource_projection_battery_handoff_v1.json`

@@ -108,6 +108,10 @@ defmodule OrbitalDynamics.Schema.CampaignRepairContracts do
       "$.source_resource_projection_report",
       Map.get(artifact, "source_resource_projection_report")
     ])
+    |> call(callbacks, :validate_optional_resource_projection_flow_summary, [
+      "$.source_resource_projection_flow_summary",
+      Map.get(artifact, "source_resource_projection_flow_summary")
+    ])
     |> call(callbacks, :validate_optional_timeline_feedback_report, [
       "$.source_timeline_feedback_report",
       Map.get(artifact, "source_timeline_feedback_report")

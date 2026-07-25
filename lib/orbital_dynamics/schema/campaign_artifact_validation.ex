@@ -220,6 +220,8 @@ defmodule OrbitalDynamics.Schema.CampaignArtifactValidation do
         &ResourceValidation.validate_optional_resource_filter_report/3,
       validate_optional_resource_projection_report:
         &ResourceValidation.validate_optional_resource_projection_report/3,
+      validate_optional_resource_projection_flow_summary:
+        &ResourceValidation.validate_optional_resource_projection_flow_summary/3,
       validate_optional_timeline_feedback_report:
         &TimelineArtifactValidation.validate_optional_timeline_feedback_report/3,
       validate_optional_timeline_diff_report:
