@@ -96,7 +96,11 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairResourceProjectionTest do
                  "candidate_id" => "obs_pressured",
                  "resource_projection_pressure_penalty" => -1.0,
                  "resource_projection_pressure_risk_indicators" => [
-                   %{"type" => "payload_unavailable", "spacecraft_id" => "leo_1"}
+                   %{
+                     "type" => "payload_unavailable",
+                     "candidate_id" => "obs_pressured",
+                     "spacecraft_id" => "leo_1"
+                   }
                  ],
                  "selected" => false,
                  "ranking_score" => pressured_ranking_score
@@ -154,7 +158,11 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairResourceProjectionTest do
                  "candidate_id" => "obs_pressured",
                  "resource_projection_pressure_penalty" => -0.25,
                  "resource_projection_pressure_risk_indicators" => [
-                   %{"type" => "payload_unavailable", "spacecraft_id" => "leo_1"}
+                   %{
+                     "type" => "payload_unavailable",
+                     "candidate_id" => "obs_pressured",
+                     "spacecraft_id" => "leo_1"
+                   }
                  ],
                  "selected" => true
                },
@@ -182,10 +190,12 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairResourceProjectionTest do
              "resource_projection_pressure_risk_indicators"
            )
 
-    assert [%{"type" => "payload_unavailable", "spacecraft_id" => "leo_1"}] =
+    assert [%{"type" => "payload_unavailable", "spacecraft_id" => "leo_1"} = source_risk] =
              OrbitalDynamics.CampaignPlanner.ResourceProjectionRisk.risk_indicators(
                pressured_artifact["source_resource_projection_report"]
              )
+
+    refute Map.has_key?(source_risk, "candidate_id")
 
     assert pressured_artifact["score_terms"]["resource_projection_pressure_penalty"] == -0.25
     assert_in_delta pressured_artifact["score"], -94.25, 1.0e-9
@@ -219,6 +229,20 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairResourceProjectionTest do
 
     assert {:ok, %{"schema_contract" => "campaign_repair.v2"}} =
              Schema.validate_artifact(pressured_artifact)
+
+    legacy_artifact =
+      update_in(
+        pressured_artifact,
+        ["activities", Access.at(0), "repair", "replacement_ranking", "rows", Access.at(0)],
+        fn row ->
+          Map.update!(row, "resource_projection_pressure_risk_indicators", fn indicators ->
+            Enum.map(indicators, &Map.delete(&1, "candidate_id"))
+          end)
+        end
+      )
+
+    assert {:ok, %{"schema_contract" => "campaign_repair.v2"}} =
+             Schema.validate_artifact(legacy_artifact)
 
     invalid_ranking =
       update_in(

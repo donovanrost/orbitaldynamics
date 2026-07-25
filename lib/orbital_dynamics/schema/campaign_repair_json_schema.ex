@@ -278,6 +278,7 @@ defmodule OrbitalDynamics.Schema.CampaignRepairJsonSchema do
         "type" => %{"type" => "string"},
         "severity" => %{"type" => "string"},
         "reason" => %{"type" => "string"},
+        "candidate_id" => stable_id_schema,
         "spacecraft_id" => stable_id_schema,
         "resource_pressure_types" => string_array_schema()
       }

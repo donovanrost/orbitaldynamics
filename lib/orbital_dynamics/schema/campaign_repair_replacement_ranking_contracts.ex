@@ -368,7 +368,8 @@ defmodule OrbitalDynamics.Schema.CampaignRepairReplacementRankingContracts do
           validate_resource_risk_indicator(
             acc,
             "#{path}.resource_projection_pressure_risk_indicators[#{index}]",
-            indicator
+            indicator,
+            Map.get(row, "candidate_id")
           )
         end)
 
@@ -386,19 +387,27 @@ defmodule OrbitalDynamics.Schema.CampaignRepairReplacementRankingContracts do
     end
   end
 
-  defp validate_resource_risk_indicator(issues, path, %{} = indicator) do
+  defp validate_resource_risk_indicator(issues, path, %{} = indicator, candidate_id) do
     issues
     |> require_fields(path, indicator, ["type", "severity", "reason", "spacecraft_id"])
     |> expect_type(path, indicator, "type", :binary)
     |> expect_type(path, indicator, "severity", :binary)
     |> expect_type(path, indicator, "reason", :binary)
-    |> validate_stable_ids(path, indicator, ["spacecraft_id"])
+    |> validate_stable_ids(path, indicator, ["candidate_id", "spacecraft_id"])
+    |> validate_resource_risk_candidate_id(path, indicator, candidate_id)
     |> expect_optional_type(path, indicator, "resource_pressure_types", :list)
     |> validate_string_list_items(path, indicator, "resource_pressure_types")
   end
 
-  defp validate_resource_risk_indicator(issues, path, _indicator),
+  defp validate_resource_risk_indicator(issues, path, _indicator, _candidate_id),
     do: [error(path, "must be a map") | issues]
+
+  defp validate_resource_risk_candidate_id(issues, _path, indicator, _candidate_id)
+       when not is_map_key(indicator, "candidate_id"),
+       do: issues
+
+  defp validate_resource_risk_candidate_id(issues, path, indicator, candidate_id),
+    do: expect_equal(issues, path, indicator, "candidate_id", candidate_id)
 
   defp validate_candidate_diff_priority(issues, path, row) do
     expected_priority =

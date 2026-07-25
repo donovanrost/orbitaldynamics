@@ -214,6 +214,34 @@ defmodule OrbitalDynamics.Schema.CampaignRepairReplacementRankingContractsTest d
              "spacecraft_id" => "leo_1"
            }
          ]
+       )},
+      {row_path <> ".resource_projection_pressure_risk_indicators[0].candidate_id",
+       put_in_path(
+         context.artifact,
+         row_path <> ".resource_projection_pressure_risk_indicators",
+         [
+           %{
+             "type" => "payload_unavailable",
+             "severity" => "high",
+             "reason" => "payload unavailable",
+             "candidate_id" => "different_candidate",
+             "spacecraft_id" => "leo_1"
+           }
+         ]
+       )},
+      {row_path <> ".resource_projection_pressure_risk_indicators[0].candidate_id",
+       put_in_path(
+         context.artifact,
+         row_path <> ".resource_projection_pressure_risk_indicators",
+         [
+           %{
+             "type" => "payload_unavailable",
+             "severity" => "high",
+             "reason" => "payload unavailable",
+             "candidate_id" => "bad id",
+             "spacecraft_id" => "leo_1"
+           }
+         ]
        )}
     ]
 

@@ -284,6 +284,15 @@ defmodule OrbitalDynamics.Schema.CampaignPlanContractsTest do
              "required"
            ]) == ["type", "severity", "reason", "spacecraft_id"]
 
+    assert get_in(ranking_row_schema, [
+             "properties",
+             "resource_projection_pressure_risk_indicators",
+             "items",
+             "properties",
+             "candidate_id",
+             "pattern"
+           ]) == Schema.identity_policy()["stable_id_pattern"]
+
     assert get_in(schema, [
              "properties",
              "source_candidate_activities",

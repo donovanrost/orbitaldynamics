@@ -291,10 +291,15 @@ schema-type their stable IDs, invalid-input flags, and protected/change counts.
   within the candidate's semantic-diff priority tier. Executable V2 validation
   recomputes that row penalty from the embedded risk-indicator count and the
   enclosing scoring-policy weight, so compensating ranking-score edits cannot
-  contradict the explanation while preserving arithmetic. Final resource
-  projection is recomputed after repair and remains authoritative; this does
-  not turn the thin planning model into a subsystem simulator or global
-  optimizer.
+  contradict the explanation while preserving arithmetic. Current ranking
+  producers stamp every nested indicator with the evaluated row's
+  `candidate_id`; executable validation rejects a different supplied identity
+  at the exact indicator path while continuing to read pre-slice V2 indicators
+  that omit the field. Generic resource-projection reports remain unchanged
+  because candidate identity is added only at this decision boundary. Final
+  resource projection is recomputed after repair and remains authoritative;
+  this does not turn the thin planning model into a subsystem simulator or
+  global optimizer.
 - `score_term_report.v1` and `objective_tradeoff_report.v1` over repaired
   activity value, churn, schedule-move, and resource-projection pressure score
   terms plus selected link-capacity shortfall pressure, preserving the same

@@ -295,6 +295,7 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairReplacementSelection do
         source: "source_resource_summaries"
       )
       |> ResourceProjectionRisk.risk_indicators()
+      |> Enum.map(&Map.put(&1, "candidate_id", ActivityIdentity.activity_id(candidate)))
 
     %{
       penalty:
