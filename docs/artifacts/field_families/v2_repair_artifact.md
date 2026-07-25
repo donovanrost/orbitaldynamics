@@ -183,6 +183,12 @@ freshness, contact/resource preservation, and station calendar reports.
 - **Source contact allocation reports** from `candidate_refresh.v1`, preserving
   allocated/deferred/blocked contact rows for repair review without station
   reservations.
+- **Source contact-allocation station-pressure summaries** — V2 preserves the
+  exact `contact_allocation_station_pressure_summary.v1` review subset at
+  `source_contact_allocation_station_pressure_summary`. Operator review and
+  Cadence handoff retain row-derived station, availability, precedence,
+  status, direction, and reservation context without reserving provider time,
+  mutating schedules, granting operator authority, or performing imports.
 - **Source contact-allocation provider-reservation request summaries** — V2
   preserves `contact_allocation_provider_reservation_request_summary.v1` at
   `source_contact_allocation_provider_reservation_request_summary`, including

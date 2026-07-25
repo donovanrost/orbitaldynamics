@@ -296,6 +296,8 @@ defmodule OrbitalDynamics.Schema.CampaignArtifactValidation do
       validate_optional_refresh_budget_report: &RefreshBudgetReportContracts.validate_optional/3,
       validate_optional_source_contact_allocation_report:
         &ContactAllocationValidation.validate_optional_report_at/3,
+      validate_optional_source_contact_allocation_station_pressure_summary:
+        &ContactAllocationValidation.validate_optional_station_pressure_summary/3,
       validate_optional_source_contact_allocation_provider_reservation_request_summary:
         &ContactAllocationValidation.validate_optional_provider_reservation_request_summary/3,
       validate_optional_source_contact_contention_report:
