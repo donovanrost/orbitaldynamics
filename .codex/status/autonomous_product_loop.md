@@ -5,62 +5,65 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Preserve plural V2 source activity-precondition summaries.
+Preserve plural V2 source activity-lifecycle states.
 
 Status:
 Complete; verified and ready to publish.
 
 Selection evidence:
-- CandidateRefresh accepts `timeline_activity_precondition_summary.v1` from
-  direct/canonical, accepted-planning-state, mission-state, result-artifact,
-  operator-review, Cadence-import, and list-valued paths.
-- The singular source key is collection-valued across distinct activities, so
-  first-map coercion would silently discard operational evidence.
-- Repair V2 currently preserves no accepted precondition summaries, even though
-  the campaign schema already has an executable array validator and the
-  operator-review adapter already accepts summary lists.
-- Each summary is artifact-only evidence with explicit no-mutation, no-command,
-  and no-resource-authority limits; review conversion grants no approval or
-  execution authority.
+- CandidateRefresh deliberately collects direct, canonical, mission-state, and
+  result-artifact `timeline_activity_lifecycle_state.v1` evidence as lists;
+  distinct activities can carry different planned/realized status, approval,
+  protection, and operator-action transitions.
+- Repair V2 preserves the aggregate lifecycle-state summary but currently drops
+  every accepted per-activity lifecycle-state artifact.
+- A singular repair field or first-map coercion would discard operational
+  evidence and obscure exact source ordering; the preceding precondition slice
+  established the lossless plural pattern.
+- The existing lifecycle-state review adapter already consumes lists and maps
+  exact transition evidence into review-gated Cadence rows without applying the
+  transition or granting authority.
 
 Intended behavior:
-- Collect every direct source/canonical/list-valued precondition summary in
+- Collect every direct source/canonical/list-valued activity-lifecycle state in
   stable source-before-canonical order, without deduplication, at the explicitly
-  plural `source_timeline_activity_precondition_summaries` field on repair V2.
-- Validate every array element against its full executable contract at its
-  indexed source path and export the versioned nested property.
-- Reuse existing list-aware conversion so blocked/review/clear preconditions,
-  activity/timeline identities, dependency/exclusivity evidence, invalid-input
-  context, and exact source summaries reach review-gated Cadence handoff.
-- Keep the summaries out of repair scoring, candidate selection, schedule or
-  timeline mutation, publication, provider/Cadence writes, approval/operator
-  authority, commanding, and autonomous execution.
+  plural `source_timeline_activity_lifecycle_states` field on repair V2.
+- Validate every array element against the full
+  `timeline_activity_lifecycle_state.v1` executable contract at its indexed
+  source path and export the versioned nested property.
+- Reuse existing lifecycle-state conversion so exact planned/realized context,
+  transition decisions, protection evidence, invalid-input context, and source
+  state reach review-gated Cadence handoff with indexed provenance.
+- Keep source lifecycle states out of repair scoring, candidate selection,
+  current-state derivation, schedule/timeline mutation, transition application,
+  publication, provider/Cadence writes, approval/operator authority,
+  commanding, and autonomous execution.
 
 Level 6 pillar advanced:
 Fleet-scale resource decisions and durable reproducible audit handoffs.
 
 Planned files:
-- Added lossless plural V2 CandidateRefresh precondition-summary resolution and
-  artifact assembly.
-- Added V2 indexed validation, registry/type hints, and existing list-aware
+- Added lossless plural V2 CandidateRefresh activity-lifecycle-state resolution
+  and artifact assembly.
+- Added indexed validation, registry/type hints, and existing lifecycle-state
   review/Cadence routing.
 - Added focused source/schema/integration proofs, compatibility documentation,
   generated schema exports, and this compact ledger handoff.
 
 Verification:
-- Focused source, schema, and full repair-handoff proofs: `16 passed` in 12.1s.
-- Adjacent strategy, CandidateRefresh, operator-review, and Cadence-import
-  activity-precondition family: `21 passed` in 11.1s.
-- Contact-allocation regression family: `238 passed` in 15.8s.
-- Golden artifacts: `12 passed` in 22.4s.
+- Focused source, schema, and full repair-handoff proofs: `16 passed` in 13.3s.
+- Adjacent strategy, CandidateRefresh, lifecycle-state, operator-review, and
+  Cadence-import family: `53 passed` in 6.7s.
+- Contact-allocation regression family: `238 passed` in 36.0s.
+- Golden artifacts: `12 passed` in 21.8s.
 - Schema lint: `155` artifacts, `0` errors, `0` warnings.
-- Pre-export full suite: `5114/5115 passed` in 751.4s; the sole failure was the
+- Pre-export full suite: `5119/5120 passed` in 796.8s; the sole failure was the
   expected checked-in JSON Schema export mismatch.
 - Regenerated all JSON Schemas, the manifest schema, and canonical repair and
   strategy artifacts. Generated diff is exactly the one-line repair schema and
   one-line schema-bundle update.
-- Schema-export verification: `3 passed` in 58.4s.
-- Final full suite: `5115 passed` in 778.2s.
+- Schema-export verification: `3 passed` in 52.4s.
+- Final full suite: `5120 passed` in 780.0s.
 - Canonical hashes remain stable: repair
   `867928e8aa95ba8473fffe017e7d1efda9d9e83799516a2a938ef7bb8c25f7fa`,
   strategy
@@ -69,26 +72,26 @@ Verification:
   `7a44a6e58754aae967ee8319c8768b7270d7d7982667c4a6bad8ff1c274c0594`.
 
 Review:
-- Source and canonical summaries are collected in stable source-before-canonical
-  order; every map is retained and string-key normalized without deduplication
-  or first-map coercion.
+- Source and canonical lifecycle states are collected in stable
+  source-before-canonical order; every map is retained and string-key
+  normalized without deduplication or first-map coercion.
 - Empty collections omit the optional V2 field; non-map input members do not
   become artifact evidence.
-- Every retained summary is validated at an indexed path and reaches distinct
-  operator-review and Cadence-import rows with its exact summary and indexed
-  provenance.
-- The slice reuses existing list-aware conversion and does not alter repair
-  scoring, candidate selection, schedule/timeline state, publication, provider
+- Every retained state is validated at an indexed path and reaches distinct
+  operator-review and Cadence-import rows with its exact planned/realized
+  context and indexed provenance.
+- The slice reuses existing lifecycle-state conversion and does not alter
+  repair scoring, candidate selection, current-state derivation,
+  schedule/timeline state, transition application, publication, provider
   reservations, Cadence writes, approval/operator authority, commanding, or
   autonomous execution.
 - Scoped diff and generated artifacts are clean under `git diff --check`; no
   unrelated work is present.
 
 Last published slice:
-- `cfeb387f` Preserve V2 source realized state snapshot (`5110 passed`; exact
-  upstream realized activities, spacecraft states, and trust-boundary context
-  reach review and Cadence handoff without replacing operative repair state,
-  changing decisions, granting authority, or executing work).
+- `ab0374a1` Preserve plural V2 source preconditions (`5115 passed`; every
+  source and canonical activity-precondition summary is retained with indexed
+  review/Cadence provenance and no repair or execution authority).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions while preserving explicit
@@ -101,7 +104,7 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-After plural source activity-precondition evidence is durable, audit the next
+After plural source activity-lifecycle states are durable, audit the next
 bounded CandidateRefresh source-state collection by product value and
 distinctness.
 

@@ -244,6 +244,8 @@ defmodule OrbitalDynamics.Schema.CampaignArtifactValidation do
         &TimelineArtifactValidation.validate_optional_timeline_lifecycle_state_summary/3,
       validate_optional_timeline_activity_precondition_summaries:
         &TimelineSourceValidation.validate_optional_timeline_activity_precondition_summaries/3,
+      validate_optional_timeline_activity_lifecycle_states:
+        &TimelineSourceValidation.validate_optional_timeline_activity_lifecycle_states/3,
       validate_optional_timeline_preservation_report:
         &TimelineSourceValidation.validate_optional_timeline_preservation_report/3,
       validate_optional_source_operational_timeline_report:

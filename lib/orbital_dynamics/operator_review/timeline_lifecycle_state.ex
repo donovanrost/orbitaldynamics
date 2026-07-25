@@ -319,7 +319,7 @@ defmodule OrbitalDynamics.OperatorReview.TimelineLifecycleState do
 
   defp result_artifact_activity_state_rows(_artifact, _source), do: []
 
-  defp source_activity_lifecycle_state_rows(states, source) when is_list(states) do
+  def source_activity_lifecycle_state_rows(states, source) when is_list(states) do
     states
     |> Enum.with_index()
     |> Enum.flat_map(fn {state, index} ->
@@ -327,13 +327,13 @@ defmodule OrbitalDynamics.OperatorReview.TimelineLifecycleState do
     end)
   end
 
-  defp source_activity_lifecycle_state_rows(%{} = state, source) do
+  def source_activity_lifecycle_state_rows(%{} = state, source) do
     state
     |> stringify_keys()
     |> activity_state_rows("#{source}.state")
   end
 
-  defp source_activity_lifecycle_state_rows(_state, _source), do: []
+  def source_activity_lifecycle_state_rows(_state, _source), do: []
 
   defp candidate_refresh_result_artifact_activity_lifecycle_state_rows(artifact) do
     [

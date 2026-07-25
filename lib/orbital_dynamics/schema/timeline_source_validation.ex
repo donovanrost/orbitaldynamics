@@ -67,6 +67,30 @@ defmodule OrbitalDynamics.Schema.TimelineSourceValidation do
   def validate_optional_timeline_activity_precondition_summaries(issues, path, _summaries),
     do: [error(path, "must be a list") | issues]
 
+  def validate_optional_timeline_activity_lifecycle_states(issues, _path, nil),
+    do: issues
+
+  def validate_optional_timeline_activity_lifecycle_states(issues, path, states)
+      when is_list(states) do
+    states
+    |> Enum.with_index()
+    |> Enum.reduce(issues, fn
+      {%{} = state, index}, acc ->
+        OrbitalDynamics.Schema.TimelineArtifactValidation.validate(
+          acc,
+          "#{path}[#{index}]",
+          state,
+          "timeline_activity_lifecycle_state.v1"
+        )
+
+      {_state, index}, acc ->
+        [error("#{path}[#{index}]", "must be an object") | acc]
+    end)
+  end
+
+  def validate_optional_timeline_activity_lifecycle_states(issues, path, _states),
+    do: [error(path, "must be a list") | issues]
+
   def validate_optional_timeline_integrity_report(issues, _path, nil), do: issues
 
   def validate_optional_timeline_integrity_report(issues, path, %{} = report) do

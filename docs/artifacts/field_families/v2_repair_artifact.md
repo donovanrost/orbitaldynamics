@@ -639,6 +639,14 @@ focused repair-action regressions.
   deduplication. Each indexed summary is validated and routed with exact source
   provenance into review-gated Cadence import without changing repair scoring,
   mutating a schedule, commanding activity, or granting operator authority.
+- **Source timeline-activity-lifecycle states** — V2 preserves every
+  CandidateRefresh `timeline_activity_lifecycle_state.v1` at the explicitly
+  plural `source_timeline_activity_lifecycle_states` path. Direct source states
+  precede canonical states, with no first-map collapse or deduplication. Each
+  indexed state is validated and routes its exact planned/realized status,
+  approval, protection, transition, and operator-action context into
+  review-gated Cadence import without applying transitions, changing repair
+  decisions, mutating a schedule, or granting authority.
 - **Source timeline-preservation report** — V2 preserves CandidateRefresh's
   upstream `timeline_preservation_report.v1` independently from derived
   `preserved_activities`, validates it at `source_timeline_preservation_report`,

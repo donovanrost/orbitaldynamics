@@ -157,6 +157,15 @@ at each exact array index; existing review and Cadence adapters preserve that
 indexed provenance and complete source context without changing repair scores,
 mutating a schedule, writing to Cadence, commanding activity, or granting
 operator authority.
+CandidateRefresh per-activity lifecycle evidence is likewise retained as the
+ordered, plural `source_timeline_activity_lifecycle_states` collection. Direct
+source states precede canonical states, and every map is retained without
+deduplication or first-map selection. Full executable validation pins each
+state at its exact array index; existing review and Cadence adapters preserve
+the complete planned/realized status, approval, protection, transition, and
+operator-action context without applying a transition, changing repair
+decisions, mutating a schedule, writing to Cadence, commanding activity, or
+granting authority.
 CandidateRefresh transition-application evidence is likewise retained at
 `source_timeline_transition_application_report`, distinct from V2's repair-time
 `timeline_transition_application_report`. Full executable validation pins

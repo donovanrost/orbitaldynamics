@@ -154,6 +154,18 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
       |> put_in(["timeline_identity", "activity_id"], "cmd_canonical")
       |> put_in(["timeline_identity", "timeline_id"], "timeline:cmd_canonical")
 
+    source_timeline_activity_lifecycle_state =
+      "study_results/timeline_activity_lifecycle_state_v1.json"
+      |> File.read!()
+      |> :json.decode()
+
+    canonical_timeline_activity_lifecycle_state =
+      source_timeline_activity_lifecycle_state
+      |> :json.encode()
+      |> IO.iodata_to_binary()
+      |> String.replace("cmd_provider", "cmd_canonical_lifecycle")
+      |> :json.decode()
+
     source_timeline_preservation_report =
       "study_results/timeline_preservation_report_v1.json"
       |> File.read!()
@@ -489,6 +501,14 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
           |> Map.put(
             "timeline_activity_precondition_summary",
             canonical_timeline_activity_precondition_summary
+          )
+          |> Map.put(
+            "source_timeline_activity_lifecycle_state",
+            [source_timeline_activity_lifecycle_state]
+          )
+          |> Map.put(
+            "timeline_activity_lifecycle_state",
+            canonical_timeline_activity_lifecycle_state
           )
           |> Map.put(
             "source_timeline_preservation_report",
@@ -2484,6 +2504,65 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
                artifact["cadence_import_manifest"]["rows"],
                &(get_in(&1, ["source_review_row", "source"]) ==
                    "campaign_repair.source_timeline_activity_precondition_summaries[0].summary")
+             )
+
+    assert artifact["source_timeline_activity_lifecycle_states"] == [
+             source_timeline_activity_lifecycle_state,
+             canonical_timeline_activity_lifecycle_state
+           ]
+
+    assert %{
+             "review_type" => "timeline_lifecycle_state_review",
+             "source" => "campaign_repair.source_timeline_activity_lifecycle_states[0].state",
+             "subject_id" => "timeline:cmd_provider",
+             "timeline_id" => "timeline:cmd_provider",
+             "activity_id" => "cmd_provider",
+             "planned_activity_id" => "cmd_provider",
+             "realized_activity_id" => "cmd_provider",
+             "transition_decision" => "review",
+             "status_transition_decision" => "record",
+             "approval_transition_decision" => "review",
+             "planned_status" => "executing",
+             "realized_status" => "completed",
+             "required_operator_action" => "review_activity_approval",
+             "approval_status" => "operator_review_required",
+             "source_timeline_lifecycle_state" => ^source_timeline_activity_lifecycle_state
+           } =
+             Enum.find(
+               artifact["operator_review_package"]["rows"],
+               &(&1["source"] ==
+                   "campaign_repair.source_timeline_activity_lifecycle_states[0].state")
+             )
+
+    assert %{
+             "source" => "campaign_repair.source_timeline_activity_lifecycle_states[1].state",
+             "timeline_id" => "timeline:cmd_canonical_lifecycle",
+             "activity_id" => "cmd_canonical_lifecycle",
+             "source_timeline_lifecycle_state" => ^canonical_timeline_activity_lifecycle_state
+           } =
+             Enum.find(
+               artifact["operator_review_package"]["rows"],
+               &(&1["source"] ==
+                   "campaign_repair.source_timeline_activity_lifecycle_states[1].state")
+             )
+
+    assert %{
+             "import_action" => "review_timeline_lifecycle_state",
+             "import_status" => "review_required_before_import",
+             "source_review_type" => "timeline_lifecycle_state_review",
+             "source_review_action" => "review_activity_approval",
+             "timeline_id" => "timeline:cmd_provider",
+             "activity_id" => "cmd_provider",
+             "source_timeline_lifecycle_state" => ^source_timeline_activity_lifecycle_state,
+             "source_review_row" => %{
+               "source" => "campaign_repair.source_timeline_activity_lifecycle_states[0].state",
+               "source_timeline_lifecycle_state" => ^source_timeline_activity_lifecycle_state
+             }
+           } =
+             Enum.find(
+               artifact["cadence_import_manifest"]["rows"],
+               &(get_in(&1, ["source_review_row", "source"]) ==
+                   "campaign_repair.source_timeline_activity_lifecycle_states[0].state")
              )
 
     assert artifact["source_timeline_preservation_report"] ==
