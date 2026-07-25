@@ -28,6 +28,14 @@ defmodule OrbitalDynamics.Schema.TimelineArtifactValidation do
   def validate_optional_timeline_diff_report(issues, path, _report),
     do: [error(path, "must be an object") | issues]
 
+  def validate_optional_timeline_dependency_impact_summary(issues, _path, nil), do: issues
+
+  def validate_optional_timeline_dependency_impact_summary(issues, path, %{} = summary),
+    do: validate(issues, path, summary, "timeline_dependency_impact_summary.v1")
+
+  def validate_optional_timeline_dependency_impact_summary(issues, path, _summary),
+    do: [error(path, "must be an object") | issues]
+
   def validate(issues, path, artifact, @operational_timeline_report),
     do: OperationalTimelineValidation.validate_report(issues, path, artifact)
 

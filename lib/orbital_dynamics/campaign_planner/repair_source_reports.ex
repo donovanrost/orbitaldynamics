@@ -524,6 +524,27 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairSourceReports do
     end
   end
 
+  def timeline_dependency_impact(candidate_refresh),
+    do: timeline_dependency_impact(candidate_refresh, default_callbacks())
+
+  def timeline_dependency_impact(nil, _callbacks), do: nil
+
+  def timeline_dependency_impact(%{} = candidate_refresh, callbacks) do
+    stringify_keys = Keyword.fetch!(callbacks, :stringify_keys)
+    candidate_refresh = stringify_keys.(candidate_refresh)
+
+    [
+      Map.get(candidate_refresh, "source_timeline_dependency_impact_summary"),
+      Map.get(candidate_refresh, "timeline_dependency_impact_summary")
+    ]
+    |> Enum.flat_map(&List.wrap/1)
+    |> Enum.find(&is_map/1)
+    |> case do
+      %{} = summary -> stringify_keys.(summary)
+      _summary -> nil
+    end
+  end
+
   def timeline_preservation(candidate_refresh),
     do: timeline_preservation(candidate_refresh, default_callbacks())
 

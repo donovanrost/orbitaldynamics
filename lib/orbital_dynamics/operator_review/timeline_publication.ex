@@ -56,7 +56,7 @@ defmodule OrbitalDynamics.OperatorReview.TimelinePublication do
     direct_rows ++ candidate_refresh_result_artifact_dependency_impact_rows(artifact)
   end
 
-  defp source_dependency_impact_rows(summaries, source) when is_list(summaries) do
+  def source_dependency_impact_rows(summaries, source) when is_list(summaries) do
     summaries
     |> Enum.with_index()
     |> Enum.flat_map(fn {summary, index} ->
@@ -64,13 +64,13 @@ defmodule OrbitalDynamics.OperatorReview.TimelinePublication do
     end)
   end
 
-  defp source_dependency_impact_rows(%{} = summary, source) do
+  def source_dependency_impact_rows(%{} = summary, source) do
     summary
     |> stringify_keys()
     |> dependency_impact_rows("#{source}.dependency_impact_rows")
   end
 
-  defp source_dependency_impact_rows(_summary, _source), do: []
+  def source_dependency_impact_rows(_summary, _source), do: []
 
   defp candidate_refresh_result_artifact_dependency_impact_rows(artifact) do
     [

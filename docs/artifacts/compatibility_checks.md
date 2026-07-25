@@ -118,6 +118,13 @@ or non-object values. Existing operator-review and Cadence adapters retain
 exact pre-repair decisions and source summary context for review; the path
 performs no repair scoring, candidate selection, timeline mutation, Cadence
 write, or grant of operator authority.
+Campaign-repair V2 also preserves incoming dependency-impact evidence at
+`source_timeline_dependency_impact_summary`. Full executable validation pins
+changed source and dependent activity/timeline counts, stable identity lists,
+source/replacement scope, dependency and exclusivity edges, status, and
+operator-action routing. Existing review and Cadence adapters retain exact
+actionable impact rows without applying a transition, mutating or publishing
+the repaired timeline, writing to Cadence, or granting operator authority.
 CandidateRefresh transition-application evidence is likewise retained at
 `source_timeline_transition_application_report`, distinct from V2's repair-time
 `timeline_transition_application_report`. Full executable validation pins

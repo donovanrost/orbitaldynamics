@@ -107,6 +107,11 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
       |> File.read!()
       |> :json.decode()
 
+    source_timeline_dependency_impact_summary =
+      "study_results/timeline_dependency_impact_summary_v1.json"
+      |> File.read!()
+      |> :json.decode()
+
     source_timeline_preservation_report =
       "study_results/timeline_preservation_report_v1.json"
       |> File.read!()
@@ -391,6 +396,10 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
           |> Map.put("source_score_term_report", source_score_term_report)
           |> Map.put("source_timeline_diff_report", source_timeline_diff_report)
           |> Map.put("source_timeline_integrity_report", [source_timeline_integrity_report])
+          |> Map.put(
+            "source_timeline_dependency_impact_summary",
+            [source_timeline_dependency_impact_summary]
+          )
           |> Map.put(
             "source_timeline_preservation_report",
             [source_timeline_preservation_report]
@@ -1906,6 +1915,75 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
                artifact["cadence_import_manifest"]["rows"],
                &(get_in(&1, ["source_review_row", "source"]) ==
                    "campaign_repair.source_timeline_integrity_report.rows")
+             )
+
+    assert artifact["source_timeline_dependency_impact_summary"] ==
+             source_timeline_dependency_impact_summary
+
+    assert %{
+             "review_type" => "timeline_dependency_impact_review",
+             "source" =>
+               "campaign_repair.source_timeline_dependency_impact_summary.dependency_impact_rows",
+             "subject_id" => "timeline:command:20.0",
+             "timeline_id" => "timeline:command:20.0",
+             "activity_id" => "cmd_main",
+             "activity_type" => "command",
+             "dependency_impact_scope" => "source",
+             "dependency_impact_status" => "review_required",
+             "required_operator_action" => "review_timeline_integrity",
+             "operator_action_reason" => "dependency_changed_or_removed_source_activity",
+             "changed_source_activity_count" => 2,
+             "changed_source_timeline_count" => 2,
+             "dependent_activity_count" => 4,
+             "impacted_source_activity_ids" => ["dl_followup", "health_gate"],
+             "impacted_dependency_activity_ids" => ["health_gate"],
+             "dependency_activity_ids" => ["health_gate"],
+             "source_timeline_dependency_impact" => %{
+               "id" => "dependency_impact:source:timeline:command:20.0",
+               "scope" => "source",
+               "activity_id" => "cmd_main"
+             }
+           } =
+             Enum.find(
+               artifact["operator_review_package"]["rows"],
+               &(&1["source"] ==
+                   "campaign_repair.source_timeline_dependency_impact_summary.dependency_impact_rows" and
+                   &1["activity_id"] == "cmd_main" and
+                   &1["dependency_impact_scope"] == "source")
+             )
+
+    assert %{
+             "import_action" => "review_timeline_dependency_impact",
+             "import_status" => "review_required_before_import",
+             "source_review_type" => "timeline_dependency_impact_review",
+             "source_review_action" => "review_timeline_integrity",
+             "timeline_id" => "timeline:command:20.0",
+             "activity_id" => "cmd_main",
+             "activity_type" => "command",
+             "dependency_impact_scope" => "source",
+             "dependency_impact_status" => "review_required",
+             "changed_source_activity_count" => 2,
+             "changed_source_timeline_count" => 2,
+             "dependent_activity_count" => 4,
+             "impacted_source_activity_ids" => ["dl_followup", "health_gate"],
+             "impacted_dependency_activity_ids" => ["health_gate"],
+             "dependency_activity_ids" => ["health_gate"],
+             "source_timeline_dependency_impact" => %{
+               "scope" => "source",
+               "activity_id" => "cmd_main"
+             },
+             "source_review_row" => %{
+               "source" =>
+                 "campaign_repair.source_timeline_dependency_impact_summary.dependency_impact_rows",
+               "activity_id" => "cmd_main"
+             }
+           } =
+             Enum.find(
+               artifact["cadence_import_manifest"]["rows"],
+               &(get_in(&1, ["source_review_row", "source"]) ==
+                   "campaign_repair.source_timeline_dependency_impact_summary.dependency_impact_rows" and
+                   &1["activity_id"] == "cmd_main" and
+                   &1["dependency_impact_scope"] == "source")
              )
 
     assert artifact["source_timeline_preservation_report"] ==
