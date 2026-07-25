@@ -198,6 +198,7 @@ defmodule OrbitalDynamics.OperatorReview.QualityGate do
       "non_passed_rows" => summary["non_passed_rows"],
       "trust_boundary" => summary["trust_boundary"],
       "trust_boundaries" => summary["trust_boundaries"],
+      "model_limits" => summary["model_limits"],
       "assumptions" => summary["assumptions"],
       "rows" => quality_gate_summary_rows(summary)
     }

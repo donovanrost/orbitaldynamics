@@ -458,6 +458,12 @@ focused repair-action regressions.
   handoff-only flag, execution/write/operator-authority denials, classified
   execution boundary, operational-mode gate, assumptions, and artifact-only
   model limits without executing a command or performing an import.
+- **Source operational quality-gate summary** — V2 preserves the normalized
+  `operational_quality_gate_summary.v1` at
+  `source_operational_quality_gate_summary`, including exact gate rows,
+  status/classification routing maps, non-passed gate and row IDs, non-passed
+  rows, source report identity, assumptions, and model limits without
+  recalculating a gate or approving an import.
 - **Source constraint report** — V2 preserves CandidateRefresh's upstream
   `constraint_report.v1` independently from the recomputed repaired-plan
   report, validates it at `source_constraint_report`, and routes exact non-pass
