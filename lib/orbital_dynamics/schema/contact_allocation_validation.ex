@@ -53,6 +53,14 @@ defmodule OrbitalDynamics.Schema.ContactAllocationValidation do
   def validate_optional_station_pressure_summary(issues, path, _summary),
     do: [error(path, "must be an object") | issues]
 
+  def validate_optional_reservation_conflict_summary(issues, _path, nil), do: issues
+
+  def validate_optional_reservation_conflict_summary(issues, path, %{} = summary),
+    do: validate_reservation_conflict_artifact(issues, path, summary)
+
+  def validate_optional_reservation_conflict_summary(issues, path, _summary),
+    do: [error(path, "must be an object") | issues]
+
   def validate_optional_provider_reservation_request_summary(issues, _path, nil), do: issues
 
   def validate_optional_provider_reservation_request_summary(issues, path, %{} = summary),

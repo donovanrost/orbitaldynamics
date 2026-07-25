@@ -1447,6 +1447,14 @@ review/import adapters preserve the exact review subset and grouped station,
 availability, precedence, status, and direction evidence. The compatibility
 path remains artifact-only and grants no provider reservation, schedule
 mutation, Cadence write, or operator authority.
+Campaign-repair V2 likewise preserves
+`contact_allocation_reservation_conflict_summary.v1` at
+`source_contact_allocation_reservation_conflict_summary`. Its executable path
+rejects stale row-derived counts or routes and non-object values; review/import
+adapters retain exact conflict rows plus match/status/owner/expiration,
+reservation-ID, direction, and station evidence. The preserved summary remains
+review-only and cannot reserve provider time, mutate schedules, import into
+Cadence, or grant operator authority.
 The validation-reference registry and checked-in
 `study_results/contact_allocation_provider_reservation_request_summary_v1.json`
 fixture also feed the

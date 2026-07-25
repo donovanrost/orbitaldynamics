@@ -69,6 +69,7 @@ defmodule OrbitalDynamics.OperatorReview.CompositeArtifact do
       ["source_contact_allocation_report"],
       ["contact_allocation_report"],
       ["source_contact_allocation_station_pressure_summary"],
+      ["source_contact_allocation_reservation_conflict_summary"],
       ["source_contact_allocation_provider_reservation_request_summary"],
       ["contact_allocation_provider_reservation_request_summary"]
     ])
@@ -381,6 +382,10 @@ defmodule OrbitalDynamics.OperatorReview.CompositeArtifact do
       ContactAllocation.source_report_rows(
         Map.get(artifact, "source_contact_allocation_station_pressure_summary"),
         "campaign_repair.source_contact_allocation_station_pressure_summary"
+      ) ++
+      ContactAllocation.source_report_rows(
+        Map.get(artifact, "source_contact_allocation_reservation_conflict_summary"),
+        "campaign_repair.source_contact_allocation_reservation_conflict_summary"
       ) ++
       ContactAllocation.source_report_rows(
         Map.get(

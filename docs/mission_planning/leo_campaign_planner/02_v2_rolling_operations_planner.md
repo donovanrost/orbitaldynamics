@@ -283,6 +283,7 @@ schema-type their stable IDs, invalid-input flags, and protected/change counts.
   same fixed-rate throughput summary shape used by V1 campaign artifacts.
 - `source_contact_filter_report`, `source_contact_allocation_report`,
   `source_contact_allocation_station_pressure_summary`,
+  `source_contact_allocation_reservation_conflict_summary`,
   `source_contact_allocation_provider_reservation_request_summary`,
   `source_contact_contention_report`,
   `source_contact_contention_resolution_report`, `source_link_capacity_report`,

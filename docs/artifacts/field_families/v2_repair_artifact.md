@@ -189,6 +189,13 @@ freshness, contact/resource preservation, and station calendar reports.
   Cadence handoff retain row-derived station, availability, precedence,
   status, direction, and reservation context without reserving provider time,
   mutating schedules, granting operator authority, or performing imports.
+- **Source contact-allocation reservation-conflict summaries** — V2 preserves
+  `contact_allocation_reservation_conflict_summary.v1` at
+  `source_contact_allocation_reservation_conflict_summary`, including the exact
+  conflict/review subset and row-derived contact/reservation identity routes by
+  match status, reservation status, owner, expiration, direction, and station.
+  The adapter creates review evidence only and performs no provider or Cadence
+  write.
 - **Source contact-allocation provider-reservation request summaries** — V2
   preserves `contact_allocation_provider_reservation_request_summary.v1` at
   `source_contact_allocation_provider_reservation_request_summary`, including
