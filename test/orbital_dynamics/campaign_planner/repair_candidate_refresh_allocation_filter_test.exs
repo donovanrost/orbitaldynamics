@@ -104,6 +104,12 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshAllocationFilter
 
     assert Enum.map(artifact["source_candidate_activities"], & &1["id"]) == ["dl_refreshed"]
 
+    assert artifact["source_suppressed_candidate_activities"] == [
+             deferred_candidate,
+             blocked_candidate,
+             policy_blocked_candidate
+           ]
+
     assert %{
              "schema_contract" => "contact_allocation_report.v1",
              "deferred_contact_count" => 1,

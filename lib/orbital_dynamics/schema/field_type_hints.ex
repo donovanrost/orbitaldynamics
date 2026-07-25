@@ -661,6 +661,7 @@ defmodule OrbitalDynamics.Schema.FieldTypeHints do
     "source_resource_filter_summary" => "object",
     "source_resource_projection_report" => "object",
     "source_resource_summaries" => "array",
+    "source_suppressed_candidate_activities" => "array",
     "source_risk" => "object",
     "source_schema_validation_report" => "object",
     "source_schema_validation_batch_report" => "object",

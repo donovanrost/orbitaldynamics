@@ -4,6 +4,7 @@ defmodule OrbitalDynamics.Schema.CampaignRepairJsonSchema do
   @property_fields [
     "activities",
     "source_candidate_activities",
+    "source_suppressed_candidate_activities",
     "deltas",
     "approval_requirements",
     "approval_policy",
@@ -29,6 +30,10 @@ defmodule OrbitalDynamics.Schema.CampaignRepairJsonSchema do
   end
 
   def property_opts("source_candidate_activities", deps) do
+    [candidate_activity_schema: fetch_dep!(deps, :candidate_activity_schema)]
+  end
+
+  def property_opts("source_suppressed_candidate_activities", deps) do
     [candidate_activity_schema: fetch_dep!(deps, :candidate_activity_schema)]
   end
 
@@ -79,6 +84,10 @@ defmodule OrbitalDynamics.Schema.CampaignRepairJsonSchema do
   end
 
   def property("source_candidate_activities", opts) do
+    array_of(Keyword.fetch!(opts, :candidate_activity_schema))
+  end
+
+  def property("source_suppressed_candidate_activities", opts) do
     array_of(Keyword.fetch!(opts, :candidate_activity_schema))
   end
 

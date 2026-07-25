@@ -75,6 +75,11 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshContactFilterTes
              "dl_contact_available"
            ]
 
+    assert artifact["source_suppressed_candidate_activities"] == [
+             blocked_candidate,
+             bare_id_blocked_candidate
+           ]
+
     assert %{
              "schema_contract" => "contact_filter_report.v1",
              "suppressed_candidate_count" => 2,

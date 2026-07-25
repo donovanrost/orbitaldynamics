@@ -42,6 +42,27 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateInputs do
     |> MapSet.union(resource_suppressed_candidate_ids(candidate_refresh, callbacks))
   end
 
+  def suppressed_candidate_activities(candidate_refresh),
+    do: suppressed_candidate_activities(candidate_refresh, callbacks())
+
+  def suppressed_candidate_activities(nil, _callbacks), do: []
+
+  def suppressed_candidate_activities(%{} = candidate_refresh, callbacks) do
+    stringify_keys = Keyword.fetch!(callbacks, :stringify_keys)
+    suppressed_candidate_ids = suppressed_candidate_ids(candidate_refresh, callbacks)
+
+    case Map.get(candidate_refresh, "candidate_activities") do
+      rows when is_list(rows) ->
+        rows
+        |> Enum.filter(&is_map/1)
+        |> Enum.map(stringify_keys)
+        |> Enum.filter(&MapSet.member?(suppressed_candidate_ids, activity_id(&1, callbacks)))
+
+      _rows ->
+        []
+    end
+  end
+
   def contact_suppressed_candidate_ids(candidate_refresh),
     do: contact_suppressed_candidate_ids(candidate_refresh, callbacks())
 

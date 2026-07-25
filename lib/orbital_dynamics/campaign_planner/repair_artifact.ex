@@ -96,6 +96,10 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairArtifact do
       }
     }
     |> put_source_reports(
+      "source_suppressed_candidate_activities",
+      RepairCandidateInputs.suppressed_candidate_activities(request.candidate_refresh)
+    )
+    |> put_source_reports(
       "source_window_lineage",
       RepairSourceReports.source_window_lineage(request.candidate_refresh)
     )

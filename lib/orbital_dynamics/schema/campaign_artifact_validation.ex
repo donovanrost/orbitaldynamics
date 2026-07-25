@@ -217,6 +217,7 @@ defmodule OrbitalDynamics.Schema.CampaignArtifactValidation do
       validate_optional_rows:
         &OrbitalDynamics.Schema.CollectionValidation.validate_optional_rows/4,
       validate_activity: &OrbitalDynamics.Schema.ActivityContracts.validate/3,
+      validate_candidate_activity: &OrbitalDynamics.Schema.CandidateActivityContracts.validate/3,
       validate_policy_rule_match: &PolicyValidation.validate_rule_match/3,
       validate_contact_intent: &OrbitalDynamics.Schema.ContactIntentContracts.validate/3,
       validate_optional_contact_intent_summary:

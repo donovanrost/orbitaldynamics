@@ -129,6 +129,7 @@ defmodule OrbitalDynamics.Schema.CampaignRegistryContracts do
           "source_contact_intent_summary",
           "source_realized_state_snapshot",
           "source_resource_summaries",
+          "source_suppressed_candidate_activities",
           "source_candidate_diff_report",
           "source_candidate_refresh_provenance",
           "source_validation_records",

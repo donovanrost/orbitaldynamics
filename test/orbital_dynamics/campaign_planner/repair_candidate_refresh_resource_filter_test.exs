@@ -66,6 +66,8 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshResourceFilterTe
 
     assert Enum.map(artifact["source_candidate_activities"], & &1["id"]) == ["dl_available"]
 
+    assert artifact["source_suppressed_candidate_activities"] == [blocked_candidate]
+
     assert %{
              "schema_contract" => "resource_filter_report.v1",
              "suppressed_candidate_count" => 1,

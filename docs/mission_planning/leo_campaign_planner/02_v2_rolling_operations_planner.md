@@ -183,8 +183,15 @@ schema-type their stable IDs, invalid-input flags, and protected/change counts.
   operator-review packages lift embedded operational-timeline rows that require
   operator action into the same review surface.
 - `source_candidate_activities` so later V3 strategy branches can reuse the
-  repair search space. This is either the prior plan candidate set or the
-  refreshed candidates from a supplied or repair-generated `candidate_refresh.v1`.
+  eligible repair search space. This is either the prior plan candidate set or
+  the refreshed candidates that remain after the supplied or repair-generated
+  `candidate_refresh.v1` contact, allocation, budget, and resource filters.
+- `source_suppressed_candidate_activities` when CandidateRefresh filtering
+  excludes candidates before repair ranking. These are the exact source
+  candidate maps in source order, so audit consumers can correlate their IDs,
+  scores, score terms, and source windows with the preserved filter reports.
+  The collection is validated and audit-only; it does not change filtering,
+  scoring, ranking, selection, operator routing, or approval authority.
 - `source_window_lineage` so candidate-diff review and Cadence rows can retain
   exact invalidated/replacement candidate-to-window provenance. The preserved
   collection is validated and review-only; it does not influence repair

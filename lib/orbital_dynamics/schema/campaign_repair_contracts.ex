@@ -3,6 +3,7 @@ defmodule OrbitalDynamics.Schema.CampaignRepairContracts do
 
   alias OrbitalDynamics.Schema.{
     CampaignRepairCandidateValueContracts,
+    CampaignRepairCandidatePoolContracts,
     CampaignRepairCandidateDiffRankingContracts,
     CampaignRepairCadenceImportContracts,
     CampaignRepairCommandWindowContracts,
@@ -75,6 +76,12 @@ defmodule OrbitalDynamics.Schema.CampaignRepairContracts do
       Map.get(artifact, "activities", []),
       callback(callbacks, :validate_activity)
     ])
+    |> call(callbacks, :validate_optional_rows, [
+      "$.source_suppressed_candidate_activities",
+      Map.get(artifact, "source_suppressed_candidate_activities"),
+      callback(callbacks, :validate_candidate_activity)
+    ])
+    |> CampaignRepairCandidatePoolContracts.validate(artifact)
     |> CampaignRepairReplacementRankingContracts.validate_activities(
       "$.activities",
       Map.get(artifact, "activities", [])
