@@ -16,17 +16,40 @@ defmodule OrbitalDynamics.OperatorReview.RealizedStateSnapshot do
 
   def package_input(snapshot) do
     snapshot = ValueEncoding.stringify_keys(snapshot || %{})
-    activities = Map.get(snapshot, "activities", [])
 
-    report =
-      OrbitalDynamics.TimelineFeedback.reconcile([], activities)
+    {
+      review_rows(snapshot, "realized_state_snapshot.activities"),
+      source_artifact_id(snapshot),
+      provenance(snapshot)
+    }
+  end
 
-    rows =
-      report
-      |> Map.get("rows", [])
-      |> TimelineFeedback.rows("realized_state_snapshot.activities")
+  def source_rows(nil, _source), do: []
 
-    {rows, source_artifact_id(snapshot), provenance(snapshot)}
+  def source_rows(snapshots, source) when is_list(snapshots) do
+    snapshots
+    |> Enum.with_index()
+    |> Enum.flat_map(fn {snapshot, index} ->
+      source_rows(snapshot, "#{source}[#{index}]")
+    end)
+  end
+
+  def source_rows(%{} = snapshot, source) do
+    snapshot = ValueEncoding.stringify_keys(snapshot)
+
+    snapshot
+    |> review_rows("#{source}.activities")
+    |> Enum.map(&Map.put(&1, "source_realized_state_snapshot", snapshot))
+  end
+
+  def source_rows(_snapshot, _source), do: []
+
+  defp review_rows(snapshot, source) do
+    snapshot
+    |> Map.get("activities", [])
+    |> then(&OrbitalDynamics.TimelineFeedback.reconcile([], &1))
+    |> Map.get("rows", [])
+    |> TimelineFeedback.rows(source)
   end
 
   defp source_artifact_id(snapshot) do

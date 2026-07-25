@@ -185,8 +185,9 @@ schema-type their stable IDs, invalid-input flags, and protected/change counts.
 - `source_candidate_activities` so later V3 strategy branches can reuse the
   repair search space. This is either the prior plan candidate set or the
   refreshed candidates from a supplied or repair-generated `candidate_refresh.v1`.
-- `source_contact_intents`, `source_contact_intent_summary`, and
-  `source_resource_summaries` when repair consumes a `candidate_refresh.v1`,
+- `source_contact_intents`, `source_contact_intent_summary`,
+  `source_realized_state_snapshot`, and `source_resource_summaries` when repair
+  consumes a `candidate_refresh.v1`,
   preserving Cadence-facing contact rows, exact aggregate direction/station
   capacity demand, and thin resource summaries alongside the refreshed
   candidate set. Repair-generated
@@ -493,6 +494,12 @@ schema-type their stable IDs, invalid-input flags, and protected/change counts.
   `contact_intent_summary.v1` contract. Its standalone validator pins exact
   aggregate direction/station capacity routing before existing adapters emit
   review-gated rows; V2 does not allocate or reserve contacts from the summary.
+- `source_realized_state_snapshot` is an optional direct
+  `realized_state_snapshot.v1` contract, separate from the repair request's
+  operative snapshot. Its standalone validator pins exact realized activities,
+  spacecraft states, provider/trust-boundary metadata, and row-derived counts
+  before source-aware adapters emit review-gated realized-feedback rows; it does
+  not change repair decisions or current realized state.
 - `source_contact_allocation_report` and `source_station_calendar_report` are
   optional direct nested V1 contracts. Their standalone validators run before
   V2 consumes station availability, capacity, reservation, allocation, and

@@ -23,6 +23,7 @@ defmodule OrbitalDynamics.Schema.CampaignArtifactValidation do
     ProposedContactContracts,
     ProposedContactRegistryContracts,
     ProviderCounterofferValidation,
+    RealizedStateValidation,
     RefreshBudgetReportContracts,
     ResourceValidation,
     SchemaOperationsValidation,
@@ -208,6 +209,8 @@ defmodule OrbitalDynamics.Schema.CampaignArtifactValidation do
         &OrbitalDynamics.Schema.StableIdValidation.validate_optional_stable_ids/4,
       validate_realized_state_snapshot:
         &OrbitalDynamics.Schema.RealizedStateSnapshotContracts.validate/3,
+      validate_optional_source_realized_state_snapshot:
+        &RealizedStateValidation.validate_optional_snapshot/3,
       validate_rows: &OrbitalDynamics.Schema.CollectionValidation.validate_rows/4,
       validate_optional_rows:
         &OrbitalDynamics.Schema.CollectionValidation.validate_optional_rows/4,

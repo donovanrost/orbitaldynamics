@@ -23,6 +23,7 @@ defmodule OrbitalDynamics.OperatorReview.CompositeArtifact do
   alias OrbitalDynamics.OperatorReview.ProviderCounteroffer
   alias OrbitalDynamics.OperatorReview.QualityGate
   alias OrbitalDynamics.OperatorReview.RefreshState
+  alias OrbitalDynamics.OperatorReview.RealizedStateSnapshot
   alias OrbitalDynamics.OperatorReview.RepairReview
   alias OrbitalDynamics.OperatorReview.ResourceProjection
   alias OrbitalDynamics.OperatorReview.RiskReview
@@ -253,6 +254,10 @@ defmodule OrbitalDynamics.OperatorReview.CompositeArtifact do
       TimelineFeedback.repair_rows(
         artifact,
         "campaign_repair.source_timeline_feedback_report.rows"
+      ) ++
+      RealizedStateSnapshot.source_rows(
+        Map.get(artifact, "source_realized_state_snapshot"),
+        "campaign_repair.source_realized_state_snapshot"
       ) ++
       OperationalTimeline.rows(get_in(artifact, ["operational_timeline_report", "rows"]) || []) ++
       OperationalTimeline.source_report_rows(

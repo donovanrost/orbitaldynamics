@@ -29,6 +29,27 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairSourceReports do
     end
   end
 
+  def realized_state_snapshot(candidate_refresh),
+    do: realized_state_snapshot(candidate_refresh, default_callbacks())
+
+  def realized_state_snapshot(nil, _callbacks), do: nil
+
+  def realized_state_snapshot(%{} = candidate_refresh, callbacks) do
+    stringify_keys = Keyword.fetch!(callbacks, :stringify_keys)
+    candidate_refresh = stringify_keys.(candidate_refresh)
+
+    [
+      Map.get(candidate_refresh, "source_realized_state_snapshot"),
+      Map.get(candidate_refresh, "realized_state_snapshot")
+    ]
+    |> Enum.flat_map(&List.wrap/1)
+    |> Enum.find(&is_map/1)
+    |> case do
+      %{} = snapshot -> stringify_keys.(snapshot)
+      _snapshot -> nil
+    end
+  end
+
   def contact_filter(candidate_refresh),
     do: contact_filter(candidate_refresh, default_callbacks())
 

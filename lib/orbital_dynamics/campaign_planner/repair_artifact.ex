@@ -104,6 +104,10 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairArtifact do
       RepairSourceReports.contact_intent_summary(request.candidate_refresh)
     )
     |> put_source_report(
+      "source_realized_state_snapshot",
+      RepairSourceReports.realized_state_snapshot(request.candidate_refresh)
+    )
+    |> put_source_report(
       "source_candidate_rejection_report",
       RepairSourceReports.candidate_rejection_report(request)
     )

@@ -133,6 +133,14 @@ source/replacement scope, dependency and exclusivity edges, status, and
 operator-action routing. Existing review and Cadence adapters retain exact
 actionable impact rows without applying a transition, mutating or publishing
 the repaired timeline, writing to Cadence, or granting operator authority.
+CandidateRefresh realized-state evidence is separately retained at
+`source_realized_state_snapshot`, distinct from the repair request's operative
+`realized_state_snapshot`. Full executable validation pins realized activities,
+spacecraft states, provider/trust-boundary metadata, row-derived counts, and
+model limits. Existing review and Cadence adapters retain exact snapshot
+context on realized-feedback rows without replacing current repair state,
+changing repair decisions, mutating a schedule, writing to Cadence, or granting
+operator authority.
 Incoming lifecycle-state evidence is retained separately at
 `source_timeline_lifecycle_state_summary`. Full executable validation pins
 planned/realized and review counts, identity collections, transition and action

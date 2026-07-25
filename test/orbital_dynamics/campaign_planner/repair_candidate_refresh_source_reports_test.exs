@@ -41,6 +41,11 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
       |> File.read!()
       |> :json.decode()
 
+    source_realized_state_snapshot =
+      "study_results/realized_state_snapshot_v1.json"
+      |> File.read!()
+      |> :json.decode()
+
     source_contact_allocation_provider_reservation_request_summary =
       "study_results/contact_allocation_provider_reservation_request_summary_v1.json"
       |> File.read!()
@@ -429,6 +434,7 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
           )
           |> Map.put("source_resource_filter_summary", [source_resource_filter_summary])
           |> Map.put("source_contact_intent_summary", [source_contact_intent_summary])
+          |> Map.put("source_realized_state_snapshot", [source_realized_state_snapshot])
           |> Map.put("source_station_reservation_report", source_station_reservation_report)
           |> Map.put(
             "source_station_reservation_review_summary",
@@ -587,6 +593,57 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
                &(get_in(&1, ["source_review_row", "source"]) ==
                    "campaign_repair.source_contact_intent_summary.summary_contacts" and
                    &1["direction"] == "downlink")
+             )
+
+    assert artifact["source_realized_state_snapshot"] == source_realized_state_snapshot
+
+    assert %{
+             "review_type" => "realized_feedback",
+             "source" => "campaign_repair.source_realized_state_snapshot.activities",
+             "activity_id" => "cmd_repoint",
+             "realized_activity_id" => "cmd_repoint",
+             "realized_status" => "completed",
+             "required_operator_action" => "review_unplanned_realization",
+             "source_realized_state_snapshot" => %{
+               "schema_contract" => "realized_state_snapshot.v1",
+               "metadata" => %{
+                 "snapshot_id" => "realized-state-demo-2026-05-14T00:00:00Z",
+                 "trust_boundary" => "operator_supplied"
+               },
+               "activities" => [
+                 %{"id" => "cmd_repoint"},
+                 %{"id" => "downlink_equator"}
+               ]
+             }
+           } =
+             Enum.find(
+               artifact["operator_review_package"]["rows"],
+               &(&1["source"] ==
+                   "campaign_repair.source_realized_state_snapshot.activities" and
+                   &1["activity_id"] == "cmd_repoint")
+             )
+
+    assert %{
+             "import_action" => "review_realized_feedback",
+             "source_review_type" => "realized_feedback",
+             "activity_id" => "cmd_repoint",
+             "realized_activity_id" => "cmd_repoint",
+             "required_operator_action" => "review_unplanned_realization",
+             "source_review_row" => %{
+               "source" => "campaign_repair.source_realized_state_snapshot.activities",
+               "source_realized_state_snapshot" => %{
+                 "schema_contract" => "realized_state_snapshot.v1",
+                 "metadata" => %{
+                   "snapshot_id" => "realized-state-demo-2026-05-14T00:00:00Z"
+                 }
+               }
+             }
+           } =
+             Enum.find(
+               artifact["cadence_import_manifest"]["rows"],
+               &(get_in(&1, ["source_review_row", "source"]) ==
+                   "campaign_repair.source_realized_state_snapshot.activities" and
+                   &1["activity_id"] == "cmd_repoint")
              )
 
     assert [%{"spacecraft_id" => "leo_1", "antenna_available" => true}] =

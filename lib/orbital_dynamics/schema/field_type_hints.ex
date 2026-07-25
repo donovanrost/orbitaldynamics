@@ -605,6 +605,7 @@ defmodule OrbitalDynamics.Schema.FieldTypeHints do
     "source_contact_suppression" => "object",
     "source_contact_intent_summary" => "object",
     "source_contact_intents" => "array",
+    "source_realized_state_snapshot" => "object",
     "source_contention_group" => "object",
     "source_constraint_report" => "object",
     "source_objective_satisfaction_report" => "object",

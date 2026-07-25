@@ -66,6 +66,10 @@ defmodule OrbitalDynamics.Schema.CampaignRepairContracts do
       "$.realized_state_snapshot",
       Map.get(artifact, "realized_state_snapshot", %{})
     ])
+    |> call(callbacks, :validate_optional_source_realized_state_snapshot, [
+      "$.source_realized_state_snapshot",
+      Map.get(artifact, "source_realized_state_snapshot")
+    ])
     |> call(callbacks, :validate_rows, [
       "$.activities",
       Map.get(artifact, "activities", []),

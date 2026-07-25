@@ -44,6 +44,17 @@ approval rule-match rows run the shared policy validator.
   not ground-truth reconstruction, schedule mutation, or subsystem state
   estimation.
 
+### `source_realized_state_snapshot`
+
+When repair consumes CandidateRefresh evidence, V2 preserves the distinct
+upstream `realized_state_snapshot.v1` exactly at
+`source_realized_state_snapshot`. Its realized activities, spacecraft states,
+provider/trust-boundary metadata, row-derived counts, and model limits receive
+full executable validation. Existing realized-feedback conversion routes each
+source activity with exact snapshot context into operator review and
+review-gated Cadence import without replacing the repair request's current
+snapshot, changing repair scoring, mutating a schedule, or executing work.
+
 ## Embedded reports
 
 ### `source_timeline_feedback_report`

@@ -1,13 +1,21 @@
 defmodule OrbitalDynamics.Schema.RealizedStateValidation do
   @moduledoc false
 
-  import OrbitalDynamics.Schema.PrimitiveValidation, only: [require_fields: 4]
+  import OrbitalDynamics.Schema.PrimitiveValidation, only: [error: 2, require_fields: 4]
 
   def validate_activity(issues, path, artifact),
     do: validate(issues, path, artifact, "realized_activity.v1")
 
   def validate_snapshot(issues, path, artifact),
     do: validate(issues, path, artifact, "realized_state_snapshot.v1")
+
+  def validate_optional_snapshot(issues, _path, nil), do: issues
+
+  def validate_optional_snapshot(issues, path, %{} = artifact),
+    do: validate_snapshot(issues, path, artifact)
+
+  def validate_optional_snapshot(issues, path, _artifact),
+    do: [error(path, "must be an object") | issues]
 
   defp validate(issues, path, artifact, contract_name) do
     issues

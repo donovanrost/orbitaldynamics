@@ -54,6 +54,24 @@ defmodule OrbitalDynamics.OperatorReview.RealizedStateSnapshotTest do
              OperatorReview.from_realized_state_snapshot(%{activities: []})
   end
 
+  test "builds source-aware rows with exact snapshot context" do
+    snapshot = read_json!("study_results/realized_state_snapshot_v1.json")
+
+    assert [first | _rest] =
+             OrbitalDynamics.OperatorReview.RealizedStateSnapshot.source_rows(
+               snapshot,
+               "campaign_repair.source_realized_state_snapshot"
+             )
+
+    assert %{
+             "review_type" => "realized_feedback",
+             "source" => "campaign_repair.source_realized_state_snapshot.activities",
+             "activity_id" => "cmd_repoint",
+             "required_operator_action" => "review_unplanned_realization",
+             "source_realized_state_snapshot" => ^snapshot
+           } = first
+  end
+
   defp read_json!(path) do
     path
     |> File.read!()
