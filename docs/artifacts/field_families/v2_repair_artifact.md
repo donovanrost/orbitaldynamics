@@ -655,6 +655,12 @@ focused repair-action regressions.
   `source_schema_validation_report`, and routes exact errors, warnings, and
   remediation into review-gated Cadence import without changing V2 validity or
   import eligibility.
+- **Source schema-validation batch report** — V2 separately preserves the exact
+  aggregate `schema_validation_batch_report.v1` at
+  `source_schema_validation_batch_report`, including every nested artifact
+  report/path plus file, artifact, skipped, status, issue, and remediation
+  counts. Nested warnings and failures reach review-gated Cadence import without
+  changing V2 validity or granting import authority.
 - **Source model-acceptance report** — V2 preserves CandidateRefresh's upstream
   `model_acceptance_report.v1`, validates it at
   `source_model_acceptance_report`, and exposes exact review-required and

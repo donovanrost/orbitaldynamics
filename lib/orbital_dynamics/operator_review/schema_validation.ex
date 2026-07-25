@@ -171,6 +171,9 @@ defmodule OrbitalDynamics.OperatorReview.SchemaValidation do
     direct_rows ++ candidate_refresh_container_rows(artifact)
   end
 
+  def source_batch_rows(report_or_reports, source),
+    do: source_report_rows(report_or_reports, source)
+
   defp source_report_rows(reports, source) when is_list(reports) do
     reports
     |> Enum.with_index()

@@ -184,6 +184,29 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
         ]
       })
 
+    source_schema_validation_batch_report =
+      "study_results/schema_validation_batch_report_v1.json"
+      |> File.read!()
+      |> :json.decode()
+      |> Map.merge(%{
+        "input_dir" => "source_artifacts",
+        "file_count" => 1,
+        "artifact_count" => 1,
+        "skipped_count" => 0,
+        "error_count" => 1,
+        "warning_count" => 0,
+        "remediation_count" => 1,
+        "status" => "fail",
+        "status_counts" => %{"fail" => 1},
+        "skipped_artifacts" => [],
+        "reports" => [
+          %{
+            "path" => "study_results/bad_campaign.json",
+            "report" => source_schema_validation_report
+          }
+        ]
+      })
+
     source_model_acceptance_report =
       OrbitalDynamics.validation_model_acceptance_report(
         ["orbit_data.simple_json", "event.access_windows", "propagator.two_body"],
@@ -451,6 +474,10 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
           |> Map.put("source_command_window_report", [source_command_window_report])
           |> Map.put("source_maneuver_review_report", [source_maneuver_review_report])
           |> Map.put("source_schema_validation_report", source_schema_validation_report)
+          |> Map.put(
+            "source_schema_validation_batch_report",
+            [source_schema_validation_batch_report]
+          )
           |> Map.put("source_model_acceptance_report", [source_model_acceptance_report])
           |> Map.put(
             "source_validation_safety_case_summary",
@@ -2640,6 +2667,48 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
              Enum.find(
                artifact["cadence_import_manifest"]["rows"],
                &(&1["source"] == "campaign_repair.source_schema_validation_report.errors")
+             )
+
+    assert artifact["source_schema_validation_batch_report"] ==
+             source_schema_validation_batch_report
+
+    assert %{
+             "review_type" => "schema_validation_review",
+             "source" =>
+               "campaign_repair.source_schema_validation_batch_report.reports[0].report.errors",
+             "subject_id" => "campaign_plan.v1",
+             "action" => "review_schema_validation_failure",
+             "validation_status" => "fail",
+             "validation_mode" => "artifact_file",
+             "validated_contract" => "campaign_plan.v1",
+             "artifact_path" => "study_results/bad_campaign.json",
+             "issue_severity" => "error",
+             "issue_path" => "$.plan_id",
+             "remediation_category" => "missing_required_field",
+             "remediation_action" => "Populate this required field"
+           } =
+             Enum.find(
+               artifact["operator_review_package"]["rows"],
+               &(&1["source"] ==
+                   "campaign_repair.source_schema_validation_batch_report.reports[0].report.errors")
+             )
+
+    assert %{
+             "import_action" => "review_schema_validation",
+             "source_review_type" => "schema_validation_review",
+             "source" =>
+               "campaign_repair.source_schema_validation_batch_report.reports[0].report.errors",
+             "subject_id" => "campaign_plan.v1",
+             "schema_validation_gate" => "artifact_contract_validation",
+             "schema_validation_gate_status" => "fail",
+             "issue_path" => "$.plan_id",
+             "remediation_category" => "missing_required_field",
+             "import_status" => "review_required_before_import"
+           } =
+             Enum.find(
+               artifact["cadence_import_manifest"]["rows"],
+               &(&1["source"] ==
+                   "campaign_repair.source_schema_validation_batch_report.reports[0].report.errors")
              )
 
     assert artifact["source_model_acceptance_report"] == source_model_acceptance_report

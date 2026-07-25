@@ -5,75 +5,74 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Preserve V2 source contact-intent summary handoff.
+Preserve V2 source schema-validation batch handoff.
 
 Status:
 Verified; publish pending.
 
 Selection evidence:
-- CandidateRefresh accepts `contact_intent_summary.v1` from direct/canonical,
-  accepted-planning-state, mission-state, result-artifact, and list-valued
-  paths.
-- One summary aggregates the accepted contact-intent set and retains exact
-  direction/station routing, contact identities, capacity-pack membership,
-  required capacity fractions, source model, provenance, and boundary
-  assumptions.
-- Repair V2 preserves materialized `source_contact_intents` but not an accepted
-  compact summary, so summary-only CandidateRefresh inputs lose exact aggregate
-  capacity-demand evidence before repair operator-review and Cadence handoff.
-- Existing contact-intent review/Cadence conversion already synthesizes one
-  review row per direction with station and required-capacity context. The
-  summary explicitly grants no provider reservation or schedule mutation.
+- CandidateRefresh accepts `schema_validation_batch_report.v1` from
+  direct/canonical, accepted-planning-state, mission-state, result-artifact,
+  and list-valued paths.
+- One batch aggregates the validated artifact set and retains exact nested
+  reports, artifact paths, status/error/warning/remediation counts, skipped
+  inputs, model limits, and validation modes.
+- Repair V2 preserves one `source_schema_validation_report` but not an accepted
+  batch, so multi-artifact validation evidence is discarded before repair
+  operator-review and Cadence readiness handoff.
+- Existing schema-validation review/Cadence conversion already maps nested
+  warning/error entries with artifact, contract, severity, issue, and
+  remediation context. It grants no import approval or execution authority.
 
 Intended behavior:
-- Resolve source/canonical/list-valued contact-intent summaries and preserve the
-  first aggregate map exactly at `source_contact_intent_summary` on repair V2.
+- Resolve source/canonical/list-valued schema-validation batches and preserve
+  the first aggregate map exactly at `source_schema_validation_batch_report` on
+  repair V2.
 - Validate the optional field against its full executable contract at the
   distinct source path and export the versioned property.
-- Reuse existing contact-intent-summary conversion so exact direction/station
-  routing, contact identities, capacity-pack membership, required fractions,
-  provenance, and boundary context reach review and review-gated Cadence
-  handoff.
-- Keep the source summary out of station allocation/reservation, repair scoring,
-  candidate selection, schedule/timeline mutation, publication, provider/Cadence
-  writes, approval/operator authority, commanding, and autonomous execution.
+- Reuse existing batch conversion so nested report paths, contracts, statuses,
+  issues, severities, remediation, and aggregate counts reach review and
+  review-gated Cadence handoff.
+- Keep the batch evidence out of repair scoring, candidate selection,
+  schedule/timeline mutation, publication, provider/Cadence writes, import
+  approval/operator authority, commanding, and autonomous execution.
 
 Level 6 pillar advanced:
 Fleet-scale resource decisions and durable reproducible audit handoffs.
 
 Planned files:
-- V2 CandidateRefresh contact-intent-summary resolution and artifact assembly
+- V2 CandidateRefresh schema-validation-batch resolution and artifact assembly
 - V2 path-aware validation, registry/type hints, and review/Cadence routing
 - focused source/schema/integration proofs, docs, exports, and ledger
 
 Verification:
-- Focused resolver/schema proofs: `5 passed` in 8.8s.
-- Focused repair handoff proof: `11 passed` in 10.6s.
-- Contact-intent regression family: `77 passed` in 9.9s.
-- Contact-allocation regression suite: `238 passed` in 16.0s.
-- Golden artifacts: `12 passed` in 36.1s.
+- Focused resolver/schema proofs: `5 passed` in 8.9s.
+- Focused repair handoff proof: `11 passed` in 11.2s.
+- Schema-validation regression family: `38 passed` in 9.9s.
+- Contact-allocation regression suite: `238 passed` in 16.3s.
+- Golden artifacts: `12 passed` in 21.2s.
 - Schema lint: 155 artifacts, 0 errors, 0 warnings.
 - Pre-export full suite: expected checked-in-schema mismatch only,
-  `5093/5094 passed` in 661.1s.
+  `5098/5099 passed` in 730.7s.
 - Regenerated repair schema and bundle only; repair, strategy, and manifest
   canonical hashes remained stable.
-- Schema-export proof: `3 passed` in 51.5s.
-- Final full suite: `5094 passed` in 655.4s.
+- Schema-export proof: `3 passed` in 52.9s.
+- Final full suite: `5099 passed` in 774.5s.
 
 Review:
-The exact upstream aggregate stays on repair V2 while direction-scoped review
-rows retain station/contact identity, capacity-pack membership, required
-capacity fractions, source model, provenance, and the compact aggregate through
-review-gated Cadence handoff. The optional field is separately validated and
-does not allocate or reserve provider capacity, change repair scoring or
-candidate selection, mutate or publish the schedule, write to Cadence, grant
-authority, command, or execute work. Generated drift is limited to
+The exact upstream batch stays on repair V2 while warning/error review rows
+retain nested artifact paths, validated contract/family, validation mode,
+status, issue severity/path/message, remediation, and source report context
+through review-gated Cadence handoff. The optional field is separately
+validated and does not determine repair validity or import eligibility, change
+scoring or candidate selection, mutate or publish a schedule, write to Cadence,
+grant authority, command, or execute work. Generated drift is limited to
 `campaign_repair.v2.schema.json` and the bundle.
 
 Last published slice:
-- `1a8922a5` Preserve V2 source resource filter summary (`5089 passed`; exact
-  aggregate suppression evidence reaches review and Cadence handoff without
-  filtering candidates, changing repair scoring, granting authority, or
+- `c22da2ed` Preserve V2 source contact intent summary (`5094 passed`; exact
+  aggregate direction/station capacity demand reaches review and Cadence
+  handoff without allocating/reserving contacts, granting authority, or
   executing work).
 
 Remaining maturity gaps:
@@ -87,7 +86,7 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-After source contact-intent-summary evidence is durable, audit the next
+After source schema-validation-batch evidence is durable, audit the next
 bounded CandidateRefresh aggregate source-report gap by product value and
 distinctness.
 

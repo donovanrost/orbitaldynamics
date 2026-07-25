@@ -342,6 +342,10 @@ defmodule OrbitalDynamics.OperatorReview.CompositeArtifact do
         Map.get(artifact, "source_schema_validation_report") || %{},
         "campaign_repair.source_schema_validation_report"
       ) ++
+      SchemaValidation.source_batch_rows(
+        Map.get(artifact, "source_schema_validation_batch_report"),
+        "campaign_repair.source_schema_validation_batch_report"
+      ) ++
       ModelAcceptance.rows(
         Map.get(artifact, "source_model_acceptance_report") || %{},
         "campaign_repair.source_model_acceptance_report.rows"

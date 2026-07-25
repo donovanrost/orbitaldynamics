@@ -306,7 +306,8 @@ schema-type their stable IDs, invalid-input flags, and protected/change counts.
   `source_operational_timeline_report`,
   `source_command_window_report`,
   `source_maneuver_review_report`,
-  `source_schema_validation_report`, `source_model_acceptance_report`,
+  `source_schema_validation_report`, `source_schema_validation_batch_report`,
+  `source_model_acceptance_report`,
   `source_validation_safety_case_summary`, `source_provider_counteroffer_report`,
   `source_contact_intent_summary`, `source_resource_filter_report`, and
   `source_resource_filter_summary` when present on the refresh artifact,
@@ -360,11 +361,12 @@ schema-type their stable IDs, invalid-input flags, and protected/change counts.
   score calculation. The source timeline-diff report remains distinct from V2's
   derived deltas and does not apply source transition decisions. The contention
   and resolution handoffs do not suppress candidates or alter schedules. Source
-  schema-validation evidence is review-only and does not determine V2 repair
-  validity or import eligibility. Source model-acceptance evidence is also
-  review-only, remains excluded from Cadence import, and neither certifies a
-  model nor changes planning. Source validation-safety-case evidence is likewise
-  review-only and does not grant certification, import, or execution authority.
+  schema-validation report and batch evidence are review-only and do not
+  determine V2 repair validity or import eligibility. Source model-acceptance
+  evidence is also review-only, remains excluded from Cadence import, and
+  neither certifies a model nor changes planning. Source
+  validation-safety-case evidence is likewise review-only and does not grant
+  certification, import, or execution authority.
   Source operational import-eligibility summaries preserve the upstream
   eligibility decision and gate counts as a no-write Cadence handoff; they do
   not approve or perform an import. Source operational-readiness gate summaries
@@ -504,6 +506,11 @@ schema-type their stable IDs, invalid-input flags, and protected/change counts.
   `timeline_feedback_report.v1` contract. V2 validates its row-derived counts,
   exact model limits, operational feedback, and nested operator-review package
   before accepting realized-feedback provenance at the repair boundary.
+- `source_schema_validation_report` and
+  `source_schema_validation_batch_report` are optional direct nested V1
+  contracts. V2 validates exact single-report and aggregate batch counts,
+  nested artifact paths, issues, remediation, status maps, and model limits
+  before routing only warning/error evidence to review-gated Cadence rows.
 - `approval_requirements` for moved contacts, reassigned observations, delayed
   maneuver impacts, cancellations, and degraded-mode suppressions.
 - Approval requirements include machine-readable `requirement_type` values so

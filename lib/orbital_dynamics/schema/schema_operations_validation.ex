@@ -11,6 +11,14 @@ defmodule OrbitalDynamics.Schema.SchemaOperationsValidation do
   def validate_optional_schema_validation_report(issues, path, _report),
     do: [error(path, "must be an object") | issues]
 
+  def validate_optional_schema_validation_batch_report(issues, _path, nil), do: issues
+
+  def validate_optional_schema_validation_batch_report(issues, path, %{} = report),
+    do: validate(issues, path, report, "schema_validation_batch_report.v1")
+
+  def validate_optional_schema_validation_batch_report(issues, path, _report),
+    do: [error(path, "must be an object") | issues]
+
   def validate(issues, path, artifact, contract_name) do
     issues
     |> require_fields(path, artifact, required_fields(contract_name))

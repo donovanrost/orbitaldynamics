@@ -1286,6 +1286,13 @@ model-limit drift so the batch rollup cannot hide nested schema-validation
 failures or skipped-artifact drift. The schema-lint task regression suite also
 regenerates the `study_results` batch report and compares it with the
 checked-in artifact so new public fixtures cannot leave the batch rollup stale.
+V2 repair artifacts separately preserve an accepted CandidateRefresh batch at
+`source_schema_validation_batch_report`. Full nested validation pins every
+artifact path/report, status, issue/remediation aggregate, skipped input, model
+limit, and validation mode before existing operator-review and Cadence adapters
+route warning/error rows. This review-only handoff does not change repair
+validity or import eligibility, write to Cadence, grant import authority, or
+execute work.
 `study_results/resource_projection_report_v1.json` is observed for selected
 activity/resource summary counts, flow-row counts, pressure-row counts,
 storage/downlink pressure totals, warnings, source-quality/trust maps, and

@@ -279,6 +279,8 @@ defmodule OrbitalDynamics.Schema.CampaignArtifactValidation do
         &OperationalReadinessValidation.validate_optional_quality_gate_report/3,
       validate_optional_schema_validation_report:
         &SchemaOperationsValidation.validate_optional_schema_validation_report/3,
+      validate_optional_schema_validation_batch_report:
+        &SchemaOperationsValidation.validate_optional_schema_validation_batch_report/3,
       validate_optional_model_acceptance_report:
         &ValidationArtifactValidation.validate_optional_model_acceptance_report/3,
       validate_optional_safety_case_summary:
