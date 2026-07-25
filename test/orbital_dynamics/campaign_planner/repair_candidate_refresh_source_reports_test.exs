@@ -107,6 +107,11 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
       |> File.read!()
       |> :json.decode()
 
+    source_timeline_preservation_report =
+      "study_results/timeline_preservation_report_v1.json"
+      |> File.read!()
+      |> :json.decode()
+
     source_schema_validation_report =
       "study_results/schema_validation_report_v1.json"
       |> File.read!()
@@ -366,6 +371,10 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
           |> Map.put("source_score_term_report", source_score_term_report)
           |> Map.put("source_timeline_diff_report", source_timeline_diff_report)
           |> Map.put("source_timeline_integrity_report", [source_timeline_integrity_report])
+          |> Map.put(
+            "source_timeline_preservation_report",
+            [source_timeline_preservation_report]
+          )
           |> Map.put("source_schema_validation_report", source_schema_validation_report)
           |> Map.put("source_model_acceptance_report", [source_model_acceptance_report])
           |> Map.put(
@@ -1867,6 +1876,60 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
                artifact["cadence_import_manifest"]["rows"],
                &(get_in(&1, ["source_review_row", "source"]) ==
                    "campaign_repair.source_timeline_integrity_report.rows")
+             )
+
+    assert artifact["source_timeline_preservation_report"] ==
+             source_timeline_preservation_report
+
+    assert %{
+             "review_type" => "timeline_preservation_review",
+             "source" => "campaign_repair.source_timeline_preservation_report.rows",
+             "subject_id" => "timeline:planned_contact",
+             "activity_id" => "contact_locked",
+             "timeline_id" => "timeline:planned_contact",
+             "timeline_preservation_status" => "preservation_required",
+             "requires_preservation" => true,
+             "requires_operator_review" => false,
+             "timeline_preservation_protection_decision" => "preserve",
+             "timeline_preservation_protection_category" => "locked_or_approved",
+             "locked" => true,
+             "source_activity_count" => 4,
+             "preserve_activity_count" => 2,
+             "review_change_activity_count" => 1,
+             "source_timeline_preservation" => %{
+               "activity_id" => "contact_locked",
+               "protection_decision" => "preserve",
+               "reason" => "activity_locked_or_approved"
+             }
+           } =
+             Enum.find(
+               artifact["operator_review_package"]["rows"],
+               &(&1["source"] == "campaign_repair.source_timeline_preservation_report.rows" and
+                   &1["activity_id"] == "contact_locked")
+             )
+
+    assert %{
+             "import_action" => "review_timeline_preservation",
+             "source_review_type" => "timeline_preservation_review",
+             "activity_id" => "bad_missing_type",
+             "timeline_id" => "timeline:invalid_activity_input:bad_missing_type",
+             "import_status" => "review_required_before_import",
+             "source_review_row" => %{
+               "source" => "campaign_repair.source_timeline_preservation_report.rows",
+               "requires_operator_review" => true,
+               "invalid_activity_input" => true,
+               "invalid_activity_input_reason" => "missing_activity_type",
+               "source_timeline_preservation" => %{
+                 "activity_id" => "bad_missing_type",
+                 "protection_decision" => "review_change"
+               }
+             }
+           } =
+             Enum.find(
+               artifact["cadence_import_manifest"]["rows"],
+               &(get_in(&1, ["source_review_row", "source"]) ==
+                   "campaign_repair.source_timeline_preservation_report.rows" and
+                   &1["activity_id"] == "bad_missing_type")
              )
 
     assert artifact["source_schema_validation_report"] == source_schema_validation_report

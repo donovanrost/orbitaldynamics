@@ -130,7 +130,17 @@ defmodule OrbitalDynamics.OperatorReview.TimelinePreservation do
 
   defp source_rows(_artifact, _source), do: []
 
-  defp source_report_rows(%{} = report, source) do
+  def source_report_rows(nil, _source), do: []
+
+  def source_report_rows(reports, source) when is_list(reports) do
+    reports
+    |> Enum.with_index()
+    |> Enum.flat_map(fn {report, index} ->
+      source_report_rows(report, "#{source}[#{index}]")
+    end)
+  end
+
+  def source_report_rows(%{} = report, source) do
     report = stringify_keys(report)
 
     report
@@ -141,6 +151,8 @@ defmodule OrbitalDynamics.OperatorReview.TimelinePreservation do
       review_row(row, index, "#{source}.rows", report, row)
     end)
   end
+
+  def source_report_rows(_report, _source), do: []
 
   defp source_status_rows(%{} = status, source) do
     status = stringify_keys(status)

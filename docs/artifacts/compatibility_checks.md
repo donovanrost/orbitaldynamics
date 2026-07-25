@@ -111,6 +111,13 @@ Focused schema-reference coverage exact-regenerates the checked-in
 locked, completed, and invalid activity inputs before schema validation,
 pinning protection count maps, preservation-sensitive routing, row evidence,
 and the artifact-only no-schedule-mutation boundary.
+Campaign-repair V2 preserves that incoming report at the distinct
+`source_timeline_preservation_report` path. Full executable validation rejects
+stale row-derived preserve/review counts, protection routing, stable identity,
+or non-object values. Existing operator-review and Cadence adapters retain
+exact pre-repair decisions and source summary context for review; the path
+performs no repair scoring, candidate selection, timeline mutation, Cadence
+write, or grant of operator authority.
 `study_results/timeline_preservation_status_v1.json` now feeds a curated
 `timeline_preservation_status.v1` validation-reference fixture. The observations
 check locked/protected activity preservation status, timeline identity,

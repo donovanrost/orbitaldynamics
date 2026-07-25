@@ -587,6 +587,11 @@ focused repair-action regressions.
   state, validates it at `source_timeline_integrity_report`, and routes exact
   dependency, exclusivity, invalid-input, and stable timeline identity evidence
   into review-gated Cadence import without mutating the repaired schedule.
+- **Source timeline-preservation report** — V2 preserves CandidateRefresh's
+  upstream `timeline_preservation_report.v1` independently from derived
+  `preserved_activities`, validates it at `source_timeline_preservation_report`,
+  and routes exact preserve/review decisions, protection reasons, locks,
+  lifecycle status, and invalid-input evidence without mutating the schedule.
 - **Source schema-validation report** — V2 preserves CandidateRefresh's upstream
   `schema_validation_report.v1`, validates it at
   `source_schema_validation_report`, and routes exact errors, warnings, and

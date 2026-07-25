@@ -81,6 +81,20 @@ defmodule OrbitalDynamics.Schema.TimelineSourceValidation do
   def validate_optional_timeline_integrity_report(issues, path, _report),
     do: [error(path, "must be an object") | issues]
 
+  def validate_optional_timeline_preservation_report(issues, _path, nil), do: issues
+
+  def validate_optional_timeline_preservation_report(issues, path, %{} = report) do
+    OrbitalDynamics.Schema.TimelinePreservationContracts.validate_report(
+      issues,
+      path,
+      report,
+      timeline_report_model_limits()
+    )
+  end
+
+  def validate_optional_timeline_preservation_report(issues, path, _report),
+    do: [error(path, "must be an object") | issues]
+
   def validate_optional_timeline_preservation_source_row(issues, _path, nil), do: issues
 
   def validate_optional_timeline_preservation_source_row(issues, path, %{} = row) do
