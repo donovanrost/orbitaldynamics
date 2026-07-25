@@ -91,6 +91,23 @@ defmodule OrbitalDynamics.Schema.TimelineSourceValidation do
   def validate_optional_timeline_activity_lifecycle_states(issues, path, _states),
     do: [error(path, "must be a list") | issues]
 
+  def validate_optional_timeline_activity_states(issues, _path, nil), do: issues
+
+  def validate_optional_timeline_activity_states(issues, path, states) when is_list(states) do
+    states
+    |> Enum.with_index()
+    |> Enum.reduce(issues, fn
+      {%{} = state, index}, acc ->
+        validate_timeline_activity_state(acc, "#{path}[#{index}]", state)
+
+      {_state, index}, acc ->
+        [error("#{path}[#{index}]", "must be an object") | acc]
+    end)
+  end
+
+  def validate_optional_timeline_activity_states(issues, path, _states),
+    do: [error(path, "must be a list") | issues]
+
   def validate_optional_timeline_integrity_report(issues, _path, nil), do: issues
 
   def validate_optional_timeline_integrity_report(issues, path, %{} = report) do
@@ -164,6 +181,44 @@ defmodule OrbitalDynamics.Schema.TimelineSourceValidation do
     |> Map.fetch!(:known_limits)
     |> Enum.map(&Atom.to_string/1)
   end
+
+  defp validate_timeline_activity_state(issues, path, state) do
+    contract =
+      Map.get(state, "schema_contract") ||
+        activity_state_contract_from_model(Map.get(state, "model"))
+
+    if contract in [
+         "timeline_activity_state.v1",
+         "timeline_activity_status_state.v1",
+         "timeline_activity_approval_state.v1"
+       ] do
+      OrbitalDynamics.Schema.TimelineArtifactValidation.validate(
+        issues,
+        path,
+        state,
+        contract
+      )
+    else
+      [
+        error(
+          path <> ".schema_contract",
+          "must identify a supported timeline activity state contract"
+        )
+        | issues
+      ]
+    end
+  end
+
+  defp activity_state_contract_from_model("artifact_only_timeline_activity_state"),
+    do: "timeline_activity_state.v1"
+
+  defp activity_state_contract_from_model("artifact_only_timeline_activity_status_state"),
+    do: "timeline_activity_status_state.v1"
+
+  defp activity_state_contract_from_model("artifact_only_timeline_activity_approval_state"),
+    do: "timeline_activity_approval_state.v1"
+
+  defp activity_state_contract_from_model(_model), do: nil
 
   defp timeline_report_model_limits do
     OrbitalDynamics.Timeline.capabilities()

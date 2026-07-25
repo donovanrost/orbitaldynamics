@@ -647,6 +647,16 @@ focused repair-action regressions.
   approval, protection, transition, and operator-action context into
   review-gated Cadence import without applying transitions, changing repair
   decisions, mutating a schedule, or granting authority.
+- **Source timeline-activity states** — V2 preserves CandidateRefresh's
+  heterogeneous `timeline_activity_state.v1`,
+  `timeline_activity_status_state.v1`, and
+  `timeline_activity_approval_state.v1` evidence at the explicitly plural
+  `source_timeline_activity_states` path. Each family retains source before
+  canonical maps, with no first-map collapse or deduplication. Contract-specific
+  indexed validation and existing adapters route exact feedback, status,
+  approval, protection, and transition context into review-gated Cadence import
+  without changing repair decisions, applying transitions, mutating a schedule,
+  or granting authority.
 - **Source timeline-preservation report** — V2 preserves CandidateRefresh's
   upstream `timeline_preservation_report.v1` independently from derived
   `preserved_activities`, validates it at `source_timeline_preservation_report`,

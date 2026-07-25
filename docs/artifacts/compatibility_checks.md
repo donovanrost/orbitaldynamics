@@ -166,6 +166,15 @@ the complete planned/realized status, approval, protection, transition, and
 operator-action context without applying a transition, changing repair
 decisions, mutating a schedule, writing to Cadence, commanding activity, or
 granting authority.
+CandidateRefresh's heterogeneous activity-state family is retained separately
+at `source_timeline_activity_states`. The collection preserves activity
+feedback, status-transition, and approval-transition contracts in stable family
+order, with source before canonical maps for each family and no deduplication or
+first-map selection. Full executable validation dispatches each array index to
+its declared contract; existing review and Cadence adapters retain exact state
+and indexed provenance without affecting current-state derivation, changing
+repair decisions, applying a transition, mutating a schedule, writing to
+Cadence, commanding activity, or granting authority.
 CandidateRefresh transition-application evidence is likewise retained at
 `source_timeline_transition_application_report`, distinct from V2's repair-time
 `timeline_transition_application_report`. Full executable validation pins

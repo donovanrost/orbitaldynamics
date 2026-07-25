@@ -665,6 +665,28 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairSourceReports do
     |> Enum.map(stringify_keys)
   end
 
+  def timeline_activity_states(candidate_refresh),
+    do: timeline_activity_states(candidate_refresh, default_callbacks())
+
+  def timeline_activity_states(nil, _callbacks), do: []
+
+  def timeline_activity_states(%{} = candidate_refresh, callbacks) do
+    stringify_keys = Keyword.fetch!(callbacks, :stringify_keys)
+    candidate_refresh = stringify_keys.(candidate_refresh)
+
+    [
+      Map.get(candidate_refresh, "source_timeline_activity_state"),
+      Map.get(candidate_refresh, "timeline_activity_state"),
+      Map.get(candidate_refresh, "source_timeline_activity_status_state"),
+      Map.get(candidate_refresh, "timeline_activity_status_state"),
+      Map.get(candidate_refresh, "source_timeline_activity_approval_state"),
+      Map.get(candidate_refresh, "timeline_activity_approval_state")
+    ]
+    |> Enum.flat_map(&List.wrap/1)
+    |> Enum.filter(&is_map/1)
+    |> Enum.map(stringify_keys)
+  end
+
   def timeline_preservation(candidate_refresh),
     do: timeline_preservation(candidate_refresh, default_callbacks())
 
