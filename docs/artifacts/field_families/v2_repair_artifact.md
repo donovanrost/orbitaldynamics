@@ -604,6 +604,12 @@ focused repair-action regressions.
   `source_operational_timeline_report`, and routes exact activity/timeline
   identity, operational context, integrity/precondition evidence, provider
   results, Cadence readiness, and operator actions without commanding activity.
+- **Source command-window report** — V2 preserves CandidateRefresh's upstream
+  `command_window_report.v1` independently from repair-time
+  `command_window_report`, validates it at `source_command_window_report`, and
+  routes exact command/contact direction, station/timing context, policy and
+  integrity evidence, provider results, Cadence readiness, and operator actions
+  without mutating the schedule or executing a command.
 - **Source schema-validation report** — V2 preserves CandidateRefresh's upstream
   `schema_validation_report.v1`, validates it at
   `source_schema_validation_report`, and routes exact errors, warnings, and

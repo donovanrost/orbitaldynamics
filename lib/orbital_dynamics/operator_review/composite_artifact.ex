@@ -265,6 +265,10 @@ defmodule OrbitalDynamics.OperatorReview.CompositeArtifact do
         Map.get(artifact, "approval_policy")
       ) ++
       CommandWindow.rows(get_in(artifact, ["command_window_report", "rows"]) || []) ++
+      CommandWindow.source_report_rows(
+        Map.get(artifact, "source_command_window_report"),
+        "campaign_repair.source_command_window_report"
+      ) ++
       RepairReview.plan_delta_rows(Map.get(artifact, "deltas", []), "campaign_repair.deltas") ++
       OptimizationReview.score_term_rows(
         get_in(artifact, ["score_term_report", "rows"]) || [],

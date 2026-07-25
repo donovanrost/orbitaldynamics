@@ -122,6 +122,11 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
       |> File.read!()
       |> :json.decode()
 
+    source_command_window_report =
+      "study_results/command_window_report_v1.json"
+      |> File.read!()
+      |> :json.decode()
+
     source_schema_validation_report =
       "study_results/schema_validation_report_v1.json"
       |> File.read!()
@@ -393,6 +398,7 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
             "source_operational_timeline_report",
             [source_operational_timeline_report]
           )
+          |> Map.put("source_command_window_report", [source_command_window_report])
           |> Map.put("source_schema_validation_report", source_schema_validation_report)
           |> Map.put("source_model_acceptance_report", [source_model_acceptance_report])
           |> Map.put(
@@ -2057,6 +2063,65 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
                &(get_in(&1, ["source_review_row", "source"]) ==
                    "campaign_repair.source_operational_timeline_report.rows" and
                    &1["activity_id"] == "cmd_1")
+             )
+
+    assert artifact["source_command_window_report"] == source_command_window_report
+
+    assert %{
+             "review_type" => "command_window_review",
+             "source" => "campaign_repair.source_command_window_report.rows",
+             "activity_id" => "cmd_window",
+             "timeline_id" => "timeline:command:equator_prime:cmd_access_1",
+             "window_type" => "command_window",
+             "direction" => "command",
+             "ground_station_id" => "equator_prime",
+             "required_operator_action" => "review_command_contact",
+             "reason" => "command_boundary_requires_review",
+             "cadence_import_status" => "missing",
+             "requirement_type" => "command_review",
+             "policy_bundle_id" => "contact_command_review_v1",
+             "rule_id" => "command_health_review",
+             "source_command_window" => %{
+               "activity_id" => "cmd_window",
+               "timeline_id" => "timeline:command:equator_prime:cmd_access_1",
+               "required_operator_action" => "review_command_contact"
+             }
+           } =
+             Enum.find(
+               artifact["operator_review_package"]["rows"],
+               &(&1["source"] == "campaign_repair.source_command_window_report.rows" and
+                   &1["activity_id"] == "cmd_window")
+             )
+
+    assert %{
+             "import_action" => "review_command_window",
+             "import_status" => "blocked_missing_cadence_import",
+             "source_review_type" => "command_window_review",
+             "source_review_action" => "review_command_contact",
+             "activity_id" => "cmd_window",
+             "timeline_id" => "timeline:command:equator_prime:cmd_access_1",
+             "window_type" => "command_window",
+             "direction" => "command",
+             "ground_station_id" => "equator_prime",
+             "cadence_import_status" => "missing",
+             "has_cadence_import" => false,
+             "requirement_type" => "command_review",
+             "policy_bundle_id" => "contact_command_review_v1",
+             "rule_id" => "command_health_review",
+             "source_command_window" => %{
+               "activity_id" => "cmd_window",
+               "timeline_id" => "timeline:command:equator_prime:cmd_access_1"
+             },
+             "source_review_row" => %{
+               "source" => "campaign_repair.source_command_window_report.rows",
+               "activity_id" => "cmd_window"
+             }
+           } =
+             Enum.find(
+               artifact["cadence_import_manifest"]["rows"],
+               &(get_in(&1, ["source_review_row", "source"]) ==
+                   "campaign_repair.source_command_window_report.rows" and
+                   &1["activity_id"] == "cmd_window")
              )
 
     assert artifact["source_schema_validation_report"] == source_schema_validation_report

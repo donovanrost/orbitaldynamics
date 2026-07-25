@@ -134,6 +134,14 @@ evidence, provider results, Cadence readiness, and operator actions. Existing
 review and Cadence adapters preserve actionable rows under the
 `planned_not_commanded` boundary without applying the source schedule or
 performing a Cadence write.
+Incoming command-window evidence is retained at
+`source_command_window_report`, distinct from V2's repair-time
+`command_window_report`. Full executable validation pins window and
+review-required counts, stable timeline identity, command/contact direction,
+station and timing context, policy/integrity evidence, provider results, and
+Cadence readiness. Existing review and Cadence adapters preserve exact
+actionable source rows without mutating the schedule, executing a command,
+writing to Cadence, or granting command authority.
 `study_results/timeline_preservation_status_v1.json` now feeds a curated
 `timeline_preservation_status.v1` validation-reference fixture. The observations
 check locked/protected activity preservation status, timeline identity,

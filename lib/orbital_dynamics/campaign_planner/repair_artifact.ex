@@ -270,6 +270,10 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairArtifact do
       RepairSourceReports.operational_timeline(request.candidate_refresh)
     )
     |> put_source_report(
+      "source_command_window_report",
+      RepairSourceReports.command_window(request.candidate_refresh)
+    )
+    |> put_source_report(
       "source_schema_validation_report",
       RepairSourceReports.schema_validation(request.candidate_refresh)
     )
