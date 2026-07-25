@@ -151,6 +151,11 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
       |> File.read!()
       |> :json.decode()
 
+    source_operational_quality_gate_schema_validation_summary =
+      "study_results/operational_quality_gate_schema_validation_summary_v1.json"
+      |> File.read!()
+      |> :json.decode()
+
     candidate_diff_report =
       candidate_diff_report()
       |> update_in(["invalidated_candidates", Access.at(0)], fn candidate ->
@@ -233,6 +238,10 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
           |> Map.put(
             "source_operational_quality_gate_operator_training_summary",
             [source_operational_quality_gate_operator_training_summary]
+          )
+          |> Map.put(
+            "source_operational_quality_gate_schema_validation_summary",
+            [source_operational_quality_gate_schema_validation_summary]
           )
           |> Map.put("source_link_capacity_report", source_link_capacity_report)
           |> Map.put("source_station_reservation_report", source_station_reservation_report)
@@ -399,6 +408,9 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
     assert artifact["source_operational_quality_gate_operator_training_summary"] ==
              source_operational_quality_gate_operator_training_summary
 
+    assert artifact["source_operational_quality_gate_schema_validation_summary"] ==
+             source_operational_quality_gate_schema_validation_summary
+
     assert artifact["source_quality_gate_report"]["schema_contract"] ==
              "quality_gate_report.v1"
 
@@ -431,7 +443,7 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
 
     assert %{
              "operational_readiness_review_count" => 5,
-             "quality_gate_review_count" => 6
+             "quality_gate_review_count" => 7
            } = artifact["operator_review_package"]
 
     assert %{
@@ -680,6 +692,58 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
                artifact["cadence_import_manifest"]["rows"],
                &(&1["source"] ==
                    "campaign_repair.source_operational_quality_gate_operator_training_summary")
+             )
+
+    assert %{
+             "review_type" => "quality_gate_review",
+             "source" =>
+               "campaign_repair.source_operational_quality_gate_schema_validation_summary",
+             "required_operator_action" => "review_blocked_quality_gate",
+             "approval_status" => "blocked_by_policy",
+             "quality_gate_id" => "cadence_import",
+             "quality_gate_status" => "blocked",
+             "quality_gate_classification" => "blocked",
+             "schema_validation_pass_count" => 0,
+             "schema_validation_fail_count" => 1,
+             "schema_validation_error_count" => 1,
+             "schema_validation_warning_count" => 0,
+             "schema_validation_remediation_count" => 1,
+             "schema_validation_status_counts" => %{"fail" => 1},
+             "source_quality_gate_report" => %{
+               "source_summary_schema_contract" =>
+                 "operational_quality_gate_schema_validation_summary.v1",
+               "source_summary_model" => "artifact_only_quality_gate_schema_validation_summary",
+               "model_limits" => [
+                 "quality_gate_schema_validation_summary_routes_only",
+                 "quality_gate_schema_validation_summary_does_not_approve_or_import"
+               ]
+             }
+           } =
+             Enum.find(
+               artifact["operator_review_package"]["rows"],
+               &(&1["source"] ==
+                   "campaign_repair.source_operational_quality_gate_schema_validation_summary")
+             )
+
+    assert %{
+             "import_action" => "review_quality_gate",
+             "source_review_type" => "quality_gate_review",
+             "source" =>
+               "campaign_repair.source_operational_quality_gate_schema_validation_summary",
+             "import_status" => "review_required_before_import",
+             "has_cadence_import" => false,
+             "source_review_row" => %{
+               "schema_validation_pass_count" => 0,
+               "schema_validation_fail_count" => 1,
+               "schema_validation_error_count" => 1,
+               "schema_validation_remediation_count" => 1,
+               "schema_validation_status_counts" => %{"fail" => 1}
+             }
+           } =
+             Enum.find(
+               artifact["cadence_import_manifest"]["rows"],
+               &(&1["source"] ==
+                   "campaign_repair.source_operational_quality_gate_schema_validation_summary")
              )
 
     assert %{

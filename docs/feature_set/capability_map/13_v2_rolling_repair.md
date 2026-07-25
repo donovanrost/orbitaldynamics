@@ -285,6 +285,9 @@ V2 repair `operator_review_package.v1` now emits:
   exact typed requirement counts and stable operator-role, training,
   certification, and qualification IDs without granting certification,
   approval, or operator authority.
+- CandidateRefresh source schema-validation quality-gate summaries, preserving
+  exact pass/fail/error/warning/remediation counts and blocked/review row IDs
+  without treating validation evidence as approval or performing an import.
 - CandidateRefresh source constraint fail/warning rows, preserving exact
   upstream scenario, threshold, value, score, and status evidence beside the
   recomputed repaired-plan report without changing feasibility or scoring.

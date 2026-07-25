@@ -427,6 +427,10 @@ defmodule OrbitalDynamics.OperatorReview.CompositeArtifact do
         "campaign_repair.source_operational_quality_gate_operator_training_summary"
       ) ++
       QualityGate.source_report_rows(
+        Map.get(artifact, "source_operational_quality_gate_schema_validation_summary"),
+        "campaign_repair.source_operational_quality_gate_schema_validation_summary"
+      ) ++
+      QualityGate.source_report_rows(
         Map.get(artifact, "source_quality_gate_report"),
         "campaign_repair.source_quality_gate_report"
       ) ++

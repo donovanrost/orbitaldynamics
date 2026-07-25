@@ -5,34 +5,33 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Preserve V2 source operator-training quality-gate handoff.
+Preserve V2 source schema-validation quality-gate handoff.
 
 Status:
 Verified; ready to publish.
 
 Selection evidence:
 - CandidateRefresh retains a schema-valid
-  `operational_quality_gate_operator_training_summary.v1` that normalizes five
-  requirements into typed counts and stable operator-role, training,
-  certification, and qualification ID sets.
-- The summary binds those requirement sets to exact review-only quality-gate
-  gate/row identities, preserving a compact auditable training prerequisite
-  contract beyond the full report row.
-- Existing quality-gate review/Cadence mapping can carry the exact prerequisite
-  handoff without granting certification, approval, operator authority, import,
+  `operational_quality_gate_schema_validation_summary.v1` that retains schema
+  pass/fail/error/warning/remediation counts and stable gate/row routing IDs.
+- The summary binds failed schema evidence to exact blocked or review-required
+  quality-gate rows, preserving a compact audit contract beyond the full report
+  row.
+- Existing quality-gate review/Cadence mapping can carry the exact validation
+  handoff without treating schema evidence as approval or performing an import,
   write, or command execution.
 
 Intended behavior:
-- Resolve the CandidateRefresh operator-training quality-gate summary from its
+- Resolve the CandidateRefresh schema-validation quality-gate summary from its
   source or canonical field and preserve it on V2 as
-  `source_operational_quality_gate_operator_training_summary` without
+  `source_operational_quality_gate_schema_validation_summary` without
   recomputation.
 - Validate the optional V2 source field against
-  `operational_quality_gate_operator_training_summary.v1` at its distinct source
+  `operational_quality_gate_schema_validation_summary.v1` at its distinct source
   path and export the property.
-- Reuse the existing quality-gate review/import mapping so exact requirement and
-  review-only routing remains visible after repair without granting
-  certification, approval, operator authority, import, write, or execution.
+- Reuse the existing quality-gate review/import mapping so exact validation
+  counts and blocked/review routing remain visible after repair without
+  approval, import, write, or execution.
 - Preserve feasibility, scores, ranking, candidate eligibility, schedules,
   provider/Cadence writes, operator authority, and autonomous execution
   behavior.
@@ -42,22 +41,26 @@ Fleet-scale planning decisions and durable reproducible audit handoffs.
 
 Planned files:
 - V2 repair source-report resolution and artifact assembly
-- V2 path-aware operator-training quality-gate validation, registry/type
+- V2 path-aware schema-validation quality-gate validation, registry/type
   hints, and review/import routing
 - focused repair/schema review-import proofs, docs, exports, and ledger
 
 Verification:
 - Focused repair/source/schema contract proofs: `16 passed`.
-- Adjacent quality-gate and operational-readiness family: `161 passed`.
+- Adjacent quality-gate and operational-readiness family: `178 passed`.
 - Contact-allocation family: `213 passed`.
 - Golden artifacts: `12 passed`.
 - Schema lint: all `155` schema contracts passed.
-- Full suite: `4953 passed` in `607.9s`.
+- The first full run completed `4957/4958 passed`; the schema-export parity test
+  exceeded its 120-second limit while the registry was being built under full
+  parallel-suite load. Its isolated module rerun passed `3 passed` in `89.2s`,
+  and a fresh required full-suite rerun passed `4958 passed` in `602.1s` with
+  the same 120-second timeout.
 - Generated schema diff is limited to the campaign-repair schema and aggregate
   bundle. SHA-256: repair
-  `f70bbbd352c9521de5c0d6828da9a9af7fabe91b48d9c704482b6c2f14d24da2`,
+  `0ab80d1da403b08fef44d953005323c642ff419550d5469b8e4cd76c3d342a0a`,
   bundle
-  `7d1ece277c4ad68f9f9d2e1d694237d95d650c50f3ed7640e306bf9f299eaa37`.
+  `f2a3e5095112f4a7045a063c304676c2d909d5a2531620878e2f9448f971bce5`.
 - Canonical repair, strategy, and manifest artifacts are byte-stable. Repair ID
   remains `2861de04a1feea9da43cee52e2ad6cdc7e6fcedf91dad323b67517b8cac87a0a`;
   strategy ID remains
@@ -66,25 +69,24 @@ Verification:
 Review:
 - Source resolution accepts the explicit source field, canonical field, or
   first map in a list, stringifies keys, and remains nil-safe.
-- The preserved artifact is validated by the existing full operator-training
+- The preserved artifact is validated by the existing full schema-validation
   summary contract at the exact
-  `$.source_operational_quality_gate_operator_training_summary` path.
-- Review mapping retains typed requirement counts, stable requirement/role/
-  training/certification/qualification IDs, assumptions, and model limits.
-- Focused proofs pin exact artifact preservation, exact operator/Cadence rows,
-  and `has_cadence_import: false`. The negative proof uses the existing
-  requirement-count consistency invariant; blank role strings are permitted by
-  the established source contract and were not tightened in this slice.
+  `$.source_operational_quality_gate_schema_validation_summary` path.
+- Review mapping retains schema pass/fail/error/warning/remediation counts,
+  stable blocked/review row IDs, assumptions, and model limits.
+- Focused proofs pin exact artifact preservation, exact blocked operator and
+  Cadence rows, and `has_cadence_import: false`. The negative proof uses the
+  existing validation-blocked/count consistency invariant.
 - Canonical omission remains stable when no source summary is present.
 - The field is consumed only by artifact preservation, validation, and review
-  handoff. It cannot grant certification, approval, operator authority, import,
-  allocation, reservation, schedule mutation, provider/Cadence write, or
-  execution.
+  handoff. Failed validation blocks/routes review; it cannot approve or perform
+  an import, grant operator authority, change allocation/reservation/schedules,
+  write to a provider/Cadence, or execute a command.
 
 Last published slice:
-- `f5bb18c1` Preserve V2 source unavailable-resource quality-gate handoff (`4948
-  passed`; exact blocked-contact audit routing, no allocation, reservation,
-  schedule mutation, approval, import, write, or execution).
+- `f7b63787` Preserve V2 source operator-training quality-gate handoff (`4953
+  passed`; exact prerequisite IDs and review-only routing, no certification,
+  approval, operator authority, import, write, or execution).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions while preserving explicit
@@ -95,8 +97,8 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-After source operator-training quality-gate evidence is durable, reassess the
-adjacent schema-validation quality-gate summary compatibility gap.
+After source schema-validation quality-gate evidence is durable, reassess the
+adjacent import-readiness quality-gate summary compatibility gap.
 
 Blocked:
 None.

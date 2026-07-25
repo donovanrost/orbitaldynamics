@@ -323,7 +323,9 @@ schema-type their stable IDs, invalid-input flags, and protected/change counts.
   summaries retain blocked-contact routing without changing allocation or
   reserving a station. Source operator-training quality-gate summaries retain
   exact prerequisite IDs without granting certification, approval, or operator
-  authority.
+  authority. Source schema-validation quality-gate summaries retain exact
+  validation counts and blocked/review routing without treating validation
+  evidence as approval or performing an import.
   Source provider-counteroffer evidence, including preserved plan-impact
   timing/cost deltas, lock-deadline context, and explicit import-readiness
   classification, remains review-gated and does not change the repaired
