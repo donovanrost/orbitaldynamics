@@ -269,6 +269,27 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairSourceReports do
     end
   end
 
+  def relay_data_path_summary(candidate_refresh),
+    do: relay_data_path_summary(candidate_refresh, default_callbacks())
+
+  def relay_data_path_summary(nil, _callbacks), do: nil
+
+  def relay_data_path_summary(%{} = candidate_refresh, callbacks) do
+    stringify_keys = Keyword.fetch!(callbacks, :stringify_keys)
+    candidate_refresh = stringify_keys.(candidate_refresh)
+
+    [
+      Map.get(candidate_refresh, "source_relay_data_path_summary"),
+      Map.get(candidate_refresh, "relay_data_path_summary")
+    ]
+    |> Enum.flat_map(&List.wrap/1)
+    |> Enum.find(&is_map/1)
+    |> case do
+      %{} = summary -> stringify_keys.(summary)
+      _summary -> nil
+    end
+  end
+
   def station_calendar_precedence_summary(candidate_refresh),
     do: station_calendar_precedence_summary(candidate_refresh, default_callbacks())
 

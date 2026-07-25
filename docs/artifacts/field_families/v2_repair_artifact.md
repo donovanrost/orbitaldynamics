@@ -457,6 +457,12 @@ focused repair-action regressions.
   selected/actual/required contact identity, throughput, shortfall,
   reservation, station-calendar provider, trust, and provenance evidence; the
   summary does not feed repair scoring or execution.
+- **Source relay data-path summary** — V2 preserves
+  `relay_data_path_summary.v1` at `source_relay_data_path_summary`. Existing
+  adapters retain exact route, source/relay spacecraft, ground contact/station,
+  custody, latency, risk, and provenance evidence in review-gated rows without
+  scheduling a relay, delivering custody acknowledgement, reserving a provider,
+  mutating a schedule, or granting operator authority.
 - **Source station-reservation report** — V2 preserves CandidateRefresh's
   upstream `station_reservation_report.v1` independently from the repair-time
   station calendar, validates the nested contract, and routes affected-contact

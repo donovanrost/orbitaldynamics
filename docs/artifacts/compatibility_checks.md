@@ -1604,6 +1604,14 @@ Executable validation rejects stale relay/direct route counts, custody routing,
 relay-spacecraft ID sets, latency routing, and generated `model_limits` that no
 longer match relay data-path rows, so relay/store-and-forward handoffs cannot
 hide stale route evidence behind top-level summaries.
+Campaign-repair V2 preserves that summary at the distinct
+`source_relay_data_path_summary` path. Full executable validation rejects stale
+row-derived route, status, identity, and latency aggregates or non-object
+values. Existing operator-review and Cadence adapters route each exact data
+path for review while preserving compact source context; the path performs no
+repair scoring, candidate selection, relay scheduling, custody delivery,
+provider reservation, schedule mutation, Cadence write, or grant of operator
+authority.
 Station-reservation review, hold, and hold import-readiness summary validation
 rejects stale generated `model_limits`, and schema export pins the artifact-only
 summary models plus exact StationCalendar `model_limits` used by generated

@@ -289,6 +289,8 @@ defmodule OrbitalDynamics.Schema.CampaignArtifactValidation do
         &LinkCapacityValidation.validate_optional_report_at/3,
       validate_optional_source_link_capacity_summary:
         &LinkCapacityValidation.validate_optional_summary_at/3,
+      validate_optional_source_relay_data_path_summary:
+        &LinkCapacityValidation.validate_optional_relay_data_path_summary_at/3,
       validate_optional_candidate_diff_report:
         &OrbitalDynamics.Schema.CandidateDiffContracts.validate_optional_report/3,
       validate_optional_candidate_rejection_report:

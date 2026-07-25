@@ -212,6 +212,10 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairArtifact do
       RepairSourceReports.link_capacity_summary(request.candidate_refresh)
     )
     |> put_source_report(
+      "source_relay_data_path_summary",
+      RepairSourceReports.relay_data_path_summary(request.candidate_refresh)
+    )
+    |> put_source_report(
       "source_station_reservation_report",
       RepairSourceReports.station_reservation(request.candidate_refresh)
     )

@@ -49,6 +49,14 @@ defmodule OrbitalDynamics.Schema.LinkCapacityValidation do
   def validate_optional_summary_at(issues, path, _summary),
     do: [error(path, "must be an object") | issues]
 
+  def validate_optional_relay_data_path_summary_at(issues, _path, nil), do: issues
+
+  def validate_optional_relay_data_path_summary_at(issues, path, %{} = summary),
+    do: validate_relay_data_path_summary(issues, path, summary)
+
+  def validate_optional_relay_data_path_summary_at(issues, path, _summary),
+    do: [error(path, "must be an object") | issues]
+
   defp required_fields(contract_name) do
     [
       OrbitalDynamics.Schema.LinkCapacityRegistryContracts,

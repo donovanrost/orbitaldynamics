@@ -21,6 +21,11 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
       |> File.read!()
       |> :json.decode()
 
+    source_relay_data_path_summary =
+      "study_results/relay_data_path_summary_v1.json"
+      |> File.read!()
+      |> :json.decode()
+
     source_contact_allocation_provider_reservation_request_summary =
       "study_results/contact_allocation_provider_reservation_request_summary_v1.json"
       |> File.read!()
@@ -329,6 +334,7 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
           )
           |> Map.put("source_link_capacity_report", source_link_capacity_report)
           |> Map.put("source_link_capacity_summary", [source_link_capacity_summary])
+          |> Map.put("source_relay_data_path_summary", [source_relay_data_path_summary])
           |> Map.put("source_station_reservation_report", source_station_reservation_report)
           |> Map.put(
             "source_station_reservation_review_summary",
@@ -1112,6 +1118,8 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
 
     assert artifact["source_link_capacity_summary"] == source_link_capacity_summary
 
+    assert artifact["source_relay_data_path_summary"] == source_relay_data_path_summary
+
     assert %{
              "review_type" => "link_capacity_review",
              "source" => "campaign_repair.source_link_capacity_report.rows",
@@ -1188,6 +1196,62 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
              Enum.find(
                artifact["cadence_import_manifest"]["rows"],
                &(&1["source"] == "campaign_repair.source_link_capacity_summary.rows")
+             )
+
+    assert %{
+             "review_type" => "link_capacity_review",
+             "source" => "campaign_repair.source_relay_data_path_summary.rows",
+             "subject_id" => "dss_14",
+             "ground_station_id" => "dss_14",
+             "source_link_capacity" => %{
+               "route_id" => "relay_data_path:sat_a:downlink_1:54b7e7ff594c",
+               "source_spacecraft_id" => "sat_a",
+               "relay_chain_spacecraft_ids" => ["relay_2", "relay_1"],
+               "ground_downlink_contact_id" => "downlink_1",
+               "custody_status" => "confirmed",
+               "latency_status" => "within_limit",
+               "risk_status" => "nominal",
+               "source_summary_schema_contract" => "relay_data_path_summary.v1",
+               "source_link_capacity_summary" => %{
+                 "schema_contract" => "relay_data_path_summary.v1",
+                 "route_count" => 2,
+                 "relay_route_count" => 1,
+                 "assumptions" => %{
+                   "execution_boundary" =>
+                     "artifact_only_no_relay_scheduling_or_schedule_mutation",
+                   "provider_reservation" => "not_performed",
+                   "operator_authority" => "not_granted_by_summary"
+                 }
+               }
+             }
+           } =
+             Enum.find(
+               artifact["operator_review_package"]["rows"],
+               &(&1["source"] == "campaign_repair.source_relay_data_path_summary.rows" and
+                   &1["subject_id"] == "dss_14")
+             )
+
+    assert %{
+             "import_action" => "review_link_capacity",
+             "source_review_type" => "link_capacity_review",
+             "ground_station_id" => "dss_35",
+             "has_cadence_import" => false,
+             "source_review_row" => %{
+               "source" => "campaign_repair.source_relay_data_path_summary.rows",
+               "source_link_capacity" => %{
+                 "route_id" => "route_direct",
+                 "latency_status" => "exceeds_limit",
+                 "risk_status" => "high",
+                 "source_link_capacity_summary" => %{
+                   "schema_contract" => "relay_data_path_summary.v1"
+                 }
+               }
+             }
+           } =
+             Enum.find(
+               artifact["cadence_import_manifest"]["rows"],
+               &(&1["source"] == "campaign_repair.source_relay_data_path_summary.rows" and
+                   &1["ground_station_id"] == "dss_35")
              )
 
     assert artifact["source_station_reservation_report"] ==

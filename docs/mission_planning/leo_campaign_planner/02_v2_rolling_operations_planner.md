@@ -290,7 +290,7 @@ schema-type their stable IDs, invalid-input flags, and protected/change counts.
   `source_contact_contention_report`,
   `source_contact_contention_resolution_report`,
   `source_contact_contention_resolution_summary`, `source_link_capacity_report`,
-  `source_link_capacity_summary`,
+  `source_link_capacity_summary`, `source_relay_data_path_summary`,
   `source_station_reservation_report`, `source_constraint_report`,
   `source_objective_satisfaction_report`, `source_objective_tradeoff_report`,
   `source_score_term_report`, `source_timeline_diff_report`,
@@ -301,11 +301,11 @@ schema-type their stable IDs, invalid-input flags, and protected/change counts.
   rows, exact conflict-group/invalid-input evidence, exact selected/deferred
   contention recommendations, allocation reservation evidence, and spacecraft
   resource decisions caused by unavailable ground-network or resource
-  constraints. The source link-capacity report and compact summary remain
-  distinct from the repaired-plan report, and the station-reservation source
-  remains distinct from the repair-time station calendar; both are review-only.
-  Source provider-
-  reservation request summaries retain exact request-ready/review-required rows
+  constraints. The source link-capacity report, compact capacity summary, and
+  relay data-path summary remain distinct from the repaired-plan report, and
+  the station-reservation source remains distinct from the repair-time station
+  calendar; all are review-only. Source provider-reservation request summaries
+  retain exact request-ready/review-required rows
   plus match, station, direction, reservation, and contact routing as
   review-gated Cadence handoffs without creating a provider reservation or
   schedule mutation. Source
