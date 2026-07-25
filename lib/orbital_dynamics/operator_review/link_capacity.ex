@@ -475,7 +475,7 @@ defmodule OrbitalDynamics.OperatorReview.LinkCapacity do
     direct_rows ++ candidate_refresh_result_artifact_rows(artifact)
   end
 
-  defp source_link_capacity_report_rows(reports, source) when is_list(reports) do
+  def source_link_capacity_report_rows(reports, source) when is_list(reports) do
     reports
     |> Enum.with_index()
     |> Enum.flat_map(fn {report, index} ->
@@ -483,7 +483,7 @@ defmodule OrbitalDynamics.OperatorReview.LinkCapacity do
     end)
   end
 
-  defp source_link_capacity_report_rows(%{} = report, source) do
+  def source_link_capacity_report_rows(%{} = report, source) do
     report = stringify_keys(report)
 
     if link_capacity_summary?(report) or relay_data_path_summary?(report) do
@@ -493,7 +493,7 @@ defmodule OrbitalDynamics.OperatorReview.LinkCapacity do
     end
   end
 
-  defp source_link_capacity_report_rows(_report, _source), do: []
+  def source_link_capacity_report_rows(_report, _source), do: []
 
   defp source_link_capacity_summary_rows(%{} = summary, source) do
     summary = stringify_keys(summary)

@@ -16,6 +16,11 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
       |> File.read!()
       |> :json.decode()
 
+    source_link_capacity_summary =
+      "study_results/link_capacity_summary_v1.json"
+      |> File.read!()
+      |> :json.decode()
+
     source_contact_allocation_provider_reservation_request_summary =
       "study_results/contact_allocation_provider_reservation_request_summary_v1.json"
       |> File.read!()
@@ -323,6 +328,7 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
             [source_operational_quality_gate_import_readiness_summary]
           )
           |> Map.put("source_link_capacity_report", source_link_capacity_report)
+          |> Map.put("source_link_capacity_summary", [source_link_capacity_summary])
           |> Map.put("source_station_reservation_report", source_station_reservation_report)
           |> Map.put(
             "source_station_reservation_review_summary",
@@ -1104,6 +1110,8 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
 
     assert artifact["source_link_capacity_report"] == source_link_capacity_report
 
+    assert artifact["source_link_capacity_summary"] == source_link_capacity_summary
+
     assert %{
              "review_type" => "link_capacity_review",
              "source" => "campaign_repair.source_link_capacity_report.rows",
@@ -1130,6 +1138,56 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
              Enum.find(
                artifact["cadence_import_manifest"]["rows"],
                &(&1["source"] == "campaign_repair.source_link_capacity_report.rows")
+             )
+
+    assert %{
+             "review_type" => "link_capacity_review",
+             "source" => "campaign_repair.source_link_capacity_summary.rows",
+             "subject_id" => "equator_prime",
+             "ground_station_id" => "equator_prime",
+             "selected_downlink_shortfall_mb" => +0.0,
+             "actual_downlink_shortfall_mb" => 10.0,
+             "selected_contact_ids" => ["science_downlink"],
+             "actual_throughput_contact_ids" => ["science_downlink"],
+             "source_link_capacity" => %{
+               "source_summary_schema_contract" => "link_capacity_summary.v1",
+               "source_summary_model" => "artifact_only_link_capacity_summary",
+               "source_link_capacity_summary" => %{
+                 "schema_contract" => "link_capacity_summary.v1",
+                 "selected_contact_ids" => ["science_downlink"],
+                 "actual_throughput_contact_ids" => ["science_downlink"],
+                 "assumptions" => %{
+                   "execution_boundary" =>
+                     "artifact_only_no_provider_reservation_or_schedule_mutation",
+                   "operator_authority" => "not_granted_by_summary"
+                 }
+               }
+             }
+           } =
+             Enum.find(
+               artifact["operator_review_package"]["rows"],
+               &(&1["source"] == "campaign_repair.source_link_capacity_summary.rows")
+             )
+
+    assert %{
+             "import_action" => "review_link_capacity",
+             "source_review_type" => "link_capacity_review",
+             "ground_station_id" => "equator_prime",
+             "selected_contact_ids" => ["science_downlink"],
+             "actual_throughput_contact_ids" => ["science_downlink"],
+             "has_cadence_import" => false,
+             "source_review_row" => %{
+               "source" => "campaign_repair.source_link_capacity_summary.rows",
+               "source_link_capacity" => %{
+                 "source_link_capacity_summary" => %{
+                   "schema_contract" => "link_capacity_summary.v1"
+                 }
+               }
+             }
+           } =
+             Enum.find(
+               artifact["cadence_import_manifest"]["rows"],
+               &(&1["source"] == "campaign_repair.source_link_capacity_summary.rows")
              )
 
     assert artifact["source_station_reservation_report"] ==

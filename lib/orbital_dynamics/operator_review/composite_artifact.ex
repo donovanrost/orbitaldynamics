@@ -338,6 +338,10 @@ defmodule OrbitalDynamics.OperatorReview.CompositeArtifact do
         Map.get(artifact, "source_link_capacity_report"),
         "campaign_repair.source_link_capacity_report"
       ) ++
+      LinkCapacity.source_link_capacity_report_rows(
+        Map.get(artifact, "source_link_capacity_summary"),
+        "campaign_repair.source_link_capacity_summary"
+      ) ++
       StationReservation.report_rows(
         Map.get(artifact, "source_station_reservation_report") || %{},
         "campaign_repair.source_station_reservation_report"

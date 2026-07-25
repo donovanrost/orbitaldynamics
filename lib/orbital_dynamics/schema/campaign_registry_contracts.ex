@@ -140,6 +140,7 @@ defmodule OrbitalDynamics.Schema.CampaignRegistryContracts do
           "source_contact_contention_resolution_report",
           "source_contact_contention_resolution_summary",
           "source_link_capacity_report",
+          "source_link_capacity_summary",
           "source_station_reservation_report",
           "source_station_reservation_review_summary",
           "source_station_reservation_hold_import_readiness_summary",
@@ -227,6 +228,7 @@ defmodule OrbitalDynamics.Schema.CampaignRegistryContracts do
           "contact_contention_resolution_summary.v1",
           "score_term_report.v1",
           "link_capacity_report.v1",
+          "link_capacity_summary.v1",
           "candidate_rejection_report.v1"
         ]
       },

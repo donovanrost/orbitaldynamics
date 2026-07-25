@@ -451,6 +451,12 @@ focused repair-action regressions.
   validates it at `source_link_capacity_report`, and routes its existing exact
   review fields into review-gated Cadence import without scoring the evidence a
   second time.
+- **Source compact link-capacity summary** — V2 preserves the separately
+  versioned `link_capacity_summary.v1` at `source_link_capacity_summary`.
+  Existing adapters synthesize one review-gated station row with exact
+  selected/actual/required contact identity, throughput, shortfall,
+  reservation, station-calendar provider, trust, and provenance evidence; the
+  summary does not feed repair scoring or execution.
 - **Source station-reservation report** — V2 preserves CandidateRefresh's
   upstream `station_reservation_report.v1` independently from the repair-time
   station calendar, validates the nested contract, and routes affected-contact

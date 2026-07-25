@@ -1583,6 +1583,13 @@ station/contact/effective/selected/actual-throughput counts, selected and
 actual shortfall status, throughput totals, station/contact routing maps, model
 limits, and artifact-only no-provider-reservation/no-schedule-mutation
 assumptions.
+Campaign-repair V2 preserves that compact artifact at the distinct
+`source_link_capacity_summary` path. Executable validation rejects stale
+row-derived counts, throughput/shortfall totals, station/contact routing, or
+non-object values. Existing operator-review and Cadence adapters synthesize a
+review-gated row per station while retaining compact source context; the path
+performs no scoring, candidate selection, provider reservation, schedule
+mutation, Cadence write, or grant of operator authority.
 `study_results/relay_data_path_summary_v1.json` is observed for relay/direct
 route counts, custody/latency/risk status maps, route IDs, source/relay/station
 ID sets, status-routed route ID maps, latency maxima, model-limit boundaries,

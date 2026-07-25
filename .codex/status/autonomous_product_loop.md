@@ -5,76 +5,90 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Preserve V2 source compact contention-resolution summary handoff.
+Preserve V2 source compact link-capacity summary handoff.
 
 Status:
 Verified; publication pending.
 
-Delivered behavior:
-- CandidateRefresh source/canonical/list-valued
-  `contact_contention_resolution_summary.v1` inputs resolve to the first map
-  and are preserved exactly at
-  `source_contact_contention_resolution_summary` on campaign repair V2.
-- The optional field validates against the full compact resolution contract at
-  its distinct path and is exported in the repair schema and aggregate bundle.
-- Existing summary conversion synthesizes one exact recommendation row per
-  contention group into operator review and review-gated Cadence handoff,
-  preserving selected/deferred/review contact identity, resource scope,
-  selection reason, action, capacity provenance, and compact source context.
-- The canonical fixture contributes two review-only group rows with
-  `has_cadence_import: false`; repair selection remains independently driven by
-  the full report and planning inputs.
-- Scores, pressure, candidate eligibility, schedules, provider reservations,
-  Cadence writes, operator authority, and autonomous execution remain
-  unchanged.
+Selection evidence:
+- CandidateRefresh accepts the separately versioned `link_capacity_summary.v1`
+  from direct, canonical, nested, result-artifact, and list-valued source paths.
+  It preserves row-derived contact/station identities, selected and actual
+  throughput, required downlink, shortfall, capacity-adjusted throughput,
+  reservation, station-calendar provider, trust, and provenance routes.
+- The compact summary can arrive without the full link-capacity report. Its
+  assumptions declare artifact-only behavior, no provider reservation, no
+  schedule mutation, and no operator authority.
+- Existing operator-review/Cadence conversion synthesizes a review-gated row
+  per station from compact summary aggregates. Campaign repair V2 currently
+  preserves only the full report, so the compact compatibility boundary is
+  otherwise lost.
+
+Intended behavior:
+- Resolve source/canonical/list-valued compact link-capacity summaries and
+  preserve the first map exactly at `source_link_capacity_summary` on repair
+  V2.
+- Validate the optional field against its full executable contract at the
+  distinct source path and export the versioned property.
+- Reuse existing summary-to-review conversion so station/contact identity,
+  throughput, shortfall, reservation, and provider-entry evidence reaches
+  operator review and review-gated Cadence handoff with exact provenance.
+- Keep the compact summary out of repair scoring, candidate selection,
+  schedules, provider/Cadence writes, operator authority, and autonomous
+  execution.
 
 Level 6 pillar advanced:
 Fleet-scale planning decisions and durable reproducible audit handoffs.
 
-Verification:
-- focused source/schema/integration proofs: `7 passed`
-- adjacent compact resolution-summary family: `31 passed`
-- contact-contention family: `119 passed`
-- contact-allocation family: `238 passed`
-- golden artifacts: `12 passed`
-- schema lint: `155 artifacts`, `0 errors`, `0 warnings`
-- schema export synchronization proof: `3 passed`
-- full suite after synchronized exports: `5024 passed` in `643.3s`
-- pre-export full suite: `5023/5024 passed` in `640.9s`; sole failure was the
-  expected checked-in schema-export mismatch, resolved by regeneration
-- `mix format --check-formatted`: pass
-- `git diff --check`: pass
+Delivered behavior:
+- V2 resolves direct, canonical, nested, result-artifact, and list-valued
+  compact link-capacity summaries, selecting the first map and preserving it
+  exactly at `source_link_capacity_summary`.
+- The optional source field receives its own full path-aware executable
+  validation, registry contract, type hint, and exported schema property.
+- Existing compact-summary conversion now supplies exact review-gated
+  station rows to the composite operator-review and Cadence artifacts,
+  including selected/actual contact IDs, throughput, required downlink,
+  shortfall, reservation, provider-entry, trust, and source context.
+- The source summary remains distinct from the generated repair report and
+  does not affect scoring, candidate selection, schedules, effects, provider
+  or Cadence writes, operator authority, or autonomous execution.
 
-Generated/canonical evidence:
-- generated delta is exactly `schemas/campaign_repair.v2.schema.json` and
-  `schemas/orbital_dynamics.schema_bundle.v1.json`
-- repair schema SHA-256:
-  `0130570176edcd456fcfd635d334428ab785151a814e625c94676cbdc5494f8e`
-- schema bundle SHA-256:
-  `51c21d9b04d350a5a73c119ca97bcd041b00fdbc56d8db4680e67fe0d2e21dce`
-- canonical repair SHA-256 remained
-  `867928e8aa95ba8473fffe017e7d1efda9d9e83799516a2a938ef7bb8c25f7fa`
-- canonical strategy SHA-256 remained
-  `9e2e9bae5d1bef69f36ac288b7cb63a803960b14fc1edf4a841598aa2e947d91`
-- manifest schema SHA-256 remained
-  `7a44a6e58754aae967ee8319c8768b7270d7d7982667c4a6bad8ff1c274c0594`
+Verification:
+- Focused source/schema/integration proof: `21 passed`.
+- Adjacent compact-summary proof: `29 passed`.
+- Link-capacity family: `100 passed`.
+- Contact-allocation family: `238 passed`.
+- Golden-artifact suite: `12 passed`.
+- Full schema lint: `155 artifacts`, zero errors and zero warnings.
+- Pre-export full suite: `5028/5029 passed`; sole failure was the expected
+  generated-schema export mismatch (`638.1s`).
+- Regenerated schema exports changed exactly `campaign_repair.v2.schema.json`
+  and `orbital_dynamics.schema_bundle.v1.json`; manifest and canonical repair
+  and strategy outputs stayed byte-identical.
+- Repair schema SHA-256:
+  `1dabb7ee95353f61e8fc6430c51353c80b20118e049039141105cb8256c15b30`.
+- Bundle SHA-256:
+  `74e675d7c05b52f728c2a4bcea22915845dc6ca4828e8fd1b40d678aee255868`.
+- Schema export proof: `3 passed` (`55.9s`).
+- Final full suite: `5029 passed` (`654.4s`).
+- `mix format --check-formatted` and `git diff --check` pass.
 
 Review:
-- No regression or scope drift found. Preservation mirrors adjacent compact
-  summaries; validation reuses the registered executable contract; review and
-  Cadence routing reuse the existing compact resolution converter.
-- Focused development showed that an older minimal in-test resolution report
-  lacks current resource-scope evidence needed to generate a valid compact
-  artifact. The integration proof now uses the checked-in schema-valid compact
-  fixture, correctly testing independence from the full report.
-- Exact preservation adds review evidence only and does not change planning
-  decisions, canonical study artifacts, or effects.
+- Exact integration assertions cover preserved source payloads, the synthesized
+  operator-review row, and review-gated Cadence projection with
+  `has_cadence_import: false`.
+- The newly reusable summary converter remains an internal, undocumented
+  operator-review helper and is exercised by both the compact-summary and
+  broader link-capacity families.
+- No repair pressure, scoring, selection, scheduling, or effect code reads the
+  new source field. Stable canonical output hashes and the full suite confirm
+  no planning regression.
 
 Last published slice:
-- `694f48b0` Preserve V2 source compact allocation summary (`5019 passed`;
-  exact rows and row-derived allocation/trust/reservation/resource/capacity
-  routes, no provider reservation, schedule mutation, Cadence write, operator
-  authority, or execution).
+- `8455818e` Preserve V2 compact contention resolution (`5024 passed`; two
+  exact review-only group rows, no candidate selection, provider reservation,
+  schedule mutation, Cadence write, operator authority, or execution).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions while preserving explicit
@@ -85,8 +99,8 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-Audit the next bounded CandidateRefresh source-report gap by product value and
-distinctness after this slice is published.
+After publication, audit the next bounded CandidateRefresh source-report gap
+by product value and distinctness.
 
 Blocked:
 None.
