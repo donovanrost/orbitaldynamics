@@ -125,6 +125,14 @@ source/replacement scope, dependency and exclusivity edges, status, and
 operator-action routing. Existing review and Cadence adapters retain exact
 actionable impact rows without applying a transition, mutating or publishing
 the repaired timeline, writing to Cadence, or granting operator authority.
+Incoming lifecycle-state evidence is retained separately at
+`source_timeline_lifecycle_state_summary`. Full executable validation pins
+planned/realized and review counts, identity collections, transition and action
+maps, complete rows, review rows, duplicate timeline identity, protection
+context, and approval changes. Existing review and Cadence adapters preserve
+exact actionable rows without applying lifecycle or approval transitions,
+mutating or publishing the repaired timeline, writing to Cadence, commanding,
+or granting approval/operator authority.
 CandidateRefresh transition-application evidence is likewise retained at
 `source_timeline_transition_application_report`, distinct from V2's repair-time
 `timeline_transition_application_report`. Full executable validation pins

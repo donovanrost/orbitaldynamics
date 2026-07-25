@@ -593,6 +593,13 @@ focused repair-action regressions.
   dependent counts, identity lists, and impact rows, and routes
   source/replacement dependency and exclusivity edges into review-gated Cadence
   import without mutating or publishing the repaired schedule.
+- **Source timeline-lifecycle-state summary** — V2 preserves CandidateRefresh's
+  upstream `timeline_lifecycle_state_summary.v1` at
+  `source_timeline_lifecycle_state_summary`, validates exact transition counts,
+  identity maps, rows, and review rows, and routes planned/realized status,
+  approval, protection, duplicate-identity, and operator-action evidence into
+  review-gated Cadence import without applying a transition or granting
+  approval authority.
 - **Source timeline-preservation report** — V2 preserves CandidateRefresh's
   upstream `timeline_preservation_report.v1` independently from derived
   `preserved_activities`, validates it at `source_timeline_preservation_report`,

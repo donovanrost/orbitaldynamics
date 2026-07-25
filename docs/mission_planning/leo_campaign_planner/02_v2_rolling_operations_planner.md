@@ -296,6 +296,7 @@ schema-type their stable IDs, invalid-input flags, and protected/change counts.
   `source_score_term_report`, `source_timeline_diff_report`,
   `source_timeline_integrity_report`,
   `source_timeline_dependency_impact_summary`,
+  `source_timeline_lifecycle_state_summary`,
   `source_timeline_preservation_report`,
   `source_timeline_transition_application_report`,
   `source_operational_timeline_report`,
@@ -312,9 +313,10 @@ schema-type their stable IDs, invalid-input flags, and protected/change counts.
   relay data-path summary remain distinct from the repaired-plan report, and
   the station-reservation source remains distinct from the repair-time station
   calendar; all are review-only. Source timeline-integrity,
-  timeline-dependency-impact, preservation, transition-application,
-  operational-timeline, command-window, and maneuver-review reports likewise
-  remain distinct from repaired timeline state and cannot mutate or publish it,
+  timeline-dependency-impact, timeline-lifecycle-state, preservation,
+  transition-application, operational-timeline, command-window, and
+  maneuver-review reports likewise remain distinct from repaired timeline
+  state and cannot apply lifecycle/approval transitions, mutate or publish it,
   approve maneuvers, or execute commands.
   Source provider-reservation request summaries retain exact
   request-ready/review-required rows plus match, station, direction,

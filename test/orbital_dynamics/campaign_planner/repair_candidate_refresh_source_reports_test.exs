@@ -112,6 +112,11 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
       |> File.read!()
       |> :json.decode()
 
+    source_timeline_lifecycle_state_summary =
+      "study_results/timeline_lifecycle_state_summary_v1.json"
+      |> File.read!()
+      |> :json.decode()
+
     source_timeline_preservation_report =
       "study_results/timeline_preservation_report_v1.json"
       |> File.read!()
@@ -399,6 +404,10 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
           |> Map.put(
             "source_timeline_dependency_impact_summary",
             [source_timeline_dependency_impact_summary]
+          )
+          |> Map.put(
+            "source_timeline_lifecycle_state_summary",
+            [source_timeline_lifecycle_state_summary]
           )
           |> Map.put(
             "source_timeline_preservation_report",
@@ -1984,6 +1993,81 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
                    "campaign_repair.source_timeline_dependency_impact_summary.dependency_impact_rows" and
                    &1["activity_id"] == "cmd_main" and
                    &1["dependency_impact_scope"] == "source")
+             )
+
+    assert artifact["source_timeline_lifecycle_state_summary"] ==
+             source_timeline_lifecycle_state_summary
+
+    assert %{
+             "review_type" => "timeline_lifecycle_state_review",
+             "source" => "campaign_repair.source_timeline_lifecycle_state_summary.review_rows",
+             "subject_id" => "timeline:cmd_provider",
+             "timeline_id" => "timeline:cmd_provider",
+             "activity_id" => "cmd_provider",
+             "planned_activity_id" => "cmd_provider",
+             "realized_activity_id" => "cmd_provider",
+             "timeline_lifecycle_state_status" => "review_required",
+             "transition_decision" => "review",
+             "status_transition_decision" => "record",
+             "approval_transition_decision" => "review",
+             "required_operator_action" => "review_activity_approval",
+             "operator_action_reasons" => [
+               "activity_execution_recorded",
+               "approval_grant_requires_operator_authority"
+             ],
+             "planned_status" => "executing",
+             "realized_status" => "completed",
+             "planned_approval_status" => "operator_review_required",
+             "realized_approval_status" => "approved",
+             "source_planned_activity_count" => 5,
+             "source_realized_activity_count" => 3,
+             "source_lifecycle_state_review_required_count" => 2,
+             "source_timeline_lifecycle_state" => %{
+               "timeline_id" => "timeline:cmd_provider",
+               "transition_decision" => "review"
+             }
+           } =
+             Enum.find(
+               artifact["operator_review_package"]["rows"],
+               &(&1["source"] ==
+                   "campaign_repair.source_timeline_lifecycle_state_summary.review_rows" and
+                   &1["timeline_id"] == "timeline:cmd_provider")
+             )
+
+    assert %{
+             "import_action" => "review_timeline_lifecycle_state",
+             "import_status" => "review_required_before_import",
+             "source_review_type" => "timeline_lifecycle_state_review",
+             "source_review_action" => "review_activity_approval",
+             "timeline_id" => "timeline:cmd_provider",
+             "activity_id" => "cmd_provider",
+             "planned_activity_id" => "cmd_provider",
+             "realized_activity_id" => "cmd_provider",
+             "timeline_lifecycle_state_status" => "review_required",
+             "transition_decision" => "review",
+             "status_transition_decision" => "record",
+             "approval_transition_decision" => "review",
+             "planned_status" => "executing",
+             "realized_status" => "completed",
+             "planned_approval_status" => "operator_review_required",
+             "realized_approval_status" => "approved",
+             "source_planned_activity_count" => 5,
+             "source_realized_activity_count" => 3,
+             "source_lifecycle_state_review_required_count" => 2,
+             "source_timeline_lifecycle_state" => %{
+               "timeline_id" => "timeline:cmd_provider",
+               "transition_decision" => "review"
+             },
+             "source_review_row" => %{
+               "source" => "campaign_repair.source_timeline_lifecycle_state_summary.review_rows",
+               "timeline_id" => "timeline:cmd_provider"
+             }
+           } =
+             Enum.find(
+               artifact["cadence_import_manifest"]["rows"],
+               &(get_in(&1, ["source_review_row", "source"]) ==
+                   "campaign_repair.source_timeline_lifecycle_state_summary.review_rows" and
+                   &1["timeline_id"] == "timeline:cmd_provider")
              )
 
     assert artifact["source_timeline_preservation_report"] ==
