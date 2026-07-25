@@ -121,6 +121,11 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
       |> File.read!()
       |> :json.decode()
 
+    source_operational_execution_boundary_summary =
+      "study_results/operational_execution_boundary_summary_v1.json"
+      |> File.read!()
+      |> :json.decode()
+
     candidate_diff_report =
       candidate_diff_report()
       |> update_in(["invalidated_candidates", Access.at(0)], fn candidate ->
@@ -187,6 +192,10 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
           |> Map.put(
             "source_operational_readiness_gate_summary",
             [source_operational_readiness_gate_summary]
+          )
+          |> Map.put(
+            "source_operational_execution_boundary_summary",
+            [source_operational_execution_boundary_summary]
           )
           |> Map.put("source_link_capacity_report", source_link_capacity_report)
           |> Map.put("source_station_reservation_report", source_station_reservation_report)
@@ -341,6 +350,9 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
     assert artifact["source_operational_readiness_gate_summary"] ==
              source_operational_readiness_gate_summary
 
+    assert artifact["source_operational_execution_boundary_summary"] ==
+             source_operational_execution_boundary_summary
+
     assert artifact["source_quality_gate_report"]["schema_contract"] ==
              "quality_gate_report.v1"
 
@@ -372,7 +384,7 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
              )
 
     assert %{
-             "operational_readiness_review_count" => 4,
+             "operational_readiness_review_count" => 5,
              "quality_gate_review_count" => 1
            } = artifact["operator_review_package"]
 
@@ -505,6 +517,61 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
              Enum.find(
                artifact["cadence_import_manifest"]["rows"],
                &(&1["source"] == "campaign_repair.source_operational_readiness_gate_summary")
+             )
+
+    assert %{
+             "review_type" => "operational_readiness_review",
+             "source" => "campaign_repair.source_operational_execution_boundary_summary",
+             "subject_id" => "activity_1",
+             "required_operator_action" => "record_operational_readiness_importable",
+             "approval_status" => "auto_approvable",
+             "source_operational_readiness_report" => %{
+               "schema_contract" => "operational_execution_boundary_summary.v1",
+               "source_summary_schema_contract" => "operational_execution_boundary_summary.v1",
+               "source_summary_model" => "artifact_only_operational_execution_boundary_summary",
+               "import_eligible" => true,
+               "handoff_only" => true,
+               "execution_allowed" => false,
+               "cadence_write_allowed" => false,
+               "operator_authority_granted" => false,
+               "execution_boundary" => "adapter_handoff_only",
+               "operational_mode_gate" => %{
+                 "id" => "operational_mode",
+                 "status" => "passed",
+                 "classification" => "importable"
+               },
+               "model_limits" => [
+                 "operational_execution_boundary_summary_routes_only",
+                 "operational_execution_boundary_summary_does_not_execute_or_import"
+               ]
+             }
+           } =
+             Enum.find(
+               artifact["operator_review_package"]["rows"],
+               &(&1["source"] ==
+                   "campaign_repair.source_operational_execution_boundary_summary")
+             )
+
+    assert %{
+             "import_action" => "review_operational_readiness",
+             "source_review_type" => "operational_readiness_review",
+             "source" => "campaign_repair.source_operational_execution_boundary_summary",
+             "import_status" => "ready_for_import",
+             "has_cadence_import" => false,
+             "source_review_row" => %{
+               "source_operational_readiness_report" => %{
+                 "handoff_only" => true,
+                 "execution_allowed" => false,
+                 "cadence_write_allowed" => false,
+                 "operator_authority_granted" => false,
+                 "execution_boundary" => "adapter_handoff_only"
+               }
+             }
+           } =
+             Enum.find(
+               artifact["cadence_import_manifest"]["rows"],
+               &(&1["source"] ==
+                   "campaign_repair.source_operational_execution_boundary_summary")
              )
 
     assert %{

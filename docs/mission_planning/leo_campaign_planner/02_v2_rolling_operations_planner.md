@@ -315,7 +315,9 @@ schema-type their stable IDs, invalid-input flags, and protected/change counts.
   eligibility decision and gate counts as a no-write Cadence handoff; they do
   not approve or perform an import. Source operational-readiness gate summaries
   also preserve normalized gate routing and non-passed identities without
-  recomputing readiness.
+  recomputing readiness. Source operational execution-boundary summaries retain
+  the explicit handoff-only and no-execution/no-write/no-operator-authority
+  contract without granting authority or executing a command.
   Source provider-counteroffer evidence, including preserved plan-impact
   timing/cost deltas, lock-deadline context, and explicit import-readiness
   classification, remains review-gated and does not change the repaired

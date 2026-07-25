@@ -269,6 +269,10 @@ V2 repair `operator_review_package.v1` now emits:
   gate rows, status/classification routing maps, non-passed gate IDs, source
   lineage, assumptions, and summary-only model limits without recomputing or
   changing readiness.
+- CandidateRefresh source operational execution-boundary summaries, preserving
+  exact handoff-only status, execution/write/operator-authority denials,
+  classified boundary, operational-mode gate, assumptions, and model limits
+  without granting authority or performing a write, import, or command.
 - CandidateRefresh source constraint fail/warning rows, preserving exact
   upstream scenario, threshold, value, score, and status evidence beside the
   recomputed repaired-plan report without changing feasibility or scoring.

@@ -452,6 +452,12 @@ focused repair-action regressions.
   status/classification routing maps, non-passed gate IDs, source lineage,
   assumptions, and summary-only model limits without changing readiness or
   approving an import.
+- **Source operational execution-boundary summary** — V2 preserves the compact
+  `operational_execution_boundary_summary.v1` at
+  `source_operational_execution_boundary_summary`, including the exact
+  handoff-only flag, execution/write/operator-authority denials, classified
+  execution boundary, operational-mode gate, assumptions, and artifact-only
+  model limits without executing a command or performing an import.
 - **Source constraint report** — V2 preserves CandidateRefresh's upstream
   `constraint_report.v1` independently from the recomputed repaired-plan
   report, validates it at `source_constraint_report`, and routes exact non-pass

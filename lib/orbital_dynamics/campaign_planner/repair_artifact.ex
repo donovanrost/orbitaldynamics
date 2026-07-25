@@ -120,6 +120,10 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairArtifact do
       RepairSourceReports.operational_readiness_gate_summary(request.candidate_refresh)
     )
     |> put_source_report(
+      "source_operational_execution_boundary_summary",
+      RepairSourceReports.operational_execution_boundary_summary(request.candidate_refresh)
+    )
+    |> put_source_report(
       "source_quality_gate_report",
       RepairSourceReports.quality_gate(request.candidate_refresh)
     )
