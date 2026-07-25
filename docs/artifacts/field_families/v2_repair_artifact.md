@@ -592,6 +592,12 @@ focused repair-action regressions.
   `preserved_activities`, validates it at `source_timeline_preservation_report`,
   and routes exact preserve/review decisions, protection reasons, locks,
   lifecycle status, and invalid-input evidence without mutating the schedule.
+- **Source timeline-transition-application report** — V2 preserves
+  CandidateRefresh's upstream `timeline_transition_application_report.v1`
+  independently from repair-time `timeline_transition_application_report`,
+  validates it at `source_timeline_transition_application_report`, and routes
+  exact withheld changes, selected source, transition decisions, integrity
+  evidence, and required operator actions without applying the source timeline.
 - **Source schema-validation report** — V2 preserves CandidateRefresh's upstream
   `schema_validation_report.v1`, validates it at
   `source_schema_validation_report`, and routes exact errors, warnings, and

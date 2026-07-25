@@ -112,6 +112,11 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
       |> File.read!()
       |> :json.decode()
 
+    source_timeline_transition_application_report =
+      "study_results/timeline_transition_application_report_v1.json"
+      |> File.read!()
+      |> :json.decode()
+
     source_schema_validation_report =
       "study_results/schema_validation_report_v1.json"
       |> File.read!()
@@ -374,6 +379,10 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
           |> Map.put(
             "source_timeline_preservation_report",
             [source_timeline_preservation_report]
+          )
+          |> Map.put(
+            "source_timeline_transition_application_report",
+            [source_timeline_transition_application_report]
           )
           |> Map.put("source_schema_validation_report", source_schema_validation_report)
           |> Map.put("source_model_acceptance_report", [source_model_acceptance_report])
@@ -1930,6 +1939,60 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
                &(get_in(&1, ["source_review_row", "source"]) ==
                    "campaign_repair.source_timeline_preservation_report.rows" and
                    &1["activity_id"] == "bad_missing_type")
+             )
+
+    assert artifact["source_timeline_transition_application_report"] ==
+             source_timeline_transition_application_report
+
+    assert %{
+             "review_type" => "timeline_diff_review",
+             "source" =>
+               "campaign_repair.source_timeline_transition_application_report.applications",
+             "timeline_id" => "timeline:cmd_lock",
+             "activity_id" => "cmd_lock",
+             "diff_status" => "changed",
+             "changed_fields" => ["starts_at_s", "ends_at_s"],
+             "transition_decision" => "preserve_source",
+             "application_status" => "source_preserved_pending_review",
+             "selected_activity_source" => "source",
+             "required_operator_action" => "review_changed_protected_activity",
+             "requires_operator_review" => true,
+             "source_timeline_application" => %{
+               "timeline_id" => "timeline:cmd_lock",
+               "transition_decision" => "preserve_source",
+               "application_status" => "source_preserved_pending_review"
+             }
+           } =
+             Enum.find(
+               artifact["operator_review_package"]["rows"],
+               &(&1["source"] ==
+                   "campaign_repair.source_timeline_transition_application_report.applications" and
+                   &1["timeline_id"] == "timeline:cmd_lock")
+             )
+
+    assert %{
+             "import_action" => "review_timeline_diff",
+             "source_review_type" => "timeline_diff_review",
+             "timeline_id" => "timeline:cmd_lock",
+             "activity_id" => "cmd_lock",
+             "changed_fields" => ["starts_at_s", "ends_at_s"],
+             "transition_decision" => "preserve_source",
+             "application_status" => "source_preserved_pending_review",
+             "required_operator_action" => "review_changed_protected_activity",
+             "source_review_row" => %{
+               "source" =>
+                 "campaign_repair.source_timeline_transition_application_report.applications",
+               "source_timeline_application" => %{
+                 "timeline_id" => "timeline:cmd_lock",
+                 "transition_decision" => "preserve_source"
+               }
+             }
+           } =
+             Enum.find(
+               artifact["cadence_import_manifest"]["rows"],
+               &(get_in(&1, ["source_review_row", "source"]) ==
+                   "campaign_repair.source_timeline_transition_application_report.applications" and
+                   &1["timeline_id"] == "timeline:cmd_lock")
              )
 
     assert artifact["source_schema_validation_report"] == source_schema_validation_report

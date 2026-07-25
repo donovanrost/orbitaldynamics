@@ -118,6 +118,14 @@ or non-object values. Existing operator-review and Cadence adapters retain
 exact pre-repair decisions and source summary context for review; the path
 performs no repair scoring, candidate selection, timeline mutation, Cadence
 write, or grant of operator authority.
+CandidateRefresh transition-application evidence is likewise retained at
+`source_timeline_transition_application_report`, distinct from V2's repair-time
+`timeline_transition_application_report`. Full executable validation pins
+application counts, selected source, transition decisions, protected-change
+withholding, integrity evidence, and operator-action routing. Existing review
+and Cadence adapters preserve those exact source decisions without applying the
+source timeline, mutating the repair result, writing to Cadence, or granting
+operator authority.
 `study_results/timeline_preservation_status_v1.json` now feeds a curated
 `timeline_preservation_status.v1` validation-reference fixture. The observations
 check locked/protected activity preservation status, timeline identity,
