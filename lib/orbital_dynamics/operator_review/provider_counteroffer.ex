@@ -78,6 +78,10 @@ defmodule OrbitalDynamics.OperatorReview.ProviderCounteroffer do
     source_summary_rows(summary_or_summaries, source, "impact_rows")
   end
 
+  def review_summary_rows(summary_or_summaries, source) do
+    source_summary_rows(summary_or_summaries, source, "review_rows")
+  end
+
   def import_readiness_summary_rows(summary_or_summaries, source) do
     source_summary_rows(summary_or_summaries, source, "import_readiness_rows")
   end
@@ -187,6 +191,13 @@ defmodule OrbitalDynamics.OperatorReview.ProviderCounteroffer do
       "reviewable_count",
       "review_counteroffer_ids",
       "counteroffer_review_status",
+      "counteroffer_status_counts",
+      "counteroffer_negotiation_state_counts",
+      "counteroffer_lock_deadline_count",
+      "earliest_counteroffer_lock_deadline_s",
+      "expired_counteroffer_lock_deadline_count",
+      "active_counteroffer_lock_deadline_count",
+      "missing_counteroffer_lock_deadline_count",
       "import_readiness_status",
       "import_classification",
       "provider_counteroffer_import_status_counts",

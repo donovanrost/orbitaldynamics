@@ -362,6 +362,10 @@ V2 repair `operator_review_package.v1` now emits:
   applied/overlap availability, affected contacts, and
   reserved-under-higher-precedence ownership/status routing without provider
   reservation or schedule mutation.
+- CandidateRefresh source provider-counteroffer review summaries, preserving
+  status, negotiation state, expired/missing/active lock-deadline routing,
+  review IDs, and exact review rows without accepting an offer, provider writes,
+  or schedule mutation.
 - Source candidate-diff rows.
 - Source contact/resource-suppression rows.
 - Source refresh-freshness and refresh-budget review rows.

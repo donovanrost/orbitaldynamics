@@ -19,6 +19,14 @@ defmodule OrbitalDynamics.Schema.ProviderCounterofferValidation do
   def validate_optional_plan_impact_summary(issues, path, _summary),
     do: [error(path, "must be an object") | issues]
 
+  def validate_optional_review_summary(issues, _path, nil), do: issues
+
+  def validate_optional_review_summary(issues, path, %{} = summary),
+    do: validate_review_summary(issues, path, summary)
+
+  def validate_optional_review_summary(issues, path, _summary),
+    do: [error(path, "must be an object") | issues]
+
   def validate_optional_import_readiness_summary(issues, _path, nil), do: issues
 
   def validate_optional_import_readiness_summary(issues, path, %{} = summary),
