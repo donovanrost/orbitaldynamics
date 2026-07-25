@@ -117,6 +117,11 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
       |> File.read!()
       |> :json.decode()
 
+    source_operational_timeline_report =
+      "study_results/operational_timeline_report_v1.json"
+      |> File.read!()
+      |> :json.decode()
+
     source_schema_validation_report =
       "study_results/schema_validation_report_v1.json"
       |> File.read!()
@@ -383,6 +388,10 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
           |> Map.put(
             "source_timeline_transition_application_report",
             [source_timeline_transition_application_report]
+          )
+          |> Map.put(
+            "source_operational_timeline_report",
+            [source_operational_timeline_report]
           )
           |> Map.put("source_schema_validation_report", source_schema_validation_report)
           |> Map.put("source_model_acceptance_report", [source_model_acceptance_report])
@@ -1993,6 +2002,61 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
                &(get_in(&1, ["source_review_row", "source"]) ==
                    "campaign_repair.source_timeline_transition_application_report.applications" and
                    &1["timeline_id"] == "timeline:cmd_lock")
+             )
+
+    assert artifact["source_operational_timeline_report"] ==
+             source_operational_timeline_report
+
+    assert %{
+             "review_type" => "operational_timeline_review",
+             "source" => "campaign_repair.source_operational_timeline_report.rows",
+             "activity_id" => "cmd_1",
+             "timeline_id" => "timeline:leo_1:command:dss_14:cmd_window_1",
+             "activity_type" => "command",
+             "operational_kind" => "command",
+             "ground_station_id" => "dss_14",
+             "required_operator_action" => "review_timeline_integrity",
+             "operator_action_reason" => "timeline_integrity_issue",
+             "timeline_integrity_status" => "review_required",
+             "timeline_integrity_issue_count" => 4,
+             "cadence_import_status" => "present",
+             "source_operational_timeline" => %{
+               "activity_id" => "cmd_1",
+               "timeline_id" => "timeline:leo_1:command:dss_14:cmd_window_1",
+               "required_operator_action" => "review_timeline_integrity",
+               "timeline_integrity_issue_count" => 4
+             }
+           } =
+             Enum.find(
+               artifact["operator_review_package"]["rows"],
+               &(&1["source"] == "campaign_repair.source_operational_timeline_report.rows" and
+                   &1["activity_id"] == "cmd_1")
+             )
+
+    assert %{
+             "import_action" => "review_operational_timeline",
+             "source_review_type" => "operational_timeline_review",
+             "activity_id" => "cmd_1",
+             "timeline_id" => "timeline:leo_1:command:dss_14:cmd_window_1",
+             "operational_kind" => "command",
+             "required_operator_action" => "review_timeline_integrity",
+             "timeline_integrity_status" => "review_required",
+             "timeline_integrity_issue_count" => 4,
+             "cadence_import_status" => "present",
+             "source_operational_timeline" => %{
+               "activity_id" => "cmd_1",
+               "timeline_id" => "timeline:leo_1:command:dss_14:cmd_window_1"
+             },
+             "source_review_row" => %{
+               "source" => "campaign_repair.source_operational_timeline_report.rows",
+               "activity_id" => "cmd_1"
+             }
+           } =
+             Enum.find(
+               artifact["cadence_import_manifest"]["rows"],
+               &(get_in(&1, ["source_review_row", "source"]) ==
+                   "campaign_repair.source_operational_timeline_report.rows" and
+                   &1["activity_id"] == "cmd_1")
              )
 
     assert artifact["source_schema_validation_report"] == source_schema_validation_report

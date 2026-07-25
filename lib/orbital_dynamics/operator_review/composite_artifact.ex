@@ -255,6 +255,10 @@ defmodule OrbitalDynamics.OperatorReview.CompositeArtifact do
         "campaign_repair.source_timeline_feedback_report.rows"
       ) ++
       OperationalTimeline.rows(get_in(artifact, ["operational_timeline_report", "rows"]) || []) ++
+      OperationalTimeline.source_report_rows(
+        Map.get(artifact, "source_operational_timeline_report"),
+        "campaign_repair.source_operational_timeline_report"
+      ) ++
       TimelineTransitionApplication.rows(
         get_in(artifact, ["timeline_transition_application_report", "applications"]) || [],
         "campaign_repair.timeline_transition_application_report.applications",

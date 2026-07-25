@@ -24,6 +24,14 @@ defmodule OrbitalDynamics.Schema.OperationalTimelineValidation do
   def validate_optional_report(issues, _report),
     do: [error("$.operational_timeline_report", "must be an object") | issues]
 
+  def validate_optional_report_at_path(issues, _path, nil), do: issues
+
+  def validate_optional_report_at_path(issues, path, %{} = report),
+    do: validate_report(issues, path, report)
+
+  def validate_optional_report_at_path(issues, path, _report),
+    do: [error(path, "must be an object") | issues]
+
   def validate_optional_report(issues, nil, _validate_contract), do: issues
 
   def validate_optional_report(issues, %{} = report, validate_contract),

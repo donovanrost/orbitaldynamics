@@ -154,6 +154,7 @@ defmodule OrbitalDynamics.Schema.CampaignRegistryContracts do
           "source_timeline_integrity_report",
           "source_timeline_preservation_report",
           "source_timeline_transition_application_report",
+          "source_operational_timeline_report",
           "source_schema_validation_report",
           "source_model_acceptance_report",
           "source_validation_safety_case_summary",

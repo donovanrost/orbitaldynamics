@@ -297,6 +297,7 @@ schema-type their stable IDs, invalid-input flags, and protected/change counts.
   `source_timeline_integrity_report`,
   `source_timeline_preservation_report`,
   `source_timeline_transition_application_report`,
+  `source_operational_timeline_report`,
   `source_schema_validation_report`, `source_model_acceptance_report`,
   `source_validation_safety_case_summary`, `source_provider_counteroffer_report`,
   and `source_resource_filter_report` when present on the refresh artifact,
@@ -307,14 +308,15 @@ schema-type their stable IDs, invalid-input flags, and protected/change counts.
   constraints. The source link-capacity report, compact capacity summary, and
   relay data-path summary remain distinct from the repaired-plan report, and
   the station-reservation source remains distinct from the repair-time station
-  calendar; all are review-only. Source timeline-integrity, preservation, and
-  transition-application reports likewise remain distinct from repaired
-  timeline state and cannot mutate it. Source provider-reservation request
-  summaries retain exact request-ready/review-required rows
-  plus match, station, direction, reservation, and contact routing as
+  calendar; all are review-only. Source timeline-integrity, preservation,
+  transition-application, and operational-timeline reports likewise remain
+  distinct from repaired timeline state and cannot mutate it.
+  Source provider-reservation request summaries retain exact
+  request-ready/review-required rows plus match, station, direction,
+  reservation, and contact routing as
   review-gated Cadence handoffs without creating a provider reservation or
-  schedule mutation. Source
-  station-reservation hold import-readiness summaries retain exact hold,
+  schedule mutation. Source station-reservation hold import-readiness summaries
+  retain exact hold,
   provider, expiration, and required-action evidence without accepting,
   renewing, reserving, importing, or writing a hold. Source station-reservation
   hold summaries also retain aggregate counts, earliest expiration, provider

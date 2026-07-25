@@ -126,6 +126,14 @@ withholding, integrity evidence, and operator-action routing. Existing review
 and Cadence adapters preserve those exact source decisions without applying the
 source timeline, mutating the repair result, writing to Cadence, or granting
 operator authority.
+Incoming operational-timeline evidence is retained separately at
+`source_operational_timeline_report` rather than being overwritten by V2's
+repair-time `operational_timeline_report`. Full executable validation pins row
+counts, stable timeline identity, activity context, integrity/precondition
+evidence, provider results, Cadence readiness, and operator actions. Existing
+review and Cadence adapters preserve actionable rows under the
+`planned_not_commanded` boundary without applying the source schedule or
+performing a Cadence write.
 `study_results/timeline_preservation_status_v1.json` now feeds a curated
 `timeline_preservation_status.v1` validation-reference fixture. The observations
 check locked/protected activity preservation status, timeline identity,

@@ -598,6 +598,12 @@ focused repair-action regressions.
   validates it at `source_timeline_transition_application_report`, and routes
   exact withheld changes, selected source, transition decisions, integrity
   evidence, and required operator actions without applying the source timeline.
+- **Source operational-timeline report** — V2 preserves CandidateRefresh's
+  upstream `operational_timeline_report.v1` independently from repair-time
+  `operational_timeline_report`, validates it at
+  `source_operational_timeline_report`, and routes exact activity/timeline
+  identity, operational context, integrity/precondition evidence, provider
+  results, Cadence readiness, and operator actions without commanding activity.
 - **Source schema-validation report** — V2 preserves CandidateRefresh's upstream
   `schema_validation_report.v1`, validates it at
   `source_schema_validation_report`, and routes exact errors, warnings, and

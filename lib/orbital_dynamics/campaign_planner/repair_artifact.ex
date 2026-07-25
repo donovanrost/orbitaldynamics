@@ -266,6 +266,10 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairArtifact do
       RepairSourceReports.timeline_transition_application(request.candidate_refresh)
     )
     |> put_source_report(
+      "source_operational_timeline_report",
+      RepairSourceReports.operational_timeline(request.candidate_refresh)
+    )
+    |> put_source_report(
       "source_schema_validation_report",
       RepairSourceReports.schema_validation(request.candidate_refresh)
     )
