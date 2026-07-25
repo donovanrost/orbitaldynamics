@@ -5,88 +5,98 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Preserve plural V2 source timeline-publication summaries.
+Preserve CandidateRefresh source-window lineage in repair V2.
 
 Status:
 Implemented, reviewed, and verified; ready for scoped publication.
 
 Selection evidence:
-- CandidateRefresh collects direct, canonical, mission-state, and
-  result-artifact `timeline_publication_summary.v1` evidence as lists across
-  distinct publication events.
-- A publication summary retains publication sequence and lineage, source and
-  superseded artifacts, downstream invalidations, dependency impacts, timeline
-  diffs, and declared publication authority. Repair V2 currently drops this
-  accepted audit evidence.
-- Singular or first-map coercion would discard other publication events and
-  their downstream invalidation lineage.
-- The existing publication adapter always maps a summary to operator review and
-  review-gated Cadence import. Preserving an upstream claim that publication
-  occurred must not publish, republish, accept its authority, or mutate state.
+- Every generated CandidateRefresh artifact carries a stable ordered
+  `source_window_lineage` collection linking candidate activity IDs to exact
+  source-window IDs, types, source-window payloads, and scoped planning context.
+- Repair V2 already retains candidate activities and the candidate-diff report,
+  but drops the top-level lineage collection.
+- The existing candidate-diff review adapter accepts lineage context. Without
+  it, repair review and Cadence rows cannot attach exact invalidated or
+  replacement source-window evidence even when CandidateRefresh supplied it.
+- This is provenance-only evidence: it can improve operator inspection without
+  changing candidate matching, repair ranking, selection, or schedule state.
 
 Intended behavior:
-- Collect every direct source/canonical/list-valued publication summary in
-  stable source-before-canonical order, without deduplication, at the explicitly
-  plural `source_timeline_publication_summaries` field on repair V2.
-- Validate every array element against the full
-  `timeline_publication_summary.v1` executable contract at its indexed source
-  path and export the versioned nested property.
-- Reuse existing publication conversion so exact sequence, lineage,
-  invalidation, dependency, diff, authority-claim, and source-summary context
-  reach review-gated Cadence handoff with indexed provenance.
-- Keep source summaries out of repair scoring, candidate selection, schedule or
-  timeline mutation, publication state, downstream invalidation execution,
-  provider/Cadence writes, approval/operator/publication authority, commanding,
-  and autonomous execution.
+- Preserve every CandidateRefresh `source_window_lineage.v1` map in its existing
+  stable order at repair V2's `source_window_lineage` field, without
+  deduplication or reconstruction.
+- Validate every array element against the embedded lineage contract at its
+  exact indexed path, reject any declared version drift while retaining legacy
+  accepted rows without an explicit contract tag, and export the nested
+  contract definition.
+- Pass the preserved collection only to the existing candidate-diff review
+  conversion so invalidated and replacement review/Cadence rows carry the exact
+  matching lineage and source-window payload.
+- Keep lineage out of candidate matching, repair scoring/ranking/selection,
+  schedule or timeline mutation, provider/Cadence writes, approval/operator
+  authority, commanding, and autonomous execution.
 
 Level 6 pillar advanced:
 Fleet-scale resource decisions and durable reproducible audit handoffs.
 
 Planned files:
-- lossless plural V2 CandidateRefresh publication-summary resolution and
-  artifact assembly
-- indexed validation, registry/type hints, and existing review/Cadence routing
+- lossless CandidateRefresh lineage resolution and repair artifact assembly
+- indexed validation, registry metadata, and existing candidate-diff
+  review/Cadence routing
 - focused source/schema/integration proofs, docs, exports, and ledger
 
 Verification:
-- Focused source, schema, and end-to-end repair proofs: `16 passed` in 13.3s.
-- Adjacent publication/replay/review/Cadence proofs: `11 passed, 87 excluded`
-  in 6.5s.
-- Contact-allocation regression family: `238 passed` in 22.4s.
-- Golden artifact gate: `12 passed` in 21.1s.
+- Focused resolver, schema, and end-to-end repair proofs: `16 passed` in 20.0s.
+- Adjacent candidate-diff and CandidateRefresh contract family: `49 passed` in
+  2.1s, including legacy lineage rows without explicit contract tags.
+- Contact-allocation regression family: `238 passed` in 18.2s.
 - Schema lint: `155` artifacts passed with `0` errors and `0` warnings.
-- Pre-export full suite: `5134/5135 passed` in 704.0s; the sole failure was
-  the expected checked-in schema-export mismatch for the new optional field.
+- Pre-export full suite: `5138/5140 passed` in 701.8s; the two expected failures
+  were the checked-in repair schema export and canonical strategy snapshot.
+- A temporary canonical comparison found exactly `256` changed leaves: lineage
+  additions under branch repair results and candidate-diff review/Cadence rows,
+  plus the five content-derived strategy/review/manifest identifiers. No score,
+  rank, decision, count, or schedule value changed.
 - Regenerated all schema exports, the manifest schema, and both canonical
-  campaign artifacts. Only `campaign_repair.v2.schema.json` and the schema
-  bundle changed; canonical repair, strategy, and manifest hashes remained
-  `867928e8aa95ba8473fffe017e7d1efda9d9e83799516a2a938ef7bb8c25f7fa`,
-  `9e2e9bae5d1bef69f36ac288b7cb63a803960b14fc1edf4a841598aa2e947d91`,
+  campaigns. Changed generated files are limited to the repair schema, schema
+  bundle, and canonical strategy artifact.
+- Canonical repair and manifest hashes remained
+  `867928e8aa95ba8473fffe017e7d1efda9d9e83799516a2a938ef7bb8c25f7fa`
   and `7a44a6e58754aae967ee8319c8768b7270d7d7982667c4a6bad8ff1c274c0594`.
-- Checked-in schema export gate: `3 passed` in 51.6s.
-- Final full suite: `5135 passed` in 682.9s.
+  The deterministic strategy hash is now
+  `db375d99bfb50a1a189ceed4ed206d88f8036347bd42d2772bc2d8426489fa60`
+  with content-derived strategy ID
+  `5f902662c10e34697c88a438b700eaadb9bd392823ceff83abe315eee0035aac`.
+- Checked-in schema export gate: `3 passed` in 59.4s.
+- Golden artifact gate: `12 passed` in 44.4s.
+- Final full suite: `5140 passed` in 755.5s.
 - `git diff --check` passed.
 
 Review:
-- Scope is additive: one explicitly plural optional repair field, its executable
-  indexed validator/schema metadata, and reuse of the existing publication
-  review adapter.
-- Resolution retains all source maps before all canonical maps, preserves
-  duplicates, and stringifies keys without modifying the source summaries.
-- Every emitted review/Cadence row carries its exact indexed repair provenance
-  and full source summary. The existing adapter still forces
-  `review_timeline_publication` and `review_required_before_import`.
-- Publication authority remains a reported upstream claim only. The slice does
-  not publish or republish, execute downstream invalidations, mutate a schedule
-  or timeline, select candidates, write Cadence/provider state, command
-  activity, grant operator/publication authority, or execute autonomously.
-- Generated output is limited to the two expected one-line schema files; both
-  canonical campaign outputs and the manifest schema are byte-stable.
+- Scope is additive: one optional repair collection, indexed embedded-contract
+  validation, registry/schema metadata, and a lineage argument to the existing
+  candidate-diff review conversion.
+- Resolution retains source map order and contents, stringifies keys, and does
+  not deduplicate or reconstruct lineage rows.
+- Generated CandidateRefresh rows retain their explicit
+  `source_window_lineage.v1` tag. Legacy accepted rows without a tag remain
+  compatible; any explicitly declared wrong tag is rejected at its exact index.
+- Candidate-diff review and Cadence rows gain only matching source/replacement
+  lineage, source-window payload, and type context. The collection is not read
+  by repair execution, matching, scoring, ranking, or selection.
+- Canonical strategy identity changed because repair-result content is hashed.
+  The curated golden assertion now pins the new deterministic ID, while all
+  branch scores, recommendation decisions, review/import counts, and schedule
+  surfaces remain unchanged.
+- The slice does not mutate a schedule or timeline, write Cadence/provider
+  state, reserve contacts, command activity, grant approval/operator authority,
+  or execute autonomously.
 
 Last published slice:
-- `89c296c7` Preserve plural V2 preservation statuses (`5130 passed`; distinct
-  standalone preservation status evidence is retained without changing
-  aggregate preservation decisions or granting authority).
+- `659903a0` Preserve plural V2 publication summaries (`5135 passed`; distinct
+  publication events are retained in stable source-before-canonical order and
+  remain review-only without accepting publication authority).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions while preserving explicit
@@ -99,8 +109,8 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-After plural source publication summaries are durable, audit the next bounded
-CandidateRefresh source-report gap by product value and distinctness.
+After source-window lineage is durable, audit the next bounded CandidateRefresh
+source collection by product value and distinctness.
 
 Blocked:
 None.

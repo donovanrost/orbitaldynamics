@@ -126,6 +126,15 @@ evidence, and complete review rows. Existing review and Cadence adapters route
 those exact summary rows without applying a source transition, mutating or
 publishing the repaired timeline, writing to Cadence, commanding, or granting
 operator authority.
+Campaign-repair V2 preserves CandidateRefresh's ordered top-level
+`source_window_lineage` collection without reconstruction or deduplication.
+Executable validation pins every embedded lineage row at its exact array index
+and rejects any explicitly declared contract drift while retaining legacy
+CandidateRefresh rows without a contract tag. The existing candidate-diff
+review and Cadence adapters use the collection only to attach exact
+invalidated/replacement candidate lineage and source-window payloads; it cannot
+change candidate matching, repair scoring or selection, mutate a schedule,
+write to Cadence, command activity, or grant operator authority.
 Campaign-repair V2 also preserves incoming dependency-impact evidence at
 `source_timeline_dependency_impact_summary`. Full executable validation pins
 changed source and dependent activity/timeline counts, stable identity lists,

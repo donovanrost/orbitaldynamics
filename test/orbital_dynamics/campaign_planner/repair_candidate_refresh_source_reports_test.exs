@@ -395,6 +395,7 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
       candidate_diff_report()
       |> update_in(["invalidated_candidates", Access.at(0)], fn candidate ->
         candidate
+        |> Map.put("replacement_candidate_id", "dl_refreshed")
         |> Map.put("semantic_change_reasons", ["contact_window_shifted"])
         |> Map.put("candidate_diff_changed_fields", ["starts_at_s", "ends_at_s"])
         |> Map.put("semantic_change_details", [
@@ -875,6 +876,20 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
              "new_candidate_count" => 1
            } = artifact["source_candidate_diff_report"]
 
+    assert [
+             %{
+               "schema_contract" => "source_window_lineage.v1",
+               "candidate_activity_id" => "dl_refreshed",
+               "source_window_id" => "window:leo_1:ground_station_access:equator_prime:1",
+               "source_window_type" => "ground_station_access",
+               "scenario_id" => "leo_1",
+               "source_window" => %{
+                 "id" => "window:leo_1:ground_station_access:equator_prime:1",
+                 "type" => "ground_station_access"
+               }
+             }
+           ] = artifact["source_window_lineage"]
+
     assert artifact["score_terms"]["candidate_diff_pressure_penalty"] == -2.5
 
     assert artifact["score"] == artifact["score_terms"] |> Map.values() |> Enum.sum()
@@ -901,6 +916,19 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
              "required_operator_action" => "review_candidate_diff",
              "invalidated_candidate_id" => "dl_stale",
              "invalidated_reason" => "not_present_in_refreshed_candidate_set",
+             "replacement_candidate_id" => "dl_refreshed",
+             "replacement_source_window_id" =>
+               "window:leo_1:ground_station_access:equator_prime:1",
+             "replacement_source_window_type" => "ground_station_access",
+             "replacement_source_window" => %{
+               "id" => "window:leo_1:ground_station_access:equator_prime:1",
+               "type" => "ground_station_access"
+             },
+             "replacement_source_window_lineage" => %{
+               "schema_contract" => "source_window_lineage.v1",
+               "candidate_activity_id" => "dl_refreshed",
+               "source_window_id" => "window:leo_1:ground_station_access:equator_prime:1"
+             },
              "semantic_change_reasons" => ["contact_window_shifted"],
              "candidate_diff_changed_fields" => ["ends_at_s", "starts_at_s"],
              "candidate_diff_changed_field_count" => 2,
@@ -921,6 +949,19 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
              "source_review_type" => "candidate_diff_review",
              "invalidated_candidate_id" => "dl_stale",
              "invalidated_reason" => "not_present_in_refreshed_candidate_set",
+             "replacement_candidate_id" => "dl_refreshed",
+             "replacement_source_window_id" =>
+               "window:leo_1:ground_station_access:equator_prime:1",
+             "replacement_source_window_type" => "ground_station_access",
+             "replacement_source_window" => %{
+               "id" => "window:leo_1:ground_station_access:equator_prime:1",
+               "type" => "ground_station_access"
+             },
+             "replacement_source_window_lineage" => %{
+               "schema_contract" => "source_window_lineage.v1",
+               "candidate_activity_id" => "dl_refreshed",
+               "source_window_id" => "window:leo_1:ground_station_access:equator_prime:1"
+             },
              "semantic_change_reasons" => ["contact_window_shifted"],
              "candidate_diff_changed_fields" => ["ends_at_s", "starts_at_s"],
              "candidate_diff_changed_field_count" => 2,
@@ -4647,10 +4688,12 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
       "source_window_lineage" =>
         Enum.map(candidates, fn candidate ->
           %{
+            "schema_contract" => "source_window_lineage.v1",
             "candidate_activity_id" => candidate["id"],
             "source_window_id" => candidate["source_window_id"],
             "source_window_type" => get_in(candidate, ["source_window", "type"]),
-            "scenario_id" => candidate["scenario_id"]
+            "scenario_id" => candidate["scenario_id"],
+            "source_window" => candidate["source_window"]
           }
         end)
     }

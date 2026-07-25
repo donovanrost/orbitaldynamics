@@ -106,6 +106,24 @@ defmodule OrbitalDynamics.Schema.CandidateDiffContracts do
   def validate_optional_report(issues, path, _report),
     do: [error(path, "must be an object") | issues]
 
+  def validate_optional_source_window_lineage(issues, _path, nil), do: issues
+
+  def validate_optional_source_window_lineage(issues, path, lineage) when is_list(lineage) do
+    validate_rows(issues, path, lineage, fn acc, row_path, row ->
+      acc =
+        if Map.has_key?(row, "schema_contract") do
+          expect_equal(acc, row_path, row, "schema_contract", "source_window_lineage.v1")
+        else
+          acc
+        end
+
+      validate_source_window_lineage(acc, row_path, row)
+    end)
+  end
+
+  def validate_optional_source_window_lineage(issues, path, _lineage),
+    do: [error(path, "must be a list") | issues]
+
   def validate_row(issues, path, candidate) do
     issues
     |> require_fields(path, candidate, ["id", "type", "scenario_id", "diff_reason"])

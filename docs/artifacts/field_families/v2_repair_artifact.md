@@ -180,6 +180,11 @@ freshness, contact/resource preservation, and station calendar reports.
 - **Source candidate-diff reports** from `candidate_refresh.v1`, preserving
   invalidated, semantically changed, and ambiguous candidate rows in top-level
   repair review/import queues.
+- **Source-window lineage** from `candidate_refresh.v1`, preserving every
+  `source_window_lineage.v1` row in its original stable order. The exact
+  candidate/window identity, source-window payload, and scoped planning context
+  enrich invalidated and replacement candidate-diff review/Cadence rows without
+  changing candidate matching, ranking, selection, or schedule state.
 - **Mission-state source candidate-diff reports**, preserving concrete
   replacement rows as branch-local validated replacement candidates.
 - **Source refresh budget reports** from `candidate_refresh.v1`, preserving

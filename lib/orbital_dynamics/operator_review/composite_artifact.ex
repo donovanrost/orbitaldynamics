@@ -289,7 +289,8 @@ defmodule OrbitalDynamics.OperatorReview.CompositeArtifact do
       ) ++
       CandidateDiff.report_rows(
         Map.get(artifact, "source_candidate_diff_report"),
-        "campaign_repair.source_candidate_diff_report"
+        "campaign_repair.source_candidate_diff_report",
+        Map.get(artifact, "source_window_lineage", [])
       ) ++
       CandidateRejection.source_report_rows(
         Map.get(artifact, "source_candidate_rejection_report"),

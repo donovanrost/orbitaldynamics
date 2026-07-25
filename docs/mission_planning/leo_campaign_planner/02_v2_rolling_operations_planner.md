@@ -185,6 +185,10 @@ schema-type their stable IDs, invalid-input flags, and protected/change counts.
 - `source_candidate_activities` so later V3 strategy branches can reuse the
   repair search space. This is either the prior plan candidate set or the
   refreshed candidates from a supplied or repair-generated `candidate_refresh.v1`.
+- `source_window_lineage` so candidate-diff review and Cadence rows can retain
+  exact invalidated/replacement candidate-to-window provenance. The preserved
+  collection is validated and review-only; it does not influence repair
+  matching, ranking, selection, or schedule state.
 - `source_contact_intents`, `source_contact_intent_summary`,
   `source_realized_state_snapshot`, and `source_resource_summaries` when repair
   consumes a `candidate_refresh.v1`,
@@ -294,6 +298,7 @@ schema-type their stable IDs, invalid-input flags, and protected/change counts.
   `source_contact_contention_resolution_report`,
   `source_contact_contention_resolution_summary`, `source_link_capacity_report`,
   `source_link_capacity_summary`, `source_relay_data_path_summary`,
+  `source_window_lineage`,
   `source_resource_projection_flow_summary`,
   `source_station_reservation_report`, `source_constraint_report`,
   `source_objective_satisfaction_report`, `source_objective_tradeoff_report`,

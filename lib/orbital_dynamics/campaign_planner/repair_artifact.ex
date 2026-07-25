@@ -95,6 +95,10 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairArtifact do
         "timeline_protection" => Map.fetch!(attrs, :timeline_protection)
       }
     }
+    |> put_source_reports(
+      "source_window_lineage",
+      RepairSourceReports.source_window_lineage(request.candidate_refresh)
+    )
     |> put_source_report(
       "source_candidate_diff_report",
       candidate_diff_report(request.candidate_refresh)
