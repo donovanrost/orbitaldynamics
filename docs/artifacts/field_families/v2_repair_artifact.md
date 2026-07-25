@@ -196,6 +196,13 @@ freshness, contact/resource preservation, and station calendar reports.
   match status, reservation status, owner, expiration, direction, and station.
   The adapter creates review evidence only and performs no provider or Cadence
   write.
+- **Source contact-allocation capacity-pack summaries** — V2 preserves
+  `contact_allocation_capacity_pack_summary.v1` at
+  `source_contact_allocation_capacity_pack_summary`, including exact contact
+  review rows, reduced-capacity pack groups, capacity fractions,
+  selected/deferred identities, required-capacity provenance, and status,
+  direction, and station routes. The resulting contact/group adapter rows are
+  review-only and cannot mutate provider or Cadence state.
 - **Source contact-allocation provider-reservation request summaries** — V2
   preserves `contact_allocation_provider_reservation_request_summary.v1` at
   `source_contact_allocation_provider_reservation_request_summary`, including

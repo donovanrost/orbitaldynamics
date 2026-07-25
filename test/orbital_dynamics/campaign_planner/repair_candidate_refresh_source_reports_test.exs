@@ -31,6 +31,11 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
       |> File.read!()
       |> :json.decode()
 
+    source_contact_allocation_capacity_pack_summary =
+      "study_results/contact_allocation_capacity_pack_summary_v1.json"
+      |> File.read!()
+      |> :json.decode()
+
     source_station_reservation_report =
       "study_results/station_calendar_report_v1.json"
       |> File.read!()
@@ -267,6 +272,10 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
           |> Map.put(
             "source_contact_allocation_reservation_conflict_summary",
             [source_contact_allocation_reservation_conflict_summary]
+          )
+          |> Map.put(
+            "source_contact_allocation_capacity_pack_summary",
+            [source_contact_allocation_capacity_pack_summary]
           )
           |> Map.put(
             "source_contact_allocation_provider_reservation_request_summary",
@@ -1064,6 +1073,9 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
 
     assert artifact["source_contact_allocation_reservation_conflict_summary"] ==
              source_contact_allocation_reservation_conflict_summary
+
+    assert artifact["source_contact_allocation_capacity_pack_summary"] ==
+             source_contact_allocation_capacity_pack_summary
 
     assert %{
              "schema_contract" => "contact_allocation_report.v1",
@@ -2065,7 +2077,8 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
              )
 
     assert %{
-             "contact_allocation_review_count" => 7,
+             "contact_allocation_review_count" => 10,
+             "contact_allocation_capacity_pack_review_count" => 1,
              "station_pressure_contact_count" => 1,
              "station_pressure_review_contact_count" => 1,
              "station_pressure_contact_ids" => ["dl_3"],
@@ -2123,12 +2136,139 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
              "reservation_conflict_contact_ids_by_direction_and_ground_station_id" => %{
                "downlink" => %{"equator_prime" => ["dl_reserved_intruder"]}
              },
+             "reduced_capacity_pack_group_count" => 1,
+             "reduced_capacity_pack_status_counts" => %{"capacity_limited" => 1},
+             "capacity_pack_group_ids" => [
+               "capacity_pack:equator_prime:downlink:100_160"
+             ],
+             "capacity_pack_group_ids_by_status" => %{
+               "capacity_limited" => ["capacity_pack:equator_prime:downlink:100_160"]
+             },
+             "reduced_capacity_packed_contact_ids" => ["dl_capacity_secondary"],
+             "reduced_capacity_deferred_contact_ids" => ["dl_capacity_overflow"],
+             "capacity_pack_status_counts" => %{
+               "deferred_by_reduced_station_capacity_pack" => 1,
+               "selected_by_contention_resolution" => 1,
+               "selected_by_reduced_station_capacity_pack" => 1
+             },
+             "capacity_pack_contact_ids_by_status" => %{
+               "deferred_by_reduced_station_capacity_pack" => ["dl_capacity_overflow"],
+               "selected_by_contention_resolution" => ["dl_capacity_primary"],
+               "selected_by_reduced_station_capacity_pack" => ["dl_capacity_secondary"]
+             },
+             "capacity_pack_selected_contact_ids_by_direction" => %{
+               "downlink" => ["dl_capacity_primary", "dl_capacity_secondary"]
+             },
+             "capacity_pack_deferred_contact_ids_by_direction" => %{
+               "downlink" => ["dl_capacity_overflow"]
+             },
+             "capacity_pack_contact_ids_by_ground_station_id" => %{
+               "equator_prime" => [
+                 "dl_capacity_overflow",
+                 "dl_capacity_primary",
+                 "dl_capacity_secondary"
+               ]
+             },
+             "capacity_pack_required_capacity_fraction" => 0.75,
+             "capacity_pack_selected_required_capacity_fraction" => 0.5,
+             "capacity_pack_deferred_required_capacity_fraction" => 0.25,
+             "required_capacity_fraction_source_counts" => %{
+               "contact_required_capacity_fraction" => 3
+             },
+             "required_capacity_fraction_contact_ids_by_source" => %{
+               "contact_required_capacity_fraction" => [
+                 "dl_capacity_overflow",
+                 "dl_capacity_primary",
+                 "dl_capacity_secondary"
+               ]
+             },
              "provider_reservation_candidate_contact_count" => 2,
              "provider_reservation_request_contact_count" => 1,
              "provider_reservation_review_contact_count" => 1,
              "provider_reservation_no_request_contact_count" => 2,
              "provider_reservation_request_status_counts" => %{"review_required" => 1}
            } = artifact["operator_review_package"]
+
+    assert %{
+             "review_type" => "contact_allocation_review",
+             "source" =>
+               "campaign_repair.source_contact_allocation_capacity_pack_summary.review_rows",
+             "contact_id" => "dl_capacity_overflow",
+             "ground_station_id" => "equator_prime",
+             "required_operator_action" => "review_contact_allocation",
+             "capacity_pack_group_id" => "capacity_pack:equator_prime:downlink:100_160",
+             "capacity_pack_status" => "deferred_by_reduced_station_capacity_pack",
+             "required_capacity_fraction" => 0.25,
+             "required_capacity_fraction_source" => "contact_required_capacity_fraction",
+             "source_contact_allocation" => %{
+               "source_contact_allocation_summary" => %{
+                 "schema_contract" => "contact_allocation_capacity_pack_summary.v1",
+                 "capacity_pack_review_status" => "review_required",
+                 "assumptions" => %{
+                   "execution_boundary" =>
+                     "artifact_only_no_provider_reservation_or_schedule_mutation",
+                   "operator_authority" => "not_granted_by_capacity_pack_summary"
+                 }
+               }
+             }
+           } =
+             Enum.find(
+               artifact["operator_review_package"]["rows"],
+               &(&1["source"] ==
+                   "campaign_repair.source_contact_allocation_capacity_pack_summary.review_rows" and
+                   &1["contact_id"] == "dl_capacity_overflow")
+             )
+
+    assert %{
+             "review_type" => "contact_allocation_capacity_pack_review",
+             "source" =>
+               "campaign_repair.source_contact_allocation_capacity_pack_summary.reduced_capacity_pack_groups",
+             "contention_group_id" => "capacity_pack:equator_prime:downlink:100_160",
+             "required_operator_action" => "review_contact_allocation_capacity_pack",
+             "capacity_packed_contact_ids" => ["dl_capacity_secondary"],
+             "deferred_contact_ids" => ["dl_capacity_overflow"],
+             "source_contact_allocation_capacity_pack" => %{
+               "source_contact_allocation_summary" => %{
+                 "schema_contract" => "contact_allocation_capacity_pack_summary.v1"
+               }
+             }
+           } =
+             Enum.find(
+               artifact["operator_review_package"]["rows"],
+               &(&1["source"] ==
+                   "campaign_repair.source_contact_allocation_capacity_pack_summary.reduced_capacity_pack_groups")
+             )
+
+    assert %{
+             "import_action" => "review_contact_allocation",
+             "source_review_type" => "contact_allocation_review",
+             "contact_id" => "dl_capacity_overflow",
+             "has_cadence_import" => false,
+             "source_review_row" => %{
+               "source" =>
+                 "campaign_repair.source_contact_allocation_capacity_pack_summary.review_rows",
+               "source_contact_allocation" => %{
+                 "source_contact_allocation_summary" => %{
+                   "schema_contract" => "contact_allocation_capacity_pack_summary.v1"
+                 }
+               }
+             }
+           } =
+             Enum.find(
+               artifact["cadence_import_manifest"]["rows"],
+               &(&1["contact_id"] == "dl_capacity_overflow")
+             )
+
+    assert %{
+             "import_action" => "review_contact_allocation_capacity_pack",
+             "source_review_type" => "contact_allocation_capacity_pack_review",
+             "subject_id" => "capacity_pack:equator_prime:downlink:100_160",
+             "has_cadence_import" => false
+           } =
+             Enum.find(
+               artifact["cadence_import_manifest"]["rows"],
+               &(&1["subject_id"] == "capacity_pack:equator_prime:downlink:100_160")
+             )
 
     assert %{
              "review_type" => "contact_allocation_review",
