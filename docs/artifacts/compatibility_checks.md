@@ -1979,6 +1979,10 @@ Present Repair operator-review and Cadence packages also carry exactly one
 approval row per enclosing requirement. Present `source_requirement` copies in
 either handoff equal the corresponding Repair requirement in source order;
 older package or copy omissions remain valid.
+The same checked handoff applies to Repair plan deltas: present packages carry
+one plan-delta row per enclosing delta, and present `source_delta` copies equal
+the corresponding Repair delta in source order. Older package or copy
+omissions remain valid.
 Replacement-ranking link-pressure validation preserves fully legacy rankings
 whose pressured rows carry only shortfall. New producer rows under pressure also
 carry projected required downlink demand and selected capacity-adjusted

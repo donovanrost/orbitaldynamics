@@ -55,6 +55,9 @@ Present operator-review and Cadence packages carry exactly one approval row per
 enclosing requirement, and present `source_requirement` copies equal the
 corresponding Repair requirement in source order. Older package or copy
 omissions remain valid.
+Present packages also carry exactly one plan-delta row per enclosing Repair
+delta, and present `source_delta` copies equal the corresponding delta in source
+order. Older package or copy omissions remain valid.
 
 ### `realized_state_snapshot`
 

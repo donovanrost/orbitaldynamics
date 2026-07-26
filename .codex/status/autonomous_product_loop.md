@@ -5,53 +5,48 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Bind Repair approval review handoffs.
+Bind Repair plan-delta review handoffs.
 
 Status:
-Verified from clean published base `fd3d779e`; ready to publish.
+Verified from clean published base `b8eb0450`; ready to publish.
 
 Selection evidence:
-- Repair approval requirements are the sole producer input for approval-review
-  rows in the embedded operator-review package.
-- Cadence approval-import rows are then built from those review rows, and both
-  handoffs preserve each full requirement as `source_requirement` in source
-  order.
+- Repair deltas are the sole producer input for plan-delta review rows in the
+  embedded operator-review package.
+- Cadence plan-delta import rows are built from those review rows, and both
+  handoffs preserve each full delta as `source_delta` in source order.
 - Runtime validation checks each nested package and row independently but does
-  not bind their counts or source copies to enclosing Repair requirements; no
-  policy replay, external authority, or hidden state is required.
+  not bind their counts or source copies to enclosing Repair deltas; no planner
+  replay, external authority, or hidden state is required.
 
 Delivered behavior:
-- Bind present operator-review and Cadence approval-row counts to the enclosing
-  Repair approval requirement count.
-- Bind present operator-review, Cadence, and embedded source-review
-  `source_requirement` copies to the corresponding Repair requirement in source
-  order.
+- Bind present operator-review and Cadence plan-delta row counts to the enclosing
+  Repair delta count.
+- Bind present operator-review and Cadence `source_delta` copies to the
+  corresponding Repair delta in source order.
 - Preserve older package and copy omissions while leaving producer output, JSON
-  Schema, policy, planning, provider, command, import, and authority behavior
-  unchanged.
+  Schema, planning, provider, command, import, and authority behavior unchanged.
 
 Verification:
-- Focused approval-handoff contract gate: `3 passed`.
-- Adjacent provenance, Cadence, and produced-surface gate: `17 passed`.
-- Focused approval-handoff and decision-contract gate: `12 passed`.
-- Initial expanded run exposed four stale-package fixture interactions; after
-  isolating unrelated additive packages, the corrected expanded Repair schema
-  gate passed: `335 passed`.
+- Focused plan-delta handoff contract gate: `3 passed`.
+- Adjacent approval, provenance, Cadence, and produced-surface gate: `20 passed`.
+- Expanded Repair schema gate: `338 passed`.
 - Direct Repair planner gate: `225 passed`.
 - Saved-artifact lint: `155` artifacts passed with zero errors, warnings, or
   remediation.
 - Canonical Repair and Strategy regeneration was byte-identical to the
   published fixtures.
-- Full suite: `5262 passed` in 699.9 seconds.
+- Full suite: `5265 passed` in 714.7 seconds.
 - `mix format --check-formatted` and `git diff --check` passed.
 
 Level 6 pillar advanced:
 Fleet-scale candidate-pool integrity and operator-review evidence fidelity.
 
 Last published slice:
-- `fd3d779e` Bind Repair rule provenance (`5259 passed`; present decision match
-  identity, classification, and reason bind to unique enclosing approval action
-  rules while older whole-rule and match-field omissions remain compatible).
+- `b8eb0450` Bind Repair approval review handoffs (`5262 passed`; present
+  operator-review and Cadence approval-row counts and source copies bind to
+  enclosing requirements while older package and copy omissions remain
+  compatible).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions only from authoritative,
@@ -62,7 +57,7 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-After Repair approval-review handoff binding, continue fleet-scale evidence
+After Repair plan-delta review handoff binding, continue fleet-scale evidence
 integrity only where producer outputs can be replayed without hidden source or
 accumulator state.
 

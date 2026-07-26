@@ -731,7 +731,9 @@ schema-type their stable IDs, invalid-input flags, and protected/change counts.
   selectors; older rule or match-field omissions remain valid. Present
   operator-review and Cadence packages also carry one approval row per Repair
   requirement, with present `source_requirement` copies bound to the enclosing
-  rows in source order; older package or copy omissions remain valid.
+  rows in source order. Present packages likewise carry one plan-delta row per
+  Repair delta, with present `source_delta` copies bound to the enclosing deltas
+  in source order; older package or copy omissions remain valid.
 
 The current repair behavior is deliberately transparent:
 

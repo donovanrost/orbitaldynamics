@@ -61,6 +61,9 @@ Status: **implemented** (with **partial**, **near-term**, **later**, and **out o
 - Present operator-review and Cadence packages carry one approval row per Repair
   requirement and bind present `source_requirement` copies to the corresponding
   enclosing row in source order; older package or copy omissions remain valid.
+- Present packages also carry one plan-delta row per Repair delta and bind
+  present `source_delta` copies to the corresponding enclosing delta in source
+  order; older package or copy omissions remain valid.
 - **`contact_allocation_report.v1`** over repaired contact activities. The
   optional report is a declared V2 nested contract; runtime validation applies
   its full row, count, summary, nested contention/resolution, stable-identity,
