@@ -1957,6 +1957,12 @@ activity's added `repair` metadata. Coordinated candidate and ranking drift can
 therefore no longer disagree with the selected repaired activity while keeping
 score, churn, and ordering arithmetic internally consistent. Fully legacy
 rankings retain their prior snapshot compatibility.
+Current ranking candidates are additionally replayed against the enclosing
+repair's `current_epoch_s` and `remaining_horizon`: every candidate must overlap
+the horizon and must not start in the past. Fully legacy rankings retain their
+historical temporal-membership compatibility, and validation does not infer
+sequential overlap or used-replacement state that the artifact does not fully
+preserve.
 Projected-resource replacement evidence likewise preserves fully legacy
 rankings whose indicators all omit candidate identity. Once any indicator
 carries the current ranked candidate ID, every projected-resource indicator in

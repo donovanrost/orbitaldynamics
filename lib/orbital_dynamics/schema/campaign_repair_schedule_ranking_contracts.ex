@@ -28,7 +28,8 @@ defmodule OrbitalDynamics.Schema.CampaignRepairScheduleRankingContracts do
       Map.get(artifact, "activities", []),
       source_candidates_by_id,
       churn_cost,
-      move_cost
+      move_cost,
+      {Map.get(artifact, "current_epoch_s"), Map.get(artifact, "remaining_horizon")}
     )
   end
 
@@ -47,7 +48,8 @@ defmodule OrbitalDynamics.Schema.CampaignRepairScheduleRankingContracts do
          activities,
          source_candidates_by_id,
          churn_cost,
-         move_cost
+         move_cost,
+         temporal_context
        )
        when is_list(activities) do
     activities
@@ -70,7 +72,8 @@ defmodule OrbitalDynamics.Schema.CampaignRepairScheduleRankingContracts do
         source_context,
         source_candidates_by_id,
         churn_cost,
-        move_cost
+        move_cost,
+        temporal_context
       )
     end)
   end
@@ -80,7 +83,8 @@ defmodule OrbitalDynamics.Schema.CampaignRepairScheduleRankingContracts do
          _activities,
          _source_candidates_by_id,
          _churn_cost,
-         _move_cost
+         _move_cost,
+         _temporal_context
        ),
        do: issues
 
@@ -92,9 +96,12 @@ defmodule OrbitalDynamics.Schema.CampaignRepairScheduleRankingContracts do
          source_context,
          source_candidates_by_id,
          churn_cost,
-         move_cost
+         move_cost,
+         temporal_context
        )
        when is_list(rows) do
+    current_ranking? = CampaignRepairReplacementRankingVersion.current?(rows)
+
     issues =
       issues
       |> validate_current_source_context(source_context_path, rows, source_context)
@@ -110,7 +117,9 @@ defmodule OrbitalDynamics.Schema.CampaignRepairScheduleRankingContracts do
         source_context,
         source_candidates_by_id,
         churn_cost,
-        move_cost
+        move_cost,
+        temporal_context,
+        current_ranking?
       )
     end)
   end
@@ -123,7 +132,8 @@ defmodule OrbitalDynamics.Schema.CampaignRepairScheduleRankingContracts do
          _source_context,
          _source_candidates_by_id,
          _churn_cost,
-         _move_cost
+         _move_cost,
+         _temporal_context
        ),
        do: issues
 
@@ -186,7 +196,9 @@ defmodule OrbitalDynamics.Schema.CampaignRepairScheduleRankingContracts do
          source_context,
          source_candidates_by_id,
          churn_cost,
-         move_cost
+         move_cost,
+         temporal_context,
+         current_ranking?
        ) do
     churn_s = Map.get(row, "schedule_churn_s")
 
@@ -205,6 +217,13 @@ defmodule OrbitalDynamics.Schema.CampaignRepairScheduleRankingContracts do
       source_context,
       source_candidates_by_id
     )
+    |> validate_candidate_temporal_eligibility(
+      path,
+      row,
+      source_candidates_by_id,
+      temporal_context,
+      current_ranking?
+    )
   end
 
   defp validate_row(
@@ -214,7 +233,9 @@ defmodule OrbitalDynamics.Schema.CampaignRepairScheduleRankingContracts do
          _source_context,
          _source_candidates_by_id,
          _churn_cost,
-         _move_cost
+         _move_cost,
+         _temporal_context,
+         _current_ranking?
        ),
        do: issues
 
@@ -266,6 +287,49 @@ defmodule OrbitalDynamics.Schema.CampaignRepairScheduleRankingContracts do
          _actual,
          _source_context,
          _source_candidates_by_id
+       ),
+       do: issues
+
+  defp validate_candidate_temporal_eligibility(
+         issues,
+         path,
+         row,
+         source_candidates_by_id,
+         {current_epoch_s, %{"starts_at_s" => horizon_start, "ends_at_s" => horizon_end}},
+         true
+       )
+       when is_number(current_epoch_s) and is_number(horizon_start) and
+              is_number(horizon_end) do
+    candidate_id = Map.get(row, "candidate_id")
+
+    with [%{} = candidate] <- Map.get(source_candidates_by_id, candidate_id, []),
+         candidate_start when is_number(candidate_start) <-
+           ActivityTiming.activity_raw_start(candidate),
+         candidate_end when is_number(candidate_end) <- ActivityTiming.activity_raw_end(candidate) do
+      if candidate_start >= current_epoch_s and candidate_end > horizon_start and
+           candidate_start < horizon_end do
+        issues
+      else
+        [
+          error(
+            path <> ".candidate_id",
+            "must identify a candidate that overlaps remaining_horizon and starts at or after current_epoch_s"
+          )
+          | issues
+        ]
+      end
+    else
+      _unreplayable -> issues
+    end
+  end
+
+  defp validate_candidate_temporal_eligibility(
+         issues,
+         _path,
+         _row,
+         _source_candidates_by_id,
+         _temporal_context,
+         _current_ranking?
        ),
        do: issues
 

@@ -605,7 +605,10 @@ schema-type their stable IDs, invalid-input flags, and protected/change counts.
   score, churn, candidate start, then candidate ID. Fully legacy rankings retain
   priority/score ordering compatibility. A current ranking cannot delete that
   source context while retaining current optional pressure evidence; fully
-  legacy rankings without either remain compatible. Executable validation also
+  legacy rankings without either remain compatible. Each current candidate is
+  also rechecked against `current_epoch_s` and `remaining_horizon`, matching the
+  producer's temporal membership filters without inferring sequential overlap
+  or used-replacement state. Executable validation also
   recomputes semantic-diff priority from exact source ID/window and
   replacement-candidate links in the embedded source diff report, and pins the
   selected row to the enclosing repaired activity. For current rankings, that

@@ -397,6 +397,9 @@ downlink/station/time normalization.
   The current selected activity's full base snapshot must equal the unique
   embedded source candidate after excluding only added `repair` metadata;
   legacy rankings retain their prior looser snapshot compatibility.
+  Each current row must identify a unique source candidate that overlaps the
+  remaining horizon and starts no earlier than the repair current epoch; legacy
+  rankings retain their historical temporal-membership compatibility.
   The current envelope requires `repair.source_activity_context` so start-time
   churn remains replayable. It also requires stable top-level source/replacement
   IDs and a complete four-ID `timeline_link`, binds source IDs to the source

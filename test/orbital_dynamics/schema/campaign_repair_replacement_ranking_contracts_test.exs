@@ -246,34 +246,9 @@ defmodule OrbitalDynamics.Schema.CampaignRepairReplacementRankingContractsTest d
 
   test "replays current ranking tie-break order while preserving legacy order", context do
     ranking_path = ranking_path(context.activity_index)
-    [source_candidate] = context.artifact["source_candidate_activities"]
-    [selected_row] = get_in_path(context.artifact, ranking_path <> ".rows")
-
-    lower_churn_candidate =
-      source_candidate
-      |> Map.put("id", "dl_lower_churn")
-      |> Map.put("starts_at_s", 490.0)
-      |> Map.put("ends_at_s", 550.0)
-      |> Map.put("score", 9.9)
-      |> Map.put("score_terms", %{"contact_value" => 9.9})
-      |> put_in(["cadence_import", "external_id"], "dl_lower_churn")
-
-    lower_churn_row =
-      selected_row
-      |> Map.put("candidate_id", "dl_lower_churn")
-      |> Map.put("candidate_score", 9.9)
-      |> Map.put("schedule_churn_s", 390.0)
-      |> Map.put("schedule_move_penalty", -3.9)
-      |> Map.put("ranking_score", -94.0)
-      |> Map.put("rank", 2)
-      |> Map.put("selected", false)
 
     higher_churn_selected =
-      context.artifact
-      |> Map.put("source_candidate_activities", [source_candidate, lower_churn_candidate])
-      |> put_in(["repair_metadata", "candidate_source", "candidate_count"], 2)
-      |> put_in_path(ranking_path <> ".rows", [selected_row, lower_churn_row])
-      |> put_in_path(ranking_path <> ".evaluated_candidate_count", 2)
+      add_unselected_candidate(context, "dl_lower_churn", 490.0, 9.9)
 
     assert {:error, current_report} = Schema.validate_artifact(higher_churn_selected)
 
@@ -347,6 +322,42 @@ defmodule OrbitalDynamics.Schema.CampaignRepairReplacementRankingContractsTest d
 
     assert {:ok, %{"schema_contract" => "campaign_repair.v2"}} =
              Schema.validate_artifact(legacy_drift)
+  end
+
+  test "rejects temporally ineligible current ranking candidates", context do
+    ranking_path = ranking_path(context.activity_index)
+    candidate_path = ranking_path <> ".rows[1].candidate_id"
+
+    already_started = add_unselected_candidate(context, "dl_started", 160.0, -100.0)
+    outside_horizon = add_unselected_candidate(context, "dl_outside", 600.0, -100.0)
+
+    for invalid <- [already_started, outside_horizon] do
+      assert {:error, report} = Schema.validate_artifact(invalid)
+      assert Enum.any?(report["errors"], &(&1["path"] == candidate_path))
+    end
+
+    legacy_started =
+      update_in(
+        already_started,
+        [
+          "activities",
+          Access.at(context.activity_index),
+          "repair",
+          "replacement_ranking",
+          "rows"
+        ],
+        fn rows ->
+          Enum.map(rows, fn row ->
+            Map.drop(row, [
+              "contact_intent_pressure_penalty",
+              "contact_contention_resolution_pressure_penalty"
+            ])
+          end)
+        end
+      )
+
+    assert {:ok, %{"schema_contract" => "campaign_repair.v2"}} =
+             Schema.validate_artifact(legacy_started)
   end
 
   test "rejects empty or malformed optional pressure evidence", context do
@@ -555,6 +566,60 @@ defmodule OrbitalDynamics.Schema.CampaignRepairReplacementRankingContractsTest d
 
   defp ranking_path(activity_index),
     do: "$.activities[#{activity_index}].repair.replacement_ranking"
+
+  defp add_unselected_candidate(context, candidate_id, starts_at_s, candidate_score) do
+    ranking_path = ranking_path(context.activity_index)
+    [source_candidate] = context.artifact["source_candidate_activities"]
+    [selected_row] = get_in_path(context.artifact, ranking_path <> ".rows")
+
+    source_start =
+      get_in_path(
+        context.artifact,
+        "$.activities[#{context.activity_index}].repair.source_activity_context.starts_at_s"
+      )
+
+    churn_s = abs(starts_at_s - source_start)
+    move_cost = context.artifact["scoring_policy"]["schedule_move_cost_weight"]
+    move_penalty = -(churn_s * move_cost)
+
+    candidate =
+      source_candidate
+      |> Map.put("id", candidate_id)
+      |> Map.put("starts_at_s", starts_at_s)
+      |> Map.put("ends_at_s", starts_at_s + source_candidate["duration_s"])
+      |> Map.put("score", candidate_score)
+      |> Map.put("score_terms", %{"contact_value" => candidate_score})
+      |> put_in(["cadence_import", "external_id"], candidate_id)
+
+    row =
+      selected_row
+      |> Map.put("candidate_id", candidate_id)
+      |> Map.put("candidate_score", candidate_score)
+      |> Map.put("schedule_churn_s", churn_s)
+      |> Map.put("schedule_move_penalty", move_penalty)
+      |> Map.put("ranking_score", ranking_score(selected_row, candidate_score, move_penalty))
+      |> Map.put("rank", 2)
+      |> Map.put("selected", false)
+
+    context.artifact
+    |> Map.put("source_candidate_activities", [source_candidate, candidate])
+    |> put_in(["repair_metadata", "candidate_source", "candidate_count"], 2)
+    |> put_in_path(ranking_path <> ".rows", [selected_row, row])
+    |> put_in_path(ranking_path <> ".evaluated_candidate_count", 2)
+  end
+
+  defp ranking_score(selected_row, candidate_score, move_penalty) do
+    candidate_score +
+      move_penalty +
+      Enum.sum([
+        selected_row["schedule_churn_penalty"],
+        selected_row["station_calendar_pressure_penalty"],
+        selected_row["contact_intent_pressure_penalty"],
+        selected_row["contact_contention_resolution_pressure_penalty"],
+        selected_row["link_capacity_pressure_penalty"],
+        selected_row["resource_projection_pressure_penalty"]
+      ])
+  end
 
   defp put_in_path(artifact, path, value) do
     put_in(artifact, path_keys(path), value)

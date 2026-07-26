@@ -234,7 +234,10 @@ Status: **implemented** (with **partial**, **near-term**, **later**, and **out o
   ambiguous, or altered source value. The current selected activity must also
   equal that exact source candidate snapshot outside its added `repair`
   metadata, preventing coordinated source/ranking drift from describing a
-  different selection. Current candidate-identified resource-risk
+  different selection. Every current row's unique source candidate must also
+  overlap `remaining_horizon` and start at or after `current_epoch_s`, so past
+  or out-of-horizon candidates cannot remain in an otherwise consistent
+  ranking explanation. Current candidate-identified resource-risk
   indicators must additionally use a spacecraft scope from a valid embedded
   source resource summary applicable to that exact candidate under the resource
   projection's shared spacecraft/scenario and single-wildcard rules. Indicators
