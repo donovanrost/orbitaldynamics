@@ -11,6 +11,23 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairSourceReports do
   def source_window_lineage(candidate_refresh),
     do: source_window_lineage(candidate_refresh, default_callbacks())
 
+  def refreshed_windows(candidate_refresh),
+    do: refreshed_windows(candidate_refresh, default_callbacks())
+
+  def refreshed_windows(nil, _callbacks), do: nil
+
+  def refreshed_windows(%{} = candidate_refresh, callbacks) do
+    stringify_keys = Keyword.fetch!(callbacks, :stringify_keys)
+
+    candidate_refresh
+    |> stringify_keys.()
+    |> Map.get("refreshed_windows")
+    |> case do
+      %{} = windows -> windows
+      _windows -> nil
+    end
+  end
+
   def source_window_lineage(nil, _callbacks), do: []
 
   def source_window_lineage(%{} = candidate_refresh, callbacks) do

@@ -5,102 +5,69 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Preserve plural V2 source compact contact-allocation summaries.
+Preserve raw CandidateRefresh windows in Repair V2.
 
 Status:
-Implemented, reviewed, and verified; ready to publish.
+Implemented and fully verified; ready for scoped commit and publish.
 
-Selection evidence:
-- `RepairSourceReports.contact_allocation_summary/2` accepts direct-source and
-  canonical CandidateRefresh values, list-wraps them, and selects only the
-  first map. Later valid compact allocation summaries are lost.
-- CandidateRefresh already routes direct-source, canonical, and wrapped compact
-  allocation summaries as independent review evidence.
-- Compact allocation summaries preserve exact review rows plus row-derived
-  allocation, trust, reservation, resource, station, capacity, and provenance
-  aggregates used by operator review and Cadence.
-- Repair V2 already accepts only a singular source path. The four delivered
-  specialized allocation slices established the compatible lossless pattern:
-  ordered plural evidence, exact element-zero mirror, indexed adapters, and
-  legacy singular fallback without double-counting.
-- Canonical repair and all 27 strategy branch repairs contain neither the
-  singular nor proposed plural compact-summary source field, so canonical
-  artifacts should remain byte-identical and only the Repair V2 schema/bundle
-  should change.
-
-Intended and delivered behavior:
-- `source_contact_allocation_summaries` retains every valid direct-source map
-  before every valid canonical map, without deduplication or first-map loss.
-- `source_contact_allocation_summary` remains an exact element-zero
-  compatibility mirror. Executable validation rejects mirror drift and a
-  singular mirror paired with an empty plural collection.
-- Operator-review aggregate folding and exact review rows prefer the non-empty
-  plural collection and preserve exact array-index paths. Cadence retains the
-  same index at `source_review_row.source`; neither adapter counts the mirror
-  twice, and both fall back to the legacy singular path.
-- Both fields remain absent when no valid source map exists. Allocations,
-  reservations, schedules, scoring, approvals, provider writes, commanding,
-  imports, and execution authority are unchanged.
+Delivered behavior:
+- Repair V2 now preserves CandidateRefresh's exact normalized
+  `refreshed_windows` object at `source_refreshed_windows`, including empty
+  access, target-visibility, and eclipse collections.
+- The existing CandidateRefresh window validator is path-aware and validates the
+  optional Repair V2 source field with the same stable-identity, interval,
+  timing-assumption, sample-count, and sample-coverage rules.
+- Repairs without CandidateRefresh or without `refreshed_windows` keep the field
+  absent; non-object and malformed nested shapes fail at indexed Repair V2
+  paths.
+- Raw opportunity evidence remains audit-only: it creates no operator-review or
+  Cadence-import rows and does not alter filtering, matching, scoring, ranking,
+  selection, scheduling, provider state, commanding, imports, or authority.
+- Canonical Repair V2 preserves one access, one target-visibility, and one
+  eclipse window. Strategy V3 preserves raw windows in all 26 refreshed branch
+  repairs while the baseline branch remains absent.
+- Strategy content identity intentionally changed from `1553e8c7...` to
+  `c2069659...`; the recommended branch remains
+  `derived_urgent_target_target_hot` and all decision surfaces are unchanged.
 
 Level 6 pillar advanced:
-Fleet-scale allocation auditability and versioned artifact compatibility.
-
-Delivered files:
-- lossless repair compact allocation-summary source collection plus singular
-  projection
-- Repair V2 producer, registry, field type, executable validation, and schema
-- plural-preferred operator-review aggregates/rows and Cadence routing with
-  singular-only fallback
-- shared mirror validator across generic, station-pressure,
-  reservation-conflict, capacity-pack, and provider-request summaries without
-  behavior drift
-- focused producer, integration, adapter, schema, compatibility, and docs proofs
-- regenerated Repair V2 schema and schema bundle
+Branch-local opportunity-set auditability and versioned artifact compatibility.
 
 Verification:
-- Focused compact-summary producer, integration, schema, and prior mirror
-  regression proofs: `38 passed`.
-- Adjacent allocation producer, operator-review, CandidateRefresh, and schema
-  family: `90 passed`.
-- Full Repair V2 source-contract family: `212 passed`.
-- Contact-allocation gate: `268 passed`.
-- Saved-artifact schema lint: `155 artifacts`, zero errors, warnings, or
-  remediation items.
-- Pre-export full suite: `5194/5195 passed` in `673.5s`; the sole failure was the
-  expected checked-in schema parity mismatch for the new optional field.
-- Schema/manifest exports and canonical repair/strategy reruns completed with
-  passing artifact status. Canonical and manifest hashes remained byte-identical:
-  - repair: `e28901d7988f7b2942b2c357ff53ce7b22d38f1cef26149b60d0570c4baa95d7`
-  - strategy: `60a3f09b41b366aac91b6b82f6ed533abf618c857d886c841cc258b1e761a726`
-  - manifest schema: `7a44a6e58754aae967ee8319c8768b7270d7d7982667c4a6bad8ff1c274c0594`
-  - schema bundle: `0b1a78c1fbb27133c5610957466d49c2b544d29b51ea41a192233731f4737e98`
-- Schema export, manifest export, and golden artifact tests: `17 passed`.
-- Final full suite: `5195 passed` in `656.7s`.
+- Focused producer, Repair V2 integration, schema, and Strategy branch proofs:
+  `24 passed`.
+- Adjacent CandidateRefresh identity/window/schema coverage: `46 passed`.
+- Complete Repair V2 source-contract family: `216 passed`.
+- Saved-artifact lint after regeneration: 155 artifacts, 0 errors, 0 warnings,
+  0 remediation.
+- Pre-export full suite: `5197/5201 passed`; the four failures were exactly the
+  expected schema, readiness handoff, canonical Repair V2, and canonical
+  Strategy V3 parity deltas.
+- Post-export schema/manifest/golden/readiness parity gate: `18 passed`.
+- Final full suite: `5201 passed` in 656.7 seconds.
+- `mix format --check-formatted`, `git diff --check`, and structural generated
+  artifact comparisons pass.
+- Generated scope is exact: Repair and readiness add only
+  `source_refreshed_windows`; Strategy adds the field to 26 branch repairs plus
+  five propagated strategy-identity references; the schemas add only the new
+  optional property.
+- Verified slice scope: 21 files (19 tracked modifications and 2 new tests).
 
-Review:
-- Direct-source and canonical values are flattened independently in stable
-  family order, map keys are normalized, and no content-based deduplication is
-  performed. The singular resolver derives from the same ordered collection,
-  preventing producer drift.
-- Repair artifacts publish both the lossless plural collection and its exact
-  first-element mirror. The executable contract accepts either field alone but
-  rejects unequal or empty plural evidence when a singular mirror is present.
-- The mirror validator was generalized only across the five delivered plural
-  allocation families. All four specialized family contract proofs pass
-  unchanged.
-- A shared compact-summary selector drives both row generation and aggregate
-  folding. Three identical source maps produce nine indexed review/Cadence rows,
-  not twelve; singular-only artifacts still produce their legacy unindexed
-  paths.
-- The new registry field is optional and exports as an array. Only
-  `campaign_repair.v2.schema.json` and the bundle changed; the manifest schema,
-  canonical repair, and all 27 strategy branch repairs remain byte-identical.
-- The 19-file worktree contains only the compact ledger, three focused docs,
-  producer/adapter/contract code, two schema exports, and three focused tests.
+Generated artifact hashes:
+- Schema bundle:
+  `4f2f6d9e8b652e24eaa30bbc69271293aed0153630bd9f6386852331b6c7dd5d`.
+- Manifest schema, intentionally unchanged:
+  `7a44a6e58754aae967ee8319c8768b7270d7d7982667c4a6bad8ff1c274c0594`.
+- Canonical Repair V2:
+  `b40abf4194c4290f3cd6ce7cd5b0220f8b0a1a9bf27c2b85b890c9477125ebca`.
+- Canonical Strategy V3:
+  `3ca6cc89a3f120b0ecf1f976d52753565709e8c0e542b2c6b177845ac46d57c8`.
+- Readiness source handoff:
+  `9d346a36769fda2e9ef7a6405dabb3c45e0344b3e0510852a594e975eefe32f5`.
 
 Last published slice:
-- `73ba1360` Preserve plural V2 provider reservation requests (`5188 passed`;
-  every ordered source provider-request map is retained and indexed without
+- `2805eada` Preserve plural V2 contact allocation summaries (`5195 passed`;
+  every ordered compact source summary is retained and indexed without
   double-counting its exact singular compatibility mirror).
 
 Remaining maturity gaps:
@@ -114,12 +81,12 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-Reconsider raw refreshed-window retention now that every contact-allocation
-summary family is lossless at the Repair V2 boundary.
+Audit the remaining CandidateRefresh input families for any loss at the Repair
+V2 boundary, then select the smallest evidence-backed gap.
 
 Blocked:
 None.
 
 Notes:
-Runtime policy disallows subagent delegation; the parent performs bounded
+Runtime policy disallows subagent delegation; the parent performed bounded
 mapping, implementation, review, verification, and publish checks.

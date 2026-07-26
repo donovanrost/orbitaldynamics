@@ -194,6 +194,12 @@ schema-type their stable IDs, invalid-input flags, and protected/change counts.
   contact-allocation, refresh-budget, or resource-filter exclusion. The
   collection is validated and audit-only; it does not change filtering, scoring,
   ranking, selection, operator routing, or approval authority.
+- `source_refreshed_windows` so repair and strategy audit consumers can inspect
+  the exact pre-filter CandidateRefresh opportunity set, including unused access
+  or visibility windows, eclipse intervals, sample coverage, and timing/model
+  assumptions. Empty typed collections remain distinct from an absent refresh.
+  The field creates no review/import rows and cannot alter filtering, matching,
+  ranking, selection, scheduling, provider state, commanding, or authority.
 - `source_window_lineage` so candidate-diff review and Cadence rows can retain
   exact invalidated/replacement candidate-to-window provenance. The preserved
   collection is validated and review-only; it does not influence repair
@@ -338,7 +344,8 @@ schema-type their stable IDs, invalid-input flags, and protected/change counts.
   `source_contact_contention_resolution_report`,
   `source_contact_contention_resolution_summary`, `source_link_capacity_report`,
   `source_link_capacity_summary`, `source_relay_data_path_summary`,
-  `source_window_lineage`, `source_candidate_refresh_provenance`,
+  `source_refreshed_windows`, `source_window_lineage`,
+  `source_candidate_refresh_provenance`,
   `source_validation_records`,
   `source_resource_projection_flow_summary`,
   `source_station_reservation_report`, `source_constraint_report`,

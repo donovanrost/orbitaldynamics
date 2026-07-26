@@ -260,6 +260,21 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyCandidateRefreshBranchRepairTe
         "candidate_activities" => [downlink("dl_stale", 700.0, 760.0)]
       })
 
+    branch_refreshed_windows = %{
+      "access_windows" => [],
+      "target_visibility_windows" => [
+        %{
+          "id" => "window:leo_1:target_visibility:target_a_late:1",
+          "type" => "target_visibility",
+          "scenario_id" => "leo_1",
+          "target_id" => "target_a",
+          "starts_at_s" => 600.0,
+          "ends_at_s" => 660.0
+        }
+      ],
+      "eclipse_intervals" => []
+    }
+
     artifact =
       strategy(prior_plan,
         branches: [
@@ -279,7 +294,8 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyCandidateRefreshBranchRepairTe
                 [refreshed_downlink("dl_branch_refreshed", 600.0, 660.0)],
                 refresh_id: "candidate_refresh:test:branch",
                 candidate_diff_report: candidate_diff_report(),
-                freshness_report: freshness_report("stale")
+                freshness_report: freshness_report("stale"),
+                refreshed_windows: branch_refreshed_windows
               )
           }
         ],
@@ -306,8 +322,23 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyCandidateRefreshBranchRepairTe
     assert outage["repair_result"]["assumptions"]["candidate_source"]["refresh_id"] ==
              "candidate_refresh:test:branch"
 
+    assert outage["repair_result"]["source_refreshed_windows"] == branch_refreshed_windows
+
     assert outage["assumptions"]["candidate_source"]["scope"] == "branch"
     assert outage["provenance"]["candidate_source"]["scope"] == "branch"
+
+    refute Enum.any?(
+             artifact["operator_review_package"]["rows"],
+             &String.contains?(&1["source"] || "", "source_refreshed_windows")
+           )
+
+    refute Enum.any?(
+             artifact["cadence_import_manifest"]["rows"],
+             &String.contains?(
+               &1["source"] || get_in(&1, ["source_review_row", "source"]) || "",
+               "source_refreshed_windows"
+             )
+           )
 
     assert %{
              "branch_id" => "outage",
@@ -382,11 +413,12 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyCandidateRefreshBranchRepairTe
         "snapshot_id" => "ops-state-1",
         "spacecraft_state_count" => 1
       },
-      "refreshed_windows" => %{
-        "access_windows" => [],
-        "target_visibility_windows" => [],
-        "eclipse_intervals" => []
-      },
+      "refreshed_windows" =>
+        Keyword.get(opts, :refreshed_windows, %{
+          "access_windows" => [],
+          "target_visibility_windows" => [],
+          "eclipse_intervals" => []
+        }),
       "candidate_activities" => candidates,
       "contact_intents" => Keyword.get(opts, :contact_intents, []),
       "resource_summaries" => Keyword.get(opts, :resource_summaries, []),

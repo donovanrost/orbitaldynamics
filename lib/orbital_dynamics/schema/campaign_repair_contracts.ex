@@ -358,6 +358,10 @@ defmodule OrbitalDynamics.Schema.CampaignRepairContracts do
       "$.source_validation_records",
       Map.get(artifact, "source_validation_records")
     ])
+    |> call(callbacks, :validate_optional_source_refreshed_windows, [
+      "$.source_refreshed_windows",
+      Map.get(artifact, "source_refreshed_windows")
+    ])
     |> call(callbacks, :validate_optional_source_window_lineage, [
       "$.source_window_lineage",
       Map.get(artifact, "source_window_lineage")

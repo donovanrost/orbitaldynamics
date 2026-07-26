@@ -8,6 +8,7 @@ defmodule OrbitalDynamics.Schema.CampaignArtifactValidation do
     CampaignRepairContracts,
     CampaignStrategyContracts,
     CandidateDiffContracts,
+    CandidateRefreshWindowContracts,
     CandidateRefreshReportContracts,
     CandidateRejectionValidation,
     CommandWindowValidation,
@@ -341,6 +342,8 @@ defmodule OrbitalDynamics.Schema.CampaignArtifactValidation do
         &ValidationArtifactValidation.validate_optional_validation_records/3,
       validate_optional_source_window_lineage:
         &CandidateDiffContracts.validate_optional_source_window_lineage/3,
+      validate_optional_source_refreshed_windows:
+        &CandidateRefreshWindowContracts.validate_optional_refreshed_windows/3,
       validate_optional_candidate_rejection_report:
         &CandidateRejectionValidation.validate_optional_report/3,
       validate_optional_freshness_report:

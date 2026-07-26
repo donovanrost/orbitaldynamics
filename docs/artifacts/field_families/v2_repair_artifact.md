@@ -180,6 +180,11 @@ freshness, contact/resource preservation, and station calendar reports.
 - **Source candidate-diff reports** from `candidate_refresh.v1`, preserving
   invalidated, semantically changed, and ambiguous candidate rows in top-level
   repair review/import queues.
+- **Source refreshed windows** from `candidate_refresh.v1`, preserving the exact
+  pre-filter access, target-visibility, and eclipse opportunity collections at
+  `source_refreshed_windows`. Window identity, timing, sample coverage,
+  geometry, and boundary assumptions remain audit-only; empty typed collections
+  are retained, and no operator-review or Cadence rows are synthesized.
 - **Source-window lineage** from `candidate_refresh.v1`, preserving every
   `source_window_lineage.v1` row in its original stable order. The exact
   candidate/window identity, source-window payload, and scoped planning context

@@ -20,38 +20,52 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshWindowContracts do
   import OrbitalDynamics.Schema.StableIdValidation, only: [validate_stable_ids: 4]
 
   def validate_refreshed_windows(issues, refreshed_windows) when is_map(refreshed_windows) do
+    validate_refreshed_windows(issues, "$.refreshed_windows", refreshed_windows)
+  end
+
+  def validate_refreshed_windows(issues, _refreshed_windows), do: issues
+
+  def validate_optional_refreshed_windows(issues, _path, nil), do: issues
+
+  def validate_optional_refreshed_windows(issues, path, %{} = refreshed_windows) do
+    validate_refreshed_windows(issues, path, refreshed_windows)
+  end
+
+  def validate_optional_refreshed_windows(issues, path, _refreshed_windows),
+    do: [error(path, "must be an object") | issues]
+
+  def validate_refreshed_windows(issues, path, refreshed_windows)
+      when is_map(refreshed_windows) do
     issues
-    |> expect_type("$.refreshed_windows", refreshed_windows, "access_windows", :list)
+    |> expect_type(path, refreshed_windows, "access_windows", :list)
     |> expect_type(
-      "$.refreshed_windows",
+      path,
       refreshed_windows,
       "target_visibility_windows",
       :list
     )
     |> expect_type(
-      "$.refreshed_windows",
+      path,
       refreshed_windows,
       "eclipse_intervals",
       :list
     )
     |> validate_rows(
-      "$.refreshed_windows.access_windows",
+      "#{path}.access_windows",
       Map.get(refreshed_windows, "access_windows", []),
       &validate_refreshed_window/3
     )
     |> validate_rows(
-      "$.refreshed_windows.target_visibility_windows",
+      "#{path}.target_visibility_windows",
       Map.get(refreshed_windows, "target_visibility_windows", []),
       &validate_refreshed_window/3
     )
     |> validate_rows(
-      "$.refreshed_windows.eclipse_intervals",
+      "#{path}.eclipse_intervals",
       Map.get(refreshed_windows, "eclipse_intervals", []),
       &validate_refreshed_window/3
     )
   end
-
-  def validate_refreshed_windows(issues, _refreshed_windows), do: issues
 
   def validate_refreshed_window(issues, path, window) do
     issues

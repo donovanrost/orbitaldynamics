@@ -11,6 +11,40 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
     refreshed_candidate = refreshed_downlink("dl_refreshed", 500.0, 560.0)
     source_reports = passive_candidate_refresh_source_reports()
 
+    source_refreshed_windows = %{
+      "access_windows" => [
+        %{
+          "id" => "window:leo_1:ground_station_access:equator_prime:1",
+          "type" => "ground_station_access",
+          "scenario_id" => "leo_1",
+          "ground_station_id" => "equator_prime",
+          "starts_at_s" => 500.0,
+          "ends_at_s" => 560.0,
+          "sample_count" => 2,
+          "assumptions" => %{"max_sample_step_s" => 30.0}
+        }
+      ],
+      "target_visibility_windows" => [
+        %{
+          "id" => "window:leo_1:target_visibility:target_a:1",
+          "type" => "target_visibility",
+          "scenario_id" => "leo_1",
+          "target_id" => "target_a",
+          "starts_at_s" => 300.0,
+          "ends_at_s" => 360.0
+        }
+      ],
+      "eclipse_intervals" => [
+        %{
+          "id" => "window:leo_1:eclipse:central_body_shadow:1",
+          "type" => "eclipse",
+          "scenario_id" => "leo_1",
+          "starts_at_s" => 400.0,
+          "ends_at_s" => 450.0
+        }
+      ]
+    }
+
     source_validation_record =
       "study_results/validation_record_v1.json"
       |> File.read!()
@@ -467,7 +501,8 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
             resource_filter_report: resource_filter_report(),
             refresh_budget_report: refresh_budget_report(),
             provenance: candidate_refresh_provenance,
-            validation_records: [source_validation_record]
+            validation_records: [source_validation_record],
+            refreshed_windows: source_refreshed_windows
           )
           |> Map.put(
             "source_operational_readiness_report",
@@ -917,6 +952,21 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
              "schema_contract" => "candidate_diff_report.v1",
              "new_candidate_count" => 1
            } = artifact["source_candidate_diff_report"]
+
+    assert artifact["source_refreshed_windows"] == source_refreshed_windows
+
+    refute Enum.any?(
+             artifact["operator_review_package"]["rows"],
+             &String.contains?(&1["source"] || "", "source_refreshed_windows")
+           )
+
+    refute Enum.any?(
+             artifact["cadence_import_manifest"]["rows"],
+             &String.contains?(
+               &1["source"] || get_in(&1, ["source_review_row", "source"]) || "",
+               "source_refreshed_windows"
+             )
+           )
 
     assert [
              %{
@@ -5165,11 +5215,12 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
         "snapshot_id" => "ops-state-1",
         "spacecraft_state_count" => 1
       },
-      "refreshed_windows" => %{
-        "access_windows" => [],
-        "target_visibility_windows" => [],
-        "eclipse_intervals" => []
-      },
+      "refreshed_windows" =>
+        Keyword.get(opts, :refreshed_windows, %{
+          "access_windows" => [],
+          "target_visibility_windows" => [],
+          "eclipse_intervals" => []
+        }),
       "candidate_activities" => candidates,
       "contact_intents" => Keyword.get(opts, :contact_intents, []),
       "resource_summaries" => Keyword.get(opts, :resource_summaries, []),

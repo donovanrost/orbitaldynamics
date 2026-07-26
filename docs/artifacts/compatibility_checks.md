@@ -126,6 +126,16 @@ evidence, and complete review rows. Existing review and Cadence adapters route
 those exact summary rows without applying a source transition, mutating or
 publishing the repaired timeline, writing to Cadence, commanding, or granting
 operator authority.
+Campaign-repair V2 preserves CandidateRefresh's complete raw opportunity set at
+`source_refreshed_windows`: access windows, target-visibility windows, and
+eclipse intervals remain in their original collection order with exact timing,
+sample coverage, geometry, and boundary assumptions. Executable validation
+reuses the CandidateRefresh window contract at the new indexed path and rejects
+malformed collections, identity, interval, timing-assumption, or sample-coverage
+drift. Empty typed collections remain present to distinguish a completed refresh
+with no opportunities from an absent refresh. Raw windows create no operator or
+Cadence rows and cannot change filtering, matching, scoring, selection,
+scheduling, provider state, imports, commanding, or operator authority.
 Campaign-repair V2 preserves CandidateRefresh's ordered top-level
 `source_window_lineage` collection without reconstruction or deduplication.
 Executable validation pins every embedded lineage row at its exact array index

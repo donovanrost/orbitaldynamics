@@ -99,6 +99,10 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairArtifact do
       "source_suppressed_candidate_activities",
       RepairCandidateInputs.suppressed_candidate_activities(request.candidate_refresh)
     )
+    |> put_source_report(
+      "source_refreshed_windows",
+      RepairSourceReports.refreshed_windows(request.candidate_refresh)
+    )
     |> put_source_reports(
       "source_window_lineage",
       RepairSourceReports.source_window_lineage(request.candidate_refresh)
