@@ -66,16 +66,7 @@ defmodule OrbitalDynamics.OperatorReview.CompositeArtifact do
     {rows, source_artifact_id, provenance} = repair_package_input(artifact)
 
     package(rows, "campaign_repair.v2", source_artifact_id, provenance)
-    |> ContactAllocationSummary.put_from_paths(artifact, [
-      ["source_contact_allocation_report"],
-      ["contact_allocation_report"],
-      ["source_contact_allocation_summary"],
-      ["source_contact_allocation_station_pressure_summary"],
-      ["source_contact_allocation_reservation_conflict_summary"],
-      ["source_contact_allocation_capacity_pack_summary"],
-      ["source_contact_allocation_provider_reservation_request_summary"],
-      ["contact_allocation_provider_reservation_request_summary"]
-    ])
+    |> ContactAllocationSummary.put_repair(artifact)
   end
 
   def strategy_package(artifact) do
@@ -243,6 +234,9 @@ defmodule OrbitalDynamics.OperatorReview.CompositeArtifact do
   end
 
   def repair_rows(%{} = artifact) do
+    {capacity_pack_reports, capacity_pack_source} =
+      ContactAllocationSummary.repair_capacity_pack_source(artifact)
+
     PolicyApproval.approval_rows(
       Map.get(artifact, "approval_requirements", []),
       "campaign_repair.approval_requirements"
@@ -472,8 +466,8 @@ defmodule OrbitalDynamics.OperatorReview.CompositeArtifact do
         "campaign_repair.source_contact_allocation_reservation_conflict_summary"
       ) ++
       ContactAllocation.source_report_rows(
-        Map.get(artifact, "source_contact_allocation_capacity_pack_summary"),
-        "campaign_repair.source_contact_allocation_capacity_pack_summary"
+        capacity_pack_reports,
+        capacity_pack_source
       ) ++
       ContactAllocation.source_report_rows(
         Map.get(

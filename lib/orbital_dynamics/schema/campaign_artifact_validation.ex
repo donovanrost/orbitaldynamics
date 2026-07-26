@@ -356,6 +356,8 @@ defmodule OrbitalDynamics.Schema.CampaignArtifactValidation do
         &ContactAllocationValidation.validate_optional_reservation_conflict_summary/3,
       validate_optional_source_contact_allocation_capacity_pack_summary:
         &ContactAllocationValidation.validate_optional_capacity_pack_summary/3,
+      validate_optional_source_contact_allocation_capacity_pack_summaries:
+        &ContactAllocationValidation.validate_optional_capacity_pack_summaries/3,
       validate_optional_source_contact_allocation_provider_reservation_request_summary:
         &ContactAllocationValidation.validate_optional_provider_reservation_request_summary/3,
       validate_optional_source_contact_contention_report:

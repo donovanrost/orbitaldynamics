@@ -141,6 +141,7 @@ defmodule OrbitalDynamics.Schema.CampaignRegistryContracts do
           "source_contact_allocation_station_pressure_summary",
           "source_contact_allocation_reservation_conflict_summary",
           "source_contact_allocation_capacity_pack_summary",
+          "source_contact_allocation_capacity_pack_summaries",
           "source_contact_allocation_provider_reservation_request_summary",
           "source_contact_contention_report",
           "source_contact_contention_resolution_report",

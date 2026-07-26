@@ -1628,15 +1628,19 @@ adapters retain exact conflict rows plus match/status/owner/expiration,
 reservation-ID, direction, and station evidence. The preserved summary remains
 review-only and cannot reserve provider time, mutate schedules, import into
 Cadence, or grant operator authority.
-Campaign-repair V2 also preserves
-`contact_allocation_capacity_pack_summary.v1` at
-`source_contact_allocation_capacity_pack_summary`. Executable validation
-rejects stale row-derived capacity counts, fractions, identity routes, or
-non-object values. Operator-review and Cadence adapters retain exact contact
-rows and reduced-capacity pack groups with selected/deferred identity,
-required-capacity provenance, status, direction, and station evidence, while
-remaining review-only with no provider reservation, schedule mutation, Cadence
-write, or operator authority.
+Campaign-repair V2 also preserves every CandidateRefresh
+`contact_allocation_capacity_pack_summary.v1` in direct-source-then-canonical
+order at `source_contact_allocation_capacity_pack_summaries`, without
+deduplication or first-map selection. The existing singular
+`source_contact_allocation_capacity_pack_summary` remains an exact element-zero
+compatibility mirror, and executable validation rejects mirror drift, indexed
+row-derived capacity drift, and non-list or non-object collection shapes.
+Operator-review and Cadence adapters prefer the plural collection, retain exact
+indexed contact rows and reduced-capacity pack groups with selected/deferred
+identity, required-capacity provenance, status, direction, and station
+evidence, and do not count the compatibility mirror twice. Legacy singular-only
+artifacts remain accepted and routed. Both paths remain review-only with no
+provider reservation, schedule mutation, Cadence write, or operator authority.
 The validation-reference registry and checked-in
 `study_results/contact_allocation_provider_reservation_request_summary_v1.json`
 fixture also feed the

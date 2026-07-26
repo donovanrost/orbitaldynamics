@@ -234,12 +234,17 @@ freshness, contact/resource preservation, and station calendar reports.
   The adapter creates review evidence only and performs no provider or Cadence
   write.
 - **Source contact-allocation capacity-pack summaries** — V2 preserves
-  `contact_allocation_capacity_pack_summary.v1` at
-  `source_contact_allocation_capacity_pack_summary`, including exact contact
-  review rows, reduced-capacity pack groups, capacity fractions,
-  selected/deferred identities, required-capacity provenance, and status,
-  direction, and station routes. The resulting contact/group adapter rows are
-  review-only and cannot mutate provider or Cadence state.
+  every CandidateRefresh `contact_allocation_capacity_pack_summary.v1` at the
+  ordered `source_contact_allocation_capacity_pack_summaries` path. Direct
+  source maps precede canonical maps without deduplication or first-map loss;
+  the legacy singular `source_contact_allocation_capacity_pack_summary` remains
+  an exact element-zero compatibility mirror. Operator review and Cadence use
+  the plural path when present, route exact array indexes, and do not count the
+  mirror twice. The summaries include exact contact review rows,
+  reduced-capacity pack groups, capacity fractions, selected/deferred
+  identities, required-capacity provenance, and status, direction, and station
+  routes. The resulting contact/group adapter rows are review-only and cannot
+  mutate provider or Cadence state.
 - **Source contact-allocation provider-reservation request summaries** — V2
   preserves `contact_allocation_provider_reservation_request_summary.v1` at
   `source_contact_allocation_provider_reservation_request_summary`, including

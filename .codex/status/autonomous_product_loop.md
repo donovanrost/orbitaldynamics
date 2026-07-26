@@ -5,101 +5,98 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Bind repair ranking resource scopes to source summaries.
+Preserve plural V2 source capacity-pack summaries.
 
 Status:
 Implemented, reviewed, and verified; ready to publish.
 
 Selection evidence:
-- Repair replacement ranking now stamps every newly produced projected-resource
-  risk indicator with the evaluated `candidate_id`, and executable validation
-  requires that ID to match the enclosing ranking row.
-- The same contract only type-checks the indicator `spacecraft_id`; it does not
-  prove that the scope belongs to a resource summary that the exact embedded
-  source candidate can consume.
-- A hand-edited current artifact can therefore move an otherwise valid resource
-  indicator from a `leo_1` candidate to a stable `leo_2` resource scope, keep
-  its penalty and ranking arithmetic internally consistent, and still pass.
-- Resource projection already owns deterministic source-summary matching:
-  explicit resource-summary `spacecraft_id` matches candidate `spacecraft_id`
-  or `scenario_id`, while one valid unscoped summary applies to all activities;
-  duplicate and mixed wildcard scopes are excluded for operator review.
-- Station, contact-intent, and contact-contention ranking evidence were audited
-  first and already recompute their candidate-specific values from preserved
-  source reports. Link shortfall and exact projected-resource values depend on
-  the greedy projected activity set, so this slice binds only the independently
-  reproducible resource scope instead of claiming a full projection replay.
+- `RepairSourceReports.contact_allocation_capacity_pack_summary/2` accepted the
+  direct-source and canonical CandidateRefresh fields, list-wrapped their
+  values, and then selected only the first map. Valid later summaries were
+  silently discarded.
+- CandidateRefresh treats contact-allocation source reports as collections:
+  direct-source, canonical, and result-artifact capacity-pack summaries can all
+  contribute distinct provenance and review evidence.
+- Capacity-pack summaries are an operational decision surface, preserving
+  exact contact review rows, reduced-capacity pack groups, selected/deferred
+  identities, required-capacity provenance, and review/Cadence routing.
+- Repair V2 already accepted a singular capacity-pack source field. The
+  established lossless source pattern is an ordered plural field with indexed
+  executable validation and indexed adapter paths.
 
-Intended behavior:
-- Expose and reuse the resource projection's normalized summary-to-activity
-  scope semantics instead of maintaining a schema-only interpretation.
-- For every current ranking risk indicator carrying `candidate_id`, require its
-  `spacecraft_id` to be one of the exact valid source-resource scopes applicable
-  to the uniquely embedded source candidate.
-- Preserve candidates matched through either explicit `spacecraft_id` or
-  `scenario_id`, and make the advertised single-unscoped-summary
-  `all_spacecraft` behavior literal even when an activity declares its own
-  spacecraft ID.
-- Continue accepting legacy ranking indicators that omit `candidate_id`.
-- Do not change projection arithmetic, filtering, scores, ranking, selection,
-  schedules, operator/Cadence routing, approvals, provider writes, commanding,
-  or execution authority.
+Intended and delivered behavior:
+- `source_contact_allocation_capacity_pack_summaries` retains every valid
+  direct-source map before every valid canonical map, without deduplication or
+  first-map loss.
+- `source_contact_allocation_capacity_pack_summary` remains an element-zero
+  compatibility mirror for existing V2 consumers. Executable validation
+  rejects a drifted mirror and a singular mirror paired with an empty plural
+  collection.
+- Operator-review aggregates, exact review rows, and Cadence handoff prefer a
+  non-empty plural collection and route every map through its exact array
+  index. They do not count the compatibility mirror twice and fall back to the
+  singular path for legacy artifacts.
+- Both source fields remain absent when no valid source map exists. Allocation,
+  capacity packing, scoring, schedules, approvals, provider writes, commanding,
+  imports, and execution authority are unchanged.
 
 Level 6 pillar advanced:
-Fleet-scale resource decision auditability and executable evidence consistency.
+Fleet-scale allocation decision auditability and versioned artifact
+compatibility.
 
 Delivered files:
-- shared resource-summary projection-scope semantics
-- repair resource-pressure executable contract and focused challenge proofs
-- focused docs, ledger, verification, and scoped publication
+- lossless repair source collection plus singular compatibility projection
+- Repair V2 producer, registry, field type, executable validation, and schema
+- plural-preferred operator-review aggregates/rows and Cadence routing with
+  singular-only fallback
+- focused producer, integration, adapter, schema, compatibility, and docs proofs
+- regenerated Repair V2 schema and schema bundle
 
 Verification:
-- Focused resource projection, repair integration, and ranking contracts:
-  `60 passed`.
-- Adjacent repair-schema and resource-projection family: `330 passed`.
-- Post-review projection/repair proofs: `56 passed`.
-- Contact-allocation gate: `238 passed`.
+- Focused producer/integration/schema proofs: `21 passed`.
+- Adjacent capacity-pack producer, operator-review, CandidateRefresh, and schema
+  family: `67 passed`.
+- Full Repair V2 source-contract family: `196 passed`.
+- Contact-allocation gate: `244 passed`.
 - Saved-artifact schema lint: `155 artifacts`, zero errors, warnings, or
   remediation items.
-- Pre-export full suite: `5160 passed` in `702.9s`.
+- Pre-export full suite: `5166/5167 passed` in `703.8s`; the sole failure was the
+  expected checked-in schema parity mismatch for the new optional field.
 - Schema/manifest exports and canonical repair/strategy reruns completed with
-  passing artifact status and byte-identical hashes:
+  passing artifact status. Canonical and manifest hashes remained byte-identical:
   - repair: `e28901d7988f7b2942b2c357ff53ce7b22d38f1cef26149b60d0570c4baa95d7`
   - strategy: `60a3f09b41b366aac91b6b82f6ed533abf618c857d886c841cc258b1e761a726`
   - manifest schema: `7a44a6e58754aae967ee8319c8768b7270d7d7982667c4a6bad8ff1c274c0594`
-  - schema bundle: `f77cd52510c692fbe33b7798f223303d14aab5c144520a3f1013131dc51db709`
+  - schema bundle: `3caa1a2360522d834841e0e08a93a3dd47576f1e5dda9667f471d5aef12d8203`
 - Schema export, manifest export, and golden artifact tests: `17 passed`.
-- Final full suite: `5160 passed` in `720.3s`.
-- `mix format --check-formatted` and `git diff --check` pass.
+- Full suite after export: `5167 passed` in `701.7s`.
+- Post-review mirror-edge proofs: `19 passed`.
+- Final post-review full suite: `5167 passed` in `680.8s`.
 
 Review:
-- `ResourceSummaryInput` now owns the exact normalized summary-to-activity
-  matcher and projection scope ID used by `ResourceProjection`; schema code does
-  not maintain a parallel identity rule.
-- The shared wildcard branch now fulfills its documented all-activities rule
-  even for activities that declare an explicit spacecraft ID. Scoped scenario
-  and spacecraft matching, mixed wildcard review gating, and the wildcard edge
-  all have direct regression assertions.
-- The repair contract groups embedded source candidates by exact ID and only
-  derives scopes for a unique candidate. Current indicators must match one of
-  those valid normalized scopes at their exact indexed `.spacecraft_id` path;
-  duplicate candidates, absent summaries, and review-gated summaries cannot
-  manufacture a match.
-- Scope binding is intentionally narrower than full risk replay: projected
-  shortfall and resource values depend on the greedy activity prefix/future set
-  that the compact ranking evidence does not fully preserve. This slice does
-  not overclaim that reconstruction.
-- Legacy indicators without `candidate_id` bypass only the new scope check.
-  Existing type, candidate-ID, penalty, arithmetic, rank, and selection checks
-  continue to run.
-- The nine-file worktree contains only the ledger, three focused docs, shared
-  projection semantics, the executable repair contract, and two test files.
-  Schema exports and canonical repair/strategy artifacts are unchanged.
+- Source and canonical values are flattened independently in stable family
+  order, maps are string-key normalized, and no content-based deduplication is
+  performed. The legacy singular resolver now derives from the same ordered
+  collection, preventing producer drift.
+- Repair artifacts intentionally publish both the lossless plural collection
+  and its first-element singular mirror. The executable contract accepts either
+  field alone but requires exact element-zero equality whenever both are
+  meaningful; a singular field plus an empty plural list is rejected.
+- A shared adapter selector makes both row generation and aggregate summary
+  folding prefer the plural field. Three identical source maps produce three
+  indexed review/Cadence families and three aggregate contributions, not four;
+  a singular-only artifact still produces the legacy unindexed paths.
+- The new registry field is optional and exports as an array. Only
+  `campaign_repair.v2.schema.json` and the bundle changed; the manifest schema,
+  canonical repair, and every strategy branch remain byte-identical.
+- The 19-file worktree contains only the compact ledger, three focused docs,
+  producer/adapter/contract code, two schema exports, and three focused tests.
 
 Last published slice:
-- `66e90ee6` Bind repair suppressions to source evidence (`5160 passed`; every
-  preserved suppressed candidate is backed by an exact source exclusion report
-  while legacy omission and stale extra report IDs remain compatible).
+- `9d76ad8a` Bind repair resource scopes to source summaries (`5160 passed`;
+  current ranking resource indicators are bound to independently reproducible
+  source-summary scopes applicable to their exact embedded candidate).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions while preserving explicit
@@ -112,9 +109,8 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-After resource scope binding is executable, audit another explicit
-allocation/resource decision surface before reconsidering raw refreshed-window
-retention.
+Audit the adjacent station-pressure or reservation-conflict source-summary
+collection before reconsidering raw refreshed-window retention.
 
 Blocked:
 None.

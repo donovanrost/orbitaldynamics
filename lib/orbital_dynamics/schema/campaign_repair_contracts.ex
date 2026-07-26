@@ -408,6 +408,14 @@ defmodule OrbitalDynamics.Schema.CampaignRepairContracts do
     )
     |> call(
       callbacks,
+      :validate_optional_source_contact_allocation_capacity_pack_summaries,
+      [
+        "$.source_contact_allocation_capacity_pack_summaries",
+        Map.get(artifact, "source_contact_allocation_capacity_pack_summaries")
+      ]
+    )
+    |> call(
+      callbacks,
       :validate_optional_source_contact_allocation_provider_reservation_request_summary,
       [
         "$.source_contact_allocation_provider_reservation_request_summary",

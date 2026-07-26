@@ -95,6 +95,37 @@ defmodule OrbitalDynamics.OperatorReview.ContactAllocationSummary do
     put(package, reports)
   end
 
+  def put_repair(package, artifact) do
+    artifact = stringify_keys(artifact || %{})
+    {capacity_pack_reports, _source} = repair_capacity_pack_source(artifact)
+
+    reports = [
+      artifact["source_contact_allocation_report"],
+      artifact["contact_allocation_report"],
+      artifact["source_contact_allocation_summary"],
+      artifact["source_contact_allocation_station_pressure_summary"],
+      artifact["source_contact_allocation_reservation_conflict_summary"],
+      capacity_pack_reports,
+      artifact["source_contact_allocation_provider_reservation_request_summary"],
+      artifact["contact_allocation_provider_reservation_request_summary"]
+    ]
+
+    put(package, reports)
+  end
+
+  def repair_capacity_pack_source(artifact) do
+    artifact = stringify_keys(artifact || %{})
+
+    case artifact["source_contact_allocation_capacity_pack_summaries"] do
+      [_summary | _summaries] = summaries ->
+        {summaries, "campaign_repair.source_contact_allocation_capacity_pack_summaries"}
+
+      _summaries ->
+        {artifact["source_contact_allocation_capacity_pack_summary"],
+         "campaign_repair.source_contact_allocation_capacity_pack_summary"}
+    end
+  end
+
   defp result_artifact_contact_allocation_summary_reports(artifacts) when is_list(artifacts) do
     Enum.flat_map(artifacts, &result_artifact_contact_allocation_summary_reports/1)
   end

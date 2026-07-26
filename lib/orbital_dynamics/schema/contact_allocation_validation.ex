@@ -77,6 +77,24 @@ defmodule OrbitalDynamics.Schema.ContactAllocationValidation do
   def validate_optional_capacity_pack_summary(issues, path, _summary),
     do: [error(path, "must be an object") | issues]
 
+  def validate_optional_capacity_pack_summaries(issues, _path, nil), do: issues
+
+  def validate_optional_capacity_pack_summaries(issues, path, summaries)
+      when is_list(summaries) do
+    summaries
+    |> Enum.with_index()
+    |> Enum.reduce(issues, fn
+      {%{} = summary, index}, acc ->
+        validate_capacity_pack_artifact(acc, "#{path}[#{index}]", summary)
+
+      {_summary, index}, acc ->
+        [error("#{path}[#{index}]", "must be an object") | acc]
+    end)
+  end
+
+  def validate_optional_capacity_pack_summaries(issues, path, _summaries),
+    do: [error(path, "must be a list") | issues]
+
   def validate_optional_provider_reservation_request_summary(issues, _path, nil), do: issues
 
   def validate_optional_provider_reservation_request_summary(issues, path, %{} = summary),

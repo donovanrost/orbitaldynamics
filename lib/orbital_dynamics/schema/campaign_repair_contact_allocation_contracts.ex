@@ -4,7 +4,32 @@ defmodule OrbitalDynamics.Schema.CampaignRepairContactAllocationContracts do
   alias OrbitalDynamics.Schema.PrimitiveValidation
 
   def validate(issues, artifact) when is_map(artifact) do
-    validate_report(issues, Map.get(artifact, "contact_allocation_report"))
+    issues
+    |> validate_report(Map.get(artifact, "contact_allocation_report"))
+    |> validate_capacity_pack_source_mirror(artifact)
+  end
+
+  defp validate_capacity_pack_source_mirror(issues, artifact) do
+    singular = Map.get(artifact, "source_contact_allocation_capacity_pack_summary")
+    plural = Map.get(artifact, "source_contact_allocation_capacity_pack_summaries")
+
+    case {singular, plural} do
+      {%{}, []} ->
+        [capacity_pack_source_mirror_error() | issues]
+
+      {%{} = singular, [%{} = first | _summaries]} when singular != first ->
+        [capacity_pack_source_mirror_error() | issues]
+
+      _fields ->
+        issues
+    end
+  end
+
+  defp capacity_pack_source_mirror_error do
+    PrimitiveValidation.error(
+      "$.source_contact_allocation_capacity_pack_summary",
+      "must equal $.source_contact_allocation_capacity_pack_summaries[0] when both fields are present"
+    )
   end
 
   defp validate_report(issues, nil), do: issues
