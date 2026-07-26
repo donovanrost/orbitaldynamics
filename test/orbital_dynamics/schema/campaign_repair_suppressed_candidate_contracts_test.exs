@@ -1,6 +1,7 @@
 defmodule OrbitalDynamics.Schema.CampaignRepairSuppressedCandidateContractsTest do
   use ExUnit.Case, async: true
 
+  alias OrbitalDynamics.CampaignPlanner.RepairMetadata
   alias OrbitalDynamics.Schema
 
   @eligible_field "source_candidate_activities"
@@ -25,7 +26,7 @@ defmodule OrbitalDynamics.Schema.CampaignRepairSuppressedCandidateContractsTest 
       |> Map.put(@suppressed_field, [suppressed_candidate])
       |> Map.put("source_refresh_budget_report", refresh_budget_report)
       |> put_in(["repair_metadata", "candidate_window_count"], 1)
-      |> put_in(["repair_metadata", "candidate_source", "candidate_count"], 2)
+      |> put_candidate_source_count(2)
 
     %{
       artifact: artifact,
@@ -137,6 +138,34 @@ defmodule OrbitalDynamics.Schema.CampaignRepairSuppressedCandidateContractsTest 
   defp assert_error_path(artifact, path) do
     assert {:error, report} = Schema.validate_artifact(artifact)
     assert Enum.any?(report["errors"], &(&1["path"] == path))
+  end
+
+  defp put_candidate_source_count(artifact, count) do
+    artifact =
+      artifact
+      |> put_in(["repair_metadata", "candidate_source", "candidate_count"], count)
+      |> put_in(["assumptions", "candidate_source", "candidate_count"], count)
+      |> put_in(["provenance", "candidate_source", "candidate_count"], count)
+
+    candidate_source = get_in(artifact, ["repair_metadata", "candidate_source"])
+
+    repair_id =
+      RepairMetadata.id(
+        %{"plan_id" => artifact["source_plan_id"]},
+        artifact["realized_state_snapshot"],
+        artifact["current_epoch_s"],
+        candidate_source
+      )
+
+    artifact
+    |> put_in(["repair_metadata", "repair_id"], repair_id)
+    |> put_in(["operator_review_package", "source_artifact_id"], repair_id)
+    |> put_in(["cadence_import_manifest", "source_artifact_id"], repair_id)
+    |> put_in(
+      ["cadence_import_manifest", "provenance", "source_artifact_id"],
+      repair_id
+    )
+    |> put_in(["cadence_import_manifest", "provenance", "source_repair_id"], repair_id)
   end
 
   defp read_json!(path) do

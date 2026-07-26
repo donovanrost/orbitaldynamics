@@ -5,6 +5,7 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairExecutionPolicyTest do
 
   import OrbitalDynamics.CampaignPlanner.TestSupport
 
+  alias OrbitalDynamics.CampaignPlanner.RepairMetadata
   alias OrbitalDynamics.Schema
 
   test "repair reassigns a failed observation to a viable spacecraft and charges churn" do
@@ -53,7 +54,8 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairExecutionPolicyTest do
       end)
 
     degraded_candidate =
-      update_in(artifact, ["realized_state_snapshot"], fn snapshot ->
+      artifact
+      |> update_in(["realized_state_snapshot"], fn snapshot ->
         Map.put(snapshot, "spacecraft_states", [
           %{
             "scenario_id" => "leo_1",
@@ -62,6 +64,7 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairExecutionPolicyTest do
           }
         ])
       end)
+      |> reconcile_repair_id()
 
     exempt_degraded_candidate =
       put_in(
@@ -421,5 +424,27 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairExecutionPolicyTest do
              artifact["activities"]
 
     refute Enum.any?(artifact["deltas"], &(&1["repair_action"] == "suppressed"))
+  end
+
+  defp reconcile_repair_id(artifact) do
+    candidate_source = get_in(artifact, ["repair_metadata", "candidate_source"])
+
+    repair_id =
+      RepairMetadata.id(
+        %{"plan_id" => artifact["source_plan_id"]},
+        artifact["realized_state_snapshot"],
+        artifact["current_epoch_s"],
+        candidate_source
+      )
+
+    artifact
+    |> put_in(["repair_metadata", "repair_id"], repair_id)
+    |> put_in(["operator_review_package", "source_artifact_id"], repair_id)
+    |> put_in(["cadence_import_manifest", "source_artifact_id"], repair_id)
+    |> put_in(
+      ["cadence_import_manifest", "provenance", "source_artifact_id"],
+      repair_id
+    )
+    |> put_in(["cadence_import_manifest", "provenance", "source_repair_id"], repair_id)
   end
 end

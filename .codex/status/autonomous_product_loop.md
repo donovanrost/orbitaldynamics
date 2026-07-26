@@ -5,50 +5,54 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Reconcile Repair metadata with produced rows.
+Reproduce Repair metadata identity and provenance.
 
 Status:
-Implemented and verified from clean published base `8b9524fa`; ready to
-publish.
+Ready to publish from clean published base `c4b4e52d`.
 
 Selection evidence:
-- The producer writes Repair metadata source identity and counts directly from
-  the enclosing top-level source ID and produced delta, approval, candidate,
-  and repaired-activity arrays.
-- Runtime validation currently requires the source ID plus delta and approval
-  count fields, but does not reconcile their values; optional candidate-window
-  and repaired-activity counts are likewise unchecked when present.
-- All five values are exactly replayable from the artifact without source-plan
-  reconstruction, provider calls, or sequential Repair accumulator state.
+- The producer deterministically derives `repair_metadata.repair_id` from the
+  source plan ID, normalized realized-state identity, current epoch, and exact
+  metadata candidate-source map; both canonical V2 artifacts reproduce it
+  byte-for-byte from preserved fields.
+- The same candidate-source map is copied into Repair assumptions and
+  provenance, and provenance repeats the source plan ID, but runtime validation
+  does not reconcile present copies.
+- The identity and present-copy checks need no source-plan reconstruction,
+  provider calls, authority, or hidden Repair accumulator state.
 
 Delivered behavior:
-- Bind `repair_metadata.source_plan_id` to the enclosing Repair source plan ID.
-- Bind required delta and approval-required counts to their exact row-array
-  lengths.
-- Bind present candidate-window and repaired-activity counts to the embedded
-  source-candidate and repaired-activity arrays while preserving older repairs
-  that omit those two additive fields.
-- Keep producer output, JSON Schema, ranking, scoring, selection, scheduling,
-  review/import routing, provider state, commanding, and authority unchanged.
+- Reproduce present `repair_metadata.repair_id` with the producer's shared hash
+  function from preserved source plan, realized state, current epoch, and exact
+  metadata candidate-source inputs.
+- Reconcile present assumptions/provenance candidate-source copies and
+  provenance source plan identity with Repair metadata and the enclosing
+  artifact.
+- Bind present operator-review source artifact identity and Cadence provenance
+  source artifact/repair identities to the reproduced Repair ID.
+- Preserve older repairs that omit optional candidate-source/provenance copies
+  and keep producer output, JSON Schema, planning, provider, command, import,
+  and authority behavior unchanged.
 
 Verification:
-- Focused produced-surface and adjacent candidate-fixture gate: `19 passed`.
+- Focused produced-surface and adjacent candidate-identity gate: `28 passed`.
 - Expanded Repair schema gate: `319 passed`.
 - Saved-artifact lint: `155` artifacts passed with `0` errors and `0` warnings.
 - Canonical Repair and Strategy regeneration remained byte-stable at
   `cc41834e706fd1e04a4c5578032fdf99ceeba949a02fd75fc54c8b70cdc30d8a`
   and
   `57602722702969da587e2754df84bca1e06e86cc32fa5af7f3f78451b72f9985`.
-- Full `mix test --timeout 120000`: `5246 passed` in `664.3s`.
-- `mix format --check-formatted` and `git diff --check` pass.
+- Full suite: `5246 passed` in `699.8s`.
+- `mix format --check-formatted` and `git diff --check` passed on the exact
+  full-suite tree.
 
 Level 6 pillar advanced:
 Fleet-scale candidate-pool integrity and operator-review evidence fidelity.
 
 Last published slice:
-- `8b9524fa` Reject Repair source self-replacements (`5246 passed`; current rows
-  cannot rank the preserved source activity as its own replacement while legacy
-  rankings and hidden sequential state remain unchanged).
+- `c4b4e52d` Reconcile Repair metadata counts (`5246 passed`; metadata source
+  identity and required/present row counts bind to the enclosing artifact while
+  older additive-count omissions remain compatible).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions only from authoritative,
@@ -59,8 +63,8 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-After metadata reconciliation, continue fleet-scale evidence integrity only
-where producer outputs can be replayed without hidden source or accumulator
+After Repair identity/provenance replay, continue fleet-scale evidence integrity
+only where producer outputs can be replayed without hidden source or accumulator
 state.
 
 Blocked:

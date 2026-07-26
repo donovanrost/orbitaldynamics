@@ -1,6 +1,7 @@
 defmodule OrbitalDynamics.Schema.CampaignRepairReplacementRankingContractsTest do
   use ExUnit.Case, async: true
 
+  alias OrbitalDynamics.CampaignPlanner.RepairMetadata
   alias OrbitalDynamics.Schema
 
   setup do
@@ -705,9 +706,37 @@ defmodule OrbitalDynamics.Schema.CampaignRepairReplacementRankingContractsTest d
     context.artifact
     |> Map.put("source_candidate_activities", [source_candidate, candidate])
     |> put_in(["repair_metadata", "candidate_window_count"], 2)
-    |> put_in(["repair_metadata", "candidate_source", "candidate_count"], 2)
+    |> put_candidate_source_count(2)
     |> put_in_path(ranking_path <> ".rows", [selected_row, row])
     |> put_in_path(ranking_path <> ".evaluated_candidate_count", 2)
+  end
+
+  defp put_candidate_source_count(artifact, count) do
+    artifact =
+      artifact
+      |> put_in(["repair_metadata", "candidate_source", "candidate_count"], count)
+      |> put_in(["assumptions", "candidate_source", "candidate_count"], count)
+      |> put_in(["provenance", "candidate_source", "candidate_count"], count)
+
+    candidate_source = get_in(artifact, ["repair_metadata", "candidate_source"])
+
+    repair_id =
+      RepairMetadata.id(
+        %{"plan_id" => artifact["source_plan_id"]},
+        artifact["realized_state_snapshot"],
+        artifact["current_epoch_s"],
+        candidate_source
+      )
+
+    artifact
+    |> put_in(["repair_metadata", "repair_id"], repair_id)
+    |> put_in(["operator_review_package", "source_artifact_id"], repair_id)
+    |> put_in(["cadence_import_manifest", "source_artifact_id"], repair_id)
+    |> put_in(
+      ["cadence_import_manifest", "provenance", "source_artifact_id"],
+      repair_id
+    )
+    |> put_in(["cadence_import_manifest", "provenance", "source_repair_id"], repair_id)
   end
 
   defp ranking_score(selected_row, candidate_score, move_penalty) do

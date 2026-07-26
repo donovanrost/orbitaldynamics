@@ -40,7 +40,16 @@ defmodule OrbitalDynamics.Schema.CampaignRepairProducedSurfaceContractsTest do
       |> Map.drop(@produced_fields)
       |> update_in(
         ["repair_metadata"],
-        &Map.drop(&1, ["candidate_window_count", "repaired_activity_count"])
+        &Map.drop(&1, [
+          "candidate_source",
+          "candidate_window_count",
+          "repaired_activity_count"
+        ])
+      )
+      |> update_in(["assumptions"], &Map.delete(&1, "candidate_source"))
+      |> update_in(
+        ["provenance"],
+        &Map.drop(&1, ["candidate_source", "source_plan_id"])
       )
 
     assert {:ok, %{"schema_contract" => "campaign_repair.v2"}} =
@@ -66,6 +75,32 @@ defmodule OrbitalDynamics.Schema.CampaignRepairProducedSurfaceContractsTest do
        put_in(context.repair, ["repair_metadata", "candidate_window_count"], 2)},
       {"$.repair_metadata.repaired_activity_count",
        put_in(context.repair, ["repair_metadata", "repaired_activity_count"], 2)},
+      {"$.repair_metadata.repair_id",
+       put_in(context.repair, ["repair_metadata", "repair_id"], String.duplicate("a", 64))},
+      {"$.assumptions.candidate_source",
+       put_in(context.repair, ["assumptions", "candidate_source", "candidate_count"], 99)},
+      {"$.provenance.candidate_source",
+       put_in(context.repair, ["provenance", "candidate_source", "candidate_count"], 99)},
+      {"$.provenance.source_plan_id",
+       put_in(context.repair, ["provenance", "source_plan_id"], "source:drift")},
+      {"$.operator_review_package.source_artifact_id",
+       put_in(
+         context.repair,
+         ["operator_review_package", "source_artifact_id"],
+         "repair:drift"
+       )},
+      {"$.cadence_import_manifest.provenance.source_artifact_id",
+       put_in(
+         context.repair,
+         ["cadence_import_manifest", "provenance", "source_artifact_id"],
+         "repair:drift"
+       )},
+      {"$.cadence_import_manifest.provenance.source_repair_id",
+       put_in(
+         context.repair,
+         ["cadence_import_manifest", "provenance", "source_repair_id"],
+         "repair:drift"
+       )},
       {"$.preserved_activities",
        Map.put(context.readiness_repair, "preserved_activities", [moved_activity])},
       {"$.approval_rule_matches[0].classification",

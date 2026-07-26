@@ -1943,6 +1943,12 @@ match the top-level source ID and exact row-array lengths. When the additive
 `candidate_window_count` or `repaired_activity_count` fields are present, they
 must match the embedded source-candidate and repaired-activity arrays; older
 repairs may omit those two additive counts.
+When metadata candidate-source evidence is present, validation reproduces
+`repair_id` from the preserved source plan, realized-state identity, current
+epoch, and exact candidate-source map. Present assumptions/provenance
+candidate-source copies, provenance source plan, operator-review source artifact
+ID, and Cadence provenance repair IDs must match that same identity chain;
+older repairs may omit the optional copies.
 Replacement-ranking link-pressure validation preserves fully legacy rankings
 whose pressured rows carry only shortfall. New producer rows under pressure also
 carry projected required downlink demand and selected capacity-adjusted

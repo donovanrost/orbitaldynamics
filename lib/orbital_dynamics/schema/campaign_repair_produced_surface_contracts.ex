@@ -1,6 +1,8 @@
 defmodule OrbitalDynamics.Schema.CampaignRepairProducedSurfaceContracts do
   @moduledoc false
 
+  alias OrbitalDynamics.CampaignPlanner.RepairMetadata
+
   import OrbitalDynamics.Schema.PrimitiveValidation,
     only: [error: 2, validate_non_negative_integer_count_map: 3]
 
@@ -37,6 +39,9 @@ defmodule OrbitalDynamics.Schema.CampaignRepairProducedSurfaceContracts do
       "repaired_activity_count",
       Map.get(artifact, "activities")
     )
+    |> validate_optional_provenance_source_plan(artifact)
+    |> validate_candidate_source_copies(artifact, Map.get(metadata, "candidate_source"))
+    |> validate_repair_id(artifact, metadata, Map.get(metadata, "candidate_source"))
   end
 
   defp validate_repair_metadata(issues, _artifact), do: issues
@@ -68,6 +73,138 @@ defmodule OrbitalDynamics.Schema.CampaignRepairProducedSurfaceContracts do
   end
 
   defp validate_optional_row_count(issues, _metadata, _field, _rows), do: issues
+
+  defp validate_optional_provenance_source_plan(
+         issues,
+         %{"provenance" => %{} = provenance} = artifact
+       ) do
+    validate_optional_copy(
+      issues,
+      "$.provenance.source_plan_id",
+      provenance,
+      "source_plan_id",
+      Map.get(artifact, "source_plan_id"),
+      "must match enclosing Repair source_plan_id"
+    )
+  end
+
+  defp validate_optional_provenance_source_plan(issues, _artifact), do: issues
+
+  defp validate_candidate_source_copies(issues, artifact, %{} = candidate_source) do
+    issues
+    |> validate_optional_candidate_source_copy(
+      "$.assumptions.candidate_source",
+      Map.get(artifact, "assumptions"),
+      candidate_source
+    )
+    |> validate_optional_candidate_source_copy(
+      "$.provenance.candidate_source",
+      Map.get(artifact, "provenance"),
+      candidate_source
+    )
+  end
+
+  defp validate_candidate_source_copies(issues, _artifact, _candidate_source), do: issues
+
+  defp validate_optional_candidate_source_copy(
+         issues,
+         path,
+         %{} = container,
+         candidate_source
+       ) do
+    validate_optional_copy(
+      issues,
+      path,
+      container,
+      "candidate_source",
+      candidate_source,
+      "must match repair_metadata.candidate_source"
+    )
+  end
+
+  defp validate_optional_candidate_source_copy(issues, _path, _container, _candidate_source),
+    do: issues
+
+  defp validate_optional_copy(issues, path, container, field, expected, message) do
+    if Map.has_key?(container, field) do
+      validate_equal(issues, path, Map.get(container, field), expected, message)
+    else
+      issues
+    end
+  end
+
+  defp validate_repair_id(
+         issues,
+         %{
+           "source_plan_id" => source_plan_id,
+           "realized_state_snapshot" => %{} = realized_state,
+           "current_epoch_s" => current_epoch_s
+         } = artifact,
+         %{"repair_id" => repair_id},
+         %{} = candidate_source
+       )
+       when is_binary(source_plan_id) and is_number(current_epoch_s) and is_binary(repair_id) do
+    expected =
+      RepairMetadata.id(
+        %{"plan_id" => source_plan_id},
+        realized_state,
+        current_epoch_s,
+        candidate_source
+      )
+
+    validate_equal(
+      issues,
+      "$.repair_metadata.repair_id",
+      repair_id,
+      expected,
+      "must reproduce from preserved Repair identity inputs"
+    )
+    |> validate_optional_repair_id_copy(
+      "$.operator_review_package.source_artifact_id",
+      Map.get(artifact, "operator_review_package"),
+      "source_artifact_id",
+      expected
+    )
+    |> validate_optional_cadence_repair_id_copies(artifact, expected)
+  end
+
+  defp validate_repair_id(issues, _artifact, _metadata, _candidate_source), do: issues
+
+  defp validate_optional_cadence_repair_id_copies(
+         issues,
+         %{"cadence_import_manifest" => %{"provenance" => %{} = provenance}},
+         expected
+       ) do
+    issues
+    |> validate_optional_repair_id_copy(
+      "$.cadence_import_manifest.provenance.source_artifact_id",
+      provenance,
+      "source_artifact_id",
+      expected
+    )
+    |> validate_optional_repair_id_copy(
+      "$.cadence_import_manifest.provenance.source_repair_id",
+      provenance,
+      "source_repair_id",
+      expected
+    )
+  end
+
+  defp validate_optional_cadence_repair_id_copies(issues, _artifact, _expected), do: issues
+
+  defp validate_optional_repair_id_copy(issues, path, %{} = container, field, expected) do
+    validate_optional_copy(
+      issues,
+      path,
+      container,
+      field,
+      expected,
+      "must match reproduced Repair ID"
+    )
+  end
+
+  defp validate_optional_repair_id_copy(issues, _path, _container, _field, _expected),
+    do: issues
 
   defp validate_change_summary(issues, artifact) do
     summary = Map.get(artifact, "change_summary")

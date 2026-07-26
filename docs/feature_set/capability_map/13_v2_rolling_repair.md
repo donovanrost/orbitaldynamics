@@ -33,6 +33,11 @@ Status: **implemented** (with **partial**, **near-term**, **later**, and **out o
   Present `candidate_window_count` and `repaired_activity_count` values bind to
   the embedded candidate and repaired-activity arrays; older repairs may omit
   those two additive counts.
+- With metadata candidate-source evidence present, runtime validation
+  deterministically reproduces `repair_id` from preserved identity inputs and
+  binds present assumptions/provenance candidate-source copies, provenance
+  source plan, operator-review source artifact ID, and Cadence provenance repair
+  IDs to the same chain. Older optional-copy omissions remain compatible.
 - **`contact_allocation_report.v1`** over repaired contact activities. The
   optional report is a declared V2 nested contract; runtime validation applies
   its full row, count, summary, nested contention/resolution, stable-identity,

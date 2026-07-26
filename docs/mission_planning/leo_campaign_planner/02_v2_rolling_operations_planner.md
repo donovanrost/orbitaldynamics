@@ -707,7 +707,11 @@ schema-type their stable IDs, invalid-input flags, and protected/change counts.
   `candidate_source`. Executable validation binds the metadata source plan,
   delta count, and approval-required count to the enclosing artifact. Present
   candidate-window and repaired-activity counts also match their exact embedded
-  arrays, while older repairs may omit those two additive counts.
+  arrays, while older repairs may omit those two additive counts. When metadata
+  candidate-source evidence is present, validation reproduces `repair_id` from
+  preserved identity inputs and reconciles present assumptions, provenance,
+  operator-review, and Cadence identity copies; older optional-copy omissions
+  remain compatible.
 
 The current repair behavior is deliberately transparent:
 

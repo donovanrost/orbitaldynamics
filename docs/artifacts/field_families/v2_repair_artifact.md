@@ -25,6 +25,11 @@ must match the enclosing source ID and exact delta/approval row counts. Present
 `candidate_window_count` and `repaired_activity_count` values likewise match
 `source_candidate_activities` and `activities`; older repairs may omit those two
 additive metadata counts.
+With metadata candidate-source evidence present, `repair_id` is reproduced from
+the preserved source plan, realized-state identity, current epoch, and exact
+candidate-source map. Present assumptions/provenance candidate-source copies,
+provenance source plan, operator-review source artifact ID, and Cadence
+provenance repair IDs must agree; older repairs may omit optional copies.
 
 ### `realized_state_snapshot`
 
