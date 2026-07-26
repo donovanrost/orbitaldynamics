@@ -61,6 +61,24 @@ defmodule OrbitalDynamics.Schema.ContactAllocationValidation do
   def validate_optional_station_pressure_summary(issues, path, _summary),
     do: [error(path, "must be an object") | issues]
 
+  def validate_optional_station_pressure_summaries(issues, _path, nil), do: issues
+
+  def validate_optional_station_pressure_summaries(issues, path, summaries)
+      when is_list(summaries) do
+    summaries
+    |> Enum.with_index()
+    |> Enum.reduce(issues, fn
+      {%{} = summary, index}, acc ->
+        validate_station_pressure_artifact(acc, "#{path}[#{index}]", summary)
+
+      {_summary, index}, acc ->
+        [error("#{path}[#{index}]", "must be an object") | acc]
+    end)
+  end
+
+  def validate_optional_station_pressure_summaries(issues, path, _summaries),
+    do: [error(path, "must be a list") | issues]
+
   def validate_optional_reservation_conflict_summary(issues, _path, nil), do: issues
 
   def validate_optional_reservation_conflict_summary(issues, path, %{} = summary),

@@ -1612,14 +1612,19 @@ reservation, resource, station, or capacity evidence and non-object source
 values. The exact review rows and compact summary context flow through
 operator-review and Cadence adapters without provider reservation, schedule
 mutation, Cadence writes, or operator authority.
-Campaign-repair V2 additionally preserves a CandidateRefresh
-`contact_allocation_station_pressure_summary.v1` at the distinct
-`source_contact_allocation_station_pressure_summary` path. Executable
-validation rejects stale row-derived counts and non-object source values, while
-review/import adapters preserve the exact review subset and grouped station,
-availability, precedence, status, and direction evidence. The compatibility
-path remains artifact-only and grants no provider reservation, schedule
-mutation, Cadence write, or operator authority.
+Campaign-repair V2 additionally preserves every CandidateRefresh
+`contact_allocation_station_pressure_summary.v1` in direct-source-then-canonical
+order at `source_contact_allocation_station_pressure_summaries`, without
+deduplication or first-map selection. The existing singular
+`source_contact_allocation_station_pressure_summary` remains an exact
+element-zero compatibility mirror. Executable validation rejects mirror drift,
+indexed row-derived pressure drift, and non-list or non-object collection
+shapes. Review/import adapters prefer the plural collection, preserve exact
+indexed review rows plus grouped station, availability, precedence, status,
+direction, and reservation evidence, and do not count the mirror twice. Legacy
+singular-only artifacts remain accepted and routed. Both paths remain
+artifact-only and grant no provider reservation, schedule mutation, Cadence
+write, or operator authority.
 Campaign-repair V2 likewise preserves
 `contact_allocation_reservation_conflict_summary.v1` at
 `source_contact_allocation_reservation_conflict_summary`. Its executable path

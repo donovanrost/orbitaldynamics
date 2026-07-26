@@ -221,11 +221,16 @@ freshness, contact/resource preservation, and station calendar reports.
   provenance aggregates. The compact boundary remains review-only and can be
   supplied independently of the full report.
 - **Source contact-allocation station-pressure summaries** — V2 preserves the
-  exact `contact_allocation_station_pressure_summary.v1` review subset at
-  `source_contact_allocation_station_pressure_summary`. Operator review and
-  Cadence handoff retain row-derived station, availability, precedence,
-  status, direction, and reservation context without reserving provider time,
-  mutating schedules, granting operator authority, or performing imports.
+  ordered CandidateRefresh `contact_allocation_station_pressure_summary.v1`
+  collection at `source_contact_allocation_station_pressure_summaries`. Direct
+  source maps precede canonical maps without deduplication or first-map loss;
+  the legacy singular `source_contact_allocation_station_pressure_summary`
+  remains an exact element-zero compatibility mirror. Operator review and
+  Cadence prefer the plural collection, route exact array indexes, and do not
+  count the mirror twice. They retain row-derived station, availability,
+  precedence, status, direction, and reservation context without reserving
+  provider time, mutating schedules, granting operator authority, or performing
+  imports.
 - **Source contact-allocation reservation-conflict summaries** — V2 preserves
   `contact_allocation_reservation_conflict_summary.v1` at
   `source_contact_allocation_reservation_conflict_summary`, including the exact

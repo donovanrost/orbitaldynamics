@@ -234,6 +234,9 @@ defmodule OrbitalDynamics.OperatorReview.CompositeArtifact do
   end
 
   def repair_rows(%{} = artifact) do
+    {station_pressure_reports, station_pressure_source} =
+      ContactAllocationSummary.repair_station_pressure_source(artifact)
+
     {capacity_pack_reports, capacity_pack_source} =
       ContactAllocationSummary.repair_capacity_pack_source(artifact)
 
@@ -458,8 +461,8 @@ defmodule OrbitalDynamics.OperatorReview.CompositeArtifact do
         "campaign_repair.source_contact_allocation_summary"
       ) ++
       ContactAllocation.source_report_rows(
-        Map.get(artifact, "source_contact_allocation_station_pressure_summary"),
-        "campaign_repair.source_contact_allocation_station_pressure_summary"
+        station_pressure_reports,
+        station_pressure_source
       ) ++
       ContactAllocation.source_report_rows(
         Map.get(artifact, "source_contact_allocation_reservation_conflict_summary"),

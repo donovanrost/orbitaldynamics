@@ -326,6 +326,7 @@ schema-type their stable IDs, invalid-input flags, and protected/change counts.
 - `source_contact_filter_report`, `source_contact_allocation_report`,
   `source_contact_allocation_summary`,
   `source_contact_allocation_station_pressure_summary`,
+  `source_contact_allocation_station_pressure_summaries`,
   `source_contact_allocation_reservation_conflict_summary`,
   `source_contact_allocation_capacity_pack_summary`,
   `source_contact_allocation_capacity_pack_summaries`,
@@ -379,12 +380,13 @@ schema-type their stable IDs, invalid-input flags, and protected/change counts.
   maneuver-review reports likewise remain distinct from repaired timeline state
   and cannot apply lifecycle or approval transitions, mutate or publish it,
   approve maneuvers, or execute commands. Activity-precondition and
-  activity-lifecycle evidence and contact-allocation capacity-pack summaries use
-  explicitly plural typed collections. The capacity-pack singular field remains
-  an exact element-zero compatibility mirror that adapters do not double-count;
-  the heterogeneous activity-state collection additionally retains activity,
-  status, and approval contracts in stable family order. Standalone preservation
-  statuses remain distinct from the aggregate preservation report.
+  activity-lifecycle evidence plus contact-allocation station-pressure and
+  capacity-pack summaries use explicitly plural typed collections. Each contact
+  allocation singular field remains an exact element-zero compatibility mirror
+  that adapters do not double-count; the heterogeneous activity-state collection
+  additionally retains activity, status, and approval contracts in stable
+  family order. Standalone preservation statuses remain distinct from the
+  aggregate preservation report.
   Source publication summaries remain historical audit evidence and cannot
   publish, republish, execute downstream invalidations, or grant publication
   authority.
