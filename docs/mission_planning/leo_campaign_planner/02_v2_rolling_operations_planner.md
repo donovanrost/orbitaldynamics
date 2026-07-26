@@ -757,7 +757,11 @@ schema-type their stable IDs, invalid-input flags, and protected/change counts.
   in source order. Link-capacity rows sourced from the enclosing Repair capacity
   report carry one review/import row per capacity row, with present
   operator-review, Cadence, and embedded `source_link_capacity` copies bound in
-  source order; older package, copy, or embedded-row omissions remain valid.
+  source order. Review-required timeline-transition applications sourced from
+  the enclosing Repair transition report carry one review/import row per
+  eligible application, with present operator-review, Cadence, and embedded
+  `source_timeline_application` copies bound in source order; older package,
+  copy, or embedded-row omissions remain valid.
 
 The current repair behavior is deliberately transparent:
 

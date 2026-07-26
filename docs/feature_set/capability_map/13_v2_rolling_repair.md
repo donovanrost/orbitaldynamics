@@ -95,6 +95,11 @@ Status: **implemented** (with **partial**, **near-term**, **later**, and **out o
   review/import row per capacity row and bind present operator-review, Cadence,
   and embedded `source_link_capacity` copies in source order; older package or
   copy omissions remain valid.
+- Review-required timeline-transition applications sourced from the enclosing
+  Repair transition report carry one review/import row per eligible application
+  and bind present operator-review, Cadence, and embedded
+  `source_timeline_application` copies in source order; older package or copy
+  omissions remain valid.
 - **`contact_allocation_report.v1`** over repaired contact activities. The
   optional report is a declared V2 nested contract; runtime validation applies
   its full row, count, summary, nested contention/resolution, stable-identity,

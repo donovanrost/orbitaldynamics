@@ -97,6 +97,11 @@ packages carry one review/import row per capacity row. Present operator-review,
 Cadence, and embedded source-review `source_link_capacity` copies equal the
 corresponding capacity row in source order; older package or copy omissions
 remain valid.
+For review-required timeline-transition applications sourced from the enclosing
+transition report, present packages carry one review/import row per eligible
+application. Present operator-review, Cadence, and embedded source-review
+`source_timeline_application` copies equal the corresponding application in
+source order; older package or copy omissions remain valid.
 
 ### `realized_state_snapshot`
 
