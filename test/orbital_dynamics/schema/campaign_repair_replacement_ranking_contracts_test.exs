@@ -197,6 +197,18 @@ defmodule OrbitalDynamics.Schema.CampaignRepairReplacementRankingContractsTest d
        ])},
       {row_path <> ".link_capacity_pressure_shortfall_mb",
        put_in_path(context.artifact, row_path <> ".link_capacity_pressure_shortfall_mb", 0.0)},
+      {row_path <> ".link_capacity_pressure_required_downlink_mb",
+       put_in_path(
+         context.artifact,
+         row_path <> ".link_capacity_pressure_required_downlink_mb",
+         -1.0
+       )},
+      {row_path <> ".link_capacity_pressure_selected_capacity_adjusted_throughput_mb",
+       put_in_path(
+         context.artifact,
+         row_path <> ".link_capacity_pressure_selected_capacity_adjusted_throughput_mb",
+         -1.0
+       )},
       {row_path <> ".resource_projection_pressure_risk_indicators",
        put_in_path(
          context.artifact,

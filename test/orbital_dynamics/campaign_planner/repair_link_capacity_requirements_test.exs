@@ -71,6 +71,8 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairLinkCapacityRequirementsTest do
                  "rank" => 2,
                  "candidate_id" => "dl_shortfall",
                  "link_capacity_pressure_penalty" => -1.0,
+                 "link_capacity_pressure_required_downlink_mb" => 100.0,
+                 "link_capacity_pressure_selected_capacity_adjusted_throughput_mb" => 99.0,
                  "link_capacity_pressure_shortfall_mb" => 1.0,
                  "selected" => false,
                  "ranking_score" => shortfall_ranking_score
@@ -102,6 +104,16 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairLinkCapacityRequirementsTest do
              "link_capacity_pressure_shortfall_mb"
            )
 
+    refute Map.has_key?(
+             satisfying_ranking_row,
+             "link_capacity_pressure_required_downlink_mb"
+           )
+
+    refute Map.has_key?(
+             satisfying_ranking_row,
+             "link_capacity_pressure_selected_capacity_adjusted_throughput_mb"
+           )
+
     assert %{
              "selected_capacity_adjusted_throughput_mb" => 100.0,
              "downlink_requirement_status" => "satisfied"
@@ -131,6 +143,8 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairLinkCapacityRequirementsTest do
                %{
                  "candidate_id" => "dl_shortfall",
                  "link_capacity_pressure_penalty" => -0.25,
+                 "link_capacity_pressure_required_downlink_mb" => 100.0,
+                 "link_capacity_pressure_selected_capacity_adjusted_throughput_mb" => 99.0,
                  "link_capacity_pressure_shortfall_mb" => 1.0,
                  "selected" => true
                },
@@ -156,6 +170,16 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairLinkCapacityRequirementsTest do
     refute Map.has_key?(
              satisfying_ranking_row,
              "link_capacity_pressure_shortfall_mb"
+           )
+
+    refute Map.has_key?(
+             satisfying_ranking_row,
+             "link_capacity_pressure_required_downlink_mb"
+           )
+
+    refute Map.has_key?(
+             satisfying_ranking_row,
+             "link_capacity_pressure_selected_capacity_adjusted_throughput_mb"
            )
 
     assert %{
@@ -184,6 +208,91 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairLinkCapacityRequirementsTest do
 
     assert {:ok, %{"schema_contract" => "campaign_repair.v2", "status" => "pass"}} =
              Schema.validate_artifact(shortfall_artifact)
+
+    legacy_artifact =
+      update_in(
+        shortfall_artifact,
+        ["activities", Access.at(0), "repair", "replacement_ranking", "rows", Access.at(0)],
+        fn row ->
+          row
+          |> Map.delete("link_capacity_pressure_required_downlink_mb")
+          |> Map.delete("link_capacity_pressure_selected_capacity_adjusted_throughput_mb")
+        end
+      )
+
+    assert {:ok, %{"schema_contract" => "campaign_repair.v2", "status" => "pass"}} =
+             Schema.validate_artifact(legacy_artifact)
+
+    invalid_partial_evidence =
+      update_in(
+        shortfall_artifact,
+        ["activities", Access.at(0), "repair", "replacement_ranking", "rows", Access.at(0)],
+        &Map.delete(&1, "link_capacity_pressure_required_downlink_mb")
+      )
+
+    assert {:error, partial_report} = Schema.validate_artifact(invalid_partial_evidence)
+
+    assert Enum.any?(
+             partial_report["errors"],
+             &(&1["path"] ==
+                 "$.activities[0].repair.replacement_ranking.rows[0].link_capacity_pressure_required_downlink_mb")
+           )
+
+    invalid_missing_throughput =
+      update_in(
+        shortfall_artifact,
+        ["activities", Access.at(0), "repair", "replacement_ranking", "rows", Access.at(0)],
+        &Map.delete(
+          &1,
+          "link_capacity_pressure_selected_capacity_adjusted_throughput_mb"
+        )
+      )
+
+    assert {:error, throughput_report} = Schema.validate_artifact(invalid_missing_throughput)
+
+    assert Enum.any?(
+             throughput_report["errors"],
+             &(&1["path"] ==
+                 "$.activities[0].repair.replacement_ranking.rows[0].link_capacity_pressure_selected_capacity_adjusted_throughput_mb")
+           )
+
+    invalid_missing_shortfall =
+      update_in(
+        shortfall_artifact,
+        ["activities", Access.at(0), "repair", "replacement_ranking", "rows", Access.at(0)],
+        &Map.delete(&1, "link_capacity_pressure_shortfall_mb")
+      )
+
+    assert {:error, shortfall_report} = Schema.validate_artifact(invalid_missing_shortfall)
+
+    assert Enum.any?(
+             shortfall_report["errors"],
+             &(&1["path"] ==
+                 "$.activities[0].repair.replacement_ranking.rows[0].link_capacity_pressure_shortfall_mb")
+           )
+
+    invalid_projection_equation =
+      put_in(
+        shortfall_artifact,
+        [
+          "activities",
+          Access.at(0),
+          "repair",
+          "replacement_ranking",
+          "rows",
+          Access.at(0),
+          "link_capacity_pressure_selected_capacity_adjusted_throughput_mb"
+        ],
+        98.0
+      )
+
+    assert {:error, equation_report} = Schema.validate_artifact(invalid_projection_equation)
+
+    assert Enum.any?(
+             equation_report["errors"],
+             &(&1["path"] ==
+                 "$.activities[0].repair.replacement_ranking.rows[0].link_capacity_pressure_shortfall_mb")
+           )
 
     invalid_ranking =
       update_in(

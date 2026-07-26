@@ -228,6 +228,16 @@ defmodule OrbitalDynamics.Schema.CampaignRepairReplacementRankingContracts do
     |> expect_optional_list(path, row, "contact_contention_resolution_group_ids")
     |> validate_string_list_items(path, row, "contact_contention_resolution_group_ids")
     |> validate_contact_contention_resolution_group_ids(path, row)
+    |> expect_optional_non_negative_number(
+      path,
+      row,
+      "link_capacity_pressure_required_downlink_mb"
+    )
+    |> expect_optional_non_negative_number(
+      path,
+      row,
+      "link_capacity_pressure_selected_capacity_adjusted_throughput_mb"
+    )
     |> expect_optional_non_negative_number(path, row, "link_capacity_pressure_shortfall_mb")
     |> validate_positive_optional_number(path, row, "link_capacity_pressure_shortfall_mb")
     |> expect_optional_list(path, row, "resource_projection_pressure_risk_indicators")

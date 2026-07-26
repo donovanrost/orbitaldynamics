@@ -200,8 +200,12 @@ Status: **implemented** (with **partial**, **near-term**, **later**, and **out o
   normalized pressure statuses; rows retain the sorted unique statuses without
   multiplying the penalty for duplicate or multi-status evidence.
   Pressured alternatives retain the candidate-specific selected downlink
-  shortfall or resource-risk indicators that produced those projected
-  contributions; nominal alternatives omit the corresponding evidence keys.
+  demand, selected capacity-adjusted throughput, and shortfall or resource-risk
+  indicators that produced those projected contributions; the link-capacity
+  operands satisfy `selected throughput + shortfall = required demand`.
+  Nominal alternatives omit the corresponding evidence keys. Validation keeps
+  pre-slice shortfall-only rows compatible, but rejects a partial new operand
+  pair or inconsistent arithmetic.
   The station-calendar contribution can derive from exact reduced-capacity
   allocation evidence when no separate repair-time calendar is supplied, and
   its source-path list distinguishes allocation-only, calendar-only, and

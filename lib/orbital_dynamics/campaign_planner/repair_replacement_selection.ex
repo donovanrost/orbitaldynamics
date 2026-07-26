@@ -138,6 +138,14 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairReplacementSelection do
         contact_contention_resolution_group_ids
       )
       |> maybe_put_non_nil(
+        "link_capacity_pressure_required_downlink_mb",
+        link_pressure.required_downlink_mb
+      )
+      |> maybe_put_non_nil(
+        "link_capacity_pressure_selected_capacity_adjusted_throughput_mb",
+        link_pressure.selected_capacity_adjusted_throughput_mb
+      )
+      |> maybe_put_non_nil(
         "link_capacity_pressure_shortfall_mb",
         link_pressure.shortfall_mb
       )
@@ -261,10 +269,18 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairReplacementSelection do
     if LinkCapacityPressureBranches.selected_shortfall_pressure?(report) do
       %{
         penalty: numeric_policy_value(context.scoring_policy, "risk_weight", 1.0),
+        required_downlink_mb: report["required_downlink_mb"],
+        selected_capacity_adjusted_throughput_mb:
+          report["selected_capacity_adjusted_throughput_mb"],
         shortfall_mb: report["selected_downlink_shortfall_mb"]
       }
     else
-      %{penalty: 0.0, shortfall_mb: nil}
+      %{
+        penalty: 0.0,
+        required_downlink_mb: nil,
+        selected_capacity_adjusted_throughput_mb: nil,
+        shortfall_mb: nil
+      }
     end
   end
 

@@ -279,6 +279,18 @@ defmodule OrbitalDynamics.Schema.CampaignPlanContractsTest do
 
     assert get_in(ranking_row_schema, [
              "properties",
+             "link_capacity_pressure_required_downlink_mb",
+             "minimum"
+           ]) == 0
+
+    assert get_in(ranking_row_schema, [
+             "properties",
+             "link_capacity_pressure_selected_capacity_adjusted_throughput_mb",
+             "minimum"
+           ]) == 0
+
+    assert get_in(ranking_row_schema, [
+             "properties",
              "resource_projection_pressure_risk_indicators",
              "items",
              "required"

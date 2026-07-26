@@ -395,7 +395,12 @@ downlink/station/time normalization.
   use a spacecraft scope from an applicable valid source resource summary;
   explicit spacecraft/scenario matching, single unscoped-summary fallback, and
   duplicate/mixed-scope review gating reuse the projection's own rules. The
-  metadata copies no full alternative payloads and declares
+  projected link-capacity evidence on pressured alternatives carries required
+  downlink demand, selected capacity-adjusted throughput, and shortfall, with
+  executable validation requiring `selected + shortfall = required` when the
+  new operand pair is present. Legacy shortfall-only rows remain valid; partial
+  operand pairs are rejected, and nominal rows omit all three evidence fields.
+  The metadata copies no full alternative payloads and declares
   `global_optimization: false`.
 
 ## Exported JSON Schema

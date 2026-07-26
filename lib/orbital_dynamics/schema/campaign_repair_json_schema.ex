@@ -295,6 +295,14 @@ defmodule OrbitalDynamics.Schema.CampaignRepairJsonSchema do
           "type" => "number",
           "exclusiveMinimum" => 0
         },
+        "link_capacity_pressure_required_downlink_mb" => %{
+          "type" => "number",
+          "minimum" => 0
+        },
+        "link_capacity_pressure_selected_capacity_adjusted_throughput_mb" => %{
+          "type" => "number",
+          "minimum" => 0
+        },
         "resource_projection_pressure_risk_indicators" => %{
           "type" => "array",
           "minItems" => 1,

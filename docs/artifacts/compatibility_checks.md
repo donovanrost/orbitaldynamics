@@ -1937,6 +1937,12 @@ Executable `campaign_repair.v2` validation also derives
 `repair_metadata.timeline_protection` counts and activity IDs from repair
 activities and deltas, so stale timeline-protection summaries cannot remain
 schema-valid when locked, approved, or executed timeline evidence changes.
+Replacement-ranking link-pressure validation preserves legacy rows that carry
+only a shortfall. New producer rows under pressure also carry projected required
+downlink demand and selected capacity-adjusted throughput; executable validation
+requires that operand pair to be complete and that selected throughput plus
+shortfall equals required demand. Nominal producer rows omit all three evidence
+fields, while the existing calibrated penalty rule remains unchanged.
 
 For repeatable file-to-file generation, use the campaign run task:
 

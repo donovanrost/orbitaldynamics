@@ -7,6 +7,8 @@ defmodule OrbitalDynamics.Schema.CampaignRepairLinkCapacityPressureContracts do
 
   @penalty_field "link_capacity_pressure_penalty"
   @shortfall_field "link_capacity_pressure_shortfall_mb"
+  @required_field "link_capacity_pressure_required_downlink_mb"
+  @selected_field "link_capacity_pressure_selected_capacity_adjusted_throughput_mb"
   @tolerance 1.0e-9
 
   def validate(issues, artifact) when is_map(artifact) do
@@ -52,6 +54,14 @@ defmodule OrbitalDynamics.Schema.CampaignRepairLinkCapacityPressureContracts do
   defp validate_rows(issues, _path, _rows, _risk_weight), do: issues
 
   defp validate_row(issues, path, %{} = row, risk_weight) do
+    issues
+    |> validate_projection_evidence(path, row)
+    |> validate_row_penalty(path, row, risk_weight)
+  end
+
+  defp validate_row(issues, _path, _row, _risk_weight), do: issues
+
+  defp validate_row_penalty(issues, path, row, risk_weight) do
     case {Map.get(row, @penalty_field), Map.get(row, @shortfall_field)} do
       {actual, shortfall} when is_number(actual) and is_number(shortfall) and shortfall > 0 ->
         validate_penalty(issues, path, actual, -risk_weight)
@@ -64,7 +74,46 @@ defmodule OrbitalDynamics.Schema.CampaignRepairLinkCapacityPressureContracts do
     end
   end
 
-  defp validate_row(issues, _path, _row, _risk_weight), do: issues
+  defp validate_projection_evidence(issues, path, row) do
+    required = Map.get(row, @required_field)
+    selected = Map.get(row, @selected_field)
+    shortfall = Map.get(row, @shortfall_field)
+
+    cond do
+      absent?(required) and absent?(selected) ->
+        issues
+
+      absent?(required) ->
+        [error(path <> "." <> @required_field, "must accompany selected throughput") | issues]
+
+      absent?(selected) ->
+        [error(path <> "." <> @selected_field, "must accompany required demand") | issues]
+
+      is_number(required) and is_number(selected) and not is_number(shortfall) ->
+        [
+          error(
+            path <> "." <> @shortfall_field,
+            "must be present with projected demand and selected throughput"
+          )
+          | issues
+        ]
+
+      is_number(required) and is_number(selected) and is_number(shortfall) and
+          abs(required - selected - shortfall) > @tolerance ->
+        [
+          error(
+            path <> "." <> @shortfall_field,
+            "must equal required demand minus selected capacity-adjusted throughput"
+          )
+          | issues
+        ]
+
+      true ->
+        issues
+    end
+  end
+
+  defp absent?(value), do: value in [nil, :null]
 
   defp validate_penalty(issues, _path, actual, expected)
        when abs(actual - expected) <= @tolerance,
