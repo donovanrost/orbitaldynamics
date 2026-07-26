@@ -138,6 +138,7 @@ defmodule OrbitalDynamics.Schema.CampaignRegistryContracts do
           "source_refresh_budget_report",
           "source_contact_allocation_report",
           "source_contact_allocation_summary",
+          "source_contact_allocation_summaries",
           "source_contact_allocation_station_pressure_summary",
           "source_contact_allocation_station_pressure_summaries",
           "source_contact_allocation_reservation_conflict_summary",

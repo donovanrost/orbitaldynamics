@@ -8,6 +8,11 @@ defmodule OrbitalDynamics.Schema.CampaignRepairContactAllocationContracts do
     |> validate_report(Map.get(artifact, "contact_allocation_report"))
     |> validate_source_mirror(
       artifact,
+      "source_contact_allocation_summary",
+      "source_contact_allocation_summaries"
+    )
+    |> validate_source_mirror(
+      artifact,
       "source_contact_allocation_station_pressure_summary",
       "source_contact_allocation_station_pressure_summaries"
     )

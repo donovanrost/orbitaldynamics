@@ -596,6 +596,7 @@ defmodule OrbitalDynamics.Schema.FieldTypeHints do
     "source_contact_filter_report" => "object",
     "source_contact_allocation_report" => "object",
     "source_contact_allocation_summary" => "object",
+    "source_contact_allocation_summaries" => "array",
     "source_contact_allocation_station_pressure_summary" => "object",
     "source_contact_allocation_station_pressure_summaries" => "array",
     "source_contact_allocation_reservation_conflict_summary" => "object",

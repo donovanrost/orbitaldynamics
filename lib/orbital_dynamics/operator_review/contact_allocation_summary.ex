@@ -97,6 +97,7 @@ defmodule OrbitalDynamics.OperatorReview.ContactAllocationSummary do
 
   def put_repair(package, artifact) do
     artifact = stringify_keys(artifact || %{})
+    {summary_reports, _source} = repair_summary_source(artifact)
     {station_pressure_reports, _source} = repair_station_pressure_source(artifact)
     {reservation_conflict_reports, _source} = repair_reservation_conflict_source(artifact)
     {capacity_pack_reports, _source} = repair_capacity_pack_source(artifact)
@@ -107,7 +108,7 @@ defmodule OrbitalDynamics.OperatorReview.ContactAllocationSummary do
     reports = [
       artifact["source_contact_allocation_report"],
       artifact["contact_allocation_report"],
-      artifact["source_contact_allocation_summary"],
+      summary_reports,
       station_pressure_reports,
       reservation_conflict_reports,
       capacity_pack_reports,
@@ -116,6 +117,19 @@ defmodule OrbitalDynamics.OperatorReview.ContactAllocationSummary do
     ]
 
     put(package, reports)
+  end
+
+  def repair_summary_source(artifact) do
+    artifact = stringify_keys(artifact || %{})
+
+    case artifact["source_contact_allocation_summaries"] do
+      [_summary | _summaries] = summaries ->
+        {summaries, "campaign_repair.source_contact_allocation_summaries"}
+
+      _summaries ->
+        {artifact["source_contact_allocation_summary"],
+         "campaign_repair.source_contact_allocation_summary"}
+    end
   end
 
   def repair_provider_reservation_request_source(artifact) do

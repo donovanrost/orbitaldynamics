@@ -1657,6 +1657,10 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
     assert artifact["source_contact_allocation_summary"] ==
              source_contact_allocation_summary
 
+    assert artifact["source_contact_allocation_summaries"] == [
+             source_contact_allocation_summary
+           ]
+
     assert %{
              "schema_contract" => "contact_allocation_report.v1",
              "source" => "campaign_repair.activities",
@@ -3842,7 +3846,7 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
 
     assert %{
              "review_type" => "contact_allocation_review",
-             "source" => "campaign_repair.source_contact_allocation_summary.review_rows",
+             "source" => "campaign_repair.source_contact_allocation_summaries[0].review_rows",
              "contact_id" => "dl_2",
              "ground_station_id" => "equator_prime",
              "allocation_status" => "deferred",
@@ -3866,7 +3870,7 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
              Enum.find(
                artifact["operator_review_package"]["rows"],
                &(&1["source"] ==
-                   "campaign_repair.source_contact_allocation_summary.review_rows" and
+                   "campaign_repair.source_contact_allocation_summaries[0].review_rows" and
                    &1["contact_id"] == "dl_2")
              )
 
@@ -3876,7 +3880,7 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
              "contact_id" => "dl_2",
              "has_cadence_import" => false,
              "source_review_row" => %{
-               "source" => "campaign_repair.source_contact_allocation_summary.review_rows",
+               "source" => "campaign_repair.source_contact_allocation_summaries[0].review_rows",
                "source_contact_allocation" => %{
                  "source_contact_allocation_summary" => %{
                    "schema_contract" => "contact_allocation_summary.v1"
@@ -4556,6 +4560,92 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
              &String.starts_with?(
                get_in(&1, ["source_review_row", "source"]) || "",
                "campaign_repair.source_contact_allocation_provider_reservation_request_summary."
+             )
+           )
+
+    assert {:ok, %{"schema_contract" => "campaign_repair.v2"}} =
+             Schema.validate_artifact(artifact)
+
+    assert {:ok, %{"schema_contract" => "campaign_repair.v2"}} =
+             Schema.validate_artifact(legacy_artifact)
+  end
+
+  test "repair preserves every compact allocation source summary without double-counting its mirror" do
+    summary =
+      "study_results/contact_allocation_summary_v1.json"
+      |> File.read!()
+      |> :json.decode()
+
+    candidate_refresh =
+      candidate_refresh_artifact([], [])
+      |> Map.put("source_contact_allocation_summary", [summary, summary])
+      |> Map.put("contact_allocation_summary", summary)
+
+    artifact =
+      repair(
+        %{"activities" => [], "candidate_activities" => []},
+        realized_state: %{activities: []},
+        current_epoch_s: 165.0,
+        scoring_policy: %{"risk_weight" => "1.0"},
+        candidate_refresh: candidate_refresh
+      )
+
+    assert artifact["source_contact_allocation_summaries"] == [
+             summary,
+             summary,
+             summary
+           ]
+
+    assert artifact["source_contact_allocation_summary"] == summary
+    assert artifact["operator_review_package"]["contact_allocation_review_count"] == 9
+
+    for index <- 0..2 do
+      source_prefix = "campaign_repair.source_contact_allocation_summaries[#{index}]"
+
+      assert Enum.count(
+               artifact["operator_review_package"]["rows"],
+               &String.starts_with?(&1["source"] || "", source_prefix)
+             ) == 3
+
+      assert Enum.count(
+               artifact["cadence_import_manifest"]["rows"],
+               &String.starts_with?(
+                 get_in(&1, ["source_review_row", "source"]) || "",
+                 source_prefix
+               )
+             ) == 3
+    end
+
+    refute Enum.any?(
+             artifact["operator_review_package"]["rows"],
+             &String.starts_with?(
+               &1["source"] || "",
+               "campaign_repair.source_contact_allocation_summary."
+             )
+           )
+
+    legacy_artifact =
+      artifact
+      |> Map.delete("source_contact_allocation_summaries")
+      |> Map.delete("operator_review_package")
+      |> Map.delete("cadence_import_manifest")
+
+    legacy_review = OrbitalDynamics.OperatorReview.from_repair_artifact(legacy_artifact)
+    legacy_cadence = OrbitalDynamics.CadenceImport.from_repair_artifact(legacy_artifact)
+
+    assert Enum.any?(
+             legacy_review["rows"],
+             &String.starts_with?(
+               &1["source"] || "",
+               "campaign_repair.source_contact_allocation_summary."
+             )
+           )
+
+    assert Enum.any?(
+             legacy_cadence["rows"],
+             &String.starts_with?(
+               get_in(&1, ["source_review_row", "source"]) || "",
+               "campaign_repair.source_contact_allocation_summary."
              )
            )
 
