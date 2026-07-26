@@ -747,8 +747,11 @@ schema-type their stable IDs, invalid-input flags, and protected/change counts.
   bound in source order. Resource-projection rows sourced from the enclosing
   Repair source report carry one review/import row per projected-resource row,
   with present operator-review, Cadence, and embedded
-  `source_resource_projection` copies bound in source order; older package,
-  copy, or embedded-row omissions remain valid.
+  `source_resource_projection` copies bound in source order. Non-planned-only
+  realized-feedback rows sourced from the enclosing Repair timeline-feedback
+  report carry one review/import row per eligible feedback row, with present
+  operator-review, Cadence, and embedded `source_feedback` copies bound in source
+  order; older package, copy, or embedded-row omissions remain valid.
 
 The current repair behavior is deliberately transparent:
 

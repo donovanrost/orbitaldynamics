@@ -82,6 +82,11 @@ packages carry one review/import row per projected-resource row. Present
 operator-review, Cadence, and embedded source-review
 `source_resource_projection` copies equal the corresponding projection in
 source order; older package or copy omissions remain valid.
+For non-planned-only realized-feedback rows sourced from the enclosing
+timeline-feedback report, present packages carry one review/import row per
+eligible feedback row. Present operator-review, Cadence, and embedded
+source-review `source_feedback` copies equal the corresponding feedback row in
+source order; older package or copy omissions remain valid.
 
 ### `realized_state_snapshot`
 
