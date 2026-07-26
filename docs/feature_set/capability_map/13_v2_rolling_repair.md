@@ -243,6 +243,12 @@ Status: **implemented** (with **partial**, **near-term**, **later**, and **out o
   rankings retain their historical rejection-membership compatibility, and
   validation does not infer IDs from additional source rejection reports that
   the Repair artifact did not preserve.
+  Current rows also replay the producer's preserved repair intent: downlink
+  candidates must match the source scenario and any declared source ground
+  station, while observation candidates must keep the source target and may
+  cross scenarios for spacecraft reassignment. Producer selection and runtime
+  validation share that matcher. Fully legacy rankings retain their historical
+  intent-membership compatibility.
   Current candidate-identified resource-risk
   indicators must additionally use a spacecraft scope from a valid embedded
   source resource summary applicable to that exact candidate under the resource

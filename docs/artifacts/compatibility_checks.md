@@ -1969,6 +1969,11 @@ rejection-status and candidate-ID normalization for that exact report. Fully
 legacy rankings retain historical rejection-membership compatibility, and no
 exclusions are inferred from additional source reports that the Repair artifact
 does not preserve.
+Current ranking rows additionally replay the producer's repair-intent matcher
+from preserved source context. Downlink candidates remain in the source scenario
+and on its ground station when one is declared; observation candidates retain
+the source target while cross-scenario spacecraft reassignment remains valid.
+Fully legacy rankings retain historical intent-membership compatibility.
 Projected-resource replacement evidence likewise preserves fully legacy
 rankings whose indicators all omit candidate identity. Once any indicator
 carries the current ranked candidate ID, every projected-resource indicator in

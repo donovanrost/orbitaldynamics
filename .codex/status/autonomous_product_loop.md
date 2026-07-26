@@ -5,52 +5,55 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Reject explicitly rejected current Repair ranking candidates.
+Bind current Repair ranking candidates to preserved repair intent.
 
 Status:
-Implemented and verified from clean published base `93956581`; ready to
+Implemented and verified from clean published base `df112c25`; ready to
 publish.
 
 Selection evidence:
-- The replacement selector excludes IDs named by rejected rows across candidate
-  rejection source reports.
-- Repair artifacts preserve the selected public
-  `source_candidate_rejection_report`, but runtime ranking validation does not
-  prevent a row from reintroducing an ID rejected by that exact report.
-- The preserved report's normalized rejected IDs are fully replayable; IDs from
-  additional unpreserved reports are not and remain outside this slice.
+- The replacement selector applies explicit intent matching after all
+  eligibility filters, but runtime ranking validation does not replay it.
+- Current Repair source context and embedded candidates preserve the exact
+  scenario/station evidence used for downlinks and target evidence used for
+  observations.
+- The observation rule intentionally allows cross-spacecraft reassignment on
+  the same target; that compatibility is also fully replayable.
 
 Delivered behavior:
-- Reject every current ranking row whose candidate ID appears as rejected in
-  the preserved `source_candidate_rejection_report`.
-- Keep the failure at the exact ranking-row candidate ID and reuse the
-  producer's rejection-status/candidate-ID normalization.
-- Preserve fully legacy rankings without current pressure markers.
-- Do not infer exclusions from candidate rejection reports that the Repair
-  artifact did not preserve.
+- Share one repair-intent matcher between producer selection and executable
+  artifact validation.
+- Require current downlink candidates to match the preserved source scenario
+  and, when declared, ground station.
+- Require current observation candidates to match the preserved source target
+  while preserving cross-scenario/cross-spacecraft reassignment.
+- Keep failures at the exact ranking-row candidate ID and preserve fully legacy
+  rankings without current pressure markers.
+- Do not infer unrelated accumulator, overlap, degraded-mode, or prior-selection
+  state beyond the evidence preserved in the artifact.
 - Do not change JSON Schema, producer output, scoring, selection, scheduling,
   review/import routing, provider state, commanding, or authority.
 
 Verification:
-- Focused rejection, schedule/replacement-ranking, and producer gate:
-  `11 passed`.
+- Focused Repair intent, replacement-ranking, and producer gate: `19 passed`.
 - Expanded Repair selection, source-handoff, and golden-artifact gate:
-  `44 passed`.
+  `53 passed`.
 - Saved-artifact lint: `155` artifacts passed with `0` errors and `0` warnings.
 - Canonical Repair and Strategy regeneration remained byte-stable at
   `cc41834e706fd1e04a4c5578032fdf99ceeba949a02fd75fc54c8b70cdc30d8a`
   and
   `57602722702969da587e2754df84bca1e06e86cc32fa5af7f3f78451b72f9985`.
-- Full `mix test --timeout 120000`: `5243 passed` in `682.6s`.
+- Full `mix test --timeout 120000`: `5244 passed` in `728.2s` on the final
+  review-tightened matcher API.
 - `mix format --check-formatted` and `git diff --check` pass.
 
 Level 6 pillar advanced:
 Fleet-scale candidate-pool integrity and operator-review evidence fidelity.
 
 Last published slice:
-- `93956581` Reject temporally ineligible repair candidates (`5243 passed`;
-  current rows replay epoch/horizon membership while legacy temporal membership
-  remains compatible).
+- `df112c25` Reject rejected Repair ranking candidates (`5243 passed`; current
+  rows exclude IDs rejected by the preserved source report while legacy
+  rejection-membership compatibility remains unchanged).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions only from authoritative,
@@ -61,8 +64,8 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-After explicit rejection validation, continue auditing replayable repair-intent
-evidence from the clean published checkout.
+After repair-intent validation, continue auditing remaining replayable
+replacement eligibility from the clean published checkout.
 
 Blocked:
 None.

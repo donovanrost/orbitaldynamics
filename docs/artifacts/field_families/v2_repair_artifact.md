@@ -405,6 +405,11 @@ downlink/station/time normalization.
   legacy rankings retain their historical rejection-membership compatibility,
   and additional source rejection reports that the artifact did not preserve
   are not inferred.
+  Current rows also bind to the preserved repair intent through the same matcher
+  as producer selection. Downlink candidates match the source scenario and any
+  declared source ground station; observation candidates match the source
+  target while cross-scenario spacecraft reassignment remains valid. Fully
+  legacy rankings retain historical intent-membership compatibility.
   The current envelope requires `repair.source_activity_context` so start-time
   churn remains replayable. It also requires stable top-level source/replacement
   IDs and a complete four-ID `timeline_link`, binds source IDs to the source

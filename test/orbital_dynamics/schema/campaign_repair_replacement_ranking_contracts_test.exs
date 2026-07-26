@@ -360,6 +360,52 @@ defmodule OrbitalDynamics.Schema.CampaignRepairReplacementRankingContractsTest d
              Schema.validate_artifact(legacy_started)
   end
 
+  test "binds current downlink candidates to the preserved repair intent", context do
+    ranking_path = ranking_path(context.activity_index)
+    candidate_path = ranking_path <> ".rows[1].candidate_id"
+
+    wrong_scenario =
+      context
+      |> add_unselected_candidate("dl_wrong_scenario", 520.0, -100.0)
+      |> update_source_candidate("dl_wrong_scenario", &Map.put(&1, "scenario_id", "leo_2"))
+
+    wrong_station =
+      context
+      |> add_unselected_candidate("dl_wrong_station", 520.0, -100.0)
+      |> update_source_candidate(
+        "dl_wrong_station",
+        &Map.put(&1, "ground_station_id", "polar_north")
+      )
+
+    for invalid <- [wrong_scenario, wrong_station] do
+      assert {:error, report} = Schema.validate_artifact(invalid)
+      assert Enum.any?(report["errors"], &(&1["path"] == candidate_path))
+    end
+
+    legacy_wrong_station =
+      update_in(
+        wrong_station,
+        [
+          "activities",
+          Access.at(context.activity_index),
+          "repair",
+          "replacement_ranking",
+          "rows"
+        ],
+        fn rows ->
+          Enum.map(rows, fn row ->
+            Map.drop(row, [
+              "contact_intent_pressure_penalty",
+              "contact_contention_resolution_pressure_penalty"
+            ])
+          end)
+        end
+      )
+
+    assert {:ok, %{"schema_contract" => "campaign_repair.v2"}} =
+             Schema.validate_artifact(legacy_wrong_station)
+  end
+
   test "rejects empty or malformed optional pressure evidence", context do
     row_path = ranking_path(context.activity_index) <> ".rows[0]"
 
@@ -619,6 +665,15 @@ defmodule OrbitalDynamics.Schema.CampaignRepairReplacementRankingContractsTest d
         selected_row["link_capacity_pressure_penalty"],
         selected_row["resource_projection_pressure_penalty"]
       ])
+  end
+
+  defp update_source_candidate(artifact, candidate_id, update) do
+    Map.update!(artifact, "source_candidate_activities", fn candidates ->
+      Enum.map(candidates, fn
+        %{"id" => ^candidate_id} = candidate -> update.(candidate)
+        candidate -> candidate
+      end)
+    end)
   end
 
   defp put_in_path(artifact, path, value) do

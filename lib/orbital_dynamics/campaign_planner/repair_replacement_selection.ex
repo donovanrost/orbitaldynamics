@@ -12,6 +12,7 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairReplacementSelection do
     RepairActivityIdentity,
     RepairCandidateDiff,
     RepairPolicySemantics,
+    RepairReplacementIntent,
     ResourceProjectionRisk,
     ScalarValues,
     ValueEncoding
@@ -66,7 +67,7 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairReplacementSelection do
     |> Enum.reject(fn candidate ->
       Enum.any?(acc.activities, &ActivityTiming.overlaps?(candidate, &1))
     end)
-    |> Enum.filter(&matches_repair_intent?(activity, &1, intent_type))
+    |> Enum.filter(&RepairReplacementIntent.matches?(activity, &1, intent_type))
     |> reject_duplicate_candidate_ids()
     |> Enum.map(&ranked_candidate(activity, &1, acc, context))
     |> Enum.sort_by(& &1.sort_key)
@@ -206,20 +207,6 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairReplacementSelection do
       (row["id"] == ActivityIdentity.activity_id(source) or
          (not is_nil(source_window_id) and row["source_window_id"] == source_window_id))
   end
-
-  defp matches_repair_intent?(source, candidate, "downlink") do
-    source_station_id = RepairActivityIdentity.ground_station_id(source)
-
-    ActivityIdentity.same_scenario?(source, candidate) and
-      (is_nil(source_station_id) or
-         source_station_id == RepairActivityIdentity.ground_station_id(candidate))
-  end
-
-  defp matches_repair_intent?(source, candidate, "observe") do
-    source["target_id"] == candidate["target_id"]
-  end
-
-  defp matches_repair_intent?(_source, _candidate, _type), do: true
 
   defp candidate_score(candidate),
     do: ScalarValues.numeric_or_nil(Map.get(candidate, "score")) || 0.0

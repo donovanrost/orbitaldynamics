@@ -29,6 +29,42 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairExecutionPolicyTest do
     assert repair["action"] == "replaced"
     assert artifact["score_terms"]["schedule_churn_penalty"] < 0.0
     assert artifact["score_terms"]["schedule_move_penalty"] < 0.0
+
+    assert {:ok, %{"schema_contract" => "campaign_repair.v2"}} =
+             Schema.validate_artifact(artifact)
+
+    wrong_target =
+      update_in(artifact, ["source_candidate_activities"], fn candidates ->
+        Enum.map(candidates, fn
+          %{"id" => "obs_3"} = candidate -> Map.put(candidate, "target_id", "target_b")
+          candidate -> candidate
+        end)
+      end)
+
+    assert {:error, report} = Schema.validate_artifact(wrong_target)
+
+    assert Enum.any?(
+             report["errors"],
+             &(&1["path"] ==
+                 "$.activities[0].repair.replacement_ranking.rows[1].candidate_id")
+           )
+
+    legacy_wrong_target =
+      update_in(
+        wrong_target,
+        ["activities", Access.at(0), "repair", "replacement_ranking", "rows"],
+        fn rows ->
+          Enum.map(rows, fn row ->
+            Map.drop(row, [
+              "contact_intent_pressure_penalty",
+              "contact_contention_resolution_pressure_penalty"
+            ])
+          end)
+        end
+      )
+
+    assert {:ok, %{"schema_contract" => "campaign_repair.v2"}} =
+             Schema.validate_artifact(legacy_wrong_target)
   end
 
   test "repair does not reuse a future selected activity as a replacement candidate" do
