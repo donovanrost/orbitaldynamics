@@ -398,8 +398,10 @@ downlink/station/time normalization.
   projected link-capacity evidence on pressured alternatives carries required
   downlink demand, selected capacity-adjusted throughput, and shortfall, with
   executable validation requiring `selected + shortfall = required` when the
-  new operand pair is present. Legacy shortfall-only rows remain valid; partial
-  operand pairs are rejected, and nominal rows omit all three evidence fields.
+  new operand pair is present. Fully legacy shortfall-only rankings remain
+  valid; once any row uses the current pair, every pressured row must use it.
+  Partial operand pairs are rejected, and nominal rows omit all three evidence
+  fields.
   The metadata copies no full alternative payloads and declares
   `global_optimization: false`.
 

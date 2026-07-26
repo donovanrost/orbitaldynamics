@@ -44,22 +44,31 @@ defmodule OrbitalDynamics.Schema.CampaignRepairLinkCapacityPressureContracts do
   defp validate_activities(issues, _activities, _risk_weight), do: issues
 
   defp validate_rows(issues, path, rows, risk_weight) when is_list(rows) do
+    current_projection_evidence? = Enum.any?(rows, &current_projection_evidence?/1)
+
     rows
     |> Enum.with_index()
     |> Enum.reduce(issues, fn {row, index}, acc ->
-      validate_row(acc, "#{path}[#{index}]", row, risk_weight)
+      validate_row(
+        acc,
+        "#{path}[#{index}]",
+        row,
+        risk_weight,
+        current_projection_evidence?
+      )
     end)
   end
 
   defp validate_rows(issues, _path, _rows, _risk_weight), do: issues
 
-  defp validate_row(issues, path, %{} = row, risk_weight) do
+  defp validate_row(issues, path, %{} = row, risk_weight, current_projection_evidence?) do
     issues
-    |> validate_projection_evidence(path, row)
+    |> validate_projection_evidence(path, row, current_projection_evidence?)
     |> validate_row_penalty(path, row, risk_weight)
   end
 
-  defp validate_row(issues, _path, _row, _risk_weight), do: issues
+  defp validate_row(issues, _path, _row, _risk_weight, _current_projection_evidence?),
+    do: issues
 
   defp validate_row_penalty(issues, path, row, risk_weight) do
     case {Map.get(row, @penalty_field), Map.get(row, @shortfall_field)} do
@@ -74,12 +83,22 @@ defmodule OrbitalDynamics.Schema.CampaignRepairLinkCapacityPressureContracts do
     end
   end
 
-  defp validate_projection_evidence(issues, path, row) do
+  defp validate_projection_evidence(issues, path, row, current_projection_evidence?) do
     required = Map.get(row, @required_field)
     selected = Map.get(row, @selected_field)
     shortfall = Map.get(row, @shortfall_field)
 
     cond do
+      absent?(required) and absent?(selected) and current_projection_evidence? and
+        is_number(shortfall) and shortfall > 0 ->
+        [
+          error(
+            path <> "." <> @required_field,
+            "must be present on every pressured row in a current ranking"
+          )
+          | issues
+        ]
+
       absent?(required) and absent?(selected) ->
         issues
 
@@ -112,6 +131,11 @@ defmodule OrbitalDynamics.Schema.CampaignRepairLinkCapacityPressureContracts do
         issues
     end
   end
+
+  defp current_projection_evidence?(%{} = row),
+    do: Map.has_key?(row, @required_field) or Map.has_key?(row, @selected_field)
+
+  defp current_projection_evidence?(_row), do: false
 
   defp absent?(value), do: value in [nil, :null]
 

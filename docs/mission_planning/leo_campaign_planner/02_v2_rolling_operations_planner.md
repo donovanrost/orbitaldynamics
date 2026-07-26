@@ -365,9 +365,11 @@ schema-type their stable IDs, invalid-input flags, and protected/change counts.
   projection payload. Executable V2 validation requires exactly one negative
   weight unit when the row carries positive shortfall evidence, checks the
   three-value arithmetic when the new operand pair is present, and requires zero
-  link pressure when the evidence is absent. Legacy shortfall-only rows remain
-  compatible. The final report is recomputed after all repairs and remains
-  authoritative rather than claiming global contact optimization.
+  link pressure when the evidence is absent. Fully legacy shortfall-only
+  rankings remain compatible, while rankings that contain any current operand
+  pair must carry both operands on every pressured row. The final report is
+  recomputed after all repairs and remains authoritative rather than claiming
+  global contact optimization.
 - `link_capacity_report.v1` over repaired downlink activities, preserving the
   same fixed-rate throughput summary shape used by V1 campaign artifacts.
 - `source_contact_filter_report`, `source_contact_allocation_report`,

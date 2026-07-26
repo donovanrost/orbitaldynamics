@@ -204,8 +204,9 @@ Status: **implemented** (with **partial**, **near-term**, **later**, and **out o
   indicators that produced those projected contributions; the link-capacity
   operands satisfy `selected throughput + shortfall = required demand`.
   Nominal alternatives omit the corresponding evidence keys. Validation keeps
-  pre-slice shortfall-only rows compatible, but rejects a partial new operand
-  pair or inconsistent arithmetic.
+  fully pre-slice shortfall-only rankings compatible, but once any row carries
+  the new operands it rejects another pressured row that omits them, a partial
+  operand pair, or inconsistent arithmetic.
   The station-calendar contribution can derive from exact reduced-capacity
   allocation evidence when no separate repair-time calendar is supplied, and
   its source-path list distinguishes allocation-only, calendar-only, and
