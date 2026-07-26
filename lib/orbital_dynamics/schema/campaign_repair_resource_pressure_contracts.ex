@@ -2,6 +2,7 @@ defmodule OrbitalDynamics.Schema.CampaignRepairResourcePressureContracts do
   @moduledoc false
 
   alias OrbitalDynamics.CampaignPlanner.ScalarValues
+  alias OrbitalDynamics.ResourceProjection.ResourceSummaryInput
 
   import OrbitalDynamics.Schema.PrimitiveValidation, only: [error: 2]
 
@@ -15,12 +16,24 @@ defmodule OrbitalDynamics.Schema.CampaignRepairResourcePressureContracts do
       |> Map.get("scoring_policy", %{})
       |> numeric_policy_value("risk_weight", 1.0)
 
-    validate_activities(issues, Map.get(artifact, "activities", []), risk_weight)
+    scope_ids_by_candidate_id =
+      source_scope_ids_by_candidate_id(
+        Map.get(artifact, "source_candidate_activities"),
+        Map.get(artifact, "source_resource_summaries")
+      )
+
+    validate_activities(
+      issues,
+      Map.get(artifact, "activities", []),
+      risk_weight,
+      scope_ids_by_candidate_id
+    )
   end
 
   def validate(issues, _artifact), do: issues
 
-  defp validate_activities(issues, activities, risk_weight) when is_list(activities) do
+  defp validate_activities(issues, activities, risk_weight, scope_ids_by_candidate_id)
+       when is_list(activities) do
     activities
     |> Enum.with_index()
     |> Enum.reduce(issues, fn {activity, activity_index}, acc ->
@@ -34,38 +47,103 @@ defmodule OrbitalDynamics.Schema.CampaignRepairResourcePressureContracts do
         acc,
         "$.activities[#{activity_index}].repair.replacement_ranking.rows",
         rows,
-        risk_weight
+        risk_weight,
+        scope_ids_by_candidate_id
       )
     end)
   end
 
-  defp validate_activities(issues, _activities, _risk_weight), do: issues
+  defp validate_activities(issues, _activities, _risk_weight, _scope_ids_by_candidate_id),
+    do: issues
 
-  defp validate_rows(issues, path, rows, risk_weight) when is_list(rows) do
+  defp validate_rows(issues, path, rows, risk_weight, scope_ids_by_candidate_id)
+       when is_list(rows) do
     rows
     |> Enum.with_index()
     |> Enum.reduce(issues, fn {row, index}, acc ->
-      validate_row(acc, "#{path}[#{index}]", row, risk_weight)
+      validate_row(
+        acc,
+        "#{path}[#{index}]",
+        row,
+        risk_weight,
+        scope_ids_by_candidate_id
+      )
     end)
   end
 
-  defp validate_rows(issues, _path, _rows, _risk_weight), do: issues
+  defp validate_rows(issues, _path, _rows, _risk_weight, _scope_ids_by_candidate_id),
+    do: issues
 
-  defp validate_row(issues, path, %{} = row, risk_weight) do
-    case {Map.get(row, @penalty_field), Map.get(row, @indicators_field)} do
-      {actual, indicators} when is_number(actual) and is_list(indicators) ->
-        expected = -length(indicators) * risk_weight
-        validate_penalty(issues, path, actual, expected)
+  defp validate_row(issues, path, %{} = row, risk_weight, scope_ids_by_candidate_id) do
+    issues =
+      case {Map.get(row, @penalty_field), Map.get(row, @indicators_field)} do
+        {actual, indicators} when is_number(actual) and is_list(indicators) ->
+          expected = -length(indicators) * risk_weight
+          validate_penalty(issues, path, actual, expected)
 
-      {actual, indicators} when is_number(actual) and indicators in [nil, :null] ->
-        validate_penalty(issues, path, actual, 0.0)
+        {actual, indicators} when is_number(actual) and indicators in [nil, :null] ->
+          validate_penalty(issues, path, actual, 0.0)
 
-      _values ->
+        _values ->
+          issues
+      end
+
+    validate_indicator_scopes(issues, path, row, scope_ids_by_candidate_id)
+  end
+
+  defp validate_row(issues, _path, _row, _risk_weight, _scope_ids_by_candidate_id),
+    do: issues
+
+  defp validate_indicator_scopes(issues, path, row, scope_ids_by_candidate_id) do
+    expected_scope_ids =
+      Map.get(scope_ids_by_candidate_id, Map.get(row, "candidate_id"), [])
+
+    case Map.get(row, @indicators_field) do
+      indicators when is_list(indicators) ->
+        indicators
+        |> Enum.with_index()
+        |> Enum.reduce(issues, fn
+          {%{"candidate_id" => _candidate_id} = indicator, index}, acc ->
+            if Map.get(indicator, "spacecraft_id") in expected_scope_ids do
+              acc
+            else
+              [
+                error(
+                  "#{path}.#{@indicators_field}[#{index}].spacecraft_id",
+                  "must match a valid source resource-summary scope for the exact candidate"
+                )
+                | acc
+              ]
+            end
+
+          {_indicator, _index}, acc ->
+            acc
+        end)
+
+      _indicators ->
         issues
     end
   end
 
-  defp validate_row(issues, _path, _row, _risk_weight), do: issues
+  defp source_scope_ids_by_candidate_id(candidates, summaries)
+       when is_list(candidates) and is_list(summaries) do
+    candidates
+    |> Enum.filter(&is_map/1)
+    |> Enum.group_by(&Map.get(&1, "id"))
+    |> Enum.reduce(%{}, fn
+      {candidate_id, [candidate]}, acc when candidate_id not in [nil, ""] ->
+        Map.put(
+          acc,
+          candidate_id,
+          ResourceSummaryInput.projection_scope_ids(candidate, summaries)
+        )
+
+      {_candidate_id, _candidates}, acc ->
+        acc
+    end)
+  end
+
+  defp source_scope_ids_by_candidate_id(_candidates, _summaries), do: %{}
 
   defp validate_penalty(issues, _path, actual, expected)
        when abs(actual - expected) <= @tolerance,

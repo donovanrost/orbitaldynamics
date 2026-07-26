@@ -67,6 +67,48 @@ defmodule OrbitalDynamics.ResourceProjection.ResourceSummaryInput do
     {invalid_summaries ++ review_summaries, summaries}
   end
 
+  def projection_scope_ids(activity, summaries)
+      when is_map(activity) and is_list(summaries) do
+    activity = stringify_keys(activity)
+    {_invalid_summaries, summaries} = normalize(summaries)
+    summary_count = length(summaries)
+
+    summaries
+    |> Enum.filter(fn summary ->
+      projection_activities(summary, [activity], summary_count) != []
+    end)
+    |> Enum.map(&projection_spacecraft_id(&1, summary_count))
+    |> Enum.uniq()
+    |> Enum.sort()
+  end
+
+  def projection_scope_ids(_activity, _summaries), do: []
+
+  def projection_activities(%{} = summary, activities, 1) when is_list(activities) do
+    if Map.get(summary, "spacecraft_id") in [nil, ""] do
+      activities
+    else
+      projection_activities(summary, activities, :scoped)
+    end
+  end
+
+  def projection_activities(%{} = summary, activities, _summary_count)
+      when is_list(activities) do
+    spacecraft_id = summary["spacecraft_id"]
+
+    Enum.filter(activities, fn activity ->
+      Map.get(activity, "spacecraft_id") == spacecraft_id or
+        Map.get(activity, "scenario_id") == spacecraft_id
+    end)
+  end
+
+  def projection_spacecraft_id(%{"spacecraft_id" => spacecraft_id}, _summary_count)
+      when spacecraft_id not in [nil, ""],
+      do: spacecraft_id
+
+  def projection_spacecraft_id(_summary, 1), do: "all_spacecraft"
+  def projection_spacecraft_id(_summary, _summary_count), do: "unscoped_resource_summary"
+
   defp normalize_summary_input({summary, index}) when is_map(summary) do
     summary =
       summary

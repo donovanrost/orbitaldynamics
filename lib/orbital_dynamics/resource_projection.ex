@@ -891,8 +891,7 @@ defmodule OrbitalDynamics.ResourceProjection do
 
   defp resource_projection_row(summary, activities, summary_count) do
     matched_activities =
-      summary
-      |> resource_projection_activities(activities, summary_count)
+      ResourceSummaryInput.projection_activities(summary, activities, summary_count)
       |> Enum.sort_by(&activity_sort_key/1)
 
     resource_effect_context = resource_effect_context(summary)
@@ -993,7 +992,7 @@ defmodule OrbitalDynamics.ResourceProjection do
       |> Enum.reject(&is_nil/1)
 
     %{
-      "spacecraft_id" => projection_spacecraft_id(summary, summary_count),
+      "spacecraft_id" => ResourceSummaryInput.projection_spacecraft_id(summary, summary_count),
       "activity_count" => length(matched_activities),
       "effective_activity_count" => length(effective_activities),
       "ignored_activity_count" => length(ignored_activity_ids),
@@ -1078,20 +1077,6 @@ defmodule OrbitalDynamics.ResourceProjection do
 
   defp first_resource_pressure_event(rows), do: PressureClassification.first_event(rows)
 
-  defp resource_projection_activities(%{"spacecraft_id" => nil}, activities, 1), do: activities
-
-  defp resource_projection_activities(summary, activities, 1),
-    do: resource_projection_activities(summary, activities, :scoped)
-
-  defp resource_projection_activities(summary, activities, _summary_count) do
-    spacecraft_id = summary["spacecraft_id"]
-
-    Enum.filter(activities, fn activity ->
-      Map.get(activity, "spacecraft_id") == spacecraft_id or
-        Map.get(activity, "scenario_id") == spacecraft_id
-    end)
-  end
-
   defp resource_effect_context(summary) do
     %{
       "spacecraft_available" => spacecraft_available(summary),
@@ -1116,13 +1101,6 @@ defmodule OrbitalDynamics.ResourceProjection do
         nil
     end
   end
-
-  defp projection_spacecraft_id(%{"spacecraft_id" => spacecraft_id}, _summary_count)
-       when spacecraft_id not in [nil, ""],
-       do: spacecraft_id
-
-  defp projection_spacecraft_id(_summary, 1), do: "all_spacecraft"
-  defp projection_spacecraft_id(_summary, _summary_count), do: "unscoped_resource_summary"
 
   defp resource_trust_boundary(summary) do
     Map.get(summary, "trust_boundary") || get_in(summary, ["provenance", "trust_boundary"])

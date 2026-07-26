@@ -668,6 +668,32 @@ defmodule OrbitalDynamics.ResourceProjectionTest do
   end
 
   test "review-gates wildcard summaries mixed with scoped summaries" do
+    summaries = [
+      %{
+        storage_capacity_mb: 500.0,
+        storage_used_mb: 50.0,
+        source_quality: :fleet_default
+      },
+      %{
+        spacecraft_id: :leo_1,
+        storage_capacity_mb: 100.0,
+        storage_used_mb: 0.0,
+        source_quality: :operator_supplied
+      }
+    ]
+
+    assert ["leo_1"] ==
+             OrbitalDynamics.ResourceProjection.ResourceSummaryInput.projection_scope_ids(
+               %{id: :obs_1, type: :observe, scenario_id: :leo_1},
+               summaries
+             )
+
+    assert [] ==
+             OrbitalDynamics.ResourceProjection.ResourceSummaryInput.projection_scope_ids(
+               %{id: :obs_2, type: :observe, scenario_id: :leo_2},
+               summaries
+             )
+
     report =
       ResourceProjection.report(
         [
@@ -684,19 +710,7 @@ defmodule OrbitalDynamics.ResourceProjectionTest do
             estimated_storage_mb: 25.0
           }
         ],
-        [
-          %{
-            storage_capacity_mb: 500.0,
-            storage_used_mb: 50.0,
-            source_quality: :fleet_default
-          },
-          %{
-            spacecraft_id: :leo_1,
-            storage_capacity_mb: 100.0,
-            storage_used_mb: 0.0,
-            source_quality: :operator_supplied
-          }
-        ],
+        summaries,
         approval_policy: %{policy_bundle_id: "resource_projection_authority_v1"}
       )
 
@@ -4581,6 +4595,18 @@ defmodule OrbitalDynamics.ResourceProjectionTest do
       %{spacecraft_id: :leo_2, storage_capacity_mb: 100.0, storage_used_mb: 0.0}
     ]
 
+    assert ["leo_1"] ==
+             OrbitalDynamics.ResourceProjection.ResourceSummaryInput.projection_scope_ids(
+               hd(activities),
+               summaries
+             )
+
+    assert ["leo_2"] ==
+             OrbitalDynamics.ResourceProjection.ResourceSummaryInput.projection_scope_ids(
+               List.last(activities),
+               summaries
+             )
+
     report = ResourceProjection.report(activities, summaries)
 
     assert Enum.map(report["projected_resources"], fn row ->
@@ -4640,19 +4666,33 @@ defmodule OrbitalDynamics.ResourceProjectionTest do
   end
 
   test "projects all activities from an id-less single summary wildcard" do
+    summaries = [
+      %{
+        storage_capacity_mb: 100.0,
+        storage_used_mb: 0.0
+      }
+    ]
+
     report =
       ResourceProjection.report(
         [
-          %{id: :obs_1, type: :observe, scenario_id: :leo_1, estimated_storage_mb: 10.0},
+          %{
+            id: :obs_1,
+            type: :observe,
+            scenario_id: :leo_1,
+            spacecraft_id: :sat_1,
+            estimated_storage_mb: 10.0
+          },
           %{id: :obs_2, type: :observe, scenario_id: :leo_2, estimated_storage_mb: 25.0}
         ],
-        [
-          %{
-            storage_capacity_mb: 100.0,
-            storage_used_mb: 0.0
-          }
-        ]
+        summaries
       )
+
+    assert ["all_spacecraft"] ==
+             OrbitalDynamics.ResourceProjection.ResourceSummaryInput.projection_scope_ids(
+               %{id: :obs_1, type: :observe, scenario_id: :leo_1, spacecraft_id: :sat_1},
+               summaries
+             )
 
     assert %{
              "projected_resources" => [

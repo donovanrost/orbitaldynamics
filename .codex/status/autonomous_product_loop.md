@@ -5,53 +5,63 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Bind preserved repair suppressions to their source exclusion evidence.
+Bind repair ranking resource scopes to source summaries.
 
 Status:
 Implemented, reviewed, and verified; ready to publish.
 
 Selection evidence:
-- Repair V2 now preserves exact pre-ranking CandidateRefresh exclusions at
-  `source_suppressed_candidate_activities` and validates that the eligible and
-  suppressed collections are unique, disjoint, and count-reconciled.
-- The current executable partition contract does not prove that a suppressed
-  candidate ID is named by any preserved contact-filter, contact-allocation,
-  refresh-budget, or resource-filter report.
-- A hand-edited artifact can replace a suppressed candidate with another valid
-  CandidateActivity, keep both partition counts valid, and still pass despite
-  losing the decision evidence that explains the exclusion.
-- The producer already has one canonical union of suppression IDs across all
-  four report families, including allocation status normalization and ID alias
-  handling; reusing it avoids a second interpretation in schema code.
+- Repair replacement ranking now stamps every newly produced projected-resource
+  risk indicator with the evaluated `candidate_id`, and executable validation
+  requires that ID to match the enclosing ranking row.
+- The same contract only type-checks the indicator `spacecraft_id`; it does not
+  prove that the scope belongs to a resource summary that the exact embedded
+  source candidate can consume.
+- A hand-edited current artifact can therefore move an otherwise valid resource
+  indicator from a `leo_1` candidate to a stable `leo_2` resource scope, keep
+  its penalty and ranking arithmetic internally consistent, and still pass.
+- Resource projection already owns deterministic source-summary matching:
+  explicit resource-summary `spacecraft_id` matches candidate `spacecraft_id`
+  or `scenario_id`, while one valid unscoped summary applies to all activities;
+  duplicate and mixed wildcard scopes are excluded for operator review.
+- Station, contact-intent, and contact-contention ranking evidence were audited
+  first and already recompute their candidate-specific values from preserved
+  source reports. Link shortfall and exact projected-resource values depend on
+  the greedy projected activity set, so this slice binds only the independently
+  reproducible resource scope instead of claiming a full projection replay.
 
 Intended behavior:
-- When `source_suppressed_candidate_activities` is present, require every row's
-  exact candidate ID to be backed by at least one preserved source exclusion
-  report at an exact indexed validation path.
-- Resolve contact, allocation, budget, and resource evidence with the existing
-  `RepairCandidateInputs.suppressed_candidate_ids/1` semantics by projecting
-  preserved source reports into its CandidateRefresh report view.
-- Allow source reports to mention stale or out-of-scope IDs that are absent from
-  the raw candidate collection; the producer already ignores those IDs.
-- Continue accepting legacy V2 artifacts that omit the suppressed collection.
-- Do not add artifact fields or change filtering, scores, ranking, selection,
-  schedules, operator/Cadence routing, approvals, or execution authority.
+- Expose and reuse the resource projection's normalized summary-to-activity
+  scope semantics instead of maintaining a schema-only interpretation.
+- For every current ranking risk indicator carrying `candidate_id`, require its
+  `spacecraft_id` to be one of the exact valid source-resource scopes applicable
+  to the uniquely embedded source candidate.
+- Preserve candidates matched through either explicit `spacecraft_id` or
+  `scenario_id`, and make the advertised single-unscoped-summary
+  `all_spacecraft` behavior literal even when an activity declares its own
+  spacecraft ID.
+- Continue accepting legacy ranking indicators that omit `candidate_id`.
+- Do not change projection arithmetic, filtering, scores, ranking, selection,
+  schedules, operator/Cadence routing, approvals, provider writes, commanding,
+  or execution authority.
 
 Level 6 pillar advanced:
-Durable reproducible audit handoffs and executable evidence consistency.
+Fleet-scale resource decision auditability and executable evidence consistency.
 
 Delivered files:
-- executable evidence-binding contract and exact-path tests
-- focused producer/schema proofs, docs, ledger, and verification
+- shared resource-summary projection-scope semantics
+- repair resource-pressure executable contract and focused challenge proofs
+- focused docs, ledger, verification, and scoped publication
 
 Verification:
-- Focused four-family producer and suppressed-candidate contract coverage:
-  `13 passed`.
-- Adjacent CandidateRefresh repair/schema coverage: `39 passed`.
+- Focused resource projection, repair integration, and ranking contracts:
+  `60 passed`.
+- Adjacent repair-schema and resource-projection family: `330 passed`.
+- Post-review projection/repair proofs: `56 passed`.
 - Contact-allocation gate: `238 passed`.
 - Saved-artifact schema lint: `155 artifacts`, zero errors, warnings, or
   remediation items.
-- Pre-export full suite: `5160 passed` in `667.5s`.
+- Pre-export full suite: `5160 passed` in `702.9s`.
 - Schema/manifest exports and canonical repair/strategy reruns completed with
   passing artifact status and byte-identical hashes:
   - repair: `e28901d7988f7b2942b2c357ff53ce7b22d38f1cef26149b60d0570c4baa95d7`
@@ -59,40 +69,50 @@ Verification:
   - manifest schema: `7a44a6e58754aae967ee8319c8768b7270d7d7982667c4a6bad8ff1c274c0594`
   - schema bundle: `f77cd52510c692fbe33b7798f223303d14aab5c144520a3f1013131dc51db709`
 - Schema export, manifest export, and golden artifact tests: `17 passed`.
-- Final full suite: `5160 passed` in `728.0s`.
+- Final full suite: `5160 passed` in `720.3s`.
 - `mix format --check-formatted` and `git diff --check` pass.
 
 Review:
-- The contract projects only the four preserved source reports into the same
-  report keys consumed by `RepairCandidateInputs.suppressed_candidate_ids/1`,
-  so allocation normalization and report-row ID aliases cannot drift from the
-  producer's eligibility decision.
-- Every preserved suppressed row must have matching evidence at an exact
-  indexed `.id` path. Extra report IDs remain allowed because the producer
-  already ignores suppression evidence for candidates absent from the raw set.
-- Legacy artifacts that omit the new collection still bypass the partition and
-  evidence checks exactly as before.
-- The worktree contains only the ledger, docs, executable pool contract, and its
-  tests. Schema exports, canonical artifacts, filtering, scoring, ranking,
-  scheduling, routing, approvals, and authority behavior are unchanged.
+- `ResourceSummaryInput` now owns the exact normalized summary-to-activity
+  matcher and projection scope ID used by `ResourceProjection`; schema code does
+  not maintain a parallel identity rule.
+- The shared wildcard branch now fulfills its documented all-activities rule
+  even for activities that declare an explicit spacecraft ID. Scoped scenario
+  and spacecraft matching, mixed wildcard review gating, and the wildcard edge
+  all have direct regression assertions.
+- The repair contract groups embedded source candidates by exact ID and only
+  derives scopes for a unique candidate. Current indicators must match one of
+  those valid normalized scopes at their exact indexed `.spacecraft_id` path;
+  duplicate candidates, absent summaries, and review-gated summaries cannot
+  manufacture a match.
+- Scope binding is intentionally narrower than full risk replay: projected
+  shortfall and resource values depend on the greedy activity prefix/future set
+  that the compact ranking evidence does not fully preserve. This slice does
+  not overclaim that reconstruction.
+- Legacy indicators without `candidate_id` bypass only the new scope check.
+  Existing type, candidate-ID, penalty, arithmetic, rank, and selection checks
+  continue to run.
+- The nine-file worktree contains only the ledger, three focused docs, shared
+  projection semantics, the executable repair contract, and two test files.
+  Schema exports and canonical repair/strategy artifacts are unchanged.
 
 Last published slice:
-- `bd4a394b` Preserve suppressed repair candidates (`5158 passed`; exact
-  excluded CandidateRefresh decision inputs are durable while canonical repair
-  and strategy artifacts remain byte-identical).
+- `66e90ee6` Bind repair suppressions to source evidence (`5160 passed`; every
+  preserved suppressed candidate is backed by an exact source exclusion report
+  while legacy omission and stale extra report IDs remain compatible).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions while preserving explicit
   provider and Cadence execution boundaries.
-- Add planner effects only for allocation/resource evidence with selected
-  candidate identity; keep compact aggregate maps provenance-only.
+- Bind additional candidate-specific projection values only when their exact
+  greedy projected activity set can be reproduced without copying full reports.
 - Preserve remaining source collections only with explicitly lossless plural
   V2 shapes rather than first-map coercion.
 - Continue broader schema/versioned compatibility discipline and stale-input
   challenge fixtures.
 
 Next candidate:
-After suppression evidence binding is executable, audit another explicit
+After resource scope binding is executable, audit another explicit
 allocation/resource decision surface before reconsidering raw refreshed-window
 retention.
 

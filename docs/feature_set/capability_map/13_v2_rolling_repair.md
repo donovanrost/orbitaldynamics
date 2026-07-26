@@ -223,7 +223,11 @@ Status: **implemented** (with **partial**, **near-term**, **later**, and **out o
   Each ranking candidate ID must also resolve to exactly one embedded
   `source_candidate_activities` row, and its candidate value must equal that
   source row's validated score; corrected row arithmetic cannot mask a missing,
-  ambiguous, or altered source value.
+  ambiguous, or altered source value. Current candidate-identified resource-risk
+  indicators must additionally use a spacecraft scope from a valid embedded
+  source resource summary applicable to that exact candidate under the resource
+  projection's shared spacecraft/scenario and single-wildcard rules. Indicators
+  that predate candidate identity retain their legacy compatibility.
   Station-pressure penalties and source paths are recomputed from exact
   candidate IDs in the embedded allocation and station-calendar reports, so a
   row cannot claim allocation-only, calendar-only, or dual-source pressure for

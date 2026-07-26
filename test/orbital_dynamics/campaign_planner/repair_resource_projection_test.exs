@@ -244,6 +244,25 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairResourceProjectionTest do
     assert {:ok, %{"schema_contract" => "campaign_repair.v2"}} =
              Schema.validate_artifact(legacy_artifact)
 
+    invalid_resource_scope =
+      update_in(
+        pressured_artifact,
+        ["activities", Access.at(0), "repair", "replacement_ranking", "rows", Access.at(0)],
+        fn row ->
+          Map.update!(row, "resource_projection_pressure_risk_indicators", fn indicators ->
+            Enum.map(indicators, &Map.put(&1, "spacecraft_id", "leo_2"))
+          end)
+        end
+      )
+
+    assert {:error, report} = Schema.validate_artifact(invalid_resource_scope)
+
+    assert Enum.any?(
+             report["errors"],
+             &(&1["path"] ==
+                 "$.activities[0].repair.replacement_ranking.rows[0].resource_projection_pressure_risk_indicators[0].spacecraft_id")
+           )
+
     invalid_ranking =
       update_in(
         pressured_artifact,
