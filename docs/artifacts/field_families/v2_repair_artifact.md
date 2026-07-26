@@ -191,6 +191,11 @@ freshness, contact/resource preservation, and station calendar reports.
   scoring and candidate-limit policies, and named filter/allocation models.
   Empty maps are retained; the context is audit-only and distinct from the
   operative Repair V2 assumptions.
+- **Source CandidateRefresh warnings**, preserving the exact ordered source
+  string collection at `source_candidate_refresh_warnings`, including duplicates
+  and an empty list. Source attribution remains distinct from the sorted,
+  deduplicated operative Repair V2 warning list; no operator-review or Cadence
+  rows are synthesized.
 - **Source-window lineage** from `candidate_refresh.v1`, preserving every
   `source_window_lineage.v1` row in its original stable order. The exact
   candidate/window identity, source-window payload, and scoped planning context

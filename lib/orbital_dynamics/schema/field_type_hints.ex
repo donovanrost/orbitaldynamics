@@ -613,6 +613,7 @@ defmodule OrbitalDynamics.Schema.FieldTypeHints do
     "source_contact_intents" => "array",
     "source_realized_state_snapshot" => "object",
     "source_candidate_refresh_assumptions" => "object",
+    "source_candidate_refresh_warnings" => "array",
     "source_refreshed_windows" => "object",
     "source_contention_group" => "object",
     "source_constraint_report" => "object",

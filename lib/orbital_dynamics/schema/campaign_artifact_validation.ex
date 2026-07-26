@@ -207,6 +207,8 @@ defmodule OrbitalDynamics.Schema.CampaignArtifactValidation do
       expect_equal: &OrbitalDynamics.Schema.PrimitiveValidation.expect_equal/5,
       expect_type: &OrbitalDynamics.Schema.PrimitiveValidation.expect_type/5,
       expect_optional_type: &OrbitalDynamics.Schema.PrimitiveValidation.expect_optional_type/5,
+      validate_string_list_items:
+        &OrbitalDynamics.Schema.PrimitiveValidation.validate_string_list_items/4,
       expect_one_of: &OrbitalDynamics.Schema.PrimitiveValidation.expect_one_of/5,
       validate_optional_stable_ids:
         &OrbitalDynamics.Schema.StableIdValidation.validate_optional_stable_ids/4,

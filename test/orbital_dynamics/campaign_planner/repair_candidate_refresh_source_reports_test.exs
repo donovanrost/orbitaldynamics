@@ -58,6 +58,12 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
       "outputs" => ["trajectories", "access_windows"]
     }
 
+    source_candidate_refresh_warnings = [
+      "resource summary filters suppressed refreshed candidates",
+      "no prior candidates compared",
+      "resource summary filters suppressed refreshed candidates"
+    ]
+
     source_validation_record =
       "study_results/validation_record_v1.json"
       |> File.read!()
@@ -516,7 +522,8 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
             provenance: candidate_refresh_provenance,
             validation_records: [source_validation_record],
             refreshed_windows: source_refreshed_windows,
-            assumptions: source_candidate_refresh_assumptions
+            assumptions: source_candidate_refresh_assumptions,
+            warnings: source_candidate_refresh_warnings
           )
           |> Map.put(
             "source_operational_readiness_report",
@@ -972,6 +979,13 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
     assert artifact["source_candidate_refresh_assumptions"] ==
              source_candidate_refresh_assumptions
 
+    assert artifact["source_candidate_refresh_warnings"] == source_candidate_refresh_warnings
+
+    assert Enum.count(
+             artifact["warnings"],
+             &(&1 == "resource summary filters suppressed refreshed candidates")
+           ) == 1
+
     refute Enum.any?(
              artifact["operator_review_package"]["rows"],
              &String.contains?(&1["source"] || "", "source_refreshed_windows")
@@ -982,6 +996,19 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
              &String.contains?(
                &1["source"] || get_in(&1, ["source_review_row", "source"]) || "",
                "source_refreshed_windows"
+             )
+           )
+
+    refute Enum.any?(
+             artifact["operator_review_package"]["rows"],
+             &String.contains?(&1["source"] || "", "source_candidate_refresh_warnings")
+           )
+
+    refute Enum.any?(
+             artifact["cadence_import_manifest"]["rows"],
+             &String.contains?(
+               &1["source"] || get_in(&1, ["source_review_row", "source"]) || "",
+               "source_candidate_refresh_warnings"
              )
            )
 
@@ -5262,7 +5289,7 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
       "freshness_report" => Keyword.get(opts, :freshness_report),
       "invalidated_candidates" => [],
       "validation_records" => Keyword.get(opts, :validation_records, []),
-      "warnings" => [],
+      "warnings" => Keyword.get(opts, :warnings, []),
       "assumptions" => Keyword.get(opts, :assumptions, %{}),
       "provenance" => Keyword.get(opts, :provenance, %{}),
       "source_window_lineage" =>

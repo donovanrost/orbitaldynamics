@@ -115,6 +115,10 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairArtifact do
       "source_candidate_refresh_assumptions",
       RepairSourceReports.candidate_refresh_assumptions(request.candidate_refresh)
     )
+    |> put_source_list(
+      "source_candidate_refresh_warnings",
+      RepairSourceReports.candidate_refresh_warnings(request.candidate_refresh)
+    )
     |> put_source_reports(
       "source_validation_records",
       RepairSourceReports.validation_records(request.candidate_refresh)
@@ -444,6 +448,11 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairArtifact do
 
   defp put_source_report(artifact, _key, nil), do: artifact
   defp put_source_report(artifact, key, %{} = report), do: Map.put(artifact, key, report)
+
+  defp put_source_list(artifact, _key, nil), do: artifact
+
+  defp put_source_list(artifact, key, values) when is_list(values),
+    do: Map.put(artifact, key, values)
 
   defp put_source_reports(artifact, _key, []), do: artifact
 

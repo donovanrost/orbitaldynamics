@@ -207,6 +207,12 @@ schema-type their stable IDs, invalid-input flags, and protected/change counts.
   candidate-limit policy, and filtering/allocation model names. Empty maps
   remain distinct from an absent refresh; the field creates no review/import
   rows and grants no planning or execution authority.
+- `source_candidate_refresh_warnings` so repair and strategy audit consumers can
+  distinguish exact refresh diagnostics from the operative Repair V2 warning
+  list, which also contains repair-execution conditions and is intentionally
+  sorted and deduplicated. Source order, duplicates, and an explicit empty list
+  are retained; the field creates no review/import rows and grants no planning
+  or execution authority.
 - `source_window_lineage` so candidate-diff review and Cadence rows can retain
   exact invalidated/replacement candidate-to-window provenance. The preserved
   collection is validated and review-only; it does not influence repair
@@ -352,7 +358,8 @@ schema-type their stable IDs, invalid-input flags, and protected/change counts.
   `source_contact_contention_resolution_summary`, `source_link_capacity_report`,
   `source_link_capacity_summary`, `source_relay_data_path_summary`,
   `source_refreshed_windows`, `source_window_lineage`,
-  `source_candidate_refresh_assumptions`, `source_candidate_refresh_provenance`,
+  `source_candidate_refresh_assumptions`, `source_candidate_refresh_warnings`,
+  `source_candidate_refresh_provenance`,
   `source_validation_records`,
   `source_resource_projection_flow_summary`,
   `source_station_reservation_report`, `source_constraint_report`,

@@ -282,6 +282,12 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyCandidateRefreshBranchRepairTe
       "propagator_opts" => %{"max_step_s" => 15.0}
     }
 
+    branch_candidate_refresh_warnings = [
+      "branch-local source warning",
+      "no prior candidates compared",
+      "branch-local source warning"
+    ]
+
     artifact =
       strategy(prior_plan,
         branches: [
@@ -303,7 +309,8 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyCandidateRefreshBranchRepairTe
                 candidate_diff_report: candidate_diff_report(),
                 freshness_report: freshness_report("stale"),
                 refreshed_windows: branch_refreshed_windows,
-                assumptions: branch_candidate_refresh_assumptions
+                assumptions: branch_candidate_refresh_assumptions,
+                warnings: branch_candidate_refresh_warnings
               )
           }
         ],
@@ -335,6 +342,12 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyCandidateRefreshBranchRepairTe
     assert outage["repair_result"]["source_candidate_refresh_assumptions"] ==
              branch_candidate_refresh_assumptions
 
+    assert outage["repair_result"]["source_candidate_refresh_warnings"] ==
+             branch_candidate_refresh_warnings
+
+    assert Enum.count(outage["repair_result"]["warnings"], &(&1 == "branch-local source warning")) ==
+             1
+
     assert outage["assumptions"]["candidate_source"]["scope"] == "branch"
     assert outage["provenance"]["candidate_source"]["scope"] == "branch"
 
@@ -348,6 +361,19 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyCandidateRefreshBranchRepairTe
              &String.contains?(
                &1["source"] || get_in(&1, ["source_review_row", "source"]) || "",
                "source_refreshed_windows"
+             )
+           )
+
+    refute Enum.any?(
+             artifact["operator_review_package"]["rows"],
+             &String.contains?(&1["source"] || "", "source_candidate_refresh_warnings")
+           )
+
+    refute Enum.any?(
+             artifact["cadence_import_manifest"]["rows"],
+             &String.contains?(
+               &1["source"] || get_in(&1, ["source_review_row", "source"]) || "",
+               "source_candidate_refresh_warnings"
              )
            )
 
@@ -454,7 +480,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyCandidateRefreshBranchRepairTe
       "freshness_report" => Keyword.get(opts, :freshness_report),
       "invalidated_candidates" => [],
       "validation_records" => [],
-      "warnings" => [],
+      "warnings" => Keyword.get(opts, :warnings, []),
       "assumptions" => Keyword.get(opts, :assumptions, %{}),
       "provenance" => %{},
       "source_window_lineage" =>

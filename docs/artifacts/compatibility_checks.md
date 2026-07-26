@@ -146,6 +146,14 @@ from an absent refresh. Executable validation requires an object, but this
 audit-only context creates no operator or Cadence rows and cannot change repair
 filtering, matching, scoring, selection, scheduling, imports, commanding, or
 authority.
+Campaign-repair V2 also preserves CandidateRefresh's exact ordered warning list
+at `source_candidate_refresh_warnings`, including duplicates and an empty list.
+This source-attributed evidence remains distinct from the operative
+`campaign_repair.warnings`, which intentionally mixes refresh and repair
+conditions after sorting and deduplication. Executable validation requires a
+string array and reports invalid items at their source index. The preserved list
+creates no review/import rows and cannot change filtering, matching, scoring,
+selection, scheduling, provider state, commanding, imports, or authority.
 Campaign-repair V2 preserves CandidateRefresh's ordered top-level
 `source_window_lineage` collection without reconstruction or deduplication.
 Executable validation pins every embedded lineage row at its exact array index

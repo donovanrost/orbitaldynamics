@@ -5,93 +5,93 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Preserve CandidateRefresh generation assumptions in Repair V2.
+Preserve exact CandidateRefresh warning attribution in Repair V2.
 
 Status:
 Implemented and fully verified; ready for scoped commit and publish.
 
 Delivered behavior:
-- Repair V2 now preserves CandidateRefresh's exact normalized `assumptions` map
-  at `source_candidate_refresh_assumptions`, including an empty map.
-- The source map retains propagator settings, requested outputs, model
-  assumptions, constraints, scoring policy, candidate-limit policy, and named
-  filtering/allocation models without conflating them with operative Repair V2
-  assumptions.
-- Repairs without CandidateRefresh or without a source assumptions map keep the
-  field absent; the executable contract rejects a non-map field and exports the
-  optional property as an object.
-- The context remains audit-only: it creates no operator-review or Cadence-import
-  rows and does not alter filtering, matching, scoring, ranking, selection,
+- Preserve the exact CandidateRefresh `warnings` list at
+  `source_candidate_refresh_warnings`, including order, duplicates, and an empty
+  list.
+- Keep the field absent for repairs without CandidateRefresh or without a list
+  at the source field; reject non-list values and non-string indexed items on a
+  manually composed Repair V2 artifact.
+- Export the field as an optional string array and keep the existing promoted
+  `campaign_repair.warnings` behavior byte-for-byte unchanged.
+- Do not synthesize operator-review or Cadence-import rows or use the source list
+  to alter candidates, filtering, matching, scoring, ranking, selection,
   scheduling, provider state, commanding, imports, or authority.
-- Canonical Repair V2 preserves all 16 generated assumption keys. Strategy V3
-  preserves branch-specific assumptions in all 26 refreshed branch repairs
-  while the baseline branch remains absent; the readiness handoff retains an
-  explicit empty map.
-- Strategy content identity intentionally changed from `c2069659...` to
-  `14a24da9...`; the recommended branch remains
-  `derived_urgent_target_target_hot` and decision surfaces are unchanged.
+- Canonical Repair V2 now retains its two exact refresh warnings alongside its
+  unchanged three-item operative warning list. Strategy V3 preserves source
+  warning lists in all 26 refreshed branch repairs while the baseline branch
+  remains absent; the readiness handoff retains an explicit empty list.
+- Strategy content identity intentionally changed from `14a24da9...` to
+  `aa867ebd...`; every recommendation, operator-review row, and Cadence-import
+  row remains unchanged.
 
 Level 6 pillar advanced:
-Reproducible candidate-generation context and versioned artifact compatibility.
+Source-attributed refresh diagnostics and versioned artifact compatibility.
 
 Verification:
-- Focused producer, Repair V2 integration, schema, Strategy branch, and
-  no-adapter-row proofs: `23 passed`.
-- Adjacent CandidateRefresh construction/identity, provenance, validation,
-  window, and generated/branch Strategy coverage: `42 passed`.
-- Pre-export Repair V2 source-contract family: `226/227 passed`; the sole
+- Focused producer, Repair V2 integration, schema, Strategy branch, exact-order,
+  duplicate, empty-vs-absent, indexed-item, and no-adapter-row proofs:
+  `24 passed`.
+- Adjacent CandidateRefresh warning, freshness, provenance, schema-validation,
+  and branch-repair coverage: `28 passed`.
+- Pre-export Repair V2 source-contract family: `230/231 passed`; the sole
   failure was the expected readiness handoff parity delta.
 - Saved-artifact lint before and after regeneration: 155 artifacts, 0 errors,
   0 warnings, 0 remediation.
-- Pre-export full suite: `5202/5206 passed` in 670.1 seconds; the four failures
+- Pre-export full suite: `5208/5212 passed` in 726.4 seconds; the four failures
   were exactly the expected schema, readiness handoff, canonical Repair V2, and
   canonical Strategy V3 parity deltas.
-- Post-export schema/manifest/golden/readiness/assumptions gate: `21 passed`.
-- Post-export complete Repair V2 source-contract family: `227 passed`.
-- Final full suite: `5206 passed` in 697.0 seconds.
+- Post-export schema/manifest/golden/readiness/warnings gate: `22 passed`.
+- Post-export complete Repair V2 source-contract family: `231 passed`.
+- Final full suite: `5212 passed` in 753.9 seconds.
 - `mix format --check-formatted`, `git diff --check`, and structural generated
   artifact comparisons pass.
 - Generated scope is exact: Repair and readiness add only
-  `source_candidate_refresh_assumptions`; Strategy adds the field to 26 branch
+  `source_candidate_refresh_warnings`; Strategy adds the field to 26 branch
   repairs plus five propagated strategy-identity references; both schemas add
-  only the new optional property.
-- Verified slice scope: 19 files (17 tracked modifications and 2 new tests).
+  only the new optional string-array property.
+- Verified slice scope: 21 files (19 tracked modifications and 2 new tests).
 
 Generated artifact hashes:
 - Schema bundle:
-  `a524928298a802b262fa266527bc205f5da37f0bdb6a3b82c3e35f6948ca9459`.
+  `0f6dca50569f347ea14235b6cd88e3b619e5a31e9f87b56e491ef674488fc5d2`.
 - Manifest schema, intentionally unchanged:
   `7a44a6e58754aae967ee8319c8768b7270d7d7982667c4a6bad8ff1c274c0594`.
 - Canonical Repair V2:
-  `036ce09764a28595129ed43d686473d42f4e864fb6bb484911b6b19a14294be8`.
+  `044f55d3522e49b0226f6f90d6f34728f6ffc5322a494e93992b951ef66e1208`.
 - Canonical Strategy V3:
-  `d968a5e775b1472fd26705089bdc5aecba9d4b138aeac4940a1afa2b2badcaad`.
+  `3d572ad3534b1a3468b7d9195ac7f5faab4bee9f611a2f92970c7c513fed1c72`.
 - Readiness source handoff:
-  `aeff0afd338440e8e6895d874147259acf8844dacfa290aa33faa0e4769010f1`.
+  `359a109bfea1c523baf440d37994f5bac658840ae0997684b7a44efe3bf7d8bb`.
 
 Last published slice:
-- `e40393fb` Preserve raw CandidateRefresh windows in Repair V2 (`5201 passed`;
-  exact opportunity sets retained in Repair V2 and 26 Strategy V3 branch
-  repairs with no review/import routing).
+- `62383405` Preserve CandidateRefresh assumptions in Repair V2 (`5206 passed`;
+  exact source generation context retained in Repair V2 and 26 Strategy V3
+  branch repairs with no review/import routing).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions while preserving explicit
   provider and Cadence execution boundaries.
 - Bind additional candidate-specific projection values only when their exact
   greedy projected activity set can be reproduced without copying full reports.
-- Audit CandidateRefresh warnings and other remaining envelope fields only when
-  explicit source attribution adds durable audit value beyond existing Repair
-  V2 summaries.
+- Audit remaining CandidateRefresh envelope fields only when they add durable
+  evidence beyond existing Repair V2 identity/provenance/source surfaces.
 - Continue broader schema/versioned compatibility discipline and stale-input
   challenge fixtures.
 
 Next candidate:
-Reassess CandidateRefresh warning attribution against the remaining fleet-scale
-planning gaps, and select the smallest evidence-backed maturity improvement.
+Reassess the remaining fleet-scale planning and candidate-specific projection
+gaps against the clean published checkout, then select the smallest
+evidence-backed maturity improvement.
 
 Blocked:
 None.
 
 Notes:
-Runtime policy disallows subagent delegation; the parent performed bounded
+Runtime policy disallows subagent delegation; the parent performs bounded
 mapping, implementation, review, verification, and publish checks.
