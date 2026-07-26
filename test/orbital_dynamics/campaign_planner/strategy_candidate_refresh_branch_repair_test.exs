@@ -282,6 +282,13 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyCandidateRefreshBranchRepairTe
       "propagator_opts" => %{"max_step_s" => 15.0}
     }
 
+    branch_candidate_refresh_accepted_planning_state = %{
+      "snapshot_id" => "ops-state-branch",
+      "spacecraft_state_count" => 3,
+      "accepted_at" => "2026-05-14T00:00:00Z",
+      "maneuver_execution_delta_count" => 1
+    }
+
     branch_candidate_refresh_warnings = [
       "branch-local source warning",
       "no prior candidates compared",
@@ -315,6 +322,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyCandidateRefreshBranchRepairTe
                 freshness_report: freshness_report("stale"),
                 refreshed_windows: branch_refreshed_windows,
                 assumptions: branch_candidate_refresh_assumptions,
+                accepted_planning_state: branch_candidate_refresh_accepted_planning_state,
                 operational_feedback: branch_candidate_refresh_operational_feedback,
                 warnings: branch_candidate_refresh_warnings
               )
@@ -348,6 +356,9 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyCandidateRefreshBranchRepairTe
     assert outage["repair_result"]["source_candidate_refresh_assumptions"] ==
              branch_candidate_refresh_assumptions
 
+    assert outage["repair_result"]["source_candidate_refresh_accepted_planning_state"] ==
+             branch_candidate_refresh_accepted_planning_state
+
     assert outage["repair_result"]["source_candidate_refresh_remaining_horizon"] == %{
              "starts_at_s" => 0.0,
              "ends_at_s" => 1_000.0,
@@ -376,6 +387,22 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyCandidateRefreshBranchRepairTe
              &String.contains?(
                &1["source"] || get_in(&1, ["source_review_row", "source"]) || "",
                "source_refreshed_windows"
+             )
+           )
+
+    refute Enum.any?(
+             artifact["operator_review_package"]["rows"],
+             &String.contains?(
+               &1["source"] || "",
+               "source_candidate_refresh_accepted_planning_state"
+             )
+           )
+
+    refute Enum.any?(
+             artifact["cadence_import_manifest"]["rows"],
+             &String.contains?(
+               &1["source"] || get_in(&1, ["source_review_row", "source"]) || "",
+               "source_candidate_refresh_accepted_planning_state"
              )
            )
 
@@ -506,10 +533,11 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyCandidateRefreshBranchRepairTe
         "ends_at_s" => 1_000.0,
         "output_step_s" => 60.0
       },
-      "accepted_planning_state" => %{
-        "snapshot_id" => "ops-state-1",
-        "spacecraft_state_count" => 1
-      },
+      "accepted_planning_state" =>
+        Keyword.get(opts, :accepted_planning_state, %{
+          "snapshot_id" => "ops-state-1",
+          "spacecraft_state_count" => 1
+        }),
       "refreshed_windows" =>
         Keyword.get(opts, :refreshed_windows, %{
           "access_windows" => [],

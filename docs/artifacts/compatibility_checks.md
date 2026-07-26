@@ -146,6 +146,14 @@ from an absent refresh. Executable validation requires an object, but this
 audit-only context creates no operator or Cadence rows and cannot change repair
 filtering, matching, scoring, selection, scheduling, imports, commanding, or
 authority.
+Campaign-repair V2 separately preserves CandidateRefresh's exact accepted-state
+reference at `source_candidate_refresh_accepted_planning_state`. This retains the
+stable snapshot ID and fleet `spacecraft_state_count` that are not present
+together in the source provenance or candidate-source summary, plus optional
+accepted-at and maneuver-delta-count evidence. Runtime and JSON Schema
+validation enforce stable identity and non-negative counts while allowing
+additional fields. The audit-only reference creates no review/import rows and
+cannot change planning or execution behavior.
 Campaign-repair V2 separately preserves CandidateRefresh's exact sampling
 horizon at `source_candidate_refresh_remaining_horizon`. This source map keeps
 `starts_at_s`, `ends_at_s`, and `output_step_s` plus optional exact duration and

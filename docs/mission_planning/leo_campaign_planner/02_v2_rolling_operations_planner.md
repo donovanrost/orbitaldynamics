@@ -207,6 +207,12 @@ schema-type their stable IDs, invalid-input flags, and protected/change counts.
   candidate-limit policy, and filtering/allocation model names. Empty maps
   remain distinct from an absent refresh; the field creates no review/import
   rows and grants no planning or execution authority.
+- `source_candidate_refresh_accepted_planning_state` so repair and strategy
+  audit consumers retain the exact stable snapshot reference and fleet
+  `spacecraft_state_count`, plus optional accepted-at and maneuver-delta-count
+  evidence. Runtime and JSON Schema validation enforce stable identity and
+  non-negative counts. The field creates no review/import rows and grants no
+  planning or execution authority.
 - `source_candidate_refresh_remaining_horizon` so repair and strategy audit
   consumers retain the exact sampled CandidateRefresh opportunity bounds and
   `output_step_s` instead of substituting the operative Repair V2 horizon.
@@ -372,6 +378,7 @@ schema-type their stable IDs, invalid-input flags, and protected/change counts.
   `source_link_capacity_summary`, `source_relay_data_path_summary`,
   `source_refreshed_windows`, `source_window_lineage`,
   `source_candidate_refresh_assumptions`,
+  `source_candidate_refresh_accepted_planning_state`,
   `source_candidate_refresh_remaining_horizon`,
   `source_candidate_refresh_operational_feedback`,
   `source_candidate_refresh_warnings`, `source_candidate_refresh_provenance`,

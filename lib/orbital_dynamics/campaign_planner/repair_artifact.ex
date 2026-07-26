@@ -116,6 +116,10 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairArtifact do
       RepairSourceReports.candidate_refresh_assumptions(request.candidate_refresh)
     )
     |> put_source_report(
+      "source_candidate_refresh_accepted_planning_state",
+      RepairSourceReports.candidate_refresh_accepted_planning_state(request.candidate_refresh)
+    )
+    |> put_source_report(
       "source_candidate_refresh_remaining_horizon",
       RepairSourceReports.candidate_refresh_remaining_horizon(request.candidate_refresh)
     )

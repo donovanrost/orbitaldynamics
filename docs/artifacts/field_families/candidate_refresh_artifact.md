@@ -6,6 +6,11 @@ from updated state.
 ## Inputs and provenance
 
 - Accepted planning state or orbit-data input provenance.
+- A typed accepted-state reference with stable `snapshot_id`, non-negative fleet
+  `spacecraft_state_count`, and optional accepted-at and maneuver-delta-count
+  evidence. Repair V2 preserves the exact reference at
+  `source_candidate_refresh_accepted_planning_state` for audit-only fleet input
+  traceability.
 - Operational-feedback provenance, including declared/missing trust-boundary
   status when feedback inputs affect refreshed candidates.
 - Exact normalized operational-feedback values remain optional on the refresh.

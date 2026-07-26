@@ -3,6 +3,7 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshContracts do
 
   alias OrbitalDynamics.Schema.CandidateActivityContracts
   alias OrbitalDynamics.Schema.CandidateDiffContracts
+  alias OrbitalDynamics.Schema.CandidateRefreshAcceptedPlanningStateContracts
   alias OrbitalDynamics.Schema.CandidateRefreshRegistryContracts
   alias OrbitalDynamics.Schema.CandidateRefreshReportContracts
   alias OrbitalDynamics.Schema.CandidateRefreshWindowContracts
@@ -27,7 +28,6 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshContracts do
       expect_optional_type: 5,
       expect_type: 5,
       require_fields: 4,
-      require_nested: 4,
       validate_non_negative_integer_count_map: 3,
       validate_optional_exact_model_limits: 5,
       validate_string_list_items: 4
@@ -84,10 +84,9 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshContracts do
       "$.remaining_horizon",
       Map.get(artifact, "remaining_horizon", %{})
     )
-    |> require_nested(
+    |> CandidateRefreshAcceptedPlanningStateContracts.validate(
       "$.accepted_planning_state",
-      Map.get(artifact, "accepted_planning_state", %{}),
-      ["snapshot_id", "spacecraft_state_count"]
+      Map.get(artifact, "accepted_planning_state", %{})
     )
     |> CandidateRefreshWindowContracts.validate_refreshed_windows(
       Map.get(artifact, "refreshed_windows", %{})

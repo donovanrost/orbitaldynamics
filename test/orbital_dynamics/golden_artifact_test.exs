@@ -494,7 +494,7 @@ defmodule OrbitalDynamics.GoldenArtifactTest do
              "schema_version" => 3,
              "planner" => "OrbitalDynamics.CampaignPlanner.V3",
              "source_plan_id" => "campaign_plan:leo_constellation_campaign:2026-05-14T00:00:00Z",
-             "strategy_id" => "13502cffd13c8e3c66cb19e7765bff6d7f0f50fea3b1663c74a3bc81ed4a8ee2",
+             "strategy_id" => "be2e50ff3990ba00ef71f587467e1e75b31f4759c8b4b11c5e6ac448961f51ad",
              "recommended_branch_id" => "derived_urgent_target_target_hot",
              "approval_status" => "operator_review_required",
              "recommendation_status" => "pass"

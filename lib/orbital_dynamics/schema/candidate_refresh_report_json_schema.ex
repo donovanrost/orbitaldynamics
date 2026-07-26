@@ -144,6 +144,7 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshReportJsonSchema do
       field == "model_limits" or
       field == "warnings" or
       field == "remaining_horizon" or
+      field == "accepted_planning_state" or
       field in ["operational_feedback", "provenance"] or
       field in @candidate_refresh_publication_lineage_id_array_fields or
       field in @candidate_refresh_publication_lineage_count_map_fields or
@@ -251,6 +252,10 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshReportJsonSchema do
 
   def candidate_refresh_property_opts("model_limits", deps) do
     [model_limits: fetch_dep!(deps, :model_limits)]
+  end
+
+  def candidate_refresh_property_opts("accepted_planning_state", deps) do
+    [stable_id_pattern: fetch_dep!(deps, :stable_id_pattern)]
   end
 
   def candidate_refresh_property_opts("operational_feedback", deps) do
@@ -402,6 +407,10 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshReportJsonSchema do
         "enum" => model_limits
       }
     }
+  end
+
+  def candidate_refresh_property("accepted_planning_state", opts) do
+    accepted_planning_state_ref(Keyword.fetch!(opts, :stable_id_pattern))
   end
 
   def candidate_refresh_property("warnings", _opts) do
@@ -2177,6 +2186,20 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshReportJsonSchema do
         "ends_at_s" => %{"type" => "number"},
         "output_step_s" => %{"type" => "number", "exclusiveMinimum" => 0},
         "duration_s" => %{"type" => "number", "minimum" => 0}
+      }
+    }
+  end
+
+  def accepted_planning_state_ref(stable_id_pattern) do
+    %{
+      "type" => "object",
+      "additionalProperties" => true,
+      "required" => ["snapshot_id", "spacecraft_state_count"],
+      "properties" => %{
+        "snapshot_id" => %{"type" => "string", "pattern" => stable_id_pattern},
+        "accepted_at" => %{"type" => "string"},
+        "spacecraft_state_count" => %{"type" => "integer", "minimum" => 0},
+        "maneuver_execution_delta_count" => %{"type" => "integer", "minimum" => 0}
       }
     }
   end

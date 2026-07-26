@@ -65,6 +65,61 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshContractsTest do
              "remaining_horizon.v1"
   end
 
+  test "validates the accepted planning-state fleet reference" do
+    artifact = candidate_refresh_artifact()
+
+    assert {:ok, %{"schema_contract" => "candidate_refresh.v1"}} =
+             artifact
+             |> update_in(["accepted_planning_state"], fn accepted_state ->
+               Map.merge(accepted_state, %{
+                 "accepted_at" => "2026-05-14T00:00:00Z",
+                 "maneuver_execution_delta_count" => 0,
+                 "source_family" => "fleet_snapshot"
+               })
+             end)
+             |> Schema.validate_artifact()
+
+    invalid_cases = [
+      {Map.delete(artifact["accepted_planning_state"], "snapshot_id"),
+       "$.accepted_planning_state.snapshot_id"},
+      {Map.put(artifact["accepted_planning_state"], "snapshot_id", "invalid id"),
+       "$.accepted_planning_state.snapshot_id"},
+      {Map.put(artifact["accepted_planning_state"], "spacecraft_state_count", -1),
+       "$.accepted_planning_state.spacecraft_state_count"},
+      {Map.put(artifact["accepted_planning_state"], "accepted_at", 5),
+       "$.accepted_planning_state.accepted_at"},
+      {Map.put(artifact["accepted_planning_state"], "maneuver_execution_delta_count", -1),
+       "$.accepted_planning_state.maneuver_execution_delta_count"}
+    ]
+
+    Enum.each(invalid_cases, fn {accepted_state, path} ->
+      assert {:error, report} =
+               artifact
+               |> Map.put("accepted_planning_state", accepted_state)
+               |> Schema.validate_artifact()
+
+      assert Enum.any?(report["errors"], &(&1["path"] == path))
+    end)
+  end
+
+  test "exports a typed accepted planning-state reference schema" do
+    assert {:ok, schema} = Schema.json_schema("candidate_refresh.v1")
+    accepted_state = get_in(schema, ["properties", "accepted_planning_state"])
+
+    assert accepted_state["required"] == ["snapshot_id", "spacecraft_state_count"]
+    assert get_in(accepted_state, ["properties", "snapshot_id", "pattern"])
+
+    assert get_in(accepted_state, ["properties", "spacecraft_state_count"]) == %{
+             "type" => "integer",
+             "minimum" => 0
+           }
+
+    assert get_in(accepted_state, ["properties", "maneuver_execution_delta_count"]) == %{
+             "type" => "integer",
+             "minimum" => 0
+           }
+  end
+
   test "exports nested candidate refresh source-window lineage schema" do
     assert {:ok, schema} = Schema.json_schema("candidate_refresh.v1")
 

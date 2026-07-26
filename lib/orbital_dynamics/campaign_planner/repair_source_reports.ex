@@ -45,6 +45,23 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairSourceReports do
     end
   end
 
+  def candidate_refresh_accepted_planning_state(candidate_refresh),
+    do: candidate_refresh_accepted_planning_state(candidate_refresh, default_callbacks())
+
+  def candidate_refresh_accepted_planning_state(nil, _callbacks), do: nil
+
+  def candidate_refresh_accepted_planning_state(%{} = candidate_refresh, callbacks) do
+    stringify_keys = Keyword.fetch!(callbacks, :stringify_keys)
+
+    candidate_refresh
+    |> stringify_keys.()
+    |> Map.get("accepted_planning_state")
+    |> case do
+      %{} = accepted_planning_state -> accepted_planning_state
+      _accepted_planning_state -> nil
+    end
+  end
+
   def candidate_refresh_remaining_horizon(candidate_refresh),
     do: candidate_refresh_remaining_horizon(candidate_refresh, default_callbacks())
 

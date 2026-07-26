@@ -58,6 +58,14 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
       "outputs" => ["trajectories", "access_windows"]
     }
 
+    source_candidate_refresh_accepted_planning_state = %{
+      "snapshot_id" => "ops-state-1",
+      "spacecraft_state_count" => 4,
+      "accepted_at" => "2026-05-14T00:00:00Z",
+      "maneuver_execution_delta_count" => 2,
+      "source_family" => "fleet_snapshot"
+    }
+
     source_candidate_refresh_warnings = [
       "resource summary filters suppressed refreshed candidates",
       "no prior candidates compared",
@@ -527,6 +535,7 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
             validation_records: [source_validation_record],
             refreshed_windows: source_refreshed_windows,
             assumptions: source_candidate_refresh_assumptions,
+            accepted_planning_state: source_candidate_refresh_accepted_planning_state,
             warnings: source_candidate_refresh_warnings
           )
           |> Map.put(
@@ -984,6 +993,9 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
     assert artifact["source_candidate_refresh_assumptions"] ==
              source_candidate_refresh_assumptions
 
+    assert artifact["source_candidate_refresh_accepted_planning_state"] ==
+             source_candidate_refresh_accepted_planning_state
+
     assert artifact["source_candidate_refresh_remaining_horizon"] == %{
              "starts_at_s" => 0.0,
              "ends_at_s" => 1_000.0,
@@ -1010,6 +1022,22 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
              &String.contains?(
                &1["source"] || get_in(&1, ["source_review_row", "source"]) || "",
                "source_refreshed_windows"
+             )
+           )
+
+    refute Enum.any?(
+             artifact["operator_review_package"]["rows"],
+             &String.contains?(
+               &1["source"] || "",
+               "source_candidate_refresh_accepted_planning_state"
+             )
+           )
+
+    refute Enum.any?(
+             artifact["cadence_import_manifest"]["rows"],
+             &String.contains?(
+               &1["source"] || get_in(&1, ["source_review_row", "source"]) || "",
+               "source_candidate_refresh_accepted_planning_state"
              )
            )
 
@@ -5314,10 +5342,11 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
         "ends_at_s" => 1_000.0,
         "output_step_s" => 60.0
       },
-      "accepted_planning_state" => %{
-        "snapshot_id" => "ops-state-1",
-        "spacecraft_state_count" => 1
-      },
+      "accepted_planning_state" =>
+        Keyword.get(opts, :accepted_planning_state, %{
+          "snapshot_id" => "ops-state-1",
+          "spacecraft_state_count" => 1
+        }),
       "refreshed_windows" =>
         Keyword.get(opts, :refreshed_windows, %{
           "access_windows" => [],

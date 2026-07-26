@@ -191,6 +191,12 @@ freshness, contact/resource preservation, and station calendar reports.
   scoring and candidate-limit policies, and named filter/allocation models.
   Empty maps are retained; the context is audit-only and distinct from the
   operative Repair V2 assumptions.
+- **Source CandidateRefresh accepted-state reference**, preserving the exact
+  snapshot identity, fleet spacecraft count, accepted timestamp, and maneuver-
+  delta count at `source_candidate_refresh_accepted_planning_state`. Stable
+  identity and non-negative counts are executable contracts; additional fields
+  remain forward-compatible. The reference creates no operator-review or
+  Cadence rows.
 - **Source CandidateRefresh remaining horizon**, preserving the exact sampled
   opportunity bounds and cadence at `source_candidate_refresh_remaining_horizon`.
   Numeric start/end/output-step timing, optional exact duration, and an optional
