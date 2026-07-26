@@ -8,6 +8,11 @@ from updated state.
 - Accepted planning state or orbit-data input provenance.
 - Operational-feedback provenance, including declared/missing trust-boundary
   status when feedback inputs affect refreshed candidates.
+- A sampled `remaining_horizon` with numeric start/end bounds and a positive
+  `output_step_s`. Runtime validation enforces interval, cadence, and optional
+  duration consistency; exported JSON Schema exposes the same embedded shape.
+  Existing schema-contract-free refreshes remain valid, while an explicitly
+  declared contract must be `remaining_horizon.v1`.
 
 ## Regenerated candidates
 

@@ -9,6 +9,7 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshWindowContracts do
       expect_equal: 5,
       expect_field_equals: 6,
       expect_number: 4,
+      expect_optional_field_equals: 6,
       expect_optional_non_negative_integer: 4,
       expect_optional_number: 4,
       expect_optional_type: 5,
@@ -94,6 +95,32 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshWindowContracts do
   def validate_remaining_horizon(issues, path, horizon) do
     issues
     |> expect_equal(path, horizon, "schema_contract", "remaining_horizon.v1")
+    |> validate_embedded_remaining_horizon_fields(path, horizon)
+  end
+
+  def validate_optional_embedded_remaining_horizon(issues, _path, nil), do: issues
+
+  def validate_optional_embedded_remaining_horizon(issues, path, %{} = horizon) do
+    validate_embedded_remaining_horizon(issues, path, horizon)
+  end
+
+  def validate_optional_embedded_remaining_horizon(issues, _path, _horizon), do: issues
+
+  def validate_embedded_remaining_horizon(issues, path, horizon) do
+    issues
+    |> expect_optional_field_equals(
+      path,
+      horizon,
+      "schema_contract",
+      "remaining_horizon.v1",
+      "must match remaining_horizon.v1 when declared"
+    )
+    |> validate_embedded_remaining_horizon_fields(path, horizon)
+  end
+
+  defp validate_embedded_remaining_horizon_fields(issues, path, horizon) do
+    issues
+    |> require_fields(path, horizon, ["starts_at_s", "ends_at_s", "output_step_s"])
     |> expect_number(path, horizon, "starts_at_s")
     |> expect_number(path, horizon, "ends_at_s")
     |> expect_number(path, horizon, "output_step_s")

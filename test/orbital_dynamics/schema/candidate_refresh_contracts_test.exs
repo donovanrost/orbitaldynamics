@@ -3,6 +3,68 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshContractsTest do
 
   alias OrbitalDynamics.Schema
 
+  test "validates the embedded remaining horizon timing contract" do
+    artifact = candidate_refresh_artifact()
+
+    assert {:ok, %{"schema_contract" => "candidate_refresh.v1"}} =
+             Schema.validate_artifact(artifact)
+
+    assert {:ok, %{"schema_contract" => "candidate_refresh.v1"}} =
+             artifact
+             |> put_in(
+               ["remaining_horizon"],
+               Map.merge(artifact["remaining_horizon"], %{
+                 "schema_contract" => "remaining_horizon.v1",
+                 "duration_s" => 600.0
+               })
+             )
+             |> Schema.validate_artifact()
+
+    invalid_cases = [
+      {Map.delete(artifact["remaining_horizon"], "starts_at_s"),
+       "$.remaining_horizon.starts_at_s"},
+      {Map.put(artifact["remaining_horizon"], "output_step_s", 0.0),
+       "$.remaining_horizon.output_step_s"},
+      {Map.put(artifact["remaining_horizon"], "output_step_s", 601.0),
+       "$.remaining_horizon.output_step_s"},
+      {Map.put(artifact["remaining_horizon"], "schema_contract", "unexpected.v1"),
+       "$.remaining_horizon.schema_contract"},
+      {Map.put(artifact["remaining_horizon"], "duration_s", 599.0),
+       "$.remaining_horizon.duration_s"}
+    ]
+
+    Enum.each(invalid_cases, fn {remaining_horizon, path} ->
+      assert {:error, report} =
+               artifact
+               |> Map.put("remaining_horizon", remaining_horizon)
+               |> Schema.validate_artifact()
+
+      assert Enum.any?(report["errors"], &(&1["path"] == path))
+    end)
+
+    assert {:error, report} =
+             artifact
+             |> Map.put("remaining_horizon", [])
+             |> Schema.validate_artifact()
+
+    assert Enum.any?(report["errors"], &(&1["path"] == "$.remaining_horizon"))
+  end
+
+  test "exports a typed embedded remaining horizon schema" do
+    assert {:ok, schema} = Schema.json_schema("candidate_refresh.v1")
+    remaining_horizon = get_in(schema, ["properties", "remaining_horizon"])
+
+    assert remaining_horizon["required"] == ["starts_at_s", "ends_at_s", "output_step_s"]
+    assert get_in(remaining_horizon, ["properties", "starts_at_s", "type"]) == "number"
+    assert get_in(remaining_horizon, ["properties", "ends_at_s", "type"]) == "number"
+
+    assert get_in(remaining_horizon, ["properties", "output_step_s", "exclusiveMinimum"]) ==
+             0
+
+    assert get_in(remaining_horizon, ["properties", "schema_contract", "const"]) ==
+             "remaining_horizon.v1"
+  end
+
   test "exports nested candidate refresh source-window lineage schema" do
     assert {:ok, schema} = Schema.json_schema("candidate_refresh.v1")
 

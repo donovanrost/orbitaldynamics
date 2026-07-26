@@ -191,6 +191,12 @@ freshness, contact/resource preservation, and station calendar reports.
   scoring and candidate-limit policies, and named filter/allocation models.
   Empty maps are retained; the context is audit-only and distinct from the
   operative Repair V2 assumptions.
+- **Source CandidateRefresh remaining horizon**, preserving the exact sampled
+  opportunity bounds and cadence at `source_candidate_refresh_remaining_horizon`.
+  Numeric start/end/output-step timing, optional exact duration, and an optional
+  matching `remaining_horizon.v1` tag are executable contracts. The source map
+  remains distinct from the operative Repair V2 horizon and creates no
+  operator-review or Cadence rows.
 - **Source CandidateRefresh warnings**, preserving the exact ordered source
   string collection at `source_candidate_refresh_warnings`, including duplicates
   and an empty list. Source attribution remains distinct from the sorted,

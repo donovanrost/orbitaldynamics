@@ -143,6 +143,7 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshReportJsonSchema do
       field in @candidate_refresh_embedded_report_fields or
       field == "model_limits" or
       field == "warnings" or
+      field == "remaining_horizon" or
       field in ["operational_feedback", "provenance"] or
       field in @candidate_refresh_publication_lineage_id_array_fields or
       field in @candidate_refresh_publication_lineage_count_map_fields or
@@ -405,6 +406,10 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshReportJsonSchema do
 
   def candidate_refresh_property("warnings", _opts) do
     CommonJsonSchema.string_array()
+  end
+
+  def candidate_refresh_property("remaining_horizon", _opts) do
+    embedded_remaining_horizon()
   end
 
   def candidate_refresh_property("operational_feedback", opts) do
@@ -2159,6 +2164,21 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshReportJsonSchema do
   def remaining_horizon_property(field, _opts)
       when field in ["starts_at_s", "ends_at_s", "output_step_s"] do
     %{"type" => "number"}
+  end
+
+  def embedded_remaining_horizon do
+    %{
+      "type" => "object",
+      "additionalProperties" => true,
+      "required" => ["starts_at_s", "ends_at_s", "output_step_s"],
+      "properties" => %{
+        "schema_contract" => %{"type" => "string", "const" => "remaining_horizon.v1"},
+        "starts_at_s" => %{"type" => "number"},
+        "ends_at_s" => %{"type" => "number"},
+        "output_step_s" => %{"type" => "number", "exclusiveMinimum" => 0},
+        "duration_s" => %{"type" => "number", "minimum" => 0}
+      }
+    }
   end
 
   defp stable_id_array_schema(stable_id_pattern) do

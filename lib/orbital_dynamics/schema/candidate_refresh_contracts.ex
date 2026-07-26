@@ -80,10 +80,9 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshContracts do
     |> CandidateRefreshReportContracts.validate_source_report_provenance(artifact)
     |> OperationalFeedbackContracts.validate("$", Map.get(artifact, "operational_feedback"))
     |> expect_type("$", artifact, "source_window_lineage", :list)
-    |> require_nested(
+    |> CandidateRefreshWindowContracts.validate_optional_embedded_remaining_horizon(
       "$.remaining_horizon",
-      Map.get(artifact, "remaining_horizon", %{}),
-      ["output_step_s"]
+      Map.get(artifact, "remaining_horizon", %{})
     )
     |> require_nested(
       "$.accepted_planning_state",

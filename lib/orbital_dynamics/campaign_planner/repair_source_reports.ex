@@ -45,6 +45,23 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairSourceReports do
     end
   end
 
+  def candidate_refresh_remaining_horizon(candidate_refresh),
+    do: candidate_refresh_remaining_horizon(candidate_refresh, default_callbacks())
+
+  def candidate_refresh_remaining_horizon(nil, _callbacks), do: nil
+
+  def candidate_refresh_remaining_horizon(%{} = candidate_refresh, callbacks) do
+    stringify_keys = Keyword.fetch!(callbacks, :stringify_keys)
+
+    candidate_refresh
+    |> stringify_keys.()
+    |> Map.get("remaining_horizon")
+    |> case do
+      %{} = remaining_horizon -> remaining_horizon
+      _remaining_horizon -> nil
+    end
+  end
+
   def candidate_refresh_warnings(candidate_refresh),
     do: candidate_refresh_warnings(candidate_refresh, default_callbacks())
 

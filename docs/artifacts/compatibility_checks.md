@@ -146,6 +146,14 @@ from an absent refresh. Executable validation requires an object, but this
 audit-only context creates no operator or Cadence rows and cannot change repair
 filtering, matching, scoring, selection, scheduling, imports, commanding, or
 authority.
+Campaign-repair V2 separately preserves CandidateRefresh's exact sampling
+horizon at `source_candidate_refresh_remaining_horizon`. This source map keeps
+`starts_at_s`, `ends_at_s`, and `output_step_s` plus optional exact duration and
+`remaining_horizon.v1` contract evidence, rather than conflating it with the
+operative repair horizon. Runtime and JSON Schema validation enforce the typed
+interval/cadence contract at the source path. The map creates no review/import
+rows and cannot change filtering, ranking, selection, scheduling, provider
+state, commanding, imports, or authority.
 Campaign-repair V2 also preserves CandidateRefresh's exact ordered warning list
 at `source_candidate_refresh_warnings`, including duplicates and an empty list.
 This source-attributed evidence remains distinct from the operative

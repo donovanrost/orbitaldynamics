@@ -342,6 +342,12 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyCandidateRefreshBranchRepairTe
     assert outage["repair_result"]["source_candidate_refresh_assumptions"] ==
              branch_candidate_refresh_assumptions
 
+    assert outage["repair_result"]["source_candidate_refresh_remaining_horizon"] == %{
+             "starts_at_s" => 0.0,
+             "ends_at_s" => 1_000.0,
+             "output_step_s" => 60.0
+           }
+
     assert outage["repair_result"]["source_candidate_refresh_warnings"] ==
              branch_candidate_refresh_warnings
 
@@ -361,6 +367,22 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyCandidateRefreshBranchRepairTe
              &String.contains?(
                &1["source"] || get_in(&1, ["source_review_row", "source"]) || "",
                "source_refreshed_windows"
+             )
+           )
+
+    refute Enum.any?(
+             artifact["operator_review_package"]["rows"],
+             &String.contains?(
+               &1["source"] || "",
+               "source_candidate_refresh_remaining_horizon"
+             )
+           )
+
+    refute Enum.any?(
+             artifact["cadence_import_manifest"]["rows"],
+             &String.contains?(
+               &1["source"] || get_in(&1, ["source_review_row", "source"]) || "",
+               "source_candidate_refresh_remaining_horizon"
              )
            )
 
