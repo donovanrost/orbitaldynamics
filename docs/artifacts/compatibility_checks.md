@@ -1945,6 +1945,12 @@ pressured row in the ranking to use it, requires the pair to be complete, and
 checks that selected throughput plus shortfall equals required demand. Nominal
 producer rows omit all three evidence fields, while the existing calibrated
 penalty rule remains unchanged.
+Current replacement-ranking row order is also replayed with the complete
+producer key: semantic-diff priority ascending, score descending, churn
+ascending, embedded source candidate start ascending, and candidate ID
+ascending. Equal-priority/equal-score rows therefore cannot select a
+higher-churn candidate in a current artifact. Fully legacy rankings retain the
+original priority/score-only ordering check.
 Projected-resource replacement evidence likewise preserves fully legacy
 rankings whose indicators all omit candidate identity. Once any indicator
 carries the current ranked candidate ID, every projected-resource indicator in

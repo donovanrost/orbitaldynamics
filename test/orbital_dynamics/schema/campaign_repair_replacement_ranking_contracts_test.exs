@@ -244,6 +244,68 @@ defmodule OrbitalDynamics.Schema.CampaignRepairReplacementRankingContractsTest d
     end
   end
 
+  test "replays current ranking tie-break order while preserving legacy order", context do
+    ranking_path = ranking_path(context.activity_index)
+    [source_candidate] = context.artifact["source_candidate_activities"]
+    [selected_row] = get_in_path(context.artifact, ranking_path <> ".rows")
+
+    lower_churn_candidate =
+      source_candidate
+      |> Map.put("id", "dl_lower_churn")
+      |> Map.put("starts_at_s", 490.0)
+      |> Map.put("ends_at_s", 550.0)
+      |> Map.put("score", 9.9)
+      |> Map.put("score_terms", %{"contact_value" => 9.9})
+      |> put_in(["cadence_import", "external_id"], "dl_lower_churn")
+
+    lower_churn_row =
+      selected_row
+      |> Map.put("candidate_id", "dl_lower_churn")
+      |> Map.put("candidate_score", 9.9)
+      |> Map.put("schedule_churn_s", 390.0)
+      |> Map.put("schedule_move_penalty", -3.9)
+      |> Map.put("ranking_score", -94.0)
+      |> Map.put("rank", 2)
+      |> Map.put("selected", false)
+
+    higher_churn_selected =
+      context.artifact
+      |> Map.put("source_candidate_activities", [source_candidate, lower_churn_candidate])
+      |> put_in(["repair_metadata", "candidate_source", "candidate_count"], 2)
+      |> put_in_path(ranking_path <> ".rows", [selected_row, lower_churn_row])
+      |> put_in_path(ranking_path <> ".evaluated_candidate_count", 2)
+
+    assert {:error, current_report} = Schema.validate_artifact(higher_churn_selected)
+
+    assert Enum.any?(
+             current_report["errors"],
+             &(&1["path"] == ranking_path <> ".rows")
+           )
+
+    fully_legacy_order =
+      update_in(
+        higher_churn_selected,
+        [
+          "activities",
+          Access.at(context.activity_index),
+          "repair",
+          "replacement_ranking",
+          "rows"
+        ],
+        fn rows ->
+          Enum.map(rows, fn row ->
+            Map.drop(row, [
+              "contact_intent_pressure_penalty",
+              "contact_contention_resolution_pressure_penalty"
+            ])
+          end)
+        end
+      )
+
+    assert {:ok, %{"schema_contract" => "campaign_repair.v2"}} =
+             Schema.validate_artifact(fully_legacy_order)
+  end
+
   test "rejects empty or malformed optional pressure evidence", context do
     row_path = ranking_path(context.activity_index) <> ".rows[0]"
 

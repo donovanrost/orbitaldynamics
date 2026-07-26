@@ -391,9 +391,12 @@ downlink/station/time normalization.
   candidate-diff priority/match, candidate score, churn and move penalties,
   calibrated station-calendar, projected link-capacity, and projected resource
   penalties, the resulting greedy ranking score, rank, and selected flag. The
-  current envelope requires `repair.source_activity_context` so start-time churn
-  remains replayable. It also requires stable top-level source/replacement IDs
-  and a complete four-ID `timeline_link`, binds source IDs to the source
+  current row order is replayed through the producer's full deterministic key:
+  semantic-diff priority, score, churn, embedded source candidate start, then
+  candidate ID. Fully legacy rows retain priority/score ordering compatibility.
+  The current envelope requires `repair.source_activity_context` so start-time
+  churn remains replayable. It also requires stable top-level source/replacement
+  IDs and a complete four-ID `timeline_link`, binds source IDs to the source
   context's timeline identity, and binds replacement IDs to the selected
   repaired activity. Fully legacy rankings without current optional pressure
   markers may omit the source context and entire handoff. The current

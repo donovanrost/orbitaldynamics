@@ -223,8 +223,11 @@ Status: **implemented** (with **partial**, **near-term**, **later**, and **out o
 - Runtime validation additionally verifies that each final ranking score equals
   candidate value plus its emitted penalties, semantic-diff match and priority
   agree, nonzero pressure terms carry their source evidence, and rows remain
-  ordered by diff priority then score. Zero-weight pressured evidence remains
-  valid so policy calibration can intentionally neutralize a known pressure.
+  ordered by diff priority then score. Current rankings additionally replay the
+  producer's deterministic tie-break order by schedule churn, embedded source
+  candidate start time, and candidate ID; fully legacy rankings retain the
+  priority/score-only check. Zero-weight pressured evidence remains valid so
+  policy calibration can intentionally neutralize a known pressure.
   Each ranking candidate ID must also resolve to exactly one embedded
   `source_candidate_activities` row, and its candidate value must equal that
   source row's validated score; corrected row arithmetic cannot mask a missing,

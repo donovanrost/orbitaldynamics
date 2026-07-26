@@ -5,60 +5,58 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Require timeline handoff identity on current Repair rankings.
+Reproduce deterministic tie-break order on current Repair rankings.
 
 Status:
-Complete and verified from published base `dad1232c`; scoped publish pending.
+Complete and verified from published base `30025d28`; scoped publish pending.
 
 Delivered behavior:
-- Classify current replacement rankings from the same optional contact,
-  projected-link, and candidate-identified resource evidence used by schedule
-  validation.
-- Require stable `source_activity_id`, `source_timeline_id`, and
-  `replacement_timeline_id` fields plus a complete four-ID `timeline_link` on
-  current rankings.
-- Bind source handoff IDs to
-  `source_activity_context.timeline_identity`, while retaining the existing
-  replacement bindings to the selected enclosing activity.
-- Keep fully legacy rankings without current markers valid when source context
-  and the entire handoff are absent.
+- Replay the replacement selector's complete current-row sort key from existing
+  artifact evidence: semantic-diff priority, ranking score, schedule churn,
+  embedded source candidate start time, and candidate ID.
+- Reject a current equal-priority/equal-score ranking that places a
+  higher-churn candidate first, even when all row arithmetic and selected-row
+  fields remain internally consistent.
+- Preserve the priority/score-only order check for fully legacy rankings
+  without current pressure markers.
 - Do not change JSON Schema, producer output, scoring, selection, scheduling,
   review/import routing, provider state, commanding, or authority.
 
 Verification evidence:
-- Focused replacement-ranking and Repair replacement producer gate: `7 passed`.
-- Expanded Repair selection, source-handoff, and golden gate: `41 passed`.
+- Focused schedule/replacement-ranking and Repair replacement producer gate:
+  `8 passed`.
+- Expanded Repair selection, source-handoff, and golden gate: `42 passed`.
 - Saved-artifact lint: `155` artifacts, `0` errors, `0` warnings.
-- Final full suite: `5240 passed` in `669.1s`.
-- Structural proof: deleting source context, all four handoff fields, and both
-  current per-row pressure fields keeps a fully legacy ranking valid; deleting
-  any current top-level or nested handoff ID fails at its exact path.
-- Coordinated source activity/timeline drift across top-level repair fields and
-  `timeline_link` fails against preserved source timeline identity.
+- Final full suite: `5241 passed` in `680.8s`.
+- Structural proof: a current two-row tie with the 400-second-churn selected
+  candidate ahead of an equal-scoring 390-second-churn candidate fails at
+  `$.activities[0].repair.replacement_ranking.rows`.
+- Removing both current per-row pressure markers from that same ranking keeps
+  the priority/score-compatible legacy ordering valid.
 - Candidate Refresh schema, Repair schema, aggregate schema bundle, canonical
   Repair, and canonical Strategy hashes remained byte-identical; no generated
   artifacts changed.
 - `mix format --check-formatted` and `git diff --check` pass.
 
 Level 6 pillar advanced:
-Candidate-specific decision explainability and versioned artifact compatibility.
+Deterministic candidate selection and versioned artifact compatibility.
 
 Last published slice:
-- `dad1232c` Require source timing on current repair rankings (`5240 passed`;
-  current rankings require source context while fully legacy rankings retain
-  their compatibility path).
+- `30025d28` Require timeline handoff on current repair rankings (`5240 passed`;
+  current handoff IDs are complete and source/replacement-bound while fully
+  legacy rankings may omit the handoff).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions only from authoritative,
   candidate-identified evidence while preserving provider/Cadence boundaries.
-- Bind additional candidate-specific projection values only when they add
-  compact decision evidence beyond current exact shortfall/risk indicators.
+- Bind ranking membership to viable candidate-pool evidence where the full
+  producer eligibility decision can be replayed without ambiguity.
 - Continue broader schema/versioned compatibility discipline and stale-input
   challenge fixtures.
 
 Next candidate:
-After timeline handoff validation, resume the fleet-scale Repair decision audit
-from the clean published checkout.
+After deterministic tie-break validation, audit replayable ranking membership
+against viable candidate-pool evidence from the clean published checkout.
 
 Blocked:
 None.

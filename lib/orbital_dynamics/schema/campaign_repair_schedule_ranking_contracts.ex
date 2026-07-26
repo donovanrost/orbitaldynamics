@@ -101,12 +101,9 @@ defmodule OrbitalDynamics.Schema.CampaignRepairScheduleRankingContracts do
        )
        when is_list(rows) do
     issues =
-      validate_current_source_context(
-        issues,
-        source_context_path,
-        rows,
-        source_context
-      )
+      issues
+      |> validate_current_source_context(source_context_path, rows, source_context)
+      |> validate_current_row_order(path, rows, source_candidates_by_id)
 
     rows
     |> Enum.with_index()
@@ -163,6 +160,50 @@ defmodule OrbitalDynamics.Schema.CampaignRepairScheduleRankingContracts do
         false
     end
   end
+
+  defp validate_current_row_order(issues, path, rows, source_candidates_by_id) do
+    if current_ranking?(rows) do
+      sort_keys = Enum.map(rows, &row_sort_key(&1, source_candidates_by_id))
+
+      if Enum.all?(sort_keys, &match?({:ok, _sort_key}, &1)) do
+        replayed_sort_keys = Enum.map(sort_keys, fn {:ok, sort_key} -> sort_key end)
+
+        if replayed_sort_keys == Enum.sort(replayed_sort_keys) do
+          issues
+        else
+          [
+            error(
+              path,
+              "must follow producer tie-break order by candidate-diff priority, ranking score, schedule churn, candidate start, and candidate ID"
+            )
+            | issues
+          ]
+        end
+      else
+        issues
+      end
+    else
+      issues
+    end
+  end
+
+  defp row_sort_key(%{} = row, source_candidates_by_id) do
+    candidate_id = Map.get(row, "candidate_id")
+
+    with priority when is_integer(priority) <- Map.get(row, "candidate_diff_priority"),
+         score when is_number(score) <- Map.get(row, "ranking_score"),
+         churn_s when is_number(churn_s) <- Map.get(row, "schedule_churn_s"),
+         id when is_binary(id) <- candidate_id,
+         [%{} = candidate] <- Map.get(source_candidates_by_id, candidate_id, []),
+         candidate_start when is_number(candidate_start) <-
+           ActivityTiming.activity_raw_start(candidate) do
+      {:ok, {priority, -score, churn_s, candidate_start, id}}
+    else
+      _unreplayable -> :unreplayable
+    end
+  end
+
+  defp row_sort_key(_row, _source_candidates_by_id), do: :unreplayable
 
   defp validate_row(
          issues,

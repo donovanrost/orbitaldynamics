@@ -600,10 +600,13 @@ schema-type their stable IDs, invalid-input flags, and protected/change counts.
   resource contributions, the resulting greedy ranking score, and selected
   flag. Executable validation replays source-to-candidate start-time churn from
   the embedded source context and unique source candidate, then pins fixed churn
-  and churn-times-move penalties to the enclosing scoring policy. A current
-  ranking cannot delete that source context while retaining current optional
-  pressure evidence; fully legacy rankings without either remain compatible. It
-  also recomputes semantic-diff priority from exact source ID/window and
+  and churn-times-move penalties to the enclosing scoring policy. For current
+  rankings it also replays the complete producer order: semantic-diff priority,
+  score, churn, candidate start, then candidate ID. Fully legacy rankings retain
+  priority/score ordering compatibility. A current ranking cannot delete that
+  source context while retaining current optional pressure evidence; fully
+  legacy rankings without either remain compatible. Executable validation also
+  recomputes semantic-diff priority from exact source ID/window and
   replacement-candidate links in the embedded source diff report, and pins the
   selected row to the enclosing repaired activity. Current rankings require
   stable source/replacement handoff IDs and a complete four-ID `timeline_link`:
