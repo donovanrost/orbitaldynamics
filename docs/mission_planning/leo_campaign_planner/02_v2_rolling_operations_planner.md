@@ -741,7 +741,11 @@ schema-type their stable IDs, invalid-input flags, and protected/change counts.
   Objective-tradeoff rows sourced from the enclosing Repair report likewise
   carry one review/import row per tradeoff, with present operator-review,
   Cadence, and embedded `source_objective_tradeoff` copies bound in source
-  order; older package, copy, or embedded-row omissions remain valid.
+  order. Candidate-rejection rows sourced from the enclosing Repair source
+  report carry one review/import row per rejection, with present
+  operator-review, Cadence, and embedded `source_candidate_rejection` copies
+  bound in source order; older package, copy, or embedded-row omissions remain
+  valid.
 
 The current repair behavior is deliberately transparent:
 

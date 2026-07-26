@@ -1997,6 +1997,11 @@ For objective-tradeoff rows sourced from the enclosing Repair
 row per tradeoff. Present operator-review, Cadence, and embedded source-review
 `source_objective_tradeoff` copies equal the corresponding tradeoff in source
 order; older package or copy omissions remain valid.
+For candidate-rejection rows sourced from the enclosing Repair source report,
+present packages carry one review/import row per rejection. Present
+operator-review, Cadence, and embedded source-review
+`source_candidate_rejection` copies equal the corresponding rejection in source
+order; older package or copy omissions remain valid.
 Replacement-ranking link-pressure validation preserves fully legacy rankings
 whose pressured rows carry only shortfall. New producer rows under pressure also
 carry projected required downlink demand and selected capacity-adjusted
