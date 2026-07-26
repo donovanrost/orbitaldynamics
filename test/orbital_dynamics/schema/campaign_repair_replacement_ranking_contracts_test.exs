@@ -730,6 +730,7 @@ defmodule OrbitalDynamics.Schema.CampaignRepairReplacementRankingContractsTest d
 
     artifact
     |> put_in(["repair_metadata", "repair_id"], repair_id)
+    |> put_in(["operator_review_package", "provenance", "candidate_source"], candidate_source)
     |> put_in(["operator_review_package", "source_artifact_id"], repair_id)
     |> put_in(["cadence_import_manifest", "source_artifact_id"], repair_id)
     |> put_in(

@@ -42,6 +42,9 @@ Status: **implemented** (with **partial**, **near-term**, **later**, and **out o
   counts, accepted snapshot identity, the present maneuver-delta count, and
   generation time with present candidate-diff, accepted-state, and freshness
   source reports. Older additive report/count omissions remain compatible.
+- Present source-study, operator-review provenance, and Cadence source type/plan
+  copies are reconciled with the enclosing Repair provenance chain. Older
+  additive-copy omissions remain compatible.
 - **`contact_allocation_report.v1`** over repaired contact activities. The
   optional report is a declared V2 nested contract; runtime validation applies
   its full row, count, summary, nested contention/resolution, stable-identity,

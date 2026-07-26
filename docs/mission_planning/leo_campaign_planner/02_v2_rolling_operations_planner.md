@@ -714,7 +714,9 @@ schema-type their stable IDs, invalid-input flags, and protected/change counts.
   remain compatible. CandidateRefresh-backed metadata also reconciles candidate
   and invalidation counts, accepted snapshot identity, the present
   maneuver-delta count, and generation time with present source reports while
-  retaining compatibility for additive omissions.
+  retaining compatibility for additive omissions. Present source-study,
+  operator-review provenance, and Cadence source type/plan copies are likewise
+  bound to the enclosing Repair provenance chain.
 
 The current repair behavior is deliberately transparent:
 

@@ -1954,6 +1954,10 @@ metadata candidate count and invalidation count with the candidate-diff report,
 the snapshot and present maneuver-delta count with the accepted-state reference,
 and the generation time with freshness. Older repairs may omit those additive
 source reports or the accepted-state maneuver count.
+Present Repair provenance handoffs also remain joined end to end: source study
+identity matches the enclosing artifact, present operator-review source
+provenance copies match Repair provenance, and Cadence provenance identifies the
+Repair contract and source plan. Older artifacts may omit additive copies.
 Replacement-ranking link-pressure validation preserves fully legacy rankings
 whose pressured rows carry only shortfall. New producer rows under pressure also
 carry projected required downlink demand and selected capacity-adjusted

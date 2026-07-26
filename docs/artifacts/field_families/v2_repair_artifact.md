@@ -34,6 +34,10 @@ For CandidateRefresh-backed repairs, present candidate-diff, accepted-state, and
 freshness reports reconcile candidate/invalidation counts, snapshot identity,
 the present maneuver-delta count, and generation time with metadata candidate
 source evidence. Older additive report/count omissions remain compatible.
+Present Repair provenance handoffs bind source study identity to the enclosing
+artifact, operator-review source provenance to Repair provenance, and Cadence
+source type/plan provenance to the same Repair chain. Older additive-copy
+omissions remain compatible.
 
 ### `realized_state_snapshot`
 
