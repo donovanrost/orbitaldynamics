@@ -5,32 +5,32 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Bind current Repair ranking candidates to preserved repair intent.
+Bind current Repair ranking candidates to replacement activity kind.
 
 Status:
-Implemented and verified from clean published base `df112c25`; ready to
+Implemented and verified from clean published base `72a84e4c`; ready to
 publish.
 
 Selection evidence:
-- The replacement selector applies explicit intent matching after all
-  eligibility filters, but runtime ranking validation does not replay it.
-- Current Repair source context and embedded candidates preserve the exact
-  scenario/station evidence used for downlinks and target evidence used for
-  observations.
-- The observation rule intentionally allows cross-spacecraft reassignment on
-  the same target; that compatibility is also fully replayable.
+- The replacement selector applies an activity-kind filter immediately before
+  repair-intent matching, but runtime validation only replays the identity
+  dimensions of that intent.
+- Activity contracts deliberately allow future nonblank type tokens, so a
+  wrong-kind candidate can remain structurally valid while carrying matching
+  scenario/station or target fields.
+- Exact observation type matching and normalized downlink-kind matching are
+  preserved on every embedded source candidate and require no hidden state.
 
 Delivered behavior:
-- Share one repair-intent matcher between producer selection and executable
-  artifact validation.
-- Require current downlink candidates to match the preserved source scenario
-  and, when declared, ground station.
-- Require current observation candidates to match the preserved source target
-  while preserving cross-scenario/cross-spacecraft reassignment.
-- Keep failures at the exact ranking-row candidate ID and preserve fully legacy
-  rankings without current pressure markers.
-- Do not infer unrelated accumulator, overlap, degraded-mode, or prior-selection
-  state beyond the evidence preserved in the artifact.
+- Extend the shared replacement-eligibility predicate with the producer's exact
+  activity-kind filter.
+- Require current downlink rankings to contain only candidates accepted by
+  normalized downlink classification and current observation rankings to
+  contain only exact `observe` candidates.
+- Keep wrong-kind failures at the exact ranking-row candidate ID and preserve
+  fully legacy rankings without current pressure markers.
+- Preserve future activity-type vocabulary everywhere outside the two explicit
+  Repair replacement branches.
 - Do not change JSON Schema, producer output, scoring, selection, scheduling,
   review/import routing, provider state, commanding, or authority.
 
@@ -43,17 +43,17 @@ Verification:
   `cc41834e706fd1e04a4c5578032fdf99ceeba949a02fd75fc54c8b70cdc30d8a`
   and
   `57602722702969da587e2754df84bca1e06e86cc32fa5af7f3f78451b72f9985`.
-- Full `mix test --timeout 120000`: `5244 passed` in `728.2s` on the final
-  review-tightened matcher API.
+- Full `mix test --timeout 120000`: `5244 passed` in `707.2s` on the exact
+  reviewed tree.
 - `mix format --check-formatted` and `git diff --check` pass.
 
 Level 6 pillar advanced:
 Fleet-scale candidate-pool integrity and operator-review evidence fidelity.
 
 Last published slice:
-- `df112c25` Reject rejected Repair ranking candidates (`5243 passed`; current
-  rows exclude IDs rejected by the preserved source report while legacy
-  rejection-membership compatibility remains unchanged).
+- `72a84e4c` Bind Repair rankings to repair intent (`5244 passed`; current rows
+  replay source scenario/station or target intent while legacy intent-membership
+  compatibility remains unchanged).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions only from authoritative,
@@ -64,7 +64,7 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-After repair-intent validation, continue auditing remaining replayable
+After replacement-kind validation, continue auditing remaining replayable
 replacement eligibility from the clean published checkout.
 
 Blocked:

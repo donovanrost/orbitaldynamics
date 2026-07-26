@@ -249,6 +249,11 @@ Status: **implemented** (with **partial**, **near-term**, **later**, and **out o
   cross scenarios for spacecraft reassignment. Producer selection and runtime
   validation share that matcher. Fully legacy rankings retain their historical
   intent-membership compatibility.
+  The same shared eligibility predicate requires each current downlink row to
+  use the producer's normalized downlink classification and each current
+  observation row to use exact `observe` type. Fully legacy rankings retain
+  historical kind-membership compatibility, and the general activity-type
+  vocabulary remains open to future nonblank tokens.
   Current candidate-identified resource-risk
   indicators must additionally use a spacecraft scope from a valid embedded
   source resource summary applicable to that exact candidate under the resource

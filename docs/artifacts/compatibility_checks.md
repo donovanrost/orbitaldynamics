@@ -1974,6 +1974,11 @@ from preserved source context. Downlink candidates remain in the source scenario
 and on its ground station when one is declared; observation candidates retain
 the source target while cross-scenario spacecraft reassignment remains valid.
 Fully legacy rankings retain historical intent-membership compatibility.
+The shared eligibility predicate also rejects wrong-kind current rows: downlink
+repair uses the producer's normalized downlink classification, while observation
+repair requires exact `observe` type. Fully legacy kind membership remains
+compatible, and future nonblank activity tokens remain valid on unrelated
+artifact surfaces.
 Projected-resource replacement evidence likewise preserves fully legacy
 rankings whose indicators all omit candidate identity. Once any indicator
 carries the current ranked candidate ID, every projected-resource indicator in

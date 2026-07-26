@@ -7,6 +7,16 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairReplacementIntent do
     RepairActivityIdentity
   }
 
+  def eligible?(source, candidate) do
+    source = normalize_source_context(source)
+    eligible?(source, candidate, intent_type(source))
+  end
+
+  def eligible?(source, candidate, intent_type) do
+    candidate_kind_matches?(candidate, intent_type) and
+      matches?(source, candidate, intent_type)
+  end
+
   def matches?(source, candidate) do
     source = normalize_source_context(source)
     matches?(source, candidate, intent_type(source))
@@ -25,6 +35,14 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairReplacementIntent do
   end
 
   def matches?(_source, _candidate, _intent_type), do: true
+
+  def candidate_kind_matches?(candidate, "downlink") do
+    DownlinkActivityNormalization.downlink?(candidate)
+  end
+
+  def candidate_kind_matches?(candidate, intent_type) do
+    candidate["type"] == intent_type
+  end
 
   def intent_type(%{} = source) do
     activity_type =

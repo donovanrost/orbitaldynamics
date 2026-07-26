@@ -377,33 +377,43 @@ defmodule OrbitalDynamics.Schema.CampaignRepairReplacementRankingContractsTest d
         &Map.put(&1, "ground_station_id", "polar_north")
       )
 
-    for invalid <- [wrong_scenario, wrong_station] do
+    wrong_kind =
+      context
+      |> add_unselected_candidate("dl_wrong_kind", 520.0, -100.0)
+      |> update_source_candidate(
+        "dl_wrong_kind",
+        &Map.put(&1, "type", "future_activity")
+      )
+
+    for invalid <- [wrong_scenario, wrong_station, wrong_kind] do
       assert {:error, report} = Schema.validate_artifact(invalid)
       assert Enum.any?(report["errors"], &(&1["path"] == candidate_path))
     end
 
-    legacy_wrong_station =
-      update_in(
-        wrong_station,
-        [
-          "activities",
-          Access.at(context.activity_index),
-          "repair",
-          "replacement_ranking",
-          "rows"
-        ],
-        fn rows ->
-          Enum.map(rows, fn row ->
-            Map.drop(row, [
-              "contact_intent_pressure_penalty",
-              "contact_contention_resolution_pressure_penalty"
-            ])
-          end)
-        end
-      )
+    for legacy_source <- [wrong_station, wrong_kind] do
+      legacy =
+        update_in(
+          legacy_source,
+          [
+            "activities",
+            Access.at(context.activity_index),
+            "repair",
+            "replacement_ranking",
+            "rows"
+          ],
+          fn rows ->
+            Enum.map(rows, fn row ->
+              Map.drop(row, [
+                "contact_intent_pressure_penalty",
+                "contact_contention_resolution_pressure_penalty"
+              ])
+            end)
+          end
+        )
 
-    assert {:ok, %{"schema_contract" => "campaign_repair.v2"}} =
-             Schema.validate_artifact(legacy_wrong_station)
+      assert {:ok, %{"schema_contract" => "campaign_repair.v2"}} =
+               Schema.validate_artifact(legacy)
+    end
   end
 
   test "rejects empty or malformed optional pressure evidence", context do

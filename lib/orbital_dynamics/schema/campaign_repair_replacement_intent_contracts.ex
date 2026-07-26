@@ -87,13 +87,13 @@ defmodule OrbitalDynamics.Schema.CampaignRepairReplacementIntentContracts do
   defp validate_row(issues, path, row, source_context, source_candidates_by_id) do
     case Map.get(source_candidates_by_id, Map.get(row, "candidate_id"), []) do
       [%{} = candidate] ->
-        if RepairReplacementIntent.matches?(source_context, candidate) do
+        if RepairReplacementIntent.eligible?(source_context, candidate) do
           issues
         else
           [
             error(
               path <> ".candidate_id",
-              "must identify an embedded source candidate within the preserved repair intent"
+              "must identify an embedded source candidate within the preserved replacement kind and repair intent"
             )
             | issues
           ]

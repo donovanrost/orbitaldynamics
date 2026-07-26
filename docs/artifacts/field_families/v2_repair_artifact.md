@@ -410,6 +410,10 @@ downlink/station/time normalization.
   declared source ground station; observation candidates match the source
   target while cross-scenario spacecraft reassignment remains valid. Fully
   legacy rankings retain historical intent-membership compatibility.
+  The shared eligibility predicate additionally requires current downlink rows
+  to use normalized downlink candidates and current observation rows to use
+  exact `observe` type. Fully legacy kind membership remains compatible, and
+  unrelated artifact surfaces retain the open future activity-type vocabulary.
   The current envelope requires `repair.source_activity_context` so start-time
   churn remains replayable. It also requires stable top-level source/replacement
   IDs and a complete four-ID `timeline_link`, binds source IDs to the source

@@ -41,30 +41,45 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairExecutionPolicyTest do
         end)
       end)
 
-    assert {:error, report} = Schema.validate_artifact(wrong_target)
+    wrong_kind =
+      update_in(artifact, ["source_candidate_activities"], fn candidates ->
+        Enum.map(candidates, fn
+          %{"id" => "obs_3"} = candidate ->
+            Map.put(candidate, "type", "future_activity")
 
-    assert Enum.any?(
-             report["errors"],
-             &(&1["path"] ==
-                 "$.activities[0].repair.replacement_ranking.rows[1].candidate_id")
-           )
+          candidate ->
+            candidate
+        end)
+      end)
 
-    legacy_wrong_target =
-      update_in(
-        wrong_target,
-        ["activities", Access.at(0), "repair", "replacement_ranking", "rows"],
-        fn rows ->
-          Enum.map(rows, fn row ->
-            Map.drop(row, [
-              "contact_intent_pressure_penalty",
-              "contact_contention_resolution_pressure_penalty"
-            ])
-          end)
-        end
-      )
+    for invalid <- [wrong_target, wrong_kind] do
+      assert {:error, report} = Schema.validate_artifact(invalid)
 
-    assert {:ok, %{"schema_contract" => "campaign_repair.v2"}} =
-             Schema.validate_artifact(legacy_wrong_target)
+      assert Enum.any?(
+               report["errors"],
+               &(&1["path"] ==
+                   "$.activities[0].repair.replacement_ranking.rows[1].candidate_id")
+             )
+    end
+
+    for legacy_source <- [wrong_target, wrong_kind] do
+      legacy =
+        update_in(
+          legacy_source,
+          ["activities", Access.at(0), "repair", "replacement_ranking", "rows"],
+          fn rows ->
+            Enum.map(rows, fn row ->
+              Map.drop(row, [
+                "contact_intent_pressure_penalty",
+                "contact_contention_resolution_pressure_penalty"
+              ])
+            end)
+          end
+        )
+
+      assert {:ok, %{"schema_contract" => "campaign_repair.v2"}} =
+               Schema.validate_artifact(legacy)
+    end
   end
 
   test "repair does not reuse a future selected activity as a replacement candidate" do

@@ -7,7 +7,6 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairReplacementSelection do
   alias OrbitalDynamics.CampaignPlanner.{
     ActivityIdentity,
     ActivityTiming,
-    DownlinkActivityNormalization,
     LinkCapacityPressureBranches,
     RepairActivityIdentity,
     RepairCandidateDiff,
@@ -19,17 +18,11 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairReplacementSelection do
   }
 
   def candidate(activity, type, acc, context) do
-    select(activity, &(&1["type"] == type), type, acc, context)
+    select(activity, type, acc, context)
   end
 
   def downlink_candidate(activity, acc, context) do
-    select(
-      activity,
-      &DownlinkActivityNormalization.downlink?/1,
-      "downlink",
-      acc,
-      context
-    )
+    select(activity, "downlink", acc, context)
   end
 
   def candidate_diff(source, candidate, context) do
@@ -40,7 +33,7 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairReplacementSelection do
     |> RepairCandidateDiff.match("source")
   end
 
-  defp select(activity, candidate_filter, intent_type, acc, context) do
+  defp select(activity, intent_type, acc, context) do
     context.candidates
     |> Enum.map(&ValueEncoding.stringify_keys/1)
     |> Enum.reject(&(ActivityIdentity.activity_id(&1) == ActivityIdentity.activity_id(activity)))
@@ -48,7 +41,7 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairReplacementSelection do
       &MapSet.member?(context.selected_activity_ids, ActivityIdentity.activity_id(&1))
     )
     |> Enum.reject(&MapSet.member?(acc.used_replacement_ids, ActivityIdentity.activity_id(&1)))
-    |> Enum.filter(candidate_filter)
+    |> Enum.filter(&RepairReplacementIntent.candidate_kind_matches?(&1, intent_type))
     |> Enum.filter(&ActivityTiming.within_remaining_horizon?(&1, context.remaining_horizon))
     |> Enum.filter(&(ActivityTiming.activity_start(&1) >= context.current_epoch_s))
     |> Enum.reject(
