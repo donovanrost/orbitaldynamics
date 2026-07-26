@@ -605,8 +605,11 @@ schema-type their stable IDs, invalid-input flags, and protected/change counts.
   pressure evidence; fully legacy rankings without either remain compatible. It
   also recomputes semantic-diff priority from exact source ID/window and
   replacement-candidate links in the embedded source diff report, and pins the
-  selected row to the enclosing repaired activity and optional
-  source/replacement timeline handoff IDs. Current projected-resource risk
+  selected row to the enclosing repaired activity. Current rankings require
+  stable source/replacement handoff IDs and a complete four-ID `timeline_link`:
+  source IDs bind to `source_activity_context.timeline_identity`, and
+  replacement IDs bind to the enclosing repaired activity. Fully legacy
+  rankings may omit that entire handoff. Current projected-resource risk
   indicators also bind their
   spacecraft scope to a valid normalized `source_resource_summaries` row that
   applies to the exact ranked source candidate by spacecraft/scenario identity;

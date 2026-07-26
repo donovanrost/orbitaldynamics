@@ -5,45 +5,48 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Require source timing context on current Repair rankings.
+Require timeline handoff identity on current Repair rankings.
 
 Status:
-Complete and verified from published base `5c5d35b2`; scoped publish pending.
+Complete and verified from published base `dad1232c`; scoped publish pending.
 
 Delivered behavior:
-- Classify a replacement ranking as current when its rows carry current optional
-  contact-intent, contention, projected-link, or candidate-identified resource
-  evidence.
-- Require `repair.source_activity_context` on current rankings so exact
-  source-to-candidate start-time churn remains replayable.
-- Keep fully legacy rankings without current markers or source context valid;
-  continue validating fixed churn and move-cost arithmetic there.
+- Classify current replacement rankings from the same optional contact,
+  projected-link, and candidate-identified resource evidence used by schedule
+  validation.
+- Require stable `source_activity_id`, `source_timeline_id`, and
+  `replacement_timeline_id` fields plus a complete four-ID `timeline_link` on
+  current rankings.
+- Bind source handoff IDs to
+  `source_activity_context.timeline_identity`, while retaining the existing
+  replacement bindings to the selected enclosing activity.
+- Keep fully legacy rankings without current markers valid when source context
+  and the entire handoff are absent.
 - Do not change JSON Schema, producer output, scoring, selection, scheduling,
   review/import routing, provider state, commanding, or authority.
 
 Verification evidence:
-- Focused schedule/replacement-ranking producer gate: `7 passed`.
+- Focused replacement-ranking and Repair replacement producer gate: `7 passed`.
 - Expanded Repair selection, source-handoff, and golden gate: `41 passed`.
 - Saved-artifact lint: `155` artifacts, `0` errors, `0` warnings.
-- Final full suite: `5240 passed` in `702.1s`.
-- Structural proof: removing source context plus both current per-row pressure
-  fields keeps the fully legacy readiness ranking valid; removing only source
-  context from the current ranking fails at
-  `$.activities[0].repair.source_activity_context`.
-- Fixed churn cost and churn-times-move arithmetic remain validated on the
-  fully legacy row, while current rows retain exact source-to-candidate timing
-  replay.
-- Repair schema, aggregate schema bundle, canonical Repair, and canonical
-  Strategy hashes remained byte-identical; no generated artifacts changed.
+- Final full suite: `5240 passed` in `669.1s`.
+- Structural proof: deleting source context, all four handoff fields, and both
+  current per-row pressure fields keeps a fully legacy ranking valid; deleting
+  any current top-level or nested handoff ID fails at its exact path.
+- Coordinated source activity/timeline drift across top-level repair fields and
+  `timeline_link` fails against preserved source timeline identity.
+- Candidate Refresh schema, Repair schema, aggregate schema bundle, canonical
+  Repair, and canonical Strategy hashes remained byte-identical; no generated
+  artifacts changed.
 - `mix format --check-formatted` and `git diff --check` pass.
 
 Level 6 pillar advanced:
 Candidate-specific decision explainability and versioned artifact compatibility.
 
 Last published slice:
-- `5c5d35b2` Reject mixed repair resource indicator identity (`5240 passed`;
-  fully legacy rankings remain valid while current rankings require identity on
-  every projected-resource indicator).
+- `dad1232c` Require source timing on current repair rankings (`5240 passed`;
+  current rankings require source context while fully legacy rankings retain
+  their compatibility path).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions only from authoritative,
@@ -54,8 +57,8 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-After binding current rankings to source timing, resume the fleet-scale Repair
-decision audit from the clean published checkout.
+After timeline handoff validation, resume the fleet-scale Repair decision audit
+from the clean published checkout.
 
 Blocked:
 None.

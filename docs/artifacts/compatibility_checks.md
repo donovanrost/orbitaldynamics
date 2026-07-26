@@ -1955,7 +1955,12 @@ Current replacement-ranking envelopes also require the enclosing
 `repair.source_activity_context`, retaining exact source-to-candidate start-time
 churn replay. Only fully legacy rankings that omit current optional pressure
 markers may omit that source context; fixed churn and move-cost arithmetic still
-validate for those legacy rows.
+validate for those legacy rows. Current envelopes also require stable
+`source_activity_id`, `source_timeline_id`, and `replacement_timeline_id` fields
+plus all four IDs in `timeline_link`. Source IDs are reconciled to
+`source_activity_context.timeline_identity`, and replacement IDs are reconciled
+to the enclosing selected activity. Fully legacy rankings may omit the entire
+handoff together with their current pressure markers and source context.
 
 For repeatable file-to-file generation, use the campaign run task:
 

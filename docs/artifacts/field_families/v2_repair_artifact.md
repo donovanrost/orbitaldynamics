@@ -392,8 +392,12 @@ downlink/station/time normalization.
   calibrated station-calendar, projected link-capacity, and projected resource
   penalties, the resulting greedy ranking score, rank, and selected flag. The
   current envelope requires `repair.source_activity_context` so start-time churn
-  remains replayable; fully legacy rankings without current optional pressure
-  markers may omit it. The current projected-resource indicators carry the
+  remains replayable. It also requires stable top-level source/replacement IDs
+  and a complete four-ID `timeline_link`, binds source IDs to the source
+  context's timeline identity, and binds replacement IDs to the selected
+  repaired activity. Fully legacy rankings without current optional pressure
+  markers may omit the source context and entire handoff. The current
+  projected-resource indicators carry the
   ranked candidate ID and must use a spacecraft scope from an applicable valid
   source resource summary;
   explicit spacecraft/scenario matching, single unscoped-summary fallback, and

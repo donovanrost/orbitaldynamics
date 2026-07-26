@@ -237,8 +237,11 @@ Status: **implemented** (with **partial**, **near-term**, **later**, and **out o
   that ranking must carry it.
   Current ranking envelopes also require `repair.source_activity_context`, so
   source-to-candidate start-time churn cannot become unreplayable by deleting
-  context while retaining current pressure evidence. Fully legacy rankings may
-  omit both the current markers and source context.
+  context while retaining current pressure evidence. They also require stable
+  source/replacement handoff IDs and a complete four-ID `timeline_link`; source
+  IDs must match `source_activity_context.timeline_identity`, while replacement
+  IDs remain bound to the enclosing repaired activity. Fully legacy rankings
+  may omit the current markers, source context, and entire timeline handoff.
   Station-pressure penalties and source paths are recomputed from exact
   candidate IDs in the embedded allocation and station-calendar reports, so a
   row cannot claim allocation-only, calendar-only, or dual-source pressure for

@@ -39,6 +39,24 @@ defmodule OrbitalDynamics.Schema.CampaignRepairReplacementRankingContracts do
     "ranking_score",
     "selected"
   ]
+  @current_row_fields [
+    "contact_intent_pressure_penalty",
+    "contact_contention_resolution_pressure_penalty",
+    "link_capacity_pressure_required_downlink_mb",
+    "link_capacity_pressure_selected_capacity_adjusted_throughput_mb"
+  ]
+  @current_handoff_fields [
+    "source_activity_id",
+    "source_timeline_id",
+    "replacement_timeline_id",
+    "timeline_link"
+  ]
+  @current_timeline_link_fields [
+    "source_activity_id",
+    "replacement_activity_id",
+    "source_timeline_id",
+    "replacement_timeline_id"
+  ]
 
   import OrbitalDynamics.Schema.PrimitiveValidation,
     only: [
@@ -131,7 +149,102 @@ defmodule OrbitalDynamics.Schema.CampaignRepairReplacementRankingContracts do
     |> validate_stable_ids(path, ranking, ["selected_candidate_id"])
     |> validate_rows(path <> ".rows", rows)
     |> validate_consistency(path, ranking, rows)
+    |> validate_current_handoff(repair_path, repair, rows)
     |> validate_selected_handoff(path, ranking, repair_path, repair, activity)
+  end
+
+  defp validate_current_handoff(issues, repair_path, repair, rows) do
+    if current_ranking?(rows) do
+      timeline_link = Map.get(repair, "timeline_link")
+
+      issues
+      |> require_fields(repair_path, repair, @current_handoff_fields)
+      |> validate_stable_ids(repair_path, repair, [
+        "source_activity_id",
+        "source_timeline_id",
+        "replacement_timeline_id"
+      ])
+      |> expect_type(repair_path, repair, "timeline_link", :map)
+      |> validate_current_timeline_link(repair_path <> ".timeline_link", timeline_link)
+      |> validate_current_source_identity(repair_path, repair)
+    else
+      issues
+    end
+  end
+
+  defp validate_current_timeline_link(issues, path, %{} = timeline_link) do
+    issues
+    |> require_fields(path, timeline_link, @current_timeline_link_fields)
+    |> validate_stable_ids(path, timeline_link, @current_timeline_link_fields)
+  end
+
+  defp validate_current_timeline_link(issues, _path, _timeline_link), do: issues
+
+  defp validate_current_source_identity(
+         issues,
+         repair_path,
+         %{"source_activity_context" => %{} = source_context} = repair
+       ) do
+    identity = Map.get(source_context, "timeline_identity")
+    identity_path = repair_path <> ".source_activity_context.timeline_identity"
+
+    issues
+    |> require_fields(repair_path <> ".source_activity_context", source_context, [
+      "timeline_identity"
+    ])
+    |> expect_type(
+      repair_path <> ".source_activity_context",
+      source_context,
+      "timeline_identity",
+      :map
+    )
+    |> validate_current_source_timeline_identity(identity_path, identity, repair)
+  end
+
+  defp validate_current_source_identity(issues, _repair_path, _repair), do: issues
+
+  defp validate_current_source_timeline_identity(issues, path, %{} = identity, repair) do
+    issues
+    |> require_fields(path, identity, ["activity_id", "timeline_id"])
+    |> validate_stable_ids(path, identity, ["activity_id", "timeline_id"])
+    |> validate_equal(
+      path <> ".activity_id",
+      Map.get(identity, "activity_id"),
+      Map.get(repair, "source_activity_id"),
+      "must match repair.source_activity_id"
+    )
+    |> validate_equal(
+      path <> ".timeline_id",
+      Map.get(identity, "timeline_id"),
+      Map.get(repair, "source_timeline_id"),
+      "must match repair.source_timeline_id"
+    )
+  end
+
+  defp validate_current_source_timeline_identity(issues, _path, _identity, _repair),
+    do: issues
+
+  defp current_ranking?(rows) when is_list(rows) do
+    Enum.any?(rows, fn
+      %{} = row ->
+        Enum.any?(@current_row_fields, &Map.has_key?(row, &1)) or
+          current_resource_indicator?(row)
+
+      _row ->
+        false
+    end)
+  end
+
+  defp current_ranking?(_rows), do: false
+
+  defp current_resource_indicator?(row) do
+    case Map.get(row, "resource_projection_pressure_risk_indicators") do
+      indicators when is_list(indicators) ->
+        Enum.any?(indicators, &(is_map(&1) and Map.has_key?(&1, "candidate_id")))
+
+      _indicators ->
+        false
+    end
   end
 
   defp validate_selected_handoff(issues, path, ranking, repair_path, repair, activity) do

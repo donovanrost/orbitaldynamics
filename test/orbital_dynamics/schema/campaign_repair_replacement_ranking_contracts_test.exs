@@ -41,6 +41,10 @@ defmodule OrbitalDynamics.Schema.CampaignRepairReplacementRankingContractsTest d
         fn repair ->
           repair
           |> Map.delete("source_activity_context")
+          |> Map.delete("source_activity_id")
+          |> Map.delete("source_timeline_id")
+          |> Map.delete("replacement_timeline_id")
+          |> Map.delete("timeline_link")
           |> update_in(["replacement_ranking", "rows"], fn rows ->
             Enum.map(rows, fn row ->
               row
@@ -137,6 +141,22 @@ defmodule OrbitalDynamics.Schema.CampaignRepairReplacementRankingContractsTest d
         source_candidate
       ])
 
+    coordinated_source_activity_drift =
+      context.artifact
+      |> put_in_path(repair_path <> ".source_activity_id", "dl_source_drift")
+      |> put_in_path(
+        repair_path <> ".timeline_link.source_activity_id",
+        "dl_source_drift"
+      )
+
+    coordinated_source_timeline_drift =
+      context.artifact
+      |> put_in_path(repair_path <> ".source_timeline_id", "timeline:source:drift")
+      |> put_in_path(
+        repair_path <> ".timeline_link.source_timeline_id",
+        "timeline:source:drift"
+      )
+
     invalid_cases = [
       {ranking_path <> ".model",
        put_in_path(context.artifact, ranking_path <> ".model", "legacy_replacement_ranking")},
@@ -167,6 +187,37 @@ defmodule OrbitalDynamics.Schema.CampaignRepairReplacementRankingContractsTest d
          ["activities", Access.at(context.activity_index)],
          &Map.delete(&1, "id")
        )},
+      {repair_path <> ".source_activity_id",
+       delete_in_path(context.artifact, repair_path <> ".source_activity_id")},
+      {repair_path <> ".source_timeline_id",
+       delete_in_path(context.artifact, repair_path <> ".source_timeline_id")},
+      {repair_path <> ".replacement_timeline_id",
+       delete_in_path(context.artifact, repair_path <> ".replacement_timeline_id")},
+      {repair_path <> ".timeline_link",
+       delete_in_path(context.artifact, repair_path <> ".timeline_link")},
+      {repair_path <> ".timeline_link.source_activity_id",
+       delete_in_path(context.artifact, repair_path <> ".timeline_link.source_activity_id")},
+      {repair_path <> ".timeline_link.replacement_activity_id",
+       delete_in_path(
+         context.artifact,
+         repair_path <> ".timeline_link.replacement_activity_id"
+       )},
+      {repair_path <> ".timeline_link.source_timeline_id",
+       delete_in_path(context.artifact, repair_path <> ".timeline_link.source_timeline_id")},
+      {repair_path <> ".timeline_link.replacement_timeline_id",
+       delete_in_path(
+         context.artifact,
+         repair_path <> ".timeline_link.replacement_timeline_id"
+       )},
+      {repair_path <> ".source_activity_context.timeline_identity",
+       delete_in_path(
+         context.artifact,
+         repair_path <> ".source_activity_context.timeline_identity"
+       )},
+      {repair_path <> ".source_activity_context.timeline_identity.activity_id",
+       coordinated_source_activity_drift},
+      {repair_path <> ".source_activity_context.timeline_identity.timeline_id",
+       coordinated_source_timeline_drift},
       {repair_path <> ".replacement_timeline_id",
        put_in_path(
          context.artifact,
@@ -402,6 +453,13 @@ defmodule OrbitalDynamics.Schema.CampaignRepairReplacementRankingContractsTest d
 
   defp put_in_path(artifact, path, value) do
     put_in(artifact, path_keys(path), value)
+  end
+
+  defp delete_in_path(artifact, path) do
+    keys = path_keys(path)
+    {field, parent_keys} = List.pop_at(keys, -1)
+
+    update_in(artifact, parent_keys, &Map.delete(&1, field))
   end
 
   defp get_in_path(artifact, path), do: get_in(artifact, path_keys(path))
