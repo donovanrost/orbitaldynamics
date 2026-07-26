@@ -1983,6 +1983,10 @@ The same checked handoff applies to Repair plan deltas: present packages carry
 one plan-delta row per enclosing delta, and present `source_delta` copies equal
 the corresponding Repair delta in source order. Older package or copy
 omissions remain valid.
+Present packages also carry one warning row per enclosing Repair warning.
+Operator-review, Cadence, and present embedded source-review reasons equal the
+corresponding warning in source order; older package or embedded-row omissions
+remain valid.
 Replacement-ranking link-pressure validation preserves fully legacy rankings
 whose pressured rows carry only shortfall. New producer rows under pressure also
 carry projected required downlink demand and selected capacity-adjusted

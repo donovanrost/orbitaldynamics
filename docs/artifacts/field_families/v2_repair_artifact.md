@@ -58,6 +58,10 @@ omissions remain valid.
 Present packages also carry exactly one plan-delta row per enclosing Repair
 delta, and present `source_delta` copies equal the corresponding delta in source
 order. Older package or copy omissions remain valid.
+Present packages also carry exactly one warning row per enclosing Repair
+warning. Operator-review, Cadence, and present embedded source-review reasons
+equal the corresponding warning in source order; older package or embedded-row
+omissions remain valid.
 
 ### `realized_state_snapshot`
 
