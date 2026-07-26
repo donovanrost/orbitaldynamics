@@ -414,6 +414,11 @@ downlink/station/time normalization.
   to use normalized downlink candidates and current observation rows to use
   exact `observe` type. Fully legacy kind membership remains compatible, and
   unrelated artifact surfaces retain the open future activity-type vocabulary.
+  Current rows additionally replay degraded-mode eligibility from
+  `realized_state_snapshot` and `repair_policy` with the producer's normalized
+  mode derivation, incompatibility rule, and configured command/health
+  exemptions. Fully legacy degraded membership remains compatible; sequential
+  selected/used/overlap exclusions are not inferred from this envelope.
   The current envelope requires `repair.source_activity_context` so start-time
   churn remains replayable. It also requires stable top-level source/replacement
   IDs and a complete four-ID `timeline_link`, binds source IDs to the source

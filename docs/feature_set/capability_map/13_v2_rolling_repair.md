@@ -254,6 +254,12 @@ Status: **implemented** (with **partial**, **near-term**, **later**, and **out o
   observation row to use exact `observe` type. Fully legacy rankings retain
   historical kind-membership compatibility, and the general activity-type
   vocabulary remains open to future nonblank tokens.
+  Current rows also replay degraded-mode eligibility from the preserved realized
+  spacecraft states and normalized Repair policy through the producer's own
+  incompatibility predicate, including configured command/health exemptions.
+  Fully legacy rankings retain historical degraded-membership compatibility;
+  validator replay does not infer selected-plan, used-replacement, or sequential
+  overlap state.
   Current candidate-identified resource-risk
   indicators must additionally use a spacecraft scope from a valid embedded
   source resource summary applicable to that exact candidate under the resource

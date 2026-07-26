@@ -621,7 +621,12 @@ schema-type their stable IDs, invalid-input flags, and protected/change counts.
   downlink rows to use normalized downlink candidates and current observation
   rows to use exact `observe` type, while fully legacy kind membership and the
   open future activity-type vocabulary remain compatible. Validation then
-  recomputes semantic-diff priority from exact source ID/window and
+  replays degraded-mode eligibility from the preserved realized spacecraft
+  states and normalized Repair policy with the producer's own incompatibility
+  predicate and configured command/health exemptions. Fully legacy degraded
+  membership remains compatible, and validation does not infer sequential
+  accumulator exclusions. It then recomputes semantic-diff priority from exact
+  source ID/window and
   replacement-candidate links in the embedded source diff report, and pins the
   selected row to the enclosing repaired activity. For current rankings, that
   activity's complete non-`repair` snapshot must equal the unique embedded

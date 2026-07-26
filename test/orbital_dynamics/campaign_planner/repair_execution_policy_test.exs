@@ -52,7 +52,28 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairExecutionPolicyTest do
         end)
       end)
 
-    for invalid <- [wrong_target, wrong_kind] do
+    degraded_candidate =
+      update_in(artifact, ["realized_state_snapshot"], fn snapshot ->
+        Map.put(snapshot, "spacecraft_states", [
+          %{
+            "scenario_id" => "leo_1",
+            "mode" => "degraded",
+            "incompatible_activity_types" => ["observe"]
+          }
+        ])
+      end)
+
+    exempt_degraded_candidate =
+      put_in(
+        degraded_candidate,
+        ["repair_policy", "command_health_activity_types"],
+        ["observe"]
+      )
+
+    assert {:ok, %{"schema_contract" => "campaign_repair.v2"}} =
+             Schema.validate_artifact(exempt_degraded_candidate)
+
+    for invalid <- [wrong_target, wrong_kind, degraded_candidate] do
       assert {:error, report} = Schema.validate_artifact(invalid)
 
       assert Enum.any?(
@@ -62,7 +83,7 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairExecutionPolicyTest do
              )
     end
 
-    for legacy_source <- [wrong_target, wrong_kind] do
+    for legacy_source <- [wrong_target, wrong_kind, degraded_candidate] do
       legacy =
         update_in(
           legacy_source,
@@ -80,6 +101,61 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairExecutionPolicyTest do
       assert {:ok, %{"schema_contract" => "campaign_repair.v2"}} =
                Schema.validate_artifact(legacy)
     end
+  end
+
+  test "repair excludes degraded-incompatible replacement candidates" do
+    artifact =
+      repair(
+        %{
+          "activities" => [
+            observe("obs_source", "leo_1", "target_a", 200.0, 260.0, 200.0)
+          ],
+          "candidate_activities" => [
+            observe("obs_source", "leo_1", "target_a", 200.0, 260.0, 200.0),
+            observe("obs_degraded", "leo_2", "target_a", 300.0, 360.0, 500.0),
+            observe("obs_healthy", "leo_3", "target_a", 400.0, 460.0, 50.0)
+          ]
+        },
+        realized_state: %{
+          activities: [%{id: "obs_source", status: "failed"}],
+          spacecraft_states: [
+            %{
+              scenario_id: "leo_2",
+              mode: "degraded",
+              incompatible_activity_types: ["observe"]
+            }
+          ]
+        },
+        current_epoch_s: 180.0
+      )
+
+    assert [
+             %{
+               "id" => "obs_healthy",
+               "repair" => %{
+                 "replacement_ranking" => %{
+                   "evaluated_candidate_count" => 1,
+                   "rows" => [
+                     %{"candidate_id" => "obs_healthy", "rank" => 1, "selected" => true}
+                   ]
+                 }
+               }
+             }
+           ] = artifact["activities"]
+
+    refute Enum.any?(
+             get_in(artifact, [
+               "activities",
+               Access.at(0),
+               "repair",
+               "replacement_ranking",
+               "rows"
+             ]),
+             &(&1["candidate_id"] == "obs_degraded")
+           )
+
+    assert {:ok, %{"schema_contract" => "campaign_repair.v2"}} =
+             Schema.validate_artifact(artifact)
   end
 
   test "repair does not reuse a future selected activity as a replacement candidate" do

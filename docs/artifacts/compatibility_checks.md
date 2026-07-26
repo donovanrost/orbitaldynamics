@@ -1979,6 +1979,12 @@ repair uses the producer's normalized downlink classification, while observation
 repair requires exact `observe` type. Fully legacy kind membership remains
 compatible, and future nonblank activity tokens remain valid on unrelated
 artifact surfaces.
+Current rows also replay degraded-mode eligibility from the preserved
+`realized_state_snapshot` and normalized `repair_policy`, reusing the producer's
+degraded-state derivation, incompatibility predicate, and configured
+command/health exemptions. Fully legacy degraded membership remains compatible;
+selected-plan, used-replacement, and sequential-overlap exclusions are not
+inferred without complete accumulator history.
 Projected-resource replacement evidence likewise preserves fully legacy
 rankings whose indicators all omit candidate identity. Once any indicator
 carries the current ranked candidate ID, every projected-resource indicator in

@@ -5,55 +5,53 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Bind current Repair ranking candidates to replacement activity kind.
+Reject degraded-incompatible current Repair ranking candidates.
 
 Status:
-Implemented and verified from clean published base `72a84e4c`; ready to
+Implemented and verified from clean published base `fa6398ce`; ready to
 publish.
 
 Selection evidence:
-- The replacement selector applies an activity-kind filter immediately before
-  repair-intent matching, but runtime validation only replays the identity
-  dimensions of that intent.
-- Activity contracts deliberately allow future nonblank type tokens, so a
-  wrong-kind candidate can remain structurally valid while carrying matching
-  scenario/station or target fields.
-- Exact observation type matching and normalized downlink-kind matching are
-  preserved on every embedded source candidate and require no hidden state.
+- The replacement selector excludes candidates incompatible with degraded
+  spacecraft state and Repair policy, but runtime ranking validation does not
+  replay that predicate.
+- Repair artifacts preserve normalized realized spacecraft states and the exact
+  normalized policy fields used to derive degraded-mode incompatibilities and
+  command/health exemptions.
+- A current artifact can therefore reintroduce a degraded-incompatible ranked
+  candidate while all existing ranking arithmetic and intent checks remain
+  valid.
 
 Delivered behavior:
-- Extend the shared replacement-eligibility predicate with the producer's exact
-  activity-kind filter.
-- Require current downlink rankings to contain only candidates accepted by
-  normalized downlink classification and current observation rankings to
-  contain only exact `observe` candidates.
-- Keep wrong-kind failures at the exact ranking-row candidate ID and preserve
-  fully legacy rankings without current pressure markers.
-- Preserve future activity-type vocabulary everywhere outside the two explicit
-  Repair replacement branches.
+- Reuse the producer's degraded-mode derivation and incompatibility predicate
+  against the artifact's preserved realized state and Repair policy.
+- Reject each degraded-incompatible current ranking row at its exact candidate
+  ID while preserving command/health policy exemptions.
+- Preserve fully legacy rankings without current pressure markers.
+- Do not infer selected-plan, used-replacement, or sequential overlap state that
+  depends on accumulator history not fully preserved in the ranking envelope.
 - Do not change JSON Schema, producer output, scoring, selection, scheduling,
   review/import routing, provider state, commanding, or authority.
 
 Verification:
-- Focused Repair intent, replacement-ranking, and producer gate: `19 passed`.
+- Focused degraded-mode, replacement-ranking, and producer gate: `20 passed`.
 - Expanded Repair selection, source-handoff, and golden-artifact gate:
-  `53 passed`.
+  `54 passed`.
 - Saved-artifact lint: `155` artifacts passed with `0` errors and `0` warnings.
 - Canonical Repair and Strategy regeneration remained byte-stable at
   `cc41834e706fd1e04a4c5578032fdf99ceeba949a02fd75fc54c8b70cdc30d8a`
   and
   `57602722702969da587e2754df84bca1e06e86cc32fa5af7f3f78451b72f9985`.
-- Full `mix test --timeout 120000`: `5244 passed` in `707.2s` on the exact
-  reviewed tree.
+- Full `mix test --timeout 120000`: `5245 passed` in `654.0s`.
 - `mix format --check-formatted` and `git diff --check` pass.
 
 Level 6 pillar advanced:
 Fleet-scale candidate-pool integrity and operator-review evidence fidelity.
 
 Last published slice:
-- `72a84e4c` Bind Repair rankings to repair intent (`5244 passed`; current rows
-  replay source scenario/station or target intent while legacy intent-membership
-  compatibility remains unchanged).
+- `fa6398ce` Bind Repair rankings to activity kind (`5244 passed`; current rows
+  replay normalized downlink or exact observation kind while legacy kind
+  compatibility and open activity vocabulary remain unchanged).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions only from authoritative,
@@ -64,8 +62,8 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-After replacement-kind validation, continue auditing remaining replayable
-replacement eligibility from the clean published checkout.
+After degraded-mode validation, continue auditing remaining replayable
+replacement eligibility without inferring sequential accumulator state.
 
 Blocked:
 None.
