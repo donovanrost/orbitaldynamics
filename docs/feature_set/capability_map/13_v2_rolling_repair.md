@@ -55,6 +55,9 @@ Status: **implemented** (with **partial**, **near-term**, **later**, and **out o
 - Present decision fallback fields bind to the same-named approval-count limit,
   risk-count limits, and blocked-risk types in the enclosing normalized
   approval policy without replaying action rules; older omissions remain valid.
+- Present decision match IDs resolve to unique enclosing approval action rules,
+  and present match classification and reason copies bind to those source rules;
+  older rule or match-field omissions remain valid without selector replay.
 - **`contact_allocation_report.v1`** over repaired contact activities. The
   optional report is a declared V2 nested contract; runtime validation applies
   its full row, count, summary, nested contention/resolution, stable-identity,

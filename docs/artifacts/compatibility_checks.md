@@ -1971,6 +1971,10 @@ Present Repair decision fallback fields also match the same-named approval-count
 limit, risk-count limits, and blocked-risk types in the enclosing normalized
 `approval_policy`. Older fallback or field omissions remain valid, and action
 rules are not re-evaluated during validation.
+When both rule surfaces are present, each Repair decision match ID must resolve
+to the unique enclosing approval action rule, and present match classification
+and reason copies must equal that source rule. Older action-rule or match-field
+omissions remain valid; selectors are not replayed.
 Replacement-ranking link-pressure validation preserves fully legacy rankings
 whose pressured rows carry only shortfall. New producer rows under pressure also
 carry projected required downlink demand and selected capacity-adjusted

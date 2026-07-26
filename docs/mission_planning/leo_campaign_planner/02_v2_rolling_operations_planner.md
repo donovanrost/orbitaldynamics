@@ -725,7 +725,10 @@ schema-type their stable IDs, invalid-input flags, and protected/change counts.
   unmatched requirements and older omissions remain valid. Present decision
   fallback fields also bind to the same-named approval-count limit, risk-count
   limits, and blocked-risk types in the normalized approval policy without
-  replaying action rules; older fallback omissions remain valid.
+  replaying action rules; older fallback omissions remain valid. Present
+  decision match IDs also resolve to unique enclosing approval action rules, and
+  present classification and reason copies bind to those rules without replaying
+  selectors; older rule or match-field omissions remain valid.
 
 The current repair behavior is deliberately transparent:
 

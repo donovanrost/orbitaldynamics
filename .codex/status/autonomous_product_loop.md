@@ -5,48 +5,47 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Bind Repair fallback policy evidence.
+Bind Repair rule provenance.
 
 Status:
-Verified from clean published base `cd99f80b`; ready to publish.
+Verified from clean published base `143a8982`; ready to publish.
 
 Selection evidence:
-- Repair stores its normalized approval policy and passes the same policy into
-  decision construction.
-- The decision fallback policy directly copies the approval-count limit,
-  risk-count limits, and blocked-risk types from that enclosing policy.
-- Runtime validation checks the approval policy and decision independently but
-  does not bind these direct copies; no action-rule replay, policy evaluation,
-  source-plan reconstruction, external authority, or hidden state is required.
+- Every Repair decision rule match is constructed from one normalized approval
+  action rule and directly copies that rule's ID, classification, and reason.
+- Stored action-rule IDs are already unique, so a present match ID has one
+  deterministic provenance row and its immutable result fields are replayable.
+- Runtime validation checks rules and matches independently but does not bind
+  this provenance; no selector replay, policy evaluation, source reconstruction,
+  external authority, or hidden state is required.
 
 Delivered behavior:
-- Bind present decision fallback fields to the same-named approval-count limit,
-  risk-count limits, and blocked-risk types in the enclosing Repair approval
-  policy.
-- Reject a present non-object fallback policy while preserving older whole-field
-  and individual-field omissions on either side of the handoff.
-- Leave action-rule evaluation, producer output, JSON Schema, planning,
-  provider, command, import, and authority behavior unchanged.
+- Bind present Repair decision rule-match IDs to the unique enclosing normalized
+  approval action rule.
+- Bind present match classification and reason copies to that source rule while
+  preserving older whole-rule and match-field omissions.
+- Leave selector replay, policy evaluation, producer output, JSON Schema,
+  planning, provider, command, import, and authority behavior unchanged.
 
 Verification:
-- Focused approval-decision contract gate: `7 passed`.
-- Adjacent Repair/Strategy produced-surface gate: `16 passed`.
-- Expanded Repair schema gate: `330 passed`.
+- Focused approval-decision contract gate: `9 passed`.
+- Adjacent Repair/Strategy produced-surface gate: `18 passed`.
+- Expanded Repair schema gate: `332 passed`.
 - Direct Repair planner gate: `225 passed`.
 - Saved-artifact lint: `155` artifacts passed with zero errors, warnings, or
   remediation.
 - Canonical Repair and Strategy regeneration was byte-identical to the
   published fixtures.
-- Full suite: `5257 passed` in 804.9 seconds.
+- Full suite: `5259 passed` in 780.1 seconds.
 - `mix format --check-formatted` and `git diff --check` passed.
 
 Level 6 pillar advanced:
 Fleet-scale candidate-pool integrity and operator-review evidence fidelity.
 
 Last published slice:
-- `cd99f80b` Bind Repair approval requirement enrichment (`5256 passed`; present
-  requirement rule matches and classification bind to the embedded decision
-  subset while unmatched evidence and older omissions remain compatible).
+- `143a8982` Bind Repair fallback policy evidence (`5257 passed`; present
+  decision fallback controls bind to the normalized Repair approval policy
+  while older whole-field and individual-field omissions remain compatible).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions only from authoritative,
@@ -57,7 +56,7 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-After Repair fallback policy binding, continue fleet-scale evidence
+After Repair rule provenance binding, continue fleet-scale evidence
 integrity only where producer outputs can be replayed without hidden source or
 accumulator state.
 

@@ -22,6 +22,7 @@ defmodule OrbitalDynamics.Schema.CampaignRepairApprovalDecisionContracts do
     |> validate_optional_rule_matches(artifact, decision)
     |> validate_requirement_enrichment(artifact, decision)
     |> validate_fallback_policy(artifact, decision)
+    |> validate_rule_provenance(artifact, decision)
   end
 
   def validate(issues, _artifact), do: issues
@@ -172,6 +173,63 @@ defmodule OrbitalDynamics.Schema.CampaignRepairApprovalDecisionContracts do
       )
     else
       issues
+    end
+  end
+
+  defp validate_rule_provenance(issues, artifact, decision) do
+    action_rules = get_in(artifact, ["approval_policy", "action_rules"])
+    rule_matches = Map.get(decision, "rule_matches")
+
+    if is_list(action_rules) and is_list(rule_matches) do
+      rule_matches
+      |> Enum.with_index()
+      |> Enum.reduce(issues, fn
+        {%{} = match, index}, acc ->
+          validate_rule_provenance_match(
+            acc,
+            "$.policy_decision.rule_matches[#{index}]",
+            match,
+            action_rules
+          )
+
+        {_match, _index}, acc ->
+          acc
+      end)
+    else
+      issues
+    end
+  end
+
+  defp validate_rule_provenance_match(issues, path, match, action_rules) do
+    case Map.get(match, "rule_id") do
+      rule_id when is_binary(rule_id) ->
+        case Enum.find(action_rules, &(is_map(&1) and Map.get(&1, "id") == rule_id)) do
+          nil ->
+            [
+              error(path <> ".rule_id", "must reference enclosing approval_policy.action_rules")
+              | issues
+            ]
+
+          rule ->
+            issues
+            |> validate_optional_equal(
+              path <> ".classification",
+              match,
+              "classification",
+              Map.get(rule, "classification"),
+              "must match the source approval action rule classification"
+            )
+            |> validate_optional_equal(
+              path <> ".reason",
+              match,
+              "reason",
+              Map.get(rule, "reason"),
+              "must match the source approval action rule reason"
+            )
+        end
+
+      _rule_id ->
+        issues
     end
   end
 

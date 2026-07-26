@@ -47,6 +47,10 @@ match has no activity identity. Unmatched rows and older omissions remain valid.
 Present decision fallback fields bind to the same-named approval-count limit,
 risk-count limits, and blocked-risk types in the enclosing normalized approval
 policy. Older fallback or field omissions remain valid.
+When both surfaces are present, decision match IDs bind to unique enclosing
+approval action rules and their present classification and reason copies bind to
+that rule. Older rule or match-field omissions remain valid without replaying
+selectors.
 
 ### `realized_state_snapshot`
 

@@ -97,6 +97,44 @@ defmodule OrbitalDynamics.Schema.CampaignRepairApprovalDecisionContractsTest do
              |> Schema.validate_artifact()
   end
 
+  test "keeps additive action-rule provenance optional", %{repair: repair} do
+    assert {:ok, %{"schema_contract" => "campaign_repair.v2"}} =
+             repair
+             |> update_in(["approval_policy"], &Map.delete(&1, "action_rules"))
+             |> Schema.validate_artifact()
+
+    without_match_id = update_rule_match_copies(repair, &Map.delete(&1, "rule_id"))
+
+    assert {:ok, %{"schema_contract" => "campaign_repair.v2"}} =
+             Schema.validate_artifact(without_match_id)
+  end
+
+  test "rejects Repair decision rule provenance drift", %{repair: repair} do
+    classification_drift =
+      repair
+      |> update_rule_match_copies(&Map.put(&1, "classification", "auto_approvable"))
+      |> Map.put("approval_status", "auto_approvable")
+      |> put_in(["policy_decision", "classification"], "auto_approvable")
+      |> put_in(["policy_decision", "approval_requirement_count"], 0)
+      |> put_in(
+        ["approval_requirements", Access.at(0), "policy_classification"],
+        "auto_approvable"
+      )
+
+    invalid_cases = [
+      {"$.policy_decision.rule_matches[0].rule_id",
+       update_rule_match_copies(repair, &Map.put(&1, "rule_id", "unknown_rule"))},
+      {"$.policy_decision.rule_matches[0].classification", classification_drift},
+      {"$.policy_decision.rule_matches[0].reason",
+       update_rule_match_copies(repair, &Map.put(&1, "reason", "drifted rule reason"))}
+    ]
+
+    for {expected_path, invalid} <- invalid_cases do
+      assert {:error, report} = Schema.validate_artifact(invalid)
+      assert Enum.any?(report["errors"], &(&1["path"] == expected_path))
+    end
+  end
+
   test "rejects Repair approval decision drift", context do
     invalid_cases = [
       {"$.approval_status", Map.put(context.repair, "approval_status", "blocked_by_policy")},
@@ -157,5 +195,17 @@ defmodule OrbitalDynamics.Schema.CampaignRepairApprovalDecisionContractsTest do
     path
     |> File.read!()
     |> :json.decode()
+  end
+
+  defp update_rule_match_copies(repair, update) do
+    match =
+      repair
+      |> get_in(["policy_decision", "rule_matches", Access.at(0)])
+      |> update.()
+
+    repair
+    |> Map.put("approval_rule_matches", [match])
+    |> put_in(["policy_decision", "rule_matches"], [match])
+    |> put_in(["approval_requirements", Access.at(0), "approval_rule_matches"], [match])
   end
 end
