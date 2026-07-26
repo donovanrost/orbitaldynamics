@@ -608,12 +608,16 @@ schema-type their stable IDs, invalid-input flags, and protected/change counts.
   legacy rankings without either remain compatible. Each current candidate is
   also rechecked against `current_epoch_s` and `remaining_horizon`, matching the
   producer's temporal membership filters without inferring sequential overlap
-  or used-replacement state. Current rows are also excluded when their candidate
-  ID is rejected by the preserved `source_candidate_rejection_report`, reusing
-  the producer's rejection-status and candidate-ID normalization. Fully legacy
-  rankings retain their prior compatibility, and reports not preserved in the
-  Repair artifact do not create inferred exclusions. Executable validation also
-  replays the producer's repair-intent matcher from preserved source context:
+  or used-replacement state. A current candidate ID must also differ from the
+  preserved `repair.source_activity_id`, replaying source-self exclusion without
+  reconstructing selected-plan or accumulator state. Fully legacy rankings
+  retain historical source-self compatibility. Current rows are also excluded
+  when their candidate ID is rejected by the preserved
+  `source_candidate_rejection_report`, reusing the producer's rejection-status
+  and candidate-ID normalization. Fully legacy rankings retain their prior
+  compatibility, and reports not preserved in the Repair artifact do not create
+  inferred exclusions. Executable validation also replays the producer's
+  repair-intent matcher from preserved source context:
   downlink alternatives stay in scenario and on any declared source station;
   observation alternatives stay on target while retaining cross-spacecraft,
   cross-scenario reassignment. Fully legacy rankings retain their historical

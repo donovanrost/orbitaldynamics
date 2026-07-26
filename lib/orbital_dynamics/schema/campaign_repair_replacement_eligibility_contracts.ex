@@ -82,12 +82,13 @@ defmodule OrbitalDynamics.Schema.CampaignRepairReplacementEligibilityContracts d
     activities
     |> Enum.with_index()
     |> Enum.reduce(issues, fn {activity, activity_index}, acc ->
-      {source_context, rows} = ranking_context(activity)
+      {source_activity_id, source_context, rows} = ranking_context(activity)
 
       validate_rows(
         acc,
         "$.activities[#{activity_index}].repair.replacement_ranking.rows",
         rows,
+        source_activity_id,
         source_context,
         source_candidates_by_id,
         degraded_modes,
@@ -105,20 +106,23 @@ defmodule OrbitalDynamics.Schema.CampaignRepairReplacementEligibilityContracts d
        ),
        do: issues
 
-  defp ranking_context(%{
-         "repair" => %{
-           "source_activity_context" => source_context,
-           "replacement_ranking" => %{"rows" => rows}
-         }
-       }),
-       do: {source_context, rows}
+  defp ranking_context(
+         %{
+           "repair" => %{
+             "source_activity_context" => source_context,
+             "replacement_ranking" => %{"rows" => rows}
+           }
+         } = activity
+       ),
+       do: {get_in(activity, ["repair", "source_activity_id"]), source_context, rows}
 
-  defp ranking_context(_activity), do: {nil, nil}
+  defp ranking_context(_activity), do: {nil, nil, nil}
 
   defp validate_rows(
          issues,
          path,
          rows,
+         source_activity_id,
          %{} = source_context,
          source_candidates_by_id,
          degraded_modes,
@@ -134,6 +138,7 @@ defmodule OrbitalDynamics.Schema.CampaignRepairReplacementEligibilityContracts d
             acc,
             "#{path}[#{index}]",
             row,
+            source_activity_id,
             source_context,
             source_candidates_by_id,
             degraded_modes,
@@ -152,6 +157,7 @@ defmodule OrbitalDynamics.Schema.CampaignRepairReplacementEligibilityContracts d
          issues,
          _path,
          _rows,
+         _source_activity_id,
          _source_context,
          _source_candidates_by_id,
          _degraded_modes,
@@ -163,11 +169,14 @@ defmodule OrbitalDynamics.Schema.CampaignRepairReplacementEligibilityContracts d
          issues,
          path,
          row,
+         source_activity_id,
          source_context,
          source_candidates_by_id,
          degraded_modes,
          repair_policy
        ) do
+    issues = validate_source_exclusion(issues, path, row, source_activity_id)
+
     case Map.get(source_candidates_by_id, Map.get(row, "candidate_id"), []) do
       [%{} = candidate] ->
         issues
@@ -176,6 +185,20 @@ defmodule OrbitalDynamics.Schema.CampaignRepairReplacementEligibilityContracts d
 
       _missing_or_ambiguous_candidate ->
         issues
+    end
+  end
+
+  defp validate_source_exclusion(issues, path, row, source_activity_id) do
+    if is_binary(source_activity_id) and Map.get(row, "candidate_id") == source_activity_id do
+      [
+        error(
+          path <> ".candidate_id",
+          "must not identify the preserved repair source activity as its own replacement"
+        )
+        | issues
+      ]
+    else
+      issues
     end
   end
 

@@ -400,6 +400,10 @@ downlink/station/time normalization.
   Each current row must identify a unique source candidate that overlaps the
   remaining horizon and starts no earlier than the repair current epoch; legacy
   rankings retain their historical temporal-membership compatibility.
+  Each current candidate ID must also differ from the preserved
+  `repair.source_activity_id`, replaying source-self exclusion without inferring
+  selected-plan or accumulator state. Fully legacy rankings retain historical
+  source-self compatibility.
   Each current row's candidate ID must also remain outside the rejected IDs
   normalized from the preserved `source_candidate_rejection_report`. Fully
   legacy rankings retain their historical rejection-membership compatibility,

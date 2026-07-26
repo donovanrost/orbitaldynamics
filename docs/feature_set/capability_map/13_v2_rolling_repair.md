@@ -237,12 +237,16 @@ Status: **implemented** (with **partial**, **near-term**, **later**, and **out o
   different selection. Every current row's unique source candidate must also
   overlap `remaining_horizon` and start at or after `current_epoch_s`, so past
   or out-of-horizon candidates cannot remain in an otherwise consistent
-  ranking explanation. A current row also cannot identify a candidate whose ID
-  is rejected by the preserved `source_candidate_rejection_report`, using the
-  producer's rejection-status and candidate-ID normalization. Fully legacy
-  rankings retain their historical rejection-membership compatibility, and
-  validation does not infer IDs from additional source rejection reports that
-  the Repair artifact did not preserve.
+  ranking explanation. A current candidate ID must differ from the preserved
+  `repair.source_activity_id`, replaying the producer's source-self exclusion
+  without inferring selected-plan or accumulator state. Fully legacy rankings
+  retain historical source-self compatibility. A current row also cannot
+  identify a candidate whose ID is rejected by the preserved
+  `source_candidate_rejection_report`, using the producer's rejection-status
+  and candidate-ID normalization. Fully legacy rankings retain their historical
+  rejection-membership compatibility, and validation does not infer IDs from
+  additional source rejection reports that the Repair artifact did not
+  preserve.
   Current rows also replay the producer's preserved repair intent: downlink
   candidates must match the source scenario and any declared source ground
   station, while observation candidates must keep the source target and may

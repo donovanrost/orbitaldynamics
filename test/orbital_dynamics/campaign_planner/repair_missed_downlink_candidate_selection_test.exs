@@ -7,7 +7,7 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairMissedDownlinkCandidateSelection
 
   alias OrbitalDynamics.Schema
 
-  test "repair skips duplicate replacement candidate ids during missed downlink repair" do
+  test "repair skips the failed source and duplicate replacement candidate ids" do
     missed_downlink = refreshed_downlink("dl_1", 100.0, 160.0)
 
     duplicate_a =

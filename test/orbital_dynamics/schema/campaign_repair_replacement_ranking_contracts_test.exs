@@ -360,6 +360,51 @@ defmodule OrbitalDynamics.Schema.CampaignRepairReplacementRankingContractsTest d
              Schema.validate_artifact(legacy_started)
   end
 
+  test "rejects the preserved repair source as a current replacement candidate", context do
+    ranking_path = ranking_path(context.activity_index)
+
+    source_activity_id =
+      get_in_path(
+        context.artifact,
+        "$.activities[#{context.activity_index}].repair.source_activity_id"
+      )
+
+    self_replacement =
+      add_unselected_candidate(context, source_activity_id, 520.0, -100.0)
+
+    assert {:error, report} = Schema.validate_artifact(self_replacement)
+
+    assert Enum.any?(
+             report["errors"],
+             &(&1["path"] == ranking_path <> ".rows[1].candidate_id" and
+                 &1["message"] ==
+                   "must not identify the preserved repair source activity as its own replacement")
+           )
+
+    legacy_self_replacement =
+      update_in(
+        self_replacement,
+        [
+          "activities",
+          Access.at(context.activity_index),
+          "repair",
+          "replacement_ranking",
+          "rows"
+        ],
+        fn rows ->
+          Enum.map(rows, fn row ->
+            Map.drop(row, [
+              "contact_intent_pressure_penalty",
+              "contact_contention_resolution_pressure_penalty"
+            ])
+          end)
+        end
+      )
+
+    assert {:ok, %{"schema_contract" => "campaign_repair.v2"}} =
+             Schema.validate_artifact(legacy_self_replacement)
+  end
+
   test "binds current downlink candidates to the preserved repair intent", context do
     ranking_path = ranking_path(context.activity_index)
     candidate_path = ranking_path <> ".rows[1].candidate_id"
