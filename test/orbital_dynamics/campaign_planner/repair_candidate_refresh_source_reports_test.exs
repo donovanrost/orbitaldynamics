@@ -66,6 +66,8 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
       "source_family" => "fleet_snapshot"
     }
 
+    source_candidate_refresh_model_limits = OrbitalDynamics.CandidateRefresh.model_limits()
+
     source_candidate_refresh_warnings = [
       "resource summary filters suppressed refreshed candidates",
       "no prior candidates compared",
@@ -535,6 +537,7 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
             validation_records: [source_validation_record],
             refreshed_windows: source_refreshed_windows,
             assumptions: source_candidate_refresh_assumptions,
+            model_limits: source_candidate_refresh_model_limits,
             accepted_planning_state: source_candidate_refresh_accepted_planning_state,
             warnings: source_candidate_refresh_warnings
           )
@@ -993,6 +996,9 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
     assert artifact["source_candidate_refresh_assumptions"] ==
              source_candidate_refresh_assumptions
 
+    assert artifact["source_candidate_refresh_model_limits"] ==
+             source_candidate_refresh_model_limits
+
     assert artifact["source_candidate_refresh_accepted_planning_state"] ==
              source_candidate_refresh_accepted_planning_state
 
@@ -1022,6 +1028,19 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
              &String.contains?(
                &1["source"] || get_in(&1, ["source_review_row", "source"]) || "",
                "source_refreshed_windows"
+             )
+           )
+
+    refute Enum.any?(
+             artifact["operator_review_package"]["rows"],
+             &String.contains?(&1["source"] || "", "source_candidate_refresh_model_limits")
+           )
+
+    refute Enum.any?(
+             artifact["cadence_import_manifest"]["rows"],
+             &String.contains?(
+               &1["source"] || get_in(&1, ["source_review_row", "source"]) || "",
+               "source_candidate_refresh_model_limits"
              )
            )
 
@@ -5342,6 +5361,8 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
         "ends_at_s" => 1_000.0,
         "output_step_s" => 60.0
       },
+      "model_limits" =>
+        Keyword.get(opts, :model_limits, OrbitalDynamics.CandidateRefresh.model_limits()),
       "accepted_planning_state" =>
         Keyword.get(opts, :accepted_planning_state, %{
           "snapshot_id" => "ops-state-1",

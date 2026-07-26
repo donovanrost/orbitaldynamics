@@ -5,82 +5,83 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Preserve and type the CandidateRefresh accepted-state reference in Repair V2.
+Preserve CandidateRefresh model limits in Repair V2.
 
 Status:
-Complete and verified from published base `3327a08e`; publication pending.
+Complete and verified from published base `a959aa14`; publication pending.
 
 Selection evidence:
-- CandidateRefresh requires a top-level `accepted_planning_state` reference with
-  `snapshot_id` and `spacecraft_state_count`; generated references also carry
-  `accepted_at` and `maneuver_execution_delta_count`.
-- Runtime currently checks only that the field is a map with the two required
-  keys, while its exported JSON Schema is only `{type: object}`.
-- Repair V2 preserves accepted-state source/quality/provenance and a candidate-
-  source maneuver-delta count, but drops the exact reference and therefore loses
-  the fleet `spacecraft_state_count` that conditioned CandidateRefresh.
-- Exact invalidated-candidate copying was audited and rejected as redundant:
-  `source_candidate_diff_report.invalidated_candidates` already retains those
-  same rows.
+- Generated CandidateRefresh artifacts always publish the exact six-item
+  executable `model_limits` list that declares precomputed-window, sampled-
+  boundary, thin-filter, deterministic-budget, and no-schedule-mutation limits.
+- CandidateRefresh runtime validation and JSON Schema already pin that exact
+  list, rejecting stale or reordered limits.
+- Repair V2 publishes its own distinct `model_limits` but drops the source
+  CandidateRefresh boundary, so a Repair-only audit consumer cannot establish
+  which candidate-generation limitations conditioned the source evidence.
+- CandidateRefresh identity copying was rejected as redundant with
+  `assumptions.candidate_source`, provenance, and the accepted-state reference;
+  raw candidates and invalidations were rejected as redundant with existing
+  source-candidate and candidate-diff surfaces.
 
 Delivered behavior:
-- CandidateRefresh now validates and JSON-schemas the accepted-state reference
-  with stable snapshot identity, non-negative spacecraft count, optional
-  accepted-at string, optional non-negative maneuver-delta count, and
-  forward-compatible additional fields.
-- Repair V2 preserves the exact normalized reference at
-  `source_candidate_refresh_accepted_planning_state`, including additional
-  fields and explicit zero counts, while keeping the field optional when the
-  source is absent or not a map.
-- Repair runtime and exported JSON Schema share the same nested contract and
-  report invalid values at exact source paths.
-- Strategy V3 preserves the reference in all 26 CandidateRefresh-conditioned
-  branch repairs; only the baseline branch correctly lacks the source field.
-- The readiness handoff and canonical Repair/Strategy artifacts preserve the
-  reference without creating review/import rows or changing filtering,
-  ranking, selection, scheduling, provider state, commanding, or authority.
+- Preserve the exact CandidateRefresh list at
+  `source_candidate_refresh_model_limits`, including list order, only when the
+  source supplies a list.
+- Reuse the CandidateRefresh executable list for Repair runtime validation and
+  the CandidateRefresh JSON Schema property for Repair schema export, avoiding
+  a second source of truth.
+- Keep the field optional without CandidateRefresh or without a list and reject
+  stale, reordered, or non-list supplied values at the exact source path.
+- Preserve the list through Strategy V3 branch repairs and the readiness
+  handoff without changing filtering, ranking, selection, scheduling,
+  review/import rows, provider state, commanding, or authority.
 
 Level 6 pillar advanced:
-Fleet-state input traceability and versioned artifact compatibility.
+Candidate-generation model-boundary traceability and versioned artifact
+compatibility.
 
 Verification:
-- Focused producer/runtime/schema/Repair/Strategy tests: `39 passed`.
-- Adjacent CandidateRefresh build/freshness and Repair source-family tests:
-  `42 passed`.
-- Pre-export source-contract gate: `242/243 passed`; the sole failure was the
-  expected stale readiness handoff.
-- Pre-export full suite: `5230/5234 passed`; all four failures were classified
-  checked-in parity drift (readiness, schema export, canonical Repair, canonical
-  Strategy), with no behavioral failures.
-- Post-export schema/manifest/golden/readiness/accepted-state gate: `39 passed`.
-- Complete Repair source-contract gate: `243 passed`.
+- Focused producer and CandidateRefresh/Repair runtime/schema tests: `21 passed`.
+- Large Repair/Strategy source integrations: `18 passed`.
+- Adjacent build/freshness and CandidateRefresh source-family contracts:
+  `43 passed`.
+- Pre-export complete Repair source gate: `246/247 passed`; the sole failure was
+  the expected stale readiness handoff.
+- Pre-export full suite: `5236/5240 passed`; all four failures were classified
+  checked-in parity drift (readiness, Repair schema export, canonical Repair,
+  canonical Strategy), with no behavioral failures.
+- Post-export schema/manifest/golden/readiness/model-limit gate: `39 passed`.
+- Complete Repair source-contract gate: `247 passed`.
 - Saved-artifact lint: `155` artifacts, zero errors and zero warnings.
-- Final full suite: `5234 passed` in `698.5s` (`529.1s` async, `169.3s` sync).
+- Final full suite: `5240 passed` in `725.6s` (`556.9s` async, `168.6s` sync).
 - `mix format --check-formatted` and `git diff --check` pass.
-- Structural proof: CandidateRefresh and Repair expose identical typed nested
-  schemas; readiness and canonical Repair retain exact references; Strategy
-  retains them in `26/27` branches with only `baseline` absent.
-- Generated hashes: CandidateRefresh schema
+- Structural proof: Repair reuses CandidateRefresh's exact list schema;
+  readiness and canonical Repair retain the list; Strategy retains one
+  identical list in all `25` generated-refresh branches. `baseline` has no
+  refresh, while the checked-in legacy `operator_station_outage` refresh
+  legitimately omits the optional list.
+- Generated hashes: CandidateRefresh schema remained byte-identical at
   `8f3495e118c97036ac0cedb11d7b503ecde0a23f08fc1fd216b46c192b95b7a9`;
   Repair schema
-  `4439192bcb512e436b56ae0534691d26b714b389f520ca8bda8175f019465d15`;
+  `4dbcebbdb9fcfe6aee0a389040c6f857f2ae6f699becc6136a1ffc5665219359`;
   bundle
-  `0e1ed9107fdf55990ddcb31835cf73f57826475ed53224297e33d1ec40bcaf82`;
+  `e53b1e725a331c485c8e7f2859e90462d13b1c09564f2c2978d5aa16314bcff4`;
   readiness
-  `4756d2f01cfa3e9f8c13c228c1dd078e936632be45102c9f74feee213d2777ee`;
+  `817cdd87c316d0c8da813608172e21eab044290fb136584ac7c39d9ad6bd7eec`;
   Repair
-  `107caed87eaa3e6fdf124d97d8ea637d195a78339d844a16ab88f89c91bbad18`;
+  `cc41834e706fd1e04a4c5578032fdf99ceeba949a02fd75fc54c8b70cdc30d8a`;
   Strategy
-  `5ec3522776a8adad579ca8bf04539689a2fdf124b4e1ce38dd53d9d7aef4b372`.
+  `57602722702969da587e2754df84bca1e06e86cc32fa5af7f3f78451b72f9985`.
 - Manifest schema remained byte-identical at
   `7a44a6e58754aae967ee8319c8768b7270d7d7982667c4a6bad8ff1c274c0594`;
   regenerated Strategy ID is
-  `be2e50ff3990ba00ef71f587467e1e75b31f4759c8b4b11c5e6ac448961f51ad`.
+  `5e57012affb26253372b03dd162ef0c8cbbad663c66d8b5e634be0259fb6f846`.
 
 Last published slice:
-- `3327a08e` Preserve CandidateRefresh feedback in Repair V2 (`5226 passed`;
-  exact normalized feedback retained across 25 feedback-conditioned Strategy
-  branches with no review/import routing).
+- `a959aa14` Preserve CandidateRefresh accepted state in Repair V2 (`5234
+  passed`; exact typed accepted-state references retained in all 26 refresh-
+  conditioned Strategy branches with no review/import routing).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions only from authoritative,
@@ -89,14 +90,13 @@ Remaining maturity gaps:
   compact decision evidence beyond current exact shortfall/risk indicators.
 - Audit remaining CandidateRefresh envelope fields only when they add durable
   evidence beyond existing identity, provenance, accepted-state, assumptions,
-  warnings, horizon, feedback, and source-report surfaces.
+  warnings, horizon, feedback, model-limit, and source-report surfaces.
 - Continue broader schema/versioned compatibility discipline and stale-input
   challenge fixtures.
 
 Next candidate:
-From the clean published checkout, audit the remaining CandidateRefresh
-envelope and authoritative fleet-scale decision surfaces for the next compact,
-non-redundant evidence handoff.
+After source model-boundary traceability is executable, reassess the remaining
+authoritative fleet-scale decision surfaces from the clean published checkout.
 
 Blocked:
 None.

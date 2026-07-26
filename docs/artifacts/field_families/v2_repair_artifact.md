@@ -191,6 +191,11 @@ freshness, contact/resource preservation, and station calendar reports.
   scoring and candidate-limit policies, and named filter/allocation models.
   Empty maps are retained; the context is audit-only and distinct from the
   operative Repair V2 assumptions.
+- **Source CandidateRefresh model limits**, preserving the exact ordered
+  six-item candidate-generation boundary at
+  `source_candidate_refresh_model_limits`. Runtime and JSON Schema reuse the
+  CandidateRefresh contract; the audit-only list remains distinct from Repair
+  V2's operative limits and creates no operator-review or Cadence rows.
 - **Source CandidateRefresh accepted-state reference**, preserving the exact
   snapshot identity, fleet spacecraft count, accepted timestamp, and maneuver-
   delta count at `source_candidate_refresh_accepted_planning_state`. Stable

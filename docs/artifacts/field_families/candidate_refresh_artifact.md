@@ -11,6 +11,11 @@ from updated state.
   evidence. Repair V2 preserves the exact reference at
   `source_candidate_refresh_accepted_planning_state` for audit-only fleet input
   traceability.
+- An exact six-item `model_limits` boundary for precomputed events, sampled
+  windows, thin filters, deterministic candidate budgeting, and artifact-only
+  no-schedule-mutation behavior. Repair V2 preserves that ordered executable
+  boundary at `source_candidate_refresh_model_limits` without granting review,
+  import, or execution authority.
 - Operational-feedback provenance, including declared/missing trust-boundary
   status when feedback inputs affect refreshed candidates.
 - Exact normalized operational-feedback values remain optional on the refresh.

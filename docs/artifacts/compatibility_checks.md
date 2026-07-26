@@ -146,6 +146,14 @@ from an absent refresh. Executable validation requires an object, but this
 audit-only context creates no operator or Cadence rows and cannot change repair
 filtering, matching, scoring, selection, scheduling, imports, commanding, or
 authority.
+Campaign-repair V2 separately preserves CandidateRefresh's exact generated
+model boundary at `source_candidate_refresh_model_limits`. Runtime validation
+and JSON Schema reuse the CandidateRefresh six-item ordered `model_limits`
+contract, so stale, missing-item, or reordered supplied limits fail at the
+source field instead of being confused with Repair V2's distinct operative
+limits. The audit-only list creates no review/import rows and cannot change
+filtering, matching, ranking, selection, scheduling, provider state,
+commanding, or authority.
 Campaign-repair V2 separately preserves CandidateRefresh's exact accepted-state
 reference at `source_candidate_refresh_accepted_planning_state`. This retains the
 stable snapshot ID and fleet `spacecraft_state_count` that are not present

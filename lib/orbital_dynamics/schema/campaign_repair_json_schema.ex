@@ -11,6 +11,7 @@ defmodule OrbitalDynamics.Schema.CampaignRepairJsonSchema do
     "policy_decision",
     "score_terms",
     "source_candidate_refresh_provenance",
+    "source_candidate_refresh_model_limits",
     "source_candidate_refresh_accepted_planning_state",
     "source_candidate_refresh_operational_feedback",
     "source_candidate_refresh_remaining_horizon",
@@ -67,6 +68,13 @@ defmodule OrbitalDynamics.Schema.CampaignRepairJsonSchema do
     [
       candidate_refresh_accepted_planning_state_schema:
         fetch_dep!(deps, :candidate_refresh_accepted_planning_state_schema)
+    ]
+  end
+
+  def property_opts("source_candidate_refresh_model_limits", deps) do
+    [
+      candidate_refresh_model_limits_schema:
+        fetch_dep!(deps, :candidate_refresh_model_limits_schema)
     ]
   end
 
@@ -129,6 +137,10 @@ defmodule OrbitalDynamics.Schema.CampaignRepairJsonSchema do
 
   def property("source_candidate_refresh_provenance", opts) do
     Keyword.fetch!(opts, :candidate_refresh_provenance_schema)
+  end
+
+  def property("source_candidate_refresh_model_limits", opts) do
+    Keyword.fetch!(opts, :candidate_refresh_model_limits_schema)
   end
 
   def property("source_candidate_refresh_accepted_planning_state", opts) do

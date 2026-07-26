@@ -144,6 +144,7 @@ defmodule OrbitalDynamics.Schema.CampaignRepairSourceHandoffContractsTest do
           "ends_at_s" => 600.0,
           "output_step_s" => 60.0
         },
+        "model_limits" => OrbitalDynamics.CandidateRefresh.model_limits(),
         "accepted_planning_state" => %{
           "snapshot_id" => "ops-state-1",
           "spacecraft_state_count" => 1

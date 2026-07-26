@@ -45,6 +45,23 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairSourceReports do
     end
   end
 
+  def candidate_refresh_model_limits(candidate_refresh),
+    do: candidate_refresh_model_limits(candidate_refresh, default_callbacks())
+
+  def candidate_refresh_model_limits(nil, _callbacks), do: nil
+
+  def candidate_refresh_model_limits(%{} = candidate_refresh, callbacks) do
+    stringify_keys = Keyword.fetch!(callbacks, :stringify_keys)
+
+    candidate_refresh
+    |> stringify_keys.()
+    |> Map.get("model_limits")
+    |> case do
+      model_limits when is_list(model_limits) -> model_limits
+      _model_limits -> nil
+    end
+  end
+
   def candidate_refresh_accepted_planning_state(candidate_refresh),
     do: candidate_refresh_accepted_planning_state(candidate_refresh, default_callbacks())
 

@@ -4,6 +4,7 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshContracts do
   alias OrbitalDynamics.Schema.CandidateActivityContracts
   alias OrbitalDynamics.Schema.CandidateDiffContracts
   alias OrbitalDynamics.Schema.CandidateRefreshAcceptedPlanningStateContracts
+  alias OrbitalDynamics.Schema.CandidateRefreshModelLimitContracts
   alias OrbitalDynamics.Schema.CandidateRefreshRegistryContracts
   alias OrbitalDynamics.Schema.CandidateRefreshReportContracts
   alias OrbitalDynamics.Schema.CandidateRefreshWindowContracts
@@ -29,7 +30,6 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshContracts do
       expect_type: 5,
       require_fields: 4,
       validate_non_negative_integer_count_map: 3,
-      validate_optional_exact_model_limits: 5,
       validate_string_list_items: 4
     ]
 
@@ -71,11 +71,9 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshContracts do
     |> expect_optional_type("$", artifact, "model_limits", :list)
     |> validate_string_list_items("$", artifact, "model_limits")
     |> validate_publication_lineage_fields(artifact)
-    |> validate_optional_exact_model_limits(
-      "$",
-      artifact,
-      OrbitalDynamics.CandidateRefresh.model_limits(),
-      "must match candidate refresh model limits"
+    |> CandidateRefreshModelLimitContracts.validate(
+      "$.model_limits",
+      Map.get(artifact, "model_limits")
     )
     |> CandidateRefreshReportContracts.validate_source_report_provenance(artifact)
     |> OperationalFeedbackContracts.validate("$", Map.get(artifact, "operational_feedback"))

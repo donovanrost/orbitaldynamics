@@ -363,6 +363,16 @@ defmodule OrbitalDynamics.Schema.CampaignRepairContracts do
     |> call(callbacks, :expect_optional_type, [
       "$",
       artifact,
+      "source_candidate_refresh_model_limits",
+      :list
+    ])
+    |> call(callbacks, :validate_optional_candidate_refresh_model_limits, [
+      "$.source_candidate_refresh_model_limits",
+      Map.get(artifact, "source_candidate_refresh_model_limits")
+    ])
+    |> call(callbacks, :expect_optional_type, [
+      "$",
+      artifact,
       "source_candidate_refresh_accepted_planning_state",
       :map
     ])
