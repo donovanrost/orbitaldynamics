@@ -62,6 +62,11 @@ Present packages also carry exactly one warning row per enclosing Repair
 warning. Operator-review, Cadence, and present embedded source-review reasons
 equal the corresponding warning in source order; older package or embedded-row
 omissions remain valid.
+For score-term rows sourced from the enclosing `score_term_report`, present
+packages carry one review/import row per report row. Present operator-review,
+Cadence, and embedded source-review `source_score_term` copies equal the
+corresponding report row in source order; older package or copy omissions remain
+valid.
 
 ### `realized_state_snapshot`
 

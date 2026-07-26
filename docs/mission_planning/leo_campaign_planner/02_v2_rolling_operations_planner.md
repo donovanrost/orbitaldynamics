@@ -735,7 +735,10 @@ schema-type their stable IDs, invalid-input flags, and protected/change counts.
   Repair delta, with present `source_delta` copies bound to the enclosing deltas
   in source order. They also carry one warning row per Repair warning, with
   operator-review, Cadence, and present embedded source-review reasons bound in
-  source order; older package, copy, or embedded-row omissions remain valid.
+  source order. Score-term rows sourced from the enclosing Repair report carry
+  one review/import row per report row, with present operator-review, Cadence,
+  and embedded `source_score_term` copies bound in source order; older package,
+  copy, or embedded-row omissions remain valid.
 
 The current repair behavior is deliberately transparent:
 

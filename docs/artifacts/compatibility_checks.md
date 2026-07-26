@@ -1987,6 +1987,11 @@ Present packages also carry one warning row per enclosing Repair warning.
 Operator-review, Cadence, and present embedded source-review reasons equal the
 corresponding warning in source order; older package or embedded-row omissions
 remain valid.
+For score-term rows sourced from the enclosing Repair `score_term_report`,
+present packages carry one review/import row per report row. Present
+operator-review, Cadence, and embedded source-review `source_score_term` copies
+equal the corresponding report row in source order; older package or copy
+omissions remain valid.
 Replacement-ranking link-pressure validation preserves fully legacy rankings
 whose pressured rows carry only shortfall. New producer rows under pressure also
 carry projected required downlink demand and selected capacity-adjusted

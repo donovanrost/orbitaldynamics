@@ -67,6 +67,10 @@ Status: **implemented** (with **partial**, **near-term**, **later**, and **out o
 - Present packages also carry one warning row per Repair warning and bind
   operator-review, Cadence, and present embedded source-review reasons in source
   order; older package or embedded-row omissions remain valid.
+- Score-term rows sourced from the enclosing Repair report carry one
+  review/import row per report row and bind present operator-review, Cadence, and
+  embedded `source_score_term` copies in source order; older package or copy
+  omissions remain valid.
 - **`contact_allocation_report.v1`** over repaired contact activities. The
   optional report is a declared V2 nested contract; runtime validation applies
   its full row, count, summary, nested contention/resolution, stable-identity,
