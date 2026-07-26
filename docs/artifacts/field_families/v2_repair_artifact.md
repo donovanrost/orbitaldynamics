@@ -400,6 +400,11 @@ downlink/station/time normalization.
   Each current row must identify a unique source candidate that overlaps the
   remaining horizon and starts no earlier than the repair current epoch; legacy
   rankings retain their historical temporal-membership compatibility.
+  Each current row's candidate ID must also remain outside the rejected IDs
+  normalized from the preserved `source_candidate_rejection_report`. Fully
+  legacy rankings retain their historical rejection-membership compatibility,
+  and additional source rejection reports that the artifact did not preserve
+  are not inferred.
   The current envelope requires `repair.source_activity_context` so start-time
   churn remains replayable. It also requires stable top-level source/replacement
   IDs and a complete four-ID `timeline_link`, binds source IDs to the source

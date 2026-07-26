@@ -5,48 +5,52 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Reject temporally ineligible current Repair ranking candidates.
+Reject explicitly rejected current Repair ranking candidates.
 
 Status:
-Complete and verified from published base `fd640931`; scoped publish pending.
+Implemented and verified from clean published base `93956581`; ready to
+publish.
+
+Selection evidence:
+- The replacement selector excludes IDs named by rejected rows across candidate
+  rejection source reports.
+- Repair artifacts preserve the selected public
+  `source_candidate_rejection_report`, but runtime ranking validation does not
+  prevent a row from reintroducing an ID rejected by that exact report.
+- The preserved report's normalized rejected IDs are fully replayable; IDs from
+  additional unpreserved reports are not and remain outside this slice.
 
 Delivered behavior:
-- Require every uniquely replayable current ranking candidate to overlap the
-  enclosing `remaining_horizon` and start at or after `current_epoch_s`.
-- Reject both an overlapping candidate that already started and a candidate
-  beginning at the exclusive remaining-horizon end at the exact row candidate
-  ID path.
-- Preserve the historical temporal-membership compatibility of fully legacy
-  rankings without current pressure markers.
-- Deliberately avoid inferring overlap, prior-selection, used-replacement, or
-  other sequential eligibility that requires unavailable accumulator/prior-plan
-  state.
+- Reject every current ranking row whose candidate ID appears as rejected in
+  the preserved `source_candidate_rejection_report`.
+- Keep the failure at the exact ranking-row candidate ID and reuse the
+  producer's rejection-status/candidate-ID normalization.
+- Preserve fully legacy rankings without current pressure markers.
+- Do not infer exclusions from candidate rejection reports that the Repair
+  artifact did not preserve.
 - Do not change JSON Schema, producer output, scoring, selection, scheduling,
   review/import routing, provider state, commanding, or authority.
 
-Verification evidence:
-- Focused schedule/replacement-ranking and Repair replacement producer gate:
-  `10 passed`.
-- Expanded Repair selection, source-handoff, and golden gate: `44 passed`.
-- Saved-artifact lint: `155` artifacts, `0` errors, `0` warnings.
-- Final full suite: `5243 passed` in `717.8s`.
-- Structural proof: a 160-second candidate overlapping the 165-to-600-second
-  horizon fails because it starts before the 165-second current epoch; a
-  600-second candidate fails because the horizon end is exclusive.
-- Removing both current per-row pressure markers from the already-started case
-  preserves the legacy temporal-membership compatibility path.
-- Candidate Refresh schema, Repair schema, aggregate schema bundle, canonical
-  Repair, and canonical Strategy hashes remained byte-identical; no generated
-  artifacts changed.
+Verification:
+- Focused rejection, schedule/replacement-ranking, and producer gate:
+  `11 passed`.
+- Expanded Repair selection, source-handoff, and golden-artifact gate:
+  `44 passed`.
+- Saved-artifact lint: `155` artifacts passed with `0` errors and `0` warnings.
+- Canonical Repair and Strategy regeneration remained byte-stable at
+  `cc41834e706fd1e04a4c5578032fdf99ceeba949a02fd75fc54c8b70cdc30d8a`
+  and
+  `57602722702969da587e2754df84bca1e06e86cc32fa5af7f3f78451b72f9985`.
+- Full `mix test --timeout 120000`: `5243 passed` in `682.6s`.
 - `mix format --check-formatted` and `git diff --check` pass.
 
 Level 6 pillar advanced:
-Fleet-scale candidate-pool integrity and versioned artifact compatibility.
+Fleet-scale candidate-pool integrity and operator-review evidence fidelity.
 
 Last published slice:
-- `fd640931` Bind current repair selections to candidates (`5242 passed`;
-  current selected activities match complete embedded candidate snapshots while
-  legacy snapshot compatibility remains unchanged).
+- `93956581` Reject temporally ineligible repair candidates (`5243 passed`;
+  current rows replay epoch/horizon membership while legacy temporal membership
+  remains compatible).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions only from authoritative,
@@ -57,8 +61,8 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-After temporal membership validation, continue auditing replayable repair-intent
-and exclusion evidence from the clean published checkout.
+After explicit rejection validation, continue auditing replayable repair-intent
+evidence from the clean published checkout.
 
 Blocked:
 None.

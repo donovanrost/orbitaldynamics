@@ -1963,6 +1963,12 @@ the horizon and must not start in the past. Fully legacy rankings retain their
 historical temporal-membership compatibility, and validation does not infer
 sequential overlap or used-replacement state that the artifact does not fully
 preserve.
+Current ranking rows also cannot identify candidates rejected by the preserved
+`source_candidate_rejection_report`; executable validation uses the producer's
+rejection-status and candidate-ID normalization for that exact report. Fully
+legacy rankings retain historical rejection-membership compatibility, and no
+exclusions are inferred from additional source reports that the Repair artifact
+does not preserve.
 Projected-resource replacement evidence likewise preserves fully legacy
 rankings whose indicators all omit candidate identity. Once any indicator
 carries the current ranked candidate ID, every projected-resource indicator in

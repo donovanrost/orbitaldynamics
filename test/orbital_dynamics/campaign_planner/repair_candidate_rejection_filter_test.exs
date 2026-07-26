@@ -122,6 +122,93 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRejectionFilterTest do
 
     assert {:ok, %{"schema_contract" => "campaign_repair.v2"}} =
              Schema.validate_artifact(artifact)
+
+    rejected_candidate_artifact =
+      artifact
+      |> update_in(["source_candidate_activities"], fn candidates ->
+        Enum.map(candidates, fn
+          %{"id" => "dl_rejected"} = candidate ->
+            candidate
+            |> Map.put("score", -100.0)
+            |> Map.put("score_terms", %{"contact_value" => -100.0})
+
+          candidate ->
+            candidate
+        end)
+      end)
+      |> append_rejected_candidate_ranking_row()
+
+    assert {:error, report} = Schema.validate_artifact(rejected_candidate_artifact)
+
+    assert Enum.any?(
+             report["errors"],
+             &(&1["path"] ==
+                 "$.activities[0].repair.replacement_ranking.rows[1].candidate_id")
+           )
+
+    fully_legacy_artifact =
+      update_in(
+        rejected_candidate_artifact,
+        ["activities", Access.at(0), "repair", "replacement_ranking", "rows"],
+        fn rows ->
+          Enum.map(rows, fn row ->
+            Map.drop(row, [
+              "contact_intent_pressure_penalty",
+              "contact_contention_resolution_pressure_penalty"
+            ])
+          end)
+        end
+      )
+
+    assert {:ok, %{"schema_contract" => "campaign_repair.v2"}} =
+             Schema.validate_artifact(fully_legacy_artifact)
+  end
+
+  defp append_rejected_candidate_ranking_row(artifact) do
+    [selected_row] =
+      get_in(artifact, ["activities", Access.at(0), "repair", "replacement_ranking", "rows"])
+
+    churn_s = 400.0
+    move_penalty = -4.0
+
+    rejected_row =
+      selected_row
+      |> Map.put("candidate_id", "dl_rejected")
+      |> Map.put("candidate_score", -100.0)
+      |> Map.put("schedule_churn_s", churn_s)
+      |> Map.put("schedule_move_penalty", move_penalty)
+      |> Map.put("ranking_score", ranking_score(selected_row, -100.0, move_penalty))
+      |> Map.put("rank", 2)
+      |> Map.put("selected", false)
+
+    artifact
+    |> put_in(
+      ["activities", Access.at(0), "repair", "replacement_ranking", "rows"],
+      [selected_row, rejected_row]
+    )
+    |> put_in(
+      [
+        "activities",
+        Access.at(0),
+        "repair",
+        "replacement_ranking",
+        "evaluated_candidate_count"
+      ],
+      2
+    )
+  end
+
+  defp ranking_score(selected_row, candidate_score, move_penalty) do
+    candidate_score +
+      move_penalty +
+      Enum.sum([
+        selected_row["schedule_churn_penalty"],
+        selected_row["station_calendar_pressure_penalty"],
+        selected_row["contact_intent_pressure_penalty"],
+        selected_row["contact_contention_resolution_pressure_penalty"],
+        selected_row["link_capacity_pressure_penalty"],
+        selected_row["resource_projection_pressure_penalty"]
+      ])
   end
 
   defp candidate_refresh_artifact(candidates, opts) do

@@ -237,7 +237,13 @@ Status: **implemented** (with **partial**, **near-term**, **later**, and **out o
   different selection. Every current row's unique source candidate must also
   overlap `remaining_horizon` and start at or after `current_epoch_s`, so past
   or out-of-horizon candidates cannot remain in an otherwise consistent
-  ranking explanation. Current candidate-identified resource-risk
+  ranking explanation. A current row also cannot identify a candidate whose ID
+  is rejected by the preserved `source_candidate_rejection_report`, using the
+  producer's rejection-status and candidate-ID normalization. Fully legacy
+  rankings retain their historical rejection-membership compatibility, and
+  validation does not infer IDs from additional source rejection reports that
+  the Repair artifact did not preserve.
+  Current candidate-identified resource-risk
   indicators must additionally use a spacecraft scope from a valid embedded
   source resource summary applicable to that exact candidate under the resource
   projection's shared spacecraft/scenario and single-wildcard rules. Indicators

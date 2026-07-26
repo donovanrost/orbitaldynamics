@@ -608,7 +608,11 @@ schema-type their stable IDs, invalid-input flags, and protected/change counts.
   legacy rankings without either remain compatible. Each current candidate is
   also rechecked against `current_epoch_s` and `remaining_horizon`, matching the
   producer's temporal membership filters without inferring sequential overlap
-  or used-replacement state. Executable validation also
+  or used-replacement state. Current rows are also excluded when their candidate
+  ID is rejected by the preserved `source_candidate_rejection_report`, reusing
+  the producer's rejection-status and candidate-ID normalization. Fully legacy
+  rankings retain their prior compatibility, and reports not preserved in the
+  Repair artifact do not create inferred exclusions. Executable validation also
   recomputes semantic-diff priority from exact source ID/window and
   replacement-candidate links in the embedded source diff report, and pins the
   selected row to the enclosing repaired activity. For current rankings, that
