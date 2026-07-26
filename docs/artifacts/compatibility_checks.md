@@ -1992,6 +1992,11 @@ present packages carry one review/import row per report row. Present
 operator-review, Cadence, and embedded source-review `source_score_term` copies
 equal the corresponding report row in source order; older package or copy
 omissions remain valid.
+For objective-tradeoff rows sourced from the enclosing Repair
+`objective_tradeoff_report`, present packages likewise carry one review/import
+row per tradeoff. Present operator-review, Cadence, and embedded source-review
+`source_objective_tradeoff` copies equal the corresponding tradeoff in source
+order; older package or copy omissions remain valid.
 Replacement-ranking link-pressure validation preserves fully legacy rankings
 whose pressured rows carry only shortfall. New producer rows under pressure also
 carry projected required downlink demand and selected capacity-adjusted

@@ -737,8 +737,11 @@ schema-type their stable IDs, invalid-input flags, and protected/change counts.
   operator-review, Cadence, and present embedded source-review reasons bound in
   source order. Score-term rows sourced from the enclosing Repair report carry
   one review/import row per report row, with present operator-review, Cadence,
-  and embedded `source_score_term` copies bound in source order; older package,
-  copy, or embedded-row omissions remain valid.
+  and embedded `source_score_term` copies bound in source order.
+  Objective-tradeoff rows sourced from the enclosing Repair report likewise
+  carry one review/import row per tradeoff, with present operator-review,
+  Cadence, and embedded `source_objective_tradeoff` copies bound in source
+  order; older package, copy, or embedded-row omissions remain valid.
 
 The current repair behavior is deliberately transparent:
 

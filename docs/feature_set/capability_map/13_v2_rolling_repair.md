@@ -71,6 +71,10 @@ Status: **implemented** (with **partial**, **near-term**, **later**, and **out o
   review/import row per report row and bind present operator-review, Cadence, and
   embedded `source_score_term` copies in source order; older package or copy
   omissions remain valid.
+- Objective-tradeoff rows sourced from the enclosing Repair report likewise
+  carry one review/import row per tradeoff and bind present operator-review,
+  Cadence, and embedded `source_objective_tradeoff` copies in source order;
+  older package or copy omissions remain valid.
 - **`contact_allocation_report.v1`** over repaired contact activities. The
   optional report is a declared V2 nested contract; runtime validation applies
   its full row, count, summary, nested contention/resolution, stable-identity,
