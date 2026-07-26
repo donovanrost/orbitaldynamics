@@ -91,6 +91,10 @@ Status: **implemented** (with **partial**, **near-term**, **later**, and **out o
   carry one review/import row per allocation row and bind present
   operator-review, Cadence, and embedded `source_contact_allocation` copies in
   source order; older package or copy omissions remain valid.
+- Link-capacity rows sourced from the enclosing Repair capacity report carry one
+  review/import row per capacity row and bind present operator-review, Cadence,
+  and embedded `source_link_capacity` copies in source order; older package or
+  copy omissions remain valid.
 - **`contact_allocation_report.v1`** over repaired contact activities. The
   optional report is a declared V2 nested contract; runtime validation applies
   its full row, count, summary, nested contention/resolution, stable-identity,

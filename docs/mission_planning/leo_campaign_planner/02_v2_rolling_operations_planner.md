@@ -754,7 +754,10 @@ schema-type their stable IDs, invalid-input flags, and protected/change counts.
   order. Contact-allocation rows sourced from the enclosing Repair allocation
   report carry one review/import row per allocation row, with present
   operator-review, Cadence, and embedded `source_contact_allocation` copies bound
-  in source order; older package, copy, or embedded-row omissions remain valid.
+  in source order. Link-capacity rows sourced from the enclosing Repair capacity
+  report carry one review/import row per capacity row, with present
+  operator-review, Cadence, and embedded `source_link_capacity` copies bound in
+  source order; older package, copy, or embedded-row omissions remain valid.
 
 The current repair behavior is deliberately transparent:
 

@@ -92,6 +92,11 @@ present packages carry one review/import row per allocation row. Present
 operator-review, Cadence, and embedded source-review
 `source_contact_allocation` copies equal the corresponding allocation in source
 order; older package or copy omissions remain valid.
+For link-capacity rows sourced from the enclosing capacity report, present
+packages carry one review/import row per capacity row. Present operator-review,
+Cadence, and embedded source-review `source_link_capacity` copies equal the
+corresponding capacity row in source order; older package or copy omissions
+remain valid.
 
 ### `realized_state_snapshot`
 
