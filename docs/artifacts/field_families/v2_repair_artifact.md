@@ -232,12 +232,17 @@ freshness, contact/resource preservation, and station calendar reports.
   provider time, mutating schedules, granting operator authority, or performing
   imports.
 - **Source contact-allocation reservation-conflict summaries** — V2 preserves
-  `contact_allocation_reservation_conflict_summary.v1` at
-  `source_contact_allocation_reservation_conflict_summary`, including the exact
-  conflict/review subset and row-derived contact/reservation identity routes by
-  match status, reservation status, owner, expiration, direction, and station.
-  The adapter creates review evidence only and performs no provider or Cadence
-  write.
+  every CandidateRefresh
+  `contact_allocation_reservation_conflict_summary.v1` at the ordered
+  `source_contact_allocation_reservation_conflict_summaries` path. Direct source
+  maps precede canonical maps without deduplication or first-map loss; the
+  legacy singular `source_contact_allocation_reservation_conflict_summary`
+  remains an exact element-zero compatibility mirror. Operator review and
+  Cadence prefer the plural collection, route exact array indexes, and do not
+  count the mirror twice. They retain the exact conflict/review subset plus
+  match status, reservation status, owner, expiration, direction, and station
+  routes. The adapter creates review evidence only and performs no provider or
+  Cadence write.
 - **Source contact-allocation capacity-pack summaries** — V2 preserves
   every CandidateRefresh `contact_allocation_capacity_pack_summary.v1` at the
   ordered `source_contact_allocation_capacity_pack_summaries` path. Direct

@@ -184,6 +184,24 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairSourceReports do
   def contact_allocation_reservation_conflict_summary(nil, _callbacks), do: nil
 
   def contact_allocation_reservation_conflict_summary(%{} = candidate_refresh, callbacks) do
+    candidate_refresh
+    |> contact_allocation_reservation_conflict_summaries(callbacks)
+    |> List.first()
+  end
+
+  def contact_allocation_reservation_conflict_summaries(candidate_refresh),
+    do:
+      contact_allocation_reservation_conflict_summaries(
+        candidate_refresh,
+        default_callbacks()
+      )
+
+  def contact_allocation_reservation_conflict_summaries(nil, _callbacks), do: []
+
+  def contact_allocation_reservation_conflict_summaries(
+        %{} = candidate_refresh,
+        callbacks
+      ) do
     stringify_keys = Keyword.fetch!(callbacks, :stringify_keys)
     candidate_refresh = stringify_keys.(candidate_refresh)
 
@@ -192,11 +210,8 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairSourceReports do
       Map.get(candidate_refresh, "contact_allocation_reservation_conflict_summary")
     ]
     |> Enum.flat_map(&List.wrap/1)
-    |> Enum.find(&is_map/1)
-    |> case do
-      %{} = summary -> stringify_keys.(summary)
-      _summary -> nil
-    end
+    |> Enum.filter(&is_map/1)
+    |> Enum.map(stringify_keys)
   end
 
   def contact_allocation_capacity_pack_summary(candidate_refresh),

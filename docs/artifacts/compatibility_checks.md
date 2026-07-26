@@ -1625,12 +1625,18 @@ direction, and reservation evidence, and do not count the mirror twice. Legacy
 singular-only artifacts remain accepted and routed. Both paths remain
 artifact-only and grant no provider reservation, schedule mutation, Cadence
 write, or operator authority.
-Campaign-repair V2 likewise preserves
-`contact_allocation_reservation_conflict_summary.v1` at
-`source_contact_allocation_reservation_conflict_summary`. Its executable path
-rejects stale row-derived counts or routes and non-object values; review/import
-adapters retain exact conflict rows plus match/status/owner/expiration,
-reservation-ID, direction, and station evidence. The preserved summary remains
+Campaign-repair V2 likewise preserves every CandidateRefresh
+`contact_allocation_reservation_conflict_summary.v1` in
+direct-source-then-canonical order at
+`source_contact_allocation_reservation_conflict_summaries`, without
+deduplication or first-map selection. The existing singular
+`source_contact_allocation_reservation_conflict_summary` remains an exact
+element-zero compatibility mirror. Executable validation rejects mirror drift,
+indexed row-derived conflict drift, and non-list or non-object collection
+shapes. Review/import adapters prefer the plural collection, retain exact
+indexed conflict rows plus match/status/owner/expiration, reservation-ID,
+direction, and station evidence, and do not count the mirror twice. Legacy
+singular-only artifacts remain accepted and routed. Both paths remain
 review-only and cannot reserve provider time, mutate schedules, import into
 Cadence, or grant operator authority.
 Campaign-repair V2 also preserves every CandidateRefresh
