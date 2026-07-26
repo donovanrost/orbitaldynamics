@@ -9,12 +9,13 @@ defmodule OrbitalDynamics.Schema.CampaignRepairSuppressedCandidateContractsTest 
   setup do
     artifact = read_json!("study_results/leo_constellation_campaign_repair_v2.json")
     eligible_candidate = read_json!("study_results/candidate_activity_v1.json")
+    refresh_budget_report = read_json!("study_results/refresh_budget_report_v1.json")
 
     suppressed_window_id = "window:leo_1:target_visibility:target_a:2"
 
     suppressed_candidate =
       eligible_candidate
-      |> Map.put("id", "leo_1_observe_target_a_2")
+      |> Map.put("id", "leo_1_downlink_equator_prime_1")
       |> Map.put("source_window_id", suppressed_window_id)
       |> put_in(["source_window", "id"], suppressed_window_id)
 
@@ -22,6 +23,7 @@ defmodule OrbitalDynamics.Schema.CampaignRepairSuppressedCandidateContractsTest 
       artifact
       |> Map.put(@eligible_field, [eligible_candidate])
       |> Map.put(@suppressed_field, [suppressed_candidate])
+      |> Map.put("source_refresh_budget_report", refresh_budget_report)
       |> put_in(["repair_metadata", "candidate_source", "candidate_count"], 2)
 
     %{
@@ -80,6 +82,38 @@ defmodule OrbitalDynamics.Schema.CampaignRepairSuppressedCandidateContractsTest 
       )
 
     assert_error_path(invalid, "$.#{@suppressed_field}[0].source_window_id")
+  end
+
+  test "binds every suppressed candidate ID to preserved exclusion evidence", %{
+    artifact: artifact
+  } do
+    unexplained =
+      put_in(
+        artifact,
+        [@suppressed_field, Access.at(0), "id"],
+        "leo_1_unexplained_candidate"
+      )
+
+    assert_error_path(unexplained, "$.#{@suppressed_field}[0].id")
+
+    missing_report = Map.delete(artifact, "source_refresh_budget_report")
+    assert_error_path(missing_report, "$.#{@suppressed_field}[0].id")
+  end
+
+  test "allows preserved reports to mention IDs absent from the raw candidate collection", %{
+    artifact: artifact
+  } do
+    artifact =
+      artifact
+      |> put_in(
+        ["source_refresh_budget_report", "dropped_candidate_ids"],
+        ["leo_1_downlink_equator_prime_1", "stale_candidate"]
+      )
+      |> put_in(["source_refresh_budget_report", "dropped_candidate_count"], 2)
+      |> put_in(["source_refresh_budget_report", "input_candidate_count"], 3)
+
+    assert {:ok, %{"schema_contract" => "campaign_repair.v2"}} =
+             Schema.validate_artifact(artifact)
   end
 
   test "reuses the CandidateActivity schema for both repair candidate collections" do

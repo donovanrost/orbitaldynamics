@@ -190,8 +190,10 @@ schema-type their stable IDs, invalid-input flags, and protected/change counts.
   excludes candidates before repair ranking. These are the exact source
   candidate maps in source order, so audit consumers can correlate their IDs,
   scores, score terms, and source windows with the preserved filter reports.
-  The collection is validated and audit-only; it does not change filtering,
-  scoring, ranking, selection, operator routing, or approval authority.
+  Every preserved candidate ID must be backed by a preserved contact-filter,
+  contact-allocation, refresh-budget, or resource-filter exclusion. The
+  collection is validated and audit-only; it does not change filtering, scoring,
+  ranking, selection, operator routing, or approval authority.
 - `source_window_lineage` so candidate-diff review and Cadence rows can retain
   exact invalidated/replacement candidate-to-window provenance. The preserved
   collection is validated and review-only; it does not influence repair

@@ -1,12 +1,18 @@
 defmodule OrbitalDynamics.Schema.CampaignRepairCandidatePoolContracts do
   @moduledoc false
 
-  alias OrbitalDynamics.CampaignPlanner.ActivityIdentity
+  alias OrbitalDynamics.CampaignPlanner.{ActivityIdentity, RepairCandidateInputs}
 
   import OrbitalDynamics.Schema.PrimitiveValidation, only: [error: 2]
 
   @source_field "source_candidate_activities"
   @suppressed_field "source_suppressed_candidate_activities"
+  @source_report_fields [
+    {"source_contact_filter_report", "contact_filter_report"},
+    {"source_contact_allocation_report", "contact_allocation_report"},
+    {"source_refresh_budget_report", "refresh_budget_report"},
+    {"source_resource_filter_report", "resource_filter_report"}
+  ]
 
   def validate(issues, %{} = artifact) do
     if Map.has_key?(artifact, @suppressed_field) do
@@ -32,6 +38,7 @@ defmodule OrbitalDynamics.Schema.CampaignRepairCandidatePoolContracts do
     |> validate_unique_ids(@suppressed_field, suppressed_ids)
     |> validate_disjoint_ids(source_ids, suppressed_ids)
     |> validate_source_count(artifact, length(source_candidates) + length(suppressed_candidates))
+    |> validate_suppression_evidence(artifact, suppressed_candidates)
   end
 
   defp validate_partition(issues, _artifact, _source_candidates, _suppressed_candidates),
@@ -79,5 +86,43 @@ defmodule OrbitalDynamics.Schema.CampaignRepairCandidatePoolContracts do
     else
       issues
     end
+  end
+
+  defp validate_suppression_evidence(issues, artifact, suppressed_candidates) do
+    evidence_ids =
+      artifact
+      |> suppression_report_view()
+      |> RepairCandidateInputs.suppressed_candidate_ids()
+
+    suppressed_candidates
+    |> Enum.with_index()
+    |> Enum.reduce(issues, fn
+      {%{} = candidate, index}, acc ->
+        candidate_id = ActivityIdentity.activity_id(candidate)
+
+        if MapSet.member?(evidence_ids, candidate_id) do
+          acc
+        else
+          [
+            error(
+              "$.#{@suppressed_field}[#{index}].id",
+              "must be backed by preserved source exclusion evidence"
+            )
+            | acc
+          ]
+        end
+
+      {_candidate, _index}, acc ->
+        acc
+    end)
+  end
+
+  defp suppression_report_view(artifact) do
+    Enum.reduce(@source_report_fields, %{}, fn {source_field, report_field}, acc ->
+      case Map.get(artifact, source_field) do
+        %{} = report -> Map.put(acc, report_field, report)
+        _report -> acc
+      end
+    end)
   end
 end
