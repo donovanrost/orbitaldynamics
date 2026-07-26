@@ -2012,6 +2012,11 @@ timeline-feedback report, present packages carry one review/import row per
 eligible feedback row. Present operator-review, Cadence, and embedded
 source-review `source_feedback` copies equal the corresponding feedback row in
 source order; older package or copy omissions remain valid.
+For contact-allocation rows sourced from the enclosing Repair allocation
+report, present packages carry one review/import row per allocation row. Present
+operator-review, Cadence, and embedded source-review
+`source_contact_allocation` copies equal the corresponding allocation in source
+order; older package or copy omissions remain valid.
 Replacement-ranking link-pressure validation preserves fully legacy rankings
 whose pressured rows carry only shortfall. New producer rows under pressure also
 carry projected required downlink demand and selected capacity-adjusted

@@ -751,7 +751,10 @@ schema-type their stable IDs, invalid-input flags, and protected/change counts.
   realized-feedback rows sourced from the enclosing Repair timeline-feedback
   report carry one review/import row per eligible feedback row, with present
   operator-review, Cadence, and embedded `source_feedback` copies bound in source
-  order; older package, copy, or embedded-row omissions remain valid.
+  order. Contact-allocation rows sourced from the enclosing Repair allocation
+  report carry one review/import row per allocation row, with present
+  operator-review, Cadence, and embedded `source_contact_allocation` copies bound
+  in source order; older package, copy, or embedded-row omissions remain valid.
 
 The current repair behavior is deliberately transparent:
 
