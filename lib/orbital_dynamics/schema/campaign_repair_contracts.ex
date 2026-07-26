@@ -2,6 +2,7 @@ defmodule OrbitalDynamics.Schema.CampaignRepairContracts do
   @moduledoc false
 
   alias OrbitalDynamics.Schema.{
+    CampaignRepairApprovalDecisionContracts,
     CampaignRepairCandidateValueContracts,
     CampaignRepairCandidatePoolContracts,
     CampaignRepairCandidateDiffRankingContracts,
@@ -575,6 +576,7 @@ defmodule OrbitalDynamics.Schema.CampaignRepairContracts do
       "$.policy_decision",
       Map.get(artifact, "policy_decision", %{})
     ])
+    |> CampaignRepairApprovalDecisionContracts.validate(artifact)
     |> call(callbacks, :require_nested, [
       "$.repair_metadata",
       Map.get(artifact, "repair_metadata", %{}),

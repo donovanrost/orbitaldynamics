@@ -45,6 +45,9 @@ Status: **implemented** (with **partial**, **near-term**, **later**, and **out o
 - Present source-study, operator-review provenance, and Cadence source type/plan
   copies are reconciled with the enclosing Repair provenance chain. Older
   additive-copy omissions remain compatible.
+- Approval status and present top-level rule matches are reconciled with the
+  embedded decision; when no rules match, its fallback approval count binds to
+  preserved requirement rows without re-evaluating policy.
 - **`contact_allocation_report.v1`** over repaired contact activities. The
   optional report is a declared V2 nested contract; runtime validation applies
   its full row, count, summary, nested contention/resolution, stable-identity,

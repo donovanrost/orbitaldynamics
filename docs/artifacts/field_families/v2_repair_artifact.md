@@ -38,6 +38,9 @@ Present Repair provenance handoffs bind source study identity to the enclosing
 artifact, operator-review source provenance to Repair provenance, and Cadence
 source type/plan provenance to the same Repair chain. Older additive-copy
 omissions remain compatible.
+The approval surface binds top-level status and present additive rule matches to
+the embedded policy decision. When no rules match, the fallback approval count
+binds to the preserved requirement rows without re-evaluating policy.
 
 ### `realized_state_snapshot`
 

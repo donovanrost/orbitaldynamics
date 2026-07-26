@@ -1958,6 +1958,11 @@ Present Repair provenance handoffs also remain joined end to end: source study
 identity matches the enclosing artifact, present operator-review source
 provenance copies match Repair provenance, and Cadence provenance identifies the
 Repair contract and source plan. Older artifacts may omit additive copies.
+Repair approval validation also binds `approval_status` to the policy-decision
+classification and the present additive `approval_rule_matches` copy to the
+decision's exact rule matches. When no rules match, its fallback approval count
+must equal the preserved requirement rows. Policy is not re-evaluated during
+artifact validation.
 Replacement-ranking link-pressure validation preserves fully legacy rankings
 whose pressured rows carry only shortfall. New producer rows under pressure also
 carry projected required downlink demand and selected capacity-adjusted

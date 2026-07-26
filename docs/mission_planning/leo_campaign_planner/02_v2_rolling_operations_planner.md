@@ -716,7 +716,10 @@ schema-type their stable IDs, invalid-input flags, and protected/change counts.
   maneuver-delta count, and generation time with present source reports while
   retaining compatibility for additive omissions. Present source-study,
   operator-review provenance, and Cadence source type/plan copies are likewise
-  bound to the enclosing Repair provenance chain.
+  bound to the enclosing Repair provenance chain. Approval status and present
+  top-level rule matches are also reconciled with the same policy-decision
+  output; when no rules match, its fallback approval count binds to preserved
+  requirement rows without re-evaluating policy.
 
 The current repair behavior is deliberately transparent:
 
