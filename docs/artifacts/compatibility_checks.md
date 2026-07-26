@@ -1951,6 +1951,12 @@ ascending, embedded source candidate start ascending, and candidate ID
 ascending. Equal-priority/equal-score rows therefore cannot select a
 higher-churn candidate in a current artifact. Fully legacy rankings retain the
 original priority/score-only ordering check.
+Current replacement selections are also reconciled to their unique embedded
+source candidate as a complete snapshot after excluding only the selected
+activity's added `repair` metadata. Coordinated candidate and ranking drift can
+therefore no longer disagree with the selected repaired activity while keeping
+score, churn, and ordering arithmetic internally consistent. Fully legacy
+rankings retain their prior snapshot compatibility.
 Projected-resource replacement evidence likewise preserves fully legacy
 rankings whose indicators all omit candidate identity. Once any indicator
 carries the current ranked candidate ID, every projected-resource indicator in

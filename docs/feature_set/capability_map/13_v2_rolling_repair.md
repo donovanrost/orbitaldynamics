@@ -231,7 +231,10 @@ Status: **implemented** (with **partial**, **near-term**, **later**, and **out o
   Each ranking candidate ID must also resolve to exactly one embedded
   `source_candidate_activities` row, and its candidate value must equal that
   source row's validated score; corrected row arithmetic cannot mask a missing,
-  ambiguous, or altered source value. Current candidate-identified resource-risk
+  ambiguous, or altered source value. The current selected activity must also
+  equal that exact source candidate snapshot outside its added `repair`
+  metadata, preventing coordinated source/ranking drift from describing a
+  different selection. Current candidate-identified resource-risk
   indicators must additionally use a spacecraft scope from a valid embedded
   source resource summary applicable to that exact candidate under the resource
   projection's shared spacecraft/scenario and single-wildcard rules. Indicators

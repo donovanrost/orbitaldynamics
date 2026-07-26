@@ -394,6 +394,9 @@ downlink/station/time normalization.
   current row order is replayed through the producer's full deterministic key:
   semantic-diff priority, score, churn, embedded source candidate start, then
   candidate ID. Fully legacy rows retain priority/score ordering compatibility.
+  The current selected activity's full base snapshot must equal the unique
+  embedded source candidate after excluding only added `repair` metadata;
+  legacy rankings retain their prior looser snapshot compatibility.
   The current envelope requires `repair.source_activity_context` so start-time
   churn remains replayable. It also requires stable top-level source/replacement
   IDs and a complete four-ID `timeline_link`, binds source IDs to the source

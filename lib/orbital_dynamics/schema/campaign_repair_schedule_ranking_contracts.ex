@@ -7,16 +7,11 @@ defmodule OrbitalDynamics.Schema.CampaignRepairScheduleRankingContracts do
     ScalarValues
   }
 
+  alias OrbitalDynamics.Schema.CampaignRepairReplacementRankingVersion
+
   import OrbitalDynamics.Schema.PrimitiveValidation, only: [error: 2]
 
   @tolerance 1.0e-9
-  @current_row_fields [
-    "contact_intent_pressure_penalty",
-    "contact_contention_resolution_pressure_penalty",
-    "link_capacity_pressure_required_downlink_mb",
-    "link_capacity_pressure_selected_capacity_adjusted_throughput_mb"
-  ]
-
   def validate(issues, artifact) when is_map(artifact) do
     policy = Map.get(artifact, "scoring_policy", %{})
 
@@ -133,36 +128,15 @@ defmodule OrbitalDynamics.Schema.CampaignRepairScheduleRankingContracts do
        do: issues
 
   defp validate_current_source_context(issues, path, rows, source_context) do
-    if current_ranking?(rows) and not is_map(source_context) do
+    if CampaignRepairReplacementRankingVersion.current?(rows) and not is_map(source_context) do
       [error(path, "must be present on current replacement rankings") | issues]
     else
       issues
     end
   end
 
-  defp current_ranking?(rows) do
-    Enum.any?(rows, fn
-      %{} = row ->
-        Enum.any?(@current_row_fields, &Map.has_key?(row, &1)) or
-          current_resource_indicator?(row)
-
-      _row ->
-        false
-    end)
-  end
-
-  defp current_resource_indicator?(row) do
-    case Map.get(row, "resource_projection_pressure_risk_indicators") do
-      indicators when is_list(indicators) ->
-        Enum.any?(indicators, &(is_map(&1) and Map.has_key?(&1, "candidate_id")))
-
-      _indicators ->
-        false
-    end
-  end
-
   defp validate_current_row_order(issues, path, rows, source_candidates_by_id) do
-    if current_ranking?(rows) do
+    if CampaignRepairReplacementRankingVersion.current?(rows) do
       sort_keys = Enum.map(rows, &row_sort_key(&1, source_candidates_by_id))
 
       if Enum.all?(sort_keys, &match?({:ok, _sort_key}, &1)) do

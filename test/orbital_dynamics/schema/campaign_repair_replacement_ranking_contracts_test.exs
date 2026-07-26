@@ -306,6 +306,49 @@ defmodule OrbitalDynamics.Schema.CampaignRepairReplacementRankingContractsTest d
              Schema.validate_artifact(fully_legacy_order)
   end
 
+  test "binds current selected activity to its source candidate snapshot", context do
+    ranking_path = ranking_path(context.activity_index)
+    row_path = ranking_path <> ".rows[0]"
+
+    coordinated_source_ranking_drift =
+      context.artifact
+      |> put_in_path("$.source_candidate_activities[0].starts_at_s", 490.0)
+      |> put_in_path("$.source_candidate_activities[0].ends_at_s", 550.0)
+      |> put_in_path(row_path <> ".schedule_churn_s", 390.0)
+      |> put_in_path(row_path <> ".schedule_move_penalty", -3.9)
+      |> put_in_path(row_path <> ".ranking_score", -93.9)
+
+    expected_path = "$.activities[#{context.activity_index}]"
+
+    assert {:error, current_report} =
+             Schema.validate_artifact(coordinated_source_ranking_drift)
+
+    assert Enum.any?(
+             current_report["errors"],
+             &(&1["path"] == expected_path)
+           )
+
+    legacy_drift =
+      update_in(
+        coordinated_source_ranking_drift,
+        [
+          "activities",
+          Access.at(context.activity_index),
+          "repair",
+          "replacement_ranking",
+          "rows",
+          Access.at(0)
+        ],
+        &Map.drop(&1, [
+          "contact_intent_pressure_penalty",
+          "contact_contention_resolution_pressure_penalty"
+        ])
+      )
+
+    assert {:ok, %{"schema_contract" => "campaign_repair.v2"}} =
+             Schema.validate_artifact(legacy_drift)
+  end
+
   test "rejects empty or malformed optional pressure evidence", context do
     row_path = ranking_path(context.activity_index) <> ".rows[0]"
 

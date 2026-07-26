@@ -608,7 +608,10 @@ schema-type their stable IDs, invalid-input flags, and protected/change counts.
   legacy rankings without either remain compatible. Executable validation also
   recomputes semantic-diff priority from exact source ID/window and
   replacement-candidate links in the embedded source diff report, and pins the
-  selected row to the enclosing repaired activity. Current rankings require
+  selected row to the enclosing repaired activity. For current rankings, that
+  activity's complete non-`repair` snapshot must equal the unique embedded
+  source candidate, so coordinated source/ranking drift cannot describe a
+  different selected contact or observation. Current rankings require
   stable source/replacement handoff IDs and a complete four-ID `timeline_link`:
   source IDs bind to `source_activity_context.timeline_identity`, and
   replacement IDs bind to the enclosing repaired activity. Fully legacy

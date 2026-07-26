@@ -2,6 +2,7 @@ defmodule OrbitalDynamics.Schema.CampaignRepairCandidateValueContracts do
   @moduledoc false
 
   alias OrbitalDynamics.CampaignPlanner.ActivityIdentity
+  alias OrbitalDynamics.Schema.CampaignRepairReplacementRankingVersion
 
   import OrbitalDynamics.Schema.PrimitiveValidation, only: [error: 2]
 
@@ -41,9 +42,15 @@ defmodule OrbitalDynamics.Schema.CampaignRepairCandidateValueContracts do
           _activity -> nil
         end
 
-      validate_rows(
-        acc,
+      acc
+      |> validate_rows(
         "$.activities[#{activity_index}].repair.replacement_ranking.rows",
+        rows,
+        source_candidates_by_id
+      )
+      |> validate_current_selected_snapshot(
+        "$.activities[#{activity_index}]",
+        activity,
         rows,
         source_candidates_by_id
       )
@@ -61,6 +68,49 @@ defmodule OrbitalDynamics.Schema.CampaignRepairCandidateValueContracts do
   end
 
   defp validate_rows(issues, _path, _rows, _source_candidates_by_id), do: issues
+
+  defp validate_current_selected_snapshot(
+         issues,
+         path,
+         %{} = activity,
+         rows,
+         source_candidates_by_id
+       ) do
+    if CampaignRepairReplacementRankingVersion.current?(rows) do
+      activity_id = Map.get(activity, "id")
+
+      case Map.get(source_candidates_by_id, activity_id, []) do
+        [%{} = candidate] ->
+          if base_snapshot(activity) == base_snapshot(candidate) do
+            issues
+          else
+            [
+              error(
+                path,
+                "must match the selected embedded source candidate snapshot outside repair metadata"
+              )
+              | issues
+            ]
+          end
+
+        _missing_or_ambiguous_candidate ->
+          issues
+      end
+    else
+      issues
+    end
+  end
+
+  defp validate_current_selected_snapshot(
+         issues,
+         _path,
+         _activity,
+         _rows,
+         _source_candidates_by_id
+       ),
+       do: issues
+
+  defp base_snapshot(activity), do: Map.delete(activity, "repair")
 
   defp validate_row(issues, path, %{} = row, source_candidates_by_id) do
     candidate_id = Map.get(row, "candidate_id")

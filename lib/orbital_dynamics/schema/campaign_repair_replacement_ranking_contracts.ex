@@ -2,6 +2,7 @@ defmodule OrbitalDynamics.Schema.CampaignRepairReplacementRankingContracts do
   @moduledoc false
 
   alias OrbitalDynamics.CampaignPlanner.{ActivityIdentity, RepairActivityIdentity}
+  alias OrbitalDynamics.Schema.CampaignRepairReplacementRankingVersion
 
   @model "greedy_repair_replacement_ranking"
   @selection_scope "viable_unique_candidates_within_repair_intent"
@@ -38,12 +39,6 @@ defmodule OrbitalDynamics.Schema.CampaignRepairReplacementRankingContracts do
     "resource_projection_pressure_penalty",
     "ranking_score",
     "selected"
-  ]
-  @current_row_fields [
-    "contact_intent_pressure_penalty",
-    "contact_contention_resolution_pressure_penalty",
-    "link_capacity_pressure_required_downlink_mb",
-    "link_capacity_pressure_selected_capacity_adjusted_throughput_mb"
   ]
   @current_handoff_fields [
     "source_activity_id",
@@ -154,7 +149,7 @@ defmodule OrbitalDynamics.Schema.CampaignRepairReplacementRankingContracts do
   end
 
   defp validate_current_handoff(issues, repair_path, repair, rows) do
-    if current_ranking?(rows) do
+    if CampaignRepairReplacementRankingVersion.current?(rows) do
       timeline_link = Map.get(repair, "timeline_link")
 
       issues
@@ -223,29 +218,6 @@ defmodule OrbitalDynamics.Schema.CampaignRepairReplacementRankingContracts do
 
   defp validate_current_source_timeline_identity(issues, _path, _identity, _repair),
     do: issues
-
-  defp current_ranking?(rows) when is_list(rows) do
-    Enum.any?(rows, fn
-      %{} = row ->
-        Enum.any?(@current_row_fields, &Map.has_key?(row, &1)) or
-          current_resource_indicator?(row)
-
-      _row ->
-        false
-    end)
-  end
-
-  defp current_ranking?(_rows), do: false
-
-  defp current_resource_indicator?(row) do
-    case Map.get(row, "resource_projection_pressure_risk_indicators") do
-      indicators when is_list(indicators) ->
-        Enum.any?(indicators, &(is_map(&1) and Map.has_key?(&1, "candidate_id")))
-
-      _indicators ->
-        false
-    end
-  end
 
   defp validate_selected_handoff(issues, path, ranking, repair_path, repair, activity) do
     activity_id = activity_id(activity)
