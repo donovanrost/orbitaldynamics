@@ -34,18 +34,43 @@ defmodule OrbitalDynamics.Schema.CampaignRepairReplacementRankingContractsTest d
     assert {:ok, %{"schema_contract" => "campaign_repair.v2"}} =
              Schema.validate_artifact(legacy_artifact)
 
-    legacy_without_source_timing =
+    fully_legacy_without_source_timing =
+      update_in(
+        artifact,
+        ["activities", Access.at(activity_index), "repair"],
+        fn repair ->
+          repair
+          |> Map.delete("source_activity_context")
+          |> update_in(["replacement_ranking", "rows"], fn rows ->
+            Enum.map(rows, fn row ->
+              row
+              |> Map.delete("contact_intent_pressure_penalty")
+              |> Map.delete("contact_contention_resolution_pressure_penalty")
+            end)
+          end)
+        end
+      )
+
+    assert {:ok, %{"schema_contract" => "campaign_repair.v2"}} =
+             Schema.validate_artifact(fully_legacy_without_source_timing)
+
+    current_without_source_timing =
       update_in(
         artifact,
         ["activities", Access.at(activity_index), "repair"],
         &Map.delete(&1, "source_activity_context")
       )
 
-    assert {:ok, %{"schema_contract" => "campaign_repair.v2"}} =
-             Schema.validate_artifact(legacy_without_source_timing)
+    assert {:error, current_report} = Schema.validate_artifact(current_without_source_timing)
+
+    assert Enum.any?(
+             current_report["errors"],
+             &(&1["path"] ==
+                 "$.activities[#{activity_index}].repair.source_activity_context")
+           )
 
     invalid_legacy_cost =
-      legacy_without_source_timing
+      fully_legacy_without_source_timing
       |> put_in_path(
         ranking_path(activity_index) <> ".rows[0].schedule_churn_penalty",
         -200.0

@@ -235,6 +235,10 @@ Status: **implemented** (with **partial**, **near-term**, **later**, and **out o
   in a fully legacy ranking may all predate candidate identity; once any
   indicator carries the current identity, every projected-resource indicator in
   that ranking must carry it.
+  Current ranking envelopes also require `repair.source_activity_context`, so
+  source-to-candidate start-time churn cannot become unreplayable by deleting
+  context while retaining current pressure evidence. Fully legacy rankings may
+  omit both the current markers and source context.
   Station-pressure penalties and source paths are recomputed from exact
   candidate IDs in the embedded allocation and station-calendar reports, so a
   row cannot claim allocation-only, calendar-only, or dual-source pressure for

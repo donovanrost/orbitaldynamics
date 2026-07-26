@@ -10,6 +10,12 @@ defmodule OrbitalDynamics.Schema.CampaignRepairScheduleRankingContracts do
   import OrbitalDynamics.Schema.PrimitiveValidation, only: [error: 2]
 
   @tolerance 1.0e-9
+  @current_row_fields [
+    "contact_intent_pressure_penalty",
+    "contact_contention_resolution_pressure_penalty",
+    "link_capacity_pressure_required_downlink_mb",
+    "link_capacity_pressure_selected_capacity_adjusted_throughput_mb"
+  ]
 
   def validate(issues, artifact) when is_map(artifact) do
     policy = Map.get(artifact, "scoring_policy", %{})
@@ -64,6 +70,7 @@ defmodule OrbitalDynamics.Schema.CampaignRepairScheduleRankingContracts do
       validate_rows(
         acc,
         "$.activities[#{activity_index}].repair.replacement_ranking.rows",
+        "$.activities[#{activity_index}].repair.source_activity_context",
         rows,
         source_context,
         source_candidates_by_id,
@@ -85,6 +92,7 @@ defmodule OrbitalDynamics.Schema.CampaignRepairScheduleRankingContracts do
   defp validate_rows(
          issues,
          path,
+         source_context_path,
          rows,
          source_context,
          source_candidates_by_id,
@@ -92,6 +100,14 @@ defmodule OrbitalDynamics.Schema.CampaignRepairScheduleRankingContracts do
          move_cost
        )
        when is_list(rows) do
+    issues =
+      validate_current_source_context(
+        issues,
+        source_context_path,
+        rows,
+        source_context
+      )
+
     rows
     |> Enum.with_index()
     |> Enum.reduce(issues, fn {row, index}, acc ->
@@ -110,6 +126,7 @@ defmodule OrbitalDynamics.Schema.CampaignRepairScheduleRankingContracts do
   defp validate_rows(
          issues,
          _path,
+         _source_context_path,
          _rows,
          _source_context,
          _source_candidates_by_id,
@@ -117,6 +134,35 @@ defmodule OrbitalDynamics.Schema.CampaignRepairScheduleRankingContracts do
          _move_cost
        ),
        do: issues
+
+  defp validate_current_source_context(issues, path, rows, source_context) do
+    if current_ranking?(rows) and not is_map(source_context) do
+      [error(path, "must be present on current replacement rankings") | issues]
+    else
+      issues
+    end
+  end
+
+  defp current_ranking?(rows) do
+    Enum.any?(rows, fn
+      %{} = row ->
+        Enum.any?(@current_row_fields, &Map.has_key?(row, &1)) or
+          current_resource_indicator?(row)
+
+      _row ->
+        false
+    end)
+  end
+
+  defp current_resource_indicator?(row) do
+    case Map.get(row, "resource_projection_pressure_risk_indicators") do
+      indicators when is_list(indicators) ->
+        Enum.any?(indicators, &(is_map(&1) and Map.has_key?(&1, "candidate_id")))
+
+      _indicators ->
+        false
+    end
+  end
 
   defp validate_row(
          issues,

@@ -600,11 +600,14 @@ schema-type their stable IDs, invalid-input flags, and protected/change counts.
   resource contributions, the resulting greedy ranking score, and selected
   flag. Executable validation replays source-to-candidate start-time churn from
   the embedded source context and unique source candidate, then pins fixed churn
-  and churn-times-move penalties to the enclosing scoring policy. It also
-  recomputes semantic-diff priority from exact source ID/window and replacement-
-  candidate links in the embedded source diff report, and pins the selected row
-  to the enclosing repaired activity and optional source/replacement timeline
-  handoff IDs. Current projected-resource risk indicators also bind their
+  and churn-times-move penalties to the enclosing scoring policy. A current
+  ranking cannot delete that source context while retaining current optional
+  pressure evidence; fully legacy rankings without either remain compatible. It
+  also recomputes semantic-diff priority from exact source ID/window and
+  replacement-candidate links in the embedded source diff report, and pins the
+  selected row to the enclosing repaired activity and optional
+  source/replacement timeline handoff IDs. Current projected-resource risk
+  indicators also bind their
   spacecraft scope to a valid normalized `source_resource_summaries` row that
   applies to the exact ranked source candidate by spacecraft/scenario identity;
   the single unscoped-summary `all_spacecraft` rule and duplicate/mixed-scope

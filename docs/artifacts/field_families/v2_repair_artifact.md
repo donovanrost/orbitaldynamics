@@ -391,8 +391,11 @@ downlink/station/time normalization.
   candidate-diff priority/match, candidate score, churn and move penalties,
   calibrated station-calendar, projected link-capacity, and projected resource
   penalties, the resulting greedy ranking score, rank, and selected flag. The
-  current projected-resource indicators carry the ranked candidate ID and must
-  use a spacecraft scope from an applicable valid source resource summary;
+  current envelope requires `repair.source_activity_context` so start-time churn
+  remains replayable; fully legacy rankings without current optional pressure
+  markers may omit it. The current projected-resource indicators carry the
+  ranked candidate ID and must use a spacecraft scope from an applicable valid
+  source resource summary;
   explicit spacecraft/scenario matching, single unscoped-summary fallback, and
   duplicate/mixed-scope review gating reuse the projection's own rules. Fully
   legacy rankings may omit candidate identity from every indicator, but a

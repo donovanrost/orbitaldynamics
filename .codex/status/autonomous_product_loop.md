@@ -5,32 +5,34 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Reject mixed Repair resource-indicator identity generations.
+Require source timing context on current Repair rankings.
 
 Status:
-Complete and verified from published base `c9eedbe9`; scoped publish pending.
+Complete and verified from published base `5c5d35b2`; scoped publish pending.
 
 Delivered behavior:
-- Treat a replacement ranking as current resource-indicator evidence when any
-  nested projected-resource risk indicator carries `candidate_id`.
-- In a current ranking, require `candidate_id` on every resource-pressure
-  indicator; retain existing exact enclosing-row identity and source-summary
-  spacecraft-scope checks.
-- Keep fully legacy rankings whose indicators all omit candidate identity valid,
-  and keep nominal rows without indicators compact in either generation.
-- Do not change JSON Schema, producer output, risk counts, scoring, selection,
-  scheduling, review/import routing, provider state, commanding, or authority.
+- Classify a replacement ranking as current when its rows carry current optional
+  contact-intent, contention, projected-link, or candidate-identified resource
+  evidence.
+- Require `repair.source_activity_context` on current rankings so exact
+  source-to-candidate start-time churn remains replayable.
+- Keep fully legacy rankings without current markers or source context valid;
+  continue validating fixed churn and move-cost arithmetic there.
+- Do not change JSON Schema, producer output, scoring, selection, scheduling,
+  review/import routing, provider state, commanding, or authority.
 
 Verification evidence:
-- Producer-backed focused resource/ranking/schema gate: `13 passed`.
+- Focused schedule/replacement-ranking producer gate: `7 passed`.
 - Expanded Repair selection, source-handoff, and golden gate: `41 passed`.
 - Saved-artifact lint: `155` artifacts, `0` errors, `0` warnings.
-- Final full suite: `5240 passed` in `694.4s`.
-- Structural proof: the fixture now produces two pressured alternatives with
-  candidate-scoped indicators; removing identity from every indicator keeps the
-  fully legacy ranking valid, while removing it only from the second pressured
-  row fails at
-  `$.activities[0].repair.replacement_ranking.rows[2].resource_projection_pressure_risk_indicators[0].candidate_id`.
+- Final full suite: `5240 passed` in `702.1s`.
+- Structural proof: removing source context plus both current per-row pressure
+  fields keeps the fully legacy readiness ranking valid; removing only source
+  context from the current ranking fails at
+  `$.activities[0].repair.source_activity_context`.
+- Fixed churn cost and churn-times-move arithmetic remain validated on the
+  fully legacy row, while current rows retain exact source-to-candidate timing
+  replay.
 - Repair schema, aggregate schema bundle, canonical Repair, and canonical
   Strategy hashes remained byte-identical; no generated artifacts changed.
 - `mix format --check-formatted` and `git diff --check` pass.
@@ -39,9 +41,9 @@ Level 6 pillar advanced:
 Candidate-specific decision explainability and versioned artifact compatibility.
 
 Last published slice:
-- `c9eedbe9` Reject mixed repair link pressure evidence (`5240 passed`; fully
-  legacy rankings remain valid while current rankings require operands on every
-  pressured row).
+- `5c5d35b2` Reject mixed repair resource indicator identity (`5240 passed`;
+  fully legacy rankings remain valid while current rankings require identity on
+  every projected-resource indicator).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions only from authoritative,
@@ -52,8 +54,8 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-After enforcing generation-consistent resource identity, resume the fleet-scale
-Repair decision audit from the clean published checkout.
+After binding current rankings to source timing, resume the fleet-scale Repair
+decision audit from the clean published checkout.
 
 Blocked:
 None.

@@ -1951,6 +1951,11 @@ carries the current ranked candidate ID, every projected-resource indicator in
 that ranking must carry it; existing validation still binds each present ID to
 its enclosing candidate and each spacecraft scope to applicable source resource
 summaries.
+Current replacement-ranking envelopes also require the enclosing
+`repair.source_activity_context`, retaining exact source-to-candidate start-time
+churn replay. Only fully legacy rankings that omit current optional pressure
+markers may omit that source context; fixed churn and move-cost arithmetic still
+validate for those legacy rows.
 
 For repeatable file-to-file generation, use the campaign run task:
 
