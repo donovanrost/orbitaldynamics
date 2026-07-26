@@ -5,52 +5,50 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Reject source activity IDs from current Repair rankings.
+Reconcile Repair metadata with produced rows.
 
 Status:
-Implemented and verified from clean published base `03856322`; ready to
+Implemented and verified from clean published base `8b9524fa`; ready to
 publish.
 
 Selection evidence:
-- The replacement selector rejects any candidate whose stable activity ID
-  equals the failed source activity ID before applying every other ranking
-  predicate.
-- Current Repair artifacts preserve the exact source activity ID and every
-  ranked candidate ID, so this producer decision is replayable without
-  reconstructing selection history or overlap state.
-- Existing source/timeline handoff validation binds the source context to the
-  preserved source ID, but does not prevent a current ranking row from naming
-  that same source ID as a replacement.
+- The producer writes Repair metadata source identity and counts directly from
+  the enclosing top-level source ID and produced delta, approval, candidate,
+  and repaired-activity arrays.
+- Runtime validation currently requires the source ID plus delta and approval
+  count fields, but does not reconcile their values; optional candidate-window
+  and repaired-activity counts are likewise unchecked when present.
+- All five values are exactly replayable from the artifact without source-plan
+  reconstruction, provider calls, or sequential Repair accumulator state.
 
 Delivered behavior:
-- Reject each current replacement-ranking row whose candidate ID equals the
-  exact preserved Repair source activity ID.
-- Report the violation at the exact row candidate ID, alongside the existing
-  unique embedded candidate, timing, rejection, intent, kind, and degraded-mode
-  eligibility checks.
-- Preserve fully legacy ranking compatibility and avoid inferring selected-plan,
-  used-replacement, or sequential overlap accumulator state.
-- Keep producer output, ranking and scoring behavior, JSON Schema, scheduling,
+- Bind `repair_metadata.source_plan_id` to the enclosing Repair source plan ID.
+- Bind required delta and approval-required counts to their exact row-array
+  lengths.
+- Bind present candidate-window and repaired-activity counts to the embedded
+  source-candidate and repaired-activity arrays while preserving older repairs
+  that omit those two additive fields.
+- Keep producer output, JSON Schema, ranking, scoring, selection, scheduling,
   review/import routing, provider state, commanding, and authority unchanged.
 
 Verification:
-- Focused replacement-ranking and producer gate: `11 passed`.
-- Expanded Repair schema and eligibility gate: `331 passed`.
+- Focused produced-surface and adjacent candidate-fixture gate: `19 passed`.
+- Expanded Repair schema gate: `319 passed`.
 - Saved-artifact lint: `155` artifacts passed with `0` errors and `0` warnings.
 - Canonical Repair and Strategy regeneration remained byte-stable at
   `cc41834e706fd1e04a4c5578032fdf99ceeba949a02fd75fc54c8b70cdc30d8a`
   and
   `57602722702969da587e2754df84bca1e06e86cc32fa5af7f3f78451b72f9985`.
-- Full `mix test --timeout 120000`: `5246 passed` in `729.2s`.
+- Full `mix test --timeout 120000`: `5246 passed` in `664.3s`.
 - `mix format --check-formatted` and `git diff --check` pass.
 
 Level 6 pillar advanced:
 Fleet-scale candidate-pool integrity and operator-review evidence fidelity.
 
 Last published slice:
-- `03856322` Reject degraded Repair ranking candidates (`5245 passed`; current
-  rows replay preserved degraded state and normalized Repair policy while
-  legacy rankings and configured command/health exemptions remain unchanged).
+- `8b9524fa` Reject Repair source self-replacements (`5246 passed`; current rows
+  cannot rank the preserved source activity as its own replacement while legacy
+  rankings and hidden sequential state remain unchanged).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions only from authoritative,
@@ -61,8 +59,9 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-After source-self exclusion, continue auditing remaining replayable replacement
-eligibility without inferring sequential accumulator state.
+After metadata reconciliation, continue fleet-scale evidence integrity only
+where producer outputs can be replayed without hidden source or accumulator
+state.
 
 Blocked:
 None.

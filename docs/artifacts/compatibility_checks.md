@@ -1937,6 +1937,12 @@ Executable `campaign_repair.v2` validation also derives
 `repair_metadata.timeline_protection` counts and activity IDs from repair
 activities and deltas, so stale timeline-protection summaries cannot remain
 schema-valid when locked, approved, or executed timeline evidence changes.
+Repair metadata source/count evidence is likewise reconciled to its enclosing
+artifact: `source_plan_id`, `delta_count`, and `approval_required_count` must
+match the top-level source ID and exact row-array lengths. When the additive
+`candidate_window_count` or `repaired_activity_count` fields are present, they
+must match the embedded source-candidate and repaired-activity arrays; older
+repairs may omit those two additive counts.
 Replacement-ranking link-pressure validation preserves fully legacy rankings
 whose pressured rows carry only shortfall. New producer rows under pressure also
 carry projected required downlink demand and selected capacity-adjusted

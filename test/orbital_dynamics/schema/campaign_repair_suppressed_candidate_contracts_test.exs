@@ -24,6 +24,7 @@ defmodule OrbitalDynamics.Schema.CampaignRepairSuppressedCandidateContractsTest 
       |> Map.put(@eligible_field, [eligible_candidate])
       |> Map.put(@suppressed_field, [suppressed_candidate])
       |> Map.put("source_refresh_budget_report", refresh_budget_report)
+      |> put_in(["repair_metadata", "candidate_window_count"], 1)
       |> put_in(["repair_metadata", "candidate_source", "candidate_count"], 2)
 
     %{

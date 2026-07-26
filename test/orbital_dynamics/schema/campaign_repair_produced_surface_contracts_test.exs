@@ -35,7 +35,13 @@ defmodule OrbitalDynamics.Schema.CampaignRepairProducedSurfaceContractsTest do
   end
 
   test "keeps produced-surface fields optional for older repairs", %{repair: repair} do
-    artifact = Map.drop(repair, @produced_fields)
+    artifact =
+      repair
+      |> Map.drop(@produced_fields)
+      |> update_in(
+        ["repair_metadata"],
+        &Map.drop(&1, ["candidate_window_count", "repaired_activity_count"])
+      )
 
     assert {:ok, %{"schema_contract" => "campaign_repair.v2"}} =
              Schema.validate_artifact(artifact)
@@ -50,6 +56,16 @@ defmodule OrbitalDynamics.Schema.CampaignRepairProducedSurfaceContractsTest do
       {"$.source_planner", Map.put(context.repair, "source_planner", 2)},
       {"$.change_summary", put_in(context.repair, ["change_summary", "canceled"], 2)},
       {"$.change_summary.canceled", put_in(context.repair, ["change_summary", "canceled"], -1)},
+      {"$.repair_metadata.source_plan_id",
+       put_in(context.repair, ["repair_metadata", "source_plan_id"], "source:drift")},
+      {"$.repair_metadata.delta_count",
+       put_in(context.repair, ["repair_metadata", "delta_count"], 2)},
+      {"$.repair_metadata.approval_required_count",
+       put_in(context.repair, ["repair_metadata", "approval_required_count"], 2)},
+      {"$.repair_metadata.candidate_window_count",
+       put_in(context.repair, ["repair_metadata", "candidate_window_count"], 2)},
+      {"$.repair_metadata.repaired_activity_count",
+       put_in(context.repair, ["repair_metadata", "repaired_activity_count"], 2)},
       {"$.preserved_activities",
        Map.put(context.readiness_repair, "preserved_activities", [moved_activity])},
       {"$.approval_rule_matches[0].classification",

@@ -28,6 +28,11 @@ Status: **implemented** (with **partial**, **near-term**, **later**, and **out o
 - Runtime V2 validation applies the complete nested transition contract, pins
   its repair source and replacement count to repaired activities, and reconciles
   selected/review-required counts with `repair_metadata`.
+- Runtime validation also binds `repair_metadata.source_plan_id`, `delta_count`,
+  and `approval_required_count` to the enclosing source ID and exact row counts.
+  Present `candidate_window_count` and `repaired_activity_count` values bind to
+  the embedded candidate and repaired-activity arrays; older repairs may omit
+  those two additive counts.
 - **`contact_allocation_report.v1`** over repaired contact activities. The
   optional report is a declared V2 nested contract; runtime validation applies
   its full row, count, summary, nested contention/resolution, stable-identity,

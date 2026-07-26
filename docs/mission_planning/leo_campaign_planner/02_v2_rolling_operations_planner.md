@@ -704,7 +704,10 @@ schema-type their stable IDs, invalid-input flags, and protected/change counts.
   operator-review timeline identities for import correlation.
 - `assumptions`, `provenance`, `scoring_policy`, `repair_policy`, and
   `repair_metadata` with a reproducible `repair_id` and explicit
-  `candidate_source`.
+  `candidate_source`. Executable validation binds the metadata source plan,
+  delta count, and approval-required count to the enclosing artifact. Present
+  candidate-window and repaired-activity counts also match their exact embedded
+  arrays, while older repairs may omit those two additive counts.
 
 The current repair behavior is deliberately transparent:
 

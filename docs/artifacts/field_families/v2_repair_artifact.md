@@ -9,8 +9,8 @@ operator what changed.
 - repaired `activities`, `deltas`, and `change_summary`
 - `approval_requirements`, `approval_status`, and `policy_decision`
 - `realized_state_snapshot` and repair-time operational context
-- `repair_metadata` with deterministic repair identity and timeline-protection
-  summaries
+- `repair_metadata` with deterministic repair identity, source/count evidence,
+  and timeline-protection summaries
 
 All fields emitted by the checked V2 repair artifacts are represented in the
 generated `campaign_repair.v2` property surface. The additive `study_id`,
@@ -20,6 +20,11 @@ values are executable-validated. Change counts must equal the delta
 `repair_action` frequencies, preserved activities must equal the preserved
 subset of repaired activities in order, study identity must be stable, and
 approval rule-match rows run the shared policy validator.
+`repair_metadata.source_plan_id`, `delta_count`, and `approval_required_count`
+must match the enclosing source ID and exact delta/approval row counts. Present
+`candidate_window_count` and `repaired_activity_count` values likewise match
+`source_candidate_activities` and `activities`; older repairs may omit those two
+additive metadata counts.
 
 ### `realized_state_snapshot`
 

@@ -10,7 +10,64 @@ defmodule OrbitalDynamics.Schema.CampaignRepairProducedSurfaceContracts do
     issues
     |> validate_change_summary(artifact)
     |> validate_preserved_activities(artifact)
+    |> validate_repair_metadata(artifact)
   end
+
+  defp validate_repair_metadata(issues, %{"repair_metadata" => %{} = metadata} = artifact) do
+    issues
+    |> validate_equal(
+      "$.repair_metadata.source_plan_id",
+      Map.get(metadata, "source_plan_id"),
+      Map.get(artifact, "source_plan_id"),
+      "must match enclosing Repair source_plan_id"
+    )
+    |> validate_required_row_count(metadata, "delta_count", Map.get(artifact, "deltas"))
+    |> validate_required_row_count(
+      metadata,
+      "approval_required_count",
+      Map.get(artifact, "approval_requirements")
+    )
+    |> validate_optional_row_count(
+      metadata,
+      "candidate_window_count",
+      Map.get(artifact, "source_candidate_activities")
+    )
+    |> validate_optional_row_count(
+      metadata,
+      "repaired_activity_count",
+      Map.get(artifact, "activities")
+    )
+  end
+
+  defp validate_repair_metadata(issues, _artifact), do: issues
+
+  defp validate_required_row_count(issues, metadata, field, rows) when is_list(rows) do
+    validate_equal(
+      issues,
+      "$.repair_metadata.#{field}",
+      Map.get(metadata, field),
+      length(rows),
+      "must match enclosing Repair row count"
+    )
+  end
+
+  defp validate_required_row_count(issues, _metadata, _field, _rows), do: issues
+
+  defp validate_optional_row_count(issues, metadata, field, rows) when is_list(rows) do
+    if Map.has_key?(metadata, field) do
+      validate_equal(
+        issues,
+        "$.repair_metadata.#{field}",
+        Map.get(metadata, field),
+        length(rows),
+        "must match enclosing Repair row count"
+      )
+    else
+      issues
+    end
+  end
+
+  defp validate_optional_row_count(issues, _metadata, _field, _rows), do: issues
 
   defp validate_change_summary(issues, artifact) do
     summary = Map.get(artifact, "change_summary")
@@ -62,4 +119,10 @@ defmodule OrbitalDynamics.Schema.CampaignRepairProducedSurfaceContracts do
       issues
     end
   end
+
+  defp validate_equal(issues, _path, actual, expected, _message) when actual == expected,
+    do: issues
+
+  defp validate_equal(issues, path, _actual, _expected, message),
+    do: [error(path, message) | issues]
 end

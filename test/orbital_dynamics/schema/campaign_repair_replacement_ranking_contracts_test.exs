@@ -704,6 +704,7 @@ defmodule OrbitalDynamics.Schema.CampaignRepairReplacementRankingContractsTest d
 
     context.artifact
     |> Map.put("source_candidate_activities", [source_candidate, candidate])
+    |> put_in(["repair_metadata", "candidate_window_count"], 2)
     |> put_in(["repair_metadata", "candidate_source", "candidate_count"], 2)
     |> put_in_path(ranking_path <> ".rows", [selected_row, row])
     |> put_in_path(ranking_path <> ".evaluated_candidate_count", 2)
