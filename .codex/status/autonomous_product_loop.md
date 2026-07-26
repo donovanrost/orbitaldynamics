@@ -5,51 +5,54 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Bind Repair operational-timeline review handoffs.
+Extract shared Repair resource-handoff validation mechanics.
 
 Status:
-Verified from clean published base `05e290ee`; ready to publish.
+Verified from clean published base `01d45c05`; ready to publish.
 
 Selection evidence:
-- Repair operational-timeline review production consumes
-  `operational_timeline_report.rows` in source order and excludes only rows whose
-  required action is `monitor_activity`, `none_locked_activity`, or
-  `none_terminal_activity`.
-- Cadence operational-timeline rows are built directly from those review rows;
-  both layers preserve each full source row as `source_operational_timeline`.
-- Existing runtime validation binds preserved copies to their individual
-  handoff row but does not bind source-scoped counts or copies to the enclosing
-  Repair operational-timeline report; no external state is required.
+- The contact-allocation, link-capacity, resource-projection, and
+  realized-feedback handoff validators independently implement identical row
+  indexing, direct/nested source lookup, optional source-copy comparison, and
+  error construction mechanics.
+- Those mechanics account for roughly half of each validator despite differing
+  only in source predicates, copy keys, and error messages.
+- Their focused source-order/count/copy challenge suites provide a
+  behavior-preserving extraction boundary; no product or artifact contract
+  change is needed.
 
 Delivered behavior:
-- Bind present operator-review and Cadence operational-timeline row counts to the
-  enclosing Repair reviewable-row count.
-- Bind present operator-review, Cadence, and embedded source-review
-  `source_operational_timeline` copies to the corresponding enclosing row in
-  source order.
-- Preserve older package and copy omissions while leaving producer output, JSON
-  Schema, planning, provider, command, import, and authority behavior unchanged.
+- Introduce one shared Repair handoff validation module that owns indexed-row
+  selection, direct/nested source lookup, optional source-copy comparison, and
+  equality error construction.
+- Migrate the four resource/allocation validators to that module while retaining
+  their exact source predicates, copy paths, source order, and error messages.
+- Remove `220` net lines from the four migrated validators while adding direct
+  helper coverage and leaving the bounded slice net-negative across production
+  validation code.
+- Leave all producer output, JSON Schema, planning, provider, command, import,
+  compatibility, and authority behavior unchanged.
 
 Verification:
-- Focused operational-timeline handoff contract gate: `3 passed`.
-- Adjacent timeline, review/import, Cadence, and Repair handoff gate: `92 passed`.
-- Expanded Repair schema gate: `376 passed`.
+- Focused shared helper and migrated-validator gate: `16 passed`.
+- All Repair handoff validators plus shared-helper gate: `51 passed`.
+- Expanded Repair schema gate: `379 passed`.
 - Direct Repair planner gate: `225 passed`.
 - Saved-artifact lint: `155` artifacts passed with zero errors, warnings, or
   remediation.
 - Canonical Repair and Strategy regeneration was byte-identical to the
   published fixtures.
-- Full suite: `5303 passed` in 673.4 seconds.
+- Full suite: `5306 passed` in 771.4 seconds.
 - `mix format --check-formatted` and `git diff --check` passed.
 
 Level 6 pillar advanced:
 Fleet-scale candidate-pool integrity and operator-review evidence fidelity.
 
 Last published slice:
-- `05e290ee` Bind Repair operational-readiness review handoffs (`5300 passed`;
-  present source-scoped operator-review and Cadence summary/gate counts and
-  preserved report projections and full gate copies bind to the enclosing
-  readiness report while older package and copy omissions remain compatible).
+- `01d45c05` Bind Repair operational-timeline review handoffs (`5303 passed`;
+  present source-scoped operator-review and Cadence counts and full timeline-row
+  copies bind to enclosing reviewable operational-timeline rows while older
+  package and copy omissions remain compatible).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions only from authoritative,
@@ -60,9 +63,9 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-After Repair operational-timeline handoff binding, continue fleet-scale
-evidence integrity only where producer outputs can be replayed without hidden
-source or accumulator state.
+After the shared resource-handoff extraction, continue responsibility-based
+handoff validation consolidation in bounded groups or return to fleet-scale
+evidence integrity where producer outputs can be replayed without hidden state.
 
 Blocked:
 None.
