@@ -1967,6 +1967,10 @@ Present additive requirement enrichment is likewise replayed from the embedded
 decision rows: matches join by exact activity identity when declared and by
 exact action otherwise, and their strongest classification must match the
 requirement copy. Unmatched requirements and older omitted copies remain valid.
+Present Repair decision fallback fields also match the same-named approval-count
+limit, risk-count limits, and blocked-risk types in the enclosing normalized
+`approval_policy`. Older fallback or field omissions remain valid, and action
+rules are not re-evaluated during validation.
 Replacement-ranking link-pressure validation preserves fully legacy rankings
 whose pressured rows carry only shortfall. New producer rows under pressure also
 carry projected required downlink demand and selected capacity-adjusted

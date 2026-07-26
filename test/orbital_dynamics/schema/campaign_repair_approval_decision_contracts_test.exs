@@ -77,6 +77,26 @@ defmodule OrbitalDynamics.Schema.CampaignRepairApprovalDecisionContractsTest do
              Schema.validate_artifact(unmatched_repair)
   end
 
+  test "keeps additive fallback policy evidence optional", %{repair: repair} do
+    assert {:ok, %{"schema_contract" => "campaign_repair.v2"}} =
+             repair
+             |> update_in(["policy_decision"], &Map.delete(&1, "fallback_policy"))
+             |> Schema.validate_artifact()
+
+    assert {:ok, %{"schema_contract" => "campaign_repair.v2"}} =
+             repair
+             |> update_in(
+               ["policy_decision", "fallback_policy"],
+               &Map.delete(&1, "operator_review_risk_limit")
+             )
+             |> Schema.validate_artifact()
+
+    assert {:ok, %{"schema_contract" => "campaign_repair.v2"}} =
+             repair
+             |> update_in(["approval_policy"], &Map.delete(&1, "operator_review_risk_limit"))
+             |> Schema.validate_artifact()
+  end
+
   test "rejects Repair approval decision drift", context do
     invalid_cases = [
       {"$.approval_status", Map.put(context.repair, "approval_status", "blocked_by_policy")},
@@ -98,7 +118,33 @@ defmodule OrbitalDynamics.Schema.CampaignRepairApprovalDecisionContractsTest do
          context.repair,
          ["approval_requirements", Access.at(0), "policy_classification"],
          "auto_approvable"
-       )}
+       )},
+      {"$.policy_decision.fallback_policy.auto_approvable_approval_count_limit",
+       put_in(
+         context.repair,
+         ["policy_decision", "fallback_policy", "auto_approvable_approval_count_limit"],
+         1
+       )},
+      {"$.policy_decision.fallback_policy.auto_approvable_risk_limit",
+       put_in(
+         context.repair,
+         ["policy_decision", "fallback_policy", "auto_approvable_risk_limit"],
+         1
+       )},
+      {"$.policy_decision.fallback_policy.operator_review_risk_limit",
+       put_in(
+         context.repair,
+         ["policy_decision", "fallback_policy", "operator_review_risk_limit"],
+         4
+       )},
+      {"$.policy_decision.fallback_policy.blocked_risk_types",
+       update_in(
+         context.repair,
+         ["policy_decision", "fallback_policy", "blocked_risk_types"],
+         &Enum.reverse/1
+       )},
+      {"$.policy_decision.fallback_policy",
+       put_in(context.repair, ["policy_decision", "fallback_policy"], [])}
     ]
 
     for {expected_path, invalid} <- invalid_cases do

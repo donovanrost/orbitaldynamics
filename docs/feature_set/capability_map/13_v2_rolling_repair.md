@@ -52,6 +52,9 @@ Status: **implemented** (with **partial**, **near-term**, **later**, and **out o
   embedded decision subset selected by activity identity, or by action for
   matches without activity identity; unmatched rows and older omissions remain
   valid.
+- Present decision fallback fields bind to the same-named approval-count limit,
+  risk-count limits, and blocked-risk types in the enclosing normalized
+  approval policy without replaying action rules; older omissions remain valid.
 - **`contact_allocation_report.v1`** over repaired contact activities. The
   optional report is a declared V2 nested contract; runtime validation applies
   its full row, count, summary, nested contention/resolution, stable-identity,

@@ -44,6 +44,9 @@ binds to the preserved requirement rows without re-evaluating policy.
 Present additive per-requirement rule matches and classification also bind to
 the embedded decision subset selected by activity identity, or by action when a
 match has no activity identity. Unmatched rows and older omissions remain valid.
+Present decision fallback fields bind to the same-named approval-count limit,
+risk-count limits, and blocked-risk types in the enclosing normalized approval
+policy. Older fallback or field omissions remain valid.
 
 ### `realized_state_snapshot`
 

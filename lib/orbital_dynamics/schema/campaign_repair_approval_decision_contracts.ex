@@ -3,6 +3,13 @@ defmodule OrbitalDynamics.Schema.CampaignRepairApprovalDecisionContracts do
 
   import OrbitalDynamics.Schema.PrimitiveValidation, only: [error: 2]
 
+  @fallback_policy_fields [
+    "auto_approvable_approval_count_limit",
+    "auto_approvable_risk_limit",
+    "operator_review_risk_limit",
+    "blocked_risk_types"
+  ]
+
   def validate(issues, %{"policy_decision" => %{} = decision} = artifact) do
     issues
     |> validate_equal(
@@ -14,6 +21,7 @@ defmodule OrbitalDynamics.Schema.CampaignRepairApprovalDecisionContracts do
     |> validate_fallback_requirement_count(decision, Map.get(artifact, "approval_requirements"))
     |> validate_optional_rule_matches(artifact, decision)
     |> validate_requirement_enrichment(artifact, decision)
+    |> validate_fallback_policy(artifact, decision)
   end
 
   def validate(issues, _artifact), do: issues
@@ -128,6 +136,40 @@ defmodule OrbitalDynamics.Schema.CampaignRepairApprovalDecisionContracts do
   defp validate_optional_equal(issues, path, map, field, expected, message) do
     if Map.has_key?(map, field) do
       validate_equal(issues, path, Map.get(map, field), expected, message)
+    else
+      issues
+    end
+  end
+
+  defp validate_fallback_policy(issues, artifact, decision) do
+    approval_policy = Map.get(artifact, "approval_policy")
+
+    case Map.fetch(decision, "fallback_policy") do
+      :error ->
+        issues
+
+      {:ok, %{} = fallback_policy} when is_map(approval_policy) ->
+        Enum.reduce(@fallback_policy_fields, issues, fn field, acc ->
+          validate_shared_policy_field(acc, approval_policy, fallback_policy, field)
+        end)
+
+      {:ok, %{} = _fallback_policy} ->
+        issues
+
+      {:ok, _fallback_policy} ->
+        [error("$.policy_decision.fallback_policy", "must be an object") | issues]
+    end
+  end
+
+  defp validate_shared_policy_field(issues, approval_policy, fallback_policy, field) do
+    if Map.has_key?(approval_policy, field) and Map.has_key?(fallback_policy, field) do
+      validate_equal(
+        issues,
+        "$.policy_decision.fallback_policy.#{field}",
+        Map.get(fallback_policy, field),
+        Map.get(approval_policy, field),
+        "must match enclosing Repair approval_policy.#{field}"
+      )
     else
       issues
     end

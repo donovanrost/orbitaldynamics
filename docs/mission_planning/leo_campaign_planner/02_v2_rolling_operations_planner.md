@@ -722,7 +722,10 @@ schema-type their stable IDs, invalid-input flags, and protected/change counts.
   requirement rows without re-evaluating policy. Present additive requirement
   rule matches and classification bind to the decision subset selected by exact
   activity identity, or by exact action when a match has no activity identity;
-  unmatched requirements and older omissions remain valid.
+  unmatched requirements and older omissions remain valid. Present decision
+  fallback fields also bind to the same-named approval-count limit, risk-count
+  limits, and blocked-risk types in the normalized approval policy without
+  replaying action rules; older fallback omissions remain valid.
 
 The current repair behavior is deliberately transparent:
 

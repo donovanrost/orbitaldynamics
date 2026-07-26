@@ -5,50 +5,48 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Bind Repair approval requirement enrichment.
+Bind Repair fallback policy evidence.
 
 Status:
-Verified from clean published base `7077efb7`; ready to publish.
+Verified from clean published base `cd99f80b`; ready to publish.
 
 Selection evidence:
-- Repair policy evaluation enriches each approval requirement from the already
-  embedded decision rule matches: a rule match with `activity_id` joins on exact
-  activity identity, otherwise a present `action` joins on exact action.
-- When that replayable subset is non-empty, the producer copies the exact match
-  rows and their strongest classification onto the requirement.
-- Runtime validation checks each requirement and rule match independently but
-  does not bind this producer enrichment; no policy re-evaluation, source-plan
-  reconstruction, external authority, or hidden accumulator state is required.
+- Repair stores its normalized approval policy and passes the same policy into
+  decision construction.
+- The decision fallback policy directly copies the approval-count limit,
+  risk-count limits, and blocked-risk types from that enclosing policy.
+- Runtime validation checks the approval policy and decision independently but
+  does not bind these direct copies; no action-rule replay, policy evaluation,
+  source-plan reconstruction, external authority, or hidden state is required.
 
 Delivered behavior:
-- Replay the decision rule-match subset for each Repair approval requirement,
-  using exact activity identity when a match declares one and exact action only
-  when it does not.
-- Bind present additive requirement rule-match copies to that exact subset and
-  present classification copies to its strongest classification.
-- Preserve unmatched requirement evidence and older omissions while leaving
-  policy evaluation, producer output, JSON Schema, planning, provider, command,
-  import, and authority behavior unchanged.
+- Bind present decision fallback fields to the same-named approval-count limit,
+  risk-count limits, and blocked-risk types in the enclosing Repair approval
+  policy.
+- Reject a present non-object fallback policy while preserving older whole-field
+  and individual-field omissions on either side of the handoff.
+- Leave action-rule evaluation, producer output, JSON Schema, planning,
+  provider, command, import, and authority behavior unchanged.
 
 Verification:
-- Focused approval-decision contract gate: `6 passed`.
-- Adjacent Repair/Strategy produced-surface gate: `15 passed`.
-- Expanded Repair schema gate: `329 passed`.
+- Focused approval-decision contract gate: `7 passed`.
+- Adjacent Repair/Strategy produced-surface gate: `16 passed`.
+- Expanded Repair schema gate: `330 passed`.
 - Direct Repair planner gate: `225 passed`.
 - Saved-artifact lint: `155` artifacts passed with zero errors, warnings, or
   remediation.
 - Canonical Repair and Strategy regeneration was byte-identical to the
   published fixtures.
-- Full suite: `5256 passed` in 749.3 seconds.
+- Full suite: `5257 passed` in 804.9 seconds.
 - `mix format --check-formatted` and `git diff --check` passed.
 
 Level 6 pillar advanced:
 Fleet-scale candidate-pool integrity and operator-review evidence fidelity.
 
 Last published slice:
-- `7077efb7` Reconcile Repair approval decisions (`5253 passed`; Repair status,
-  present top-level rule matches, and no-match fallback counts bind to the
-  embedded decision while older additive omissions remain compatible).
+- `cd99f80b` Bind Repair approval requirement enrichment (`5256 passed`; present
+  requirement rule matches and classification bind to the embedded decision
+  subset while unmatched evidence and older omissions remain compatible).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions only from authoritative,
@@ -59,7 +57,7 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-After Repair approval requirement enrichment, continue fleet-scale evidence
+After Repair fallback policy binding, continue fleet-scale evidence
 integrity only where producer outputs can be replayed without hidden source or
 accumulator state.
 
