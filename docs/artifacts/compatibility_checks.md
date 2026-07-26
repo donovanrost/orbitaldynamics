@@ -1949,6 +1949,11 @@ epoch, and exact candidate-source map. Present assumptions/provenance
 candidate-source copies, provenance source plan, operator-review source artifact
 ID, and Cadence provenance repair IDs must match that same identity chain;
 older repairs may omit the optional copies.
+For CandidateRefresh-backed repairs, present source reports also reconcile the
+metadata candidate count and invalidation count with the candidate-diff report,
+the snapshot and present maneuver-delta count with the accepted-state reference,
+and the generation time with freshness. Older repairs may omit those additive
+source reports or the accepted-state maneuver count.
 Replacement-ranking link-pressure validation preserves fully legacy rankings
 whose pressured rows carry only shortfall. New producer rows under pressure also
 carry projected required downlink demand and selected capacity-adjusted

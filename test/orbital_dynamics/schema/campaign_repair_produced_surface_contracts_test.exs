@@ -56,6 +56,18 @@ defmodule OrbitalDynamics.Schema.CampaignRepairProducedSurfaceContractsTest do
              Schema.validate_artifact(artifact)
   end
 
+  test "keeps CandidateRefresh reconciliation reports optional", %{repair: repair} do
+    artifact =
+      Map.drop(repair, [
+        "source_candidate_diff_report",
+        "source_candidate_refresh_accepted_planning_state",
+        "source_freshness_report"
+      ])
+
+    assert {:ok, %{"schema_contract" => "campaign_repair.v2"}} =
+             Schema.validate_artifact(artifact)
+  end
+
   test "rejects produced-surface drift", context do
     approval_match = hd(context.repair["approval_rule_matches"])
     moved_activity = hd(context.readiness_repair["activities"])
@@ -75,6 +87,39 @@ defmodule OrbitalDynamics.Schema.CampaignRepairProducedSurfaceContractsTest do
        put_in(context.repair, ["repair_metadata", "candidate_window_count"], 2)},
       {"$.repair_metadata.repaired_activity_count",
        put_in(context.repair, ["repair_metadata", "repaired_activity_count"], 2)},
+      {"$.repair_metadata.candidate_source.candidate_count",
+       put_in(
+         context.repair,
+         ["source_candidate_diff_report", "refreshed_candidate_count"],
+         1
+       )},
+      {"$.repair_metadata.candidate_source.invalidated_candidate_count",
+       put_in(
+         context.repair,
+         ["source_candidate_diff_report", "invalidated_candidate_count"],
+         1
+       )},
+      {"$.repair_metadata.candidate_source.snapshot_id",
+       put_in(
+         context.repair,
+         ["source_candidate_refresh_accepted_planning_state", "snapshot_id"],
+         "ops-snapshot-drift"
+       )},
+      {"$.repair_metadata.candidate_source.maneuver_execution_delta_count",
+       put_in(
+         context.repair,
+         [
+           "source_candidate_refresh_accepted_planning_state",
+           "maneuver_execution_delta_count"
+         ],
+         1
+       )},
+      {"$.repair_metadata.candidate_source.generated_at",
+       put_in(
+         context.repair,
+         ["source_freshness_report", "generated_at"],
+         "2026-05-14T20:24:00Z"
+       )},
       {"$.repair_metadata.repair_id",
        put_in(context.repair, ["repair_metadata", "repair_id"], String.duplicate("a", 64))},
       {"$.assumptions.candidate_source",

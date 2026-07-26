@@ -162,6 +162,8 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateDiffSemanticMatchTest d
   end
 
   defp candidate_refresh_artifact(candidates, opts) do
+    candidate_diff_report = Keyword.get(opts, :candidate_diff_report)
+
     %{
       "schema_version" => 1,
       "schema_contract" => "candidate_refresh.v1",
@@ -193,9 +195,10 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateDiffSemanticMatchTest d
       "contact_allocation_report" => Keyword.get(opts, :contact_allocation_report),
       "resource_filter_report" => Keyword.get(opts, :resource_filter_report),
       "refresh_budget_report" => Keyword.get(opts, :refresh_budget_report),
-      "candidate_diff_report" => Keyword.get(opts, :candidate_diff_report),
+      "candidate_diff_report" => candidate_diff_report,
       "freshness_report" => Keyword.get(opts, :freshness_report),
-      "invalidated_candidates" => [],
+      "invalidated_candidates" =>
+        Map.get(candidate_diff_report || %{}, "invalidated_candidates", []),
       "validation_records" => [],
       "warnings" => [],
       "assumptions" => %{},

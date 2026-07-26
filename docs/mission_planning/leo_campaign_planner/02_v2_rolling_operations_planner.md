@@ -711,7 +711,10 @@ schema-type their stable IDs, invalid-input flags, and protected/change counts.
   candidate-source evidence is present, validation reproduces `repair_id` from
   preserved identity inputs and reconciles present assumptions, provenance,
   operator-review, and Cadence identity copies; older optional-copy omissions
-  remain compatible.
+  remain compatible. CandidateRefresh-backed metadata also reconciles candidate
+  and invalidation counts, accepted snapshot identity, the present
+  maneuver-delta count, and generation time with present source reports while
+  retaining compatibility for additive omissions.
 
 The current repair behavior is deliberately transparent:
 

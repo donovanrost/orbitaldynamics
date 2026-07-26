@@ -38,6 +38,10 @@ Status: **implemented** (with **partial**, **near-term**, **later**, and **out o
   binds present assumptions/provenance candidate-source copies, provenance
   source plan, operator-review source artifact ID, and Cadence provenance repair
   IDs to the same chain. Older optional-copy omissions remain compatible.
+- CandidateRefresh-backed metadata also reconciles candidate and invalidation
+  counts, accepted snapshot identity, the present maneuver-delta count, and
+  generation time with present candidate-diff, accepted-state, and freshness
+  source reports. Older additive report/count omissions remain compatible.
 - **`contact_allocation_report.v1`** over repaired contact activities. The
   optional report is a declared V2 nested contract; runtime validation applies
   its full row, count, summary, nested contention/resolution, stable-identity,

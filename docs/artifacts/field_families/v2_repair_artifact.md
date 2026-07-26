@@ -30,6 +30,10 @@ the preserved source plan, realized-state identity, current epoch, and exact
 candidate-source map. Present assumptions/provenance candidate-source copies,
 provenance source plan, operator-review source artifact ID, and Cadence
 provenance repair IDs must agree; older repairs may omit optional copies.
+For CandidateRefresh-backed repairs, present candidate-diff, accepted-state, and
+freshness reports reconcile candidate/invalidation counts, snapshot identity,
+the present maneuver-delta count, and generation time with metadata candidate
+source evidence. Older additive report/count omissions remain compatible.
 
 ### `realized_state_snapshot`
 

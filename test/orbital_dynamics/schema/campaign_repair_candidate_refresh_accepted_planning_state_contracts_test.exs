@@ -8,13 +8,9 @@ defmodule OrbitalDynamics.Schema.CampaignRepairCandidateRefreshAcceptedPlanningS
   setup do
     artifact = read_json!("study_results/leo_constellation_campaign_repair_v2.json")
 
-    accepted_state = %{
-      "snapshot_id" => "ops-state-1",
-      "spacecraft_state_count" => 4,
-      "accepted_at" => "2026-05-14T00:00:00Z",
-      "maneuver_execution_delta_count" => 2,
-      "source_family" => "fleet_snapshot"
-    }
+    accepted_state =
+      artifact[@source_field]
+      |> Map.put("source_family", "fleet_snapshot")
 
     %{artifact: Map.put(artifact, @source_field, accepted_state)}
   end

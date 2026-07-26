@@ -22,6 +22,7 @@ defmodule OrbitalDynamics.Schema.CampaignRepairSuppressedCandidateContractsTest 
 
     artifact =
       artifact
+      |> Map.delete("source_candidate_diff_report")
       |> Map.put(@eligible_field, [eligible_candidate])
       |> Map.put(@suppressed_field, [suppressed_candidate])
       |> Map.put("source_refresh_budget_report", refresh_budget_report)

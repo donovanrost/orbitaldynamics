@@ -5,44 +5,42 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Reproduce Repair metadata identity and provenance.
+Reconcile Repair CandidateRefresh summaries.
 
 Status:
-Ready to publish from clean published base `c4b4e52d`.
+Ready to publish from clean published base `219200fb`.
 
 Selection evidence:
-- The producer deterministically derives `repair_metadata.repair_id` from the
-  source plan ID, normalized realized-state identity, current epoch, and exact
-  metadata candidate-source map; both canonical V2 artifacts reproduce it
-  byte-for-byte from preserved fields.
-- The same candidate-source map is copied into Repair assumptions and
-  provenance, and provenance repeats the source plan ID, but runtime validation
-  does not reconcile present copies.
-- The identity and present-copy checks need no source-plan reconstruction,
-  provider calls, authority, or hidden Repair accumulator state.
+- CandidateRefresh emits candidate and invalidation counts into both its
+  top-level source summary and the candidate-diff report that Repair preserves.
+- CandidateRefresh likewise copies accepted-state snapshot and maneuver-delta
+  evidence into its source summary and accepted-planning-state reference, while
+  freshness preserves the same generation timestamp.
+- Runtime validation checks each preserved report independently but does not
+  reconcile those five exact producer copies; absent additive source reports
+  remain intentionally compatible.
 
 Delivered behavior:
-- Reproduce present `repair_metadata.repair_id` with the producer's shared hash
-  function from preserved source plan, realized state, current epoch, and exact
-  metadata candidate-source inputs.
-- Reconcile present assumptions/provenance candidate-source copies and
-  provenance source plan identity with Repair metadata and the enclosing
-  artifact.
-- Bind present operator-review source artifact identity and Cadence provenance
-  source artifact/repair identities to the reproduced Repair ID.
-- Preserve older repairs that omit optional candidate-source/provenance copies
-  and keep producer output, JSON Schema, planning, provider, command, import,
-  and authority behavior unchanged.
+- Reconcile CandidateRefresh candidate and invalidation counts with present
+  candidate-diff report evidence.
+- Reconcile snapshot identity and the present maneuver-execution delta count
+  with the preserved accepted-planning-state reference.
+- Reconcile CandidateRefresh generation time with present freshness evidence.
+- Preserve older repairs that omit additive source reports or the accepted-state
+  maneuver count, while leaving producer output, JSON Schema, planning,
+  provider, command, import, and authority behavior unchanged.
 
 Verification:
-- Focused produced-surface and adjacent candidate-identity gate: `28 passed`.
-- Expanded Repair schema gate: `319 passed`.
+- Focused CandidateRefresh-summary and adjacent source-evidence gate: `20 passed`.
+- Expanded Repair schema gate: `320 passed`.
+- Direct Repair planner gate: `225 passed`.
+- Strategy planner and embedded Repair gate: `1622 passed`.
 - Saved-artifact lint: `155` artifacts passed with `0` errors and `0` warnings.
 - Canonical Repair and Strategy regeneration remained byte-stable at
   `cc41834e706fd1e04a4c5578032fdf99ceeba949a02fd75fc54c8b70cdc30d8a`
   and
   `57602722702969da587e2754df84bca1e06e86cc32fa5af7f3f78451b72f9985`.
-- Full suite: `5246 passed` in `699.8s`.
+- Full suite: `5247 passed` in `698.9s`.
 - `mix format --check-formatted` and `git diff --check` passed on the exact
   full-suite tree.
 
@@ -50,9 +48,9 @@ Level 6 pillar advanced:
 Fleet-scale candidate-pool integrity and operator-review evidence fidelity.
 
 Last published slice:
-- `c4b4e52d` Reconcile Repair metadata counts (`5246 passed`; metadata source
-  identity and required/present row counts bind to the enclosing artifact while
-  older additive-count omissions remain compatible).
+- `219200fb` Reproduce Repair metadata identity (`5246 passed`; shared identity
+  replay binds metadata, assumptions/provenance copies, operator review, and
+  Cadence provenance while older optional-copy omissions remain compatible).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions only from authoritative,
@@ -63,9 +61,9 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-After Repair identity/provenance replay, continue fleet-scale evidence integrity
-only where producer outputs can be replayed without hidden source or accumulator
-state.
+After CandidateRefresh summary reconciliation, continue fleet-scale evidence
+integrity only where producer outputs can be replayed without hidden source or
+accumulator state.
 
 Blocked:
 None.

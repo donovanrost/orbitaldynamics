@@ -41,6 +41,7 @@ defmodule OrbitalDynamics.Schema.CampaignRepairProducedSurfaceContracts do
     )
     |> validate_optional_provenance_source_plan(artifact)
     |> validate_candidate_source_copies(artifact, Map.get(metadata, "candidate_source"))
+    |> validate_candidate_refresh_summary(artifact, Map.get(metadata, "candidate_source"))
     |> validate_repair_id(artifact, metadata, Map.get(metadata, "candidate_source"))
   end
 
@@ -105,6 +106,106 @@ defmodule OrbitalDynamics.Schema.CampaignRepairProducedSurfaceContracts do
   end
 
   defp validate_candidate_source_copies(issues, _artifact, _candidate_source), do: issues
+
+  defp validate_candidate_refresh_summary(
+         issues,
+         artifact,
+         %{"type" => "candidate_refresh.v1"} = candidate_source
+       ) do
+    issues
+    |> validate_candidate_diff_summary(
+      candidate_source,
+      Map.get(artifact, "source_candidate_diff_report")
+    )
+    |> validate_accepted_planning_state_summary(
+      candidate_source,
+      Map.get(artifact, "source_candidate_refresh_accepted_planning_state")
+    )
+    |> validate_freshness_summary(
+      candidate_source,
+      Map.get(artifact, "source_freshness_report")
+    )
+  end
+
+  defp validate_candidate_refresh_summary(issues, _artifact, _candidate_source), do: issues
+
+  defp validate_candidate_diff_summary(issues, candidate_source, %{} = report) do
+    issues
+    |> validate_candidate_source_field(
+      candidate_source,
+      "candidate_count",
+      Map.get(report, "refreshed_candidate_count"),
+      "source_candidate_diff_report.refreshed_candidate_count"
+    )
+    |> validate_candidate_source_field(
+      candidate_source,
+      "invalidated_candidate_count",
+      Map.get(report, "invalidated_candidate_count"),
+      "source_candidate_diff_report.invalidated_candidate_count"
+    )
+  end
+
+  defp validate_candidate_diff_summary(issues, _candidate_source, _report), do: issues
+
+  defp validate_accepted_planning_state_summary(issues, candidate_source, %{} = state) do
+    issues
+    |> validate_candidate_source_field(
+      candidate_source,
+      "snapshot_id",
+      Map.get(state, "snapshot_id"),
+      "source_candidate_refresh_accepted_planning_state.snapshot_id"
+    )
+    |> validate_optional_candidate_source_field(
+      candidate_source,
+      "maneuver_execution_delta_count",
+      state,
+      "source_candidate_refresh_accepted_planning_state.maneuver_execution_delta_count"
+    )
+  end
+
+  defp validate_accepted_planning_state_summary(issues, _candidate_source, _state), do: issues
+
+  defp validate_freshness_summary(issues, candidate_source, %{} = report) do
+    validate_candidate_source_field(
+      issues,
+      candidate_source,
+      "generated_at",
+      Map.get(report, "generated_at"),
+      "source_freshness_report.generated_at"
+    )
+  end
+
+  defp validate_freshness_summary(issues, _candidate_source, _report), do: issues
+
+  defp validate_candidate_source_field(issues, candidate_source, field, expected, source_path) do
+    validate_equal(
+      issues,
+      "$.repair_metadata.candidate_source.#{field}",
+      Map.get(candidate_source, field),
+      expected,
+      "must match preserved #{source_path}"
+    )
+  end
+
+  defp validate_optional_candidate_source_field(
+         issues,
+         candidate_source,
+         field,
+         source,
+         source_path
+       ) do
+    if Map.has_key?(source, field) do
+      validate_candidate_source_field(
+        issues,
+        candidate_source,
+        field,
+        Map.get(source, field),
+        source_path
+      )
+    else
+      issues
+    end
+  end
 
   defp validate_optional_candidate_source_copy(
          issues,
