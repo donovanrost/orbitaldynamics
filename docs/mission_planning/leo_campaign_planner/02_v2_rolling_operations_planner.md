@@ -719,7 +719,10 @@ schema-type their stable IDs, invalid-input flags, and protected/change counts.
   bound to the enclosing Repair provenance chain. Approval status and present
   top-level rule matches are also reconciled with the same policy-decision
   output; when no rules match, its fallback approval count binds to preserved
-  requirement rows without re-evaluating policy.
+  requirement rows without re-evaluating policy. Present additive requirement
+  rule matches and classification bind to the decision subset selected by exact
+  activity identity, or by exact action when a match has no activity identity;
+  unmatched requirements and older omissions remain valid.
 
 The current repair behavior is deliberately transparent:
 

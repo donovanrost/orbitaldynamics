@@ -25,6 +25,58 @@ defmodule OrbitalDynamics.Schema.CampaignRepairApprovalDecisionContractsTest do
              |> Schema.validate_artifact()
   end
 
+  test "keeps additive requirement enrichment copies optional", %{repair: repair} do
+    older_requirement =
+      repair
+      |> get_in(["approval_requirements", Access.at(0)])
+      |> Map.drop(["approval_rule_matches", "policy_classification"])
+
+    assert {:ok, %{"schema_contract" => "campaign_repair.v2"}} =
+             repair
+             |> put_in(["approval_requirements", Access.at(0)], older_requirement)
+             |> Schema.validate_artifact()
+  end
+
+  test "replays action-only requirement enrichment", %{repair: repair} do
+    action_match =
+      repair
+      |> get_in(["policy_decision", "rule_matches", Access.at(0)])
+      |> Map.delete("activity_id")
+
+    action_repair =
+      repair
+      |> Map.put("approval_rule_matches", [action_match])
+      |> put_in(["policy_decision", "rule_matches"], [action_match])
+      |> put_in(
+        ["approval_requirements", Access.at(0), "approval_rule_matches"],
+        [action_match]
+      )
+
+    assert {:ok, %{"schema_contract" => "campaign_repair.v2"}} =
+             Schema.validate_artifact(action_repair)
+  end
+
+  test "does not action-match a rule that declares another activity identity", %{repair: repair} do
+    identified_match =
+      repair
+      |> get_in(["policy_decision", "rule_matches", Access.at(0)])
+      |> Map.put("activity_id", "different_activity")
+
+    unmatched_requirement =
+      repair
+      |> get_in(["approval_requirements", Access.at(0)])
+      |> Map.drop(["approval_rule_matches", "policy_classification"])
+
+    unmatched_repair =
+      repair
+      |> Map.put("approval_rule_matches", [identified_match])
+      |> put_in(["policy_decision", "rule_matches"], [identified_match])
+      |> put_in(["approval_requirements", Access.at(0)], unmatched_requirement)
+
+    assert {:ok, %{"schema_contract" => "campaign_repair.v2"}} =
+             Schema.validate_artifact(unmatched_repair)
+  end
+
   test "rejects Repair approval decision drift", context do
     invalid_cases = [
       {"$.approval_status", Map.put(context.repair, "approval_status", "blocked_by_policy")},
@@ -34,6 +86,18 @@ defmodule OrbitalDynamics.Schema.CampaignRepairApprovalDecisionContractsTest do
          context.readiness_repair,
          ["policy_decision", "approval_requirement_count"],
          2
+       )},
+      {"$.approval_requirements[0].approval_rule_matches",
+       put_in(
+         context.repair,
+         ["approval_requirements", Access.at(0), "approval_rule_matches"],
+         []
+       )},
+      {"$.approval_requirements[0].policy_classification",
+       put_in(
+         context.repair,
+         ["approval_requirements", Access.at(0), "policy_classification"],
+         "auto_approvable"
        )}
     ]
 

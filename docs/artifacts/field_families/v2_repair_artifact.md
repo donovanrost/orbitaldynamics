@@ -41,6 +41,9 @@ omissions remain compatible.
 The approval surface binds top-level status and present additive rule matches to
 the embedded policy decision. When no rules match, the fallback approval count
 binds to the preserved requirement rows without re-evaluating policy.
+Present additive per-requirement rule matches and classification also bind to
+the embedded decision subset selected by activity identity, or by action when a
+match has no activity identity. Unmatched rows and older omissions remain valid.
 
 ### `realized_state_snapshot`
 

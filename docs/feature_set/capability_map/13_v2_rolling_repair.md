@@ -48,6 +48,10 @@ Status: **implemented** (with **partial**, **near-term**, **later**, and **out o
 - Approval status and present top-level rule matches are reconciled with the
   embedded decision; when no rules match, its fallback approval count binds to
   preserved requirement rows without re-evaluating policy.
+- Present per-requirement rule-match and classification copies bind to the
+  embedded decision subset selected by activity identity, or by action for
+  matches without activity identity; unmatched rows and older omissions remain
+  valid.
 - **`contact_allocation_report.v1`** over repaired contact activities. The
   optional report is a declared V2 nested contract; runtime validation applies
   its full row, count, summary, nested contention/resolution, stable-identity,

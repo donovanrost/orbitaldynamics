@@ -1963,6 +1963,10 @@ classification and the present additive `approval_rule_matches` copy to the
 decision's exact rule matches. When no rules match, its fallback approval count
 must equal the preserved requirement rows. Policy is not re-evaluated during
 artifact validation.
+Present additive requirement enrichment is likewise replayed from the embedded
+decision rows: matches join by exact activity identity when declared and by
+exact action otherwise, and their strongest classification must match the
+requirement copy. Unmatched requirements and older omitted copies remain valid.
 Replacement-ranking link-pressure validation preserves fully legacy rankings
 whose pressured rows carry only shortfall. New producer rows under pressure also
 carry projected required downlink demand and selected capacity-adjusted
