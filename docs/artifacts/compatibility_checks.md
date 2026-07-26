@@ -136,6 +136,16 @@ drift. Empty typed collections remain present to distinguish a completed refresh
 with no opportunities from an absent refresh. Raw windows create no operator or
 Cadence rows and cannot change filtering, matching, scoring, selection,
 scheduling, provider state, imports, commanding, or operator authority.
+Campaign-repair V2 separately preserves CandidateRefresh's exact generation
+context at `source_candidate_refresh_assumptions`. The map retains the source
+propagator and options, requested outputs, model assumptions, constraints,
+scoring policy, candidate-limit policy, and named filtering/allocation models;
+it is distinct from the operative `campaign_repair.assumptions`. An empty map
+remains present to distinguish a completed refresh with no declared assumptions
+from an absent refresh. Executable validation requires an object, but this
+audit-only context creates no operator or Cadence rows and cannot change repair
+filtering, matching, scoring, selection, scheduling, imports, commanding, or
+authority.
 Campaign-repair V2 preserves CandidateRefresh's ordered top-level
 `source_window_lineage` collection without reconstruction or deduplication.
 Executable validation pins every embedded lineage row at its exact array index

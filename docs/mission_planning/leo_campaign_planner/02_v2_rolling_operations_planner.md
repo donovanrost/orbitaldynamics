@@ -200,6 +200,13 @@ schema-type their stable IDs, invalid-input flags, and protected/change counts.
   assumptions. Empty typed collections remain distinct from an absent refresh.
   The field creates no review/import rows and cannot alter filtering, matching,
   ranking, selection, scheduling, provider state, commanding, or authority.
+- `source_candidate_refresh_assumptions` so repair and strategy audit consumers
+  retain the exact source candidate-generation context instead of conflating it
+  with the operative Repair V2 assumptions. The map preserves source propagator
+  options, requested outputs, model assumptions, constraints, scoring policy,
+  candidate-limit policy, and filtering/allocation model names. Empty maps
+  remain distinct from an absent refresh; the field creates no review/import
+  rows and grants no planning or execution authority.
 - `source_window_lineage` so candidate-diff review and Cadence rows can retain
   exact invalidated/replacement candidate-to-window provenance. The preserved
   collection is validated and review-only; it does not influence repair
@@ -345,7 +352,7 @@ schema-type their stable IDs, invalid-input flags, and protected/change counts.
   `source_contact_contention_resolution_summary`, `source_link_capacity_report`,
   `source_link_capacity_summary`, `source_relay_data_path_summary`,
   `source_refreshed_windows`, `source_window_lineage`,
-  `source_candidate_refresh_provenance`,
+  `source_candidate_refresh_assumptions`, `source_candidate_refresh_provenance`,
   `source_validation_records`,
   `source_resource_projection_flow_summary`,
   `source_station_reservation_report`, `source_constraint_report`,

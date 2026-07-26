@@ -132,6 +132,7 @@ defmodule OrbitalDynamics.Schema.CampaignRegistryContracts do
           "source_suppressed_candidate_activities",
           "source_candidate_diff_report",
           "source_candidate_refresh_provenance",
+          "source_candidate_refresh_assumptions",
           "source_validation_records",
           "source_refreshed_windows",
           "source_window_lineage",

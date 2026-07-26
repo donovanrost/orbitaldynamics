@@ -185,6 +185,12 @@ freshness, contact/resource preservation, and station calendar reports.
   `source_refreshed_windows`. Window identity, timing, sample coverage,
   geometry, and boundary assumptions remain audit-only; empty typed collections
   are retained, and no operator-review or Cadence rows are synthesized.
+- **Source CandidateRefresh assumptions**, preserving the exact normalized
+  candidate-generation context at `source_candidate_refresh_assumptions`:
+  source propagator settings, requested outputs, model assumptions, constraints,
+  scoring and candidate-limit policies, and named filter/allocation models.
+  Empty maps are retained; the context is audit-only and distinct from the
+  operative Repair V2 assumptions.
 - **Source-window lineage** from `candidate_refresh.v1`, preserving every
   `source_window_lineage.v1` row in its original stable order. The exact
   candidate/window identity, source-window payload, and scoped planning context

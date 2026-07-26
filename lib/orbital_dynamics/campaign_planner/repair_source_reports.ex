@@ -28,6 +28,23 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairSourceReports do
     end
   end
 
+  def candidate_refresh_assumptions(candidate_refresh),
+    do: candidate_refresh_assumptions(candidate_refresh, default_callbacks())
+
+  def candidate_refresh_assumptions(nil, _callbacks), do: nil
+
+  def candidate_refresh_assumptions(%{} = candidate_refresh, callbacks) do
+    stringify_keys = Keyword.fetch!(callbacks, :stringify_keys)
+
+    candidate_refresh
+    |> stringify_keys.()
+    |> Map.get("assumptions")
+    |> case do
+      %{} = assumptions -> assumptions
+      _assumptions -> nil
+    end
+  end
+
   def source_window_lineage(nil, _callbacks), do: []
 
   def source_window_lineage(%{} = candidate_refresh, callbacks) do

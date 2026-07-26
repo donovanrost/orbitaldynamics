@@ -111,6 +111,10 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairArtifact do
       "source_candidate_refresh_provenance",
       RepairSourceReports.candidate_refresh_provenance(request.candidate_refresh)
     )
+    |> put_source_report(
+      "source_candidate_refresh_assumptions",
+      RepairSourceReports.candidate_refresh_assumptions(request.candidate_refresh)
+    )
     |> put_source_reports(
       "source_validation_records",
       RepairSourceReports.validation_records(request.candidate_refresh)

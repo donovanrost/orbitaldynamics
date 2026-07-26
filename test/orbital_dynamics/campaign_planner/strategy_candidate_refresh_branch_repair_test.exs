@@ -275,6 +275,13 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyCandidateRefreshBranchRepairTe
       "eclipse_intervals" => []
     }
 
+    branch_candidate_refresh_assumptions = %{
+      "refresh_model" => "accepted_planning_state_to_sampled_windows_v1",
+      "constraints" => %{"avoid_eclipse" => false},
+      "scoring_policy" => %{"target_value_weight" => 3.0},
+      "propagator_opts" => %{"max_step_s" => 15.0}
+    }
+
     artifact =
       strategy(prior_plan,
         branches: [
@@ -295,7 +302,8 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyCandidateRefreshBranchRepairTe
                 refresh_id: "candidate_refresh:test:branch",
                 candidate_diff_report: candidate_diff_report(),
                 freshness_report: freshness_report("stale"),
-                refreshed_windows: branch_refreshed_windows
+                refreshed_windows: branch_refreshed_windows,
+                assumptions: branch_candidate_refresh_assumptions
               )
           }
         ],
@@ -324,6 +332,9 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyCandidateRefreshBranchRepairTe
 
     assert outage["repair_result"]["source_refreshed_windows"] == branch_refreshed_windows
 
+    assert outage["repair_result"]["source_candidate_refresh_assumptions"] ==
+             branch_candidate_refresh_assumptions
+
     assert outage["assumptions"]["candidate_source"]["scope"] == "branch"
     assert outage["provenance"]["candidate_source"]["scope"] == "branch"
 
@@ -337,6 +348,19 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyCandidateRefreshBranchRepairTe
              &String.contains?(
                &1["source"] || get_in(&1, ["source_review_row", "source"]) || "",
                "source_refreshed_windows"
+             )
+           )
+
+    refute Enum.any?(
+             artifact["operator_review_package"]["rows"],
+             &String.contains?(&1["source"] || "", "source_candidate_refresh_assumptions")
+           )
+
+    refute Enum.any?(
+             artifact["cadence_import_manifest"]["rows"],
+             &String.contains?(
+               &1["source"] || get_in(&1, ["source_review_row", "source"]) || "",
+               "source_candidate_refresh_assumptions"
              )
            )
 
@@ -431,7 +455,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyCandidateRefreshBranchRepairTe
       "invalidated_candidates" => [],
       "validation_records" => [],
       "warnings" => [],
-      "assumptions" => %{},
+      "assumptions" => Keyword.get(opts, :assumptions, %{}),
       "provenance" => %{},
       "source_window_lineage" =>
         Enum.map(candidates, fn candidate ->
