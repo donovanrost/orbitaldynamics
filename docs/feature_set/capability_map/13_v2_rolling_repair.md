@@ -58,6 +58,9 @@ Status: **implemented** (with **partial**, **near-term**, **later**, and **out o
 - Present decision match IDs resolve to unique enclosing approval action rules,
   and present match classification and reason copies bind to those source rules;
   older rule or match-field omissions remain valid without selector replay.
+- Present operator-review and Cadence packages carry one approval row per Repair
+  requirement and bind present `source_requirement` copies to the corresponding
+  enclosing row in source order; older package or copy omissions remain valid.
 - **`contact_allocation_report.v1`** over repaired contact activities. The
   optional report is a declared V2 nested contract; runtime validation applies
   its full row, count, summary, nested contention/resolution, stable-identity,

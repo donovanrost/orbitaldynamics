@@ -34,6 +34,7 @@ defmodule OrbitalDynamics.Schema.CampaignRepairApprovalDecisionContractsTest do
     assert {:ok, %{"schema_contract" => "campaign_repair.v2"}} =
              repair
              |> put_in(["approval_requirements", Access.at(0)], older_requirement)
+             |> drop_approval_handoffs()
              |> Schema.validate_artifact()
   end
 
@@ -51,6 +52,7 @@ defmodule OrbitalDynamics.Schema.CampaignRepairApprovalDecisionContractsTest do
         ["approval_requirements", Access.at(0), "approval_rule_matches"],
         [action_match]
       )
+      |> drop_approval_handoffs()
 
     assert {:ok, %{"schema_contract" => "campaign_repair.v2"}} =
              Schema.validate_artifact(action_repair)
@@ -72,6 +74,7 @@ defmodule OrbitalDynamics.Schema.CampaignRepairApprovalDecisionContractsTest do
       |> Map.put("approval_rule_matches", [identified_match])
       |> put_in(["policy_decision", "rule_matches"], [identified_match])
       |> put_in(["approval_requirements", Access.at(0)], unmatched_requirement)
+      |> drop_approval_handoffs()
 
     assert {:ok, %{"schema_contract" => "campaign_repair.v2"}} =
              Schema.validate_artifact(unmatched_repair)
@@ -103,7 +106,10 @@ defmodule OrbitalDynamics.Schema.CampaignRepairApprovalDecisionContractsTest do
              |> update_in(["approval_policy"], &Map.delete(&1, "action_rules"))
              |> Schema.validate_artifact()
 
-    without_match_id = update_rule_match_copies(repair, &Map.delete(&1, "rule_id"))
+    without_match_id =
+      repair
+      |> update_rule_match_copies(&Map.delete(&1, "rule_id"))
+      |> drop_approval_handoffs()
 
     assert {:ok, %{"schema_contract" => "campaign_repair.v2"}} =
              Schema.validate_artifact(without_match_id)
@@ -207,5 +213,9 @@ defmodule OrbitalDynamics.Schema.CampaignRepairApprovalDecisionContractsTest do
     |> Map.put("approval_rule_matches", [match])
     |> put_in(["policy_decision", "rule_matches"], [match])
     |> put_in(["approval_requirements", Access.at(0), "approval_rule_matches"], [match])
+  end
+
+  defp drop_approval_handoffs(repair) do
+    Map.drop(repair, ["operator_review_package", "cadence_import_manifest"])
   end
 end

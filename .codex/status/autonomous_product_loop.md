@@ -5,47 +5,53 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Bind Repair rule provenance.
+Bind Repair approval review handoffs.
 
 Status:
-Verified from clean published base `143a8982`; ready to publish.
+Verified from clean published base `fd3d779e`; ready to publish.
 
 Selection evidence:
-- Every Repair decision rule match is constructed from one normalized approval
-  action rule and directly copies that rule's ID, classification, and reason.
-- Stored action-rule IDs are already unique, so a present match ID has one
-  deterministic provenance row and its immutable result fields are replayable.
-- Runtime validation checks rules and matches independently but does not bind
-  this provenance; no selector replay, policy evaluation, source reconstruction,
-  external authority, or hidden state is required.
+- Repair approval requirements are the sole producer input for approval-review
+  rows in the embedded operator-review package.
+- Cadence approval-import rows are then built from those review rows, and both
+  handoffs preserve each full requirement as `source_requirement` in source
+  order.
+- Runtime validation checks each nested package and row independently but does
+  not bind their counts or source copies to enclosing Repair requirements; no
+  policy replay, external authority, or hidden state is required.
 
 Delivered behavior:
-- Bind present Repair decision rule-match IDs to the unique enclosing normalized
-  approval action rule.
-- Bind present match classification and reason copies to that source rule while
-  preserving older whole-rule and match-field omissions.
-- Leave selector replay, policy evaluation, producer output, JSON Schema,
-  planning, provider, command, import, and authority behavior unchanged.
+- Bind present operator-review and Cadence approval-row counts to the enclosing
+  Repair approval requirement count.
+- Bind present operator-review, Cadence, and embedded source-review
+  `source_requirement` copies to the corresponding Repair requirement in source
+  order.
+- Preserve older package and copy omissions while leaving producer output, JSON
+  Schema, policy, planning, provider, command, import, and authority behavior
+  unchanged.
 
 Verification:
-- Focused approval-decision contract gate: `9 passed`.
-- Adjacent Repair/Strategy produced-surface gate: `18 passed`.
-- Expanded Repair schema gate: `332 passed`.
+- Focused approval-handoff contract gate: `3 passed`.
+- Adjacent provenance, Cadence, and produced-surface gate: `17 passed`.
+- Focused approval-handoff and decision-contract gate: `12 passed`.
+- Initial expanded run exposed four stale-package fixture interactions; after
+  isolating unrelated additive packages, the corrected expanded Repair schema
+  gate passed: `335 passed`.
 - Direct Repair planner gate: `225 passed`.
 - Saved-artifact lint: `155` artifacts passed with zero errors, warnings, or
   remediation.
 - Canonical Repair and Strategy regeneration was byte-identical to the
   published fixtures.
-- Full suite: `5259 passed` in 780.1 seconds.
+- Full suite: `5262 passed` in 699.9 seconds.
 - `mix format --check-formatted` and `git diff --check` passed.
 
 Level 6 pillar advanced:
 Fleet-scale candidate-pool integrity and operator-review evidence fidelity.
 
 Last published slice:
-- `143a8982` Bind Repair fallback policy evidence (`5257 passed`; present
-  decision fallback controls bind to the normalized Repair approval policy
-  while older whole-field and individual-field omissions remain compatible).
+- `fd3d779e` Bind Repair rule provenance (`5259 passed`; present decision match
+  identity, classification, and reason bind to unique enclosing approval action
+  rules while older whole-rule and match-field omissions remain compatible).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions only from authoritative,
@@ -56,7 +62,7 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-After Repair rule provenance binding, continue fleet-scale evidence
+After Repair approval-review handoff binding, continue fleet-scale evidence
 integrity only where producer outputs can be replayed without hidden source or
 accumulator state.
 

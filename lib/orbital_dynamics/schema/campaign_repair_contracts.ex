@@ -3,6 +3,7 @@ defmodule OrbitalDynamics.Schema.CampaignRepairContracts do
 
   alias OrbitalDynamics.Schema.{
     CampaignRepairApprovalDecisionContracts,
+    CampaignRepairApprovalHandoffContracts,
     CampaignRepairCandidateValueContracts,
     CampaignRepairCandidatePoolContracts,
     CampaignRepairCandidateDiffRankingContracts,
@@ -223,6 +224,7 @@ defmodule OrbitalDynamics.Schema.CampaignRepairContracts do
     ])
     |> CampaignRepairCadenceImportContracts.validate(artifact)
     |> CampaignRepairProvenanceHandoffContracts.validate(artifact)
+    |> CampaignRepairApprovalHandoffContracts.validate(artifact)
     |> call(callbacks, :validate_optional_operational_readiness_report, [
       "$.source_operational_readiness_report",
       Map.get(artifact, "source_operational_readiness_report")

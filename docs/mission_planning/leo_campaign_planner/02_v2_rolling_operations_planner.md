@@ -728,7 +728,10 @@ schema-type their stable IDs, invalid-input flags, and protected/change counts.
   replaying action rules; older fallback omissions remain valid. Present
   decision match IDs also resolve to unique enclosing approval action rules, and
   present classification and reason copies bind to those rules without replaying
-  selectors; older rule or match-field omissions remain valid.
+  selectors; older rule or match-field omissions remain valid. Present
+  operator-review and Cadence packages also carry one approval row per Repair
+  requirement, with present `source_requirement` copies bound to the enclosing
+  rows in source order; older package or copy omissions remain valid.
 
 The current repair behavior is deliberately transparent:
 

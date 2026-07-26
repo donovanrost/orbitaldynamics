@@ -1975,6 +1975,10 @@ When both rule surfaces are present, each Repair decision match ID must resolve
 to the unique enclosing approval action rule, and present match classification
 and reason copies must equal that source rule. Older action-rule or match-field
 omissions remain valid; selectors are not replayed.
+Present Repair operator-review and Cadence packages also carry exactly one
+approval row per enclosing requirement. Present `source_requirement` copies in
+either handoff equal the corresponding Repair requirement in source order;
+older package or copy omissions remain valid.
 Replacement-ranking link-pressure validation preserves fully legacy rankings
 whose pressured rows carry only shortfall. New producer rows under pressure also
 carry projected required downlink demand and selected capacity-adjusted

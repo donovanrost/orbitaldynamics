@@ -51,6 +51,10 @@ When both surfaces are present, decision match IDs bind to unique enclosing
 approval action rules and their present classification and reason copies bind to
 that rule. Older rule or match-field omissions remain valid without replaying
 selectors.
+Present operator-review and Cadence packages carry exactly one approval row per
+enclosing requirement, and present `source_requirement` copies equal the
+corresponding Repair requirement in source order. Older package or copy
+omissions remain valid.
 
 ### `realized_state_snapshot`
 
