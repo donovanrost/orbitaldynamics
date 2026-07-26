@@ -232,7 +232,9 @@ Status: **implemented** (with **partial**, **near-term**, **later**, and **out o
   indicators must additionally use a spacecraft scope from a valid embedded
   source resource summary applicable to that exact candidate under the resource
   projection's shared spacecraft/scenario and single-wildcard rules. Indicators
-  that predate candidate identity retain their legacy compatibility.
+  in a fully legacy ranking may all predate candidate identity; once any
+  indicator carries the current identity, every projected-resource indicator in
+  that ranking must carry it.
   Station-pressure penalties and source paths are recomputed from exact
   candidate IDs in the embedded allocation and station-calendar reports, so a
   row cannot claim allocation-only, calendar-only, or dual-source pressure for

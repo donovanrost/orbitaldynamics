@@ -58,6 +58,8 @@ defmodule OrbitalDynamics.Schema.CampaignRepairResourcePressureContracts do
 
   defp validate_rows(issues, path, rows, risk_weight, scope_ids_by_candidate_id)
        when is_list(rows) do
+    current_indicator_identity? = Enum.any?(rows, &current_indicator_identity?/1)
+
     rows
     |> Enum.with_index()
     |> Enum.reduce(issues, fn {row, index}, acc ->
@@ -66,7 +68,8 @@ defmodule OrbitalDynamics.Schema.CampaignRepairResourcePressureContracts do
         "#{path}[#{index}]",
         row,
         risk_weight,
-        scope_ids_by_candidate_id
+        scope_ids_by_candidate_id,
+        current_indicator_identity?
       )
     end)
   end
@@ -74,7 +77,14 @@ defmodule OrbitalDynamics.Schema.CampaignRepairResourcePressureContracts do
   defp validate_rows(issues, _path, _rows, _risk_weight, _scope_ids_by_candidate_id),
     do: issues
 
-  defp validate_row(issues, path, %{} = row, risk_weight, scope_ids_by_candidate_id) do
+  defp validate_row(
+         issues,
+         path,
+         %{} = row,
+         risk_weight,
+         scope_ids_by_candidate_id,
+         current_indicator_identity?
+       ) do
     issues =
       case {Map.get(row, @penalty_field), Map.get(row, @indicators_field)} do
         {actual, indicators} when is_number(actual) and is_list(indicators) ->
@@ -88,13 +98,32 @@ defmodule OrbitalDynamics.Schema.CampaignRepairResourcePressureContracts do
           issues
       end
 
-    validate_indicator_scopes(issues, path, row, scope_ids_by_candidate_id)
+    validate_indicator_scopes(
+      issues,
+      path,
+      row,
+      scope_ids_by_candidate_id,
+      current_indicator_identity?
+    )
   end
 
-  defp validate_row(issues, _path, _row, _risk_weight, _scope_ids_by_candidate_id),
-    do: issues
+  defp validate_row(
+         issues,
+         _path,
+         _row,
+         _risk_weight,
+         _scope_ids_by_candidate_id,
+         _current_indicator_identity?
+       ),
+       do: issues
 
-  defp validate_indicator_scopes(issues, path, row, scope_ids_by_candidate_id) do
+  defp validate_indicator_scopes(
+         issues,
+         path,
+         row,
+         scope_ids_by_candidate_id,
+         current_indicator_identity?
+       ) do
     expected_scope_ids =
       Map.get(scope_ids_by_candidate_id, Map.get(row, "candidate_id"), [])
 
@@ -116,6 +145,15 @@ defmodule OrbitalDynamics.Schema.CampaignRepairResourcePressureContracts do
               ]
             end
 
+          {%{} = _indicator, index}, acc when current_indicator_identity? ->
+            [
+              error(
+                "#{path}.#{@indicators_field}[#{index}].candidate_id",
+                "must be present on every resource-pressure indicator in a current ranking"
+              )
+              | acc
+            ]
+
           {_indicator, _index}, acc ->
             acc
         end)
@@ -124,6 +162,18 @@ defmodule OrbitalDynamics.Schema.CampaignRepairResourcePressureContracts do
         issues
     end
   end
+
+  defp current_indicator_identity?(%{} = row) do
+    case Map.get(row, @indicators_field) do
+      indicators when is_list(indicators) ->
+        Enum.any?(indicators, &(is_map(&1) and Map.has_key?(&1, "candidate_id")))
+
+      _indicators ->
+        false
+    end
+  end
+
+  defp current_indicator_identity?(_row), do: false
 
   defp source_scope_ids_by_candidate_id(candidates, summaries)
        when is_list(candidates) and is_list(summaries) do

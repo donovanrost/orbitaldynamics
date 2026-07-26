@@ -34,6 +34,19 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairResourceProjectionTest do
         }
       })
 
+    deeper_pressured_observation =
+      "obs_deeper_pressured"
+      |> observe("leo_3", "target_a", 500.0, 560.0, 9.0)
+      |> Map.merge(%{
+        "estimated_storage_mb" => 40.0,
+        "score_terms" => %{"target_value" => 9.0},
+        "source_window_id" => "window:leo_3:target_visibility:target_a:2",
+        "source_window" => %{
+          "id" => "window:leo_3:target_visibility:target_a:2",
+          "type" => "target_visibility"
+        }
+      })
+
     plan = %{
       "activities" => [observe("obs_1", "leo_1", "target_a", 100.0, 160.0, 10.0)],
       "candidate_activities" => []
@@ -57,11 +70,21 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairResourceProjectionTest do
         "downlink_capacity_mb" => 500.0,
         "payload_available" => true,
         "antenna_available" => true
+      },
+      %{
+        "schema_contract" => "resource_summary.v1",
+        "spacecraft_id" => "leo_3",
+        "storage_capacity_mb" => 1_000.0,
+        "storage_used_mb" => 100.0,
+        "downlink_capacity_mb" => 500.0,
+        "payload_available" => false,
+        "antenna_available" => true
       }
     ]
 
     candidate_refresh =
-      candidate_refresh_artifact([pressured_observation, nominal_observation],
+      candidate_refresh_artifact(
+        [pressured_observation, nominal_observation, deeper_pressured_observation],
         resource_summaries: resource_summaries
       )
 
@@ -82,7 +105,7 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairResourceProjectionTest do
 
     assert %{
              "selected_candidate_id" => "obs_nominal",
-             "evaluated_candidate_count" => 2,
+             "evaluated_candidate_count" => 3,
              "rows" => [
                %{
                  "rank" => 1,
@@ -104,6 +127,20 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairResourceProjectionTest do
                  ],
                  "selected" => false,
                  "ranking_score" => pressured_ranking_score
+               },
+               %{
+                 "rank" => 3,
+                 "candidate_id" => "obs_deeper_pressured",
+                 "resource_projection_pressure_penalty" => -1.0,
+                 "resource_projection_pressure_risk_indicators" => [
+                   %{
+                     "type" => "payload_unavailable",
+                     "candidate_id" => "obs_deeper_pressured",
+                     "spacecraft_id" => "leo_3"
+                   }
+                 ],
+                 "selected" => false,
+                 "ranking_score" => deeper_pressured_ranking_score
                }
              ]
            } =
@@ -116,9 +153,10 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairResourceProjectionTest do
 
     assert_in_delta nominal_ranking_score, -94.5, 1.0e-9
     assert_in_delta pressured_ranking_score, -95.0, 1.0e-9
+    assert_in_delta deeper_pressured_ranking_score, -96.0, 1.0e-9
     assert nominal_resource_penalty == 0.0
 
-    [nominal_ranking_row, _pressured_ranking_row] =
+    [nominal_ranking_row, _pressured_ranking_row, _deeper_pressured_ranking_row] =
       get_in(nominal_artifact, [
         "activities",
         Access.at(0),
@@ -166,7 +204,17 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairResourceProjectionTest do
                  ],
                  "selected" => true
                },
-               %{"candidate_id" => "obs_nominal", "selected" => false}
+               %{"candidate_id" => "obs_nominal", "selected" => false},
+               %{
+                 "candidate_id" => "obs_deeper_pressured",
+                 "resource_projection_pressure_risk_indicators" => [
+                   %{
+                     "candidate_id" => "obs_deeper_pressured",
+                     "spacecraft_id" => "leo_3"
+                   }
+                 ],
+                 "selected" => false
+               }
              ]
            } =
              get_in(pressured_artifact, [
@@ -176,7 +224,7 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairResourceProjectionTest do
                "replacement_ranking"
              ])
 
-    [_pressured_ranking_row, nominal_ranking_row] =
+    [_pressured_ranking_row, nominal_ranking_row, _deeper_pressured_ranking_row] =
       get_in(pressured_artifact, [
         "activities",
         Access.at(0),
@@ -233,7 +281,29 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairResourceProjectionTest do
     legacy_artifact =
       update_in(
         pressured_artifact,
-        ["activities", Access.at(0), "repair", "replacement_ranking", "rows", Access.at(0)],
+        ["activities", Access.at(0), "repair", "replacement_ranking", "rows"],
+        fn rows ->
+          Enum.map(rows, fn
+            %{"resource_projection_pressure_risk_indicators" => indicators} = row ->
+              Map.put(
+                row,
+                "resource_projection_pressure_risk_indicators",
+                Enum.map(indicators, &Map.delete(&1, "candidate_id"))
+              )
+
+            row ->
+              row
+          end)
+        end
+      )
+
+    assert {:ok, %{"schema_contract" => "campaign_repair.v2"}} =
+             Schema.validate_artifact(legacy_artifact)
+
+    invalid_mixed_generation =
+      update_in(
+        pressured_artifact,
+        ["activities", Access.at(0), "repair", "replacement_ranking", "rows", Access.at(2)],
         fn row ->
           Map.update!(row, "resource_projection_pressure_risk_indicators", fn indicators ->
             Enum.map(indicators, &Map.delete(&1, "candidate_id"))
@@ -241,8 +311,13 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairResourceProjectionTest do
         end
       )
 
-    assert {:ok, %{"schema_contract" => "campaign_repair.v2"}} =
-             Schema.validate_artifact(legacy_artifact)
+    assert {:error, mixed_report} = Schema.validate_artifact(invalid_mixed_generation)
+
+    assert Enum.any?(
+             mixed_report["errors"],
+             &(&1["path"] ==
+                 "$.activities[0].repair.replacement_ranking.rows[2].resource_projection_pressure_risk_indicators[0].candidate_id")
+           )
 
     invalid_resource_scope =
       update_in(

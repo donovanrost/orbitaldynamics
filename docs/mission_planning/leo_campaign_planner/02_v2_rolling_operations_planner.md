@@ -608,9 +608,11 @@ schema-type their stable IDs, invalid-input flags, and protected/change counts.
   spacecraft scope to a valid normalized `source_resource_summaries` row that
   applies to the exact ranked source candidate by spacecraft/scenario identity;
   the single unscoped-summary `all_spacecraft` rule and duplicate/mixed-scope
-  review gating are shared with resource projection. Legacy indicators without
-  candidate identity remain compatible. The evidence does not copy candidate
-  payloads or claim global optimization.
+  review gating are shared with resource projection. Fully legacy rankings with
+  no indicator candidate identity remain compatible; once any indicator uses
+  the current identity, every projected-resource indicator in that ranking must
+  carry it. The evidence does not copy candidate payloads or claim global
+  optimization.
 - `source_contact_intents` and `source_resource_summaries` are optional typed
   source arrays backed by direct `contact_intent.v1` and `resource_summary.v1`
   definitions. Their existing standalone row validators run before V2 uses the

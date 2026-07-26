@@ -1945,6 +1945,12 @@ pressured row in the ranking to use it, requires the pair to be complete, and
 checks that selected throughput plus shortfall equals required demand. Nominal
 producer rows omit all three evidence fields, while the existing calibrated
 penalty rule remains unchanged.
+Projected-resource replacement evidence likewise preserves fully legacy
+rankings whose indicators all omit candidate identity. Once any indicator
+carries the current ranked candidate ID, every projected-resource indicator in
+that ranking must carry it; existing validation still binds each present ID to
+its enclosing candidate and each spacecraft scope to applicable source resource
+summaries.
 
 For repeatable file-to-file generation, use the campaign run task:
 

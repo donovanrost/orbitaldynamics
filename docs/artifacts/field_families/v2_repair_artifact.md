@@ -394,9 +394,12 @@ downlink/station/time normalization.
   current projected-resource indicators carry the ranked candidate ID and must
   use a spacecraft scope from an applicable valid source resource summary;
   explicit spacecraft/scenario matching, single unscoped-summary fallback, and
-  duplicate/mixed-scope review gating reuse the projection's own rules. The
-  projected link-capacity evidence on pressured alternatives carries required
-  downlink demand, selected capacity-adjusted throughput, and shortfall, with
+  duplicate/mixed-scope review gating reuse the projection's own rules. Fully
+  legacy rankings may omit candidate identity from every indicator, but a
+  ranking with any current indicator requires it on all projected-resource
+  indicators. The projected link-capacity evidence on pressured alternatives
+  carries required downlink demand, selected capacity-adjusted throughput, and
+  shortfall, with
   executable validation requiring `selected + shortfall = required` when the
   new operand pair is present. Fully legacy shortfall-only rankings remain
   valid; once any row uses the current pair, every pressured row must use it.
