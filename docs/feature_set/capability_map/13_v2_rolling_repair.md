@@ -79,6 +79,10 @@ Status: **implemented** (with **partial**, **near-term**, **later**, and **out o
   carry one review/import row per rejection and bind present operator-review,
   Cadence, and embedded `source_candidate_rejection` copies in source order;
   older package or copy omissions remain valid.
+- Resource-projection rows sourced from the enclosing Repair source report
+  carry one review/import row per projected-resource row and bind present
+  operator-review, Cadence, and embedded `source_resource_projection` copies in
+  source order; older package or copy omissions remain valid.
 - **`contact_allocation_report.v1`** over repaired contact activities. The
   optional report is a declared V2 nested contract; runtime validation applies
   its full row, count, summary, nested contention/resolution, stable-identity,

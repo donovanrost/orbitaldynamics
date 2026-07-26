@@ -744,8 +744,11 @@ schema-type their stable IDs, invalid-input flags, and protected/change counts.
   order. Candidate-rejection rows sourced from the enclosing Repair source
   report carry one review/import row per rejection, with present
   operator-review, Cadence, and embedded `source_candidate_rejection` copies
-  bound in source order; older package, copy, or embedded-row omissions remain
-  valid.
+  bound in source order. Resource-projection rows sourced from the enclosing
+  Repair source report carry one review/import row per projected-resource row,
+  with present operator-review, Cadence, and embedded
+  `source_resource_projection` copies bound in source order; older package,
+  copy, or embedded-row omissions remain valid.
 
 The current repair behavior is deliberately transparent:
 
