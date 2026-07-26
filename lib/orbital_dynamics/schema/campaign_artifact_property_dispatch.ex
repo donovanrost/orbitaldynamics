@@ -47,6 +47,7 @@ defmodule OrbitalDynamics.Schema.CampaignArtifactPropertyDispatch do
           policy_action_rule_schema,
           policy_decision_schema,
           candidate_refresh_provenance_schema,
+          candidate_refresh_operational_feedback_schema,
           candidate_refresh_validation_records_schema
         }
       ) do
@@ -63,6 +64,8 @@ defmodule OrbitalDynamics.Schema.CampaignArtifactPropertyDispatch do
         policy_action_rule_schema: policy_action_rule_schema,
         policy_decision_schema: policy_decision_schema,
         candidate_refresh_provenance_schema: candidate_refresh_provenance_schema,
+        candidate_refresh_operational_feedback_schema:
+          candidate_refresh_operational_feedback_schema,
         candidate_refresh_validation_records_schema: candidate_refresh_validation_records_schema,
         timeline_transition_required_fields: timeline_transition_contract["required_fields"],
         timeline_transition_optional_fields: timeline_transition_contract["optional_fields"],

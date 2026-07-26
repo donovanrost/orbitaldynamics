@@ -197,6 +197,13 @@ freshness, contact/resource preservation, and station calendar reports.
   matching `remaining_horizon.v1` tag are executable contracts. The source map
   remains distinct from the operative Repair V2 horizon and creates no
   operator-review or Cadence rows.
+- **Source CandidateRefresh operational feedback**, preserving the exact
+  normalized feedback-conditioned input at
+  `source_candidate_refresh_operational_feedback`: success rates, throughput,
+  demand, priorities, resource overrides, maneuver uncertainty, image quality,
+  and realized activities. Known families have executable nested contracts;
+  additional fields remain forward-compatible. The map is audit-only and
+  creates no operator-review or Cadence rows.
 - **Source CandidateRefresh warnings**, preserving the exact ordered source
   string collection at `source_candidate_refresh_warnings`, including duplicates
   and an empty list. Source attribution remains distinct from the sorted,

@@ -40,6 +40,16 @@ defmodule OrbitalDynamics.Schema.OperationalFeedbackContracts do
   def validate(issues, _path, :null), do: issues
 
   def validate(issues, path, %{} = feedback) do
+    validate_at(issues, "#{path}.operational_feedback", feedback)
+  end
+
+  def validate(issues, path, _feedback),
+    do: [error("#{path}.operational_feedback", "must be an object") | issues]
+
+  def validate_at(issues, _path, nil), do: issues
+  def validate_at(issues, _path, :null), do: issues
+
+  def validate_at(issues, path, %{} = feedback) do
     issues
     |> validate_probability_maps(path, feedback, @probability_map_fields)
     |> validate_number_maps(path, feedback, @number_map_fields)
@@ -47,14 +57,13 @@ defmodule OrbitalDynamics.Schema.OperationalFeedbackContracts do
     |> validate_string_list_maps(path, feedback, @string_list_map_fields)
     |> validate_object_maps(path, feedback, @object_map_fields)
     |> validate_optional_rows(
-      "#{path}.operational_feedback.realized_activities",
+      "#{path}.realized_activities",
       Map.get(feedback, "realized_activities"),
       &RealizedActivityContracts.validate/3
     )
   end
 
-  def validate(issues, path, _feedback),
-    do: [error("#{path}.operational_feedback", "must be an object") | issues]
+  def validate_at(issues, path, _feedback), do: [error(path, "must be an object") | issues]
 
   defp validate_probability_maps(issues, path, feedback, fields) do
     Enum.reduce(fields, issues, fn field, acc ->
@@ -141,11 +150,11 @@ defmodule OrbitalDynamics.Schema.OperationalFeedbackContracts do
 
       %{} = values ->
         Enum.reduce(values, issues, fn {key, value}, acc ->
-          entry_validator.("#{path}.operational_feedback.#{field}.#{key}", value, acc)
+          entry_validator.("#{path}.#{field}.#{key}", value, acc)
         end)
 
       _value ->
-        [error("#{path}.operational_feedback.#{field}", "must be an object") | issues]
+        [error("#{path}.#{field}", "must be an object") | issues]
     end
   end
 end

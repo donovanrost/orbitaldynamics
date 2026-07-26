@@ -119,6 +119,10 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairArtifact do
       "source_candidate_refresh_remaining_horizon",
       RepairSourceReports.candidate_refresh_remaining_horizon(request.candidate_refresh)
     )
+    |> put_source_report(
+      "source_candidate_refresh_operational_feedback",
+      RepairSourceReports.candidate_refresh_operational_feedback(request.candidate_refresh)
+    )
     |> put_source_list(
       "source_candidate_refresh_warnings",
       RepairSourceReports.candidate_refresh_warnings(request.candidate_refresh)

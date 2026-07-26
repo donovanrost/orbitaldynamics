@@ -62,6 +62,23 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairSourceReports do
     end
   end
 
+  def candidate_refresh_operational_feedback(candidate_refresh),
+    do: candidate_refresh_operational_feedback(candidate_refresh, default_callbacks())
+
+  def candidate_refresh_operational_feedback(nil, _callbacks), do: nil
+
+  def candidate_refresh_operational_feedback(%{} = candidate_refresh, callbacks) do
+    stringify_keys = Keyword.fetch!(callbacks, :stringify_keys)
+
+    candidate_refresh
+    |> stringify_keys.()
+    |> Map.get("operational_feedback")
+    |> case do
+      %{} = operational_feedback -> operational_feedback
+      _operational_feedback -> nil
+    end
+  end
+
   def candidate_refresh_warnings(candidate_refresh),
     do: candidate_refresh_warnings(candidate_refresh, default_callbacks())
 

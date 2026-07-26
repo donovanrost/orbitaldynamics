@@ -8,6 +8,11 @@ from updated state.
 - Accepted planning state or orbit-data input provenance.
 - Operational-feedback provenance, including declared/missing trust-boundary
   status when feedback inputs affect refreshed candidates.
+- Exact normalized operational-feedback values remain optional on the refresh.
+  Repair V2 preserves a supplied map at
+  `source_candidate_refresh_operational_feedback` so feedback-conditioned
+  candidates remain auditable beyond input-key and trust metadata; the copy is
+  evidence-only and does not create review/import authority.
 - A sampled `remaining_horizon` with numeric start/end bounds and a positive
   `output_step_s`. Runtime validation enforces interval, cadence, and optional
   duration consistency; exported JSON Schema exposes the same embedded shape.

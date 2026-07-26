@@ -288,6 +288,11 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyCandidateRefreshBranchRepairTe
       "branch-local source warning"
     ]
 
+    branch_candidate_refresh_operational_feedback = %{
+      "station_throughput_factor" => %{"equator_prime" => 0.5},
+      "resource_margin_overrides" => %{"leo_1" => %{"battery_margin_wh" => 30.0}}
+    }
+
     artifact =
       strategy(prior_plan,
         branches: [
@@ -310,6 +315,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyCandidateRefreshBranchRepairTe
                 freshness_report: freshness_report("stale"),
                 refreshed_windows: branch_refreshed_windows,
                 assumptions: branch_candidate_refresh_assumptions,
+                operational_feedback: branch_candidate_refresh_operational_feedback,
                 warnings: branch_candidate_refresh_warnings
               )
           }
@@ -348,6 +354,9 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyCandidateRefreshBranchRepairTe
              "output_step_s" => 60.0
            }
 
+    assert outage["repair_result"]["source_candidate_refresh_operational_feedback"] ==
+             branch_candidate_refresh_operational_feedback
+
     assert outage["repair_result"]["source_candidate_refresh_warnings"] ==
              branch_candidate_refresh_warnings
 
@@ -367,6 +376,22 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyCandidateRefreshBranchRepairTe
              &String.contains?(
                &1["source"] || get_in(&1, ["source_review_row", "source"]) || "",
                "source_refreshed_windows"
+             )
+           )
+
+    refute Enum.any?(
+             artifact["operator_review_package"]["rows"],
+             &String.contains?(
+               &1["source"] || "",
+               "source_candidate_refresh_operational_feedback"
+             )
+           )
+
+    refute Enum.any?(
+             artifact["cadence_import_manifest"]["rows"],
+             &String.contains?(
+               &1["source"] || get_in(&1, ["source_review_row", "source"]) || "",
+               "source_candidate_refresh_operational_feedback"
              )
            )
 
@@ -504,6 +529,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyCandidateRefreshBranchRepairTe
       "validation_records" => [],
       "warnings" => Keyword.get(opts, :warnings, []),
       "assumptions" => Keyword.get(opts, :assumptions, %{}),
+      "operational_feedback" => Keyword.get(opts, :operational_feedback),
       "provenance" => %{},
       "source_window_lineage" =>
         Enum.map(candidates, fn candidate ->

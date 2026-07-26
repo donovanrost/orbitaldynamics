@@ -154,6 +154,15 @@ operative repair horizon. Runtime and JSON Schema validation enforce the typed
 interval/cadence contract at the source path. The map creates no review/import
 rows and cannot change filtering, ranking, selection, scheduling, provider
 state, commanding, imports, or authority.
+Campaign-repair V2 separately preserves CandidateRefresh's exact normalized
+operational-feedback input at `source_candidate_refresh_operational_feedback`.
+The source map retains the values that conditioned candidate generation rather
+than only the input-key and trust metadata in `repair_metadata.candidate_source`.
+Runtime and JSON Schema validation reuse the CandidateRefresh feedback contract
+for known success-rate, throughput, demand, priority, resource, maneuver,
+image-quality, and realized-activity families while allowing additional fields.
+The audit-only map creates no review/import rows and cannot change filtering,
+ranking, selection, scheduling, provider state, commanding, or authority.
 Campaign-repair V2 also preserves CandidateRefresh's exact ordered warning list
 at `source_candidate_refresh_warnings`, including duplicates and an empty list.
 This source-attributed evidence remains distinct from the operative

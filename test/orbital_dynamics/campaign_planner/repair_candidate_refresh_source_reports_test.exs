@@ -64,6 +64,10 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
       "resource summary filters suppressed refreshed candidates"
     ]
 
+    source_candidate_refresh_operational_feedback = %{
+      "station_throughput_factor" => %{"equator_prime" => 0.5}
+    }
+
     source_validation_record =
       "study_results/validation_record_v1.json"
       |> File.read!()
@@ -710,9 +714,10 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
             [source_provider_counteroffer_import_readiness_summary]
           )
           |> Map.put("source_quality_gate_report", passive_quality_gate_report())
-          |> Map.put("operational_feedback", %{
-            "station_throughput_factor" => %{"equator_prime" => 0.5}
-          })
+          |> Map.put(
+            "operational_feedback",
+            source_candidate_refresh_operational_feedback
+          )
           |> put_in(["provenance", "operational_feedback"], %{
             "trust_boundary_status" => "declared",
             "trust_boundary" => "candidate_refresh_feedback",
@@ -985,6 +990,9 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
              "output_step_s" => 60.0
            }
 
+    assert artifact["source_candidate_refresh_operational_feedback"] ==
+             source_candidate_refresh_operational_feedback
+
     assert artifact["source_candidate_refresh_warnings"] == source_candidate_refresh_warnings
 
     assert Enum.count(
@@ -1002,6 +1010,22 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
              &String.contains?(
                &1["source"] || get_in(&1, ["source_review_row", "source"]) || "",
                "source_refreshed_windows"
+             )
+           )
+
+    refute Enum.any?(
+             artifact["operator_review_package"]["rows"],
+             &String.contains?(
+               &1["source"] || "",
+               "source_candidate_refresh_operational_feedback"
+             )
+           )
+
+    refute Enum.any?(
+             artifact["cadence_import_manifest"]["rows"],
+             &String.contains?(
+               &1["source"] || get_in(&1, ["source_review_row", "source"]) || "",
+               "source_candidate_refresh_operational_feedback"
              )
            )
 

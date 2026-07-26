@@ -211,6 +211,8 @@ defmodule OrbitalDynamics.Schema.CampaignArtifactValidation do
         &OrbitalDynamics.Schema.PrimitiveValidation.validate_string_list_items/4,
       validate_optional_embedded_remaining_horizon:
         &OrbitalDynamics.Schema.CandidateRefreshWindowContracts.validate_optional_embedded_remaining_horizon/3,
+      validate_optional_operational_feedback_at:
+        &OrbitalDynamics.Schema.OperationalFeedbackContracts.validate_at/3,
       expect_one_of: &OrbitalDynamics.Schema.PrimitiveValidation.expect_one_of/5,
       validate_optional_stable_ids:
         &OrbitalDynamics.Schema.StableIdValidation.validate_optional_stable_ids/4,
