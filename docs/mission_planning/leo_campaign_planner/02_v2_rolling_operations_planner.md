@@ -762,8 +762,11 @@ schema-type their stable IDs, invalid-input flags, and protected/change counts.
   eligible application, with present operator-review, Cadence, and embedded
   `source_timeline_application` copies bound in source order; older package,
   copy, or embedded-row omissions remain valid. Reviewable rows sourced from the
-  enclosing Repair quality-gate report carry one review/import row per eligible
-  gate row, with present operator-review, Cadence, and embedded
+  generated Repair operational-timeline report carry one review/import row per
+  eligible timeline row, with present operator-review, Cadence, and embedded
+  `source_operational_timeline` copies bound in source order. Reviewable rows
+  sourced from the enclosing Repair quality-gate report carry one review/import
+  row per eligible gate row, with present operator-review, Cadence, and embedded
   `source_quality_gate_row` copies bound in source order.
   The enclosing Repair operational-readiness report carries one report-summary
   review/import row plus one row per non-passed gate, with present

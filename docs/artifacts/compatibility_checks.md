@@ -2027,6 +2027,11 @@ Repair transition report, present packages carry one review/import row per
 eligible application. Present operator-review, Cadence, and embedded
 source-review `source_timeline_application` copies equal the corresponding
 application in source order; older package or copy omissions remain valid.
+For reviewable rows sourced from the generated Repair operational-timeline
+report, present packages carry one review/import row per eligible timeline row.
+Present operator-review, Cadence, and embedded source-review
+`source_operational_timeline` copies equal the corresponding report row in
+source order; older package or copy omissions remain valid.
 For reviewable rows sourced from the enclosing Repair quality-gate report,
 present packages carry one review/import row per eligible gate row. Present
 operator-review, Cadence, and embedded source-review `source_quality_gate_row`

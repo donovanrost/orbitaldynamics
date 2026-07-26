@@ -100,6 +100,10 @@ Status: **implemented** (with **partial**, **near-term**, **later**, and **out o
   and bind present operator-review, Cadence, and embedded
   `source_timeline_application` copies in source order; older package or copy
   omissions remain valid.
+- Reviewable rows sourced from the generated Repair operational-timeline report
+  carry one review/import row per eligible timeline row and bind present
+  operator-review, Cadence, and embedded `source_operational_timeline` copies in
+  source order; older package or copy omissions remain valid.
 - Reviewable rows sourced from the enclosing Repair quality-gate report carry
   one review/import row per eligible gate row and bind present operator-review,
   Cadence, and embedded `source_quality_gate_row` copies in source order; older
