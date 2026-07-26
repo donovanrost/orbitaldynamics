@@ -101,6 +101,9 @@ defmodule OrbitalDynamics.OperatorReview.ContactAllocationSummary do
     {reservation_conflict_reports, _source} = repair_reservation_conflict_source(artifact)
     {capacity_pack_reports, _source} = repair_capacity_pack_source(artifact)
 
+    {provider_reservation_request_reports, _source} =
+      repair_provider_reservation_request_source(artifact)
+
     reports = [
       artifact["source_contact_allocation_report"],
       artifact["contact_allocation_report"],
@@ -108,11 +111,25 @@ defmodule OrbitalDynamics.OperatorReview.ContactAllocationSummary do
       station_pressure_reports,
       reservation_conflict_reports,
       capacity_pack_reports,
-      artifact["source_contact_allocation_provider_reservation_request_summary"],
+      provider_reservation_request_reports,
       artifact["contact_allocation_provider_reservation_request_summary"]
     ]
 
     put(package, reports)
+  end
+
+  def repair_provider_reservation_request_source(artifact) do
+    artifact = stringify_keys(artifact || %{})
+
+    case artifact["source_contact_allocation_provider_reservation_request_summaries"] do
+      [_summary | _summaries] = summaries ->
+        {summaries,
+         "campaign_repair.source_contact_allocation_provider_reservation_request_summaries"}
+
+      _summaries ->
+        {artifact["source_contact_allocation_provider_reservation_request_summary"],
+         "campaign_repair.source_contact_allocation_provider_reservation_request_summary"}
+    end
   end
 
   def repair_reservation_conflict_source(artifact) do

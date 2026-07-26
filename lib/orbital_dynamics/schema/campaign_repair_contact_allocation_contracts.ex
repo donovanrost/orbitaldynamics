@@ -21,6 +21,11 @@ defmodule OrbitalDynamics.Schema.CampaignRepairContactAllocationContracts do
       "source_contact_allocation_capacity_pack_summary",
       "source_contact_allocation_capacity_pack_summaries"
     )
+    |> validate_source_mirror(
+      artifact,
+      "source_contact_allocation_provider_reservation_request_summary",
+      "source_contact_allocation_provider_reservation_request_summaries"
+    )
   end
 
   defp validate_source_mirror(issues, artifact, singular_field, plural_field) do

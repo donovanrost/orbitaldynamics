@@ -243,6 +243,9 @@ defmodule OrbitalDynamics.OperatorReview.CompositeArtifact do
     {capacity_pack_reports, capacity_pack_source} =
       ContactAllocationSummary.repair_capacity_pack_source(artifact)
 
+    {provider_reservation_request_reports, provider_reservation_request_source} =
+      ContactAllocationSummary.repair_provider_reservation_request_source(artifact)
+
     PolicyApproval.approval_rows(
       Map.get(artifact, "approval_requirements", []),
       "campaign_repair.approval_requirements"
@@ -476,11 +479,8 @@ defmodule OrbitalDynamics.OperatorReview.CompositeArtifact do
         capacity_pack_source
       ) ++
       ContactAllocation.source_report_rows(
-        Map.get(
-          artifact,
-          "source_contact_allocation_provider_reservation_request_summary"
-        ),
-        "campaign_repair.source_contact_allocation_provider_reservation_request_summary"
+        provider_reservation_request_reports,
+        provider_reservation_request_source
       ) ++
       ContactContention.invalid_input_rows(
         get_in(artifact, ["source_contact_contention_report", "invalid_contact_inputs"]) || [],

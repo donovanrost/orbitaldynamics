@@ -1652,6 +1652,20 @@ identity, required-capacity provenance, status, direction, and station
 evidence, and do not count the compatibility mirror twice. Legacy singular-only
 artifacts remain accepted and routed. Both paths remain review-only with no
 provider reservation, schedule mutation, Cadence write, or operator authority.
+Campaign-repair V2 also preserves every CandidateRefresh
+`contact_allocation_provider_reservation_request_summary.v1` in
+direct-source-then-canonical order at
+`source_contact_allocation_provider_reservation_request_summaries`, without
+deduplication or first-map selection. The existing singular
+`source_contact_allocation_provider_reservation_request_summary` remains an
+exact element-zero compatibility mirror, and executable validation rejects
+mirror drift, indexed row-derived provider-request drift, and non-list or
+non-object collection shapes. Operator-review and Cadence adapters prefer the
+plural collection, retain exact indexed request-ready/review-required rows plus
+match-status, station, direction, reservation-ID, and contact-ID routing, and
+do not count the compatibility mirror twice. Legacy singular-only artifacts
+remain accepted and routed. Both paths remain review-only with no provider
+reservation, schedule mutation, Cadence write, or operator authority.
 The validation-reference registry and checked-in
 `study_results/contact_allocation_provider_reservation_request_summary_v1.json`
 fixture also feed the

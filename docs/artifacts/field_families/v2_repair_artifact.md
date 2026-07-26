@@ -256,11 +256,18 @@ freshness, contact/resource preservation, and station calendar reports.
   routes. The resulting contact/group adapter rows are review-only and cannot
   mutate provider or Cadence state.
 - **Source contact-allocation provider-reservation request summaries** — V2
-  preserves `contact_allocation_provider_reservation_request_summary.v1` at
-  `source_contact_allocation_provider_reservation_request_summary`, including
-  exact request-ready/review-required rows and match-status, ground-station,
-  direction, reservation-ID, and contact-ID routing. The handoff creates only
-  review actions; it performs no provider reservation or schedule mutation.
+  preserves every CandidateRefresh
+  `contact_allocation_provider_reservation_request_summary.v1` at the ordered
+  `source_contact_allocation_provider_reservation_request_summaries` path.
+  Direct source maps precede canonical maps without deduplication or first-map
+  loss; the legacy singular
+  `source_contact_allocation_provider_reservation_request_summary` remains an
+  exact element-zero compatibility mirror. Operator review and Cadence prefer
+  the plural collection, route exact array indexes, and do not count the mirror
+  twice. They retain exact request-ready/review-required rows and match-status,
+  ground-station, direction, reservation-ID, and contact-ID routing. The
+  handoff creates only review actions; it performs no provider reservation or
+  schedule mutation.
 - **Source contact filter reports** can preserve reserved-station suppression
   rows with station availability, contention status, reservation ID, owner, and
   reservation status.
