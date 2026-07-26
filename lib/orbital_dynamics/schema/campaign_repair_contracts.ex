@@ -19,6 +19,7 @@ defmodule OrbitalDynamics.Schema.CampaignRepairContracts do
     CampaignRepairLinkCapacityHandoffContracts,
     CampaignRepairLinkCapacityPressureContracts,
     CampaignRepairObjectiveTradeoffHandoffContracts,
+    CampaignRepairOperationalReadinessHandoffContracts,
     CampaignRepairPlanDeltaHandoffContracts,
     CampaignRepairProvenanceHandoffContracts,
     CampaignRepairProducedSurfaceContracts,
@@ -247,6 +248,7 @@ defmodule OrbitalDynamics.Schema.CampaignRepairContracts do
     |> CampaignRepairLinkCapacityHandoffContracts.validate(artifact)
     |> CampaignRepairTimelineTransitionHandoffContracts.validate(artifact)
     |> CampaignRepairQualityGateHandoffContracts.validate(artifact)
+    |> CampaignRepairOperationalReadinessHandoffContracts.validate(artifact)
     |> call(callbacks, :validate_optional_operational_readiness_report, [
       "$.source_operational_readiness_report",
       Map.get(artifact, "source_operational_readiness_report")

@@ -765,6 +765,10 @@ schema-type their stable IDs, invalid-input flags, and protected/change counts.
   enclosing Repair quality-gate report carry one review/import row per eligible
   gate row, with present operator-review, Cadence, and embedded
   `source_quality_gate_row` copies bound in source order.
+  The enclosing Repair operational-readiness report carries one report-summary
+  review/import row plus one row per non-passed gate, with present
+  operator-review, Cadence, and embedded report projections and full gate copies
+  bound to that source in order; older package and copy omissions remain valid.
 
 The current repair behavior is deliberately transparent:
 

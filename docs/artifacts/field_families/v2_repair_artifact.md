@@ -107,6 +107,12 @@ packages carry one review/import row per eligible gate row. Present
 operator-review, Cadence, and embedded source-review `source_quality_gate_row`
 copies equal the corresponding gate row in source order; older package or copy
 omissions remain valid.
+For the enclosing operational-readiness source report, present packages carry
+one report-summary review/import row plus one row per non-passed readiness gate.
+Present operator-review, Cadence, and embedded source-review report copies equal
+the producer's fixed report-context projection, and gate copies equal the full
+corresponding source gate in source order; older package or copy omissions
+remain valid.
 
 ### `realized_state_snapshot`
 

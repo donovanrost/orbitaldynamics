@@ -2032,6 +2032,12 @@ present packages carry one review/import row per eligible gate row. Present
 operator-review, Cadence, and embedded source-review `source_quality_gate_row`
 copies equal the corresponding gate row in source order; older package or copy
 omissions remain valid.
+For the enclosing Repair operational-readiness source report, present packages
+carry one report-summary review/import row plus one row per non-passed gate.
+Present operator-review, Cadence, and embedded source-review report projections
+equal the producer's fixed report context, and full gate copies equal the
+corresponding source gate in order; older package or copy omissions remain
+valid.
 Replacement-ranking link-pressure validation preserves fully legacy rankings
 whose pressured rows carry only shortfall. New producer rows under pressure also
 carry projected required downlink demand and selected capacity-adjusted

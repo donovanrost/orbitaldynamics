@@ -104,6 +104,10 @@ Status: **implemented** (with **partial**, **near-term**, **later**, and **out o
   one review/import row per eligible gate row and bind present operator-review,
   Cadence, and embedded `source_quality_gate_row` copies in source order; older
   package or copy omissions remain valid.
+- The enclosing Repair operational-readiness report carries one source-report
+  review/import row plus one row per non-passed gate. Present operator-review,
+  Cadence, and embedded report projections and full gate copies bind to that
+  source in order; older package or copy omissions remain valid.
 - **`contact_allocation_report.v1`** over repaired contact activities. The
   optional report is a declared V2 nested contract; runtime validation applies
   its full row, count, summary, nested contention/resolution, stable-identity,
