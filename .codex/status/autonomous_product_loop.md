@@ -5,40 +5,37 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Bind Repair source refresh-budget handoffs to their enclosing report evidence.
+Bind Repair source freshness-report handoffs to their enclosing report evidence.
 
 Status:
-Verified from clean published base `a6a3d01f`; ready to publish.
+Verified from clean published base `9e80f5b8`; ready to publish.
 
 Selection evidence:
-- Repair retains CandidateRefresh budget evidence as
-  `source_refresh_budget_report`.
-- The producer emits one `refresh_budget_review` row when candidates were
-  dropped or the candidate-limit policy was invalid, copying budget counts,
-  candidate IDs, policy evidence, and the complete source report.
-- Live validation accepts coordinated dropped-candidate count and identity
-  drift across the outer review/import rows and every refresh-budget evidence
-  copy while the enclosing source report remains unchanged.
+- Repair retains CandidateRefresh freshness evidence as
+  `source_freshness_report`.
+- The producer emits one `freshness_review` row for stale or unknown reports,
+  copying freshness status, timing, state-quality evidence, reasons, and the
+  complete source report.
+- Live validation accepts coordinated `accepted_snapshot_age_s` drift across
+  the outer review/import rows and every freshness evidence copy while the
+  enclosing source report remains unchanged.
 
 Delivered behavior:
-- Repair validation now replays the exact refresh-budget review-row producer,
-  including dropped-candidate and invalid-policy eligibility.
-- When review/import packages are present, their refresh-budget rows must
-  preserve exact cardinality, source identity, and every present complete
-  `source_refresh_budget_report` evidence copy.
-- Challenge coverage rejects independent or coordinated dropped-candidate
-  drift, `.legacy` source identity, missing rows, and stale downstream handoffs
-  while retaining additive-package and evidence-copy compatibility.
-- The candidate-partition fixture now omits prebuilt additive packages after
-  injecting budget pressure, preserving its source-partition scope without
-  constructing stale handoffs.
+- Repair validation now replays the exact freshness review-row producer,
+  including stale/unknown eligibility and copied timing/state-quality context.
+- When review/import packages are present, their freshness rows must preserve
+  exact cardinality, source identity, and every present complete
+  `source_freshness_report` evidence copy.
+- Challenge coverage rejects independent or coordinated snapshot-age drift,
+  `.legacy` source identity, missing rows, and stale downstream handoffs while
+  retaining additive-package and evidence-copy compatibility.
 
 Verification:
-- Focused source refresh-budget handoff contract: `5 passed`.
-- Adjacent producer/planner/source-partition contracts: `14 passed`.
-- Campaign Repair schema regression: `602 passed`.
+- Focused source freshness handoff contract: `5 passed`.
+- Adjacent producer/source/score/produced-surface contracts: `31 passed`.
+- Campaign Repair schema regression: `607 passed`.
 - Repair planner regression: `225 passed`.
-- Full suite: `5529 passed` (seed `599368`).
+- Full suite: `5534 passed` (seed `105997`).
 - Schema lint: `155` artifacts passed, `0` errors, `0` warnings.
 - Canonical Repair and Strategy regeneration passed with stable byte hashes:
   `cc41834e706fd1e04a4c5578032fdf99ceeba949a02fd75fc54c8b70cdc30d8a`
@@ -49,9 +46,9 @@ Level 6 pillar advanced:
 Fleet-scale candidate-pool integrity and operator-review evidence fidelity.
 
 Last published slice:
-- `a6a3d01f` Bind Repair generated capacity pack handoffs (`5524 passed`;
-  generated-report reduced-capacity-pack identity, order, and augmented
-  evidence now remain exact through review and import).
+- `9e80f5b8` Bind Repair refresh budget handoffs (`5529 passed`; refresh-budget
+  eligibility, identity, and complete source evidence now remain exact through
+  review and import).
 
 Remaining maturity gaps:
 - Audit remaining generated and source handoffs where their complete producer
@@ -64,8 +61,8 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-Audit Repair source freshness-report handoffs after the refresh-budget boundary
-is complete.
+Audit Repair source realized-state-snapshot handoffs after the freshness
+boundary is complete.
 
 Blocked:
 None.
