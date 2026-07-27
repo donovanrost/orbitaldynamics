@@ -5,44 +5,43 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Bind generated Repair command-window review handoffs to their enclosing report.
+Bind Repair source command-window review handoffs to their enclosing report.
 
 Status:
-Verified from clean published base `60d101b8`; ready to publish.
+Verified from clean published base `5c54daa3`; ready to publish.
 
 Selection evidence:
-- Repair generates operator-review and Cadence-import rows from reviewable
-  `command_window_report.rows`, and each handoff embeds the full producer row as
-  `source_command_window`.
-- Existing row-local contracts compare selected projected fields but do not
-  bind the embedded source row to the enclosing Repair report. Mutating `rank`
-  in the review and both import copies while leaving the report unchanged is
-  currently accepted by `Schema.validate_artifact/1`.
-- The producer eligibility predicate is explicit and replayable: rows whose
-  `required_operator_action` is not `monitor_activity`,
-  `none_locked_activity`, or `none_terminal_activity` produce one handoff each,
-  in source order.
+- Repair preserves the first valid CandidateRefresh command-window report as
+  the singular `source_command_window_report` and emits review/import rows from
+  its reviewable rows under the stable
+  `campaign_repair.source_command_window_report.rows` source identity.
+- A deterministic CandidateRefresh fixture produces four source rows, exactly
+  two reviewable handoffs (`cmd_window`, then `uplink_contact`), and a valid V2
+  Repair artifact.
+- Existing row-local contracts do not bind the embedded source row to the
+  enclosing source report. Mutating `rank` in a source review and both import
+  copies while leaving the report unchanged is currently accepted.
 
 Delivered behavior:
-- Require one generated Repair command-window review row per enclosing
-  reviewable `command_window_report` row.
-- Require one corresponding Cadence import row per enclosing reviewable report
-  row.
+- Require one source command-window review and import row per enclosing
+  reviewable `source_command_window_report` row, in producer order.
 - Require the review's `source_command_window` and both import copies to equal
-  their corresponding enclosing report row in source order.
-- Preserve optional package compatibility and leave
-  `source_command_window_report` handoffs for a separately evidenced slice.
+  their corresponding enclosing source report row.
+- Preserve optional package and embedded-copy compatibility while keeping the
+  singular Repair source-report schema unchanged.
+- Reuse the generated command-window handoff validator rather than introducing
+  a parallel responsibility.
 
 Verification:
-- Focused generated command-window handoff and contract gate: `8 passed`.
-- Adjacent command-window gate: `61 passed`.
-- Expanded Repair schema gate: `382 passed`.
+- Focused source command-window handoff and contract gate: `14 passed`.
+- Adjacent command-window gate: `64 passed`.
+- Expanded Repair schema gate: `385 passed`.
 - Direct Repair planner gate: `225 passed`.
 - Saved-artifact lint: `155` artifacts passed with zero errors, warnings, or
   remediation.
 - Canonical Repair and Strategy regeneration was byte-identical to the
   published fixtures.
-- Full suite: `5309 passed` in 818.4 seconds.
+- Full suite: `5312 passed` in 739.7 seconds.
 - `mix format --check-formatted` and `git diff --check` passed; scoped review
   found no unrelated changes.
 
@@ -50,14 +49,13 @@ Level 6 pillar advanced:
 Fleet-scale candidate-pool integrity and operator-review evidence fidelity.
 
 Last published slice:
-- `60d101b8` Consolidate Repair event handoff validation (`5306 passed`;
-  plan-delta, quality-gate, operational-timeline, and timeline-transition
-  validators reuse shared mechanics with exact behavior and `200` fewer
-  production lines).
+- `5c54daa3` Bind Repair command-window review handoffs (`5309 passed`; generated
+  command-window report rows now remain traceable through operator review and
+  Cadence import).
 
 Remaining maturity gaps:
-- Bind source command-window report handoffs once their optional singular/list
-  producer contract is covered by deterministic evidence.
+- Audit Repair maneuver-review handoffs for reproducible producer membership
+  gaps after command-window coverage is complete.
 - Continue fleet-scale station/allocation decisions only from authoritative,
   candidate-identified evidence while preserving provider/Cadence boundaries.
 - Bind additional ranking membership predicates only where the full producer
@@ -66,8 +64,8 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-Audit Repair source command-window or maneuver-review handoffs for reproducible
-producer membership gaps after this generated-report slice.
+Audit Repair maneuver-review handoffs or the next unbound evidence family after
+this source command-window slice.
 
 Blocked:
 None.

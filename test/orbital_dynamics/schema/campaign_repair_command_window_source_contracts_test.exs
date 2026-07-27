@@ -6,7 +6,11 @@ defmodule OrbitalDynamics.Schema.CampaignRepairCommandWindowSourceContractsTest 
   @source_field "source_command_window_report"
 
   setup do
-    artifact = read_json!("study_results/leo_constellation_campaign_repair_v2.json")
+    artifact =
+      "study_results/leo_constellation_campaign_repair_v2.json"
+      |> read_json!()
+      |> Map.drop(["operator_review_package", "cadence_import_manifest"])
+
     source_report = read_json!("study_results/command_window_report_v1.json")
 
     %{artifact: Map.put(artifact, @source_field, source_report)}
