@@ -18,6 +18,7 @@ defmodule OrbitalDynamics.Schema.CampaignRepairContracts do
     CampaignRepairContactAllocationHandoffContracts,
     CampaignRepairContactContentionResolutionPressureContracts,
     CampaignRepairContactIntentPressureContracts,
+    CampaignRepairGeneratedConstraintHandoffContracts,
     CampaignRepairLinkCapacityHandoffContracts,
     CampaignRepairLinkCapacityPressureContracts,
     CampaignRepairManeuverReviewHandoffContracts,
@@ -244,6 +245,7 @@ defmodule OrbitalDynamics.Schema.CampaignRepairContracts do
     |> CampaignRepairCadenceImportContracts.validate(artifact)
     |> CampaignRepairCommandWindowHandoffContracts.validate(artifact)
     |> CampaignRepairManeuverReviewHandoffContracts.validate(artifact)
+    |> CampaignRepairGeneratedConstraintHandoffContracts.validate(artifact)
     |> CampaignRepairConstraintHandoffContracts.validate(artifact)
     |> CampaignRepairObjectiveSatisfactionHandoffContracts.validate(artifact)
     |> CampaignRepairProvenanceHandoffContracts.validate(artifact)
