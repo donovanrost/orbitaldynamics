@@ -5,58 +5,54 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Bind Repair source contact-contention-resolution-report handoffs to their
-enclosing recommendation evidence.
+Bind both Repair source contact-contention-report handoff surfaces to their
+enclosing report evidence.
 
 Status:
-Verified from clean published base `d4e8b252`; ready to publish.
+Verified from clean published base `6086f118`; ready to publish.
 
 Selection evidence:
 - Repair retains the optional singular
-  `source_contact_contention_resolution_report` as a first-class source
-  artifact.
-- The producer emits the report's two `recommendations` directly and in order,
-  assigning both the `.recommendations` source identity and preserving each
-  full recommendation as downstream evidence.
-- A coordinated winner/deferred swap from `dl_1`/`dl_2` to `dl_2`/`dl_1`
-  across operator, Cadence, and nested copies is currently accepted while the
-  enclosing resolution report remains unchanged.
+  `source_contact_contention_report` as a first-class source artifact.
+- The producer emits invalid inputs before conflict groups, with distinct
+  source identities and embedded `source_invalid_contact_input` versus
+  `source_contention_group` evidence fields.
+- Coordinated invalid-reason drift and conflict-group contact-order drift across
+  operator, Cadence, and nested copies are currently accepted while the
+  enclosing contention report remains unchanged.
 
 Delivered behavior:
-- Add a dedicated Repair source contention-resolution-report handoff validator
-  and wire it into the campaign-repair contract pipeline alongside the compact
-  summary validator.
-- Preserve exact report recommendation order and require exact operator and
-  Cadence source identities plus exact operator, Cadence, and nested
-  `source_recommendation` copies; reject missing and stale handoffs.
-- Treat malformed non-map source reports as zero expected handoffs so the
-  existing schema validator reports their shape error without a contract-layer
-  exception.
-- Preserve optional review/import packages and optional embedded copies; keep
-  the schema-only source-report fixture independent of intentionally absent
-  review/import packages.
+- Added a dedicated raw source contention-report validator and wired it ahead
+  of the existing resolution-report and resolution-summary validators.
+- Bound invalid-input and conflict-group handoffs to the exact ordered source
+  identities and embedded source copies from their enclosing contention report,
+  rejecting missing, stale, reordered, or coordinated-drift handoffs.
+- Preserved optional downstream packages and embedded copies, handled absent or
+  malformed source reports without raising, and isolated the schema-only source
+  fixture from unrelated operator/Cadence package validation.
 
 Verification:
-- Focused source contention-resolution report/summary handoff and source
-  contracts: `13 passed`.
-- Adjacent contention producer, candidate-refresh, operator-review, Cadence,
-  communication, and Repair-source contracts: `247 passed`.
-- Expanded Repair contract suite: `516 passed` in `171.8s`.
-- Complete Repair planner suite: `225 passed` in `12.2s`.
-- Schema lint: `155` artifacts, `0` errors, `0` warnings, and `0`
-  remediation items.
-- Canonical Repair and Strategy regeneration remained byte-identical at
-  `cc41834e706fd1e04a4c5578032fdf99ceeba949a02fd75fc54c8b70cdc30d8a`
-  and `57602722702969da587e2754df84bca1e06e86cc32fa5af7f3f78451b72f9985`.
-- Full suite: `5443 passed` in `716.7s`.
+- Focused raw contention-report, resolution-report, and resolution-summary
+  contract tests: `18 passed`.
+- Adjacent contention producer, candidate-refresh, operator, Cadence,
+  communications, and Repair contract tests: `252 passed`.
+- Expanded Repair schema-contract tests: `521 passed`.
+- Repair planner tests: `225 passed`.
+- `mix orbital_dynamics.schema.lint --all --input-dir study_results`:
+  `155 artifacts`, `0 errors`, `0 warnings`, `0 remediation actions`.
+- Canonical Repair regeneration SHA-256:
+  `cc41834e706fd1e04a4c5578032fdf99ceeba949a02fd75fc54c8b70cdc30d8a`.
+- Canonical Strategy regeneration SHA-256:
+  `57602722702969da587e2754df84bca1e06e86cc32fa5af7f3f78451b72f9985`.
+- Full suite: `5448 passed` in `758.0 seconds`.
 
 Level 6 pillar advanced:
 Fleet-scale candidate-pool integrity and operator-review evidence fidelity.
 
 Last published slice:
-- `d4e8b252` Bind Repair source contention summary handoffs (`5438 passed`;
-  synthesized recommendations now retain exact aggregate eligibility,
-  identity, recommendation evidence, and summary context downstream).
+- `6086f118` Bind Repair source contention report handoffs (`5443 passed`;
+  direct recommendations now retain exact eligibility, identity, and evidence
+  through operator review and Cadence import).
 
 Remaining maturity gaps:
 - Audit remaining generated and source handoffs where their complete producer
@@ -69,8 +65,8 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-Audit both Repair source contact-contention-report handoff surfaces after the
-resolution-report boundary is complete.
+Audit Repair source contact-intent-summary handoffs after both source
+contention-report surfaces are complete.
 
 Blocked:
 None.
