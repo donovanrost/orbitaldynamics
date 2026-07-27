@@ -9,7 +9,12 @@ defmodule OrbitalDynamics.Schema.CampaignRepairTimelinePreservationStatusesSourc
     artifact = read_json!("study_results/leo_constellation_campaign_repair_v2.json")
     source_status = read_json!("study_results/timeline_preservation_status_v1.json")
 
-    %{artifact: Map.put(artifact, @source_field, [source_status])}
+    artifact =
+      artifact
+      |> Map.drop(["operator_review_package", "cadence_import_manifest"])
+      |> Map.put(@source_field, [source_status])
+
+    %{artifact: artifact}
   end
 
   test "validates every optional V2 source preservation status", %{artifact: artifact} do
