@@ -9,7 +9,12 @@ defmodule OrbitalDynamics.Schema.CampaignRepairTimelineActivityLifecycleStatesSo
     artifact = read_json!("study_results/leo_constellation_campaign_repair_v2.json")
     source_state = read_json!("study_results/timeline_activity_lifecycle_state_v1.json")
 
-    %{artifact: Map.put(artifact, @source_field, [source_state])}
+    artifact =
+      artifact
+      |> Map.drop(["operator_review_package", "cadence_import_manifest"])
+      |> Map.put(@source_field, [source_state])
+
+    %{artifact: artifact}
   end
 
   test "validates every optional V2 source activity-lifecycle state", %{artifact: artifact} do

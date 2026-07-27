@@ -2,7 +2,14 @@ defmodule OrbitalDynamics.Schema.CampaignRepairSourceTimelineActivityPreconditio
   @moduledoc false
 
   import OrbitalDynamics.Schema.CampaignRepairHandoffValidation,
-    only: [indexed_rows: 2, row_source: 1, validate_equal: 5, validate_source_copies: 6]
+    only: [
+      indexed_rows: 2,
+      indexed_sources: 3,
+      row_source: 1,
+      validate_equal: 5,
+      validate_source_copies: 6,
+      validate_source_identities: 6
+    ]
 
   @repair_source_prefix "campaign_repair.source_timeline_activity_precondition_summaries"
 
@@ -11,10 +18,7 @@ defmodule OrbitalDynamics.Schema.CampaignRepairSourceTimelineActivityPreconditio
         %{"source_timeline_activity_precondition_summaries" => summaries} = artifact
       )
       when is_list(summaries) do
-    expected_sources =
-      summaries
-      |> Enum.with_index()
-      |> Enum.map(fn {_summary, index} -> "#{@repair_source_prefix}[#{index}].summary" end)
+    expected_sources = indexed_sources(summaries, @repair_source_prefix, "summary")
 
     issues
     |> validate_operator_review_handoff(artifact, summaries, expected_sources)
@@ -46,7 +50,8 @@ defmodule OrbitalDynamics.Schema.CampaignRepairSourceTimelineActivityPreconditio
       "$.operator_review_package.rows",
       review_rows,
       expected_sources,
-      [["source"]]
+      [["source"]],
+      "must match the corresponding enclosing Repair source timeline activity-precondition summary index"
     )
     |> validate_source_copies(
       "$.operator_review_package.rows",
@@ -82,7 +87,8 @@ defmodule OrbitalDynamics.Schema.CampaignRepairSourceTimelineActivityPreconditio
       "$.cadence_import_manifest.rows",
       import_rows,
       expected_sources,
-      [["source"], ["source_review_row", "source"]]
+      [["source"], ["source_review_row", "source"]],
+      "must match the corresponding enclosing Repair source timeline activity-precondition summary index"
     )
     |> validate_source_copies(
       "$.cadence_import_manifest.rows",
@@ -97,34 +103,6 @@ defmodule OrbitalDynamics.Schema.CampaignRepairSourceTimelineActivityPreconditio
   end
 
   defp validate_cadence_handoff(issues, _artifact, _summaries, _sources), do: issues
-
-  defp validate_source_identities(
-         issues,
-         base_path,
-         indexed_rows,
-         expected_sources,
-         source_paths
-       ) do
-    indexed_rows
-    |> Enum.zip(expected_sources)
-    |> Enum.reduce(issues, fn {{row, row_index}, expected_source}, acc ->
-      Enum.reduce(source_paths, acc, fn source_path, inner_acc ->
-        case get_in(row, source_path) do
-          source when is_binary(source) ->
-            validate_equal(
-              inner_acc,
-              Enum.join([base_path <> "[#{row_index}]" | source_path], "."),
-              source,
-              expected_source,
-              "must match the corresponding enclosing Repair source timeline activity-precondition summary index"
-            )
-
-          _source ->
-            inner_acc
-        end
-      end)
-    end)
-  end
 
   defp operator_precondition_row?(row, expected_sources) do
     Map.get(row, "review_type") == "timeline_activity_precondition_review" and

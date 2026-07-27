@@ -11,6 +11,14 @@ defmodule OrbitalDynamics.Schema.CampaignRepairHandoffValidation do
 
   def indexed_rows(_rows, _predicate), do: []
 
+  def indexed_sources(values, prefix, suffix) when is_list(values) do
+    values
+    |> Enum.with_index()
+    |> Enum.map(fn {_value, index} -> "#{prefix}[#{index}].#{suffix}" end)
+  end
+
+  def indexed_sources(_values, _prefix, _suffix), do: []
+
   def row_source(row) do
     Map.get(row, "source") || get_in(row, ["source_review_row", "source"])
   end
@@ -36,6 +44,35 @@ defmodule OrbitalDynamics.Schema.CampaignRepairHandoffValidation do
           source_row,
           message
         )
+      end)
+    end)
+  end
+
+  def validate_source_identities(
+        issues,
+        base_path,
+        indexed_rows,
+        expected_sources,
+        source_paths,
+        message
+      ) do
+    indexed_rows
+    |> Enum.zip(expected_sources)
+    |> Enum.reduce(issues, fn {{row, row_index}, expected_source}, acc ->
+      Enum.reduce(source_paths, acc, fn source_path, inner_acc ->
+        case get_in(row, source_path) do
+          source when is_binary(source) ->
+            validate_equal(
+              inner_acc,
+              Enum.join([base_path <> "[#{row_index}]" | source_path], "."),
+              source,
+              expected_source,
+              message
+            )
+
+          _source ->
+            inner_acc
+        end
       end)
     end)
   end
