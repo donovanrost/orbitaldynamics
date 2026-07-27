@@ -12,6 +12,8 @@ defmodule OrbitalDynamics.Schema.CampaignRepairLinkCapacityHandoffContracts do
 
   @repair_capacity_source "campaign_repair.link_capacity_report.rows"
   @repair_source_capacity "campaign_repair.source_link_capacity_report.rows"
+  @repair_source_invalid_contacts "campaign_repair.source_link_capacity_report.invalid_contact_inputs"
+  @repair_source_invalid_selected "campaign_repair.source_link_capacity_report.invalid_selected_contact_inputs"
   @repair_link_capacity_summary_prefix "campaign_repair.source_link_capacity_summary"
   @repair_link_capacity_summary @repair_link_capacity_summary_prefix <> ".rows"
   @repair_relay_summary_prefix "campaign_repair.source_relay_data_path_summary"
@@ -62,6 +64,18 @@ defmodule OrbitalDynamics.Schema.CampaignRepairLinkCapacityHandoffContracts do
       @repair_source_capacity,
       "Repair source"
     )
+    |> validate_source_report_rows(
+      artifact,
+      "invalid_contact_inputs",
+      @repair_source_invalid_contacts,
+      "Repair source invalid-candidate"
+    )
+    |> validate_source_report_rows(
+      artifact,
+      "invalid_selected_contact_inputs",
+      @repair_source_invalid_selected,
+      "Repair source invalid-selected-input"
+    )
     |> validate_source_summary(
       artifact,
       "source_link_capacity_summary",
@@ -100,6 +114,35 @@ defmodule OrbitalDynamics.Schema.CampaignRepairLinkCapacityHandoffContracts do
   end
 
   defp validate_report(issues, _artifact, _report_field, _source, _source_label), do: issues
+
+  defp validate_source_report_rows(
+         issues,
+         %{"source_link_capacity_report" => %{} = report} = artifact,
+         row_field,
+         source,
+         source_label
+       ) do
+    case Map.get(report, row_field) do
+      rows when is_list(rows) ->
+        source_rows = Enum.filter(rows, &is_map/1)
+
+        issues
+        |> validate_operator_review_handoff(artifact, source_rows, source, source_label)
+        |> validate_cadence_handoff(artifact, source_rows, source, source_label)
+
+      _rows ->
+        issues
+    end
+  end
+
+  defp validate_source_report_rows(
+         issues,
+         _artifact,
+         _row_field,
+         _source,
+         _source_label
+       ),
+       do: issues
 
   defp validate_source_summary(
          issues,
