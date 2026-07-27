@@ -5,38 +5,40 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Bind Repair source station-reservation provider-contention handoffs to their
-enclosing report evidence.
+Bind Repair source station-reservation hold-summary handoffs to their enclosing
+summary evidence.
 
 Status:
-Verified from clean published base `391f6c0b`; ready to publish.
+Verified from clean published base `b11711e5`; ready to publish.
 
 Selection evidence:
-- Repair retains a derived station-reservation report whose
-  `provider_calendar_contention_groups` produce reservation-review rows.
-- Existing intra-row checks reject isolated evidence drift, but do not bind the
-  coordinated row family back to the enclosing source report.
-- Live validation accepts coordinated operator-action drift across the outer
-  review/import rows, calendar evidence, reservation evidence, and nested
-  Cadence review row while the enclosing provider-contention group is unchanged.
+- Repair retains a station-reservation hold summary as
+  `source_station_reservation_hold_summary`.
+- The producer partitions and augments two hold-review rows, emitting the
+  affected-contact row before the provider-contention row.
+- Live validation accepts coordinated `reservation_hold_count` drift across
+  every produced `source_station_reservation` evidence copy while the enclosing
+  source summary remains unchanged.
 
 Delivered behavior:
-- Repair validation now replays both branches of the complete raw
-  station-reservation report row producer in exact producer order.
-- When review/import packages are present, their affected-contact and
-  provider-contention rows must preserve exact cardinality, source identity,
-  order, and every present `source_station_reservation` evidence copy.
-- Challenge coverage rejects independent or fully coordinated provider-action
-  drift, `.legacy` source identity, missing rows, and stale downstream handoffs
-  while retaining additive-package and evidence-copy compatibility.
+- Repair validation now replays the exact station-reservation hold-summary row
+  producer, including row-type partitioning, augmentation, and ordering.
+- When review/import packages are present, their hold-summary rows must preserve
+  exact cardinality, source identity, producer order, and every present
+  augmented `source_station_reservation` evidence copy.
+- Challenge coverage rejects independent or coordinated hold-count drift,
+  `.legacy` source identity, missing rows, and stale downstream handoffs while
+  retaining additive-package and evidence-copy compatibility.
+- The standalone optional-source fixture now omits prebuilt additive packages,
+  preserving its nested-source-schema scope without constructing stale
+  handoffs.
 
 Verification:
-- Focused source station-reservation provider-contention handoff contract:
-  `5 passed`.
-- Adjacent station source/handoff contracts: `43 passed`.
-- Campaign Repair schema regression: `577 passed`.
+- Focused source station-reservation hold-summary handoff contract: `5 passed`.
+- Adjacent station source/handoff contracts: `48 passed`.
+- Campaign Repair schema regression: `582 passed`.
 - Repair planner regression: `225 passed`.
-- Full suite: `5504 passed` (seed `545332`).
+- Full suite: `5509 passed` (seed `437103`).
 - Schema lint: `155` artifacts passed, `0` errors, `0` warnings.
 - Canonical Repair and Strategy regeneration passed with stable byte hashes:
   `cc41834e706fd1e04a4c5578032fdf99ceeba949a02fd75fc54c8b70cdc30d8a`
@@ -47,9 +49,9 @@ Level 6 pillar advanced:
 Fleet-scale candidate-pool integrity and operator-review evidence fidelity.
 
 Last published slice:
-- `391f6c0b` Bind Repair reservation review summary handoffs (`5499 passed`;
-  affected-contact and provider-contention summary eligibility, identity,
-  order, and evidence now remain exact through review and import).
+- `b11711e5` Bind Repair reservation contention handoffs (`5504 passed`; raw
+  affected-contact and provider-contention eligibility, identity, order, and
+  evidence now remain exact through review and import).
 
 Remaining maturity gaps:
 - Audit remaining generated and source handoffs where their complete producer
@@ -62,8 +64,8 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-Audit Repair source station-reservation hold-summary handoffs after the raw
-provider-contention boundary is complete.
+Audit Repair source station-reservation hold-import-readiness-summary handoffs
+after the hold-summary boundary is complete.
 
 Blocked:
 None.

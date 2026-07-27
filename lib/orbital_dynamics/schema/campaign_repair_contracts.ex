@@ -70,6 +70,7 @@ defmodule OrbitalDynamics.Schema.CampaignRepairContracts do
     CampaignRepairStationCalendarHandoffContracts,
     CampaignRepairStationCalendarPrecedenceSummaryHandoffContracts,
     CampaignRepairStationReservationHandoffContracts,
+    CampaignRepairStationReservationHoldSummaryHandoffContracts,
     CampaignRepairStationReservationReviewSummaryHandoffContracts,
     CampaignRepairStationPressureContracts,
     CampaignRepairTimelineTransitionContracts,
@@ -302,6 +303,7 @@ defmodule OrbitalDynamics.Schema.CampaignRepairContracts do
     |> CampaignRepairStationCalendarHandoffContracts.validate(artifact)
     |> CampaignRepairStationCalendarPrecedenceSummaryHandoffContracts.validate(artifact)
     |> CampaignRepairStationReservationHandoffContracts.validate(artifact)
+    |> CampaignRepairStationReservationHoldSummaryHandoffContracts.validate(artifact)
     |> CampaignRepairStationReservationReviewSummaryHandoffContracts.validate(artifact)
     |> CampaignRepairResourceProjectionHandoffContracts.validate(artifact)
     |> CampaignRepairRealizedFeedbackHandoffContracts.validate(artifact)
