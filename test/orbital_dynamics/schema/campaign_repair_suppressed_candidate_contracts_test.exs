@@ -28,6 +28,7 @@ defmodule OrbitalDynamics.Schema.CampaignRepairSuppressedCandidateContractsTest 
       |> Map.put("source_refresh_budget_report", refresh_budget_report)
       |> put_in(["repair_metadata", "candidate_window_count"], 1)
       |> put_candidate_source_count(2)
+      |> Map.drop(["operator_review_package", "cadence_import_manifest"])
 
     %{
       artifact: artifact,

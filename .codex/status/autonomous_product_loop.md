@@ -5,40 +5,40 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Bind Repair generated contact-allocation reduced-capacity-pack handoffs to their
-enclosing report evidence.
+Bind Repair source refresh-budget handoffs to their enclosing report evidence.
 
 Status:
-Verified from clean published base `18901ad3`; ready to publish.
+Verified from clean published base `a6a3d01f`; ready to publish.
 
 Selection evidence:
-- Repair retains reduced-capacity groups inside the generated
-  `contact_allocation_report.reduced_capacity_pack_groups`.
-- The producer augments each group with direction summaries and emits
-  `contact_allocation_capacity_pack_review` rows in report order.
-- Live validation accepts coordinated `pack_status` drift across the outer
-  review/import rows and every capacity-pack evidence copy while the enclosing
-  generated report remains unchanged.
+- Repair retains CandidateRefresh budget evidence as
+  `source_refresh_budget_report`.
+- The producer emits one `refresh_budget_review` row when candidates were
+  dropped or the candidate-limit policy was invalid, copying budget counts,
+  candidate IDs, policy evidence, and the complete source report.
+- Live validation accepts coordinated dropped-candidate count and identity
+  drift across the outer review/import rows and every refresh-budget evidence
+  copy while the enclosing source report remains unchanged.
 
 Delivered behavior:
-- Repair validation now replays the exact generated contact-allocation
-  reduced-capacity-pack row producer, including direction-summary augmentation
-  and report ordering, alongside the existing raw-source family.
-- When review/import packages are present, their generated capacity-pack rows
-  must preserve exact cardinality, source identity, producer order, and every
-  present `source_contact_allocation_capacity_pack` evidence copy.
-- Challenge coverage rejects independent or coordinated `pack_status` drift,
-  `.legacy` source identity, missing rows, and stale downstream handoffs while
-  retaining additive-package and evidence-copy compatibility.
+- Repair validation now replays the exact refresh-budget review-row producer,
+  including dropped-candidate and invalid-policy eligibility.
+- When review/import packages are present, their refresh-budget rows must
+  preserve exact cardinality, source identity, and every present complete
+  `source_refresh_budget_report` evidence copy.
+- Challenge coverage rejects independent or coordinated dropped-candidate
+  drift, `.legacy` source identity, missing rows, and stale downstream handoffs
+  while retaining additive-package and evidence-copy compatibility.
+- The candidate-partition fixture now omits prebuilt additive packages after
+  injecting budget pressure, preserving its source-partition scope without
+  constructing stale handoffs.
 
 Verification:
-- Focused generated contact-allocation capacity-pack handoff contract:
-  `5 passed`.
-- Combined generated/source capacity-pack handoff contracts: `10 passed`.
-- Adjacent contact-allocation handoff contracts: `38 passed`.
-- Campaign Repair schema regression: `597 passed`.
+- Focused source refresh-budget handoff contract: `5 passed`.
+- Adjacent producer/planner/source-partition contracts: `14 passed`.
+- Campaign Repair schema regression: `602 passed`.
 - Repair planner regression: `225 passed`.
-- Full suite: `5524 passed` (seed `415013`).
+- Full suite: `5529 passed` (seed `599368`).
 - Schema lint: `155` artifacts passed, `0` errors, `0` warnings.
 - Canonical Repair and Strategy regeneration passed with stable byte hashes:
   `cc41834e706fd1e04a4c5578032fdf99ceeba949a02fd75fc54c8b70cdc30d8a`
@@ -49,9 +49,9 @@ Level 6 pillar advanced:
 Fleet-scale candidate-pool integrity and operator-review evidence fidelity.
 
 Last published slice:
-- `18901ad3` Bind Repair source capacity pack handoffs (`5519 passed`; raw
-  source-report reduced-capacity-pack identity, order, and augmented evidence
-  now remain exact through review and import).
+- `a6a3d01f` Bind Repair generated capacity pack handoffs (`5524 passed`;
+  generated-report reduced-capacity-pack identity, order, and augmented
+  evidence now remain exact through review and import).
 
 Remaining maturity gaps:
 - Audit remaining generated and source handoffs where their complete producer
@@ -64,8 +64,8 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-Audit remaining generated Repair contact-allocation and contention handoffs
-after the reduced-capacity-pack boundary is complete.
+Audit Repair source freshness-report handoffs after the refresh-budget boundary
+is complete.
 
 Blocked:
 None.
