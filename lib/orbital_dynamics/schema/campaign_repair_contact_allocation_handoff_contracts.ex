@@ -41,6 +41,15 @@ defmodule OrbitalDynamics.Schema.CampaignRepairContactAllocationHandoffContracts
         "review_rows",
         "rows"
       ]
+    },
+    %{
+      singular_field: "source_contact_allocation_capacity_pack_summary",
+      plural_field: "source_contact_allocation_capacity_pack_summaries",
+      singular_prefix: "campaign_repair.source_contact_allocation_capacity_pack_summary",
+      plural_prefix: "campaign_repair.source_contact_allocation_capacity_pack_summaries",
+      label: "capacity-pack summary",
+      row_fields: ["review_rows", "rows"],
+      capacity_pack_groups: true
     }
   ]
   @summary_context_fields [
@@ -216,6 +225,7 @@ defmodule OrbitalDynamics.Schema.CampaignRepairContactAllocationHandoffContracts
       expected_sources,
       family
     )
+    |> validate_source_summary_capacity_pack_handoffs(artifact, family)
   end
 
   defp validate_source_summary_operator_handoff(
@@ -305,6 +315,115 @@ defmodule OrbitalDynamics.Schema.CampaignRepairContactAllocationHandoffContracts
        ),
        do: issues
 
+  defp validate_source_summary_capacity_pack_handoffs(issues, artifact, family) do
+    if Map.get(family, :capacity_pack_groups, false) do
+      {source_rows, expected_sources} = source_summary_capacity_pack_rows(artifact, family)
+
+      issues
+      |> validate_source_summary_capacity_pack_operator_handoff(
+        artifact,
+        source_rows,
+        expected_sources,
+        family
+      )
+      |> validate_source_summary_capacity_pack_cadence_handoff(
+        artifact,
+        source_rows,
+        expected_sources,
+        family
+      )
+    else
+      issues
+    end
+  end
+
+  defp validate_source_summary_capacity_pack_operator_handoff(
+         issues,
+         %{"operator_review_package" => %{} = package},
+         source_rows,
+         expected_sources,
+         family
+       ) do
+    review_rows =
+      indexed_rows(Map.get(package, "rows"), &operator_capacity_pack_row?(&1, family))
+
+    issues
+    |> validate_equal(
+      "$.operator_review_package.rows",
+      length(review_rows),
+      length(source_rows),
+      "must contain one Repair source #{family.label} group review row per reduced-capacity group"
+    )
+    |> validate_source_identities(
+      "$.operator_review_package.rows",
+      review_rows,
+      expected_sources,
+      [["source"]],
+      "must match the enclosing Repair source #{family.label} group source"
+    )
+    |> validate_source_copies(
+      "$.operator_review_package.rows",
+      review_rows,
+      source_rows,
+      [["source_contact_allocation_capacity_pack"]],
+      "must match the corresponding enclosing Repair source #{family.label} group"
+    )
+  end
+
+  defp validate_source_summary_capacity_pack_operator_handoff(
+         issues,
+         _artifact,
+         _source_rows,
+         _expected_sources,
+         _family
+       ),
+       do: issues
+
+  defp validate_source_summary_capacity_pack_cadence_handoff(
+         issues,
+         %{"cadence_import_manifest" => %{} = manifest},
+         source_rows,
+         expected_sources,
+         family
+       ) do
+    import_rows =
+      indexed_rows(Map.get(manifest, "rows"), &cadence_capacity_pack_row?(&1, family))
+
+    issues
+    |> validate_equal(
+      "$.cadence_import_manifest.rows",
+      length(import_rows),
+      length(source_rows),
+      "must contain one Repair source #{family.label} group import row per reduced-capacity group"
+    )
+    |> validate_source_identities(
+      "$.cadence_import_manifest.rows",
+      import_rows,
+      expected_sources,
+      [["source"], ["source_review_row", "source"]],
+      "must match the enclosing Repair source #{family.label} group source"
+    )
+    |> validate_source_copies(
+      "$.cadence_import_manifest.rows",
+      import_rows,
+      source_rows,
+      [
+        ["source_contact_allocation_capacity_pack"],
+        ["source_review_row", "source_contact_allocation_capacity_pack"]
+      ],
+      "must match the corresponding enclosing Repair source #{family.label} group"
+    )
+  end
+
+  defp validate_source_summary_capacity_pack_cadence_handoff(
+         issues,
+         _artifact,
+         _source_rows,
+         _expected_sources,
+         _family
+       ),
+       do: issues
+
   defp source_summary_rows(artifact, family) do
     artifact
     |> source_summaries(family)
@@ -313,6 +432,26 @@ defmodule OrbitalDynamics.Schema.CampaignRepairContactAllocationHandoffContracts
         {rows, source} ->
           Enum.map(rows, &{summary_source_row(&1, summary), source})
       end
+    end)
+    |> Enum.unzip()
+  end
+
+  defp source_summary_capacity_pack_rows(artifact, family) do
+    artifact
+    |> source_summaries(family)
+    |> Enum.flat_map(fn {summary, source_prefix} ->
+      summary
+      |> Map.get("reduced_capacity_pack_groups", [])
+      |> List.wrap()
+      |> Enum.filter(&is_map/1)
+      |> Enum.map(fn group ->
+        source_row =
+          group
+          |> summary_source_row(summary)
+          |> put_capacity_pack_direction_summary()
+
+        {source_row, "#{source_prefix}.reduced_capacity_pack_groups"}
+      end)
     end)
     |> Enum.unzip()
   end
@@ -364,6 +503,107 @@ defmodule OrbitalDynamics.Schema.CampaignRepairContactAllocationHandoffContracts
     |> compact_map()
   end
 
+  defp put_capacity_pack_direction_summary(group) do
+    rows =
+      group
+      |> Map.get("capacity_requirement_rows", [])
+      |> Enum.filter(&is_map/1)
+
+    contact_directions = capacity_pack_contact_directions(group, rows)
+
+    routed_rows =
+      rows
+      |> Enum.map(fn row ->
+        row
+        |> Map.put("direction", row["direction"] || contact_directions[row["contact_id"]])
+        |> compact_map()
+      end)
+      |> Enum.filter(&(is_binary(&1["contact_id"]) and is_binary(&1["direction"])))
+
+    case routed_rows do
+      [] ->
+        group
+
+      routed_rows ->
+        selected_rows = Enum.filter(routed_rows, &(&1["allocation_status"] == "allocated"))
+        deferred_rows = Enum.filter(routed_rows, &(&1["allocation_status"] == "deferred"))
+
+        Map.merge(group, %{
+          "capacity_pack_contact_ids_by_direction" => capacity_pack_ids(routed_rows),
+          "capacity_pack_selected_contact_ids_by_direction" => capacity_pack_ids(selected_rows),
+          "capacity_pack_deferred_contact_ids_by_direction" => capacity_pack_ids(deferred_rows),
+          "capacity_pack_required_capacity_fraction_by_direction" =>
+            capacity_pack_fractions(routed_rows),
+          "capacity_pack_selected_required_capacity_fraction_by_direction" =>
+            capacity_pack_fractions(selected_rows),
+          "capacity_pack_deferred_required_capacity_fraction_by_direction" =>
+            capacity_pack_fractions(deferred_rows)
+        })
+    end
+  end
+
+  defp capacity_pack_contact_directions(group, rows) do
+    fallback_direction =
+      cond do
+        is_binary(group["direction"]) ->
+          group["direction"]
+
+        match?([direction] when is_binary(direction), List.wrap(group["directions"])) ->
+          List.first(group["directions"])
+
+        true ->
+          nil
+      end
+
+    fallback_directions =
+      rows
+      |> Enum.filter(&(is_binary(&1["contact_id"]) and is_binary(fallback_direction)))
+      |> Map.new(&{&1["contact_id"], fallback_direction})
+
+    fallback_directions
+    |> Map.merge(capacity_pack_candidate_directions(group["source_contact_candidates"]))
+    |> Map.merge(
+      capacity_pack_candidate_directions(
+        get_in(group, ["source_contention_recommendation", "source_contact_candidates"])
+      )
+    )
+    |> Map.merge(
+      rows
+      |> Enum.filter(&(is_binary(&1["contact_id"]) and is_binary(&1["direction"])))
+      |> Map.new(&{&1["contact_id"], &1["direction"]})
+    )
+  end
+
+  defp capacity_pack_candidate_directions(candidates) do
+    candidates
+    |> List.wrap()
+    |> Enum.filter(&is_map/1)
+    |> Enum.filter(&(is_binary(&1["id"]) and is_binary(&1["direction"])))
+    |> Map.new(&{&1["id"], &1["direction"]})
+  end
+
+  defp capacity_pack_ids(rows) do
+    rows
+    |> Enum.group_by(& &1["direction"], & &1["contact_id"])
+    |> Map.new(fn {direction, contact_ids} ->
+      {direction, contact_ids |> Enum.uniq() |> Enum.sort()}
+    end)
+  end
+
+  defp capacity_pack_fractions(rows) do
+    rows
+    |> Enum.reduce(%{}, fn row, acc ->
+      case {row["direction"], row["required_capacity_fraction"]} do
+        {direction, fraction} when is_binary(direction) and is_number(fraction) ->
+          Map.update(acc, direction, fraction, &(&1 + fraction))
+
+        _row_without_fraction ->
+          acc
+      end
+    end)
+    |> Map.new(fn {direction, fraction} -> {direction, Float.round(fraction, 10)} end)
+  end
+
   defp operator_allocation_row?(row, source) do
     Map.get(row, "review_type") == "contact_allocation_review" and
       allocation_source?(row_source(row), source)
@@ -383,6 +623,17 @@ defmodule OrbitalDynamics.Schema.CampaignRepairContactAllocationHandoffContracts
   defp cadence_summary_row?(row, family) do
     (Map.get(row, "source_review_type") == "contact_allocation_review" or
        Map.get(row, "import_action") == "review_contact_allocation") and
+      summary_source?(row_source(row), family)
+  end
+
+  defp operator_capacity_pack_row?(row, family) do
+    Map.get(row, "review_type") == "contact_allocation_capacity_pack_review" and
+      summary_source?(row_source(row), family)
+  end
+
+  defp cadence_capacity_pack_row?(row, family) do
+    (Map.get(row, "source_review_type") == "contact_allocation_capacity_pack_review" or
+       Map.get(row, "import_action") == "review_contact_allocation_capacity_pack") and
       summary_source?(row_source(row), family)
   end
 

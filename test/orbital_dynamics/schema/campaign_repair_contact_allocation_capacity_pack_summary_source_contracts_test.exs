@@ -6,7 +6,11 @@ defmodule OrbitalDynamics.Schema.CampaignRepairContactAllocationCapacityPackSumm
   @source_field "source_contact_allocation_capacity_pack_summary"
 
   setup do
-    artifact = read_json!("study_results/leo_constellation_campaign_repair_v2.json")
+    artifact =
+      "study_results/leo_constellation_campaign_repair_v2.json"
+      |> read_json!()
+      |> Map.drop(["operator_review_package", "cadence_import_manifest"])
+
     source_summary = read_json!("study_results/contact_allocation_capacity_pack_summary_v1.json")
 
     %{artifact: Map.put(artifact, @source_field, source_summary)}
