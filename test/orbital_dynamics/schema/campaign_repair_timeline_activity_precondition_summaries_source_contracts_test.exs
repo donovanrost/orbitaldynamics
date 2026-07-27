@@ -9,7 +9,12 @@ defmodule OrbitalDynamics.Schema.CampaignRepairTimelineActivityPreconditionSumma
     artifact = read_json!("study_results/leo_constellation_campaign_repair_v2.json")
     source_summary = read_json!("study_results/timeline_activity_precondition_summary_v1.json")
 
-    %{artifact: Map.put(artifact, @source_field, [source_summary])}
+    artifact =
+      artifact
+      |> Map.drop(["operator_review_package", "cadence_import_manifest"])
+      |> Map.put(@source_field, [source_summary])
+
+    %{artifact: artifact}
   end
 
   test "validates every optional V2 source activity-precondition summary", %{artifact: artifact} do
