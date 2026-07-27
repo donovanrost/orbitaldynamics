@@ -5,43 +5,45 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Bind Repair source timeline activity-lifecycle-state handoffs to their enclosing
-state list.
+Bind heterogeneous Repair source timeline activity-state handoffs to their
+enclosing state list.
 
 Status:
-Verified from clean published base `5dfa87b0`; ready to publish.
+Verified from clean published base `a5e2e14a`; ready to publish.
 
 Selection evidence:
-- Repair emits source timeline activity-lifecycle-state reviews under indexed
-  `campaign_repair.source_timeline_activity_lifecycle_states[N].state`
+- Repair emits heterogeneous source timeline activity-state reviews under
+  indexed `campaign_repair.source_timeline_activity_states[N].state`
   identities, with one review and import for every enclosing state.
-- A fresh two-state Repair artifact contains two matching operator reviews and
-  two Cadence imports in source order, each carrying the complete source state
-  and the matching list index in its source identity.
-- Existing timeline handoff contracts do not bind this indexed stream.
-  Changing `rank` in a review copy and both import copies is currently accepted.
+- A fresh four-state Repair artifact preserves activity, canonical activity,
+  status, and approval states in order with exact indexed source identities.
+  Activity-state copies use `source_timeline_activity_state`; status and
+  approval copies use `source_timeline_lifecycle_state`.
+- Existing timeline handoff contracts do not bind this mixed stream. Changing
+  `rank` in an activity-state review copy and both import copies is currently
+  accepted.
 
 Delivered behavior:
-- Require one Repair source timeline activity-lifecycle-state review and import
-  row per enclosing state, in producer order and with the exact indexed source
+- Require one Repair source timeline activity-state review and import row per
+  enclosing state, in producer order and with the exact indexed source
   identity.
-- Require each present review `source_timeline_lifecycle_state` copy and both
-  import copies to equal the corresponding enclosing state.
+- Require each present review and import copy to equal the corresponding state,
+  using the producer-selected activity-state or lifecycle-state copy field.
 - Preserve optional package and embedded-copy compatibility while leaving the
-  activity-lifecycle-state schema and producer behavior unchanged.
-- Extract and reuse shared indexed-source identity validation for this and the
-  already-covered activity-precondition stream.
+  heterogeneous activity-state schemas and producer behavior unchanged.
+- Reuse shared indexed-source validation plus the shared optional-copy
+  comparator with per-state copy paths.
 
 Verification:
-- Focused indexed timeline handoff challenges: `9 passed`.
-- Adjacent timeline schema coverage: `75 passed`.
-- Expanded Repair schema coverage: `421 passed`.
+- Focused heterogeneous activity-state handoff challenges: `6 passed`.
+- Adjacent timeline schema coverage: `78 passed`.
+- Expanded Repair schema coverage: `424 passed`.
 - Direct Repair planner coverage: `225 passed`.
 - Saved-artifact lint: `155 artifacts`, zero errors, warnings, or remediation.
 - Canonical Repair and Strategy regeneration remained byte-identical
   (`cc41834e706fd1e04a4c5578032fdf99ceeba949a02fd75fc54c8b70cdc30d8a` and
   `57602722702969da587e2754df84bca1e06e86cc32fa5af7f3f78451b72f9985`).
-- Full suite: `5348 passed` in 715.2 seconds.
+- Full suite: `5351 passed` in 703.3 seconds.
 - `mix format --check-formatted` and `git diff --check` passed; scoped review
   found no unrelated changes.
 
@@ -49,9 +51,9 @@ Level 6 pillar advanced:
 Fleet-scale candidate-pool integrity and operator-review evidence fidelity.
 
 Last published slice:
-- `5dfa87b0` Bind Repair source timeline activity-precondition handoffs
-  (`5345 passed`; CandidateRefresh activity-precondition evidence now remains
-  traceable through operator review and Cadence import).
+- `a5e2e14a` Bind Repair source timeline activity-lifecycle-state handoffs
+  (`5348 passed`; CandidateRefresh activity-lifecycle-state evidence now
+  remains traceable through operator review and Cadence import).
 
 Remaining maturity gaps:
 - Audit remaining generated and source handoffs where their complete producer
@@ -64,8 +66,8 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-Audit source timeline activity-state handoffs after activity-lifecycle-state
-coverage is complete.
+Audit source timeline preservation-status handoffs after heterogeneous activity-
+state coverage is complete.
 
 Blocked:
 None.

@@ -14,7 +14,12 @@ defmodule OrbitalDynamics.Schema.CampaignRepairTimelineActivityStatesSourceContr
       read_json!("study_results/timeline_activity_approval_state_v1.json")
     ]
 
-    %{artifact: Map.put(artifact, @source_field, source_states)}
+    artifact =
+      artifact
+      |> Map.drop(["operator_review_package", "cadence_import_manifest"])
+      |> Map.put(@source_field, source_states)
+
+    %{artifact: artifact}
   end
 
   test "validates every optional V2 source activity-state contract", %{artifact: artifact} do
