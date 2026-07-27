@@ -18,14 +18,29 @@ defmodule OrbitalDynamics.Schema.CampaignRepairContactAllocationHandoffContracts
       plural_field: "source_contact_allocation_summaries",
       singular_prefix: "campaign_repair.source_contact_allocation_summary",
       plural_prefix: "campaign_repair.source_contact_allocation_summaries",
-      label: "compact allocation-summary"
+      label: "compact allocation-summary",
+      row_fields: ["review_rows", "rows"]
     },
     %{
       singular_field: "source_contact_allocation_station_pressure_summary",
       plural_field: "source_contact_allocation_station_pressure_summaries",
       singular_prefix: "campaign_repair.source_contact_allocation_station_pressure_summary",
       plural_prefix: "campaign_repair.source_contact_allocation_station_pressure_summaries",
-      label: "station-pressure summary"
+      label: "station-pressure summary",
+      row_fields: ["review_rows", "rows"]
+    },
+    %{
+      singular_field: "source_contact_allocation_reservation_conflict_summary",
+      plural_field: "source_contact_allocation_reservation_conflict_summaries",
+      singular_prefix: "campaign_repair.source_contact_allocation_reservation_conflict_summary",
+      plural_prefix: "campaign_repair.source_contact_allocation_reservation_conflict_summaries",
+      label: "reservation-conflict summary",
+      row_fields: [
+        "reservation_review_rows",
+        "reservation_conflict_rows",
+        "review_rows",
+        "rows"
+      ]
     }
   ]
   @summary_context_fields [
@@ -294,7 +309,7 @@ defmodule OrbitalDynamics.Schema.CampaignRepairContactAllocationHandoffContracts
     artifact
     |> source_summaries(family)
     |> Enum.flat_map(fn {summary, source_prefix} ->
-      case summary_review_rows(summary, source_prefix) do
+      case summary_review_rows(summary, source_prefix, family) do
         {rows, source} ->
           Enum.map(rows, &{summary_source_row(&1, summary), source})
       end
@@ -323,17 +338,16 @@ defmodule OrbitalDynamics.Schema.CampaignRepairContactAllocationHandoffContracts
     end
   end
 
-  defp summary_review_rows(summary, source_prefix) do
-    cond do
-      is_list(summary["review_rows"]) and summary["review_rows"] != [] ->
-        {Enum.filter(summary["review_rows"], &is_map/1), "#{source_prefix}.review_rows"}
+  defp summary_review_rows(summary, source_prefix, family) do
+    Enum.find_value(family.row_fields, {[], "contact_allocation_summary.rows"}, fn field ->
+      case Map.get(summary, field) do
+        rows when is_list(rows) and rows != [] ->
+          {Enum.filter(rows, &is_map/1), "#{source_prefix}.#{field}"}
 
-      is_list(summary["rows"]) and summary["rows"] != [] ->
-        {Enum.filter(summary["rows"], &is_map/1), "#{source_prefix}.rows"}
-
-      true ->
-        {[], "contact_allocation_summary.rows"}
-    end
+        _rows ->
+          nil
+      end
+    end)
   end
 
   defp summary_source_row(row, summary) do
