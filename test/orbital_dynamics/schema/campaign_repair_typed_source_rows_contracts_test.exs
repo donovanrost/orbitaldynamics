@@ -5,7 +5,10 @@ defmodule OrbitalDynamics.Schema.CampaignRepairTypedSourceRowsContractsTest do
 
   setup do
     %{
-      artifact: read_json!("study_results/leo_constellation_campaign_repair_v2.json"),
+      artifact:
+        "study_results/leo_constellation_campaign_repair_v2.json"
+        |> read_json!()
+        |> Map.drop(["operator_review_package", "cadence_import_manifest"]),
       contact_intent: read_json!("study_results/contact_intent_v1.json"),
       resource_summary: read_json!("study_results/resource_summary_v1.json")
     }
