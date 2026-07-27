@@ -765,6 +765,7 @@ defmodule OrbitalDynamics.Schema.ValidationAcceptanceReportContracts do
 
   defp frequency_map(rows, field) do
     rows
+    |> Enum.filter(&is_map/1)
     |> Enum.map(&Map.get(&1, field))
     |> Enum.reject(&is_nil/1)
     |> Enum.frequencies()

@@ -5,50 +5,48 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Bind Repair source schema-validation-batch handoffs to their nested issues,
-remediation, and derived reports.
+Bind Repair source model-acceptance handoffs to their eligible rows and derived
+report context.
 
 Status:
-Verified from clean published base `b41e413f`; ready to publish.
+Verified from clean published base `6a3b1661`; ready to publish.
 
 Selection evidence:
-- Repair walks batch entries in index order and emits each nested report's
-  errors followed by warnings under exact indexed `.report.errors` and
-  `.report.warnings` source identities.
-- Each embedded nested report preserves its own `artifact_path` when present
-  and always adds the enclosing `batch_entry_path`.
-- A fresh one-report batch with one error and one warning produces two matching
-  operator reviews and two Cadence imports. Coordinated valid `artifact_path`
-  drift across every handoff copy is currently accepted while the authoritative
-  batch remains unchanged.
+- Repair excludes model-acceptance rows whose status is missing, `accepted`, or
+  `accepted_for_use`, then emits the remaining rows in source order under the
+  shared `campaign_repair.source_model_acceptance_report.rows` identity.
+- A fresh three-model report produces review-required and blocked operator rows
+  for the two eligible models and deliberately produces no Cadence imports.
+- Every review carries the corresponding source row and a projected report
+  context. Coordinated valid `model_count` drift across every review context and
+  projection is currently accepted while the authoritative report is unchanged.
 
 Delivered behavior:
-- Require one Repair schema-validation review and import row per nested batch
-  error and warning, in complete producer order and with the exact indexed
-  source identity.
-- Require every present issue and remediation copy to equal its corresponding
-  nested source-report evidence.
-- Require every present `source_schema_validation_report` copy to equal the
-  producer-derived nested report, including batch-entry provenance.
-- Preserve optional package and embedded-copy compatibility while leaving the
-  schema-validation-batch schema and producer behavior unchanged.
-- Reproduce the producer's batch-index, error-then-warning, report-enrichment,
-  and remediation-by-path rules.
-- Return structural validation errors instead of crashing when malformed
-  batch collections reach derived-count validation.
+- Require one Repair model-acceptance review per eligible enclosing source row,
+  in producer order and with the exact shared source identity.
+- Require every present `source_model_acceptance_row` copy to equal its
+  corresponding eligible source row.
+- Require every present `source_model_acceptance_report` copy to equal the
+  producer's exact report-context projection.
+- Preserve the operator-only Cadence boundary and optional package/copy
+  compatibility while leaving producer behavior unchanged.
+- Reproduce the producer's complete accepted-status exclusion rule and report
+  context field selection.
+- Return structural validation errors instead of crashing when malformed row
+  items reach model-acceptance aggregate frequency validation.
 
 Verification:
-- Focused direct and batch schema-validation source and handoff contracts:
-  `12 passed`.
-- Adjacent schema-validation and generic handoff contracts: `51 passed`.
-- Expanded Repair contract suite: `445 passed`.
+- Focused model-acceptance source and handoff contracts: `6 passed`.
+- Adjacent model-acceptance, generic handoff, and Cadence boundary contracts:
+  `36 passed`.
+- Expanded Repair contract suite: `448 passed`.
 - Complete Repair planner suite: `225 passed`.
 - Schema lint: `155` artifacts, `0` errors, `0` warnings, and `0`
   remediation items.
 - Canonical Repair and Strategy regeneration remained byte-identical at
   `cc41834e706fd1e04a4c5578032fdf99ceeba949a02fd75fc54c8b70cdc30d8a`
   and `57602722702969da587e2754df84bca1e06e86cc32fa5af7f3f78451b72f9985`.
-- Full suite: `5372 passed` in `743.9s`.
+- Full suite: `5375 passed` in `680.9s`.
 - `mix format --check-formatted` and `git diff --check` passed; scoped staged
   review found no unrelated changes.
 
@@ -56,8 +54,8 @@ Level 6 pillar advanced:
 Fleet-scale candidate-pool integrity and operator-review evidence fidelity.
 
 Last published slice:
-- `b41e413f` Bind Repair source schema validation handoffs (`5369 passed`;
-  CandidateRefresh direct schema-validation evidence now
+- `6a3b1661` Bind Repair source schema validation batch handoffs (`5372 passed`;
+  CandidateRefresh schema-validation-batch evidence now
   remains traceable through operator review and Cadence import).
 
 Remaining maturity gaps:
@@ -71,8 +69,8 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-Audit source model-acceptance handoffs after schema-validation-batch coverage
-is complete.
+Audit source validation-safety-case handoffs after model-acceptance coverage is
+complete.
 
 Blocked:
 None.

@@ -12,7 +12,12 @@ defmodule OrbitalDynamics.Schema.CampaignRepairModelAcceptanceSourceContractsTes
         intended_use: :operational_import
       )
 
-    %{artifact: Map.put(artifact, "source_model_acceptance_report", source_report)}
+    artifact =
+      artifact
+      |> Map.drop(["operator_review_package", "cadence_import_manifest"])
+      |> Map.put("source_model_acceptance_report", source_report)
+
+    %{artifact: artifact}
   end
 
   test "validates the optional V2 source model-acceptance report", %{artifact: artifact} do
@@ -52,6 +57,24 @@ defmodule OrbitalDynamics.Schema.CampaignRepairModelAcceptanceSourceContractsTes
     assert Enum.any?(
              shape_report["errors"],
              &(&1["path"] == "$.source_model_acceptance_report")
+           )
+
+    invalid_rows = put_in(artifact, ["source_model_acceptance_report", "rows"], %{})
+
+    assert {:error, rows_report} = Schema.validate_artifact(invalid_rows)
+
+    assert Enum.any?(
+             rows_report["errors"],
+             &(&1["path"] == "$.source_model_acceptance_report.rows")
+           )
+
+    invalid_row = put_in(artifact, ["source_model_acceptance_report", "rows"], ["invalid"])
+
+    assert {:error, row_report} = Schema.validate_artifact(invalid_row)
+
+    assert Enum.any?(
+             row_report["errors"],
+             &(&1["path"] == "$.source_model_acceptance_report.rows[0]")
            )
   end
 
