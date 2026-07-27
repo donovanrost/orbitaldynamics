@@ -1,0 +1,255 @@
+defmodule OrbitalDynamics.Schema.CampaignRepairSourceStationCalendarPrecedenceSummaryHandoffContractsTest do
+  use ExUnit.Case, async: true
+
+  alias OrbitalDynamics.CadenceImport
+  alias OrbitalDynamics.OperatorReview
+  alias OrbitalDynamics.OperatorReview.StationCalendar
+  alias OrbitalDynamics.Schema
+
+  @source "campaign_repair.source_station_calendar_precedence_summary"
+
+  setup_all do
+    source_summary =
+      read_json!("study_results/station_calendar_precedence_summary_v1.json")
+
+    repair =
+      "study_results/leo_constellation_campaign_repair_v2.json"
+      |> read_json!()
+      |> Map.drop(["operator_review_package", "cadence_import_manifest"])
+      |> Map.put("source_station_calendar_precedence_summary", source_summary)
+
+    repair =
+      Map.put(repair, "operator_review_package", OperatorReview.from_repair_artifact(repair))
+
+    repair =
+      Map.put(repair, "cadence_import_manifest", CadenceImport.from_repair_artifact(repair))
+
+    expected_rows = StationCalendar.source_report_rows(source_summary, @source)
+
+    %{repair: repair, expected_rows: expected_rows}
+  end
+
+  test "validates exact review eligibility, identity, and summary evidence", %{
+    repair: repair,
+    expected_rows: expected_rows
+  } do
+    assert {:ok, %{"schema_version" => 2}} = Schema.validate_artifact(repair)
+
+    assert [%{"source" => @source, "subject_id" => "ops_calendar"} = review_row] =
+             source_review_rows(repair)
+
+    assert [import_row] = source_import_rows(repair)
+    assert row_source(import_row) == @source
+    assert import_row["subject_id"] == "ops_calendar"
+
+    assert review_row["source_station_calendar_precedence_summary"] ==
+             hd(expected_rows)["source_station_calendar_precedence_summary"]
+
+    assert get_in(import_row, [
+             "source_review_row",
+             "source_station_calendar_precedence_summary"
+           ]) == hd(expected_rows)["source_station_calendar_precedence_summary"]
+  end
+
+  test "keeps additive review packages and source copies optional", %{repair: repair} do
+    assert {:ok, %{"schema_version" => 2}} =
+             repair
+             |> Map.drop(["operator_review_package", "cadence_import_manifest"])
+             |> Schema.validate_artifact()
+
+    older =
+      repair
+      |> update_in(["operator_review_package", "rows"], fn rows ->
+        Enum.map(rows, &drop_source_copy/1)
+      end)
+      |> update_in(["cadence_import_manifest", "rows"], fn rows ->
+        Enum.map(rows, fn row ->
+          if source_summary_row?(row) do
+            row
+            |> drop_source_copy()
+            |> update_in(["source_review_row"], &drop_source_copy/1)
+          else
+            row
+          end
+        end)
+      end)
+
+    assert {:ok, %{"schema_version" => 2}} = Schema.validate_artifact(older)
+  end
+
+  test "rejects source precedence-summary identity drift at every produced path", %{
+    repair: repair
+  } do
+    review_index = source_review_index(repair)
+    import_index = source_import_index(repair)
+    wrong_source = @source <> ".legacy"
+
+    invalid_cases = [
+      {"$.operator_review_package.rows[#{review_index}].source",
+       put_in(
+         repair,
+         ["operator_review_package", "rows", Access.at(review_index), "source"],
+         wrong_source
+       )},
+      {"$.cadence_import_manifest.rows[#{import_index}].source_review_row.source",
+       put_in(
+         repair,
+         [
+           "cadence_import_manifest",
+           "rows",
+           Access.at(import_index),
+           "source_review_row",
+           "source"
+         ],
+         wrong_source
+       )}
+    ]
+
+    for {expected_path, invalid} <- invalid_cases do
+      assert {:error, report} = Schema.validate_artifact(invalid)
+      assert Enum.any?(report["errors"], &(&1["path"] == expected_path))
+    end
+  end
+
+  test "rejects source precedence-summary copy drift at every evidence path", %{
+    repair: repair
+  } do
+    review_index = source_review_index(repair)
+    import_index = source_import_index(repair)
+
+    invalid_cases = [
+      {"$.operator_review_package.rows[#{review_index}].source_station_calendar_precedence_summary",
+       put_in(
+         repair,
+         summary_count_path("operator_review_package", review_index, false),
+         99
+       )},
+      {"$.cadence_import_manifest.rows[#{import_index}].source_review_row.source_station_calendar_precedence_summary",
+       put_in(
+         repair,
+         summary_count_path("cadence_import_manifest", import_index, true),
+         99
+       )}
+    ]
+
+    for {expected_path, invalid} <- invalid_cases do
+      assert {:error, report} = Schema.validate_artifact(invalid)
+      assert Enum.any?(report["errors"], &(&1["path"] == expected_path))
+    end
+  end
+
+  test "rejects coordinated count drift, missing rows, and stale handoffs", %{
+    repair: repair
+  } do
+    review_index = source_review_index(repair)
+    import_index = source_import_index(repair)
+
+    coordinated_drift =
+      repair
+      |> update_in(
+        ["operator_review_package", "rows", Access.at(review_index)],
+        &put_count_drift(&1, false)
+      )
+      |> update_in(
+        ["cadence_import_manifest", "rows", Access.at(import_index)],
+        &put_count_drift(&1, true)
+      )
+
+    missing_review =
+      update_in(repair, ["operator_review_package", "rows"], fn rows ->
+        List.delete_at(rows, review_index)
+      end)
+
+    missing_import =
+      update_in(repair, ["cadence_import_manifest", "rows"], fn rows ->
+        List.delete_at(rows, import_index)
+      end)
+
+    stale_handoffs = Map.delete(repair, "source_station_calendar_precedence_summary")
+
+    invalid_cases = [
+      {"$.operator_review_package.rows[#{review_index}].source_station_calendar_precedence_summary",
+       coordinated_drift},
+      {"$.cadence_import_manifest.rows[#{import_index}].source_review_row.source_station_calendar_precedence_summary",
+       coordinated_drift},
+      {"$.operator_review_package.rows", missing_review},
+      {"$.cadence_import_manifest.rows", missing_import},
+      {"$.operator_review_package.rows", stale_handoffs},
+      {"$.cadence_import_manifest.rows", stale_handoffs}
+    ]
+
+    for {expected_path, invalid} <- invalid_cases do
+      assert {:error, report} = Schema.validate_artifact(invalid)
+      assert Enum.any?(report["errors"], &(&1["path"] == expected_path))
+    end
+  end
+
+  defp put_count_drift(row, nested?) do
+    if nested? do
+      row
+      |> put_in(["source_review_row", "station_calendar_precedence_affected_contact_count"], 99)
+      |> put_in(
+        [
+          "source_review_row",
+          "source_station_calendar_precedence_summary",
+          "affected_contact_count"
+        ],
+        99
+      )
+    else
+      row
+      |> Map.put("station_calendar_precedence_affected_contact_count", 99)
+      |> put_in(["source_station_calendar_precedence_summary", "affected_contact_count"], 99)
+    end
+  end
+
+  defp summary_count_path(package, index, nested?) do
+    prefix = [package, "rows", Access.at(index)]
+
+    evidence_path =
+      if nested?,
+        do: ["source_review_row", "source_station_calendar_precedence_summary"],
+        else: ["source_station_calendar_precedence_summary"]
+
+    prefix ++ evidence_path ++ ["affected_contact_count"]
+  end
+
+  defp drop_source_copy(row) do
+    if source_summary_row?(row),
+      do: Map.delete(row, "source_station_calendar_precedence_summary"),
+      else: row
+  end
+
+  defp source_review_rows(repair) do
+    Enum.filter(get_in(repair, ["operator_review_package", "rows"]), &source_summary_row?/1)
+  end
+
+  defp source_import_rows(repair) do
+    Enum.filter(get_in(repair, ["cadence_import_manifest", "rows"]), &source_summary_row?/1)
+  end
+
+  defp source_review_index(repair) do
+    Enum.find_index(get_in(repair, ["operator_review_package", "rows"]), &source_summary_row?/1)
+  end
+
+  defp source_import_index(repair) do
+    Enum.find_index(get_in(repair, ["cadence_import_manifest", "rows"]), &source_summary_row?/1)
+  end
+
+  defp source_summary_row?(row) do
+    case row_source(row) do
+      source when is_binary(source) -> String.starts_with?(source, @source)
+      _source -> false
+    end
+  end
+
+  defp row_source(row) do
+    Map.get(row, "source") || get_in(row, ["source_review_row", "source"])
+  end
+
+  defp read_json!(path) do
+    path
+    |> File.read!()
+    |> :json.decode()
+  end
+end
