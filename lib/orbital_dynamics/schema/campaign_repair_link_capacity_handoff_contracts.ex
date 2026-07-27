@@ -14,11 +14,14 @@ defmodule OrbitalDynamics.Schema.CampaignRepairLinkCapacityHandoffContracts do
   @repair_source_capacity "campaign_repair.source_link_capacity_report.rows"
   @repair_source_invalid_contacts "campaign_repair.source_link_capacity_report.invalid_contact_inputs"
   @repair_source_invalid_selected "campaign_repair.source_link_capacity_report.invalid_selected_contact_inputs"
-  @actual_resolution_fields [
+  @resolution_fields [
+    {"unmatched_selected_contact_ids", "unmatched_selected_contact_count"},
     {"unmatched_actual_throughput_contact_ids", "unmatched_actual_throughput_contact_count"},
     {"ambiguous_actual_throughput_contact_ids", "ambiguous_actual_throughput_contact_count"},
     {"unmatched_actual_completion_contact_ids", "unmatched_actual_completion_contact_count"},
-    {"ambiguous_actual_completion_contact_ids", "ambiguous_actual_completion_contact_count"}
+    {"ambiguous_actual_completion_contact_ids", "ambiguous_actual_completion_contact_count"},
+    {"invalid_policy_required_downlink_station_ids",
+     "invalid_policy_required_downlink_station_count"}
   ]
   @repair_link_capacity_summary_prefix "campaign_repair.source_link_capacity_summary"
   @repair_link_capacity_summary @repair_link_capacity_summary_prefix <> ".rows"
@@ -82,7 +85,7 @@ defmodule OrbitalDynamics.Schema.CampaignRepairLinkCapacityHandoffContracts do
       @repair_source_invalid_selected,
       "Repair source invalid-selected-input"
     )
-    |> validate_actual_resolution_rows(artifact)
+    |> validate_resolution_rows(artifact)
     |> validate_source_summary(
       artifact,
       "source_link_capacity_summary",
@@ -151,12 +154,12 @@ defmodule OrbitalDynamics.Schema.CampaignRepairLinkCapacityHandoffContracts do
        ),
        do: issues
 
-  defp validate_actual_resolution_rows(
+  defp validate_resolution_rows(
          issues,
          %{"source_link_capacity_report" => %{} = report} = artifact
        ) do
-    Enum.reduce(@actual_resolution_fields, issues, fn {id_field, count_field}, acc ->
-      source_rows = actual_resolution_source_rows(report, id_field, count_field)
+    Enum.reduce(@resolution_fields, issues, fn {id_field, count_field}, acc ->
+      source_rows = resolution_source_rows(report, id_field, count_field)
       source = "campaign_repair.source_link_capacity_report.#{id_field}"
 
       acc
@@ -175,9 +178,9 @@ defmodule OrbitalDynamics.Schema.CampaignRepairLinkCapacityHandoffContracts do
     end)
   end
 
-  defp validate_actual_resolution_rows(issues, _artifact), do: issues
+  defp validate_resolution_rows(issues, _artifact), do: issues
 
-  defp actual_resolution_source_rows(report, id_field, count_field) do
+  defp resolution_source_rows(report, id_field, count_field) do
     ids =
       report
       |> Map.get(id_field, [])
