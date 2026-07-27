@@ -11,8 +11,10 @@ defmodule OrbitalDynamics.Schema.CampaignRepairLinkCapacityHandoffContracts do
     ]
 
   @repair_capacity_source "campaign_repair.link_capacity_report.rows"
-  @repair_source_summary_prefix "campaign_repair.source_link_capacity_summary"
-  @repair_source_summary @repair_source_summary_prefix <> ".rows"
+  @repair_link_capacity_summary_prefix "campaign_repair.source_link_capacity_summary"
+  @repair_link_capacity_summary @repair_link_capacity_summary_prefix <> ".rows"
+  @repair_relay_summary_prefix "campaign_repair.source_relay_data_path_summary"
+  @repair_relay_summary @repair_relay_summary_prefix <> ".rows"
   @summary_context_fields [
     "model",
     "schema_contract",
@@ -48,7 +50,20 @@ defmodule OrbitalDynamics.Schema.CampaignRepairLinkCapacityHandoffContracts do
   def validate(issues, artifact) do
     issues
     |> validate_report(artifact)
-    |> validate_source_summary(artifact)
+    |> validate_source_summary(
+      artifact,
+      "source_link_capacity_summary",
+      @repair_link_capacity_summary_prefix,
+      @repair_link_capacity_summary,
+      "link-capacity-summary"
+    )
+    |> validate_source_summary(
+      artifact,
+      "source_relay_data_path_summary",
+      @repair_relay_summary_prefix,
+      @repair_relay_summary,
+      "relay-data-path-summary"
+    )
   end
 
   defp validate_report(
@@ -67,17 +82,37 @@ defmodule OrbitalDynamics.Schema.CampaignRepairLinkCapacityHandoffContracts do
 
   defp validate_source_summary(
          issues,
-         %{"source_link_capacity_summary" => %{} = summary} = artifact
+         artifact,
+         source_field,
+         source_prefix,
+         expected_source,
+         source_label
        ) do
-    source_rows = source_summary_rows(summary)
-    expected_sources = List.duplicate(@repair_source_summary, length(source_rows))
+    case Map.get(artifact, source_field) do
+      %{} = summary ->
+        source_rows = source_summary_rows(summary)
+        expected_sources = List.duplicate(expected_source, length(source_rows))
 
-    issues
-    |> validate_source_summary_operator_handoff(artifact, source_rows, expected_sources)
-    |> validate_source_summary_cadence_handoff(artifact, source_rows, expected_sources)
+        issues
+        |> validate_source_summary_operator_handoff(
+          artifact,
+          source_rows,
+          expected_sources,
+          source_prefix,
+          source_label
+        )
+        |> validate_source_summary_cadence_handoff(
+          artifact,
+          source_rows,
+          expected_sources,
+          source_prefix,
+          source_label
+        )
+
+      _summary ->
+        issues
+    end
   end
-
-  defp validate_source_summary(issues, _artifact), do: issues
 
   defp validate_operator_review_handoff(
          issues,
@@ -136,30 +171,36 @@ defmodule OrbitalDynamics.Schema.CampaignRepairLinkCapacityHandoffContracts do
          issues,
          %{"operator_review_package" => %{} = package},
          source_rows,
-         expected_sources
+         expected_sources,
+         source_prefix,
+         source_label
        ) do
-    review_rows = indexed_rows(Map.get(package, "rows"), &operator_source_summary_row?/1)
+    review_rows =
+      indexed_rows(
+        Map.get(package, "rows"),
+        &operator_source_summary_row?(&1, source_prefix)
+      )
 
     issues
     |> validate_equal(
       "$.operator_review_package.rows",
       length(review_rows),
       length(source_rows),
-      "must contain one Repair source link-capacity-summary review row per producer review row"
+      "must contain one Repair source #{source_label} review row per producer review row"
     )
     |> validate_source_identities(
       "$.operator_review_package.rows",
       review_rows,
       expected_sources,
       [["source"]],
-      "must match the enclosing Repair source link-capacity-summary source"
+      "must match the enclosing Repair source #{source_label} source"
     )
     |> validate_source_copies(
       "$.operator_review_package.rows",
       review_rows,
       source_rows,
       [["source_link_capacity"]],
-      "must match the corresponding enclosing Repair source link-capacity-summary review row"
+      "must match the corresponding enclosing Repair source #{source_label} review row"
     )
   end
 
@@ -167,7 +208,9 @@ defmodule OrbitalDynamics.Schema.CampaignRepairLinkCapacityHandoffContracts do
          issues,
          _artifact,
          _source_rows,
-         _expected_sources
+         _expected_sources,
+         _source_prefix,
+         _source_label
        ),
        do: issues
 
@@ -175,30 +218,36 @@ defmodule OrbitalDynamics.Schema.CampaignRepairLinkCapacityHandoffContracts do
          issues,
          %{"cadence_import_manifest" => %{} = manifest},
          source_rows,
-         expected_sources
+         expected_sources,
+         source_prefix,
+         source_label
        ) do
-    import_rows = indexed_rows(Map.get(manifest, "rows"), &cadence_source_summary_row?/1)
+    import_rows =
+      indexed_rows(
+        Map.get(manifest, "rows"),
+        &cadence_source_summary_row?(&1, source_prefix)
+      )
 
     issues
     |> validate_equal(
       "$.cadence_import_manifest.rows",
       length(import_rows),
       length(source_rows),
-      "must contain one Repair source link-capacity-summary import row per producer review row"
+      "must contain one Repair source #{source_label} import row per producer review row"
     )
     |> validate_source_identities(
       "$.cadence_import_manifest.rows",
       import_rows,
       expected_sources,
       [["source"], ["source_review_row", "source"]],
-      "must match the enclosing Repair source link-capacity-summary source"
+      "must match the enclosing Repair source #{source_label} source"
     )
     |> validate_source_copies(
       "$.cadence_import_manifest.rows",
       import_rows,
       source_rows,
       [["source_link_capacity"], ["source_review_row", "source_link_capacity"]],
-      "must match the corresponding enclosing Repair source link-capacity-summary review row"
+      "must match the corresponding enclosing Repair source #{source_label} review row"
     )
   end
 
@@ -206,7 +255,9 @@ defmodule OrbitalDynamics.Schema.CampaignRepairLinkCapacityHandoffContracts do
          issues,
          _artifact,
          _source_rows,
-         _expected_sources
+         _expected_sources,
+         _source_prefix,
+         _source_label
        ),
        do: issues
 
@@ -221,21 +272,21 @@ defmodule OrbitalDynamics.Schema.CampaignRepairLinkCapacityHandoffContracts do
       row_source(row) == @repair_capacity_source
   end
 
-  defp operator_source_summary_row?(row) do
+  defp operator_source_summary_row?(row, source_prefix) do
     Map.get(row, "review_type") == "link_capacity_review" and
-      source_summary_source?(row_source(row))
+      source_summary_source?(row_source(row), source_prefix)
   end
 
-  defp cadence_source_summary_row?(row) do
+  defp cadence_source_summary_row?(row, source_prefix) do
     (Map.get(row, "source_review_type") == "link_capacity_review" or
        Map.get(row, "import_action") == "review_link_capacity") and
-      source_summary_source?(row_source(row))
+      source_summary_source?(row_source(row), source_prefix)
   end
 
-  defp source_summary_source?(source) when is_binary(source),
-    do: String.starts_with?(source, @repair_source_summary_prefix)
+  defp source_summary_source?(source, source_prefix) when is_binary(source),
+    do: String.starts_with?(source, source_prefix)
 
-  defp source_summary_source?(_source), do: false
+  defp source_summary_source?(_source, _source_prefix), do: false
 
   defp source_summary_rows(summary) do
     context = summary_context(summary)
