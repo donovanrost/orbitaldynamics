@@ -5,46 +5,45 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Bind Repair source timeline publication-summary handoffs to their enclosing
-summary list.
+Bind Repair source timeline preservation-report handoffs to their enclosing
+report rows.
 
 Status:
-Verified from clean published base `0a71947a`; ready to publish.
+Verified from clean published base `6fb00a7e`; ready to publish.
 
 Selection evidence:
-- Repair emits source timeline publication reviews under no-suffix indexed
-  `campaign_repair.source_timeline_publication_summaries[N]` identities, with
-  one review and import for every enclosing summary.
-- A fresh two-summary Repair artifact contains two matching operator reviews
-  and two Cadence imports in source order; review, direct import, and nested
-  import copies all equal their corresponding enclosing summaries.
-- Existing timeline handoff contracts validate each copied publication summary
-  and its projected row fields but do not bind the copy to the enclosing Repair
-  list. Synchronized valid drift in `assumptions.operator_authority` across the
-  review and both import copies is currently accepted.
+- Repair emits every enclosing preservation-report row under the shared
+  `campaign_repair.source_timeline_preservation_report.rows` source identity.
+- A fresh three-row Repair artifact contains three matching operator reviews
+  and three Cadence imports in producer order; review, direct import, and nested
+  import copies all equal their corresponding enclosing report rows.
+- Existing timeline source-row contracts validate each copy independently but
+  do not bind it to the enclosing Repair report. Synchronized valid drift in
+  the first row's nested `timeline_identity.activity_type` across the review
+  and both import copies is currently accepted.
 
 Delivered behavior:
-- Require one Repair source timeline publication review and import row per
-  enclosing summary, in producer order and with the exact no-suffix indexed
+- Require one Repair source timeline preservation review and import row per
+  enclosing report row, in producer order and with the exact shared source
   identity.
-- Require each present `source_timeline_publication_summary` review and import
-  copy to equal the corresponding enclosing summary.
-- Preserve optional package compatibility and existing publication-summary
-  copy requirements while leaving the schema and producer behavior unchanged.
-- Extend shared indexed-source construction only as needed for exact no-suffix
-  producer identities, and reuse shared identity and optional-copy validation.
+- Require each present `source_timeline_preservation` review and import copy to
+  equal the corresponding enclosing report row.
+- Preserve optional package and embedded-copy compatibility while leaving the
+  preservation-report schema and producer behavior unchanged.
+- Reuse shared source identity and optional-copy validation.
 
 Verification:
-- Focused publication-summary source and handoff contracts: `6 passed`.
-- Adjacent Repair timeline contracts: `84 passed`.
-- Expanded Repair contract suite: `430 passed`.
-- Full Campaign Planner suite: `1884 passed`.
+- Focused preservation-report source and handoff contracts: `6 passed`.
+- Adjacent Repair timeline contracts: `87 passed`.
+- Expanded Repair contract suite: `433 passed`.
+- Direct CandidateRefresh source-report planner coverage: `16 passed`.
+- Complete Repair planner suite: `225 passed`.
 - Schema lint: `155` artifacts, `0` errors, `0` warnings, and `0`
   remediation items.
 - Canonical Repair and Strategy regeneration remained byte-identical at
   `cc41834e706fd1e04a4c5578032fdf99ceeba949a02fd75fc54c8b70cdc30d8a`
   and `57602722702969da587e2754df84bca1e06e86cc32fa5af7f3f78451b72f9985`.
-- Full suite: `5357 passed` in `753.3s`.
+- Full suite: `5360 passed` in `669.2s`.
 - `mix format --check-formatted` and `git diff --check` passed; scoped staged
   review found no unrelated changes.
 
@@ -52,8 +51,8 @@ Level 6 pillar advanced:
 Fleet-scale candidate-pool integrity and operator-review evidence fidelity.
 
 Last published slice:
-- `0a71947a` Bind Repair source preservation status handoffs (`5354 passed`;
-  CandidateRefresh preservation-status evidence now
+- `6fb00a7e` Bind Repair source publication summary handoffs (`5357 passed`;
+  CandidateRefresh publication-summary evidence now
   remains traceable through operator review and Cadence import).
 
 Remaining maturity gaps:
@@ -67,8 +66,8 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-Audit source timeline preservation-report handoffs after publication-summary
-coverage is complete.
+Audit source timeline transition-application-report handoffs after
+preservation-report coverage is complete.
 
 Blocked:
 None.

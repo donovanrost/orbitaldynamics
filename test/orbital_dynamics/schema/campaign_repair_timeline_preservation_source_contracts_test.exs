@@ -9,7 +9,12 @@ defmodule OrbitalDynamics.Schema.CampaignRepairTimelinePreservationSourceContrac
     artifact = read_json!("study_results/leo_constellation_campaign_repair_v2.json")
     source_report = read_json!("study_results/timeline_preservation_report_v1.json")
 
-    %{artifact: Map.put(artifact, @source_field, source_report)}
+    artifact =
+      artifact
+      |> Map.drop(["operator_review_package", "cadence_import_manifest"])
+      |> Map.put(@source_field, source_report)
+
+    %{artifact: artifact}
   end
 
   test "validates the optional V2 source timeline-preservation report", %{artifact: artifact} do
@@ -41,6 +46,11 @@ defmodule OrbitalDynamics.Schema.CampaignRepairTimelinePreservationSourceContrac
 
     assert {:error, shape_report} = Schema.validate_artifact(invalid_shape)
     assert Enum.any?(shape_report["errors"], &(&1["path"] == "$.#{@source_field}"))
+
+    invalid_rows = put_in(artifact, [@source_field, "rows"], %{})
+
+    assert {:error, rows_report} = Schema.validate_artifact(invalid_rows)
+    assert Enum.any?(rows_report["errors"], &(&1["path"] == "$.#{@source_field}.rows"))
   end
 
   test "exports the source timeline-preservation property" do
