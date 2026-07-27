@@ -4,7 +4,10 @@ defmodule OrbitalDynamics.Schema.CampaignRepairStationReservationHoldImportReadi
   alias OrbitalDynamics.Schema
 
   setup do
-    artifact = read_json!("study_results/leo_constellation_campaign_repair_v2.json")
+    artifact =
+      "study_results/leo_constellation_campaign_repair_v2.json"
+      |> read_json!()
+      |> Map.drop(["operator_review_package", "cadence_import_manifest"])
 
     source_summary =
       read_json!("study_results/station_reservation_hold_import_readiness_summary_v1.json")
