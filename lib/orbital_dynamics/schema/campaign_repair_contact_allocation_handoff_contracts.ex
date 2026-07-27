@@ -12,8 +12,22 @@ defmodule OrbitalDynamics.Schema.CampaignRepairContactAllocationHandoffContracts
 
   @repair_allocation_source "campaign_repair.contact_allocation_report.rows"
   @repair_source_allocation "campaign_repair.source_contact_allocation_report.rows"
-  @repair_source_summary_prefix "campaign_repair.source_contact_allocation_summary"
-  @repair_source_summaries_prefix "campaign_repair.source_contact_allocation_summaries"
+  @source_summary_families [
+    %{
+      singular_field: "source_contact_allocation_summary",
+      plural_field: "source_contact_allocation_summaries",
+      singular_prefix: "campaign_repair.source_contact_allocation_summary",
+      plural_prefix: "campaign_repair.source_contact_allocation_summaries",
+      label: "compact allocation-summary"
+    },
+    %{
+      singular_field: "source_contact_allocation_station_pressure_summary",
+      plural_field: "source_contact_allocation_station_pressure_summaries",
+      singular_prefix: "campaign_repair.source_contact_allocation_station_pressure_summary",
+      plural_prefix: "campaign_repair.source_contact_allocation_station_pressure_summaries",
+      label: "station-pressure summary"
+    }
+  ]
   @summary_context_fields [
     "model",
     "schema_contract",
@@ -51,7 +65,7 @@ defmodule OrbitalDynamics.Schema.CampaignRepairContactAllocationHandoffContracts
       @repair_source_allocation,
       "Repair source"
     )
-    |> validate_source_summary_handoffs(artifact)
+    |> validate_source_summary_handoff_families(artifact)
   end
 
   defp validate_report(issues, artifact, report_field, source, source_label)
@@ -163,45 +177,62 @@ defmodule OrbitalDynamics.Schema.CampaignRepairContactAllocationHandoffContracts
        ),
        do: issues
 
-  defp validate_source_summary_handoffs(issues, artifact) when is_map(artifact) do
-    {source_rows, expected_sources} = source_summary_rows(artifact)
-
-    issues
-    |> validate_source_summary_operator_handoff(artifact, source_rows, expected_sources)
-    |> validate_source_summary_cadence_handoff(artifact, source_rows, expected_sources)
+  defp validate_source_summary_handoff_families(issues, artifact) when is_map(artifact) do
+    Enum.reduce(@source_summary_families, issues, fn family, acc ->
+      validate_source_summary_handoffs(acc, artifact, family)
+    end)
   end
 
-  defp validate_source_summary_handoffs(issues, _artifact), do: issues
+  defp validate_source_summary_handoff_families(issues, _artifact), do: issues
+
+  defp validate_source_summary_handoffs(issues, artifact, family) do
+    {source_rows, expected_sources} = source_summary_rows(artifact, family)
+
+    issues
+    |> validate_source_summary_operator_handoff(
+      artifact,
+      source_rows,
+      expected_sources,
+      family
+    )
+    |> validate_source_summary_cadence_handoff(
+      artifact,
+      source_rows,
+      expected_sources,
+      family
+    )
+  end
 
   defp validate_source_summary_operator_handoff(
          issues,
          %{"operator_review_package" => %{} = package},
          source_rows,
-         expected_sources
+         expected_sources,
+         family
        ) do
     review_rows =
-      indexed_rows(Map.get(package, "rows"), &operator_summary_row?/1)
+      indexed_rows(Map.get(package, "rows"), &operator_summary_row?(&1, family))
 
     issues
     |> validate_equal(
       "$.operator_review_package.rows",
       length(review_rows),
       length(source_rows),
-      "must contain one Repair source compact allocation-summary review row per producer review row"
+      "must contain one Repair source #{family.label} review row per producer review row"
     )
     |> validate_source_identities(
       "$.operator_review_package.rows",
       review_rows,
       expected_sources,
       [["source"]],
-      "must match the enclosing Repair source compact allocation-summary source"
+      "must match the enclosing Repair source #{family.label} source"
     )
     |> validate_source_copies(
       "$.operator_review_package.rows",
       review_rows,
       source_rows,
       [["source_contact_allocation"]],
-      "must match the corresponding enclosing Repair source compact allocation-summary review row"
+      "must match the corresponding enclosing Repair source #{family.label} review row"
     )
   end
 
@@ -209,7 +240,8 @@ defmodule OrbitalDynamics.Schema.CampaignRepairContactAllocationHandoffContracts
          issues,
          _artifact,
          _source_rows,
-         _expected_sources
+         _expected_sources,
+         _family
        ),
        do: issues
 
@@ -217,24 +249,25 @@ defmodule OrbitalDynamics.Schema.CampaignRepairContactAllocationHandoffContracts
          issues,
          %{"cadence_import_manifest" => %{} = manifest},
          source_rows,
-         expected_sources
+         expected_sources,
+         family
        ) do
     import_rows =
-      indexed_rows(Map.get(manifest, "rows"), &cadence_summary_row?/1)
+      indexed_rows(Map.get(manifest, "rows"), &cadence_summary_row?(&1, family))
 
     issues
     |> validate_equal(
       "$.cadence_import_manifest.rows",
       length(import_rows),
       length(source_rows),
-      "must contain one Repair source compact allocation-summary import row per producer review row"
+      "must contain one Repair source #{family.label} import row per producer review row"
     )
     |> validate_source_identities(
       "$.cadence_import_manifest.rows",
       import_rows,
       expected_sources,
       [["source"], ["source_review_row", "source"]],
-      "must match the enclosing Repair source compact allocation-summary source"
+      "must match the enclosing Repair source #{family.label} source"
     )
     |> validate_source_copies(
       "$.cadence_import_manifest.rows",
@@ -244,7 +277,7 @@ defmodule OrbitalDynamics.Schema.CampaignRepairContactAllocationHandoffContracts
         ["source_contact_allocation"],
         ["source_review_row", "source_contact_allocation"]
       ],
-      "must match the corresponding enclosing Repair source compact allocation-summary review row"
+      "must match the corresponding enclosing Repair source #{family.label} review row"
     )
   end
 
@@ -252,13 +285,14 @@ defmodule OrbitalDynamics.Schema.CampaignRepairContactAllocationHandoffContracts
          issues,
          _artifact,
          _source_rows,
-         _expected_sources
+         _expected_sources,
+         _family
        ),
        do: issues
 
-  defp source_summary_rows(artifact) do
+  defp source_summary_rows(artifact, family) do
     artifact
-    |> source_summaries()
+    |> source_summaries(family)
     |> Enum.flat_map(fn {summary, source_prefix} ->
       case summary_review_rows(summary, source_prefix) do
         {rows, source} ->
@@ -268,22 +302,22 @@ defmodule OrbitalDynamics.Schema.CampaignRepairContactAllocationHandoffContracts
     |> Enum.unzip()
   end
 
-  defp source_summaries(artifact) do
-    case Map.get(artifact, "source_contact_allocation_summaries") do
+  defp source_summaries(artifact, family) do
+    case Map.get(artifact, family.plural_field) do
       [_summary | _summaries] = summaries ->
         summaries
         |> Enum.with_index()
         |> Enum.flat_map(fn
           {%{} = summary, index} ->
-            [{summary, "#{@repair_source_summaries_prefix}[#{index}]"}]
+            [{summary, "#{family.plural_prefix}[#{index}]"}]
 
           {_summary, _index} ->
             []
         end)
 
       _summaries ->
-        case Map.get(artifact, "source_contact_allocation_summary") do
-          %{} = summary -> [{summary, @repair_source_summary_prefix}]
+        case Map.get(artifact, family.singular_field) do
+          %{} = summary -> [{summary, family.singular_prefix}]
           _summary -> []
         end
     end
@@ -327,23 +361,23 @@ defmodule OrbitalDynamics.Schema.CampaignRepairContactAllocationHandoffContracts
       allocation_source?(row_source(row), source)
   end
 
-  defp operator_summary_row?(row) do
+  defp operator_summary_row?(row, family) do
     Map.get(row, "review_type") == "contact_allocation_review" and
-      summary_source?(row_source(row))
+      summary_source?(row_source(row), family)
   end
 
-  defp cadence_summary_row?(row) do
+  defp cadence_summary_row?(row, family) do
     (Map.get(row, "source_review_type") == "contact_allocation_review" or
        Map.get(row, "import_action") == "review_contact_allocation") and
-      summary_source?(row_source(row))
+      summary_source?(row_source(row), family)
   end
 
-  defp summary_source?(source) when is_binary(source) do
-    String.starts_with?(source, @repair_source_summary_prefix <> ".") or
-      String.starts_with?(source, @repair_source_summaries_prefix <> "[")
+  defp summary_source?(source, family) when is_binary(source) do
+    String.starts_with?(source, family.singular_prefix <> ".") or
+      String.starts_with?(source, family.plural_prefix <> "[")
   end
 
-  defp summary_source?(_source), do: false
+  defp summary_source?(_source, _family), do: false
 
   defp allocation_source?(actual, expected) when is_binary(actual),
     do: String.starts_with?(actual, expected)
