@@ -698,7 +698,7 @@ defmodule OrbitalDynamics.Schema.ValidationAcceptanceReportContracts do
   defp safety_case_status([]), do: "missing_evidence"
 
   defp safety_case_status(rows) when is_list(rows) do
-    statuses = Enum.map(rows, &Map.get(&1, "status"))
+    statuses = rows |> map_rows() |> Enum.map(&Map.get(&1, "status"))
 
     cond do
       "blocked" in statuses -> "blocked"
@@ -711,6 +711,7 @@ defmodule OrbitalDynamics.Schema.ValidationAcceptanceReportContracts do
 
   defp safety_case_input_contracts(rows) when is_list(rows) and rows != [] do
     rows
+    |> map_rows()
     |> Enum.map(&Map.get(&1, "schema_contract"))
     |> Enum.reject(&is_nil/1)
     |> Enum.uniq()
@@ -722,6 +723,7 @@ defmodule OrbitalDynamics.Schema.ValidationAcceptanceReportContracts do
 
   defp safety_case_status_counts(rows) when is_list(rows) and rows != [] do
     rows
+    |> map_rows()
     |> Enum.map(&Map.get(&1, "status"))
     |> Enum.reject(&is_nil/1)
     |> Enum.frequencies()
@@ -731,13 +733,16 @@ defmodule OrbitalDynamics.Schema.ValidationAcceptanceReportContracts do
   defp safety_case_status_counts(_rows), do: nil
 
   defp safety_case_status_count(rows, status) when is_list(rows) do
-    Enum.count(rows, &(Map.get(&1, "status") == status))
+    rows
+    |> map_rows()
+    |> Enum.count(&(Map.get(&1, "status") == status))
   end
 
   defp safety_case_status_count(_rows, _status), do: nil
 
   defp safety_case_evidence_refs_by(rows, field) when is_list(rows) and rows != [] do
     rows
+    |> map_rows()
     |> Enum.group_by(
       &(Map.get(&1, field) || "unknown"),
       &Map.get(&1, "evidence_ref")
@@ -752,6 +757,7 @@ defmodule OrbitalDynamics.Schema.ValidationAcceptanceReportContracts do
 
   defp safety_case_sum(rows, field) when is_list(rows) do
     rows
+    |> map_rows()
     |> Enum.map(fn row ->
       case Map.get(row, field) do
         value when is_integer(value) and value >= 0 -> value
@@ -765,11 +771,13 @@ defmodule OrbitalDynamics.Schema.ValidationAcceptanceReportContracts do
 
   defp frequency_map(rows, field) do
     rows
-    |> Enum.filter(&is_map/1)
+    |> map_rows()
     |> Enum.map(&Map.get(&1, field))
     |> Enum.reject(&is_nil/1)
     |> Enum.frequencies()
   end
+
+  defp map_rows(rows), do: Enum.filter(rows, &is_map/1)
 
   defp expect_field_equals(issues, path, map, field, expected),
     do: expect_field_equals(issues, path, map, field, expected, "must equal #{expected}")

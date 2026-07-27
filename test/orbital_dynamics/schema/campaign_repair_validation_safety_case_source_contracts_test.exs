@@ -7,7 +7,12 @@ defmodule OrbitalDynamics.Schema.CampaignRepairValidationSafetyCaseSourceContrac
     artifact = read_json!("study_results/leo_constellation_campaign_repair_v2.json")
     source_summary = read_json!("study_results/validation_safety_case_summary_v1.json")
 
-    %{artifact: Map.put(artifact, "source_validation_safety_case_summary", source_summary)}
+    artifact =
+      artifact
+      |> Map.drop(["operator_review_package", "cadence_import_manifest"])
+      |> Map.put("source_validation_safety_case_summary", source_summary)
+
+    %{artifact: artifact}
   end
 
   test "validates the optional V2 source validation-safety-case summary", %{artifact: artifact} do
@@ -49,6 +54,26 @@ defmodule OrbitalDynamics.Schema.CampaignRepairValidationSafetyCaseSourceContrac
     assert Enum.any?(
              shape_report["errors"],
              &(&1["path"] == "$.source_validation_safety_case_summary")
+           )
+
+    invalid_evidence =
+      put_in(artifact, ["source_validation_safety_case_summary", "evidence"], %{})
+
+    assert {:error, evidence_report} = Schema.validate_artifact(invalid_evidence)
+
+    assert Enum.any?(
+             evidence_report["errors"],
+             &(&1["path"] == "$.source_validation_safety_case_summary.evidence")
+           )
+
+    invalid_evidence_row =
+      put_in(artifact, ["source_validation_safety_case_summary", "evidence"], ["invalid"])
+
+    assert {:error, evidence_row_report} = Schema.validate_artifact(invalid_evidence_row)
+
+    assert Enum.any?(
+             evidence_row_report["errors"],
+             &(&1["path"] == "$.source_validation_safety_case_summary.evidence[0]")
            )
   end
 
