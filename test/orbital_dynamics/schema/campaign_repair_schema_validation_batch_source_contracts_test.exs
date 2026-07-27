@@ -43,6 +43,29 @@ defmodule OrbitalDynamics.Schema.CampaignRepairSchemaValidationBatchSourceContra
 
     assert {:error, shape_report} = Schema.validate_artifact(invalid_shape)
     assert Enum.any?(shape_report["errors"], &(&1["path"] == "$.#{@source_field}"))
+
+    invalid_reports = put_in(artifact, [@source_field, "reports"], %{})
+
+    assert {:error, reports_report} = Schema.validate_artifact(invalid_reports)
+    assert Enum.any?(reports_report["errors"], &(&1["path"] == "$.#{@source_field}.reports"))
+
+    invalid_report = put_in(artifact, [@source_field, "reports"], ["invalid"])
+
+    assert {:error, report_report} = Schema.validate_artifact(invalid_report)
+
+    assert Enum.any?(
+             report_report["errors"],
+             &(&1["path"] == "$.#{@source_field}.reports[0]")
+           )
+
+    invalid_skipped = put_in(artifact, [@source_field, "skipped_artifacts"], %{})
+
+    assert {:error, skipped_report} = Schema.validate_artifact(invalid_skipped)
+
+    assert Enum.any?(
+             skipped_report["errors"],
+             &(&1["path"] == "$.#{@source_field}.skipped_artifacts")
+           )
   end
 
   test "exports the source schema-validation batch property" do

@@ -175,13 +175,17 @@ defmodule OrbitalDynamics.Schema.ValidationReportContracts do
   end
 
   defp validate_batch_counts(issues, path, report) do
-    reports = Map.get(report, "reports", [])
-    skipped_artifacts = Map.get(report, "skipped_artifacts", [])
+    reports = report |> Map.get("reports") |> list_or_empty()
+    skipped_artifacts = report |> Map.get("skipped_artifacts") |> list_or_empty()
 
-    {error_count, warning_count, remediation_count} =
+    nested_reports =
       reports
+      |> Enum.filter(&is_map/1)
       |> Enum.map(&Map.get(&1, "report"))
       |> Enum.filter(&is_map/1)
+
+    {error_count, warning_count, remediation_count} =
+      nested_reports
       |> Enum.reduce({0, 0, 0}, fn nested_report, {errors, warnings, remediation} ->
         {
           errors + integer_or_zero(Map.get(nested_report, "error_count")),
@@ -191,8 +195,8 @@ defmodule OrbitalDynamics.Schema.ValidationReportContracts do
       end)
 
     status_counts =
-      reports
-      |> Enum.map(&get_in(&1, ["report", "status"]))
+      nested_reports
+      |> Enum.map(&Map.get(&1, "status"))
       |> Enum.reject(&is_nil/1)
       |> Enum.frequencies()
 
