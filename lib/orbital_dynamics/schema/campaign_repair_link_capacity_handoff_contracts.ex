@@ -14,6 +14,12 @@ defmodule OrbitalDynamics.Schema.CampaignRepairLinkCapacityHandoffContracts do
   @repair_source_capacity "campaign_repair.source_link_capacity_report.rows"
   @repair_source_invalid_contacts "campaign_repair.source_link_capacity_report.invalid_contact_inputs"
   @repair_source_invalid_selected "campaign_repair.source_link_capacity_report.invalid_selected_contact_inputs"
+  @actual_resolution_fields [
+    {"unmatched_actual_throughput_contact_ids", "unmatched_actual_throughput_contact_count"},
+    {"ambiguous_actual_throughput_contact_ids", "ambiguous_actual_throughput_contact_count"},
+    {"unmatched_actual_completion_contact_ids", "unmatched_actual_completion_contact_count"},
+    {"ambiguous_actual_completion_contact_ids", "ambiguous_actual_completion_contact_count"}
+  ]
   @repair_link_capacity_summary_prefix "campaign_repair.source_link_capacity_summary"
   @repair_link_capacity_summary @repair_link_capacity_summary_prefix <> ".rows"
   @repair_relay_summary_prefix "campaign_repair.source_relay_data_path_summary"
@@ -76,6 +82,7 @@ defmodule OrbitalDynamics.Schema.CampaignRepairLinkCapacityHandoffContracts do
       @repair_source_invalid_selected,
       "Repair source invalid-selected-input"
     )
+    |> validate_actual_resolution_rows(artifact)
     |> validate_source_summary(
       artifact,
       "source_link_capacity_summary",
@@ -143,6 +150,58 @@ defmodule OrbitalDynamics.Schema.CampaignRepairLinkCapacityHandoffContracts do
          _source_label
        ),
        do: issues
+
+  defp validate_actual_resolution_rows(
+         issues,
+         %{"source_link_capacity_report" => %{} = report} = artifact
+       ) do
+    Enum.reduce(@actual_resolution_fields, issues, fn {id_field, count_field}, acc ->
+      source_rows = actual_resolution_source_rows(report, id_field, count_field)
+      source = "campaign_repair.source_link_capacity_report.#{id_field}"
+
+      acc
+      |> validate_operator_review_handoff(
+        artifact,
+        source_rows,
+        source,
+        "Repair source #{id_field}"
+      )
+      |> validate_cadence_handoff(
+        artifact,
+        source_rows,
+        source,
+        "Repair source #{id_field}"
+      )
+    end)
+  end
+
+  defp validate_actual_resolution_rows(issues, _artifact), do: issues
+
+  defp actual_resolution_source_rows(report, id_field, count_field) do
+    ids =
+      report
+      |> Map.get(id_field, [])
+      |> List.wrap()
+      |> Enum.map(&normalized_id/1)
+      |> Enum.reject(&(&1 in [nil, ""]))
+      |> Enum.sort()
+
+    case ids do
+      [] ->
+        []
+
+      ids ->
+        [
+          %{
+            "schema_contract" => Map.get(report, "schema_contract"),
+            "source" => Map.get(report, "source"),
+            count_field => Map.get(report, count_field, length(ids)),
+            id_field => ids
+          }
+          |> compact_map()
+        ]
+    end
+  end
 
   defp validate_source_summary(
          issues,
