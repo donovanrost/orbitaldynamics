@@ -9,7 +9,12 @@ defmodule OrbitalDynamics.Schema.CampaignRepairTimelineTransitionApplicationSour
     artifact = read_json!("study_results/leo_constellation_campaign_repair_v2.json")
     source_report = read_json!("study_results/timeline_transition_application_report_v1.json")
 
-    %{artifact: Map.put(artifact, @source_field, source_report)}
+    artifact =
+      artifact
+      |> Map.drop(["operator_review_package", "cadence_import_manifest"])
+      |> Map.put(@source_field, source_report)
+
+    %{artifact: artifact}
   end
 
   test "validates the optional V2 source transition-application report", %{artifact: artifact} do
@@ -43,6 +48,25 @@ defmodule OrbitalDynamics.Schema.CampaignRepairTimelineTransitionApplicationSour
 
     assert {:error, shape_report} = Schema.validate_artifact(invalid_shape)
     assert Enum.any?(shape_report["errors"], &(&1["path"] == "$.#{@source_field}"))
+
+    invalid_applications = put_in(artifact, [@source_field, "applications"], %{})
+
+    assert {:error, applications_report} = Schema.validate_artifact(invalid_applications)
+
+    assert Enum.any?(
+             applications_report["errors"],
+             &(&1["path"] == "$.#{@source_field}.applications")
+           )
+
+    invalid_application =
+      put_in(artifact, [@source_field, "applications", Access.at(0)], "invalid")
+
+    assert {:error, application_report} = Schema.validate_artifact(invalid_application)
+
+    assert Enum.any?(
+             application_report["errors"],
+             &(&1["path"] == "$.#{@source_field}.applications[0]")
+           )
   end
 
   test "exports the source transition-application property" do

@@ -51,6 +51,7 @@ defmodule OrbitalDynamics.Schema.CampaignRepairContracts do
     CampaignRepairSourceTimelinePreservationReportHandoffContracts,
     CampaignRepairSourceTimelinePreservationStatusHandoffContracts,
     CampaignRepairSourceTimelinePublicationSummaryHandoffContracts,
+    CampaignRepairSourceTimelineTransitionApplicationReportHandoffContracts,
     CampaignRepairStationPressureContracts,
     CampaignRepairTimelineTransitionContracts,
     CampaignRepairTimelineTransitionHandoffContracts,
@@ -282,6 +283,7 @@ defmodule OrbitalDynamics.Schema.CampaignRepairContracts do
     |> CampaignRepairSourceTimelinePreservationReportHandoffContracts.validate(artifact)
     |> CampaignRepairSourceTimelinePreservationStatusHandoffContracts.validate(artifact)
     |> CampaignRepairSourceTimelinePublicationSummaryHandoffContracts.validate(artifact)
+    |> CampaignRepairSourceTimelineTransitionApplicationReportHandoffContracts.validate(artifact)
     |> CampaignRepairOperationalTimelineHandoffContracts.validate(artifact)
     |> CampaignRepairQualityGateHandoffContracts.validate(artifact)
     |> CampaignRepairOperationalReadinessHandoffContracts.validate(artifact)
