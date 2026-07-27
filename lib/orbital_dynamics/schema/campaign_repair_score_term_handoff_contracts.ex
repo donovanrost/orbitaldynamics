@@ -1,7 +1,8 @@
 defmodule OrbitalDynamics.Schema.CampaignRepairScoreTermHandoffContracts do
   @moduledoc false
 
-  import OrbitalDynamics.Schema.PrimitiveValidation, only: [error: 2]
+  import OrbitalDynamics.Schema.CampaignRepairHandoffValidation,
+    only: [indexed_rows: 2, validate_equal: 5, validate_source_copies: 6]
 
   @repair_score_term_source "campaign_repair.score_term_report.rows"
 
@@ -35,7 +36,8 @@ defmodule OrbitalDynamics.Schema.CampaignRepairScoreTermHandoffContracts do
       "$.operator_review_package.rows",
       review_rows,
       score_term_rows,
-      [["source_score_term"]]
+      [["source_score_term"]],
+      "must match the corresponding enclosing Repair score-term report row"
     )
   end
 
@@ -59,19 +61,12 @@ defmodule OrbitalDynamics.Schema.CampaignRepairScoreTermHandoffContracts do
       "$.cadence_import_manifest.rows",
       import_rows,
       score_term_rows,
-      [["source_score_term"], ["source_review_row", "source_score_term"]]
+      [["source_score_term"], ["source_review_row", "source_score_term"]],
+      "must match the corresponding enclosing Repair score-term report row"
     )
   end
 
   defp validate_cadence_handoff(issues, _artifact, _score_term_rows), do: issues
-
-  defp indexed_rows(rows, predicate) when is_list(rows) do
-    rows
-    |> Enum.with_index()
-    |> Enum.filter(fn {row, _index} -> is_map(row) and predicate.(row) end)
-  end
-
-  defp indexed_rows(_rows, _predicate), do: []
 
   defp operator_score_term_row?(row) do
     Map.get(row, "review_type") == "score_term_review" and
@@ -83,50 +78,4 @@ defmodule OrbitalDynamics.Schema.CampaignRepairScoreTermHandoffContracts do
        Map.get(row, "import_action") == "review_score_term") and
       Map.get(row, "source") == @repair_score_term_source
   end
-
-  defp validate_source_copies(issues, base_path, indexed_rows, source_rows, copy_paths) do
-    indexed_rows
-    |> Enum.zip(source_rows)
-    |> Enum.reduce(issues, fn {{row, row_index}, source_row}, acc ->
-      Enum.reduce(copy_paths, acc, fn copy_path, inner_acc ->
-        validate_optional_source_copy(
-          inner_acc,
-          base_path,
-          row_index,
-          row,
-          copy_path,
-          source_row
-        )
-      end)
-    end)
-  end
-
-  defp validate_optional_source_copy(
-         issues,
-         base_path,
-         row_index,
-         row,
-         copy_path,
-         source_row
-       ) do
-    case get_in(row, copy_path) do
-      %{} = copy ->
-        validate_equal(
-          issues,
-          Enum.join([base_path <> "[#{row_index}]" | copy_path], "."),
-          copy,
-          source_row,
-          "must match the corresponding enclosing Repair score-term report row"
-        )
-
-      _copy ->
-        issues
-    end
-  end
-
-  defp validate_equal(issues, _path, actual, expected, _message) when actual == expected,
-    do: issues
-
-  defp validate_equal(issues, path, _actual, _expected, message),
-    do: [error(path, message) | issues]
 end

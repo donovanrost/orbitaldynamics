@@ -5,36 +5,32 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Extract shared Repair resource-handoff validation mechanics.
+Consolidate Repair decision-handoff validation mechanics.
 
 Status:
-Verified from clean published base `01d45c05`; ready to publish.
+Verified from clean published base `2df4dd5b`; ready to publish.
 
 Selection evidence:
-- The contact-allocation, link-capacity, resource-projection, and
-  realized-feedback handoff validators independently implement identical row
-  indexing, direct/nested source lookup, optional source-copy comparison, and
-  error construction mechanics.
-- Those mechanics account for roughly half of each validator despite differing
-  only in source predicates, copy keys, and error messages.
-- Their focused source-order/count/copy challenge suites provide a
-  behavior-preserving extraction boundary; no product or artifact contract
-  change is needed.
+- The approval, candidate-rejection, objective-tradeoff, and score-term handoff
+  validators retain private copies of the newly extracted row indexing,
+  optional source-copy comparison, and equality error mechanics.
+- Their source predicates, count paths, copy paths, and user-facing messages are
+  distinct and remain responsibility-local; only the mechanics are duplicated.
+- Focused source-order/count/copy challenge suites provide a behavior-preserving
+  migration boundary; no product or artifact contract change is needed.
 
 Delivered behavior:
-- Introduce one shared Repair handoff validation module that owns indexed-row
-  selection, direct/nested source lookup, optional source-copy comparison, and
-  equality error construction.
-- Migrate the four resource/allocation validators to that module while retaining
-  their exact source predicates, copy paths, source order, and error messages.
-- Remove `220` net lines from the four migrated validators while adding direct
-  helper coverage and leaving the bounded slice net-negative across production
-  validation code.
+- Migrate the four decision/explanation validators to the existing shared Repair
+  handoff validation module.
+- Retain exact package-count checks, source predicates, copy paths, source order,
+  optional-copy compatibility, and error messages.
+- Remove `228` net lines from the four migrated production validators without
+  expanding the shared helper or changing its responsibility.
 - Leave all producer output, JSON Schema, planning, provider, command, import,
   compatibility, and authority behavior unchanged.
 
 Verification:
-- Focused shared helper and migrated-validator gate: `16 passed`.
+- Focused decision/explanation migration plus shared-helper gate: `15 passed`.
 - All Repair handoff validators plus shared-helper gate: `51 passed`.
 - Expanded Repair schema gate: `379 passed`.
 - Direct Repair planner gate: `225 passed`.
@@ -42,17 +38,17 @@ Verification:
   remediation.
 - Canonical Repair and Strategy regeneration was byte-identical to the
   published fixtures.
-- Full suite: `5306 passed` in 771.4 seconds.
+- Full suite: `5306 passed` in 716.2 seconds.
 - `mix format --check-formatted` and `git diff --check` passed.
 
 Level 6 pillar advanced:
 Fleet-scale candidate-pool integrity and operator-review evidence fidelity.
 
 Last published slice:
-- `01d45c05` Bind Repair operational-timeline review handoffs (`5303 passed`;
-  present source-scoped operator-review and Cadence counts and full timeline-row
-  copies bind to enclosing reviewable operational-timeline rows while older
-  package and copy omissions remain compatible).
+- `2df4dd5b` Extract shared Repair handoff validation (`5306 passed`; common row
+  indexing, source lookup, optional copy comparison, and equality error mechanics
+  now serve contact-allocation, link-capacity, resource-projection, and
+  realized-feedback validators with a net production-code reduction).
 
 Remaining maturity gaps:
 - Continue fleet-scale station/allocation decisions only from authoritative,
@@ -63,9 +59,9 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-After the shared resource-handoff extraction, continue responsibility-based
-handoff validation consolidation in bounded groups or return to fleet-scale
-evidence integrity where producer outputs can be replayed without hidden state.
+After the decision-handoff migration, continue responsibility-based validation
+consolidation in bounded groups or return to fleet-scale evidence integrity
+where producer outputs can be replayed without hidden state.
 
 Blocked:
 None.
