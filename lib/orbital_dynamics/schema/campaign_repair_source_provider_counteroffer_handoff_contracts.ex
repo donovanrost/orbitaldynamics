@@ -16,6 +16,9 @@ defmodule OrbitalDynamics.Schema.CampaignRepairSourceProviderCounterofferHandoff
   @review_summary_source @review_summary_source_prefix <> ".review_rows"
   @plan_impact_summary_source_prefix "campaign_repair.source_provider_counteroffer_plan_impact_summary"
   @plan_impact_summary_source @plan_impact_summary_source_prefix <> ".impact_rows"
+  @import_readiness_summary_source_prefix "campaign_repair.source_provider_counteroffer_import_readiness_summary"
+  @import_readiness_summary_source @import_readiness_summary_source_prefix <>
+                                     ".import_readiness_rows"
   @summary_context_fields [
     "model",
     "schema_contract",
@@ -48,6 +51,7 @@ defmodule OrbitalDynamics.Schema.CampaignRepairSourceProviderCounterofferHandoff
     |> validate_report(artifact)
     |> validate_review_summary(artifact)
     |> validate_plan_impact_summary(artifact)
+    |> validate_import_readiness_summary(artifact)
   end
 
   defp validate_report(
@@ -111,6 +115,30 @@ defmodule OrbitalDynamics.Schema.CampaignRepairSourceProviderCounterofferHandoff
   end
 
   defp validate_plan_impact_summary(issues, _artifact), do: issues
+
+  defp validate_import_readiness_summary(
+         issues,
+         %{"source_provider_counteroffer_import_readiness_summary" => %{} = summary} =
+           artifact
+       ) do
+    context = summary_context(summary)
+
+    source_rows =
+      summary
+      |> eligible_rows("import_readiness_rows")
+      |> Enum.map(&Map.put(&1, "source_provider_counteroffer_summary", context))
+
+    validate_handoffs(
+      issues,
+      artifact,
+      source_rows,
+      @import_readiness_summary_source_prefix,
+      @import_readiness_summary_source,
+      "provider-counteroffer import-readiness-summary"
+    )
+  end
+
+  defp validate_import_readiness_summary(issues, _artifact), do: issues
 
   defp validate_handoffs(
          issues,
