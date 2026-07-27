@@ -5,43 +5,42 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Bind Repair source objective-satisfaction handoffs to their enclosing report.
+Bind Repair source objective-tradeoff handoffs to their enclosing report.
 
 Status:
-Verified from clean published base `6352549f`; ready to publish.
+Verified from clean published base `fb2c1be3`; ready to publish.
 
 Selection evidence:
-- Repair emits source objective-satisfaction reviews under the stable
-  `campaign_repair.source_objective_satisfaction_report.rows` identity,
-  excluding only statuses `met`, `selected`, and `no_requirement`.
-- The deterministic fixture contains `partial`, `unmet`, `selected`, and
-  `no_candidate_window` rows; Repair hands off the three non-pass rows in
-  source order to operator review and Cadence import.
-- Existing row-local contracts compare projected objective fields but do not
-  bind the full embedded `source_objective_satisfaction` map to the enclosing
-  report. Adding a divergent `rank` to all three copies is currently accepted.
+- Repair emits every source objective-tradeoff row under the stable
+  `campaign_repair.source_objective_tradeoff_report.tradeoffs` identity, in
+  source order, without an additional eligibility filter.
+- The deterministic objective-tradeoff fixture contains one row; a freshly
+  generated Repair artifact contains one matching operator review and one
+  Cadence import handoff.
+- Existing generated-tradeoff contracts bind only
+  `campaign_repair.objective_tradeoff_report.tradeoffs`. Changing `rank` in all
+  three source-specific embedded copies is currently accepted.
 
 Delivered behavior:
-- Require one Repair source objective-satisfaction review and import row per
-  enclosing non-pass objective row, in producer order.
-- Require the review's `source_objective_satisfaction` and both import copies to
+- Require one Repair source objective-tradeoff review and import row per
+  enclosing source report row, in producer order.
+- Require the review's `source_objective_tradeoff` and both import copies to
   equal their corresponding enclosing source report row.
 - Preserve optional package and embedded-copy compatibility while leaving the
-  singular source-report schema, pass-status exclusion, and producer behavior
-  unchanged.
-- Reuse the shared Repair handoff validation mechanics with objective-specific
-  source identity and diagnostics.
+  singular source-report schema and producer behavior unchanged.
+- Reuse the shared Repair handoff validation mechanics with source-specific
+  identity and diagnostics.
 
 Verification:
-- Focused source objective-satisfaction handoff challenges: `6 passed`.
-- Adjacent objective-satisfaction schema coverage: `43 passed`.
+- Focused source objective-tradeoff handoff challenges: `6 passed`.
+- Adjacent objective-tradeoff schema coverage: `13 passed`.
 - Expanded Repair schema coverage: `394 passed`.
 - Direct Repair planner coverage: `225 passed`.
 - Saved-artifact lint: `155 artifacts`, zero errors, warnings, or remediation.
 - Canonical Repair and Strategy regeneration remained byte-identical
   (`cc41834e706fd1e04a4c5578032fdf99ceeba949a02fd75fc54c8b70cdc30d8a` and
   `57602722702969da587e2754df84bca1e06e86cc32fa5af7f3f78451b72f9985`).
-- Full suite: `5321 passed` in 708.3 seconds.
+- Full suite: `5324 passed` in 737.2 seconds.
 - `mix format --check-formatted` and `git diff --check` passed; scoped review
   found no unrelated changes.
 
@@ -49,9 +48,9 @@ Level 6 pillar advanced:
 Fleet-scale candidate-pool integrity and operator-review evidence fidelity.
 
 Last published slice:
-- `6352549f` Bind Repair source constraint handoffs (`5318 passed`; non-passing
-  CandidateRefresh constraint evidence now remains traceable through operator
-  review and Cadence import).
+- `fb2c1be3` Bind Repair source objective handoffs (`5321 passed`; actionable
+  CandidateRefresh objective-satisfaction evidence now remains traceable
+  through operator review and Cadence import).
 
 Remaining maturity gaps:
 - Audit generated constraint and remaining source optimization handoffs where
@@ -64,8 +63,8 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-Audit source objective-tradeoff or score-term handoffs after source
-objective-satisfaction coverage is complete.
+Audit source score-term handoffs after source objective-tradeoff coverage is
+complete.
 
 Blocked:
 None.
