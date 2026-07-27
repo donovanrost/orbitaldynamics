@@ -5,57 +5,51 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Bind Repair source candidate-diff handoffs to their enclosing report evidence.
+Bind Repair source contact-filter suppression handoffs to their enclosing
+report evidence.
 
 Status:
-Verified from clean published base `3c1431c3`; ready to publish.
+Verified from clean published base `66fd8f3b`; ready to publish.
 
 Selection evidence:
-- The resource-summary audit closed without a handoff change: those rows are
-  intentionally planning/filter inputs, while derived resource reports own the
-  operator/Cadence surfaces.
-- The candidate-diff producer emits all invalidated candidates first, then
-  reviewable new candidates not already represented as replacements, then
-  retained candidates with semantic changes, preserving source-family identity
-  and exact `source_candidate_diff` evidence.
+- Repair retains the candidate-refresh contact-filter report as
+  `source_contact_filter_report`.
+- The producer emits every `suppressed_candidates` row in report order with a
+  single family source identity and an exact `source_contact_suppression` copy.
 - Live validation accepts coordinated `.legacy` source-identity drift and
-  coordinated target-priority drift across every review/import evidence copy
-  while the enclosing source candidate-diff report remains unchanged.
+  coordinated station-availability drift across every review/import evidence
+  copy while the enclosing three-row source report remains unchanged.
 
 Delivered behavior:
-- Added a dedicated source candidate-diff handoff validator, reusing the
-  production report-row generator and source-window lineage for exact
-  invalidated/new/retained eligibility and ordering.
-- Bound every eligible review/import row to the exact candidate-diff family
-  source and enclosing `source_candidate_diff` evidence, rejecting coordinated
-  identity or target-priority drift, missing rows, and stale handoffs.
-- Preserved optional review/import packages and embedded evidence copies and
-  sanitized malformed report row collections so the source schema reports
-  shape errors without contract-layer exceptions.
+- Repair validation now replays the contact-suppression producer from the
+  enclosing source contact-filter report, including every map-shaped suppressed
+  candidate in report order.
+- When review/import packages are present, their source contact-filter rows
+  must preserve exact cardinality, order, source-family identity, and every
+  present `source_contact_suppression` evidence copy.
+- Three-row challenge coverage rejects independent or coordinated evidence
+  drift, `.legacy` source identity, missing rows, and stale downstream handoffs
+  while retaining additive-package and evidence-copy compatibility.
 
 Verification:
-- Focused candidate-diff source, ranking, and handoff contracts: `9 passed`.
-- Adjacent Repair producer, operator-review, and Cadence-import contracts:
-  `115 passed`.
-- Extended candidate-diff build, replay, semantic, Repair, Strategy,
-  operator-review, and Cadence-import contracts: `37 passed`.
-- Expanded Repair schema-contract tests: `536 passed` in `162.6 seconds`.
-- Repair planner tests: `228 passed` in `13.0 seconds`.
-- `mix orbital_dynamics.schema.lint --all --input-dir study_results`:
-  `155 artifacts`, `0 errors`, `0 warnings`, `0 remediation actions`.
-- Canonical Repair regeneration SHA-256:
-  `cc41834e706fd1e04a4c5578032fdf99ceeba949a02fd75fc54c8b70cdc30d8a`.
-- Canonical Strategy regeneration SHA-256:
-  `57602722702969da587e2754df84bca1e06e86cc32fa5af7f3f78451b72f9985`.
-- Full suite: `5463 passed` in `735.6 seconds`.
+- Focused source contact-filter handoff contract: `5 passed`.
+- Adjacent source/handoff contracts: `22 passed`.
+- Campaign Repair schema regression: `541 passed`.
+- Campaign planner regression: `1884 passed`.
+- Full suite: `5468 passed` (seed `193277`).
+- Schema lint: `155` artifacts passed, `0` errors, `0` warnings.
+- Canonical Repair and Strategy regeneration passed with stable byte hashes:
+  `cc41834e706fd1e04a4c5578032fdf99ceeba949a02fd75fc54c8b70cdc30d8a`
+  and `57602722702969da587e2754df84bca1e06e86cc32fa5af7f3f78451b72f9985`.
+- `mix format --check-formatted` and `git diff --check` passed.
 
 Level 6 pillar advanced:
 Fleet-scale candidate-pool integrity and operator-review evidence fidelity.
 
 Last published slice:
-- `3c1431c3` Bind Repair source intent handoffs (`5458 passed`; direct source
-  intent review eligibility, identity, order, and evidence now remain exact
-  through operator review and Cadence import).
+- `66fd8f3b` Bind Repair source candidate diff handoffs (`5463 passed`;
+  invalidated/new/retained diff eligibility, family identity, order, and
+  evidence now remain exact through operator review and Cadence import).
 
 Remaining maturity gaps:
 - Audit remaining generated and source handoffs where their complete producer
@@ -68,8 +62,8 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-Audit Repair source contact-filter suppressed-candidate handoffs after the
-source candidate-diff boundary is complete.
+Audit Repair source resource-filter suppressed-candidate handoffs after the
+source contact-filter boundary is complete.
 
 Blocked:
 None.
