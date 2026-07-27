@@ -48,6 +48,25 @@ defmodule OrbitalDynamics.Schema.CampaignRepairSchemaValidationSourceContractsTe
              shape_report["errors"],
              &(&1["path"] == "$.source_schema_validation_report")
            )
+
+    invalid_errors = put_in(artifact, ["source_schema_validation_report", "errors"], %{})
+
+    assert {:error, errors_report} = Schema.validate_artifact(invalid_errors)
+
+    assert Enum.any?(
+             errors_report["errors"],
+             &(&1["path"] == "$.source_schema_validation_report.errors")
+           )
+
+    invalid_error =
+      put_in(artifact, ["source_schema_validation_report", "errors"], ["invalid"])
+
+    assert {:error, error_report} = Schema.validate_artifact(invalid_error)
+
+    assert Enum.any?(
+             error_report["errors"],
+             &(&1["path"] == "$.source_schema_validation_report.errors[0]")
+           )
   end
 
   test "exports the source schema-validation property" do

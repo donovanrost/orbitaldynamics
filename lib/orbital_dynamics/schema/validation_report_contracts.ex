@@ -154,7 +154,7 @@ defmodule OrbitalDynamics.Schema.ValidationReportContracts do
   end
 
   defp validate_report_counts(issues, path, report) do
-    error_count = length(Map.get(report, "errors", []))
+    error_count = report |> Map.get("errors") |> list_or_empty() |> length()
     expected_status = if error_count == 0, do: "pass", else: "fail"
 
     issues
@@ -164,13 +164,13 @@ defmodule OrbitalDynamics.Schema.ValidationReportContracts do
       path,
       report,
       "warning_count",
-      length(Map.get(report, "warnings", []))
+      report |> Map.get("warnings") |> list_or_empty() |> length()
     )
     |> expect_field_equals(
       path,
       report,
       "remediation_count",
-      length(Map.get(report, "remediation", []))
+      report |> Map.get("remediation") |> list_or_empty() |> length()
     )
   end
 
@@ -228,6 +228,9 @@ defmodule OrbitalDynamics.Schema.ValidationReportContracts do
 
   defp integer_or_zero(value) when is_integer(value), do: value
   defp integer_or_zero(_value), do: 0
+
+  defp list_or_empty(value) when is_list(value), do: value
+  defp list_or_empty(_value), do: []
 
   defp expect_field_equals(issues, path, map, field, nil),
     do: expect_field_equals(issues, path, map, field, nil, nil)
