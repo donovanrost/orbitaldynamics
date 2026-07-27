@@ -7,9 +7,12 @@ defmodule OrbitalDynamics.Schema.CampaignRepairProviderCounterofferReviewSummary
     artifact = read_json!("study_results/leo_constellation_campaign_repair_v2.json")
     source_summary = read_json!("study_results/provider_counteroffer_review_summary_v1.json")
 
-    %{
-      artifact: Map.put(artifact, "source_provider_counteroffer_review_summary", source_summary)
-    }
+    artifact =
+      artifact
+      |> Map.drop(["operator_review_package", "cadence_import_manifest"])
+      |> Map.put("source_provider_counteroffer_review_summary", source_summary)
+
+    %{artifact: artifact}
   end
 
   test "validates the optional V2 source provider counteroffer review summary", %{
