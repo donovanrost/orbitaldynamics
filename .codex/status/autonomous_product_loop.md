@@ -5,56 +5,53 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Bind Repair source link-capacity-report unmatched-selected and malformed-policy
-handoffs to their derived source evidence.
+Bind Repair source contact-allocation-report primary-row handoffs to their
+enclosing report rows.
 
 Status:
-Verified from clean published base `fb9270cb`; ready to publish.
+Verified from clean published base `fc0153d8`; ready to publish.
 
 Selection evidence:
-- Repair derives one resolution row for a non-empty unmatched-selected contact
-  collection and one for non-empty malformed policy station IDs.
-- A combined schema-valid audit report produces one operator review and one
-  Cadence import for `missing_downlink`, plus one of each for `bad station`.
-- Coordinated valid unmatched-selected ID drift across every operator, Cadence,
-  nested review, and embedded source copy is currently accepted while the
-  source report is unchanged.
+- Repair preserves a candidate-refresh `source_contact_allocation_report` and
+  emits one operator review plus one Cadence import per primary source row.
+- The producer identifies these rows with the exact
+  `campaign_repair.source_contact_allocation_report.rows` source and preserves
+  the full source row in the operator, Cadence, and nested review copies.
+- Coordinated `contact_status` drift across all three downstream copies is
+  currently accepted while the enclosing source report remains unchanged.
 
 Delivered behavior:
-- Reproduce the producer's one-row-per-non-empty-collection eligibility and
-  exact derived schema/source/count/ID evidence for both remaining identities.
-- Require the operator and both Cadence source identities to match the exact
-  corresponding selected-contact or malformed-policy resolution source.
+- Validate generated and source contact-allocation reports through the same
+  report-driven handoff path while retaining their distinct producer sources.
+- Require exact operator and Cadence source identities for every eligible
+  primary allocation row, including the nested Cadence review identity.
 - Require every present operator, Cadence, and nested source-review
-  `source_link_capacity` copy to equal the derived source evidence.
-- Preserve optional package/copy compatibility and producer behavior, completing
-  the direct Repair source link-capacity-report handoff surface.
+  `source_contact_allocation` copy to equal its corresponding enclosing report
+  row in producer order.
+- Preserve optional package and embedded-copy compatibility while closing the
+  source-report copy-drift gap.
 
 Verification:
-- Focused generated/source report, invalid-input, all six resolutions,
-  compact-summary, relay-summary, and all LinkCapacity handoff contracts: `30
-  passed`.
-- Adjacent link-capacity producer, replay, planner, operator-review, Cadence,
-  communication, and generic schema contracts: `129 passed`.
-- Expanded Repair contract suite: `478 passed` in `164.7s`.
-- Complete Repair planner suite: `225 passed`.
+- Focused generated and source contact-allocation handoff contracts: `6 passed`.
+- Adjacent allocation producer, candidate-refresh, operator-review, Cadence,
+  communication, and generic schema contracts: `228 passed`.
+- Expanded Repair contract suite: `481 passed` in `160.9s`.
+- Complete campaign-planner suite: `1884 passed` in `377.0s`.
 - Schema lint: `155` artifacts, `0` errors, `0` warnings, and `0`
   remediation items.
 - Canonical Repair and Strategy regeneration remained byte-identical at
   `cc41834e706fd1e04a4c5578032fdf99ceeba949a02fd75fc54c8b70cdc30d8a`
   and `57602722702969da587e2754df84bca1e06e86cc32fa5af7f3f78451b72f9985`.
-- Full suite: `5408 passed` in `678.7s`.
-- `mix format --check-formatted`, `git diff --check`, and
-  `git diff --cached --check` passed; scoped staged review found no unrelated
-  changes.
+- Full suite: `5411 passed` in `688.4s`.
 
 Level 6 pillar advanced:
 Fleet-scale candidate-pool integrity and operator-review evidence fidelity.
 
 Last published slice:
-- `fb9270cb` Bind Repair source link capacity resolutions (`5405 passed`;
-  unresolved actual-throughput and completion evidence now remains traceable
-  through operator review and Cadence import).
+- `fc0153d8` Complete Repair source link capacity handoffs (`5408 passed`; all
+  direct source-report rows, invalid inputs, resolution evidence, compact
+  summary, and relay summary handoffs now remain traceable through operator
+  review and Cadence import).
 
 Remaining maturity gaps:
 - Audit remaining generated and source handoffs where their complete producer
@@ -67,8 +64,8 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-Audit remaining Repair source handoff families after LinkCapacity coverage is
-complete.
+Audit Repair source contact-allocation summary handoffs after the primary-row
+boundary is complete.
 
 Blocked:
 None.
