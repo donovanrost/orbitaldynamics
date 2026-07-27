@@ -12,7 +12,7 @@ defmodule OrbitalDynamics.Schema.CampaignRepairStationReservationHandoffContract
       validate_source_identities: 6
     ]
 
-  @source "campaign_repair.source_station_reservation_report.affected_contacts"
+  @source "campaign_repair.source_station_reservation_report"
 
   def validate(issues, artifact) when is_map(artifact) do
     expected_rows = source_rows(artifact)
@@ -39,7 +39,7 @@ defmodule OrbitalDynamics.Schema.CampaignRepairStationReservationHandoffContract
       "$.operator_review_package.rows",
       length(review_rows),
       length(expected_sources),
-      "must contain one source station-reservation review row per affected contact"
+      "must contain the exact source station-reservation report review rows"
     )
     |> validate_source_identities(
       "$.operator_review_package.rows",
@@ -53,7 +53,7 @@ defmodule OrbitalDynamics.Schema.CampaignRepairStationReservationHandoffContract
       review_rows,
       source_reservations,
       [["source_station_reservation"]],
-      "must match the corresponding enclosing source station-reservation affected contact"
+      "must match the corresponding enclosing source station-reservation report row"
     )
   end
 
@@ -78,7 +78,7 @@ defmodule OrbitalDynamics.Schema.CampaignRepairStationReservationHandoffContract
       "$.cadence_import_manifest.rows",
       length(import_rows),
       length(expected_sources),
-      "must contain one source station-reservation import row per affected contact"
+      "must contain the exact source station-reservation report import rows"
     )
     |> validate_source_identities(
       "$.cadence_import_manifest.rows",
@@ -92,7 +92,7 @@ defmodule OrbitalDynamics.Schema.CampaignRepairStationReservationHandoffContract
       import_rows,
       source_reservations,
       [["source_station_reservation"], ["source_review_row", "source_station_reservation"]],
-      "must match the corresponding enclosing source station-reservation affected contact"
+      "must match the corresponding enclosing source station-reservation report row"
     )
   end
 
@@ -111,7 +111,17 @@ defmodule OrbitalDynamics.Schema.CampaignRepairStationReservationHandoffContract
       |> List.wrap()
       |> Enum.filter(&is_map/1)
 
-    StationReservation.rows(contacts, @source)
+    contention_groups =
+      report
+      |> Map.get("provider_calendar_contention_groups", [])
+      |> List.wrap()
+      |> Enum.filter(&is_map/1)
+
+    StationReservation.rows(contacts, "#{@source}.affected_contacts") ++
+      StationReservation.provider_contention_rows(
+        contention_groups,
+        "#{@source}.provider_calendar_contention_groups"
+      )
   end
 
   defp source_rows(_artifact), do: []
