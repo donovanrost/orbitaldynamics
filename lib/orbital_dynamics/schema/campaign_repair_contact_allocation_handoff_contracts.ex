@@ -50,6 +50,16 @@ defmodule OrbitalDynamics.Schema.CampaignRepairContactAllocationHandoffContracts
       label: "capacity-pack summary",
       row_fields: ["review_rows", "rows"],
       capacity_pack_groups: true
+    },
+    %{
+      singular_field: "source_contact_allocation_provider_reservation_request_summary",
+      plural_field: "source_contact_allocation_provider_reservation_request_summaries",
+      singular_prefix:
+        "campaign_repair.source_contact_allocation_provider_reservation_request_summary",
+      plural_prefix:
+        "campaign_repair.source_contact_allocation_provider_reservation_request_summaries",
+      label: "provider-reservation-request summary",
+      provider_reservation_requests: true
     }
   ]
   @summary_context_fields [
@@ -72,6 +82,18 @@ defmodule OrbitalDynamics.Schema.CampaignRepairContactAllocationHandoffContracts
     "reservation_conflict_contact_ids_by_direction_and_ground_station_id",
     "capacity_pack_review_status",
     "reduced_capacity_pack_group_count",
+    "assumptions"
+  ]
+  @provider_reservation_summary_context_fields [
+    "model",
+    "schema_contract",
+    "source_artifact_type",
+    "source",
+    "provider_reservation_candidate_contact_count",
+    "provider_reservation_request_contact_count",
+    "provider_reservation_review_contact_count",
+    "provider_reservation_no_request_contact_count",
+    "provider_reservation_request_status",
     "assumptions"
   ]
 
@@ -424,6 +446,34 @@ defmodule OrbitalDynamics.Schema.CampaignRepairContactAllocationHandoffContracts
        ),
        do: issues
 
+  defp source_summary_rows(
+         artifact,
+         %{provider_reservation_requests: true} = family
+       ) do
+    artifact
+    |> source_summaries(family)
+    |> Enum.flat_map(fn {summary, source_prefix} ->
+      source = "#{source_prefix}.provider_reservation_request_rows"
+
+      request_rows =
+        provider_reservation_summary_rows(
+          summary["provider_reservation_request_rows"],
+          "request_ready",
+          summary
+        )
+
+      review_rows =
+        provider_reservation_summary_rows(
+          summary["provider_reservation_review_rows"],
+          "review_required",
+          summary
+        )
+
+      Enum.map(request_rows ++ review_rows, &{&1, source})
+    end)
+    |> Enum.unzip()
+  end
+
   defp source_summary_rows(artifact, family) do
     artifact
     |> source_summaries(family)
@@ -434,6 +484,43 @@ defmodule OrbitalDynamics.Schema.CampaignRepairContactAllocationHandoffContracts
       end
     end)
     |> Enum.unzip()
+  end
+
+  defp provider_reservation_summary_rows(rows, status, summary) do
+    assumptions = Map.get(summary, "assumptions", %{})
+
+    summary_context =
+      summary
+      |> Map.take(@provider_reservation_summary_context_fields)
+      |> compact_map()
+
+    rows
+    |> List.wrap()
+    |> Enum.filter(&is_map/1)
+    |> Enum.map(fn row ->
+      row
+      |> Map.put("provider_reservation_request_status", status)
+      |> Map.put("provider_reservation_request_summary_model", summary["model"])
+      |> Map.put(
+        "provider_reservation_request_summary_schema_contract",
+        summary["schema_contract"]
+      )
+      |> Map.put(
+        "provider_reservation_request_source_artifact_type",
+        summary["source_artifact_type"]
+      )
+      |> Map.put("provider_reservation_request_source", summary["source"])
+      |> Map.put(
+        "provider_reservation_request_execution_boundary",
+        assumptions["execution_boundary"]
+      )
+      |> Map.put(
+        "provider_reservation_execution",
+        assumptions["provider_reservation_execution"]
+      )
+      |> Map.put("source_provider_reservation_request_summary", summary_context)
+      |> compact_map()
+    end)
   end
 
   defp source_summary_capacity_pack_rows(artifact, family) do
