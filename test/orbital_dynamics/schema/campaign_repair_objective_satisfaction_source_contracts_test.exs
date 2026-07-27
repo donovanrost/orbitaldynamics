@@ -4,7 +4,11 @@ defmodule OrbitalDynamics.Schema.CampaignRepairObjectiveSatisfactionSourceContra
   alias OrbitalDynamics.Schema
 
   setup do
-    artifact = read_json!("study_results/leo_constellation_campaign_repair_v2.json")
+    artifact =
+      "study_results/leo_constellation_campaign_repair_v2.json"
+      |> read_json!()
+      |> Map.drop(["operator_review_package", "cadence_import_manifest"])
+
     source_report = read_json!("study_results/objective_satisfaction_report_v1.json")
 
     %{artifact: Map.put(artifact, "source_objective_satisfaction_report", source_report)}
