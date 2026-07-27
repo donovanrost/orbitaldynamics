@@ -11,6 +11,14 @@ defmodule OrbitalDynamics.Schema.CampaignRepairHandoffValidation do
 
   def indexed_rows(_rows, _predicate), do: []
 
+  def indexed_sources(values, prefix) when is_list(values) do
+    values
+    |> Enum.with_index()
+    |> Enum.map(fn {_value, index} -> "#{prefix}[#{index}]" end)
+  end
+
+  def indexed_sources(_values, _prefix), do: []
+
   def indexed_sources(values, prefix, suffix) when is_list(values) do
     values
     |> Enum.with_index()
