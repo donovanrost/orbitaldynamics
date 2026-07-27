@@ -5,38 +5,42 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Bind Repair source resource-filter suppression handoffs to their enclosing
-report evidence.
+Bind Repair source resource-filter summary handoffs to their enclosing summary
+evidence.
 
 Status:
-Verified from clean published base `220032c4`; ready to publish.
+Verified from clean published base `568f76df`; ready to publish.
 
 Selection evidence:
-- Repair retains the candidate-refresh resource-filter report as
-  `source_resource_filter_report`.
-- The producer emits every `suppressed_candidates` row in report order with a
-  single family source identity and an exact `source_resource_suppression` copy.
+- Repair retains a candidate-refresh resource-filter summary as
+  `source_resource_filter_summary`.
+- The producer emits invalid resource-summary rows first, then every summary
+  `review_rows` suppression in report order, augmenting each evidence copy with
+  exact summary context.
 - Live validation accepts coordinated `.legacy` source-identity drift and
-  coordinated storage-margin drift across every review/import evidence copy
-  while the enclosing two-row source report remains unchanged.
+  coordinated embedded summary-count drift across every review/import evidence
+  copy while the enclosing two-row source summary remains unchanged.
 
 Delivered behavior:
-- Repair validation now replays the resource-suppression producer from the
-  enclosing source resource-filter report, including every map-shaped
-  suppressed candidate in report order.
-- When review/import packages are present, their source resource-filter rows
-  must preserve exact cardinality, order, source-family identity, and every
-  present `source_resource_suppression` evidence copy.
-- Two-row challenge coverage rejects independent or coordinated evidence
-  drift, `.legacy` source identity, missing rows, and stale downstream handoffs
-  while retaining additive-package and evidence-copy compatibility.
+- Repair validation now replays the complete resource-filter summary producer,
+  preserving invalid resource-summary rows before suppression review rows and
+  augmenting each expected evidence copy from the enclosing summary.
+- When review/import packages are present, their summary-derived rows must
+  preserve exact cardinality, order, source-family identity, and every present
+  `source_resource_suppression` evidence copy.
+- Challenge coverage rejects independent or coordinated summary-context drift,
+  `.legacy` source identity, missing rows, and stale downstream handoffs while
+  retaining additive-package and evidence-copy compatibility.
+- The standalone optional-source fixture now omits prebuilt additive packages,
+  so it continues testing the nested source schema without constructing stale
+  handoffs.
 
 Verification:
-- Focused source resource-filter handoff contract: `5 passed`.
-- Adjacent source/handoff contracts: `27 passed`.
-- Campaign Repair schema regression: `546 passed`.
+- Focused source resource-filter summary handoff contract: `6 passed`.
+- Adjacent source/handoff contracts: `32 passed`.
+- Campaign Repair schema regression: `552 passed`.
 - Repair planner regression: `225 passed`.
-- Full suite: `5473 passed` (seed `432506`).
+- Full suite: `5479 passed` (seed `88906`).
 - Schema lint: `155` artifacts passed, `0` errors, `0` warnings.
 - Canonical Repair and Strategy regeneration passed with stable byte hashes:
   `cc41834e706fd1e04a4c5578032fdf99ceeba949a02fd75fc54c8b70cdc30d8a`
@@ -47,7 +51,7 @@ Level 6 pillar advanced:
 Fleet-scale candidate-pool integrity and operator-review evidence fidelity.
 
 Last published slice:
-- `220032c4` Bind Repair source contact filter handoffs (`5468 passed`; source
+- `568f76df` Bind Repair source resource filter handoffs (`5473 passed`; source
   suppression eligibility, family identity, order, and evidence now remain
   exact through operator review and Cadence import).
 
@@ -62,8 +66,8 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-Audit Repair source resource-filter summary handoffs after the direct
-suppressed-candidate boundary is complete.
+Audit Repair source station-calendar affected-contact handoffs after the
+resource-filter summary boundary is complete.
 
 Blocked:
 None.
