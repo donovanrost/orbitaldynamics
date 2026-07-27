@@ -4,7 +4,10 @@ defmodule OrbitalDynamics.Schema.CampaignRepairContentionSourceContractsTest do
   alias OrbitalDynamics.Schema
 
   setup do
-    artifact = read_json!("study_results/leo_constellation_campaign_repair_v2.json")
+    artifact =
+      "study_results/leo_constellation_campaign_repair_v2.json"
+      |> read_json!()
+      |> Map.drop(["operator_review_package", "cadence_import_manifest"])
 
     resolution_report =
       get_in(artifact, [
