@@ -7,7 +7,12 @@ defmodule OrbitalDynamics.Schema.CampaignRepairLinkCapacitySourceContractsTest d
     artifact = read_json!("study_results/leo_constellation_campaign_repair_v2.json")
     source_report = read_json!("study_results/link_capacity_report_v1.json")
 
-    %{artifact: Map.put(artifact, "source_link_capacity_report", source_report)}
+    artifact =
+      artifact
+      |> Map.drop(["operator_review_package", "cadence_import_manifest"])
+      |> Map.put("source_link_capacity_report", source_report)
+
+    %{artifact: artifact}
   end
 
   test "validates the optional V2 source link-capacity report", %{artifact: artifact} do

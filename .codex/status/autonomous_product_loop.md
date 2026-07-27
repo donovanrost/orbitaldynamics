@@ -5,46 +5,44 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Bind Repair source relay-data-path-summary handoffs to their explicit route rows
-and exact derived summary context.
+Bind Repair source link-capacity-report primary-row handoffs to their enclosing
+report rows.
 
 Status:
-Verified from clean published base `c33b2e6c`; ready to publish.
+Verified from clean published base `cd7c32ff`; ready to publish.
 
 Selection evidence:
-- Repair emits one link-capacity review row per relay summary route, preserving
-  explicit row order under
-  `campaign_repair.source_relay_data_path_summary.rows`.
-- The checked-in summary produces two operator review and two Cadence import
-  rows, ordered from the relayed `dss_14` route to the direct `dss_35` route.
-- Both layers carry the enriched `source_link_capacity` route row. Coordinated
-  valid `route_count` drift across every embedded summary-context copy is
-  currently accepted while the source relay summary is unchanged.
+- Repair emits one link-capacity review row per primary source-report row,
+  preserving order under `campaign_repair.source_link_capacity_report.rows`.
+- The checked-in report produces exactly one operator review and one Cadence
+  import row for `equator_prime`.
+- Both layers carry the source `source_link_capacity` row. Coordinated valid
+  `effective_contact_count` drift across every embedded copy is currently
+  accepted while the source report is unchanged.
 
 Delivered behavior:
 - Require one Repair link-capacity review and one Cadence import per producer
-  relay route row, in producer order.
+  primary source-report row, in producer order.
 - Require the operator and both Cadence source identities to match the exact
-  shared relay-summary source.
+  shared primary-row source.
 - Require every present operator, Cadence, and nested source-review
-  `source_link_capacity` copy to equal its corresponding source row
-  enriched with the producer's exact compact summary context.
+  `source_link_capacity` copy to equal its corresponding enclosing report row.
 - Preserve optional package/copy compatibility and producer behavior while
-  reproducing the explicit route-row selection.
+  leaving the report's distinct auxiliary review identities unchanged.
 
 Verification:
-- Focused generated-report, compact-summary, relay-summary, and both summary
-  handoff contracts: `15 passed`.
-- Adjacent relay/link-capacity producer, replay, planner, operator-review,
-  Cadence, communication, and generic schema contracts: `129 passed`.
-- Expanded Repair contract suite: `466 passed` in `183.7s`.
+- Focused generated-report, source-report, compact-summary, relay-summary, and
+  all LinkCapacity handoff contracts: `21 passed`.
+- Adjacent link-capacity producer, replay, planner, operator-review, Cadence,
+  communication, and generic schema contracts: `129 passed`.
+- Expanded Repair contract suite: `469 passed` in `170.1s`.
 - Complete Repair planner suite: `225 passed`.
 - Schema lint: `155` artifacts, `0` errors, `0` warnings, and `0`
   remediation items.
 - Canonical Repair and Strategy regeneration remained byte-identical at
   `cc41834e706fd1e04a4c5578032fdf99ceeba949a02fd75fc54c8b70cdc30d8a`
   and `57602722702969da587e2754df84bca1e06e86cc32fa5af7f3f78451b72f9985`.
-- Full suite: `5396 passed` in `710.8s`.
+- Full suite: `5399 passed` in `713.9s`.
 - `mix format --check-formatted`, `git diff --check`, and
   `git diff --cached --check` passed; scoped staged review found no unrelated
   changes.
@@ -53,9 +51,9 @@ Level 6 pillar advanced:
 Fleet-scale candidate-pool integrity and operator-review evidence fidelity.
 
 Last published slice:
-- `c33b2e6c` Bind Repair source link capacity summary handoffs (`5393 passed`;
-  compact link-capacity evidence now remains traceable through operator review
-  and Cadence import).
+- `cd7c32ff` Bind Repair source relay data path handoffs (`5396 passed`; relay
+  route evidence now remains traceable through operator review and Cadence
+  import).
 
 Remaining maturity gaps:
 - Audit remaining generated and source handoffs where their complete producer
@@ -68,8 +66,8 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-Audit source link-capacity-report handoffs after relay-summary coverage is
-complete.
+Audit source link-capacity-report auxiliary invalid-input and resolution
+handoffs after primary-row coverage is complete.
 
 Blocked:
 None.
