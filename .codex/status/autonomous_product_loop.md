@@ -5,45 +5,41 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Bind Repair source timeline-diff summary handoffs to their enclosing summary.
+Bind Repair source timeline-integrity handoffs to their enclosing report rows.
 
 Status:
-Verified from clean published base `8e30d5ba`; ready to publish.
+Verified from clean published base `c73b9dfd`; ready to publish.
 
 Selection evidence:
-- Repair emits source timeline-diff summary reviews under the stable
-  `campaign_repair.source_timeline_diff_summary.review_rows` identity,
-  including only rows whose `requires_operator_review` flag is true.
-- The deterministic summary contains three review-required rows; a freshly
-  generated Repair artifact contains three matching operator reviews and three
-  Cadence imports in source order, each carrying both its source row and the
-  enclosing summary.
-- Existing timeline handoff contracts do not bind this summary stream. Changing
-  `rank` in a summary review and both source-row import copies is currently
-  accepted.
+- Repair emits source timeline-integrity reviews under the stable
+  `campaign_repair.source_timeline_integrity_report.rows` identity, with every
+  enclosing report row eligible for review and import.
+- The deterministic report contains one row; a freshly generated Repair
+  artifact contains one matching operator review and one Cadence import in
+  source order, each carrying the complete source integrity row.
+- Existing timeline handoff contracts do not bind this report stream. Changing
+  `rank` in the review copy and both import copies is currently accepted.
 
 Delivered behavior:
-- Require one Repair source timeline-diff summary review and import row per
-  enclosing review-required summary row, in producer order.
-- Require each review's `source_timeline_diff` and both import copies to equal
-  the corresponding summary review row.
-- Require each present `source_timeline_diff_summary` copy to equal the full
-  enclosing summary.
+- Require one Repair source timeline-integrity review and import row per
+  enclosing report row, in producer order.
+- Require each present review `source_timeline_integrity` copy and both import
+  copies to equal the corresponding enclosing report row.
 - Preserve optional package and embedded-copy compatibility while leaving the
-  summary schema, review filter, and producer behavior unchanged.
+  integrity schema and producer behavior unchanged.
 - Reuse the shared Repair handoff validation mechanics with source-specific
   identity and diagnostics.
 
 Verification:
-- Focused source timeline-diff summary handoff challenges: `6 passed`.
-- Adjacent timeline schema coverage: `63 passed`.
-- Expanded Repair schema coverage: `406 passed`.
+- Focused source timeline-integrity handoff challenges: `6 passed`.
+- Adjacent timeline schema coverage: `66 passed`.
+- Expanded Repair schema coverage: `412 passed`.
 - Direct Repair planner coverage: `225 passed`.
 - Saved-artifact lint: `155 artifacts`, zero errors, warnings, or remediation.
 - Canonical Repair and Strategy regeneration remained byte-identical
   (`cc41834e706fd1e04a4c5578032fdf99ceeba949a02fd75fc54c8b70cdc30d8a` and
   `57602722702969da587e2754df84bca1e06e86cc32fa5af7f3f78451b72f9985`).
-- Full suite: `5336 passed` in 756.0 seconds.
+- Full suite: `5339 passed` in 766.4 seconds.
 - `mix format --check-formatted` and `git diff --check` passed; scoped review
   found no unrelated changes.
 
@@ -51,8 +47,8 @@ Level 6 pillar advanced:
 Fleet-scale candidate-pool integrity and operator-review evidence fidelity.
 
 Last published slice:
-- `8e30d5ba` Bind Repair source timeline-diff handoffs (`5333 passed`;
-  CandidateRefresh timeline-diff report evidence now remains traceable through
+- `c73b9dfd` Bind Repair source timeline-diff summary handoffs (`5336 passed`;
+  CandidateRefresh timeline-diff summary evidence now remains traceable through
   operator review and Cadence import).
 
 Remaining maturity gaps:
@@ -66,7 +62,7 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-Audit remaining source timeline lifecycle handoffs after timeline-diff summary
+Audit source timeline lifecycle-state summary handoffs after integrity-report
 coverage is complete.
 
 Blocked:

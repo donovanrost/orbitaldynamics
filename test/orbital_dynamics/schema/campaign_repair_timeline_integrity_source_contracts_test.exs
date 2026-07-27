@@ -9,7 +9,12 @@ defmodule OrbitalDynamics.Schema.CampaignRepairTimelineIntegritySourceContractsT
     artifact = read_json!("study_results/leo_constellation_campaign_repair_v2.json")
     source_report = read_json!("study_results/timeline_integrity_report_v1.json")
 
-    %{artifact: Map.put(artifact, @source_field, source_report)}
+    artifact =
+      artifact
+      |> Map.drop(["operator_review_package", "cadence_import_manifest"])
+      |> Map.put(@source_field, source_report)
+
+    %{artifact: artifact}
   end
 
   test "validates the optional V2 source timeline-integrity report", %{artifact: artifact} do
