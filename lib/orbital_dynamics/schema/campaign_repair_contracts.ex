@@ -11,6 +11,7 @@ defmodule OrbitalDynamics.Schema.CampaignRepairContracts do
     CampaignRepairCandidateRejectionRankingContracts,
     CampaignRepairCadenceImportContracts,
     CampaignRepairCommandWindowContracts,
+    CampaignRepairCommandWindowHandoffContracts,
     CampaignRepairConstraintContracts,
     CampaignRepairContactAllocationContracts,
     CampaignRepairContactAllocationHandoffContracts,
@@ -236,6 +237,7 @@ defmodule OrbitalDynamics.Schema.CampaignRepairContracts do
       Map.get(artifact, "cadence_import_manifest")
     ])
     |> CampaignRepairCadenceImportContracts.validate(artifact)
+    |> CampaignRepairCommandWindowHandoffContracts.validate(artifact)
     |> CampaignRepairProvenanceHandoffContracts.validate(artifact)
     |> CampaignRepairApprovalHandoffContracts.validate(artifact)
     |> CampaignRepairPlanDeltaHandoffContracts.validate(artifact)
