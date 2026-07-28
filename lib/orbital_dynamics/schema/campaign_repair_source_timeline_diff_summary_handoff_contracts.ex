@@ -6,7 +6,9 @@ defmodule OrbitalDynamics.Schema.CampaignRepairSourceTimelineDiffSummaryHandoffC
 
   @repair_source_summary "campaign_repair.source_timeline_diff_summary.review_rows"
 
-  def validate(issues, %{"source_timeline_diff_summary" => %{} = summary} = artifact) do
+  def validate(issues, artifact) when is_map(artifact) do
+    summary = source_summary(artifact)
+
     reviewable_rows =
       summary
       |> Map.get("review_rows", [])
@@ -18,6 +20,9 @@ defmodule OrbitalDynamics.Schema.CampaignRepairSourceTimelineDiffSummaryHandoffC
   end
 
   def validate(issues, _artifact), do: issues
+
+  defp source_summary(%{"source_timeline_diff_summary" => %{} = summary}), do: summary
+  defp source_summary(_artifact), do: %{}
 
   defp validate_operator_review_handoff(
          issues,
