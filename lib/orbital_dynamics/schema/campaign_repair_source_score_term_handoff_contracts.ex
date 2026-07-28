@@ -6,14 +6,21 @@ defmodule OrbitalDynamics.Schema.CampaignRepairSourceScoreTermHandoffContracts d
 
   @repair_source_score_term "campaign_repair.source_score_term_report.rows"
 
-  def validate(issues, %{"source_score_term_report" => %{"rows" => rows}} = artifact)
-      when is_list(rows) do
+  def validate(issues, artifact) when is_map(artifact) do
+    rows = source_rows(artifact)
+
     issues
     |> validate_operator_review_handoff(artifact, rows)
     |> validate_cadence_handoff(artifact, rows)
   end
 
   def validate(issues, _artifact), do: issues
+
+  defp source_rows(%{"source_score_term_report" => %{"rows" => rows}})
+       when is_list(rows),
+       do: rows
+
+  defp source_rows(_artifact), do: []
 
   defp validate_operator_review_handoff(
          issues,
