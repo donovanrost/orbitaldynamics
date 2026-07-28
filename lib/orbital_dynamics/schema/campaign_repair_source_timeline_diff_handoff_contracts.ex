@@ -6,8 +6,8 @@ defmodule OrbitalDynamics.Schema.CampaignRepairSourceTimelineDiffHandoffContract
 
   @repair_source_timeline_diff "campaign_repair.source_timeline_diff_report.rows"
 
-  def validate(issues, %{"source_timeline_diff_report" => %{"rows" => rows}} = artifact)
-      when is_list(rows) do
+  def validate(issues, artifact) when is_map(artifact) do
+    rows = source_rows(artifact)
     reviewable_rows = Enum.filter(rows, &reviewable_timeline_diff?/1)
 
     issues
@@ -16,6 +16,12 @@ defmodule OrbitalDynamics.Schema.CampaignRepairSourceTimelineDiffHandoffContract
   end
 
   def validate(issues, _artifact), do: issues
+
+  defp source_rows(%{"source_timeline_diff_report" => %{"rows" => rows}})
+       when is_list(rows),
+       do: rows
+
+  defp source_rows(_artifact), do: []
 
   defp validate_operator_review_handoff(
          issues,

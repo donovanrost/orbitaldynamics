@@ -5,37 +5,38 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Reject stale Repair source timeline-preservation-report handoffs after their
-enclosing report is removed.
+Reject stale Repair source timeline-diff-report handoffs after their enclosing
+report is removed.
 
 Status:
-Verified from clean published base `23857ba2`; ready to publish.
+Verified from clean published base `7cfac026`; ready to publish.
 
 Selection evidence:
-- Repair can retain a `source_timeline_preservation_report` and emit one operator
-  review and Cadence-import row per enclosing report row.
+- Repair can retain a `source_timeline_diff_report` and emit one operator review
+  and Cadence-import row per review-required enclosing report row.
 - The handoff validator already recognizes the stable downstream source family
   but skips its entire check when the optional enclosing report is absent.
-- Live validation returns `:ok` after deleting the enclosing report while three
-  operator-review and three Cadence-import rows remain stale.
+- Live validation returns `:ok` after deleting the enclosing report while four
+  operator-review and four Cadence-import rows remain stale.
 
 Delivered behavior:
-- Repair validation now normalizes an absent timeline-preservation report source
-  to an empty report while still inspecting the stable downstream source family.
+- Repair validation now normalizes an absent timeline-diff report source to an
+  empty row set while still inspecting the stable downstream source family.
 - Operator-review and Cadence-import cardinality therefore stays tied to the
-  enclosing report rows even when the report disappears.
-- Exact source identity and optional preservation-row copies remain enforced,
-  including nested import copies, while additive packages stay optional.
-- Challenge coverage now rejects stale downstream preservation-report rows after
-  complete source-report deletion.
+  review-required report rows even when the enclosing report disappears.
+- Review-required filtering, exact source identity, and optional timeline-diff
+  row copies remain enforced, including nested import copies, while additive
+  packages and copies stay optional.
+- Challenge coverage now rejects stale downstream timeline-diff-report rows
+  after complete source-report deletion.
 
 Verification:
-- Focused source timeline-preservation-report handoff contracts: `3 passed`.
-- Combined preservation producer, replay, source, status, report, and handoff
-  contracts: `37 passed`.
+- Focused source timeline-diff-report handoff contracts: `3 passed`.
+- Combined timeline-diff producer, replay, operator-review, source, and handoff
+  contracts: `34 passed`.
 - Campaign Repair schema regression: `667 passed`.
 - Repair planner regression: `225 passed`.
-- Full suite: `5594 passed` (seed `205278`).
+- Full suite: `5594 passed` (seed `894132`).
 - Schema lint: `155` artifacts passed, `0` errors, `0` warnings.
 - Canonical Repair and Strategy regeneration passed with stable byte hashes:
   `cc41834e706fd1e04a4c5578032fdf99ceeba949a02fd75fc54c8b70cdc30d8a`
@@ -46,9 +47,9 @@ Level 6 pillar advanced:
 Fleet-scale candidate-pool integrity and operator-review evidence fidelity.
 
 Last published slice:
-- `23857ba2` Reject stale Repair validation batch handoffs (`5594 passed`;
-  nested schema-validation review/import rows can no longer outlive their
-  enclosing source batch).
+- `7cfac026` Reject stale Repair preservation report handoffs (`5594 passed`;
+  preservation review/import rows can no longer outlive their enclosing source
+  report).
 
 Remaining maturity gaps:
 - Audit remaining generated and source handoffs where their complete producer
