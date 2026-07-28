@@ -2,7 +2,12 @@ defmodule OrbitalDynamics.Schema.CampaignRepairScoreTermHandoffContracts do
   @moduledoc false
 
   import OrbitalDynamics.Schema.CampaignRepairHandoffValidation,
-    only: [indexed_rows: 2, validate_equal: 5, validate_source_copies: 6]
+    only: [
+      indexed_rows: 2,
+      validate_equal: 5,
+      validate_source_copies: 6,
+      validate_source_identities: 6
+    ]
 
   @repair_score_term_source "campaign_repair.score_term_report.rows"
 
@@ -56,6 +61,13 @@ defmodule OrbitalDynamics.Schema.CampaignRepairScoreTermHandoffContracts do
       length(import_rows),
       length(score_term_rows),
       "must contain one Repair score-term import row per enclosing report row"
+    )
+    |> validate_source_identities(
+      "$.cadence_import_manifest.rows",
+      import_rows,
+      List.duplicate(@repair_score_term_source, length(score_term_rows)),
+      [["source"], ["source_review_row", "source"]],
+      "must match the enclosing Repair score-term family"
     )
     |> validate_source_copies(
       "$.cadence_import_manifest.rows",
