@@ -3,6 +3,8 @@ defmodule OrbitalDynamics.Schema.CampaignRepairWarningHandoffContractsTest do
 
   alias OrbitalDynamics.Schema
 
+  @repair_warning_source "campaign_repair.warnings"
+
   setup do
     %{
       repair: read_json!("study_results/leo_constellation_campaign_repair_v2.json"),
@@ -41,6 +43,13 @@ defmodule OrbitalDynamics.Schema.CampaignRepairWarningHandoffContractsTest do
     review_index = warning_review_index(repair)
     cadence_index = warning_import_index(repair)
 
+    review_source_drift =
+      put_in(
+        repair,
+        ["operator_review_package", "rows", Access.at(review_index), "source"],
+        "campaign_plan.warnings"
+      )
+
     review_drift =
       put_in(
         repair,
@@ -68,6 +77,7 @@ defmodule OrbitalDynamics.Schema.CampaignRepairWarningHandoffContractsTest do
     invalid_cases = [
       {"$.operator_review_package.warning_count",
        put_in(repair, ["operator_review_package", "warning_count"], 4)},
+      {"$.operator_review_package.rows", review_source_drift},
       {"$.operator_review_package.rows[#{review_index}].reason", review_drift},
       {"$.cadence_import_manifest.rows[#{cadence_index}].reason", cadence_drift},
       {"$.cadence_import_manifest.rows[#{cadence_index}].source_review_row.reason", cadence_drift}
@@ -82,7 +92,8 @@ defmodule OrbitalDynamics.Schema.CampaignRepairWarningHandoffContractsTest do
   defp warning_review_index(repair) do
     Enum.find_index(
       get_in(repair, ["operator_review_package", "rows"]),
-      &(Map.get(&1, "review_type") == "warning")
+      &(Map.get(&1, "review_type") == "warning" and
+          Map.get(&1, "source") == @repair_warning_source)
     )
   end
 

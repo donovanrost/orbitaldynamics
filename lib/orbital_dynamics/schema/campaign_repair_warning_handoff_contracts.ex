@@ -3,6 +3,8 @@ defmodule OrbitalDynamics.Schema.CampaignRepairWarningHandoffContracts do
 
   import OrbitalDynamics.Schema.PrimitiveValidation, only: [error: 2]
 
+  @repair_warning_source "campaign_repair.warnings"
+
   def validate(issues, %{"warnings" => warnings} = artifact) when is_list(warnings) do
     issues
     |> validate_operator_review_handoff(artifact, warnings)
@@ -68,7 +70,10 @@ defmodule OrbitalDynamics.Schema.CampaignRepairWarningHandoffContracts do
 
   defp indexed_rows(_rows, _predicate), do: []
 
-  defp operator_warning_row?(row), do: Map.get(row, "review_type") == "warning"
+  defp operator_warning_row?(row) do
+    Map.get(row, "review_type") == "warning" and
+      Map.get(row, "source") == @repair_warning_source
+  end
 
   defp cadence_warning_row?(row) do
     Map.get(row, "source_review_type") == "warning" or
