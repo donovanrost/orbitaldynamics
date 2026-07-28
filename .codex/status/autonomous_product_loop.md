@@ -5,38 +5,38 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Reject stale Repair source timeline-publication handoffs after their enclosing
-summaries are removed.
+Reject stale heterogeneous Repair source timeline activity-state handoffs after
+their enclosing states are removed.
 
 Status:
-Verified from clean published base `17667bd4`; ready to publish.
+Verified from clean published base `97aacb47`; ready to publish.
 
 Selection evidence:
-- Repair can retain indexed `source_timeline_publication_summaries` and emit one
-  operator-review and Cadence-import row per enclosing summary.
-- The handoff validator filters downstream rows by the current expected-source
-  list instead of the stable source-family prefix.
-- Live validation returns `:ok` after deleting two enclosing summaries while
-  leaving all four derived review/import handoffs stale.
+- Repair can retain heterogeneous indexed `source_timeline_activity_states` and
+  emit one operator-review and Cadence-import row per enclosing state.
+- The handoff validator both filters downstream rows by the current
+  expected-source list and skips validation when the source list is absent.
+- Live validation returns `:ok` after either deleting all four enclosing states
+  or truncating them to one while leaving the derived handoffs stale.
 
 Delivered behavior:
-- Repair validation now normalizes an absent publication-summary source to an
-  empty expected list while still inspecting the stable downstream source
+- Repair validation now normalizes an absent heterogeneous activity-state source
+  to an empty expected list while still inspecting the stable downstream source
   family.
 - Operator-review and Cadence-import cardinality therefore stays tied to the
-  complete enclosing summary list even when that list shrinks or disappears.
-- Exact indexed source identity and optional source-summary copies remain
-  enforced, and additive review/import packages remain optional.
+  complete enclosing state list even when that list shrinks or disappears.
+- Exact indexed source identities and schema-specific optional state copies
+  remain enforced, and additive review/import packages remain optional.
 - Challenge coverage now rejects stale downstream rows after both complete
   source deletion and indexed-list truncation.
 
 Verification:
-- Focused source timeline-publication handoff contracts: `3 passed`.
-- Combined timeline-publication producer, replay, routing, source, and handoff
-  contracts: `16 passed`.
+- Focused heterogeneous activity-state handoff contracts: `3 passed`.
+- Combined activity-state producer, replay, source, and handoff contracts:
+  `38 passed`.
 - Campaign Repair schema regression: `667 passed`.
-- Campaign planner regression: `1884 passed`.
-- Full suite: `5594 passed` (seed `224745`).
+- Repair planner regression: `225 passed`.
+- Full suite: `5594 passed` (seed `572557`).
 - Schema lint: `155` artifacts passed, `0` errors, `0` warnings.
 - Canonical Repair and Strategy regeneration passed with stable byte hashes:
   `cc41834e706fd1e04a4c5578032fdf99ceeba949a02fd75fc54c8b70cdc30d8a`
@@ -47,9 +47,9 @@ Level 6 pillar advanced:
 Fleet-scale candidate-pool integrity and operator-review evidence fidelity.
 
 Last published slice:
-- `17667bd4` Bind Repair resource flow handoffs (`5594 passed`; normalized
-  resource-flow evidence now remains tied to its enclosing source summary through
-  review and import).
+- `97aacb47` Reject stale Repair publication handoffs (`5594 passed`; downstream
+  timeline-publication rows can no longer outlive or exceed their enclosing
+  indexed source summaries).
 
 Remaining maturity gaps:
 - Audit remaining generated and source handoffs where their complete producer
@@ -62,8 +62,8 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-Audit other indexed Repair source validators for filters that can hide stale
-handoffs when the enclosing list shrinks or disappears.
+Audit the remaining indexed lifecycle, precondition, and preservation-status
+source validators for the same stale-row escape.
 
 Blocked:
 None.

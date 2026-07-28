@@ -194,6 +194,11 @@ defmodule OrbitalDynamics.Schema.CampaignRepairSourceTimelineActivityStateHandof
         end
       )
 
+    stale_handoffs = Map.delete(repair, "source_timeline_activity_states")
+
+    stale_indexed_handoffs =
+      update_in(repair, ["source_timeline_activity_states"], &Enum.take(&1, 1))
+
     invalid_cases = [
       {"$.operator_review_package.rows", review_count_drift},
       {"$.cadence_import_manifest.rows", cadence_count_drift},
@@ -212,7 +217,11 @@ defmodule OrbitalDynamics.Schema.CampaignRepairSourceTimelineActivityStateHandof
       {"$.cadence_import_manifest.rows[#{status_import_index}].source_timeline_lifecycle_state",
        cadence_status_copy_drift},
       {"$.cadence_import_manifest.rows[#{status_import_index}].source_review_row.source_timeline_lifecycle_state",
-       cadence_status_copy_drift}
+       cadence_status_copy_drift},
+      {"$.operator_review_package.rows", stale_handoffs},
+      {"$.cadence_import_manifest.rows", stale_handoffs},
+      {"$.operator_review_package.rows", stale_indexed_handoffs},
+      {"$.cadence_import_manifest.rows", stale_indexed_handoffs}
     ]
 
     for {expected_path, invalid} <- invalid_cases do
