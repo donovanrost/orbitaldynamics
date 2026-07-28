@@ -3,8 +3,10 @@ defmodule OrbitalDynamics.Schema.CampaignRepairReplacementEligibilityContracts d
 
   alias OrbitalDynamics.CampaignPlanner.{
     ActivityIdentity,
+    ActivityTiming,
     RepairPolicySemantics,
-    RepairReplacementIntent
+    RepairReplacementIntent,
+    RepairSourceReports
   }
 
   alias OrbitalDynamics.Schema.CampaignRepairReplacementRankingVersion
@@ -17,10 +19,10 @@ defmodule OrbitalDynamics.Schema.CampaignRepairReplacementEligibilityContracts d
   ]
 
   def validate(issues, %{} = artifact) do
+    source_candidates = Map.get(artifact, "source_candidate_activities", [])
+
     source_candidates_by_id =
-      artifact
-      |> Map.get("source_candidate_activities", [])
-      |> source_candidates_by_id()
+      source_candidates_by_id(source_candidates)
 
     {degraded_modes, repair_policy} =
       degraded_context(
@@ -28,10 +30,16 @@ defmodule OrbitalDynamics.Schema.CampaignRepairReplacementEligibilityContracts d
         Map.get(artifact, "repair_policy")
       )
 
-    validate_activities(
-      issues,
+    issues
+    |> validate_activities(
       Map.get(artifact, "activities", []),
       source_candidates_by_id,
+      degraded_modes,
+      repair_policy
+    )
+    |> validate_isolated_ranking_completeness(
+      artifact,
+      source_candidates,
       degraded_modes,
       repair_policy
     )
@@ -230,5 +238,147 @@ defmodule OrbitalDynamics.Schema.CampaignRepairReplacementEligibilityContracts d
     else
       issues
     end
+  end
+
+  defp validate_isolated_ranking_completeness(
+         issues,
+         artifact,
+         source_candidates,
+         degraded_modes,
+         repair_policy
+       ) do
+    with {:ok, path, source_activity_id, source_context, rows, remaining_horizon, current_epoch_s} <-
+           isolated_ranking_context(artifact, repair_policy),
+         true <- replayable_source_candidates?(source_candidates),
+         {:ok, rejected_candidate_ids} <- rejected_candidate_ids(artifact) do
+      expected_candidate_ids =
+        eligible_isolated_candidate_ids(
+          source_candidates,
+          source_activity_id,
+          source_context,
+          remaining_horizon,
+          current_epoch_s,
+          degraded_modes,
+          repair_policy,
+          rejected_candidate_ids
+        )
+
+      ranked_candidate_ids =
+        rows
+        |> Enum.map(&Map.get(&1, "candidate_id"))
+        |> Enum.sort()
+
+      if ranked_candidate_ids == expected_candidate_ids do
+        issues
+      else
+        [
+          error(
+            path,
+            "must contain exactly the uniquely identified viable source candidates in the isolated repair intent"
+          )
+          | issues
+        ]
+      end
+    else
+      _not_replayable -> issues
+    end
+  end
+
+  defp isolated_ranking_context(artifact, repair_policy) do
+    case {
+      Map.get(artifact, "activities"),
+      Map.get(artifact, "deltas"),
+      Map.get(artifact, "preserved_activities"),
+      Map.get(artifact, "remaining_horizon"),
+      Map.get(artifact, "current_epoch_s")
+    } do
+      {[%{} = activity], [%{} = delta], [],
+       %{"starts_at_s" => horizon_start, "ends_at_s" => horizon_end} = remaining_horizon,
+       current_epoch_s}
+      when is_number(horizon_start) and is_number(horizon_end) and
+             is_number(current_epoch_s) and not is_nil(repair_policy) ->
+        {source_activity_id, source_context, rows} = ranking_context(activity)
+
+        if is_binary(source_activity_id) and Map.get(delta, "activity_id") == source_activity_id and
+             is_map(source_context) and is_list(rows) and Enum.all?(rows, &is_map/1) and
+             CampaignRepairReplacementRankingVersion.current?(rows) do
+          {:ok, "$.activities[0].repair.replacement_ranking.rows", source_activity_id,
+           source_context, rows, remaining_horizon, current_epoch_s}
+        else
+          :not_replayable
+        end
+
+      _other ->
+        :not_replayable
+    end
+  end
+
+  defp replayable_source_candidates?(candidates) when is_list(candidates) do
+    Enum.all?(candidates, fn
+      %{} = candidate ->
+        is_binary(Map.get(candidate, "id")) and
+          is_number(ActivityTiming.activity_raw_start(candidate)) and
+          is_number(ActivityTiming.activity_raw_end(candidate))
+
+      _candidate ->
+        false
+    end)
+  end
+
+  defp replayable_source_candidates?(_candidates), do: false
+
+  defp rejected_candidate_ids(artifact) do
+    case Map.get(artifact, "source_candidate_rejection_report") do
+      nil ->
+        {:ok, MapSet.new()}
+
+      %{"rows" => rows} = report when is_list(rows) ->
+        if Enum.all?(rows, &is_map/1) do
+          rejected_candidate_ids =
+            [report]
+            |> RepairSourceReports.candidate_rejection_rejected_candidate_ids()
+            |> MapSet.new()
+
+          {:ok, rejected_candidate_ids}
+        else
+          :not_replayable
+        end
+
+      _report ->
+        :not_replayable
+    end
+  end
+
+  defp eligible_isolated_candidate_ids(
+         source_candidates,
+         source_activity_id,
+         source_context,
+         remaining_horizon,
+         current_epoch_s,
+         degraded_modes,
+         repair_policy,
+         rejected_candidate_ids
+       ) do
+    source_candidates
+    |> Enum.reject(&(ActivityIdentity.activity_id(&1) == source_activity_id))
+    |> Enum.filter(&RepairReplacementIntent.eligible?(source_context, &1))
+    |> Enum.filter(fn candidate ->
+      ActivityTiming.within_remaining_horizon?(candidate, remaining_horizon)
+    end)
+    |> Enum.filter(fn candidate ->
+      ActivityTiming.activity_start(candidate) >= current_epoch_s
+    end)
+    |> Enum.reject(fn candidate ->
+      RepairPolicySemantics.degraded_incompatible?(candidate, degraded_modes, repair_policy)
+    end)
+    |> Enum.reject(fn candidate ->
+      MapSet.member?(rejected_candidate_ids, ActivityIdentity.activity_id(candidate))
+    end)
+    |> Enum.group_by(&ActivityIdentity.activity_id/1)
+    |> Enum.flat_map(fn
+      {candidate_id, [_candidate]} -> [candidate_id]
+      {_candidate_id, _duplicate_candidates} -> []
+    end)
+    |> Enum.sort()
   end
 end

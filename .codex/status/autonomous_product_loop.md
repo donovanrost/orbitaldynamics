@@ -5,41 +5,46 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Reject present wrong-source Repair approval-import handoffs.
+Require complete isolated Repair replacement rankings.
 
 Status:
-Verified from clean published base `11a0f7ca`; ready to publish.
+Verified from clean published base `a88ab2b4`; ready to publish.
 
 Selection evidence:
-- Repair approval imports intentionally omit a top-level source but carry the
-  stable `campaign_repair.approval_requirements` source in their optional nested
-  source-review row.
-- Live validation returns `:ok` when the optional nested source-review row is
-  absent, preserving a supported legacy shape.
-- Live validation also returns `:ok` after relabeling a present nested approval
-  source as `campaign_plan.approval_requirements` while copied requirement
-  evidence remains intact.
+- The replacement producer ranks every viable uniquely identified source
+  candidate within the preserved repair intent after temporal, rejection, and
+  degraded-mode filters.
+- A single-source Repair artifact with no preserved activities has no prior
+  accumulator, used-replacement, or overlap ambiguity, so its complete producer
+  eligibility set can be replayed from embedded evidence.
+- Live validation returns `:ok` after adding a second eligible unique source
+  candidate, normalizing all candidate-source counts and repair IDs, and leaving
+  the candidate absent from the one-row replacement ranking.
 
 Delivered behavior:
-- Repair validation now recognizes approval-import rows only when their source
-  review type or import action identifies the handoff and any present source
-  copy belongs to `campaign_repair.approval_requirements`.
-- A present wrong-source import can no longer satisfy expected approval-import
-  cardinality merely by retaining intact copied requirement evidence.
-- The canonical top-level-source-free shape and the legacy shape with no nested
-  source-review row remain supported by treating absent source identity as
-  compatible.
-- Challenge coverage now rejects a nested approval source relabeled as
-  `campaign_plan.approval_requirements` and explicitly accepts nested-copy
-  absence.
+- Repair validation now replays replacement eligibility for the unambiguous
+  single-source shape: one repaired activity, its one source delta, and no
+  preserved activities.
+- Current replacement rankings must contain exactly every uniquely identified
+  source candidate surviving source exclusion, preserved-intent, remaining-
+  horizon, current-epoch, degraded-mode, source-rejection, and duplicate-ID
+  filters.
+- Multi-repair artifacts remain outside the completeness rule until their prior
+  accumulator, used-replacement, selected-plan, and overlap state can be
+  reproduced without inference.
+- Challenge coverage rejects an omitted viable candidate after normalizing all
+  source counts and repair identities, while explicitly preserving the same
+  omission under the pre-pressure legacy ranking shape.
 
 Verification:
-- Focused approval handoff contracts: `3 passed`.
-- Adjacent approval, review, import, and schema contracts: `149 passed`.
-- Golden artifact regression: `12 passed`.
-- Campaign Repair schema regression: `667 passed`.
+- Focused replacement-ranking contracts: `10 passed`.
+- Adjacent replacement, selection, duplicate-feedback, and source-rejection
+  contracts: `17 passed`.
+- Timed-out schema-export case classified by focused rerun: `1 passed`, `15
+  excluded` in `19.5s` with the standard `120000ms` allowance.
+- Schema regression: `1073 passed`.
 - Campaign planner regression: `1884 passed`.
-- Full suite: `5594 passed` (seed `473761`).
+- Full suite: `5595 passed` (seed `157324`).
 - Schema lint: `155` artifacts passed, `0` errors, `0` warnings.
 - Canonical Repair and Strategy regeneration passed with stable byte hashes:
   `cc41834e706fd1e04a4c5578032fdf99ceeba949a02fd75fc54c8b70cdc30d8a`
@@ -50,9 +55,9 @@ Level 6 pillar advanced:
 Fleet-scale candidate-pool integrity and operator-review evidence fidelity.
 
 Last published slice:
-- `11a0f7ca` Reject wrong-source Repair warning imports (`5594 passed`;
-  warning imports can no longer satisfy Repair cardinality under a false source
-  family while retaining coordinated warning evidence).
+- `a88ab2b4` Reject wrong-source Repair approval imports (`5594 passed`;
+  present approval-import source copies must belong to Repair while source-free
+  canonical and legacy shapes remain valid).
 
 Remaining maturity gaps:
 - Audit remaining generated and source handoffs where their complete producer
@@ -67,8 +72,8 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-Audit other unqualified Cadence-import classifiers for optional source identity
-that can be enforced when present without rejecting legacy absence.
+Extend replacement-ranking completeness only where multi-repair producer state
+can be replayed without accumulator or overlap ambiguity.
 
 Blocked:
 None.

@@ -361,6 +361,43 @@ defmodule OrbitalDynamics.Schema.CampaignRepairReplacementRankingContractsTest d
              Schema.validate_artifact(legacy_started)
   end
 
+  test "requires complete viable candidate membership in isolated current rankings", context do
+    ranking_path = ranking_path(context.activity_index)
+    omitted_candidate = add_source_candidate(context, "dl_unranked", 520.0, 9.0)
+
+    assert {:error, report} = Schema.validate_artifact(omitted_candidate)
+
+    assert Enum.any?(
+             report["errors"],
+             &(&1["path"] == ranking_path <> ".rows" and
+                 &1["message"] ==
+                   "must contain exactly the uniquely identified viable source candidates in the isolated repair intent")
+           )
+
+    legacy_omission =
+      update_in(
+        omitted_candidate,
+        [
+          "activities",
+          Access.at(context.activity_index),
+          "repair",
+          "replacement_ranking",
+          "rows"
+        ],
+        fn rows ->
+          Enum.map(rows, fn row ->
+            Map.drop(row, [
+              "contact_intent_pressure_penalty",
+              "contact_contention_resolution_pressure_penalty"
+            ])
+          end)
+        end
+      )
+
+    assert {:ok, %{"schema_contract" => "campaign_repair.v2"}} =
+             Schema.validate_artifact(legacy_omission)
+  end
+
   test "rejects the preserved repair source as a current replacement candidate", context do
     ranking_path = ranking_path(context.activity_index)
 
@@ -671,7 +708,6 @@ defmodule OrbitalDynamics.Schema.CampaignRepairReplacementRankingContractsTest d
 
   defp add_unselected_candidate(context, candidate_id, starts_at_s, candidate_score) do
     ranking_path = ranking_path(context.activity_index)
-    [source_candidate] = context.artifact["source_candidate_activities"]
     [selected_row] = get_in_path(context.artifact, ranking_path <> ".rows")
 
     source_start =
@@ -684,15 +720,6 @@ defmodule OrbitalDynamics.Schema.CampaignRepairReplacementRankingContractsTest d
     move_cost = context.artifact["scoring_policy"]["schedule_move_cost_weight"]
     move_penalty = -(churn_s * move_cost)
 
-    candidate =
-      source_candidate
-      |> Map.put("id", candidate_id)
-      |> Map.put("starts_at_s", starts_at_s)
-      |> Map.put("ends_at_s", starts_at_s + source_candidate["duration_s"])
-      |> Map.put("score", candidate_score)
-      |> Map.put("score_terms", %{"contact_value" => candidate_score})
-      |> put_in(["cadence_import", "external_id"], candidate_id)
-
     row =
       selected_row
       |> Map.put("candidate_id", candidate_id)
@@ -703,12 +730,28 @@ defmodule OrbitalDynamics.Schema.CampaignRepairReplacementRankingContractsTest d
       |> Map.put("rank", 2)
       |> Map.put("selected", false)
 
+    context
+    |> add_source_candidate(candidate_id, starts_at_s, candidate_score)
+    |> put_in_path(ranking_path <> ".rows", [selected_row, row])
+    |> put_in_path(ranking_path <> ".evaluated_candidate_count", 2)
+  end
+
+  defp add_source_candidate(context, candidate_id, starts_at_s, candidate_score) do
+    [source_candidate] = context.artifact["source_candidate_activities"]
+
+    candidate =
+      source_candidate
+      |> Map.put("id", candidate_id)
+      |> Map.put("starts_at_s", starts_at_s)
+      |> Map.put("ends_at_s", starts_at_s + source_candidate["duration_s"])
+      |> Map.put("score", candidate_score)
+      |> Map.put("score_terms", %{"contact_value" => candidate_score})
+      |> put_in(["cadence_import", "external_id"], candidate_id)
+
     context.artifact
     |> Map.put("source_candidate_activities", [source_candidate, candidate])
     |> put_in(["repair_metadata", "candidate_window_count"], 2)
     |> put_candidate_source_count(2)
-    |> put_in_path(ranking_path <> ".rows", [selected_row, row])
-    |> put_in_path(ranking_path <> ".evaluated_candidate_count", 2)
   end
 
   defp put_candidate_source_count(artifact, count) do
