@@ -7,14 +7,12 @@ defmodule OrbitalDynamics.Schema.CampaignRepairOperationalQualityGateSummarySour
     artifact = read_json!("study_results/leo_constellation_campaign_repair_v2.json")
     source_summary = read_json!("study_results/operational_quality_gate_summary_v1.json")
 
-    %{
-      artifact:
-        Map.put(
-          artifact,
-          "source_operational_quality_gate_summary",
-          source_summary
-        )
-    }
+    artifact =
+      artifact
+      |> Map.put("source_operational_quality_gate_summary", source_summary)
+      |> Map.drop(["operator_review_package", "cadence_import_manifest"])
+
+    %{artifact: artifact}
   end
 
   test "validates the optional V2 source operational quality-gate summary", %{
