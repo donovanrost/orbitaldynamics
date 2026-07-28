@@ -6,8 +6,8 @@ defmodule OrbitalDynamics.Schema.CampaignRepairGeneratedConstraintHandoffContrac
 
   @repair_constraint "campaign_repair.constraint_report.rows"
 
-  def validate(issues, %{"constraint_report" => %{"rows" => rows}} = artifact)
-      when is_list(rows) do
+  def validate(issues, artifact) when is_map(artifact) do
+    rows = source_rows(artifact)
     reviewable_rows = Enum.filter(rows, &reviewable_constraint?/1)
 
     issues
@@ -16,6 +16,11 @@ defmodule OrbitalDynamics.Schema.CampaignRepairGeneratedConstraintHandoffContrac
   end
 
   def validate(issues, _artifact), do: issues
+
+  defp source_rows(%{"constraint_report" => %{"rows" => rows}}) when is_list(rows),
+    do: rows
+
+  defp source_rows(_artifact), do: []
 
   defp validate_operator_review_handoff(
          issues,
