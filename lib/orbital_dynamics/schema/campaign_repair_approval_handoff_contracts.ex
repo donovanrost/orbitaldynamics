@@ -77,7 +77,13 @@ defmodule OrbitalDynamics.Schema.CampaignRepairApprovalHandoffContracts do
   end
 
   defp cadence_approval_row?(row) do
-    Map.get(row, "source_review_type") == "approval_requirement" or
-      Map.get(row, "import_action") == "review_approval_requirement"
+    (Map.get(row, "source_review_type") == "approval_requirement" or
+       Map.get(row, "import_action") == "review_approval_requirement") and
+      cadence_approval_source?(row)
+  end
+
+  defp cadence_approval_source?(row) do
+    source = Map.get(row, "source") || get_in(row, ["source_review_row", "source"])
+    source in [nil, @repair_approval_source]
   end
 end

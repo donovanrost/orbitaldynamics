@@ -5,41 +5,41 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Reject Repair warning-import handoffs with the wrong source family.
+Reject present wrong-source Repair approval-import handoffs.
 
 Status:
-Verified from clean published base `f43a503c`; ready to publish.
+Verified from clean published base `11a0f7ca`; ready to publish.
 
 Selection evidence:
-- Repair warning imports carry the stable `campaign_repair.warnings` source at
-  the top level and in their optional nested source-review row.
-- The handoff validator currently identifies warning imports by source review
-  type or import action only, so source-family identity is not part of
-  cardinality enforcement.
-- Live validation returns `:ok` after changing both source copies on a checked
-  Repair warning import to `campaign_plan.warnings` while its warning reason
-  remains intact.
+- Repair approval imports intentionally omit a top-level source but carry the
+  stable `campaign_repair.approval_requirements` source in their optional nested
+  source-review row.
+- Live validation returns `:ok` when the optional nested source-review row is
+  absent, preserving a supported legacy shape.
+- Live validation also returns `:ok` after relabeling a present nested approval
+  source as `campaign_plan.approval_requirements` while copied requirement
+  evidence remains intact.
 
 Delivered behavior:
-- Repair validation now recognizes warning-import rows only when their source
-  review type or import action and stable `campaign_repair.warnings` top-level
-  source jointly identify the canonical handoff.
-- A wrong-source import can no longer satisfy expected warning-import
-  cardinality merely by retaining its warning reason and coordinated nested
-  source copy.
-- The existing legacy shape with no nested source-review row remains supported
-  because its stable top-level source is retained.
-- Challenge coverage now rejects a warning import whose top-level and nested
-  sources are both relabeled as `campaign_plan.warnings`.
+- Repair validation now recognizes approval-import rows only when their source
+  review type or import action identifies the handoff and any present source
+  copy belongs to `campaign_repair.approval_requirements`.
+- A present wrong-source import can no longer satisfy expected approval-import
+  cardinality merely by retaining intact copied requirement evidence.
+- The canonical top-level-source-free shape and the legacy shape with no nested
+  source-review row remain supported by treating absent source identity as
+  compatible.
+- Challenge coverage now rejects a nested approval source relabeled as
+  `campaign_plan.approval_requirements` and explicitly accepts nested-copy
+  absence.
 
 Verification:
-- Focused warning handoff contracts: `3 passed`.
-- Adjacent warning, review, import, candidate-refresh, and schema contracts:
-  `140 passed`.
+- Focused approval handoff contracts: `3 passed`.
+- Adjacent approval, review, import, and schema contracts: `149 passed`.
 - Golden artifact regression: `12 passed`.
 - Campaign Repair schema regression: `667 passed`.
 - Campaign planner regression: `1884 passed`.
-- Full suite: `5594 passed` (seed `54871`).
+- Full suite: `5594 passed` (seed `473761`).
 - Schema lint: `155` artifacts passed, `0` errors, `0` warnings.
 - Canonical Repair and Strategy regeneration passed with stable byte hashes:
   `cc41834e706fd1e04a4c5578032fdf99ceeba949a02fd75fc54c8b70cdc30d8a`
@@ -50,9 +50,9 @@ Level 6 pillar advanced:
 Fleet-scale candidate-pool integrity and operator-review evidence fidelity.
 
 Last published slice:
-- `f43a503c` Reject wrong-source Repair warning handoffs (`5594 passed`;
-  operator-review rows can no longer satisfy warning cardinality under a false
-  source family while retaining the warning reason).
+- `11a0f7ca` Reject wrong-source Repair warning imports (`5594 passed`;
+  warning imports can no longer satisfy Repair cardinality under a false source
+  family while retaining coordinated warning evidence).
 
 Remaining maturity gaps:
 - Audit remaining generated and source handoffs where their complete producer
@@ -67,8 +67,8 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-Audit approval-import nested source identity separately while preserving its
-top-level-source-free canonical and legacy shapes.
+Audit other unqualified Cadence-import classifiers for optional source identity
+that can be enforced when present without rejecting legacy absence.
 
 Blocked:
 None.

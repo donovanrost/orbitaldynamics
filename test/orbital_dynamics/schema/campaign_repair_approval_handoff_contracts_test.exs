@@ -44,8 +44,17 @@ defmodule OrbitalDynamics.Schema.CampaignRepairApprovalHandoffContractsTest do
         end
       )
 
-    assert {:ok, %{"schema_contract" => "campaign_repair.v2"}} =
-             Schema.validate_artifact(older)
+    legacy_without_review_copy =
+      update_in(
+        repair,
+        ["cadence_import_manifest", "rows", Access.at(cadence_index)],
+        &Map.delete(&1, "source_review_row")
+      )
+
+    for artifact <- [older, legacy_without_review_copy] do
+      assert {:ok, %{"schema_contract" => "campaign_repair.v2"}} =
+               Schema.validate_artifact(artifact)
+    end
   end
 
   test "rejects Repair approval review handoff drift", %{repair: repair} do
@@ -56,6 +65,19 @@ defmodule OrbitalDynamics.Schema.CampaignRepairApprovalHandoffContractsTest do
       put_in(
         repair,
         ["operator_review_package", "rows", Access.at(review_index), "source"],
+        "campaign_plan.approval_requirements"
+      )
+
+    cadence_source_drift =
+      put_in(
+        repair,
+        [
+          "cadence_import_manifest",
+          "rows",
+          Access.at(cadence_index),
+          "source_review_row",
+          "source"
+        ],
         "campaign_plan.approval_requirements"
       )
 
@@ -90,6 +112,7 @@ defmodule OrbitalDynamics.Schema.CampaignRepairApprovalHandoffContractsTest do
       {"$.operator_review_package.approval_requirement_count",
        put_in(repair, ["operator_review_package", "approval_requirement_count"], 2)},
       {"$.operator_review_package.rows", review_source_drift},
+      {"$.cadence_import_manifest.rows", cadence_source_drift},
       {"$.operator_review_package.rows[#{review_index}].source_requirement", review_drift},
       {"$.cadence_import_manifest.rows[#{cadence_index}].source_requirement", cadence_drift}
     ]
@@ -111,7 +134,8 @@ defmodule OrbitalDynamics.Schema.CampaignRepairApprovalHandoffContractsTest do
   defp approval_import_index(repair) do
     Enum.find_index(
       get_in(repair, ["cadence_import_manifest", "rows"]),
-      &(Map.get(&1, "source_review_type") == "approval_requirement")
+      &(Map.get(&1, "source_review_type") == "approval_requirement" and
+          get_in(&1, ["source_review_row", "source"]) == @repair_approval_source)
     )
   end
 
