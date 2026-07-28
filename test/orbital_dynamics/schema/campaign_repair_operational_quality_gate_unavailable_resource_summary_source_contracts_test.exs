@@ -9,14 +9,12 @@ defmodule OrbitalDynamics.Schema.CampaignRepairOperationalQualityGateUnavailable
     source_summary =
       read_json!("study_results/operational_quality_gate_unavailable_resource_summary_v1.json")
 
-    %{
-      artifact:
-        Map.put(
-          artifact,
-          "source_operational_quality_gate_unavailable_resource_summary",
-          source_summary
-        )
-    }
+    artifact =
+      artifact
+      |> Map.put("source_operational_quality_gate_unavailable_resource_summary", source_summary)
+      |> Map.drop(["operator_review_package", "cadence_import_manifest"])
+
+    %{artifact: artifact}
   end
 
   test "validates the optional V2 source unavailable-resource quality-gate summary", %{

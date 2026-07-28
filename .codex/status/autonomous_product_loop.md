@@ -5,16 +5,17 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Bind Repair source operational-quality-gate handoffs to their enclosing
-summary evidence.
+Bind Repair source operational-quality-gate unavailable-resource handoffs to
+their enclosing summary evidence.
 
 Status:
-Verified from clean published base `47120c1b`; ready to publish.
+Verified from clean published base `dae8ab2a`; ready to publish.
 
 Selection evidence:
-- Repair optionally retains a `source_operational_quality_gate_summary`.
-- The authoritative quality-gate review producer deterministically emits three
-  review-only rows from the persisted summary, with normalized source-row and
+- Repair optionally retains a
+  `source_operational_quality_gate_unavailable_resource_summary`.
+- The authoritative quality-gate review producer deterministically emits one
+  review-required resource-availability row, with normalized resource and
   source-report evidence.
 - Live validation accepts coordinated operator-authority drift across every
   operator and Cadence source-report projection while the enclosing summary
@@ -22,29 +23,28 @@ Selection evidence:
 
 Delivered behavior:
 - Repair validation now replays the exact quality-gate review normalization for
-  source operational-quality-gate summaries.
-- The direct quality-gate validator now exposes one shared field/prefix replay
-  path, preserving its published source-report behavior while avoiding a
-  second normalization implementation.
-- When review/import packages are present, summary-derived rows must preserve
-  exact cardinality, order, source identity, and every present normalized
-  source-row or source-report evidence copy.
-- Challenge coverage rejects independent row/report drift, coordinated
+  source unavailable-resource summaries through the shared producer path.
+- The summary-derived resource-availability row must preserve exact
+  cardinality, order, and its no-`.rows` source identity whenever additive
+  review/import packages are present.
+- Every present normalized source-row or source-report evidence copy must match
+  the enclosing summary, including resource-pressure context.
+- Challenge coverage rejects independent resource/report drift, coordinated
   operator-authority drift, `.legacy` source identity, missing rows, and stale
   downstream handoffs while retaining additive-package and evidence-copy
   compatibility.
 - The nested source-schema fixture now omits prebuilt additive packages after
-  injecting a quality-gate summary, preserving its source-schema scope without
-  constructing stale handoffs.
+  injecting an unavailable-resource summary, preserving its source-schema
+  scope without constructing stale handoffs.
 
 Verification:
-- Focused direct-report, source-schema, and summary handoff contracts:
-  `11 passed`.
+- Focused direct, general-summary, unavailable-resource source, and handoff
+  contracts: `16 passed`.
 - Adjacent Operator Review, Cadence import, and Repair source-routing contracts:
   `32 passed`.
-- Campaign Repair schema regression: `642 passed`.
+- Campaign Repair schema regression: `647 passed`.
 - Repair planner regression: `225 passed`.
-- Full suite: `5569 passed` (seed `501721`).
+- Full suite: `5574 passed` (seed `826438`).
 - Schema lint: `155` artifacts passed, `0` errors, `0` warnings.
 - Canonical Repair and Strategy regeneration passed with stable byte hashes:
   `cc41834e706fd1e04a4c5578032fdf99ceeba949a02fd75fc54c8b70cdc30d8a`
@@ -55,9 +55,9 @@ Level 6 pillar advanced:
 Fleet-scale candidate-pool integrity and operator-review evidence fidelity.
 
 Last published slice:
-- `47120c1b` Bind Repair execution-boundary handoffs (`5564 passed`; normalized
-  operational-readiness evidence now remains tied to the enclosing execution
-  boundary through review and import).
+- `dae8ab2a` Bind Repair quality-gate summary handoffs (`5569 passed`; exact
+  normalized quality-gate rows and reports now remain tied to their enclosing
+  source summary through review and import).
 
 Remaining maturity gaps:
 - Audit remaining generated and source handoffs where their complete producer
@@ -70,8 +70,8 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-Audit Repair source operational-quality-gate unavailable-resource summary
-handoffs after the quality-gate summary boundary is complete.
+Audit Repair source operational-quality-gate operator-training summary handoffs
+after the unavailable-resource boundary is complete.
 
 Blocked:
 None.
