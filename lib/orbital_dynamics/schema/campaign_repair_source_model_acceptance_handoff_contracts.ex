@@ -33,7 +33,8 @@ defmodule OrbitalDynamics.Schema.CampaignRepairSourceModelAcceptanceHandoffContr
     "model_limits"
   ]
 
-  def validate(issues, %{"source_model_acceptance_report" => %{} = report} = artifact) do
+  def validate(issues, artifact) when is_map(artifact) do
+    report = source_report(artifact)
     source_rows = reviewable_rows(report)
     expected_sources = List.duplicate(@repair_source, length(source_rows))
     report_contexts = List.duplicate(Map.take(report, @context_fields), length(source_rows))
@@ -48,6 +49,9 @@ defmodule OrbitalDynamics.Schema.CampaignRepairSourceModelAcceptanceHandoffContr
   end
 
   def validate(issues, _artifact), do: issues
+
+  defp source_report(%{"source_model_acceptance_report" => %{} = report}), do: report
+  defp source_report(_artifact), do: %{}
 
   defp validate_operator_review_handoff(
          issues,
