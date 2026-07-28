@@ -5,38 +5,39 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Require complete replayable one-ranking multi-activity Repair handoffs.
+Require complete replayable one-output multi-source Repair rankings.
 
 Status:
-Verified from clean published base `04cd4085`; ready to publish.
+Verified from clean published base `90ac0bcb`; ready to publish.
 
 Selection evidence:
-- A multi-activity artifact with one preserved activity and one replacement has
-  the same complete source-plan order, unique output-source joins, and
-  reconstructable prior accumulator state as the multi-ranking shape.
-- Its preserved activity correctly excludes an overlapping source candidate
-  while leaving two separate viable candidates in the sole current ranking.
-- Live validation still returns `:ok` after removing one of those viable
-  candidates and normalizing the ranking's evaluated count.
+- Complete source-plan snapshots establish producer order, while unique final
+  output-source joins identify every activity that actually contributed to the
+  accumulator.
+- An earlier canceled source produces a delta but no final activity, so it
+  contributes no accumulator overlap; the sole later replacement ranking still
+  contains three viable candidates.
+- Live validation returns `:ok` after removing one viable candidate from that
+  one-output/two-source artifact and normalizing the evaluated count.
 
 Delivered behavior:
-- Replayed completeness now activates for any multi-activity artifact with at
-  least one current replacement ranking and otherwise complete source-plan,
-  output-source, candidate, policy, and timing evidence.
-- The existing source-order reconstruction supplies prior preserved and
-  replacement accumulator activities even when only one output carries a
-  ranking.
-- Challenge coverage accepts a candidate excluded for overlap with an earlier
-  preserved activity while rejecting omission of a separate viable candidate
-  from the sole current ranking.
+- Replayed completeness now activates for nonempty final activity sets backed by
+  more than one complete source-plan snapshot, even when only the replacement
+  activity remains in the final plan.
+- Sources without associated final outputs correctly contribute neither an
+  accumulator activity nor a used replacement ID; producer ordering and all
+  other candidate exclusions remain unchanged.
+- Challenge coverage proves a prior canceled source contributes no overlap,
+  accepts its three-candidate producer ranking, and rejects omission of one
+  viable candidate from the one-output artifact.
 
 Verification:
-- Focused ranking and producer contracts: `15 passed`.
+- Focused ranking and producer contracts: `16 passed`.
 - Adjacent replacement, resource-projection, source-feedback, source-handoff,
-  and source-rejection contracts: `32 passed`.
+  and source-rejection contracts: `33 passed`.
 - Schema regression: `1073 passed`.
-- Campaign planner regression: `1887 passed`.
-- Full suite: `5598 passed` (seed `648130`).
+- Campaign planner regression: `1888 passed`.
+- Full suite: `5599 passed` (seed `253421`).
 - Schema lint: `155` artifacts passed, `0` errors, `0` warnings.
 - Canonical Repair and Strategy regeneration passed with stable byte hashes:
   `cc41834e706fd1e04a4c5578032fdf99ceeba949a02fd75fc54c8b70cdc30d8a`
@@ -47,9 +48,9 @@ Level 6 pillar advanced:
 Fleet-scale candidate-pool integrity and operator-review evidence fidelity.
 
 Last published slice:
-- `04cd4085` Require complete replayable multi-Repair rankings (`5597 passed`;
-  later Repair rankings now replay prior accumulator, used-replacement, and
-  overlap exclusions while preserving legacy rows).
+- `90ac0bcb` Require complete replayable single Repair ranking (`5598 passed`;
+  one-ranking multi-activity artifacts now enforce viable membership while
+  honoring preserved accumulator overlaps).
 
 Remaining maturity gaps:
 - Audit remaining generated and source handoffs where their complete producer
@@ -64,8 +65,8 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-Extend replayed completeness to one-output artifacts with multiple source
-deltas where non-output accumulator state remains reconstructable.
+Extract replacement-completeness replay from row-level eligibility validation
+after the producer contract is fully covered.
 
 Blocked:
 None.

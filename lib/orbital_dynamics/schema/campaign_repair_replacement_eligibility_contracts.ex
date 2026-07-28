@@ -411,7 +411,8 @@ defmodule OrbitalDynamics.Schema.CampaignRepairReplacementEligibilityContracts d
 
   defp multi_ranking_context(artifact, source_plan_context, repair_policy) do
     with activities when is_list(activities) <- Map.get(artifact, "activities"),
-         true <- length(activities) > 1,
+         true <- activities != [],
+         true <- length(source_plan_context.activities) > 1,
          %{"starts_at_s" => horizon_start, "ends_at_s" => horizon_end} = remaining_horizon
          when is_number(horizon_start) and is_number(horizon_end) <-
            Map.get(artifact, "remaining_horizon"),

@@ -287,6 +287,72 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairMissedDownlinkCandidateSelection
            )
   end
 
+  test "validation requires a complete one-output ranking with replayable canceled state" do
+    artifact =
+      repair(
+        %{
+          "activities" => [
+            downlink("dl_canceled", 200.0, 260.0),
+            downlink("dl_source", 300.0, 360.0)
+          ],
+          "candidate_activities" => [
+            refreshed_downlink("dl_window", 220.0, 280.0),
+            refreshed_downlink("dl_2", 500.0, 560.0),
+            refreshed_downlink("dl_3", 600.0, 660.0)
+          ]
+        },
+        realized_state: %{
+          activities: [
+            %{id: "dl_canceled", status: "canceled"},
+            %{id: "dl_source", status: "missed"}
+          ]
+        },
+        current_epoch_s: 165.0
+      )
+
+    assert [%{"id" => "dl_window"}] = artifact["activities"]
+    assert artifact["preserved_activities"] == []
+
+    assert Enum.map(artifact["deltas"], &{&1["activity_id"], &1["repair_action"]}) == [
+             {"dl_canceled", "canceled"},
+             {"dl_source", "moved"}
+           ]
+
+    ranking_path = "$.activities[0].repair.replacement_ranking"
+    rows = get_in(artifact, ["activities", Access.at(0), "repair", "replacement_ranking", "rows"])
+
+    assert Enum.map(rows, & &1["candidate_id"]) == ["dl_window", "dl_2", "dl_3"]
+
+    assert {:ok, %{"schema_contract" => "campaign_repair.v2", "status" => "pass"}} =
+             Schema.validate_artifact(artifact)
+
+    invalid =
+      artifact
+      |> put_in(
+        ["activities", Access.at(0), "repair", "replacement_ranking", "rows"],
+        Enum.drop(rows, -1)
+      )
+      |> put_in(
+        [
+          "activities",
+          Access.at(0),
+          "repair",
+          "replacement_ranking",
+          "evaluated_candidate_count"
+        ],
+        2
+      )
+
+    assert {:error, report} = Schema.validate_artifact(invalid)
+
+    assert Enum.any?(
+             report["errors"],
+             &(&1["path"] == ranking_path <> ".rows" and
+                 &1["message"] ==
+                   "must contain exactly the uniquely identified viable source candidates in the replayable repair intent")
+           )
+  end
+
   test "repair moves a missed planned-contact downlink to a later planned-contact window" do
     missed_planned_contact =
       "planned_dl_1"
