@@ -13,7 +13,8 @@ defmodule OrbitalDynamics.Schema.CampaignRepairSourceTimelinePreservationReportH
   @repair_source_prefix "campaign_repair.source_timeline_preservation_report"
   @repair_source @repair_source_prefix <> ".rows"
 
-  def validate(issues, %{"source_timeline_preservation_report" => %{} = report} = artifact) do
+  def validate(issues, artifact) when is_map(artifact) do
+    report = source_report(artifact)
     source_rows = report_rows(report)
     expected_sources = List.duplicate(@repair_source, length(source_rows))
 
@@ -23,6 +24,9 @@ defmodule OrbitalDynamics.Schema.CampaignRepairSourceTimelinePreservationReportH
   end
 
   def validate(issues, _artifact), do: issues
+
+  defp source_report(%{"source_timeline_preservation_report" => %{} = report}), do: report
+  defp source_report(_artifact), do: %{}
 
   defp validate_operator_review_handoff(
          issues,
