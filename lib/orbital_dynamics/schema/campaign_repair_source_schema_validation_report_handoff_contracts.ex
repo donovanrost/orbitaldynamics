@@ -12,7 +12,8 @@ defmodule OrbitalDynamics.Schema.CampaignRepairSourceSchemaValidationReportHando
 
   @repair_source_prefix "campaign_repair.source_schema_validation_report"
 
-  def validate(issues, %{"source_schema_validation_report" => %{} = report} = artifact) do
+  def validate(issues, artifact) when is_map(artifact) do
+    report = source_report(artifact)
     evidence = source_evidence(report)
     sources = Enum.map(evidence, & &1.source)
     source_issues = Enum.map(evidence, & &1.issue)
@@ -37,6 +38,9 @@ defmodule OrbitalDynamics.Schema.CampaignRepairSourceSchemaValidationReportHando
   end
 
   def validate(issues, _artifact), do: issues
+
+  defp source_report(%{"source_schema_validation_report" => %{} = report}), do: report
+  defp source_report(_artifact), do: %{}
 
   defp validate_operator_review_handoff(
          issues,

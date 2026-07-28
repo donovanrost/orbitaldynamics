@@ -205,6 +205,8 @@ defmodule OrbitalDynamics.Schema.CampaignRepairSourceSchemaValidationReportHando
       |> put_in(["source_schema_validation_report", "warnings"], [])
       |> put_in(["source_schema_validation_report", "warning_count"], 0)
 
+    stale_handoffs = Map.delete(repair, "source_schema_validation_report")
+
     invalid_cases = [
       {"$.operator_review_package.rows[#{review_index}].source", review_source_drift},
       {"$.cadence_import_manifest.rows[#{import_index}].source", cadence_source_drift},
@@ -229,7 +231,9 @@ defmodule OrbitalDynamics.Schema.CampaignRepairSourceSchemaValidationReportHando
       {"$.cadence_import_manifest.rows[#{import_index}].source_review_row.source_schema_validation_report",
        cadence_report_drift},
       {"$.operator_review_package.rows", eligibility_drift},
-      {"$.cadence_import_manifest.rows", eligibility_drift}
+      {"$.cadence_import_manifest.rows", eligibility_drift},
+      {"$.operator_review_package.rows", stale_handoffs},
+      {"$.cadence_import_manifest.rows", stale_handoffs}
     ]
 
     for {expected_path, invalid} <- invalid_cases do
