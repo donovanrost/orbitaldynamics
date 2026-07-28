@@ -47,10 +47,8 @@ defmodule OrbitalDynamics.Schema.CampaignRepairSourceValidationSafetyCaseHandoff
     "model_limits"
   ]
 
-  def validate(
-        issues,
-        %{"source_validation_safety_case_summary" => %{} = summary} = artifact
-      ) do
+  def validate(issues, artifact) when is_map(artifact) do
+    summary = source_summary(artifact)
     source_rows = reviewable_evidence(summary)
     expected_sources = List.duplicate(@repair_source, length(source_rows))
     summary_contexts = List.duplicate(Map.take(summary, @context_fields), length(source_rows))
@@ -65,6 +63,11 @@ defmodule OrbitalDynamics.Schema.CampaignRepairSourceValidationSafetyCaseHandoff
   end
 
   def validate(issues, _artifact), do: issues
+
+  defp source_summary(%{"source_validation_safety_case_summary" => %{} = summary}),
+    do: summary
+
+  defp source_summary(_artifact), do: %{}
 
   defp validate_operator_review_handoff(
          issues,

@@ -159,13 +159,16 @@ defmodule OrbitalDynamics.Schema.CampaignRepairSourceValidationSafetyCaseHandoff
         )
       )
 
+    stale_handoffs = Map.delete(repair, "source_validation_safety_case_summary")
+
     invalid_cases = [
       {"$.operator_review_package.rows[#{review_index}].source", source_drift},
       {"$.operator_review_package.rows[#{review_index}].source_validation_safety_case_evidence",
        evidence_drift},
       {"$.operator_review_package.rows[#{review_index}].source_validation_safety_case_summary",
        context_drift},
-      {"$.operator_review_package.rows", eligibility_drift}
+      {"$.operator_review_package.rows", eligibility_drift},
+      {"$.operator_review_package.rows", stale_handoffs}
     ]
 
     for {expected_path, invalid} <- invalid_cases do
