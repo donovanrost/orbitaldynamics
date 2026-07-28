@@ -5,39 +5,39 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Bind Repair source realized-state-snapshot handoffs to their enclosing evidence.
+Bind Repair source timeline dependency-impact handoffs to their enclosing
+summary evidence.
 
 Status:
-Verified from clean published base `ac77edea`; ready to publish.
+Verified from clean published base `57b423f0`; ready to publish.
 
 Selection evidence:
-- Repair optionally retains execution feedback as
-  `source_realized_state_snapshot`.
-- The producer reconciles the snapshot activities into realized-feedback rows
-  and attaches the complete source snapshot to every produced review row.
-- Live validation accepts coordinated snapshot metadata-provider drift across
-  every operator and Cadence evidence copy while the enclosing source snapshot
-  remains unchanged.
+- Repair optionally retains a `source_timeline_dependency_impact_summary`.
+- The authoritative review producer excludes `clear` rows, preserves summary
+  order, and embeds the complete dependency-impact row in each review handoff.
+- Live validation accepts coordinated drift across the operator and Cadence
+  impact-row evidence copies while the enclosing source summary remains
+  unchanged.
 
 Delivered behavior:
-- Repair validation now replays the exact realized-state-snapshot reconciliation
-  producer and preserves row order through each `realized_activity` copy.
-- When review/import packages are present, their snapshot-derived rows must
-  preserve exact cardinality, source identity, reconciled activity evidence,
-  and every present complete `source_realized_state_snapshot` copy.
-- Challenge coverage rejects independent or coordinated snapshot/provider
-  drift, `.legacy` source identity, missing rows, and stale downstream handoffs
-  while retaining additive-package and snapshot-copy compatibility.
+- Repair validation now replays the exact dependency-impact review producer,
+  including `clear`-row exclusion and preserved summary order.
+- When review/import packages are present, their source impact rows must
+  preserve exact cardinality, source identity, and every present complete
+  `source_timeline_dependency_impact` evidence copy.
+- Challenge coverage rejects independent or coordinated impact-row drift,
+  `.legacy` source identity, missing rows, and stale downstream handoffs while
+  retaining additive-package and evidence-copy compatibility.
 - The nested source-schema fixture now omits prebuilt additive packages after
-  injecting a snapshot, preserving its source-schema scope without constructing
-  stale handoffs.
+  injecting a dependency-impact summary, preserving its source-schema scope
+  without constructing stale handoffs.
 
 Verification:
-- Focused source realized-state-snapshot handoff contract: `5 passed`.
-- Adjacent producer/source-schema contracts: `8 passed`.
-- Campaign Repair schema regression: `612 passed`.
+- Focused source dependency-impact handoff contract: `5 passed`.
+- Adjacent producer/source/generic handoff contracts: `11 passed`.
+- Campaign Repair schema regression: `617 passed`.
 - Repair planner regression: `225 passed`.
-- Full suite: `5539 passed` (seed `980879`).
+- Full suite: `5544 passed` (seed `690966`).
 - Schema lint: `155` artifacts passed, `0` errors, `0` warnings.
 - Canonical Repair and Strategy regeneration passed with stable byte hashes:
   `cc41834e706fd1e04a4c5578032fdf99ceeba949a02fd75fc54c8b70cdc30d8a`
@@ -48,9 +48,9 @@ Level 6 pillar advanced:
 Fleet-scale candidate-pool integrity and operator-review evidence fidelity.
 
 Last published slice:
-- `ac77edea` Bind Repair freshness handoffs (`5534 passed`; stale/unknown
-  eligibility, identity, and complete freshness evidence now remain exact
-  through review and import).
+- `57b423f0` Bind Repair realized-state-snapshot handoffs (`5539 passed`; exact
+  reconciled activities and complete snapshot evidence now remain tied to the
+  enclosing source snapshot through review and import).
 
 Remaining maturity gaps:
 - Audit remaining generated and source handoffs where their complete producer
@@ -63,8 +63,8 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-Audit Repair source timeline dependency-impact handoffs after the realized
-snapshot boundary is complete.
+Audit remaining Repair source handoffs for the next unbound replayable producer
+boundary after dependency-impact evidence is complete.
 
 Blocked:
 None.
