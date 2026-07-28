@@ -7,11 +7,8 @@ defmodule OrbitalDynamics.Schema.CampaignRepairObjectiveSatisfactionHandoffContr
   @repair_source_objective "campaign_repair.source_objective_satisfaction_report.rows"
   @pass_statuses ~w(met selected no_requirement)
 
-  def validate(
-        issues,
-        %{"source_objective_satisfaction_report" => %{"rows" => objective_rows}} = artifact
-      )
-      when is_list(objective_rows) do
+  def validate(issues, artifact) when is_map(artifact) do
+    objective_rows = source_rows(artifact)
     source_rows = Enum.filter(objective_rows, &reviewable_objective?/1)
 
     issues
@@ -20,6 +17,12 @@ defmodule OrbitalDynamics.Schema.CampaignRepairObjectiveSatisfactionHandoffContr
   end
 
   def validate(issues, _artifact), do: issues
+
+  defp source_rows(%{"source_objective_satisfaction_report" => %{"rows" => rows}})
+       when is_list(rows),
+       do: rows
+
+  defp source_rows(_artifact), do: []
 
   defp validate_operator_review_handoff(
          issues,

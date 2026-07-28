@@ -129,6 +129,8 @@ defmodule OrbitalDynamics.Schema.CampaignRepairObjectiveSatisfactionHandoffContr
         end
       )
 
+    stale_handoffs = Map.delete(repair, "source_objective_satisfaction_report")
+
     invalid_cases = [
       {"$.operator_review_package.rows", review_count_drift},
       {"$.cadence_import_manifest.rows", cadence_count_drift},
@@ -137,7 +139,9 @@ defmodule OrbitalDynamics.Schema.CampaignRepairObjectiveSatisfactionHandoffContr
       {"$.cadence_import_manifest.rows[#{import_index}].source_objective_satisfaction",
        cadence_copy_drift},
       {"$.cadence_import_manifest.rows[#{import_index}].source_review_row.source_objective_satisfaction",
-       cadence_copy_drift}
+       cadence_copy_drift},
+      {"$.operator_review_package.rows", stale_handoffs},
+      {"$.cadence_import_manifest.rows", stale_handoffs}
     ]
 
     for {expected_path, invalid} <- invalid_cases do
