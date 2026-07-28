@@ -5,38 +5,38 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Reject stale Repair source schema-validation-report handoffs after their enclosing
-report is removed.
+Reject stale Repair source schema-validation-batch handoffs after their enclosing
+batch is removed.
 
 Status:
-Verified from clean published base `dfdef76f`; ready to publish.
+Verified from clean published base `e7fd2a16`; ready to publish.
 
 Selection evidence:
-- Repair can retain a `source_schema_validation_report` and emit one operator
-  review and Cadence-import row per error or warning.
+- Repair can retain a `source_schema_validation_batch_report` and emit one
+  operator review and Cadence-import row per nested error or warning.
 - The handoff validator already recognizes the stable downstream source family
-  but skips its entire check when the optional enclosing report is absent.
-- Live validation returns `:ok` after deleting the enclosing report while two
-  operator-review and two Cadence-import rows remain stale.
+  but skips its entire check when the optional enclosing batch is absent.
+- A live valid one-warning batch returns `:ok` after deletion while one
+  operator-review and one Cadence-import row remain stale.
 
 Delivered behavior:
-- Repair validation now normalizes an absent direct schema-validation source to
-  an empty report while still inspecting the stable downstream source family.
-- Operator-review and Cadence-import cardinality therefore stays tied to the
-  enclosing error/warning evidence even when the report disappears.
-- Exact source identity, issue/remediation evidence, complete report copies, and
-  nested import evidence remain enforced while additive packages and copies stay
-  optional.
-- Challenge coverage now rejects stale downstream schema-validation rows after
-  complete source-report deletion.
+- Repair validation now normalizes an absent schema-validation batch source to an
+  empty batch while still inspecting the stable downstream source family.
+- Operator-review and Cadence-import cardinality therefore stays tied to nested
+  error/warning evidence even when the batch disappears.
+- Exact indexed source identity, issue/remediation evidence, derived report
+  context, and nested import copies remain enforced while additive packages and
+  copies stay optional.
+- Challenge coverage now rejects stale downstream schema-validation-batch rows
+  after complete source-batch deletion.
 
 Verification:
-- Focused source schema-validation-report handoff contracts: `3 passed`.
-- Combined schema-validation producer, replay, operator, source, and handoff
-  contracts: `31 passed`.
+- Focused source schema-validation-batch handoff contracts: `3 passed`.
+- Combined batch producer, container, operator, source, and handoff contracts:
+  `17 passed`.
 - Campaign Repair schema regression: `667 passed`.
 - Repair planner regression: `225 passed`.
-- Full suite: `5594 passed` (seed `253719`).
+- Full suite: `5594 passed` (seed `937540`).
 - Schema lint: `155` artifacts passed, `0` errors, `0` warnings.
 - Canonical Repair and Strategy regeneration passed with stable byte hashes:
   `cc41834e706fd1e04a4c5578032fdf99ceeba949a02fd75fc54c8b70cdc30d8a`
@@ -47,9 +47,9 @@ Level 6 pillar advanced:
 Fleet-scale candidate-pool integrity and operator-review evidence fidelity.
 
 Last published slice:
-- `dfdef76f` Reject stale Repair model acceptance handoffs (`5594 passed`;
-  model-acceptance review rows can no longer outlive their enclosing source
-  report).
+- `e7fd2a16` Reject stale Repair schema validation handoffs (`5594 passed`;
+  direct schema-validation review/import rows can no longer outlive their
+  enclosing source report).
 
 Remaining maturity gaps:
 - Audit remaining generated and source handoffs where their complete producer

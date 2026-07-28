@@ -12,7 +12,8 @@ defmodule OrbitalDynamics.Schema.CampaignRepairSourceSchemaValidationBatchHandof
 
   @repair_source_prefix "campaign_repair.source_schema_validation_batch_report"
 
-  def validate(issues, %{"source_schema_validation_batch_report" => %{} = batch} = artifact) do
+  def validate(issues, artifact) when is_map(artifact) do
+    batch = source_batch(artifact)
     evidence = source_evidence(batch)
     sources = Enum.map(evidence, & &1.source)
     source_issues = Enum.map(evidence, & &1.issue)
@@ -37,6 +38,9 @@ defmodule OrbitalDynamics.Schema.CampaignRepairSourceSchemaValidationBatchHandof
   end
 
   def validate(issues, _artifact), do: issues
+
+  defp source_batch(%{"source_schema_validation_batch_report" => %{} = batch}), do: batch
+  defp source_batch(_artifact), do: %{}
 
   defp validate_operator_review_handoff(
          issues,
