@@ -46,23 +46,26 @@ defmodule OrbitalDynamics.Schema.CampaignRepairOperationalReadinessHandoffContra
     assumptions
   )
 
-  def validate(
-        issues,
-        %{"source_operational_readiness_report" => %{} = report} = artifact
-      ) do
-    report_context = Map.take(report, @report_context_fields)
-    gate_rows = reviewable_gate_rows(report)
+  def validate(issues, artifact) when is_map(artifact) do
+    {report_count, report_context, gate_rows} = source_handoff(artifact)
 
     issues
-    |> validate_operator_review_handoff(artifact, report_context, gate_rows)
-    |> validate_cadence_handoff(artifact, report_context, gate_rows)
+    |> validate_operator_review_handoff(artifact, report_count, report_context, gate_rows)
+    |> validate_cadence_handoff(artifact, report_count, report_context, gate_rows)
   end
 
   def validate(issues, _artifact), do: issues
 
+  defp source_handoff(%{"source_operational_readiness_report" => %{} = report}) do
+    {1, Map.take(report, @report_context_fields), reviewable_gate_rows(report)}
+  end
+
+  defp source_handoff(_artifact), do: {0, %{}, []}
+
   defp validate_operator_review_handoff(
          issues,
          %{"operator_review_package" => %{} = package},
+         report_count,
          report_context,
          gate_rows
        ) do
@@ -73,7 +76,7 @@ defmodule OrbitalDynamics.Schema.CampaignRepairOperationalReadinessHandoffContra
     |> validate_equal(
       "$.operator_review_package.rows",
       length(report_reviews),
-      1,
+      report_count,
       "must contain one Repair operational-readiness source-report review row"
     )
     |> validate_equal(
@@ -96,12 +99,19 @@ defmodule OrbitalDynamics.Schema.CampaignRepairOperationalReadinessHandoffContra
     )
   end
 
-  defp validate_operator_review_handoff(issues, _artifact, _report_context, _gate_rows),
-    do: issues
+  defp validate_operator_review_handoff(
+         issues,
+         _artifact,
+         _report_count,
+         _report_context,
+         _gate_rows
+       ),
+       do: issues
 
   defp validate_cadence_handoff(
          issues,
          %{"cadence_import_manifest" => %{} = manifest},
+         report_count,
          report_context,
          gate_rows
        ) do
@@ -112,7 +122,7 @@ defmodule OrbitalDynamics.Schema.CampaignRepairOperationalReadinessHandoffContra
     |> validate_equal(
       "$.cadence_import_manifest.rows",
       length(report_imports),
-      1,
+      report_count,
       "must contain one Repair operational-readiness source-report import row"
     )
     |> validate_equal(
@@ -141,7 +151,14 @@ defmodule OrbitalDynamics.Schema.CampaignRepairOperationalReadinessHandoffContra
     )
   end
 
-  defp validate_cadence_handoff(issues, _artifact, _report_context, _gate_rows), do: issues
+  defp validate_cadence_handoff(
+         issues,
+         _artifact,
+         _report_count,
+         _report_context,
+         _gate_rows
+       ),
+       do: issues
 
   defp reviewable_gate_rows(report) do
     case Map.get(report, "gates") do

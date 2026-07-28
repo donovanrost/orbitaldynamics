@@ -47,6 +47,16 @@ defmodule OrbitalDynamics.Schema.CampaignRepairOperationalReadinessHandoffContra
     [report_review_index, gate_review_index] = readiness_review_indexes(repair)
     [report_import_index, gate_import_index] = readiness_import_indexes(repair)
 
+    readiness_pressure = get_in(repair, ["score_terms", "operational_readiness_pressure_penalty"])
+
+    stale_handoffs =
+      repair
+      |> Map.delete("source_operational_readiness_report")
+      |> put_in(["score_terms", "operational_readiness_pressure_penalty"], 0.0)
+      |> Map.update!("score", &(&1 - readiness_pressure))
+      |> Map.delete("score_term_report")
+      |> Map.delete("objective_tradeoff_report")
+
     invalid_cases = [
       {"$.operator_review_package.rows",
        put_in(
@@ -104,7 +114,9 @@ defmodule OrbitalDynamics.Schema.CampaignRepairOperationalReadinessHandoffContra
            "source_operational_readiness_gate"
          ],
          &Map.put(&1, "reason", "drifted")
-       )}
+       )},
+      {"$.operator_review_package.rows", stale_handoffs},
+      {"$.cadence_import_manifest.rows", stale_handoffs}
     ]
 
     for {expected_path, invalid} <- invalid_cases do
