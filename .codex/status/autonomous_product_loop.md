@@ -5,36 +5,38 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Reject wrong-source Repair operational-timeline Cadence imports.
+Reject wrong-source Repair source score-term Cadence imports.
 
 Status:
-Verified from clean published base `bbaa29c0`; ready to publish.
+Verified from clean published base `e0cac86f`; ready to publish.
 
 Selection evidence:
-- The checked readiness Repair artifact's operational-timeline import carries
+- A generated Repair with CandidateRefresh source score-term evidence carries
   the producer identity at both `source` and `source_review_row.source`.
-- The handoff contract classifies that import by the first available source and
-  validates timeline evidence copies without validating the nested identity.
-- A live mutation changed only `source_review_row.source` to an unrelated report
-  family and `Schema.validate_artifact/1` still returned `:ok`.
-- Equivalent mutations for link-capacity, both operational-readiness shapes,
-  and quality-gate imports were already rejected.
+- The source handoff contract classifies that import by the first available
+  source and validates score-term evidence copies without validating the nested
+  identity.
+- A live producer-fixture mutation changed only `source_review_row.source` to an
+  unrelated source-report family and `Schema.validate_artifact/1` still returned
+  `:ok`.
 
 Delivered behavior:
-- Keep additive operational-timeline evidence copies optional.
-- Require every present Cadence operational-timeline source identity to match
-  the enclosing Repair producer family.
+- Keep additive source score-term evidence copies optional.
+- Require every present Cadence source score-term identity to match the
+  CandidateRefresh-derived Repair producer family.
 - A focused mutation challenge now rejects independently drifted nested source
-  identity at its exact Cadence manifest path while retaining the coordinated
-  top-level/nested count challenge.
+  identity at its exact Cadence manifest path while retaining existing producer-
+  order and count challenges.
 
 Verification:
-- Focused operational-timeline handoff contracts: `3 passed`.
-- Adjacent operational-timeline and Cadence import contracts: `41 passed`.
-- Live post-fix mutation returned the exact nested-source validation error.
+- Focused source score-term handoff contracts: `3 passed`.
+- Adjacent score-term and Cadence import contracts: `37 passed`.
+- Live post-fix producer mutation returned the exact nested-source error.
 - Schema regression: `1073 passed`.
 - Campaign planner regression: `1888 passed`.
-- Full suite: `5599 passed` (seed `823614`).
+- Initial full suite: `5598/5599 passed`; one unrelated schema-export test hit
+  the `120000ms` timeout, then passed alone in `19.7s`.
+- Clean full-suite repeat: `5599 passed` (seed `427417`).
 - Schema lint: `155` artifacts passed, `0` errors, `0` warnings.
 - Canonical Repair and Strategy regeneration passed with stable byte hashes:
   `cc41834e706fd1e04a4c5578032fdf99ceeba949a02fd75fc54c8b70cdc30d8a`
@@ -45,9 +47,9 @@ Level 6 pillar advanced:
 Fleet-scale candidate-pool integrity and operator-review evidence fidelity.
 
 Last published slice:
-- `bbaa29c0` Reject wrong-source Repair objective tradeoff imports (`5599 passed`;
-  present nested objective-tradeoff source identities now match their enclosing
-  Repair producer family without changing report-optional compatibility).
+- `e0cac86f` Reject wrong-source Repair operational timeline imports (`5599
+  passed`; every persisted Repair import source pair now rejects independent
+  nested identity drift).
 
 Remaining maturity gaps:
 - Audit remaining generated and source handoffs where their complete producer
@@ -62,8 +64,8 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-Re-audit non-canonical Repair fixtures and generated mutation cases after the
-last currently observed checked-artifact nested-source drift is closed.
+Reject independently driftable nested source identity for CandidateRefresh-
+sourced objective-tradeoff imports after this source score-term fix is stable.
 
 Blocked:
 None.
