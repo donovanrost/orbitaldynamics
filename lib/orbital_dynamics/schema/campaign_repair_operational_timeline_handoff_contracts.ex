@@ -7,11 +7,8 @@ defmodule OrbitalDynamics.Schema.CampaignRepairOperationalTimelineHandoffContrac
   @repair_operational_timeline_source "operational_timeline_report.rows"
   @no_review_actions ~w(monitor_activity none_locked_activity none_terminal_activity)
 
-  def validate(
-        issues,
-        %{"operational_timeline_report" => %{"rows" => timeline_rows}} = artifact
-      )
-      when is_list(timeline_rows) do
+  def validate(issues, artifact) when is_map(artifact) do
+    timeline_rows = source_rows(artifact)
     source_rows = Enum.filter(timeline_rows, &reviewable_timeline_row?/1)
 
     issues
@@ -20,6 +17,12 @@ defmodule OrbitalDynamics.Schema.CampaignRepairOperationalTimelineHandoffContrac
   end
 
   def validate(issues, _artifact), do: issues
+
+  defp source_rows(%{"operational_timeline_report" => %{"rows" => rows}})
+       when is_list(rows),
+       do: rows
+
+  defp source_rows(_artifact), do: []
 
   defp validate_operator_review_handoff(
          issues,
