@@ -214,6 +214,79 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairMissedDownlinkCandidateSelection
              Schema.validate_artifact(legacy_omission)
   end
 
+  test "validation requires a complete sole ranking with replayable preserved state" do
+    artifact =
+      repair(
+        %{
+          "activities" => [
+            health_check("health_1", "leo_1", 200.0, 260.0),
+            downlink("dl_source", 300.0, 360.0)
+          ],
+          "candidate_activities" => [
+            refreshed_downlink("dl_overlap", 220.0, 280.0),
+            refreshed_downlink("dl_2", 500.0, 560.0),
+            refreshed_downlink("dl_3", 600.0, 660.0)
+          ]
+        },
+        realized_state: %{activities: [%{id: "dl_source", status: "missed"}]},
+        current_epoch_s: 165.0
+      )
+
+    assert [%{"id" => "health_1"}] = artifact["preserved_activities"]
+
+    activity_index = Enum.find_index(artifact["activities"], &(&1["id"] == "dl_2"))
+    ranking_path = "$.activities[#{activity_index}].repair.replacement_ranking"
+
+    rows =
+      get_in(artifact, [
+        "activities",
+        Access.at(activity_index),
+        "repair",
+        "replacement_ranking",
+        "rows"
+      ])
+
+    assert Enum.map(rows, & &1["candidate_id"]) == ["dl_2", "dl_3"]
+    refute Enum.any?(rows, &(&1["candidate_id"] == "dl_overlap"))
+
+    assert {:ok, %{"schema_contract" => "campaign_repair.v2", "status" => "pass"}} =
+             Schema.validate_artifact(artifact)
+
+    [selected_row, _omitted_row] = rows
+
+    invalid =
+      artifact
+      |> put_in(
+        [
+          "activities",
+          Access.at(activity_index),
+          "repair",
+          "replacement_ranking",
+          "rows"
+        ],
+        [selected_row]
+      )
+      |> put_in(
+        [
+          "activities",
+          Access.at(activity_index),
+          "repair",
+          "replacement_ranking",
+          "evaluated_candidate_count"
+        ],
+        1
+      )
+
+    assert {:error, report} = Schema.validate_artifact(invalid)
+
+    assert Enum.any?(
+             report["errors"],
+             &(&1["path"] == ranking_path <> ".rows" and
+                 &1["message"] ==
+                   "must contain exactly the uniquely identified viable source candidates in the replayable repair intent")
+           )
+  end
+
   test "repair moves a missed planned-contact downlink to a later planned-contact window" do
     missed_planned_contact =
       "planned_dl_1"

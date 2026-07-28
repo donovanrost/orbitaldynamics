@@ -421,7 +421,7 @@ defmodule OrbitalDynamics.Schema.CampaignRepairReplacementEligibilityContracts d
          true <- replayable_source_plan_activities?(source_plan_context.activities),
          {:ok, output_contexts} <- output_contexts(activities, source_plan_context),
          {:ok, ranking_contexts} <- current_multi_ranking_contexts(output_contexts),
-         true <- length(ranking_contexts) > 1 do
+         true <- ranking_contexts != [] do
       {:ok, output_contexts, ranking_contexts, remaining_horizon, current_epoch_s}
     else
       _not_replayable -> :not_replayable

@@ -5,42 +5,38 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Require complete replayable multi-Repair replacement rankings.
+Require complete replayable one-ranking multi-activity Repair handoffs.
 
 Status:
-Verified from clean published base `551087cd`; ready to publish.
+Verified from clean published base `04cd4085`; ready to publish.
 
 Selection evidence:
-- Source timeline feedback supplies complete prior planned-activity snapshots
-  and deterministic producer order, while each final activity maps back to its
-  source through `repair.source_activity_id` or its unchanged activity ID.
-- Those joins reproduce earlier accumulator activities, already-used
-  replacement IDs, and candidate-overlap exclusions for later repairs without
-  inferring hidden state.
-- A live two-repair artifact remains valid after removing one viable unique
-  candidate from the second current ranking and normalizing its evaluated count.
+- A multi-activity artifact with one preserved activity and one replacement has
+  the same complete source-plan order, unique output-source joins, and
+  reconstructable prior accumulator state as the multi-ranking shape.
+- Its preserved activity correctly excludes an overlapping source candidate
+  while leaving two separate viable candidates in the sole current ranking.
+- Live validation still returns `:ok` after removing one of those viable
+  candidates and normalizing the ranking's evaluated count.
 
 Delivered behavior:
-- Multi-repair completeness now activates when at least two current rankings,
-  complete unique source-plan snapshots, direct candidate/output timing, and
-  unique final-output-to-source joins make producer state replayable.
-- Validation reconstructs producer order from source-plan timing, associates
-  final activities with their original sources, and derives prior accumulator
-  activities and already-used replacement IDs for each ranking.
-- Candidate membership now reproduces selected-plan, preserved-intent,
-  remaining-horizon, current-epoch, degraded-mode, source-rejection,
-  accumulator-overlap, used-replacement, and post-filter duplicate exclusions.
-- Challenge coverage accepts an overlap-excluded candidate, rejects omission of
-  a separate viable later-repair candidate, and preserves the same omission for
-  pre-pressure legacy ranking rows.
+- Replayed completeness now activates for any multi-activity artifact with at
+  least one current replacement ranking and otherwise complete source-plan,
+  output-source, candidate, policy, and timing evidence.
+- The existing source-order reconstruction supplies prior preserved and
+  replacement accumulator activities even when only one output carries a
+  ranking.
+- Challenge coverage accepts a candidate excluded for overlap with an earlier
+  preserved activity while rejecting omission of a separate viable candidate
+  from the sole current ranking.
 
 Verification:
-- Focused ranking and producer contracts: `14 passed`.
+- Focused ranking and producer contracts: `15 passed`.
 - Adjacent replacement, resource-projection, source-feedback, source-handoff,
-  and source-rejection contracts: `31 passed`.
+  and source-rejection contracts: `32 passed`.
 - Schema regression: `1073 passed`.
-- Campaign planner regression: `1886 passed`.
-- Full suite: `5597 passed` (seed `161103`).
+- Campaign planner regression: `1887 passed`.
+- Full suite: `5598 passed` (seed `648130`).
 - Schema lint: `155` artifacts passed, `0` errors, `0` warnings.
 - Canonical Repair and Strategy regeneration passed with stable byte hashes:
   `cc41834e706fd1e04a4c5578032fdf99ceeba949a02fd75fc54c8b70cdc30d8a`
@@ -51,9 +47,9 @@ Level 6 pillar advanced:
 Fleet-scale candidate-pool integrity and operator-review evidence fidelity.
 
 Last published slice:
-- `551087cd` Bind Repair ranking completeness to source plan evidence (`5596
-  passed`; hidden out-of-horizon selected-plan IDs are replayed without making
-  the optional source feedback report mandatory).
+- `04cd4085` Require complete replayable multi-Repair rankings (`5597 passed`;
+  later Repair rankings now replay prior accumulator, used-replacement, and
+  overlap exclusions while preserving legacy rows).
 
 Remaining maturity gaps:
 - Audit remaining generated and source handoffs where their complete producer
@@ -68,8 +64,8 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-Extend replayed completeness to multi-activity artifacts with one current
-replacement ranking and otherwise reconstructable accumulator state.
+Extend replayed completeness to one-output artifacts with multiple source
+deltas where non-output accumulator state remains reconstructable.
 
 Blocked:
 None.
