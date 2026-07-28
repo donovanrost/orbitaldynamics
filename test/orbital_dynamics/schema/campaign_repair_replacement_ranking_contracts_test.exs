@@ -396,6 +396,12 @@ defmodule OrbitalDynamics.Schema.CampaignRepairReplacementRankingContractsTest d
 
     assert {:ok, %{"schema_contract" => "campaign_repair.v2"}} =
              Schema.validate_artifact(legacy_omission)
+
+    without_source_plan_evidence =
+      Map.delete(omitted_candidate, "source_timeline_feedback_report")
+
+    assert {:ok, %{"schema_contract" => "campaign_repair.v2"}} =
+             Schema.validate_artifact(without_source_plan_evidence)
   end
 
   test "rejects the preserved repair source as a current replacement candidate", context do

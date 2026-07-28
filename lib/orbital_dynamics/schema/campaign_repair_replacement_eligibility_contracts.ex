@@ -249,12 +249,14 @@ defmodule OrbitalDynamics.Schema.CampaignRepairReplacementEligibilityContracts d
        ) do
     with {:ok, path, source_activity_id, source_context, rows, remaining_horizon, current_epoch_s} <-
            isolated_ranking_context(artifact, repair_policy),
+         {:ok, selected_activity_ids} <-
+           source_plan_activity_ids(artifact, source_activity_id),
          true <- replayable_source_candidates?(source_candidates),
          {:ok, rejected_candidate_ids} <- rejected_candidate_ids(artifact) do
       expected_candidate_ids =
         eligible_isolated_candidate_ids(
           source_candidates,
-          source_activity_id,
+          selected_activity_ids,
           source_context,
           remaining_horizon,
           current_epoch_s,
@@ -327,6 +329,34 @@ defmodule OrbitalDynamics.Schema.CampaignRepairReplacementEligibilityContracts d
 
   defp replayable_source_candidates?(_candidates), do: false
 
+  defp source_plan_activity_ids(artifact, source_activity_id) do
+    case Map.get(artifact, "source_timeline_feedback_report") do
+      %{"planned_count" => planned_count, "rows" => rows}
+      when is_integer(planned_count) and planned_count >= 0 and is_list(rows) ->
+        planned_activity_ids =
+          Enum.flat_map(rows, fn
+            %{"planned_activity" => %{"id" => activity_id}} when is_binary(activity_id) ->
+              [activity_id]
+
+            _row ->
+              []
+          end)
+
+        selected_activity_ids = MapSet.new(planned_activity_ids)
+
+        if length(planned_activity_ids) == planned_count and
+             MapSet.size(selected_activity_ids) == planned_count and
+             MapSet.member?(selected_activity_ids, source_activity_id) do
+          {:ok, selected_activity_ids}
+        else
+          :not_replayable
+        end
+
+      _report ->
+        :not_replayable
+    end
+  end
+
   defp rejected_candidate_ids(artifact) do
     case Map.get(artifact, "source_candidate_rejection_report") do
       nil ->
@@ -351,7 +381,7 @@ defmodule OrbitalDynamics.Schema.CampaignRepairReplacementEligibilityContracts d
 
   defp eligible_isolated_candidate_ids(
          source_candidates,
-         source_activity_id,
+         selected_activity_ids,
          source_context,
          remaining_horizon,
          current_epoch_s,
@@ -360,7 +390,7 @@ defmodule OrbitalDynamics.Schema.CampaignRepairReplacementEligibilityContracts d
          rejected_candidate_ids
        ) do
     source_candidates
-    |> Enum.reject(&(ActivityIdentity.activity_id(&1) == source_activity_id))
+    |> Enum.reject(&MapSet.member?(selected_activity_ids, ActivityIdentity.activity_id(&1)))
     |> Enum.filter(&RepairReplacementIntent.eligible?(source_context, &1))
     |> Enum.filter(fn candidate ->
       ActivityTiming.within_remaining_horizon?(candidate, remaining_horizon)
