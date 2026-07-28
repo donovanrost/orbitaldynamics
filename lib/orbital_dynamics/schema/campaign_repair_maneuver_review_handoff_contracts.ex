@@ -6,11 +6,8 @@ defmodule OrbitalDynamics.Schema.CampaignRepairManeuverReviewHandoffContracts do
 
   @repair_source_maneuver_review "campaign_repair.source_maneuver_review_report.rows"
 
-  def validate(
-        issues,
-        %{"source_maneuver_review_report" => %{"rows" => maneuver_rows}} = artifact
-      )
-      when is_list(maneuver_rows) do
+  def validate(issues, artifact) when is_map(artifact) do
+    maneuver_rows = source_rows(artifact)
     source_rows = Enum.filter(maneuver_rows, &is_map/1)
 
     issues
@@ -19,6 +16,12 @@ defmodule OrbitalDynamics.Schema.CampaignRepairManeuverReviewHandoffContracts do
   end
 
   def validate(issues, _artifact), do: issues
+
+  defp source_rows(%{"source_maneuver_review_report" => %{"rows" => rows}})
+       when is_list(rows),
+       do: rows
+
+  defp source_rows(_artifact), do: []
 
   defp validate_operator_review_handoff(
          issues,
