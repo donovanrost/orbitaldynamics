@@ -13,11 +13,8 @@ defmodule OrbitalDynamics.Schema.CampaignRepairSourceTimelineActivityLifecycleSt
 
   @repair_source_prefix "campaign_repair.source_timeline_activity_lifecycle_states"
 
-  def validate(
-        issues,
-        %{"source_timeline_activity_lifecycle_states" => states} = artifact
-      )
-      when is_list(states) do
+  def validate(issues, artifact) when is_map(artifact) do
+    states = source_states(artifact)
     expected_sources = indexed_sources(states, @repair_source_prefix, "state")
 
     issues
@@ -26,6 +23,12 @@ defmodule OrbitalDynamics.Schema.CampaignRepairSourceTimelineActivityLifecycleSt
   end
 
   def validate(issues, _artifact), do: issues
+
+  defp source_states(%{"source_timeline_activity_lifecycle_states" => states})
+       when is_list(states),
+       do: states
+
+  defp source_states(_artifact), do: []
 
   defp validate_operator_review_handoff(
          issues,
@@ -36,7 +39,7 @@ defmodule OrbitalDynamics.Schema.CampaignRepairSourceTimelineActivityLifecycleSt
     review_rows =
       indexed_rows(
         Map.get(package, "rows"),
-        &operator_lifecycle_row?(&1, expected_sources)
+        &operator_lifecycle_row?/1
       )
 
     issues
@@ -73,7 +76,7 @@ defmodule OrbitalDynamics.Schema.CampaignRepairSourceTimelineActivityLifecycleSt
     import_rows =
       indexed_rows(
         Map.get(manifest, "rows"),
-        &cadence_lifecycle_row?(&1, expected_sources)
+        &cadence_lifecycle_row?/1
       )
 
     issues
@@ -104,14 +107,19 @@ defmodule OrbitalDynamics.Schema.CampaignRepairSourceTimelineActivityLifecycleSt
 
   defp validate_cadence_handoff(issues, _artifact, _states, _sources), do: issues
 
-  defp operator_lifecycle_row?(row, expected_sources) do
+  defp operator_lifecycle_row?(row) do
     Map.get(row, "review_type") == "timeline_lifecycle_state_review" and
-      row_source(row) in expected_sources
+      repair_lifecycle_source?(row_source(row))
   end
 
-  defp cadence_lifecycle_row?(row, expected_sources) do
+  defp cadence_lifecycle_row?(row) do
     (Map.get(row, "source_review_type") == "timeline_lifecycle_state_review" or
        Map.get(row, "import_action") == "review_timeline_lifecycle_state") and
-      row_source(row) in expected_sources
+      repair_lifecycle_source?(row_source(row))
   end
+
+  defp repair_lifecycle_source?(source) when is_binary(source),
+    do: String.starts_with?(source, @repair_source_prefix <> "[")
+
+  defp repair_lifecycle_source?(_source), do: false
 end
