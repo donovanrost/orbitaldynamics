@@ -13,11 +13,8 @@ defmodule OrbitalDynamics.Schema.CampaignRepairSourceTimelineActivityPreconditio
 
   @repair_source_prefix "campaign_repair.source_timeline_activity_precondition_summaries"
 
-  def validate(
-        issues,
-        %{"source_timeline_activity_precondition_summaries" => summaries} = artifact
-      )
-      when is_list(summaries) do
+  def validate(issues, artifact) when is_map(artifact) do
+    summaries = source_summaries(artifact)
     expected_sources = indexed_sources(summaries, @repair_source_prefix, "summary")
 
     issues
@@ -26,6 +23,12 @@ defmodule OrbitalDynamics.Schema.CampaignRepairSourceTimelineActivityPreconditio
   end
 
   def validate(issues, _artifact), do: issues
+
+  defp source_summaries(%{"source_timeline_activity_precondition_summaries" => summaries})
+       when is_list(summaries),
+       do: summaries
+
+  defp source_summaries(_artifact), do: []
 
   defp validate_operator_review_handoff(
          issues,
@@ -36,7 +39,7 @@ defmodule OrbitalDynamics.Schema.CampaignRepairSourceTimelineActivityPreconditio
     review_rows =
       indexed_rows(
         Map.get(package, "rows"),
-        &operator_precondition_row?(&1, expected_sources)
+        &operator_precondition_row?/1
       )
 
     issues
@@ -73,7 +76,7 @@ defmodule OrbitalDynamics.Schema.CampaignRepairSourceTimelineActivityPreconditio
     import_rows =
       indexed_rows(
         Map.get(manifest, "rows"),
-        &cadence_precondition_row?(&1, expected_sources)
+        &cadence_precondition_row?/1
       )
 
     issues
@@ -104,14 +107,19 @@ defmodule OrbitalDynamics.Schema.CampaignRepairSourceTimelineActivityPreconditio
 
   defp validate_cadence_handoff(issues, _artifact, _summaries, _sources), do: issues
 
-  defp operator_precondition_row?(row, expected_sources) do
+  defp operator_precondition_row?(row) do
     Map.get(row, "review_type") == "timeline_activity_precondition_review" and
-      row_source(row) in expected_sources
+      repair_precondition_source?(row_source(row))
   end
 
-  defp cadence_precondition_row?(row, expected_sources) do
+  defp cadence_precondition_row?(row) do
     (Map.get(row, "source_review_type") == "timeline_activity_precondition_review" or
        Map.get(row, "import_action") == "review_timeline_precondition") and
-      row_source(row) in expected_sources
+      repair_precondition_source?(row_source(row))
   end
+
+  defp repair_precondition_source?(source) when is_binary(source),
+    do: String.starts_with?(source, @repair_source_prefix <> "[")
+
+  defp repair_precondition_source?(_source), do: false
 end
