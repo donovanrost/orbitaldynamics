@@ -4,6 +4,8 @@ defmodule OrbitalDynamics.Schema.CampaignRepairPlanDeltaHandoffContracts do
   import OrbitalDynamics.Schema.CampaignRepairHandoffValidation,
     only: [indexed_rows: 2, validate_equal: 5, validate_source_copies: 6]
 
+  @repair_delta_source "campaign_repair.deltas"
+
   def validate(issues, %{"deltas" => deltas} = artifact) when is_list(deltas) do
     issues
     |> validate_operator_review_handoff(artifact, deltas)
@@ -68,7 +70,10 @@ defmodule OrbitalDynamics.Schema.CampaignRepairPlanDeltaHandoffContracts do
 
   defp validate_cadence_handoff(issues, _artifact, _deltas), do: issues
 
-  defp operator_plan_delta_row?(row), do: Map.get(row, "review_type") == "plan_delta_review"
+  defp operator_plan_delta_row?(row) do
+    Map.get(row, "review_type") == "plan_delta_review" and
+      Map.get(row, "source") == @repair_delta_source
+  end
 
   defp cadence_plan_delta_row?(row) do
     Map.get(row, "source_review_type") == "plan_delta_review" or

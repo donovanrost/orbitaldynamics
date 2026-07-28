@@ -5,45 +5,37 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Reject stale Repair source operational-readiness handoffs after coordinated
-source removal.
+Reject Repair plan-delta review handoffs with the wrong source family.
 
 Status:
-Verified from clean published base `b6585e19`; ready to publish.
+Verified from clean published base `459427ea`; ready to publish.
 
 Selection evidence:
-- Repair can retain a `source_operational_readiness_report` and emit report-level
-  plus non-passed-gate operator-review and Cadence-import rows.
-- The handoff validator already recognizes the stable downstream report and gate
-  source families but skips both checks when the optional enclosing source
-  report is absent.
-- Coordinated live validation returns `:ok` after deleting the source report,
-  zeroing its independently derived pressure term, recomputing the score, and
-  removing optional score/tradeoff explanations while one report row and one
-  gate row remain stale in each downstream package.
+- Repair emits plan-delta operator-review rows from the stable
+  `campaign_repair.deltas` source family.
+- The handoff validator currently identifies operator rows by review type only,
+  so source-family identity is not part of cardinality enforcement.
+- Live validation returns `:ok` after changing the checked Repair plan-delta
+  review source to `campaign_plan.deltas` while its copied delta remains intact.
 
 Delivered behavior:
-- Repair validation now represents source operational-readiness presence as zero
-  or one expected report handoff while always inspecting the stable downstream
-  report and gate families.
-- Operator-review and Cadence-import report cardinality therefore becomes zero
-  when the enclosing source report disappears; gate cardinality likewise tracks
-  the report's non-passed gates or zero when absent.
-- Non-passed-gate filtering, exact source identities, and optional report/gate
-  copies, including nested import copies, remain enforced while the additive
-  packages and source copies stay optional.
-- Score-pressure and optional score/tradeoff explanation compatibility remain
-  independently enforced.
-- Challenge coverage now rejects stale report and gate rows after coordinated
-  source removal, pressure-term normalization, and score recomputation.
+- Repair validation now recognizes operator plan-delta review rows only when
+  their review type and stable `campaign_repair.deltas` source family both
+  identify them as the canonical handoff.
+- A wrong-source row can no longer satisfy expected plan-delta review
+  cardinality merely by retaining an intact copied delta.
+- Cadence-import compatibility remains unchanged because canonical and legacy
+  import rows identify plan-delta handoffs through their source review fields.
+- Challenge coverage now rejects a plan-delta review row relabeled as
+  `campaign_plan.deltas` while preserving its copied delta.
 
 Verification:
-- Focused source operational-readiness handoff contracts: `3 passed`.
-- Combined readiness producer, replay, review, import, score, and compatibility
-  contracts: `203 passed`.
+- Focused plan-delta handoff contracts: `3 passed`.
+- Adjacent import, planner, review, and plan-delta contracts: `116 passed`.
+- Golden artifact regression: `12 passed`.
 - Campaign Repair schema regression: `667 passed`.
-- Repair planner regression: `225 passed`.
-- Full suite: `5594 passed` (seed `57147`).
+- Campaign planner regression: `1884 passed`.
+- Full suite: `5594 passed` (seed `479396`).
 - Schema lint: `155` artifacts passed, `0` errors, `0` warnings.
 - Canonical Repair and Strategy regeneration passed with stable byte hashes:
   `cc41834e706fd1e04a4c5578032fdf99ceeba949a02fd75fc54c8b70cdc30d8a`
@@ -54,9 +46,9 @@ Level 6 pillar advanced:
 Fleet-scale candidate-pool integrity and operator-review evidence fidelity.
 
 Last published slice:
-- `b6585e19` Reject stale Repair candidate rejection handoffs (`5594 passed`;
-  source candidate-rejection review/import rows can no longer outlive their
-  enclosing report after coordinated score normalization).
+- `459427ea` Reject stale Repair operational readiness handoffs (`5594 passed`;
+  report and gate review/import rows can no longer outlive their enclosing
+  source after coordinated score normalization).
 
 Remaining maturity gaps:
 - Audit remaining generated and source handoffs where their complete producer
@@ -71,8 +63,8 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-Audit the remaining source validators that use stable family predicates but skip
-validation when their optional enclosing source disappears.
+Audit approval and warning operator-review handoffs for stable source-family
+identity without tightening canonical or legacy Cadence-import compatibility.
 
 Blocked:
 None.

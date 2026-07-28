@@ -3,6 +3,8 @@ defmodule OrbitalDynamics.Schema.CampaignRepairPlanDeltaHandoffContractsTest do
 
   alias OrbitalDynamics.Schema
 
+  @repair_delta_source "campaign_repair.deltas"
+
   setup do
     %{
       repair: read_json!("study_results/leo_constellation_campaign_repair_v2.json"),
@@ -46,6 +48,13 @@ defmodule OrbitalDynamics.Schema.CampaignRepairPlanDeltaHandoffContractsTest do
     review_index = plan_delta_review_index(repair)
     cadence_index = plan_delta_import_index(repair)
 
+    review_source_drift =
+      put_in(
+        repair,
+        ["operator_review_package", "rows", Access.at(review_index), "source"],
+        "campaign_plan.deltas"
+      )
+
     review_drift =
       update_in(
         repair,
@@ -71,6 +80,7 @@ defmodule OrbitalDynamics.Schema.CampaignRepairPlanDeltaHandoffContractsTest do
     invalid_cases = [
       {"$.operator_review_package.plan_delta_count",
        put_in(repair, ["operator_review_package", "plan_delta_count"], 2)},
+      {"$.operator_review_package.rows", review_source_drift},
       {"$.operator_review_package.rows[#{review_index}].source_delta", review_drift},
       {"$.cadence_import_manifest.rows[#{cadence_index}].source_delta", cadence_drift}
     ]
@@ -84,7 +94,8 @@ defmodule OrbitalDynamics.Schema.CampaignRepairPlanDeltaHandoffContractsTest do
   defp plan_delta_review_index(repair) do
     Enum.find_index(
       get_in(repair, ["operator_review_package", "rows"]),
-      &(Map.get(&1, "review_type") == "plan_delta_review")
+      &(Map.get(&1, "review_type") == "plan_delta_review" and
+          Map.get(&1, "source") == @repair_delta_source)
     )
   end
 
