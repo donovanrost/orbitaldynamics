@@ -5,38 +5,36 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Extract Repair replacement-completeness replay contracts.
+Reject wrong-source Repair candidate-rejection Cadence imports.
 
 Status:
-Verified from clean published base `be7adacf`; ready to publish.
+Verified from clean published base `40985181`; ready to publish.
 
 Selection evidence:
-- `CampaignRepairReplacementEligibilityContracts` has grown to `637` lines and
-  now owns two distinct validation responsibilities.
-- Row-level source exclusion, preserved-intent, and degraded-mode safety end at
-  line `248`; source-plan, accumulator, used-replacement, overlap, and complete-
-  membership replay occupy the remaining `389` lines.
-- `CampaignRepairContracts` already composes focused contract modules, and the
-  existing producer challenges lock the replay behavior for extraction.
+- Canonical Cadence candidate-rejection imports carry the Repair producer
+  identity at both `source` and `source_review_row.source`.
+- The handoff contract classifies those imports only by their top-level source
+  and validates candidate-rejection evidence copies without validating the
+  nested source identity.
+- A live canonical-artifact mutation changed only
+  `source_review_row.source` to an unrelated candidate-rejection family and
+  `Schema.validate_artifact/1` still returned `:ok`.
 
 Delivered behavior:
-- Row-level source exclusion, preserved-intent, and degraded-mode validation now
-  remain in a focused `234`-line eligibility module.
-- Source-plan, accumulator, used-replacement, overlap, and complete-membership
-  replay now live in a dedicated `471`-line completeness contract module.
-- `CampaignRepairContracts` invokes completeness immediately after row-level
-  eligibility, preserving the prior validation and error-accumulation order.
-- An exact pre/post body diff confirms the replay implementation moved without
-  predicate, path, message, or activation-condition changes.
+- Keep additive candidate-rejection evidence copies optional.
+- Require every present Cadence candidate-rejection source identity to match the
+  enclosing Repair producer family.
+- A focused mutation challenge now rejects independently drifted nested source
+  identity at its exact Cadence manifest path while retaining the existing
+  coordinated top-level/nested wrong-source count challenge.
 
 Verification:
-- Focused ranking and producer contracts: `16 passed`.
-- Adjacent replacement, resource-projection, source-feedback, source-handoff,
-  and source-rejection contracts: `33 passed`.
-- Exact replay-body move diff: no differences.
+- Focused candidate-rejection handoff contracts: `3 passed`.
+- Adjacent candidate-rejection and Cadence import contracts: `32 passed`.
+- Live post-fix mutation returned the exact nested-source validation error.
 - Schema regression: `1073 passed`.
 - Campaign planner regression: `1888 passed`.
-- Full suite: `5599 passed` (seed `77182`).
+- Full suite: `5599 passed` (seed `731005`).
 - Schema lint: `155` artifacts passed, `0` errors, `0` warnings.
 - Canonical Repair and Strategy regeneration passed with stable byte hashes:
   `cc41834e706fd1e04a4c5578032fdf99ceeba949a02fd75fc54c8b70cdc30d8a`
@@ -47,9 +45,8 @@ Level 6 pillar advanced:
 Fleet-scale candidate-pool integrity and operator-review evidence fidelity.
 
 Last published slice:
-- `be7adacf` Require complete one-output Repair rankings (`5599 passed`;
-  multi-source artifacts now enforce complete rankings even when canceled
-  sources leave no final accumulator activity).
+- `40985181` Extract Repair replacement completeness contracts (`5599 passed`;
+  row-level eligibility and replayable completeness now have focused ownership).
 
 Remaining maturity gaps:
 - Audit remaining generated and source handoffs where their complete producer
@@ -64,8 +61,8 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-Audit remaining current Repair ranking shapes that lack replayable completeness
-evidence after the extraction is stable.
+Audit remaining Cadence handoff paths for independently driftable nested source
+identities after this source-family fix is stable.
 
 Blocked:
 None.

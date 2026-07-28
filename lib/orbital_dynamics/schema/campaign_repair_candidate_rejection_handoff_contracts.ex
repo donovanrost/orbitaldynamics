@@ -2,7 +2,12 @@ defmodule OrbitalDynamics.Schema.CampaignRepairCandidateRejectionHandoffContract
   @moduledoc false
 
   import OrbitalDynamics.Schema.CampaignRepairHandoffValidation,
-    only: [indexed_rows: 2, validate_equal: 5, validate_source_copies: 6]
+    only: [
+      indexed_rows: 2,
+      validate_equal: 5,
+      validate_source_copies: 6,
+      validate_source_identities: 6
+    ]
 
   @repair_rejection_source "campaign_repair.source_candidate_rejection_report.rows"
 
@@ -60,6 +65,13 @@ defmodule OrbitalDynamics.Schema.CampaignRepairCandidateRejectionHandoffContract
       length(import_rows),
       length(rejection_rows),
       "must contain one Repair candidate-rejection import row per enclosing report row"
+    )
+    |> validate_source_identities(
+      "$.cadence_import_manifest.rows",
+      import_rows,
+      List.duplicate(@repair_rejection_source, length(rejection_rows)),
+      [["source"], ["source_review_row", "source"]],
+      "must match the enclosing Repair candidate-rejection family"
     )
     |> validate_source_copies(
       "$.cadence_import_manifest.rows",
