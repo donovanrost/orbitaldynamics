@@ -6,17 +6,21 @@ defmodule OrbitalDynamics.Schema.CampaignRepairSourceObjectiveTradeoffHandoffCon
 
   @repair_source_tradeoff "campaign_repair.source_objective_tradeoff_report.tradeoffs"
 
-  def validate(
-        issues,
-        %{"source_objective_tradeoff_report" => %{"tradeoffs" => tradeoffs}} = artifact
-      )
-      when is_list(tradeoffs) do
+  def validate(issues, artifact) when is_map(artifact) do
+    tradeoffs = source_tradeoffs(artifact)
+
     issues
     |> validate_operator_review_handoff(artifact, tradeoffs)
     |> validate_cadence_handoff(artifact, tradeoffs)
   end
 
   def validate(issues, _artifact), do: issues
+
+  defp source_tradeoffs(%{"source_objective_tradeoff_report" => %{"tradeoffs" => tradeoffs}})
+       when is_list(tradeoffs),
+       do: tradeoffs
+
+  defp source_tradeoffs(_artifact), do: []
 
   defp validate_operator_review_handoff(
          issues,
