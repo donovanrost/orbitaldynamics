@@ -76,8 +76,9 @@ defmodule OrbitalDynamics.Schema.CampaignRepairWarningHandoffContracts do
   end
 
   defp cadence_warning_row?(row) do
-    Map.get(row, "source_review_type") == "warning" or
-      Map.get(row, "import_action") == "review_warning"
+    (Map.get(row, "source_review_type") == "warning" or
+       Map.get(row, "import_action") == "review_warning") and
+      Map.get(row, "source") == @repair_warning_source
   end
 
   defp validate_reason_copies(issues, base_path, indexed_rows, warnings, copy_paths) do

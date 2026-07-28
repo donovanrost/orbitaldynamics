@@ -5,30 +5,32 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Reject Repair warning-review handoffs with the wrong source family.
+Reject Repair warning-import handoffs with the wrong source family.
 
 Status:
-Verified from clean published base `3f9d7ad2`; ready to publish.
+Verified from clean published base `f43a503c`; ready to publish.
 
 Selection evidence:
-- Repair emits warning operator-review rows from the stable
-  `campaign_repair.warnings` source family.
-- The handoff validator currently identifies operator rows by review type only,
-  so source-family identity is not part of cardinality enforcement.
-- Live validation returns `:ok` after changing a checked Repair warning-review
-  source to `campaign_plan.warnings` while its copied warning reason remains
-  intact.
+- Repair warning imports carry the stable `campaign_repair.warnings` source at
+  the top level and in their optional nested source-review row.
+- The handoff validator currently identifies warning imports by source review
+  type or import action only, so source-family identity is not part of
+  cardinality enforcement.
+- Live validation returns `:ok` after changing both source copies on a checked
+  Repair warning import to `campaign_plan.warnings` while its warning reason
+  remains intact.
 
 Delivered behavior:
-- Repair validation now recognizes operator warning-review rows only when their
-  review type and stable `campaign_repair.warnings` source family both identify
-  them as canonical handoffs.
-- A wrong-source row can no longer satisfy expected warning-review cardinality
-  merely by retaining the corresponding warning reason.
-- Cadence-import compatibility remains unchanged because canonical and legacy
-  import rows identify warning handoffs through their source review fields.
-- Challenge coverage now rejects a warning-review row relabeled as
-  `campaign_plan.warnings` while preserving its copied warning reason.
+- Repair validation now recognizes warning-import rows only when their source
+  review type or import action and stable `campaign_repair.warnings` top-level
+  source jointly identify the canonical handoff.
+- A wrong-source import can no longer satisfy expected warning-import
+  cardinality merely by retaining its warning reason and coordinated nested
+  source copy.
+- The existing legacy shape with no nested source-review row remains supported
+  because its stable top-level source is retained.
+- Challenge coverage now rejects a warning import whose top-level and nested
+  sources are both relabeled as `campaign_plan.warnings`.
 
 Verification:
 - Focused warning handoff contracts: `3 passed`.
@@ -37,7 +39,7 @@ Verification:
 - Golden artifact regression: `12 passed`.
 - Campaign Repair schema regression: `667 passed`.
 - Campaign planner regression: `1884 passed`.
-- Full suite: `5594 passed` (seed `386656`).
+- Full suite: `5594 passed` (seed `54871`).
 - Schema lint: `155` artifacts passed, `0` errors, `0` warnings.
 - Canonical Repair and Strategy regeneration passed with stable byte hashes:
   `cc41834e706fd1e04a4c5578032fdf99ceeba949a02fd75fc54c8b70cdc30d8a`
@@ -48,9 +50,9 @@ Level 6 pillar advanced:
 Fleet-scale candidate-pool integrity and operator-review evidence fidelity.
 
 Last published slice:
-- `3f9d7ad2` Reject wrong-source Repair approval handoffs (`5594 passed`;
-  operator-review rows can no longer satisfy approval cardinality under a false
-  source family while retaining an intact copied requirement).
+- `f43a503c` Reject wrong-source Repair warning handoffs (`5594 passed`;
+  operator-review rows can no longer satisfy warning cardinality under a false
+  source family while retaining the warning reason).
 
 Remaining maturity gaps:
 - Audit remaining generated and source handoffs where their complete producer
@@ -65,8 +67,8 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-Audit remaining operator-review handoff predicates for stable source-family
-identity without tightening canonical or legacy Cadence-import compatibility.
+Audit approval-import nested source identity separately while preserving its
+top-level-source-free canonical and legacy shapes.
 
 Blocked:
 None.

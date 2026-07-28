@@ -50,6 +50,23 @@ defmodule OrbitalDynamics.Schema.CampaignRepairWarningHandoffContractsTest do
         "campaign_plan.warnings"
       )
 
+    cadence_source_drift =
+      repair
+      |> put_in(
+        ["cadence_import_manifest", "rows", Access.at(cadence_index), "source"],
+        "campaign_plan.warnings"
+      )
+      |> put_in(
+        [
+          "cadence_import_manifest",
+          "rows",
+          Access.at(cadence_index),
+          "source_review_row",
+          "source"
+        ],
+        "campaign_plan.warnings"
+      )
+
     review_drift =
       put_in(
         repair,
@@ -78,6 +95,7 @@ defmodule OrbitalDynamics.Schema.CampaignRepairWarningHandoffContractsTest do
       {"$.operator_review_package.warning_count",
        put_in(repair, ["operator_review_package", "warning_count"], 4)},
       {"$.operator_review_package.rows", review_source_drift},
+      {"$.cadence_import_manifest.rows", cadence_source_drift},
       {"$.operator_review_package.rows[#{review_index}].reason", review_drift},
       {"$.cadence_import_manifest.rows[#{cadence_index}].reason", cadence_drift},
       {"$.cadence_import_manifest.rows[#{cadence_index}].source_review_row.reason", cadence_drift}
@@ -100,7 +118,8 @@ defmodule OrbitalDynamics.Schema.CampaignRepairWarningHandoffContractsTest do
   defp warning_import_index(repair) do
     Enum.find_index(
       get_in(repair, ["cadence_import_manifest", "rows"]),
-      &(Map.get(&1, "source_review_type") == "warning")
+      &(Map.get(&1, "source_review_type") == "warning" and
+          Map.get(&1, "source") == @repair_warning_source)
     )
   end
 
