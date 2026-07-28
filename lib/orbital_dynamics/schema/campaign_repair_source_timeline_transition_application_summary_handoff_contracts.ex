@@ -13,10 +13,8 @@ defmodule OrbitalDynamics.Schema.CampaignRepairSourceTimelineTransitionApplicati
   @repair_source_prefix "campaign_repair.source_timeline_transition_application_summary"
   @repair_source @repair_source_prefix <> ".review_applications"
 
-  def validate(
-        issues,
-        %{"source_timeline_transition_application_summary" => %{} = summary} = artifact
-      ) do
+  def validate(issues, artifact) when is_map(artifact) do
+    summary = source_summary(artifact)
     source_rows = review_required_applications(summary)
     expected_sources = List.duplicate(@repair_source, length(source_rows))
     summary_copies = List.duplicate(summary, length(source_rows))
@@ -37,6 +35,11 @@ defmodule OrbitalDynamics.Schema.CampaignRepairSourceTimelineTransitionApplicati
   end
 
   def validate(issues, _artifact), do: issues
+
+  defp source_summary(%{"source_timeline_transition_application_summary" => %{} = summary}),
+    do: summary
+
+  defp source_summary(_artifact), do: %{}
 
   defp validate_operator_review_handoff(
          issues,

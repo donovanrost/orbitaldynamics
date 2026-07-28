@@ -5,38 +5,39 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Reject stale Repair source timeline transition-application-report handoffs after
-their enclosing report is removed.
+Reject stale Repair source timeline transition-application-summary handoffs
+after their enclosing summary is removed.
 
 Status:
-Verified from clean published base `b2679312`; ready to publish.
+Verified from clean published base `d8823773`; ready to publish.
 
 Selection evidence:
-- Repair can retain a `source_timeline_transition_application_report` and emit
-  one operator review and Cadence-import row per review-required application.
+- Repair can retain a `source_timeline_transition_application_summary` and emit
+  one operator review and Cadence-import row per eligible review application.
 - The handoff validator already recognizes the stable downstream source prefix
-  but skips its entire check when the optional enclosing report is absent.
-- Live validation returns `:ok` after deleting the enclosing report while three
-  operator-review and three Cadence-import rows remain stale.
+  but skips its entire check when the optional enclosing summary is absent.
+- Live validation returns `:ok` after deleting the enclosing summary while two
+  operator-review and two Cadence-import rows remain stale.
 
 Delivered behavior:
-- Repair validation now normalizes an absent transition-application report
-  source to an empty report while still inspecting the stable downstream prefix.
+- Repair validation now normalizes an absent transition-application summary
+  source to an empty summary while still inspecting the stable downstream
+  prefix.
 - Operator-review and Cadence-import cardinality therefore stays tied to the
-  review-required applications even when the enclosing report disappears.
-- Review-required filtering, exact source identity, and optional application
-  copies remain enforced, including nested import copies, while additive
+  eligible review applications even when the enclosing summary disappears.
+- Eligibility filtering, exact source identity, and optional application and
+  summary copies remain enforced, including nested import copies, while additive
   packages and copies stay optional.
-- Challenge coverage now rejects stale downstream transition-application-report
-  rows after complete source-report deletion.
+- Challenge coverage now rejects stale downstream transition-summary rows after
+  complete source-summary deletion.
 
 Verification:
-- Focused source transition-application-report handoff contracts: `3 passed`.
+- Focused source transition-application-summary handoff contracts: `3 passed`.
 - Combined transition-application producer, replay, routing, operator-review,
-  source, import, and handoff contracts: `62 passed`.
+  source, import, and paired handoff contracts: `65 passed`.
 - Campaign Repair schema regression: `667 passed`.
 - Repair planner regression: `225 passed`.
-- Full suite: `5594 passed` (seed `399200`).
+- Full suite: `5594 passed` (seed `759742`).
 - Schema lint: `155` artifacts passed, `0` errors, `0` warnings.
 - Canonical Repair and Strategy regeneration passed with stable byte hashes:
   `cc41834e706fd1e04a4c5578032fdf99ceeba949a02fd75fc54c8b70cdc30d8a`
@@ -47,9 +48,9 @@ Level 6 pillar advanced:
 Fleet-scale candidate-pool integrity and operator-review evidence fidelity.
 
 Last published slice:
-- `b2679312` Reject stale Repair lifecycle summary handoffs (`5594 passed`;
-  lifecycle-summary review/import rows can no longer outlive their enclosing
-  source summary).
+- `d8823773` Reject stale Repair transition report handoffs (`5594 passed`;
+  transition-application review/import rows can no longer outlive their
+  enclosing source report).
 
 Remaining maturity gaps:
 - Audit remaining generated and source handoffs where their complete producer

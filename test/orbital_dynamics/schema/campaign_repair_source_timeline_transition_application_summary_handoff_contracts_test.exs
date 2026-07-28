@@ -197,6 +197,8 @@ defmodule OrbitalDynamics.Schema.CampaignRepairSourceTimelineTransitionApplicati
         false
       )
 
+    stale_handoffs = Map.delete(repair, "source_timeline_transition_application_summary")
+
     invalid_cases = [
       {"$.operator_review_package.rows[#{review_index}].source", review_source_drift},
       {"$.cadence_import_manifest.rows[#{import_index}].source", cadence_source_drift},
@@ -215,7 +217,9 @@ defmodule OrbitalDynamics.Schema.CampaignRepairSourceTimelineTransitionApplicati
       {"$.cadence_import_manifest.rows[#{import_index}].source_review_row.source_timeline_transition_application_summary",
        cadence_summary_drift},
       {"$.operator_review_package.rows", eligibility_drift},
-      {"$.cadence_import_manifest.rows", eligibility_drift}
+      {"$.cadence_import_manifest.rows", eligibility_drift},
+      {"$.operator_review_package.rows", stale_handoffs},
+      {"$.cadence_import_manifest.rows", stale_handoffs}
     ]
 
     for {expected_path, invalid} <- invalid_cases do
