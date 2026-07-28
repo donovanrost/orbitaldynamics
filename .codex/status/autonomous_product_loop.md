@@ -5,39 +5,38 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Require complete replayable one-output multi-source Repair rankings.
+Extract Repair replacement-completeness replay contracts.
 
 Status:
-Verified from clean published base `90ac0bcb`; ready to publish.
+Verified from clean published base `be7adacf`; ready to publish.
 
 Selection evidence:
-- Complete source-plan snapshots establish producer order, while unique final
-  output-source joins identify every activity that actually contributed to the
-  accumulator.
-- An earlier canceled source produces a delta but no final activity, so it
-  contributes no accumulator overlap; the sole later replacement ranking still
-  contains three viable candidates.
-- Live validation returns `:ok` after removing one viable candidate from that
-  one-output/two-source artifact and normalizing the evaluated count.
+- `CampaignRepairReplacementEligibilityContracts` has grown to `637` lines and
+  now owns two distinct validation responsibilities.
+- Row-level source exclusion, preserved-intent, and degraded-mode safety end at
+  line `248`; source-plan, accumulator, used-replacement, overlap, and complete-
+  membership replay occupy the remaining `389` lines.
+- `CampaignRepairContracts` already composes focused contract modules, and the
+  existing producer challenges lock the replay behavior for extraction.
 
 Delivered behavior:
-- Replayed completeness now activates for nonempty final activity sets backed by
-  more than one complete source-plan snapshot, even when only the replacement
-  activity remains in the final plan.
-- Sources without associated final outputs correctly contribute neither an
-  accumulator activity nor a used replacement ID; producer ordering and all
-  other candidate exclusions remain unchanged.
-- Challenge coverage proves a prior canceled source contributes no overlap,
-  accepts its three-candidate producer ranking, and rejects omission of one
-  viable candidate from the one-output artifact.
+- Row-level source exclusion, preserved-intent, and degraded-mode validation now
+  remain in a focused `234`-line eligibility module.
+- Source-plan, accumulator, used-replacement, overlap, and complete-membership
+  replay now live in a dedicated `471`-line completeness contract module.
+- `CampaignRepairContracts` invokes completeness immediately after row-level
+  eligibility, preserving the prior validation and error-accumulation order.
+- An exact pre/post body diff confirms the replay implementation moved without
+  predicate, path, message, or activation-condition changes.
 
 Verification:
 - Focused ranking and producer contracts: `16 passed`.
 - Adjacent replacement, resource-projection, source-feedback, source-handoff,
   and source-rejection contracts: `33 passed`.
+- Exact replay-body move diff: no differences.
 - Schema regression: `1073 passed`.
 - Campaign planner regression: `1888 passed`.
-- Full suite: `5599 passed` (seed `253421`).
+- Full suite: `5599 passed` (seed `77182`).
 - Schema lint: `155` artifacts passed, `0` errors, `0` warnings.
 - Canonical Repair and Strategy regeneration passed with stable byte hashes:
   `cc41834e706fd1e04a4c5578032fdf99ceeba949a02fd75fc54c8b70cdc30d8a`
@@ -48,9 +47,9 @@ Level 6 pillar advanced:
 Fleet-scale candidate-pool integrity and operator-review evidence fidelity.
 
 Last published slice:
-- `90ac0bcb` Require complete replayable single Repair ranking (`5598 passed`;
-  one-ranking multi-activity artifacts now enforce viable membership while
-  honoring preserved accumulator overlaps).
+- `be7adacf` Require complete one-output Repair rankings (`5599 passed`;
+  multi-source artifacts now enforce complete rankings even when canceled
+  sources leave no final accumulator activity).
 
 Remaining maturity gaps:
 - Audit remaining generated and source handoffs where their complete producer
@@ -65,8 +64,8 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-Extract replacement-completeness replay from row-level eligibility validation
-after the producer contract is fully covered.
+Audit remaining current Repair ranking shapes that lack replayable completeness
+evidence after the extraction is stable.
 
 Blocked:
 None.
