@@ -5,17 +5,17 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Bind Repair source operational-quality-gate unavailable-resource handoffs to
-their enclosing summary evidence.
+Bind Repair source operational-quality-gate operator-training handoffs to their
+enclosing summary evidence.
 
 Status:
-Verified from clean published base `dae8ab2a`; ready to publish.
+Verified from clean published base `852da0d1`; ready to publish.
 
 Selection evidence:
 - Repair optionally retains a
-  `source_operational_quality_gate_unavailable_resource_summary`.
+  `source_operational_quality_gate_operator_training_summary`.
 - The authoritative quality-gate review producer deterministically emits one
-  review-required resource-availability row, with normalized resource and
+  review-required operator-training row, with normalized requirement and
   source-report evidence.
 - Live validation accepts coordinated operator-authority drift across every
   operator and Cadence source-report projection while the enclosing summary
@@ -23,28 +23,28 @@ Selection evidence:
 
 Delivered behavior:
 - Repair validation now replays the exact quality-gate review normalization for
-  source unavailable-resource summaries through the shared producer path.
-- The summary-derived resource-availability row must preserve exact
-  cardinality, order, and its no-`.rows` source identity whenever additive
-  review/import packages are present.
+  source operator-training summaries through the shared producer path.
+- The summary-derived operator-training row must preserve exact cardinality,
+  order, and its no-`.rows` source identity whenever additive review/import
+  packages are present.
 - Every present normalized source-row or source-report evidence copy must match
-  the enclosing summary, including resource-pressure context.
-- Challenge coverage rejects independent resource/report drift, coordinated
+  the enclosing summary, including training requirement counts and identifiers.
+- Challenge coverage rejects independent training/report drift, coordinated
   operator-authority drift, `.legacy` source identity, missing rows, and stale
   downstream handoffs while retaining additive-package and evidence-copy
   compatibility.
 - The nested source-schema fixture now omits prebuilt additive packages after
-  injecting an unavailable-resource summary, preserving its source-schema
-  scope without constructing stale handoffs.
+  injecting an operator-training summary, preserving its source-schema scope
+  without constructing stale handoffs.
 
 Verification:
-- Focused direct, general-summary, unavailable-resource source, and handoff
-  contracts: `16 passed`.
+- Focused direct, general-summary, unavailable-resource, operator-training
+  source, and handoff contracts: `21 passed`.
 - Adjacent Operator Review, Cadence import, and Repair source-routing contracts:
   `32 passed`.
-- Campaign Repair schema regression: `647 passed`.
+- Campaign Repair schema regression: `652 passed`.
 - Repair planner regression: `225 passed`.
-- Full suite: `5574 passed` (seed `826438`).
+- Full suite: `5579 passed` (seed `496500`).
 - Schema lint: `155` artifacts passed, `0` errors, `0` warnings.
 - Canonical Repair and Strategy regeneration passed with stable byte hashes:
   `cc41834e706fd1e04a4c5578032fdf99ceeba949a02fd75fc54c8b70cdc30d8a`
@@ -55,8 +55,8 @@ Level 6 pillar advanced:
 Fleet-scale candidate-pool integrity and operator-review evidence fidelity.
 
 Last published slice:
-- `dae8ab2a` Bind Repair quality-gate summary handoffs (`5569 passed`; exact
-  normalized quality-gate rows and reports now remain tied to their enclosing
+- `852da0d1` Bind Repair unavailable-resource handoffs (`5574 passed`;
+  normalized resource-availability evidence now remains tied to its enclosing
   source summary through review and import).
 
 Remaining maturity gaps:
@@ -70,8 +70,8 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-Audit Repair source operational-quality-gate operator-training summary handoffs
-after the unavailable-resource boundary is complete.
+Audit Repair source operational-quality-gate schema-validation summary handoffs
+after the operator-training boundary is complete.
 
 Blocked:
 None.
