@@ -4,6 +4,8 @@ defmodule OrbitalDynamics.Schema.CampaignRepairApprovalHandoffContracts do
   import OrbitalDynamics.Schema.CampaignRepairHandoffValidation,
     only: [indexed_rows: 2, validate_equal: 5, validate_source_copies: 6]
 
+  @repair_approval_source "campaign_repair.approval_requirements"
+
   def validate(issues, %{"approval_requirements" => requirements} = artifact)
       when is_list(requirements) do
     issues
@@ -69,7 +71,10 @@ defmodule OrbitalDynamics.Schema.CampaignRepairApprovalHandoffContracts do
 
   defp validate_cadence_handoff(issues, _artifact, _requirements), do: issues
 
-  defp operator_approval_row?(row), do: Map.get(row, "review_type") == "approval_requirement"
+  defp operator_approval_row?(row) do
+    Map.get(row, "review_type") == "approval_requirement" and
+      Map.get(row, "source") == @repair_approval_source
+  end
 
   defp cadence_approval_row?(row) do
     Map.get(row, "source_review_type") == "approval_requirement" or

@@ -3,6 +3,8 @@ defmodule OrbitalDynamics.Schema.CampaignRepairApprovalHandoffContractsTest do
 
   alias OrbitalDynamics.Schema
 
+  @repair_approval_source "campaign_repair.approval_requirements"
+
   setup do
     %{
       repair: read_json!("study_results/leo_constellation_campaign_repair_v2.json"),
@@ -50,6 +52,13 @@ defmodule OrbitalDynamics.Schema.CampaignRepairApprovalHandoffContractsTest do
     review_index = approval_review_index(repair)
     cadence_index = approval_import_index(repair)
 
+    review_source_drift =
+      put_in(
+        repair,
+        ["operator_review_package", "rows", Access.at(review_index), "source"],
+        "campaign_plan.approval_requirements"
+      )
+
     review_drift =
       update_in(
         repair,
@@ -80,6 +89,7 @@ defmodule OrbitalDynamics.Schema.CampaignRepairApprovalHandoffContractsTest do
     invalid_cases = [
       {"$.operator_review_package.approval_requirement_count",
        put_in(repair, ["operator_review_package", "approval_requirement_count"], 2)},
+      {"$.operator_review_package.rows", review_source_drift},
       {"$.operator_review_package.rows[#{review_index}].source_requirement", review_drift},
       {"$.cadence_import_manifest.rows[#{cadence_index}].source_requirement", cadence_drift}
     ]
@@ -93,7 +103,8 @@ defmodule OrbitalDynamics.Schema.CampaignRepairApprovalHandoffContractsTest do
   defp approval_review_index(repair) do
     Enum.find_index(
       get_in(repair, ["operator_review_package", "rows"]),
-      &(Map.get(&1, "review_type") == "approval_requirement")
+      &(Map.get(&1, "review_type") == "approval_requirement" and
+          Map.get(&1, "source") == @repair_approval_source)
     )
   end
 
