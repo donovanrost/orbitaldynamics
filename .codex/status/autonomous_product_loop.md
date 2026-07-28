@@ -5,46 +5,42 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Bind Repair source operational-quality-gate import-readiness handoffs to their
-enclosing summary evidence.
+Bind Repair source resource-projection-flow handoffs to their enclosing summary
+evidence.
 
 Status:
-Verified from clean published base `9b9cb9d9`; ready to publish.
+Verified from clean published base `549623a8`; ready to publish.
 
 Selection evidence:
-- Repair optionally retains a
-  `source_operational_quality_gate_import_readiness_summary`.
-- The authoritative quality-gate review producer deterministically emits one
-  review-required Cadence-import row, with normalized freshness/import and
-  source-report evidence.
-- Live validation accepts coordinated operator-authority drift across every
-  operator and Cadence source-report projection while the enclosing summary
-  remains unchanged.
+- Repair optionally retains a `source_resource_projection_flow_summary`.
+- The authoritative resource-projection review producer deterministically emits
+  one `leo_1` row with normalized activity-flow and summary context.
+- Live validation accepts coordinated model drift across every outer and nested
+  operator/Cadence projection while the enclosing source summary remains
+  unchanged.
 
 Delivered behavior:
-- Repair validation now replays the exact quality-gate review normalization for
-  source import-readiness summaries through the shared producer path.
-- The summary-derived Cadence-import row must preserve exact cardinality,
-  order, and its no-`.rows` source identity whenever additive review/import
-  packages are present.
-- Every present normalized source-row or source-report evidence copy must match
-  the enclosing summary, including freshness and import-readiness context.
-- Challenge coverage rejects independent import/report drift, coordinated
-  operator-authority drift, `.legacy` source identity, missing rows, and stale
-  downstream handoffs while retaining additive-package and evidence-copy
-  compatibility.
+- Repair validation now replays the exact resource-flow summary normalization
+  through the authoritative ResourceProjection producer.
+- The direct resource-projection validator now shares one expected-row path with
+  the flow-summary wrapper while preserving its published report behavior.
+- When review/import packages are present, the summary-derived row must preserve
+  exact cardinality, order, source identity, and every present normalized
+  projection copy, including activity-flow and summary context.
+- Challenge coverage rejects independent or coordinated projection drift,
+  `.legacy` source identity, missing rows, and stale downstream handoffs while
+  retaining additive-package and projection-copy compatibility.
 - The nested source-schema fixture now omits prebuilt additive packages after
-  injecting an import-readiness summary, preserving its source-schema scope
-  without constructing stale handoffs.
+  injecting a flow summary, preserving its source-schema scope without
+  constructing stale handoffs.
 
 Verification:
-- Focused direct, general-summary, and all four specialized quality-gate source
-  and handoff contracts: `31 passed`.
-- Adjacent Operator Review, Cadence import, and Repair source-routing contracts:
-  `32 passed`.
-- Campaign Repair schema regression: `662 passed`.
+- Focused direct-report, flow-summary source, and handoff contracts: `11 passed`.
+- Adjacent ResourceProjection producer and Repair source-routing contracts:
+  `27 passed`.
+- Campaign Repair schema regression: `667 passed`.
 - Repair planner regression: `225 passed`.
-- Full suite: `5589 passed` (seed `613641`).
+- Full suite: `5594 passed` (seed `231837`).
 - Schema lint: `155` artifacts passed, `0` errors, `0` warnings.
 - Canonical Repair and Strategy regeneration passed with stable byte hashes:
   `cc41834e706fd1e04a4c5578032fdf99ceeba949a02fd75fc54c8b70cdc30d8a`
@@ -55,8 +51,8 @@ Level 6 pillar advanced:
 Fleet-scale candidate-pool integrity and operator-review evidence fidelity.
 
 Last published slice:
-- `9b9cb9d9` Bind Repair schema-validation handoffs (`5584 passed`; normalized
-  blocked validation evidence now remains tied to its enclosing source summary
+- `549623a8` Bind Repair import-readiness handoffs (`5589 passed`; normalized
+  freshness and import evidence now remains tied to its enclosing source summary
   through review and import).
 
 Remaining maturity gaps:
@@ -70,8 +66,8 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-Audit remaining generated and source handoff families after the specialized
-operational-quality-gate boundaries are complete.
+Audit Repair source resource-projection report handoffs after the flow-summary
+boundary is complete.
 
 Blocked:
 None.
