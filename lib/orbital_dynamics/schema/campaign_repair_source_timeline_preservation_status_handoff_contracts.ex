@@ -13,8 +13,8 @@ defmodule OrbitalDynamics.Schema.CampaignRepairSourceTimelinePreservationStatusH
 
   @repair_source_prefix "campaign_repair.source_timeline_preservation_statuses"
 
-  def validate(issues, %{"source_timeline_preservation_statuses" => statuses} = artifact)
-      when is_list(statuses) do
+  def validate(issues, artifact) when is_map(artifact) do
+    statuses = source_statuses(artifact)
     expected_sources = indexed_sources(statuses, @repair_source_prefix, "status")
 
     issues
@@ -23,6 +23,12 @@ defmodule OrbitalDynamics.Schema.CampaignRepairSourceTimelinePreservationStatusH
   end
 
   def validate(issues, _artifact), do: issues
+
+  defp source_statuses(%{"source_timeline_preservation_statuses" => statuses})
+       when is_list(statuses),
+       do: statuses
+
+  defp source_statuses(_artifact), do: []
 
   defp validate_operator_review_handoff(
          issues,
@@ -33,7 +39,7 @@ defmodule OrbitalDynamics.Schema.CampaignRepairSourceTimelinePreservationStatusH
     review_rows =
       indexed_rows(
         Map.get(package, "rows"),
-        &operator_preservation_row?(&1, expected_sources)
+        &operator_preservation_row?/1
       )
 
     issues
@@ -70,7 +76,7 @@ defmodule OrbitalDynamics.Schema.CampaignRepairSourceTimelinePreservationStatusH
     import_rows =
       indexed_rows(
         Map.get(manifest, "rows"),
-        &cadence_preservation_row?(&1, expected_sources)
+        &cadence_preservation_row?/1
       )
 
     issues
@@ -101,14 +107,19 @@ defmodule OrbitalDynamics.Schema.CampaignRepairSourceTimelinePreservationStatusH
 
   defp validate_cadence_handoff(issues, _artifact, _statuses, _sources), do: issues
 
-  defp operator_preservation_row?(row, expected_sources) do
+  defp operator_preservation_row?(row) do
     Map.get(row, "review_type") == "timeline_preservation_review" and
-      row_source(row) in expected_sources
+      repair_preservation_source?(row_source(row))
   end
 
-  defp cadence_preservation_row?(row, expected_sources) do
+  defp cadence_preservation_row?(row) do
     (Map.get(row, "source_review_type") == "timeline_preservation_review" or
        Map.get(row, "import_action") == "review_timeline_preservation") and
-      row_source(row) in expected_sources
+      repair_preservation_source?(row_source(row))
   end
+
+  defp repair_preservation_source?(source) when is_binary(source),
+    do: String.starts_with?(source, @repair_source_prefix <> "[")
+
+  defp repair_preservation_source?(_source), do: false
 end
