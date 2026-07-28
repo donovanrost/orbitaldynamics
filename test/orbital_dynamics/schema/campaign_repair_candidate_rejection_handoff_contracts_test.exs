@@ -94,6 +94,16 @@ defmodule OrbitalDynamics.Schema.CampaignRepairCandidateRejectionHandoffContract
         end
       )
 
+    rejection_pressure = get_in(repair, ["score_terms", "candidate_rejection_pressure_penalty"])
+
+    stale_handoffs =
+      repair
+      |> Map.delete("source_candidate_rejection_report")
+      |> put_in(["score_terms", "candidate_rejection_pressure_penalty"], 0.0)
+      |> Map.update!("score", &(&1 - rejection_pressure))
+      |> Map.delete("score_term_report")
+      |> Map.delete("objective_tradeoff_report")
+
     invalid_cases = [
       {"$.operator_review_package.rows", review_count_drift},
       {"$.cadence_import_manifest.rows", cadence_count_drift},
@@ -102,7 +112,9 @@ defmodule OrbitalDynamics.Schema.CampaignRepairCandidateRejectionHandoffContract
       {"$.cadence_import_manifest.rows[#{cadence_index}].source_candidate_rejection",
        cadence_copy_drift},
       {"$.cadence_import_manifest.rows[#{cadence_index}].source_review_row.source_candidate_rejection",
-       cadence_copy_drift}
+       cadence_copy_drift},
+      {"$.operator_review_package.rows", stale_handoffs},
+      {"$.cadence_import_manifest.rows", stale_handoffs}
     ]
 
     for {expected_path, invalid} <- invalid_cases do
