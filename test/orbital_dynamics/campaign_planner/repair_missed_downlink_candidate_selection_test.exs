@@ -96,6 +96,124 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairMissedDownlinkCandidateSelection
              Schema.validate_artifact(artifact)
   end
 
+  test "validation requires complete later rankings when accumulator state is replayable" do
+    artifact =
+      repair(
+        %{
+          "activities" => [
+            observe("obs_1", "leo_1", "target_a", 100.0, 160.0, 10.0),
+            downlink("dl_1", 180.0, 240.0)
+          ],
+          "candidate_activities" => [
+            observe("obs_2", "leo_1", "target_a", 500.0, 560.0, 20.0),
+            refreshed_downlink("dl_overlap", 520.0, 580.0),
+            refreshed_downlink("dl_2", 700.0, 760.0),
+            refreshed_downlink("dl_3", 800.0, 860.0)
+          ]
+        },
+        realized_state: %{
+          activities: [
+            %{id: "obs_1", status: "failed"},
+            %{id: "dl_1", status: "missed"}
+          ]
+        },
+        current_epoch_s: 250.0
+      )
+
+    activity_index = Enum.find_index(artifact["activities"], &(&1["id"] == "dl_2"))
+    ranking_path = "$.activities[#{activity_index}].repair.replacement_ranking"
+
+    assert [
+             %{"candidate_id" => "dl_2", "selected" => true},
+             %{"candidate_id" => "dl_3", "selected" => false}
+           ] =
+             get_in(artifact, [
+               "activities",
+               Access.at(activity_index),
+               "repair",
+               "replacement_ranking",
+               "rows"
+             ])
+
+    refute Enum.any?(
+             get_in(artifact, [
+               "activities",
+               Access.at(activity_index),
+               "repair",
+               "replacement_ranking",
+               "rows"
+             ]),
+             &(&1["candidate_id"] == "dl_overlap")
+           )
+
+    assert {:ok, %{"schema_contract" => "campaign_repair.v2", "status" => "pass"}} =
+             Schema.validate_artifact(artifact)
+
+    [selected_row, _omitted_row] =
+      get_in(artifact, [
+        "activities",
+        Access.at(activity_index),
+        "repair",
+        "replacement_ranking",
+        "rows"
+      ])
+
+    invalid =
+      artifact
+      |> put_in(
+        [
+          "activities",
+          Access.at(activity_index),
+          "repair",
+          "replacement_ranking",
+          "rows"
+        ],
+        [selected_row]
+      )
+      |> put_in(
+        [
+          "activities",
+          Access.at(activity_index),
+          "repair",
+          "replacement_ranking",
+          "evaluated_candidate_count"
+        ],
+        1
+      )
+
+    assert {:error, report} = Schema.validate_artifact(invalid)
+
+    assert Enum.any?(
+             report["errors"],
+             &(&1["path"] == ranking_path <> ".rows" and
+                 &1["message"] ==
+                   "must contain exactly the uniquely identified viable source candidates in the replayable repair intent")
+           )
+
+    legacy_omission =
+      update_in(invalid, ["activities"], fn activities ->
+        Enum.map(activities, fn activity ->
+          case get_in(activity, ["repair", "replacement_ranking", "rows"]) do
+            rows when is_list(rows) ->
+              update_in(activity, ["repair", "replacement_ranking", "rows"], fn rows ->
+                Enum.map(rows, fn row ->
+                  Map.drop(row, [
+                    "contact_intent_pressure_penalty",
+                    "contact_contention_resolution_pressure_penalty"
+                  ])
+                end)
+              end)
+
+            _rows ->
+              activity
+          end
+        end)
+      end)
+
+    assert {:ok, %{"schema_contract" => "campaign_repair.v2", "status" => "pass"}} =
+             Schema.validate_artifact(legacy_omission)
+  end
+
   test "repair moves a missed planned-contact downlink to a later planned-contact window" do
     missed_planned_contact =
       "planned_dl_1"

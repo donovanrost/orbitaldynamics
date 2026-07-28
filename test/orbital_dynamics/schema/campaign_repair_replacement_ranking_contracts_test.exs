@@ -371,7 +371,7 @@ defmodule OrbitalDynamics.Schema.CampaignRepairReplacementRankingContractsTest d
              report["errors"],
              &(&1["path"] == ranking_path <> ".rows" and
                  &1["message"] ==
-                   "must contain exactly the uniquely identified viable source candidates in the isolated repair intent")
+                   "must contain exactly the uniquely identified viable source candidates in the replayable repair intent")
            )
 
     legacy_omission =

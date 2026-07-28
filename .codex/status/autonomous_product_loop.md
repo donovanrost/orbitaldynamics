@@ -5,42 +5,42 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Bind isolated Repair ranking completeness to source-plan identity evidence.
+Require complete replayable multi-Repair replacement rankings.
 
 Status:
-Verified from clean published base `2a7c9cae`; ready to publish.
+Verified from clean published base `551087cd`; ready to publish.
 
 Selection evidence:
-- The replacement producer excludes every prior-plan activity ID before ranking
-  candidates, including IDs belonging to activities outside the remaining
-  horizon.
-- Repaired activities, deltas, and preserved rows can omit those out-of-horizon
-  plan activities, while `source_timeline_feedback_report` retains the complete
-  prior planned-activity identity set.
-- A live producer case with one repaired source, one hidden out-of-horizon plan
-  activity, and a refreshed candidate sharing the hidden ID emits a one-row
-  ranking but is rejected by the isolated completeness validator.
+- Source timeline feedback supplies complete prior planned-activity snapshots
+  and deterministic producer order, while each final activity maps back to its
+  source through `repair.source_activity_id` or its unchanged activity ID.
+- Those joins reproduce earlier accumulator activities, already-used
+  replacement IDs, and candidate-overlap exclusions for later repairs without
+  inferring hidden state.
+- A live two-repair artifact remains valid after removing one viable unique
+  candidate from the second current ranking and normalizing its evaluated count.
 
 Delivered behavior:
-- Isolated ranking completeness now activates only when the optional source
-  timeline feedback report proves a complete, unique prior-plan activity-ID set
-  containing the repaired source.
-- Candidate replay excludes every source-plan activity ID before applying the
-  preserved-intent, temporal, degraded-mode, rejection, and duplicate-ID
-  filters, matching the producer's selected-plan exclusion.
-- Absent, incomplete, duplicated, or source-missing plan-identity evidence now
-  safely disables completeness instead of inferring hidden prior-plan state.
-- Producer challenge coverage proves a refreshed candidate sharing an
-  out-of-horizon prior-plan ID remains excluded and the resulting artifact
-  validates; schema coverage preserves optional source-report absence.
+- Multi-repair completeness now activates when at least two current rankings,
+  complete unique source-plan snapshots, direct candidate/output timing, and
+  unique final-output-to-source joins make producer state replayable.
+- Validation reconstructs producer order from source-plan timing, associates
+  final activities with their original sources, and derives prior accumulator
+  activities and already-used replacement IDs for each ranking.
+- Candidate membership now reproduces selected-plan, preserved-intent,
+  remaining-horizon, current-epoch, degraded-mode, source-rejection,
+  accumulator-overlap, used-replacement, and post-filter duplicate exclusions.
+- Challenge coverage accepts an overlap-excluded candidate, rejects omission of
+  a separate viable later-repair candidate, and preserves the same omission for
+  pre-pressure legacy ranking rows.
 
 Verification:
-- Focused ranking and producer contracts: `13 passed`.
-- Adjacent replacement, source-feedback, source-handoff, and source-rejection
-  contracts: `23 passed`.
+- Focused ranking and producer contracts: `14 passed`.
+- Adjacent replacement, resource-projection, source-feedback, source-handoff,
+  and source-rejection contracts: `31 passed`.
 - Schema regression: `1073 passed`.
-- Campaign planner regression: `1885 passed`.
-- Full suite: `5596 passed` (seed `49296`).
+- Campaign planner regression: `1886 passed`.
+- Full suite: `5597 passed` (seed `161103`).
 - Schema lint: `155` artifacts passed, `0` errors, `0` warnings.
 - Canonical Repair and Strategy regeneration passed with stable byte hashes:
   `cc41834e706fd1e04a4c5578032fdf99ceeba949a02fd75fc54c8b70cdc30d8a`
@@ -51,9 +51,9 @@ Level 6 pillar advanced:
 Fleet-scale candidate-pool integrity and operator-review evidence fidelity.
 
 Last published slice:
-- `2a7c9cae` Require complete isolated Repair replacement rankings (`5595
-  passed`; current isolated rankings reject omitted viable candidates while
-  preserving the legacy ranking shape).
+- `551087cd` Bind Repair ranking completeness to source plan evidence (`5596
+  passed`; hidden out-of-horizon selected-plan IDs are replayed without making
+  the optional source feedback report mandatory).
 
 Remaining maturity gaps:
 - Audit remaining generated and source handoffs where their complete producer
@@ -68,8 +68,8 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-Extend replacement-ranking completeness only where multi-repair producer state
-can be replayed without accumulator or overlap ambiguity.
+Extend replayed completeness to multi-activity artifacts with one current
+replacement ranking and otherwise reconstructable accumulator state.
 
 Blocked:
 None.
