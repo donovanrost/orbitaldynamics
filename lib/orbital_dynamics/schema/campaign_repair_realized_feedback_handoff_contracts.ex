@@ -2,7 +2,13 @@ defmodule OrbitalDynamics.Schema.CampaignRepairRealizedFeedbackHandoffContracts 
   @moduledoc false
 
   import OrbitalDynamics.Schema.CampaignRepairHandoffValidation,
-    only: [indexed_rows: 2, row_source: 1, validate_equal: 5, validate_source_copies: 6]
+    only: [
+      indexed_rows: 2,
+      row_source: 1,
+      validate_equal: 5,
+      validate_source_copies: 6,
+      validate_source_identities: 6
+    ]
 
   @repair_feedback_source "campaign_repair.source_timeline_feedback_report.rows"
 
@@ -58,6 +64,13 @@ defmodule OrbitalDynamics.Schema.CampaignRepairRealizedFeedbackHandoffContracts 
       length(import_rows),
       length(feedback_rows),
       "must contain one Repair realized-feedback import row per enclosing report row"
+    )
+    |> validate_source_identities(
+      "$.cadence_import_manifest.rows",
+      import_rows,
+      List.duplicate(@repair_feedback_source, length(feedback_rows)),
+      [["source"], ["source_review_row", "source"]],
+      "must match the enclosing Repair timeline-feedback family"
     )
     |> validate_source_copies(
       "$.cadence_import_manifest.rows",

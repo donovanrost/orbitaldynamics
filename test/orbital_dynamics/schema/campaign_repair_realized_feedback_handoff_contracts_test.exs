@@ -93,6 +93,19 @@ defmodule OrbitalDynamics.Schema.CampaignRepairRealizedFeedbackHandoffContractsT
         end
       )
 
+    cadence_nested_source_drift =
+      put_in(
+        repair,
+        [
+          "cadence_import_manifest",
+          "rows",
+          Access.at(cadence_index),
+          "source_review_row",
+          "source"
+        ],
+        "campaign_repair.timeline_feedback_report.rows"
+      )
+
     review_copy_drift =
       update_in(
         repair,
@@ -117,6 +130,8 @@ defmodule OrbitalDynamics.Schema.CampaignRepairRealizedFeedbackHandoffContractsT
     invalid_cases = [
       {"$.operator_review_package.rows", review_count_drift},
       {"$.cadence_import_manifest.rows", cadence_count_drift},
+      {"$.cadence_import_manifest.rows[#{cadence_index}].source_review_row.source",
+       cadence_nested_source_drift},
       {"$.operator_review_package.rows[#{review_index}].source_feedback", review_copy_drift},
       {"$.cadence_import_manifest.rows[#{cadence_index}].source_feedback", cadence_copy_drift},
       {"$.cadence_import_manifest.rows[#{cadence_index}].source_review_row.source_feedback",

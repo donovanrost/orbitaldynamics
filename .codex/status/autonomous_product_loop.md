@@ -5,36 +5,37 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Reject wrong-source Repair candidate-rejection Cadence imports.
+Reject wrong-source Repair realized-feedback Cadence imports.
 
 Status:
-Verified from clean published base `40985181`; ready to publish.
+Verified from clean published base `d9db4ecc`; ready to publish.
 
 Selection evidence:
-- Canonical Cadence candidate-rejection imports carry the Repair producer
+- Canonical Cadence realized-feedback imports carry the Repair producer
   identity at both `source` and `source_review_row.source`.
 - The handoff contract classifies those imports only by their top-level source
-  and validates candidate-rejection evidence copies without validating the
+  and validates realized-feedback evidence copies without validating the
   nested source identity.
 - A live canonical-artifact mutation changed only
-  `source_review_row.source` to an unrelated candidate-rejection family and
+  `source_review_row.source` to an unrelated report family and
   `Schema.validate_artifact/1` still returned `:ok`.
 
 Delivered behavior:
-- Keep additive candidate-rejection evidence copies optional.
-- Require every present Cadence candidate-rejection source identity to match the
+- Keep additive realized-feedback evidence copies optional and retain the
+  report-optional compatibility boundary.
+- Require every present Cadence realized-feedback source identity to match the
   enclosing Repair producer family.
 - A focused mutation challenge now rejects independently drifted nested source
-  identity at its exact Cadence manifest path while retaining the existing
-  coordinated top-level/nested wrong-source count challenge.
+  identity at its exact Cadence manifest path while retaining the coordinated
+  top-level/nested count challenge.
 
 Verification:
-- Focused candidate-rejection handoff contracts: `3 passed`.
-- Adjacent candidate-rejection and Cadence import contracts: `32 passed`.
+- Focused realized-feedback handoff contracts: `4 passed`.
+- Adjacent timeline-feedback and Cadence import contracts: `36 passed`.
 - Live post-fix mutation returned the exact nested-source validation error.
 - Schema regression: `1073 passed`.
 - Campaign planner regression: `1888 passed`.
-- Full suite: `5599 passed` (seed `731005`).
+- Full suite: `5599 passed` (seed `6628`).
 - Schema lint: `155` artifacts passed, `0` errors, `0` warnings.
 - Canonical Repair and Strategy regeneration passed with stable byte hashes:
   `cc41834e706fd1e04a4c5578032fdf99ceeba949a02fd75fc54c8b70cdc30d8a`
@@ -45,8 +46,9 @@ Level 6 pillar advanced:
 Fleet-scale candidate-pool integrity and operator-review evidence fidelity.
 
 Last published slice:
-- `40985181` Extract Repair replacement completeness contracts (`5599 passed`;
-  row-level eligibility and replayable completeness now have focused ownership).
+- `d9db4ecc` Reject wrong-source Repair candidate rejection imports (`5599
+  passed`; present nested candidate-rejection source identities now match their
+  enclosing Repair producer family).
 
 Remaining maturity gaps:
 - Audit remaining generated and source handoffs where their complete producer
@@ -61,8 +63,8 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-Audit remaining Cadence handoff paths for independently driftable nested source
-identities after this source-family fix is stable.
+Reject independently driftable nested source identities for Repair score-term
+and objective-tradeoff imports as separate bounded slices.
 
 Blocked:
 None.
