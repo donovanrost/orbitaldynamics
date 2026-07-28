@@ -5,46 +5,46 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Bind Repair source operational-quality-gate schema-validation handoffs to their
+Bind Repair source operational-quality-gate import-readiness handoffs to their
 enclosing summary evidence.
 
 Status:
-Verified from clean published base `71145020`; ready to publish.
+Verified from clean published base `9b9cb9d9`; ready to publish.
 
 Selection evidence:
 - Repair optionally retains a
-  `source_operational_quality_gate_schema_validation_summary`.
+  `source_operational_quality_gate_import_readiness_summary`.
 - The authoritative quality-gate review producer deterministically emits one
-  blocked Cadence-import row, with normalized schema-validation and source-report
-  evidence.
+  review-required Cadence-import row, with normalized freshness/import and
+  source-report evidence.
 - Live validation accepts coordinated operator-authority drift across every
   operator and Cadence source-report projection while the enclosing summary
   remains unchanged.
 
 Delivered behavior:
 - Repair validation now replays the exact quality-gate review normalization for
-  source schema-validation summaries through the shared producer path.
-- The summary-derived blocked Cadence-import row must preserve exact
-  cardinality, order, and its no-`.rows` source identity whenever additive
-  review/import packages are present.
+  source import-readiness summaries through the shared producer path.
+- The summary-derived Cadence-import row must preserve exact cardinality,
+  order, and its no-`.rows` source identity whenever additive review/import
+  packages are present.
 - Every present normalized source-row or source-report evidence copy must match
-  the enclosing summary, including schema-validation failure context.
-- Challenge coverage rejects independent validation/report drift, coordinated
+  the enclosing summary, including freshness and import-readiness context.
+- Challenge coverage rejects independent import/report drift, coordinated
   operator-authority drift, `.legacy` source identity, missing rows, and stale
   downstream handoffs while retaining additive-package and evidence-copy
   compatibility.
 - The nested source-schema fixture now omits prebuilt additive packages after
-  injecting a schema-validation summary, preserving its source-schema scope
+  injecting an import-readiness summary, preserving its source-schema scope
   without constructing stale handoffs.
 
 Verification:
-- Focused direct, general-summary, unavailable-resource, operator-training,
-  schema-validation source, and handoff contracts: `26 passed`.
+- Focused direct, general-summary, and all four specialized quality-gate source
+  and handoff contracts: `31 passed`.
 - Adjacent Operator Review, Cadence import, and Repair source-routing contracts:
   `32 passed`.
-- Campaign Repair schema regression: `657 passed`.
+- Campaign Repair schema regression: `662 passed`.
 - Repair planner regression: `225 passed`.
-- Full suite: `5584 passed` (seed `65499`).
+- Full suite: `5589 passed` (seed `613641`).
 - Schema lint: `155` artifacts passed, `0` errors, `0` warnings.
 - Canonical Repair and Strategy regeneration passed with stable byte hashes:
   `cc41834e706fd1e04a4c5578032fdf99ceeba949a02fd75fc54c8b70cdc30d8a`
@@ -55,9 +55,9 @@ Level 6 pillar advanced:
 Fleet-scale candidate-pool integrity and operator-review evidence fidelity.
 
 Last published slice:
-- `71145020` Bind Repair operator-training handoffs (`5579 passed`; normalized
-  training requirement evidence now remains tied to its enclosing source
-  summary through review and import).
+- `9b9cb9d9` Bind Repair schema-validation handoffs (`5584 passed`; normalized
+  blocked validation evidence now remains tied to its enclosing source summary
+  through review and import).
 
 Remaining maturity gaps:
 - Audit remaining generated and source handoffs where their complete producer
@@ -70,8 +70,8 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-Audit Repair source operational-quality-gate import-readiness summary handoffs
-after the schema-validation boundary is complete.
+Audit remaining generated and source handoff families after the specialized
+operational-quality-gate boundaries are complete.
 
 Blocked:
 None.
