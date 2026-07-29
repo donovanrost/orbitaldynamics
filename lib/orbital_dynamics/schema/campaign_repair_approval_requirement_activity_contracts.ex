@@ -1,7 +1,11 @@
 defmodule OrbitalDynamics.Schema.CampaignRepairApprovalRequirementActivityContracts do
   @moduledoc false
 
-  alias OrbitalDynamics.CampaignPlanner.{ActivityIdentity, RepairActivityIdentity}
+  alias OrbitalDynamics.CampaignPlanner.{
+    ActivityIdentity,
+    RepairAccumulator,
+    RepairActivityIdentity
+  }
 
   import OrbitalDynamics.Schema.PrimitiveValidation, only: [error: 2]
 
@@ -48,8 +52,34 @@ defmodule OrbitalDynamics.Schema.CampaignRepairApprovalRequirementActivityContra
 
   defp validate_requirement(issues, path, requirement, matching_activities) do
     issues
+    |> validate_requirement_type(path, requirement)
     |> validate_context_identity(path, requirement)
     |> validate_selected_activity_context(path, requirement, matching_activities)
+  end
+
+  defp validate_requirement_type(issues, path, requirement) do
+    case {Map.get(requirement, "action"), Map.get(requirement, "activity_type"),
+          Map.get(requirement, "requirement_type")} do
+      {action, activity_type, actual}
+      when is_binary(action) and is_binary(activity_type) and is_binary(actual) ->
+        expected =
+          RepairAccumulator.approval_requirement_type(action, %{"type" => activity_type})
+
+        if actual == expected do
+          issues
+        else
+          [
+            error(
+              path <> ".requirement_type",
+              "must match the requirement type derived from action and activity_type"
+            )
+            | issues
+          ]
+        end
+
+      _missing_or_unreplayable ->
+        issues
+    end
   end
 
   defp validate_context_identity(issues, path, requirement) do

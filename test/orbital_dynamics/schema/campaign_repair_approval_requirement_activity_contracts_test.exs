@@ -33,6 +33,21 @@ defmodule OrbitalDynamics.Schema.CampaignRepairApprovalRequirementActivityContra
              Schema.validate_artifact(older)
   end
 
+  test "keeps additive approval requirement types optional", context do
+    for artifact <- [context.selected_activity_repair, context.cancellation_repair] do
+      older =
+        artifact
+        |> update_in(
+          ["approval_requirements", Access.at(0)],
+          &Map.delete(&1, "requirement_type")
+        )
+        |> drop_approval_handoffs()
+
+      assert {:ok, %{"schema_contract" => "campaign_repair.v2"}} =
+               Schema.validate_artifact(older)
+    end
+  end
+
   test "rejects selected Repair approval activity context drift", %{
     selected_activity_repair: repair
   } do
@@ -78,6 +93,25 @@ defmodule OrbitalDynamics.Schema.CampaignRepairApprovalRequirementActivityContra
                |> Schema.validate_artifact()
 
       assert Enum.any?(report["errors"], &(&1["path"] == expected_path))
+    end
+  end
+
+  test "rejects Repair approval requirement-type derivation drift", context do
+    for artifact <- [context.selected_activity_repair, context.cancellation_repair] do
+      invalid =
+        artifact
+        |> put_in(
+          ["approval_requirements", Access.at(0), "requirement_type"],
+          "operator_review"
+        )
+        |> drop_approval_handoffs()
+
+      assert {:error, report} = Schema.validate_artifact(invalid)
+
+      assert Enum.any?(
+               report["errors"],
+               &(&1["path"] == "$.approval_requirements[0].requirement_type")
+             )
     end
   end
 
