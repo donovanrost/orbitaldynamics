@@ -366,6 +366,12 @@ defmodule OrbitalDynamics.Validation.ActivityArtifactFixtureTest do
     invalid_planned_identities = [
       {"$.planned.id", put_in(planned_identity_report, ["planned", "id"], "other")},
       {"$.planned.type", put_in(planned_identity_report, ["planned", "type"], "other_type")},
+      {"$.planned.source_window_id",
+       put_in(
+         planned_identity_report,
+         ["planned", "source_window_id"],
+         "window:planned:drift"
+       )},
       {"$.planned.timeline_identity.activity_id",
        put_in(
          planned_identity_report,

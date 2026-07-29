@@ -262,6 +262,7 @@ defmodule OrbitalDynamics.Schema.PlanDeltaContracts do
       "activity_type"
     )
     |> validate_planned_timeline_identity(path, planned, delta)
+    |> validate_current_planned_source_context(path, planned, delta)
   end
 
   defp validate_planned_timeline_identity(
@@ -288,6 +289,27 @@ defmodule OrbitalDynamics.Schema.PlanDeltaContracts do
   end
 
   defp validate_planned_timeline_identity(issues, _path, _planned, _delta), do: issues
+
+  defp validate_current_planned_source_context(
+         issues,
+         path,
+         %{"timeline_identity" => %{}} = planned,
+         %{"source_activity_context" => %{} = source_context}
+       ) do
+    Enum.reduce(source_context, issues, fn {field, expected}, acc ->
+      expect_field_equals(
+        acc,
+        path,
+        planned,
+        field,
+        expected,
+        "must match enclosing PlanDelta source_activity_context.#{field}"
+      )
+    end)
+  end
+
+  defp validate_current_planned_source_context(issues, _path, _planned, _delta),
+    do: issues
 
   defp validate_optional_planned_identity_field(
          issues,
