@@ -87,6 +87,10 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts do
     {"downlink_completion_planned_downlink_mb", "planned_downlink_mb"},
     {"downlink_completion_ratio", "ratio"}
   ]
+  @branch_comparison_coverage_revisit_fields [
+    {"coverage_observed_target_count", "coverage", "observed_target_count"},
+    {"revisit_count", "revisit", "revisit_count"}
+  ]
 
   def validate(issues, artifact) do
     issues
@@ -101,6 +105,7 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts do
     |> validate_branch_comparison_feedback_evidence(artifact)
     |> validate_branch_comparison_priority_commitments(artifact)
     |> validate_branch_comparison_downlink_completion(artifact)
+    |> validate_branch_comparison_coverage_and_revisit(artifact)
     |> validate_branch_comparison_repair_score_evidence(artifact)
     |> validate_branch_comparison_repair_link_selection_evidence(artifact)
     |> validate_branch_comparison_repair_constraint_evidence(artifact)
@@ -679,6 +684,50 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts do
         "must match the enclosing branch objective downlink_completion.#{source_field}"
       )
     end)
+  end
+
+  defp validate_branch_comparison_coverage_and_revisit(
+         issues,
+         %{
+           "branches" => branches,
+           "branch_comparison_report" => %{"rows" => rows}
+         }
+       )
+       when is_list(branches) and is_list(rows) do
+    if Enum.all?(branches, &branch_id_input?/1) and Enum.all?(rows, &branch_id_input?/1) and
+         Enum.map(rows, &Map.fetch!(&1, "branch_id")) ==
+           Enum.map(branches, &Map.fetch!(&1, "branch_id")) do
+      branches
+      |> Enum.zip(rows)
+      |> Enum.with_index()
+      |> Enum.reduce(issues, fn {{branch, row}, index}, acc ->
+        validate_branch_comparison_coverage_and_revisit_row(acc, branch, row, index)
+      end)
+    else
+      issues
+    end
+  end
+
+  defp validate_branch_comparison_coverage_and_revisit(issues, _artifact), do: issues
+
+  defp validate_branch_comparison_coverage_and_revisit_row(issues, branch, row, index) do
+    path = "$.branch_comparison_report.rows[#{index}]"
+    objective_satisfaction = map_value(branch, "objective_satisfaction")
+
+    Enum.reduce(
+      @branch_comparison_coverage_revisit_fields,
+      issues,
+      fn {row_field, group, source_field}, acc ->
+        validate_optional_copy(
+          acc,
+          path <> ".#{row_field}",
+          row,
+          row_field,
+          objective_satisfaction |> map_value(group) |> Map.get(source_field),
+          "must match the enclosing branch objective #{group}.#{source_field}"
+        )
+      end
+    )
   end
 
   defp validate_branch_comparison_repair_score_evidence(
