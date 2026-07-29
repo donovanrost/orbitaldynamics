@@ -66,6 +66,7 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts do
     |> validate_ranked_branch_eligibility(artifact)
     |> validate_recommended_branch_evidence(artifact)
     |> validate_branch_comparison_identity(artifact)
+    |> validate_branch_comparison_score_evidence(artifact)
     |> validate_source_provenance(artifact)
     |> validate_optional_score_term_report(Map.get(artifact, "score_term_report"))
     |> validate_optional_objective_tradeoff_report(Map.get(artifact, "objective_tradeoff_report"))
@@ -254,6 +255,72 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts do
 
   defp branch_id_input?(%{"branch_id" => branch_id}), do: is_binary(branch_id)
   defp branch_id_input?(_row), do: false
+
+  defp validate_branch_comparison_score_evidence(
+         issues,
+         %{
+           "branches" => branches,
+           "branch_comparison_report" => %{"rows" => rows}
+         }
+       )
+       when is_list(branches) and is_list(rows) do
+    if Enum.all?(branches, &branch_id_input?/1) and Enum.all?(rows, &branch_id_input?/1) and
+         Enum.map(rows, &Map.fetch!(&1, "branch_id")) ==
+           Enum.map(branches, &Map.fetch!(&1, "branch_id")) do
+      branches
+      |> Enum.zip(rows)
+      |> Enum.with_index()
+      |> Enum.reduce(issues, fn {{branch, row}, index}, acc ->
+        validate_branch_comparison_score_row(acc, branch, row, index)
+      end)
+    else
+      issues
+    end
+  end
+
+  defp validate_branch_comparison_score_evidence(issues, _artifact), do: issues
+
+  defp validate_branch_comparison_score_row(issues, branch, row, index) do
+    path = "$.branch_comparison_report.rows[#{index}]"
+    score_terms = Map.get(branch, "score_terms", %{})
+
+    issues
+    |> validate_optional_copy(
+      path <> ".score",
+      row,
+      "score",
+      Map.get(branch, "score"),
+      "must match the enclosing branch score"
+    )
+    |> validate_optional_copy(
+      path <> ".raw_score",
+      row,
+      "raw_score",
+      Map.get(score_terms, "raw_score"),
+      "must match the enclosing branch score_terms.raw_score"
+    )
+    |> validate_optional_copy(
+      path <> ".branch_probability",
+      row,
+      "branch_probability",
+      Map.get(branch, "probability"),
+      "must match the enclosing branch probability"
+    )
+    |> validate_optional_copy(
+      path <> ".expected_score",
+      row,
+      "expected_score",
+      Map.get(score_terms, "expected_score", Map.get(branch, "score")),
+      "must match the enclosing branch expected score"
+    )
+    |> validate_optional_copy(
+      path <> ".score_terms",
+      row,
+      "score_terms",
+      score_terms,
+      "must match the enclosing branch score_terms"
+    )
+  end
 
   defp validate_source_provenance(issues, artifact) do
     provenance = Map.get(artifact, "provenance")

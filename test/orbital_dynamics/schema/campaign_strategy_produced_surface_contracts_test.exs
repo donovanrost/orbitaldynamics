@@ -201,6 +201,60 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContractsTest do
     end
   end
 
+  test "rejects CampaignStrategy branch comparison score evidence drift", %{
+    strategy: strategy
+  } do
+    row = Enum.at(strategy["branch_comparison_report"]["rows"], 1)
+
+    score_drift =
+      strategy
+      |> put_in(
+        ["branch_comparison_report", "rows", Access.at(1), "score"],
+        row["score"] + 1
+      )
+      |> put_in(
+        ["branch_comparison_report", "rows", Access.at(1), "score_delta_from_recommended"],
+        row["score_delta_from_recommended"] + 1
+      )
+
+    invalid_cases = [
+      {"score", score_drift},
+      {"raw_score",
+       put_in(
+         strategy,
+         ["branch_comparison_report", "rows", Access.at(1), "raw_score"],
+         row["raw_score"] + 1
+       )},
+      {"branch_probability",
+       put_in(
+         strategy,
+         ["branch_comparison_report", "rows", Access.at(1), "branch_probability"],
+         0.5
+       )},
+      {"expected_score",
+       put_in(
+         strategy,
+         ["branch_comparison_report", "rows", Access.at(1), "expected_score"],
+         row["expected_score"] + 1
+       )},
+      {"score_terms",
+       update_in(
+         strategy,
+         ["branch_comparison_report", "rows", Access.at(1), "score_terms"],
+         &Map.update!(&1, "raw_score", fn value -> value + 1 end)
+       )}
+    ]
+
+    for {field, invalid} <- invalid_cases do
+      assert {:error, validation_report} = Schema.validate_artifact(invalid)
+
+      assert Enum.any?(
+               validation_report["errors"],
+               &(&1["path"] == "$.branch_comparison_report.rows[1].#{field}")
+             )
+    end
+  end
+
   test "keeps additive CampaignStrategy source provenance copies optional", %{
     strategy: strategy
   } do
