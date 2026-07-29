@@ -367,6 +367,12 @@ defmodule OrbitalDynamics.Validation.ActivityArtifactFixtureTest do
           "timeline_id" => "timeline:leo_1:observe:target_a:replacement:2"
         }
       })
+      |> Map.put("timeline_link", %{
+        "source_activity_id" => report["activity_id"],
+        "replacement_activity_id" => "leo_1_observe_target_a_2",
+        "source_timeline_id" => report["source_timeline_id"],
+        "replacement_timeline_id" => "timeline:leo_1:observe:target_a:replacement:2"
+      })
 
     assert {:ok, _valid_replacement_report} =
              Schema.validate_artifact(replacement_report, schema_contract: "plan_delta.v1")
@@ -383,6 +389,25 @@ defmodule OrbitalDynamics.Validation.ActivityArtifactFixtureTest do
                Schema.validate_artifact(invalid, schema_contract: "plan_delta.v1")
 
       assert Enum.any?(invalid_report["errors"], &(&1["path"] == expected_path))
+    end
+
+    invalid_timeline_link_identities = [
+      {"source_activity_id", "other_source_activity"},
+      {"replacement_activity_id", "other_replacement_activity"},
+      {"source_timeline_id", "timeline:source:link-drift"},
+      {"replacement_timeline_id", "timeline:replacement:link-drift"}
+    ]
+
+    for {field, drift} <- invalid_timeline_link_identities do
+      invalid = put_in(replacement_report, ["timeline_link", field], drift)
+
+      assert {:error, invalid_report} =
+               Schema.validate_artifact(invalid, schema_contract: "plan_delta.v1")
+
+      assert Enum.any?(
+               invalid_report["errors"],
+               &(&1["path"] == "$.timeline_link.#{field}")
+             )
     end
 
     assert OrbitalDynamics.validation_artifact_observations(

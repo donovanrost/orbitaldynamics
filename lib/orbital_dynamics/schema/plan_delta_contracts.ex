@@ -64,6 +64,7 @@ defmodule OrbitalDynamics.Schema.PlanDeltaContracts do
     |> validate_optional_realized_delta_activity(path, delta)
     |> validate_source_identity(path, delta)
     |> validate_replacement_identity(path, delta)
+    |> validate_timeline_link_identity(path, delta)
   end
 
   defp validate_source_identity(
@@ -149,6 +150,55 @@ defmodule OrbitalDynamics.Schema.PlanDeltaContracts do
           delta_field,
           expected,
           "must match replacement_activity_context.timeline_identity.#{identity_field}"
+        )
+
+      _unreplayable ->
+        issues
+    end
+  end
+
+  defp validate_timeline_link_identity(
+         issues,
+         path,
+         %{"timeline_link" => %{} = timeline_link} = delta
+       ) do
+    [
+      {"source_activity_id", "activity_id"},
+      {"replacement_activity_id", "replacement_activity_id"},
+      {"source_timeline_id", "source_timeline_id"},
+      {"replacement_timeline_id", "replacement_timeline_id"}
+    ]
+    |> Enum.reduce(issues, fn {link_field, delta_field}, acc ->
+      validate_optional_timeline_link_identity_field(
+        acc,
+        path <> ".timeline_link",
+        timeline_link,
+        link_field,
+        delta,
+        delta_field
+      )
+    end)
+  end
+
+  defp validate_timeline_link_identity(issues, _path, _delta), do: issues
+
+  defp validate_optional_timeline_link_identity_field(
+         issues,
+         path,
+         timeline_link,
+         link_field,
+         delta,
+         delta_field
+       ) do
+    case {Map.get(timeline_link, link_field), Map.get(delta, delta_field)} do
+      {actual, expected} when is_binary(actual) and is_binary(expected) ->
+        expect_field_equals(
+          issues,
+          path,
+          timeline_link,
+          link_field,
+          expected,
+          "must match enclosing PlanDelta #{delta_field}"
         )
 
       _unreplayable ->

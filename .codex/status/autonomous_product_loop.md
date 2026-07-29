@@ -5,43 +5,42 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Bind PlanDelta replacement timeline identities.
+Bind PlanDelta timeline-link identities.
 
 Status:
-Verified from clean published base `967abc8e`; ready to publish.
+Verified from clean published base `222e4039`; ready to publish.
 
 Selection evidence:
-- `PlanDeltaContracts` binds `source_activity_context.timeline_identity` to
-  top-level source activity/timeline IDs, but has no symmetric replacement
-  identity check.
-- The delta's `replacement_activity_context.timeline_identity` is the durable
-  evidence for its top-level `replacement_activity_id` and
-  `replacement_timeline_id`.
+- `TimelineIdentityContracts.validate_link/3` validates PlanDelta timeline-link
+  field shapes and stable IDs, but not their relationship to the enclosing
+  delta.
+- A PlanDelta timeline link is a direct four-field copy of top-level source and
+  replacement activity/timeline identities.
 - After removing optional operator-review and Cadence-import mirrors, a live
-  mutation changed only the top-level replacement timeline ID;
+  mutation changed only the link's replacement timeline ID;
   `Schema.validate_artifact/1` still returned `:ok`.
-- Every checked-in delta with a replacement timeline identity already matches
-  both top-level replacement IDs.
+- Every checked-in PlanDelta timeline link already matches all four top-level
+  identity fields.
 
 Delivered behavior:
-- Added the missing symmetric PlanDelta replacement identity validation beside
-  the existing source identity validation.
-- Required present string-valued top-level `replacement_activity_id` and
-  `replacement_timeline_id` to match their corresponding
-  `replacement_activity_context.timeline_identity` fields.
-- Preserved source-only, legacy, missing, and non-string compatibility while
+- Added PlanDelta-specific relationship validation after the reusable timeline
+  link shape and stable-ID checks.
+- Required each present string-valued timeline-link source/replacement
+  activity/timeline ID to match its enclosing top-level PlanDelta field.
+- Preserved legacy, partial, missing, and non-string compatibility while
   existing type and stable-ID validation continue to report malformed values.
-- Rejected replayable drift at the exact top-level replacement ID paths without
-  depending on optional review/import mirrors.
+- Rejected replayable link drift at each exact
+  `$.timeline_link.<identity_field>` path without depending on optional
+  review/import mirrors.
 
 Verification:
 - Focused curated PlanDelta fixture tests: `6 passed`.
 - Focused plus adjacent PlanDelta/Repair contract tests: `28 passed`.
 - Live optional-mirror-absent mutation probe: exact
-  `$.deltas[0].replacement_timeline_id` replacement-context identity mismatch.
+  `$.deltas[0].timeline_link.replacement_timeline_id` enclosing-delta mismatch.
 - Schema regression: `1082 passed`.
 - Planner regression: `1888 passed`.
-- Full suite: `5608 passed` (seed `353248`).
+- Full suite: `5608 passed` (seed `715197`).
 - Schema lint: `155 passed`, `0 failed`, `0 skipped`.
 - Canonical repair hash:
   `cc41834e706fd1e04a4c5578032fdf99ceeba949a02fd75fc54c8b70cdc30d8a`.
@@ -54,9 +53,9 @@ Level 6 pillar advanced:
 Fleet-scale candidate-pool integrity and operator-review evidence fidelity.
 
 Last published slice:
-- `967abc8e` Bind Repair delta replacement contexts (`5608 passed`; unique
-  current delta replacement contexts now match their selected activity
-  projections at exact delta paths).
+- `222e4039` Bind PlanDelta replacement timeline identities (`5608 passed`;
+  present top-level replacement IDs now match their context timeline identity
+  at exact top-level paths).
 
 Remaining maturity gaps:
 - Audit remaining generated and source handoffs where their complete producer
@@ -71,8 +70,8 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-Continue PlanDelta and current Repair identity-copy audits after replacement
-timeline identities are bound.
+Continue PlanDelta and current Repair identity-copy audits after timeline links
+are bound.
 
 Blocked:
 None.
