@@ -51,12 +51,44 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts do
   def validate(issues, artifact) do
     issues
     |> StableIdValidation.validate_optional_stable_ids("$", artifact, ["source_repair_id"])
+    |> validate_branch_metadata(artifact)
     |> validate_optional_score_term_report(Map.get(artifact, "score_term_report"))
     |> validate_optional_objective_tradeoff_report(Map.get(artifact, "objective_tradeoff_report"))
     |> validate_optional_pareto_frontier_report(Map.get(artifact, "pareto_frontier_report"))
     |> validate_optional_cadence_import_manifest(Map.get(artifact, "cadence_import_manifest"))
     |> validate_optional_operational_feedback_provenance(artifact)
   end
+
+  defp validate_branch_metadata(
+         issues,
+         %{"branches" => branches, "strategy_metadata" => %{} = metadata}
+       )
+       when is_list(branches) do
+    issues =
+      expect_equal(
+        issues,
+        "$.strategy_metadata",
+        metadata,
+        "branch_count",
+        length(branches)
+      )
+
+    case Enum.filter(branches, &(is_map(&1) and Map.get(&1, "branch_id") == "baseline")) do
+      [_baseline] ->
+        expect_equal(
+          issues,
+          "$.strategy_metadata",
+          metadata,
+          "baseline_branch_id",
+          "baseline"
+        )
+
+      _missing_or_ambiguous_baseline ->
+        issues
+    end
+  end
+
+  defp validate_branch_metadata(issues, _artifact), do: issues
 
   defp validate_optional_score_term_report(issues, value) when value in [nil, :null],
     do: issues

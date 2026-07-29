@@ -36,6 +36,29 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContractsTest do
              Schema.validate_artifact(artifact)
   end
 
+  test "rejects CampaignStrategy branch metadata drift", %{strategy: strategy} do
+    nonbaseline_branch_id =
+      strategy["branches"]
+      |> Enum.find(&(&1["branch_id"] != "baseline"))
+      |> Map.fetch!("branch_id")
+
+    invalid_cases = [
+      {"$.strategy_metadata.branch_count",
+       put_in(strategy, ["strategy_metadata", "branch_count"], 0)},
+      {"$.strategy_metadata.baseline_branch_id",
+       put_in(
+         strategy,
+         ["strategy_metadata", "baseline_branch_id"],
+         nonbaseline_branch_id
+       )}
+    ]
+
+    for {expected_path, invalid} <- invalid_cases do
+      assert {:error, report} = Schema.validate_artifact(invalid)
+      assert Enum.any?(report["errors"], &(&1["path"] == expected_path))
+    end
+  end
+
   test "rejects produced-surface drift at nested paths", %{strategy: strategy} do
     invalid =
       strategy

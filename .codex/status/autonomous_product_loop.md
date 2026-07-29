@@ -5,50 +5,41 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Bind Repair approval reasons.
+Bind CampaignStrategy branch metadata.
 
 Status:
-Verified from clean published base `89372b80`; ready to publish.
+Verified from clean published base `5845f098`; ready to publish.
 
 Selection evidence:
-- Every transition passes the same reason to both
-  `RepairAccumulator.add_approval_requirement/4` and either the selected
-  activity's current `repair.reason` or its source/replacement PlanDelta.
-- A uniquely selected activity reason is authoritative, including downstream
-  maneuver review where the earlier delta reason differs; a unique related
-  delta closes cancellation requirements with no selected activity row.
-- Existing validation checks reason shape and downstream mirrors but does not
-  bind the root requirement to either producer-owned source.
-- After removing optional operator-review and Cadence-import mirrors, isolated
-  reason drift still returned `:ok` from `Schema.validate_artifact/1` for both
-  checked Repair artifacts.
-- Both checked artifacts already match the replayed selected-activity/delta
-  reason precedence.
+- `StrategyArtifact.metadata/3` derives `branch_count` directly from the branch
+  list and selects `baseline_branch_id` from the literal baseline branch.
+- Existing CampaignStrategy validation checks metadata field presence and
+  stable IDs but does not bind either field to the enclosing branch collection.
+- The checked strategy has 27 branches and exactly one `baseline` branch, and
+  both metadata fields match those producer inputs.
+- Structurally valid mutations changed the count to zero and the baseline ID to
+  another real branch ID; `Schema.validate_artifact/1` still returned `:ok`.
 
 Delivered behavior:
-- Extended the Repair approval activity relationship contract with a unique
-  related-delta index covering source and replacement activity identities.
-- Required each present string-valued approval reason to match the uniquely
-  selected activity's current `repair.reason`, falling back to a unique related
-  delta only when no uniquely selected activity exists.
-- Preserved downstream maneuver-review semantics where selected activity
-  metadata intentionally supersedes an earlier delta reason.
-- Preserved selected legacy activities without a replayable repair reason
-  instead of treating their earlier delta reason as current.
-- Deduplicated deltas whose source and replacement activity IDs are identical
-  and skipped missing or ambiguous relationships instead of inferring them.
-- Rejected selected-replacement and cancellation reason drift at the exact root
-  field with optional review/import mirrors absent.
+- Extended CampaignStrategy produced-surface validation with branch metadata
+  relationships.
+- Required `strategy_metadata.branch_count` to equal the enclosing branch-list
+  length.
+- Required `baseline_branch_id` to identify the literal baseline branch when
+  exactly one such branch is present.
+- Preserved missing or ambiguous baseline compatibility instead of inferring a
+  baseline identity from branch order or another branch label.
+- Rejected structurally valid count and baseline-ID drift at their exact
+  metadata paths.
 
 Verification:
-- Focused approval activity relationship tests: `8 passed`.
-- Focused plus adjacent approval/replacement contract tests: `39 passed`.
-- Live optional-mirror-absent mutation probes: exact
-  `$.approval_requirements[0].reason` producer relationship mismatches for
-  selected and cancellation Repair artifacts.
-- Schema regression: `1090 passed`.
+- Focused CampaignStrategy produced-surface tests: `5 passed`.
+- Focused plus adjacent CampaignStrategy contract tests: `7 passed`.
+- Live mutation probes: exact `$.strategy_metadata.branch_count` and
+  `$.strategy_metadata.baseline_branch_id` relationship mismatches.
+- Schema regression: `1091 passed`.
 - Planner regression: `1888 passed`.
-- Full suite: `5616 passed` (seed `381007`).
+- Full suite: `5617 passed` (seed `940419`).
 - Schema lint: `155 passed`, `0 failed`, `0 skipped`.
 - Canonical repair hash:
   `cc41834e706fd1e04a4c5578032fdf99ceeba949a02fd75fc54c8b70cdc30d8a`.
@@ -59,12 +50,12 @@ Verification:
   `git diff --check` passed.
 
 Level 6 pillar advanced:
-Fleet-scale candidate-pool integrity and operator-review evidence fidelity.
+Fleet-scale strategy decision-support and branch metadata integrity.
 
 Last published slice:
-- `89372b80` Bind Repair approval requirement types (`5614 passed`; present
-  requirement types now replay the producer's action/activity-type derivation
-  while additive omission remains compatible).
+- `5845f098` Bind Repair approval reasons (`5616 passed`; current selected
+  activity reasons and cancellation delta reasons now bind approval evidence
+  without treating stale legacy deltas as current).
 
 Remaining maturity gaps:
 - Audit remaining generated and source handoffs where their complete producer
@@ -79,9 +70,8 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-Audit the remaining Repair approval action relationship only if the complete
-transition-specific mapping can be replayed without closing legacy fallback
-action compatibility.
+Continue auditing CampaignStrategy root provenance and recommendation/report
+copies only where the complete producer relationship is replayable.
 
 Blocked:
 None.
