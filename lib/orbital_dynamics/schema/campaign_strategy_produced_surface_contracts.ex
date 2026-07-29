@@ -103,6 +103,18 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts do
     {"resource_score_adjustment", "score_adjustment"},
     {"fuel_preservation_mode", "fuel_preservation_mode"}
   ]
+  @branch_comparison_resource_projection_minimum_fields [
+    {"projected_storage_margin", "projected_storage_margin"},
+    {"projected_downlink_margin", "projected_downlink_margin"},
+    {"projected_power_margin", "projected_power_margin"}
+  ]
+  @branch_comparison_resource_projection_maximum_fields [
+    {"projected_storage_overflow_mb", "projected_storage_overflow_mb"},
+    {"projected_downlink_shortfall_mb", "projected_downlink_shortfall_mb"},
+    {"projected_battery_overuse_wh", "projected_battery_overuse_wh"},
+    {"storage_limited_downlinked_mb", "storage_limited_downlinked_mb"},
+    {"unused_downlink_capacity_mb", "unused_downlink_capacity_mb"}
+  ]
 
   def validate(issues, artifact) do
     issues
@@ -116,6 +128,7 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts do
     |> validate_branch_comparison_risk_classifications(artifact)
     |> validate_branch_comparison_resource_impacts(artifact)
     |> validate_branch_comparison_resource_projection_summary(artifact)
+    |> validate_branch_comparison_resource_projection_aggregates(artifact)
     |> validate_branch_comparison_feedback_evidence(artifact)
     |> validate_branch_comparison_priority_commitments(artifact)
     |> validate_branch_comparison_downlink_completion(artifact)
@@ -663,6 +676,153 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts do
     end)
     |> length()
   end
+
+  defp validate_branch_comparison_resource_projection_aggregates(
+         issues,
+         %{
+           "branches" => branches,
+           "branch_comparison_report" => %{"rows" => rows}
+         }
+       )
+       when is_list(branches) and is_list(rows) do
+    if Enum.all?(branches, &branch_id_input?/1) and Enum.all?(rows, &branch_id_input?/1) and
+         Enum.map(rows, &Map.fetch!(&1, "branch_id")) ==
+           Enum.map(branches, &Map.fetch!(&1, "branch_id")) do
+      branches
+      |> Enum.zip(rows)
+      |> Enum.with_index()
+      |> Enum.reduce(issues, fn {{branch, row}, index}, acc ->
+        validate_branch_comparison_resource_projection_aggregate_row(acc, branch, row, index)
+      end)
+    else
+      issues
+    end
+  end
+
+  defp validate_branch_comparison_resource_projection_aggregates(issues, _artifact), do: issues
+
+  defp validate_branch_comparison_resource_projection_aggregate_row(
+         issues,
+         branch,
+         row,
+         index
+       ) do
+    case Map.get(branch, "resource_projection_report") do
+      %{"projected_resources" => resource_rows}
+      when is_list(resource_rows) and resource_rows != [] ->
+        path = "$.branch_comparison_report.rows[#{index}]"
+
+        issues
+        |> validate_resource_projection_aggregate_fields(
+          path,
+          row,
+          resource_rows,
+          @branch_comparison_resource_projection_minimum_fields,
+          &minimum_present/2
+        )
+        |> validate_resource_projection_aggregate_fields(
+          path,
+          row,
+          resource_rows,
+          @branch_comparison_resource_projection_maximum_fields,
+          &maximum_present/2
+        )
+        |> validate_optional_copy(
+          path <> ".projected_storage_remaining_mb",
+          row,
+          "projected_storage_remaining_mb",
+          minimum_projected_remaining(
+            resource_rows,
+            "projected_storage_remaining_mb",
+            "storage_capacity_mb",
+            "projected_storage_used_mb"
+          ),
+          "must match the enclosing branch projected storage remaining aggregate"
+        )
+        |> validate_optional_copy(
+          path <> ".projected_downlink_remaining_mb",
+          row,
+          "projected_downlink_remaining_mb",
+          minimum_projected_remaining(
+            resource_rows,
+            "projected_downlink_remaining_mb",
+            "downlink_capacity_mb",
+            "estimated_downlink_mb"
+          ),
+          "must match the enclosing branch projected downlink remaining aggregate"
+        )
+
+      _report ->
+        issues
+    end
+  end
+
+  defp validate_resource_projection_aggregate_fields(
+         issues,
+         path,
+         row,
+         resource_rows,
+         fields,
+         aggregate
+       ) do
+    Enum.reduce(fields, issues, fn {row_field, source_field}, acc ->
+      validate_optional_copy(
+        acc,
+        path <> ".#{row_field}",
+        row,
+        row_field,
+        aggregate.(resource_rows, source_field),
+        "must match the enclosing branch resource projection #{source_field} aggregate"
+      )
+    end)
+  end
+
+  defp minimum_present(rows, field) do
+    rows
+    |> Enum.map(&map_field(&1, field))
+    |> Enum.filter(&is_number/1)
+    |> case do
+      [] -> nil
+      values -> Enum.min(values)
+    end
+  end
+
+  defp maximum_present(rows, field) do
+    rows
+    |> Enum.map(&map_field(&1, field))
+    |> Enum.filter(&is_number/1)
+    |> case do
+      [] -> nil
+      values -> Enum.max(values)
+    end
+  end
+
+  defp minimum_projected_remaining(rows, remaining_field, capacity_field, used_or_demand_field) do
+    rows
+    |> Enum.flat_map(fn row ->
+      remaining = map_field(row, remaining_field)
+      capacity = map_field(row, capacity_field)
+      used_or_demand = map_field(row, used_or_demand_field)
+
+      cond do
+        is_number(remaining) ->
+          [remaining]
+
+        is_number(capacity) and is_number(used_or_demand) ->
+          [max(capacity - used_or_demand, 0.0)]
+
+        true ->
+          []
+      end
+    end)
+    |> case do
+      [] -> nil
+      values -> Enum.min(values)
+    end
+  end
+
+  defp map_field(%{} = map, field), do: Map.get(map, field)
+  defp map_field(_value, _field), do: nil
 
   defp validate_branch_comparison_feedback_evidence(
          issues,
