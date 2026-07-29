@@ -81,6 +81,12 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts do
     {"priority_commitment_missing_observation_count", "missing_observation_count"},
     {"priority_commitment_ratio", "ratio"}
   ]
+  @branch_comparison_downlink_fields [
+    {"downlink_completion_required_contacts", "required_contacts"},
+    {"downlink_completion_planned_contacts", "planned_contacts"},
+    {"downlink_completion_planned_downlink_mb", "planned_downlink_mb"},
+    {"downlink_completion_ratio", "ratio"}
+  ]
 
   def validate(issues, artifact) do
     issues
@@ -94,6 +100,7 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts do
     |> validate_branch_comparison_risk_classifications(artifact)
     |> validate_branch_comparison_feedback_evidence(artifact)
     |> validate_branch_comparison_priority_commitments(artifact)
+    |> validate_branch_comparison_downlink_completion(artifact)
     |> validate_branch_comparison_repair_score_evidence(artifact)
     |> validate_branch_comparison_repair_link_selection_evidence(artifact)
     |> validate_branch_comparison_repair_constraint_evidence(artifact)
@@ -628,6 +635,50 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts do
       values when is_list(values) -> values
       _values -> []
     end
+  end
+
+  defp validate_branch_comparison_downlink_completion(
+         issues,
+         %{
+           "branches" => branches,
+           "branch_comparison_report" => %{"rows" => rows}
+         }
+       )
+       when is_list(branches) and is_list(rows) do
+    if Enum.all?(branches, &branch_id_input?/1) and Enum.all?(rows, &branch_id_input?/1) and
+         Enum.map(rows, &Map.fetch!(&1, "branch_id")) ==
+           Enum.map(branches, &Map.fetch!(&1, "branch_id")) do
+      branches
+      |> Enum.zip(rows)
+      |> Enum.with_index()
+      |> Enum.reduce(issues, fn {{branch, row}, index}, acc ->
+        validate_branch_comparison_downlink_completion_row(acc, branch, row, index)
+      end)
+    else
+      issues
+    end
+  end
+
+  defp validate_branch_comparison_downlink_completion(issues, _artifact), do: issues
+
+  defp validate_branch_comparison_downlink_completion_row(issues, branch, row, index) do
+    path = "$.branch_comparison_report.rows[#{index}]"
+
+    downlink_completion =
+      branch
+      |> map_value("objective_satisfaction")
+      |> map_value("downlink_completion")
+
+    Enum.reduce(@branch_comparison_downlink_fields, issues, fn {row_field, source_field}, acc ->
+      validate_optional_copy(
+        acc,
+        path <> ".#{row_field}",
+        row,
+        row_field,
+        Map.get(downlink_completion, source_field),
+        "must match the enclosing branch objective downlink_completion.#{source_field}"
+      )
+    end)
   end
 
   defp validate_branch_comparison_repair_score_evidence(
