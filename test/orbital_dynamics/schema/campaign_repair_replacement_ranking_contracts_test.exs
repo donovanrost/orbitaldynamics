@@ -364,6 +364,19 @@ defmodule OrbitalDynamics.Schema.CampaignRepairReplacementRankingContractsTest d
            )
   end
 
+  test "binds current repair reason to the corresponding producer delta", context do
+    reason_path = "$.activities[#{context.activity_index}].repair.reason"
+    reason_drift = put_in_path(context.artifact, reason_path, "stale_reason")
+
+    assert {:error, report} = Schema.validate_artifact(reason_drift)
+
+    assert Enum.any?(
+             report["errors"],
+             &(&1["path"] == reason_path and
+                 &1["message"] == "must match the corresponding Repair delta reason")
+           )
+  end
+
   test "binds current source context to the source-plan activity projection", context do
     source_context_path =
       "$.activities[#{context.activity_index}].repair.source_activity_context"

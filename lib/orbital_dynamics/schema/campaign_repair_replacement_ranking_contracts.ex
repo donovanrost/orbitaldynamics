@@ -102,8 +102,8 @@ defmodule OrbitalDynamics.Schema.CampaignRepairReplacementRankingContracts do
       %{} = repair ->
         issues
         |> validate_repair(path <> ".repair", repair, activity)
-        |> validate_current_delta_action(
-          path <> ".repair.action",
+        |> validate_current_delta_handoff(
+          path <> ".repair",
           repair,
           activity,
           deltas_by_replacement_id
@@ -116,7 +116,7 @@ defmodule OrbitalDynamics.Schema.CampaignRepairReplacementRankingContracts do
 
   defp validate_activity(issues, _path, _activity, _deltas_by_replacement_id), do: issues
 
-  defp validate_current_delta_action(
+  defp validate_current_delta_handoff(
          issues,
          path,
          repair,
@@ -131,15 +131,24 @@ defmodule OrbitalDynamics.Schema.CampaignRepairReplacementRankingContracts do
         |> Map.get(activity_id(activity), [])
         |> Enum.filter(&(Map.get(&1, "activity_id") == Map.get(repair, "source_activity_id")))
 
-      case {Map.get(repair, "action"), matching_deltas} do
-        {actual, [%{"repair_action" => expected}]}
-        when is_binary(actual) and is_binary(expected) ->
-          validate_equal(
-            issues,
-            path,
-            actual,
-            expected,
+      case matching_deltas do
+        [%{} = delta] ->
+          issues
+          |> validate_current_delta_string(
+            path <> ".action",
+            repair,
+            "action",
+            delta,
+            "repair_action",
             "must match the corresponding Repair delta repair_action"
+          )
+          |> validate_current_delta_string(
+            path <> ".reason",
+            repair,
+            "reason",
+            delta,
+            "reason",
+            "must match the corresponding Repair delta reason"
           )
 
         _missing_or_ambiguous_delta ->
@@ -147,6 +156,24 @@ defmodule OrbitalDynamics.Schema.CampaignRepairReplacementRankingContracts do
       end
     else
       issues
+    end
+  end
+
+  defp validate_current_delta_string(
+         issues,
+         path,
+         repair,
+         repair_field,
+         delta,
+         delta_field,
+         message
+       ) do
+    case {Map.get(repair, repair_field), Map.get(delta, delta_field)} do
+      {actual, expected} when is_binary(actual) and is_binary(expected) ->
+        validate_equal(issues, path, actual, expected, message)
+
+      _unreplayable ->
+        issues
     end
   end
 

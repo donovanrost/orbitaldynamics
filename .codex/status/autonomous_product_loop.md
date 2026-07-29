@@ -5,37 +5,36 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Bind Repair selected activity actions to their producer deltas.
+Bind Repair selected activity reasons to their producer deltas.
 
 Status:
-Verified from clean published base `6121e594`; ready to publish.
+Verified from clean published base `cf87894e`; ready to publish.
 
 Selection evidence:
-- Replacement transitions emit the same branch action into the selected
-  activity's `repair.action` and the corresponding delta's `repair_action`.
-- Current ranking validation binds selected activity and source identities, but
-  does not compare this activity-level action with its uniquely identified
-  producer delta.
-- A live mutation changed only a selected downlink activity's action from
-  `moved` to `replaced` while its delta remained `moved`;
+- Replacement transitions emit the same branch reason into the selected
+  activity's `repair.reason` and the corresponding delta's `reason`.
+- Current ranking validation now binds the activity action to its uniquely
+  identified delta, but does not compare the adjacent reason copy.
+- A live mutation changed only the selected activity's reason to `stale_reason`
+  while its producer delta retained the original rescheduling reason;
   `Schema.validate_artifact/1` still returned `:ok`.
 
 Delivered behavior:
-- Index producer deltas by replacement activity ID and narrow them by the
-  current repair's bound source activity ID.
-- Require `repair.action` to equal the unique corresponding delta's
-  `repair_action` for current replacement rankings.
-- Preserve legacy, missing, and ambiguous delta compatibility while rejecting a
-  focused action contradiction at its exact activity metadata path.
+- Generalize the current identity-constrained delta handoff check so one unique
+  producer delta validates both selected activity string copies.
+- Require `repair.reason` to equal that delta's `reason` alongside the existing
+  action comparison.
+- Preserve legacy, missing, ambiguous, and non-string compatibility while
+  rejecting focused reason drift at its exact activity metadata path.
 
 Verification:
-- Focused replacement-ranking contracts: `15 passed`.
-- Adjacent replacement and plan-delta handoff contracts: `25 passed`.
-- Live `moved` to `replaced` mutation returned the exact
-  `$.activities[0].repair.action` error.
-- Schema regression: `1078 passed`.
+- Focused replacement-ranking contracts: `16 passed`.
+- Adjacent replacement and plan-delta handoff contracts: `26 passed`.
+- Live stale-reason mutation returned the exact
+  `$.activities[0].repair.reason` error.
+- Schema regression: `1079 passed`.
 - Campaign planner regression: `1888 passed`.
-- Full suite: `5604 passed` (seed `330029`).
+- Full suite: `5605 passed` (seed `403079`).
 - Schema lint: `155` artifacts passed, `0` errors, `0` warnings.
 - Canonical Repair and Strategy regeneration passed with stable byte hashes:
   `cc41834e706fd1e04a4c5578032fdf99ceeba949a02fd75fc54c8b70cdc30d8a`
@@ -46,9 +45,9 @@ Level 6 pillar advanced:
 Fleet-scale candidate-pool integrity and operator-review evidence fidelity.
 
 Last published slice:
-- `6121e594` Bind Repair selected candidate diff metadata (`5603 passed`; current
-  selected semantic-match metadata now replays exact unique or ambiguous source
-  candidate-diff evidence).
+- `cf87894e` Bind Repair selected activity actions (`5604 passed`; current
+  selected activity actions now match their uniquely identified producer
+  deltas).
 
 Remaining maturity gaps:
 - Audit remaining generated and source handoffs where their complete producer
@@ -63,7 +62,7 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-Continue current selected-activity-to-delta handoff audits after actions are
+Continue current selected-activity-to-delta handoff audits after reasons are
 bound.
 
 Blocked:
