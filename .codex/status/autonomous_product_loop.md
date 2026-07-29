@@ -5,49 +5,45 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Bind CampaignStrategy branch comparison operational evidence.
+Bind CampaignStrategy branch comparison repair score evidence.
 
 Status:
-Verified from clean published base `5e7e01e0`; ready to publish.
+Verified locally from clean published base `e13c1665`; publish pending.
 
 Selection evidence:
-- `BranchComparisonReport.report/3` copies each enclosing branch's approval
-  status and derives risk, approval-requirement, strategic-addition, and repair-
-  delta counts into the corresponding comparison row.
-- The checked Strategy has exact equality for all five operational-evidence
+- `BranchComparisonRowFields.repair_fields/1` copies repair score, score-term
+  count and keys, activity score, and both schedule penalties from each branch's
+  repair result into its comparison row.
+- The checked Strategy has exact equality for all six repair-score evidence
   surfaces on every comparison row.
-- Existing report validation checks field shapes but does not bind these row
-  values back to enclosing branches.
-- Schema-valid mutations independently changed approval status or any derived
-  operational count;
-  `Schema.validate_artifact/1` still returned `:ok` for every case.
+- Existing validation binds repair score-term count only to the row's key count,
+  not either row field to the enclosing repair result.
+- Coherent count/key drift, replacement keys, and isolated score or penalty
+  drift still returned `:ok` from `Schema.validate_artifact/1`.
 
 Delivered behavior:
-- Extended CampaignStrategy produced-surface validation with branch-comparison
-  operational evidence relationships.
-- Bound each identity-aligned row's approval status plus risk, approval-
-  requirement, strategic-addition, and repair-delta counts to its enclosing
-  branch.
-- Preserved omission compatibility for optional row counts while validating
-  them exactly whenever present.
-- Derived nested counts defensively without crashing on malformed branch input.
-- Rejected structurally valid operational-evidence drift at exact indexed row
-  paths.
+- CampaignStrategy validation now binds every optional comparison-row repair
+  score field to the identity-aligned branch's enclosing repair result.
+- The binding covers repair score, score-term count and keys, activity score,
+  schedule-churn penalty, and schedule-move penalty without making additive
+  copies mandatory for older artifacts.
+- Indexed validation paths now reject coherent count/key drift, same-count key
+  replacement, and isolated score or penalty drift at the copied row field.
 
 Verification:
-- Focused CampaignStrategy produced-surface tests: `14 passed`.
-- Focused plus adjacent CampaignStrategy contract tests: `16 passed`.
-- Live mutation probes: approval status and all four operational count drifts
-  failed at their exact indexed row paths.
-- Schema regression: `1100 passed` with `--timeout 120000`.
-- Planner regression: `1888 passed`.
-- Full suite: `5626 passed` (seed `840830`).
-- Schema lint: `155 passed`, `0 failed`, `0 skipped`.
-- Canonical repair hash:
-  `cc41834e706fd1e04a4c5578032fdf99ceeba949a02fd75fc54c8b70cdc30d8a`.
-- Canonical strategy hash:
+- Focused CampaignStrategy produced-surface contracts: `15 passed`.
+- Adjacent CampaignStrategy/Repair contracts: `17 passed` (seed `801183`).
+- Live checked-artifact mutations: all six indexed repair-score paths detected.
+- Broad schema suite: `1101 passed` (seed `560396`).
+- Campaign planner suite: `1890 passed` (seed `326298`); only the existing
+  `support.exs` discovery warning was emitted.
+- Schema lint: `155` artifacts passed with zero errors or warnings.
+- Canonical regeneration preserved repair SHA-256
+  `cc41834e706fd1e04a4c5578032fdf99ceeba949a02fd75fc54c8b70cdc30d8a`
+  and strategy SHA-256
   `57602722702969da587e2754df84bca1e06e86cc32fa5af7f3f78451b72f9985`.
-- Canonical regeneration produced no artifact diffs.
+- Full suite: `5627 passed` (seed `720064`); only the existing support-file
+  discovery warning was emitted.
 - Formatting and whitespace gates: `mix format --check-formatted` and
   `git diff --check` passed.
 
@@ -55,9 +51,9 @@ Level 6 pillar advanced:
 Fleet-scale strategy decision-support and embedded-report identity integrity.
 
 Last published slice:
-- `5e7e01e0` Bind CampaignStrategy branch comparison score evidence (`5625
-  passed`; comparison score, probability, and score-term surfaces now bind to
-  identity-aligned enclosing branches).
+- `e13c1665` Bind CampaignStrategy branch comparison operational evidence
+  (`5626 passed`; comparison approval status and four operational counts now
+  bind to identity-aligned enclosing branches).
 
 Remaining maturity gaps:
 - Audit remaining generated and source handoffs where their complete producer
@@ -72,8 +68,9 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-Continue auditing CampaignStrategy branch-comparison derived context and other
-embedded report relationships where complete producer rules are replayable.
+Publish this verified slice, then audit the next identity-aligned generated
+handoff for a producer relationship that is exact on checked artifacts and
+currently accepted when drifted.
 
 Blocked:
 None.

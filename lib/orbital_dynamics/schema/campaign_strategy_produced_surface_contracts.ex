@@ -68,6 +68,7 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts do
     |> validate_branch_comparison_identity(artifact)
     |> validate_branch_comparison_score_evidence(artifact)
     |> validate_branch_comparison_operational_evidence(artifact)
+    |> validate_branch_comparison_repair_score_evidence(artifact)
     |> validate_source_provenance(artifact)
     |> validate_optional_score_term_report(Map.get(artifact, "score_term_report"))
     |> validate_optional_objective_tradeoff_report(Map.get(artifact, "objective_tradeoff_report"))
@@ -395,6 +396,95 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts do
     do: container |> Map.get(field, []) |> list_length()
 
   defp nested_list_length(_container, _field), do: nil
+
+  defp validate_branch_comparison_repair_score_evidence(
+         issues,
+         %{
+           "branches" => branches,
+           "branch_comparison_report" => %{"rows" => rows}
+         }
+       )
+       when is_list(branches) and is_list(rows) do
+    if Enum.all?(branches, &branch_id_input?/1) and Enum.all?(rows, &branch_id_input?/1) and
+         Enum.map(rows, &Map.fetch!(&1, "branch_id")) ==
+           Enum.map(branches, &Map.fetch!(&1, "branch_id")) do
+      branches
+      |> Enum.zip(rows)
+      |> Enum.with_index()
+      |> Enum.reduce(issues, fn {{branch, row}, index}, acc ->
+        validate_branch_comparison_repair_score_row(acc, branch, row, index)
+      end)
+    else
+      issues
+    end
+  end
+
+  defp validate_branch_comparison_repair_score_evidence(issues, _artifact), do: issues
+
+  defp validate_branch_comparison_repair_score_row(
+         issues,
+         %{"repair_result" => %{} = repair_result},
+         row,
+         index
+       ) do
+    path = "$.branch_comparison_report.rows[#{index}]"
+    score_terms = map_value(repair_result, "score_terms")
+    score_term_report = map_value(repair_result, "score_term_report")
+
+    issues
+    |> validate_optional_copy(
+      path <> ".repair_score",
+      row,
+      "repair_score",
+      Map.get(repair_result, "score"),
+      "must match the enclosing branch repair score"
+    )
+    |> validate_optional_copy(
+      path <> ".repair_score_term_count",
+      row,
+      "repair_score_term_count",
+      Map.get(score_term_report, "row_count"),
+      "must match the enclosing branch repair score_term_report.row_count"
+    )
+    |> validate_optional_copy(
+      path <> ".repair_score_term_keys",
+      row,
+      "repair_score_term_keys",
+      Map.get(score_term_report, "score_term_keys"),
+      "must match the enclosing branch repair score_term_report.score_term_keys"
+    )
+    |> validate_optional_copy(
+      path <> ".repair_activity_score",
+      row,
+      "repair_activity_score",
+      Map.get(score_terms, "activity_score"),
+      "must match the enclosing branch repair score_terms.activity_score"
+    )
+    |> validate_optional_copy(
+      path <> ".repair_schedule_churn_penalty",
+      row,
+      "repair_schedule_churn_penalty",
+      Map.get(score_terms, "schedule_churn_penalty"),
+      "must match the enclosing branch repair score_terms.schedule_churn_penalty"
+    )
+    |> validate_optional_copy(
+      path <> ".repair_schedule_move_penalty",
+      row,
+      "repair_schedule_move_penalty",
+      Map.get(score_terms, "schedule_move_penalty"),
+      "must match the enclosing branch repair score_terms.schedule_move_penalty"
+    )
+  end
+
+  defp validate_branch_comparison_repair_score_row(issues, _branch, _row, _index),
+    do: issues
+
+  defp map_value(%{} = container, field) do
+    case Map.get(container, field) do
+      %{} = value -> value
+      _value -> %{}
+    end
+  end
 
   defp validate_source_provenance(issues, artifact) do
     provenance = Map.get(artifact, "provenance")

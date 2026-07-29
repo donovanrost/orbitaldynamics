@@ -303,6 +303,69 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContractsTest do
     end
   end
 
+  test "rejects CampaignStrategy branch comparison repair score evidence drift", %{
+    strategy: strategy
+  } do
+    row = Enum.at(strategy["branch_comparison_report"]["rows"], 1)
+
+    coherent_score_term_count_drift =
+      strategy
+      |> put_in(
+        ["branch_comparison_report", "rows", Access.at(1), "repair_score_term_count"],
+        row["repair_score_term_count"] + 1
+      )
+      |> put_in(
+        ["branch_comparison_report", "rows", Access.at(1), "repair_score_term_keys"],
+        row["repair_score_term_keys"] ++ ["schema_valid_drift"]
+      )
+
+    replacement_score_term_keys =
+      ["schema_valid_drift" | tl(row["repair_score_term_keys"])]
+
+    invalid_cases = [
+      {"repair_score",
+       put_in(
+         strategy,
+         ["branch_comparison_report", "rows", Access.at(1), "repair_score"],
+         row["repair_score"] + 1
+       )},
+      {"repair_score_term_count", coherent_score_term_count_drift},
+      {"repair_score_term_keys",
+       put_in(
+         strategy,
+         ["branch_comparison_report", "rows", Access.at(1), "repair_score_term_keys"],
+         replacement_score_term_keys
+       )},
+      {"repair_activity_score",
+       put_in(
+         strategy,
+         ["branch_comparison_report", "rows", Access.at(1), "repair_activity_score"],
+         row["repair_activity_score"] + 1
+       )},
+      {"repair_schedule_churn_penalty",
+       put_in(
+         strategy,
+         ["branch_comparison_report", "rows", Access.at(1), "repair_schedule_churn_penalty"],
+         -1
+       )},
+      {"repair_schedule_move_penalty",
+       put_in(
+         strategy,
+         ["branch_comparison_report", "rows", Access.at(1), "repair_schedule_move_penalty"],
+         -1
+       )}
+    ]
+
+    for {field, invalid} <- invalid_cases do
+      assert {:error, validation_report} = Schema.validate_artifact(invalid)
+
+      assert Enum.any?(
+               validation_report["errors"],
+               &(&1["path"] == "$.branch_comparison_report.rows[1].#{field}")
+             )
+    end
+  end
+
   test "keeps additive CampaignStrategy source provenance copies optional", %{
     strategy: strategy
   } do
