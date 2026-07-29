@@ -263,6 +263,7 @@ defmodule OrbitalDynamics.Schema.PlanDeltaContracts do
     )
     |> validate_planned_timeline_identity(path, planned, delta)
     |> validate_current_planned_source_context(path, planned, delta)
+    |> validate_current_planned_scenario(path, planned)
   end
 
   defp validate_planned_timeline_identity(
@@ -310,6 +311,27 @@ defmodule OrbitalDynamics.Schema.PlanDeltaContracts do
 
   defp validate_current_planned_source_context(issues, _path, _planned, _delta),
     do: issues
+
+  defp validate_current_planned_scenario(
+         issues,
+         path,
+         %{
+           "scenario_id" => scenario_id,
+           "timeline_identity" => %{"scenario_id" => identity_scenario_id}
+         } = planned
+       )
+       when is_binary(scenario_id) and is_binary(identity_scenario_id) do
+    expect_field_equals(
+      issues,
+      path,
+      planned,
+      "scenario_id",
+      identity_scenario_id,
+      "must match planned.timeline_identity.scenario_id"
+    )
+  end
+
+  defp validate_current_planned_scenario(issues, _path, _planned), do: issues
 
   defp validate_optional_planned_identity_field(
          issues,
