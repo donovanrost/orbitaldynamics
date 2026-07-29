@@ -157,7 +157,8 @@ defmodule OrbitalDynamics.Schema.CampaignRepairContracts do
     |> CampaignRepairCandidatePoolContracts.validate(artifact)
     |> CampaignRepairReplacementRankingContracts.validate_activities(
       "$.activities",
-      Map.get(artifact, "activities", [])
+      Map.get(artifact, "activities", []),
+      Map.get(artifact, "deltas", [])
     )
     |> call(callbacks, :validate_optional_rows, [
       "$.preserved_activities",

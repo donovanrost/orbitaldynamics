@@ -72,17 +72,26 @@ defmodule OrbitalDynamics.Schema.CampaignRepairReplacementRankingContracts do
 
   import OrbitalDynamics.Schema.StableIdValidation, only: [validate_stable_ids: 4]
 
-  def validate_activities(issues, path, activities) when is_list(activities) do
+  def validate_activities(issues, path, activities),
+    do: validate_activities(issues, path, activities, [])
+
+  def validate_activities(issues, path, activities, deltas)
+      when is_list(activities) and is_list(deltas) do
+    deltas_by_replacement_id =
+      deltas
+      |> Enum.filter(&is_map/1)
+      |> Enum.group_by(&Map.get(&1, "replacement_activity_id"))
+
     activities
     |> Enum.with_index()
     |> Enum.reduce(issues, fn {activity, index}, acc ->
-      validate_activity(acc, "#{path}[#{index}]", activity)
+      validate_activity(acc, "#{path}[#{index}]", activity, deltas_by_replacement_id)
     end)
   end
 
-  def validate_activities(issues, _path, _activities), do: issues
+  def validate_activities(issues, _path, _activities, _deltas), do: issues
 
-  defp validate_activity(issues, path, %{} = activity) do
+  defp validate_activity(issues, path, %{} = activity, deltas_by_replacement_id) do
     case Map.get(activity, "repair") do
       nil ->
         issues
@@ -91,14 +100,55 @@ defmodule OrbitalDynamics.Schema.CampaignRepairReplacementRankingContracts do
         issues
 
       %{} = repair ->
-        validate_repair(issues, path <> ".repair", repair, activity)
+        issues
+        |> validate_repair(path <> ".repair", repair, activity)
+        |> validate_current_delta_action(
+          path <> ".repair.action",
+          repair,
+          activity,
+          deltas_by_replacement_id
+        )
 
       _value ->
         [error(path <> ".repair", "must be a map") | issues]
     end
   end
 
-  defp validate_activity(issues, _path, _activity), do: issues
+  defp validate_activity(issues, _path, _activity, _deltas_by_replacement_id), do: issues
+
+  defp validate_current_delta_action(
+         issues,
+         path,
+         repair,
+         activity,
+         deltas_by_replacement_id
+       ) do
+    rows = get_in(repair, ["replacement_ranking", "rows"])
+
+    if CampaignRepairReplacementRankingVersion.current?(rows) do
+      matching_deltas =
+        deltas_by_replacement_id
+        |> Map.get(activity_id(activity), [])
+        |> Enum.filter(&(Map.get(&1, "activity_id") == Map.get(repair, "source_activity_id")))
+
+      case {Map.get(repair, "action"), matching_deltas} do
+        {actual, [%{"repair_action" => expected}]}
+        when is_binary(actual) and is_binary(expected) ->
+          validate_equal(
+            issues,
+            path,
+            actual,
+            expected,
+            "must match the corresponding Repair delta repair_action"
+          )
+
+        _missing_or_ambiguous_delta ->
+          issues
+      end
+    else
+      issues
+    end
+  end
 
   defp validate_repair(issues, path, repair, activity) do
     case Map.get(repair, "replacement_ranking") do
