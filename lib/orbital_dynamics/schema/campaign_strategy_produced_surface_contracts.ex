@@ -69,6 +69,7 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts do
     |> validate_branch_comparison_score_evidence(artifact)
     |> validate_branch_comparison_operational_evidence(artifact)
     |> validate_branch_comparison_repair_score_evidence(artifact)
+    |> validate_branch_comparison_repair_link_selection_evidence(artifact)
     |> validate_source_provenance(artifact)
     |> validate_optional_score_term_report(Map.get(artifact, "score_term_report"))
     |> validate_optional_objective_tradeoff_report(Map.get(artifact, "objective_tradeoff_report"))
@@ -478,6 +479,79 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts do
 
   defp validate_branch_comparison_repair_score_row(issues, _branch, _row, _index),
     do: issues
+
+  defp validate_branch_comparison_repair_link_selection_evidence(
+         issues,
+         %{
+           "branches" => branches,
+           "branch_comparison_report" => %{"rows" => rows}
+         }
+       )
+       when is_list(branches) and is_list(rows) do
+    if Enum.all?(branches, &branch_id_input?/1) and Enum.all?(rows, &branch_id_input?/1) and
+         Enum.map(rows, &Map.fetch!(&1, "branch_id")) ==
+           Enum.map(branches, &Map.fetch!(&1, "branch_id")) do
+      branches
+      |> Enum.zip(rows)
+      |> Enum.with_index()
+      |> Enum.reduce(issues, fn {{branch, row}, index}, acc ->
+        validate_branch_comparison_repair_link_selection_row(acc, branch, row, index)
+      end)
+    else
+      issues
+    end
+  end
+
+  defp validate_branch_comparison_repair_link_selection_evidence(issues, _artifact),
+    do: issues
+
+  defp validate_branch_comparison_repair_link_selection_row(
+         issues,
+         %{"repair_result" => %{} = repair_result},
+         row,
+         index
+       ) do
+    path = "$.branch_comparison_report.rows[#{index}]"
+    link_capacity_report = map_value(repair_result, "link_capacity_report")
+
+    issues
+    |> validate_optional_copy(
+      path <> ".repair_link_contact_count",
+      row,
+      "repair_link_contact_count",
+      Map.get(link_capacity_report, "contact_count"),
+      "must match the enclosing branch repair link_capacity_report.contact_count"
+    )
+    |> validate_optional_copy(
+      path <> ".repair_link_selected_contact_count",
+      row,
+      "repair_link_selected_contact_count",
+      Map.get(link_capacity_report, "selected_contact_count"),
+      "must match the enclosing branch repair link_capacity_report.selected_contact_count"
+    )
+    |> validate_optional_copy(
+      path <> ".repair_link_selected_estimated_throughput_mb",
+      row,
+      "repair_link_selected_estimated_throughput_mb",
+      Map.get(link_capacity_report, "selected_estimated_throughput_mb"),
+      "must match the enclosing branch repair link_capacity_report.selected_estimated_throughput_mb"
+    )
+    |> validate_optional_copy(
+      path <> ".repair_link_selected_capacity_adjusted_throughput_mb",
+      row,
+      "repair_link_selected_capacity_adjusted_throughput_mb",
+      Map.get(link_capacity_report, "selected_capacity_adjusted_throughput_mb"),
+      "must match the enclosing branch repair link_capacity_report.selected_capacity_adjusted_throughput_mb"
+    )
+  end
+
+  defp validate_branch_comparison_repair_link_selection_row(
+         issues,
+         _branch,
+         _row,
+         _index
+       ),
+       do: issues
 
   defp map_value(%{} = container, field) do
     case Map.get(container, field) do
