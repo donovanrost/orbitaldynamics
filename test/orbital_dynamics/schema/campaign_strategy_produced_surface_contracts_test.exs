@@ -255,6 +255,54 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContractsTest do
     end
   end
 
+  test "rejects CampaignStrategy branch comparison operational evidence drift", %{
+    strategy: strategy
+  } do
+    row = Enum.at(strategy["branch_comparison_report"]["rows"], 1)
+
+    invalid_cases = [
+      {"approval_status",
+       put_in(
+         strategy,
+         ["branch_comparison_report", "rows", Access.at(1), "approval_status"],
+         "auto_approvable"
+       )},
+      {"risk_count",
+       put_in(
+         strategy,
+         ["branch_comparison_report", "rows", Access.at(1), "risk_count"],
+         row["risk_count"] + 1
+       )},
+      {"approval_requirement_count",
+       put_in(
+         strategy,
+         ["branch_comparison_report", "rows", Access.at(1), "approval_requirement_count"],
+         row["approval_requirement_count"] + 1
+       )},
+      {"candidate_activity_count",
+       put_in(
+         strategy,
+         ["branch_comparison_report", "rows", Access.at(1), "candidate_activity_count"],
+         row["candidate_activity_count"] + 1
+       )},
+      {"repair_delta_count",
+       put_in(
+         strategy,
+         ["branch_comparison_report", "rows", Access.at(1), "repair_delta_count"],
+         row["repair_delta_count"] + 1
+       )}
+    ]
+
+    for {field, invalid} <- invalid_cases do
+      assert {:error, validation_report} = Schema.validate_artifact(invalid)
+
+      assert Enum.any?(
+               validation_report["errors"],
+               &(&1["path"] == "$.branch_comparison_report.rows[1].#{field}")
+             )
+    end
+  end
+
   test "keeps additive CampaignStrategy source provenance copies optional", %{
     strategy: strategy
   } do

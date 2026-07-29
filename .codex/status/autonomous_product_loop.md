@@ -5,42 +5,43 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Bind CampaignStrategy branch comparison score evidence.
+Bind CampaignStrategy branch comparison operational evidence.
 
 Status:
-Verified from clean published base `718d9645`; ready to publish.
+Verified from clean published base `5e7e01e0`; ready to publish.
 
 Selection evidence:
-- `BranchComparisonReport.report/3` copies each enclosing branch's score,
-  probability, score-term map, and the score-term raw and expected values into
-  the corresponding comparison row.
-- The checked Strategy has exact equality for all five score-evidence surfaces
-  on every comparison row.
-- Existing report validation checks numeric shapes and score deltas only within
-  the report; it does not bind row evidence back to enclosing branches.
-- Schema-valid mutations independently changed score with a coherent delta, raw
-  score, probability, expected score, or the score-term map;
+- `BranchComparisonReport.report/3` copies each enclosing branch's approval
+  status and derives risk, approval-requirement, strategic-addition, and repair-
+  delta counts into the corresponding comparison row.
+- The checked Strategy has exact equality for all five operational-evidence
+  surfaces on every comparison row.
+- Existing report validation checks field shapes but does not bind these row
+  values back to enclosing branches.
+- Schema-valid mutations independently changed approval status or any derived
+  operational count;
   `Schema.validate_artifact/1` still returned `:ok` for every case.
 
 Delivered behavior:
 - Extended CampaignStrategy produced-surface validation with branch-comparison
-  score evidence relationships.
-- Bound each identity-aligned row's score, raw score, branch probability,
-  expected score, and complete score-term map to its enclosing branch.
-- Preserved omission compatibility for optional row score summaries while
-  validating them exactly whenever present.
-- Avoided cascaded score errors when report row identities do not already match
-  the enclosing branches.
-- Rejected structurally valid score-evidence drift at exact indexed row paths.
+  operational evidence relationships.
+- Bound each identity-aligned row's approval status plus risk, approval-
+  requirement, strategic-addition, and repair-delta counts to its enclosing
+  branch.
+- Preserved omission compatibility for optional row counts while validating
+  them exactly whenever present.
+- Derived nested counts defensively without crashing on malformed branch input.
+- Rejected structurally valid operational-evidence drift at exact indexed row
+  paths.
 
 Verification:
-- Focused CampaignStrategy produced-surface tests: `13 passed`.
-- Focused plus adjacent CampaignStrategy contract tests: `15 passed`.
-- Live mutation probes: score with coherent delta, raw score, probability,
-  expected score, and score-term drift all failed at exact indexed row paths.
-- Schema regression: `1099 passed` with `--timeout 120000`.
+- Focused CampaignStrategy produced-surface tests: `14 passed`.
+- Focused plus adjacent CampaignStrategy contract tests: `16 passed`.
+- Live mutation probes: approval status and all four operational count drifts
+  failed at their exact indexed row paths.
+- Schema regression: `1100 passed` with `--timeout 120000`.
 - Planner regression: `1888 passed`.
-- Full suite: `5625 passed` (seed `285013`).
+- Full suite: `5626 passed` (seed `840830`).
 - Schema lint: `155 passed`, `0 failed`, `0 skipped`.
 - Canonical repair hash:
   `cc41834e706fd1e04a4c5578032fdf99ceeba949a02fd75fc54c8b70cdc30d8a`.
@@ -54,9 +55,9 @@ Level 6 pillar advanced:
 Fleet-scale strategy decision-support and embedded-report identity integrity.
 
 Last published slice:
-- `718d9645` Bind CampaignStrategy branch comparison identity (`5624 passed`;
-  comparison row identities and the report recommendation now bind to their
-  enclosing Strategy sources).
+- `5e7e01e0` Bind CampaignStrategy branch comparison score evidence (`5625
+  passed`; comparison score, probability, and score-term surfaces now bind to
+  identity-aligned enclosing branches).
 
 Remaining maturity gaps:
 - Audit remaining generated and source handoffs where their complete producer
@@ -71,8 +72,8 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-Continue auditing CampaignStrategy branch-comparison operational evidence and
-other embedded report relationships where complete producer rules are replayable.
+Continue auditing CampaignStrategy branch-comparison derived context and other
+embedded report relationships where complete producer rules are replayable.
 
 Blocked:
 None.

@@ -67,6 +67,7 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts do
     |> validate_recommended_branch_evidence(artifact)
     |> validate_branch_comparison_identity(artifact)
     |> validate_branch_comparison_score_evidence(artifact)
+    |> validate_branch_comparison_operational_evidence(artifact)
     |> validate_source_provenance(artifact)
     |> validate_optional_score_term_report(Map.get(artifact, "score_term_report"))
     |> validate_optional_objective_tradeoff_report(Map.get(artifact, "objective_tradeoff_report"))
@@ -321,6 +322,79 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts do
       "must match the enclosing branch score_terms"
     )
   end
+
+  defp validate_branch_comparison_operational_evidence(
+         issues,
+         %{
+           "branches" => branches,
+           "branch_comparison_report" => %{"rows" => rows}
+         }
+       )
+       when is_list(branches) and is_list(rows) do
+    if Enum.all?(branches, &branch_id_input?/1) and Enum.all?(rows, &branch_id_input?/1) and
+         Enum.map(rows, &Map.fetch!(&1, "branch_id")) ==
+           Enum.map(branches, &Map.fetch!(&1, "branch_id")) do
+      branches
+      |> Enum.zip(rows)
+      |> Enum.with_index()
+      |> Enum.reduce(issues, fn {{branch, row}, index}, acc ->
+        validate_branch_comparison_operational_row(acc, branch, row, index)
+      end)
+    else
+      issues
+    end
+  end
+
+  defp validate_branch_comparison_operational_evidence(issues, _artifact), do: issues
+
+  defp validate_branch_comparison_operational_row(issues, branch, row, index) do
+    path = "$.branch_comparison_report.rows[#{index}]"
+
+    issues
+    |> validate_optional_copy(
+      path <> ".approval_status",
+      row,
+      "approval_status",
+      Map.get(branch, "approval_status"),
+      "must match the enclosing branch approval_status"
+    )
+    |> validate_optional_copy(
+      path <> ".risk_count",
+      row,
+      "risk_count",
+      list_length(Map.get(branch, "risk_indicators")),
+      "must match the enclosing branch risk_indicators count"
+    )
+    |> validate_optional_copy(
+      path <> ".approval_requirement_count",
+      row,
+      "approval_requirement_count",
+      list_length(Map.get(branch, "approval_requirements")),
+      "must match the enclosing branch approval_requirements count"
+    )
+    |> validate_optional_copy(
+      path <> ".candidate_activity_count",
+      row,
+      "candidate_activity_count",
+      nested_list_length(Map.get(branch, "candidate_plan"), "strategic_additions"),
+      "must match the enclosing branch strategic_additions count"
+    )
+    |> validate_optional_copy(
+      path <> ".repair_delta_count",
+      row,
+      "repair_delta_count",
+      nested_list_length(Map.get(branch, "repair_result"), "deltas"),
+      "must match the enclosing branch repair deltas count"
+    )
+  end
+
+  defp list_length(values) when is_list(values), do: length(values)
+  defp list_length(_values), do: nil
+
+  defp nested_list_length(%{} = container, field),
+    do: container |> Map.get(field, []) |> list_length()
+
+  defp nested_list_length(_container, _field), do: nil
 
   defp validate_source_provenance(issues, artifact) do
     provenance = Map.get(artifact, "provenance")
