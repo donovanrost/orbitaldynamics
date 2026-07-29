@@ -68,6 +68,7 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts do
     |> validate_branch_comparison_identity(artifact)
     |> validate_branch_comparison_score_evidence(artifact)
     |> validate_branch_comparison_operational_evidence(artifact)
+    |> validate_branch_comparison_risk_classifications(artifact)
     |> validate_branch_comparison_repair_score_evidence(artifact)
     |> validate_branch_comparison_repair_link_selection_evidence(artifact)
     |> validate_branch_comparison_repair_constraint_evidence(artifact)
@@ -398,6 +399,89 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts do
     do: container |> Map.get(field, []) |> list_length()
 
   defp nested_list_length(_container, _field), do: nil
+
+  defp validate_branch_comparison_risk_classifications(
+         issues,
+         %{
+           "branches" => branches,
+           "branch_comparison_report" => %{"rows" => rows}
+         }
+       )
+       when is_list(branches) and is_list(rows) do
+    if Enum.all?(branches, &branch_id_input?/1) and Enum.all?(rows, &branch_id_input?/1) and
+         Enum.map(rows, &Map.fetch!(&1, "branch_id")) ==
+           Enum.map(branches, &Map.fetch!(&1, "branch_id")) do
+      branches
+      |> Enum.zip(rows)
+      |> Enum.with_index()
+      |> Enum.reduce(issues, fn {{branch, row}, index}, acc ->
+        validate_branch_comparison_risk_classification_row(acc, branch, row, index)
+      end)
+    else
+      issues
+    end
+  end
+
+  defp validate_branch_comparison_risk_classifications(issues, _artifact), do: issues
+
+  defp validate_branch_comparison_risk_classification_row(issues, branch, row, index) do
+    path = "$.branch_comparison_report.rows[#{index}]"
+    risk_indicators = Map.get(branch, "risk_indicators", [])
+    feedback_adjustments = map_value(branch, "feedback_adjustments")
+    resource_impacts = map_value(branch, "resource_impacts")
+
+    issues
+    |> validate_optional_copy(
+      path <> ".risk_types",
+      row,
+      "risk_types",
+      branch_risk_types(risk_indicators),
+      "must match the enclosing branch risk indicator types"
+    )
+    |> validate_optional_copy(
+      path <> ".high_risk_types",
+      row,
+      "high_risk_types",
+      branch_risk_types(risk_indicators, "high"),
+      "must match the enclosing branch high-severity risk indicator types"
+    )
+    |> validate_optional_copy(
+      path <> ".feedback_risk_types",
+      row,
+      "feedback_risk_types",
+      feedback_adjustments |> Map.get("risk_indicators", []) |> risk_type_values(),
+      "must match the enclosing branch feedback risk indicator types"
+    )
+    |> validate_optional_copy(
+      path <> ".resource_risk_types",
+      row,
+      "resource_risk_types",
+      resource_impacts
+      |> Map.get("risk_indicators", [])
+      |> risk_type_values()
+      |> Enum.sort(),
+      "must match the enclosing branch resource risk indicator types"
+    )
+  end
+
+  defp branch_risk_types(risk_indicators, severity \\ nil) do
+    risk_indicators
+    |> list_maps()
+    |> Enum.filter(fn risk -> is_nil(severity) or Map.get(risk, "severity") == severity end)
+    |> risk_type_values()
+    |> Enum.uniq()
+    |> Enum.sort()
+  end
+
+  defp risk_type_values(risk_indicators) do
+    risk_indicators
+    |> list_maps()
+    |> Enum.map(&Map.get(&1, "type"))
+    |> Enum.reject(&is_nil/1)
+  end
+
+  defp list_maps(values) when is_list(values), do: Enum.filter(values, &is_map/1)
+  defp list_maps(_values), do: []
 
   defp validate_branch_comparison_repair_score_evidence(
          issues,
