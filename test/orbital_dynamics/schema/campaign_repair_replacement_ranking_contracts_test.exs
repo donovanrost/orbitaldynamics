@@ -8,7 +8,10 @@ defmodule OrbitalDynamics.Schema.CampaignRepairReplacementRankingContractsTest d
     artifact = read_json!("study_results/campaign_repair_readiness_source_handoff_v2.json")
     activity_index = Enum.find_index(artifact["activities"], &(&1["id"] == "dl_ready"))
 
-    %{artifact: artifact, activity_index: activity_index}
+    delta_index =
+      Enum.find_index(artifact["deltas"], &(&1["replacement_activity_id"] == "dl_ready"))
+
+    %{artifact: artifact, activity_index: activity_index, delta_index: delta_index}
   end
 
   test "validates current and pre-contact-pressure replacement-ranking explanations", %{
@@ -431,6 +434,25 @@ defmodule OrbitalDynamics.Schema.CampaignRepairReplacementRankingContractsTest d
              &(&1["path"] == source_context_path and
                  &1["message"] ==
                    "must match the corresponding Repair delta source_activity_context")
+           )
+  end
+
+  test "binds current delta replacement context to the selected activity", context do
+    replacement_context_path =
+      "$.deltas[#{context.delta_index}].replacement_activity_context"
+
+    context_drift =
+      context.artifact
+      |> Map.drop(["operator_review_package", "cadence_import_manifest"])
+      |> put_in_path(replacement_context_path <> ".duration_s", 61.0)
+
+    assert {:error, report} = Schema.validate_artifact(context_drift)
+
+    assert Enum.any?(
+             report["errors"],
+             &(&1["path"] == replacement_context_path and
+                 &1["message"] ==
+                   "must match the enclosing selected Repair activity context projection")
            )
   end
 

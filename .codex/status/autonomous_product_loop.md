@@ -5,43 +5,45 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Bind Repair selected source contexts to their producer deltas.
+Bind Repair delta replacement contexts to selected activities.
 
 Status:
-Verified from clean published base `982c489c`; ready to publish.
+Verified from clean published base `bf2f6b4f`; ready to publish.
 
 Selection evidence:
-- Replacement transitions derive the selected activity's
-  `repair.source_activity_context` and the corresponding delta's
-  `source_activity_context` from the same `RepairActivityIdentity.context/1`
-  projection.
-- Existing validation compares the selected copy to an optional source-plan
-  report, but does not bind it to the always-adjacent unique producer delta.
-- After removing that optional report, a live mutation changed only the
-  selected context's `duration_s` while its producer delta retained the
-  original context; `Schema.validate_artifact/1` still returned `:ok`.
-- All checked-in current-ranking artifacts with one identity-matched delta
-  already carry equal source-context copies.
+- `RepairAccumulator.add_delta/9` derives `replacement_activity_context`
+  directly from the selected replacement activity with
+  `RepairActivityIdentity.context/1`.
+- Current ranking validation identifies the unique producer delta but does not
+  compare that delta projection back to the enclosing selected activity.
+- After removing optional operator-review and Cadence-import mirrors, a live
+  mutation changed only the delta replacement context's `duration_s` while the
+  selected activity remained unchanged; `Schema.validate_artifact/1` still
+  returned `:ok`.
+- The checked-in current-ranking artifact's unique replacement context already
+  equals the selected activity projection exactly.
 
 Delivered behavior:
-- Extended the unique current delta handoff to compare the selected activity's
-  full source context with its producer-owned delta copy.
-- Required map-valued `repair.source_activity_context` to equal the unique
-  delta's map-valued `source_activity_context` exactly.
-- Preserved legacy, missing, ambiguous, and non-map compatibility, including
-  unchanged current artifacts without the optional source-plan report.
-- Rejected replayable source-context drift at the exact selected-activity
-  context path even when that optional report is absent.
+- Retained each Repair delta's original array index while grouping deltas for
+  the existing unique replacement/source identity match.
+- Replayed `RepairActivityIdentity.context/1` from the enclosing selected
+  activity and required the unique delta's map-valued
+  `replacement_activity_context` to match it exactly.
+- Preserved legacy, missing, ambiguous, and non-map compatibility.
+- Rejected replayable drift at the exact
+  `$.deltas[n].replacement_activity_context` path without depending on optional
+  operator-review or Cadence-import mirrors.
 
 Verification:
-- Focused replacement-ranking contract tests: `18 passed`.
-- Focused plus adjacent plan-delta handoff tests: `21 passed`.
-- Focused plus adjacent replacement-transition tests: `19 passed`.
-- Live optional-report-absent mutation probe: exact
-  `$.activities[0].repair.source_activity_context` producer-delta mismatch.
-- Schema regression: `1081 passed`.
+- Focused replacement-ranking contract tests: `19 passed`.
+- Focused plus adjacent plan-delta and replacement-transition tests:
+  `23 passed`.
+- Live optional-mirror-absent mutation probe: exact
+  `$.deltas[0].replacement_activity_context` selected-activity projection
+  mismatch.
+- Schema regression: `1082 passed`.
 - Planner regression: `1888 passed`.
-- Full suite: `5607 passed` (seed `857423`).
+- Full suite: `5608 passed` (seed `665703`).
 - Schema lint: `155 passed`, `0 failed`, `0 skipped`.
 - Canonical repair hash:
   `cc41834e706fd1e04a4c5578032fdf99ceeba949a02fd75fc54c8b70cdc30d8a`.
@@ -54,9 +56,9 @@ Level 6 pillar advanced:
 Fleet-scale candidate-pool integrity and operator-review evidence fidelity.
 
 Last published slice:
-- `982c489c` Bind Repair selected activity approval flags (`5606 passed`;
-  current selected activity action, reason, and approval fields now match their
-  uniquely identified producer deltas).
+- `bf2f6b4f` Bind Repair selected source contexts (`5607 passed`; current
+  selected source contexts now match their uniquely identified producer
+  deltas even without optional source-plan evidence).
 
 Remaining maturity gaps:
 - Audit remaining generated and source handoffs where their complete producer
@@ -71,8 +73,8 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-Continue current selected-activity-to-delta handoff audits after source contexts
-are bound.
+Continue current selected-activity-to-delta handoff audits after replacement
+contexts are bound.
 
 Blocked:
 None.

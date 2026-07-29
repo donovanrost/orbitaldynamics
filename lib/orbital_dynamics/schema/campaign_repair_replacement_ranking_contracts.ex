@@ -79,8 +79,9 @@ defmodule OrbitalDynamics.Schema.CampaignRepairReplacementRankingContracts do
       when is_list(activities) and is_list(deltas) do
     deltas_by_replacement_id =
       deltas
-      |> Enum.filter(&is_map/1)
-      |> Enum.group_by(&Map.get(&1, "replacement_activity_id"))
+      |> Enum.with_index()
+      |> Enum.filter(fn {delta, _index} -> is_map(delta) end)
+      |> Enum.group_by(fn {delta, _index} -> Map.get(delta, "replacement_activity_id") end)
 
     activities
     |> Enum.with_index()
@@ -129,10 +130,12 @@ defmodule OrbitalDynamics.Schema.CampaignRepairReplacementRankingContracts do
       matching_deltas =
         deltas_by_replacement_id
         |> Map.get(activity_id(activity), [])
-        |> Enum.filter(&(Map.get(&1, "activity_id") == Map.get(repair, "source_activity_id")))
+        |> Enum.filter(fn {delta, _index} ->
+          Map.get(delta, "activity_id") == Map.get(repair, "source_activity_id")
+        end)
 
       case matching_deltas do
-        [%{} = delta] ->
+        [{%{} = delta, delta_index}] ->
           issues
           |> validate_current_delta_string(
             path <> ".action",
@@ -165,6 +168,11 @@ defmodule OrbitalDynamics.Schema.CampaignRepairReplacementRankingContracts do
             delta,
             "source_activity_context",
             "must match the corresponding Repair delta source_activity_context"
+          )
+          |> validate_current_replacement_context(
+            "$.deltas[#{delta_index}].replacement_activity_context",
+            activity,
+            delta
           )
 
         _missing_or_ambiguous_delta ->
@@ -223,6 +231,23 @@ defmodule OrbitalDynamics.Schema.CampaignRepairReplacementRankingContracts do
     case {Map.get(repair, repair_field), Map.get(delta, delta_field)} do
       {%{} = actual, %{} = expected} ->
         validate_equal(issues, path, actual, expected, message)
+
+      _unreplayable ->
+        issues
+    end
+  end
+
+  defp validate_current_replacement_context(issues, path, activity, delta) do
+    case {Map.get(delta, "replacement_activity_context"),
+          RepairActivityIdentity.context(activity)} do
+      {%{} = actual, %{} = expected} ->
+        validate_equal(
+          issues,
+          path,
+          actual,
+          expected,
+          "must match the enclosing selected Repair activity context projection"
+        )
 
       _unreplayable ->
         issues
