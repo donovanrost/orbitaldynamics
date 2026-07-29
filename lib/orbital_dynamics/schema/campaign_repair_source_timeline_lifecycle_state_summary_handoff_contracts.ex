@@ -2,7 +2,13 @@ defmodule OrbitalDynamics.Schema.CampaignRepairSourceTimelineLifecycleStateSumma
   @moduledoc false
 
   import OrbitalDynamics.Schema.CampaignRepairHandoffValidation,
-    only: [indexed_rows: 2, row_source: 1, validate_equal: 5, validate_source_copies: 6]
+    only: [
+      indexed_rows: 2,
+      row_source: 1,
+      validate_equal: 5,
+      validate_source_copies: 6,
+      validate_source_identities: 6
+    ]
 
   @repair_source_summary "campaign_repair.source_timeline_lifecycle_state_summary.review_rows"
 
@@ -60,6 +66,13 @@ defmodule OrbitalDynamics.Schema.CampaignRepairSourceTimelineLifecycleStateSumma
       length(import_rows),
       length(lifecycle_rows),
       "must contain one Repair source timeline lifecycle-state import row per enclosing summary review row"
+    )
+    |> validate_source_identities(
+      "$.cadence_import_manifest.rows",
+      import_rows,
+      List.duplicate(@repair_source_summary, length(lifecycle_rows)),
+      [["source"], ["source_review_row", "source"]],
+      "must match the enclosing Repair source timeline lifecycle-state summary family"
     )
     |> validate_source_copies(
       "$.cadence_import_manifest.rows",
