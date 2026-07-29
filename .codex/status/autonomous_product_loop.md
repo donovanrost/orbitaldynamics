@@ -5,41 +5,41 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Bind CampaignStrategy branch metadata.
+Bind CampaignStrategy source provenance.
 
 Status:
-Verified from clean published base `5845f098`; ready to publish.
+Verified from clean published base `0058743e`; ready to publish.
 
 Selection evidence:
-- `StrategyArtifact.metadata/3` derives `branch_count` directly from the branch
-  list and selects `baseline_branch_id` from the literal baseline branch.
-- Existing CampaignStrategy validation checks metadata field presence and
-  stable IDs but does not bind either field to the enclosing branch collection.
-- The checked strategy has 27 branches and exactly one `baseline` branch, and
-  both metadata fields match those producer inputs.
-- Structurally valid mutations changed the count to zero and the baseline ID to
-  another real branch ID; `Schema.validate_artifact/1` still returned `:ok`.
+- `StrategyArtifact.provenance/2` copies the root source plan ID into Strategy
+  provenance, and `OperatorReview.from_strategy_artifact/1` passes the complete
+  Strategy provenance map into the review package.
+- `CadenceImport.from_strategy_artifact/2` independently copies the root source
+  plan ID into manifest provenance.
+- All checked root, review, and Cadence copies agree exactly, while isolated
+  drift in each surface still returned `:ok` from `Schema.validate_artifact/1`.
+- Removing the additive source-plan copies from all three provenance surfaces
+  remains valid and establishes the legacy compatibility boundary.
 
 Delivered behavior:
-- Extended CampaignStrategy produced-surface validation with branch metadata
+- Extended CampaignStrategy produced-surface validation with source-provenance
   relationships.
-- Required `strategy_metadata.branch_count` to equal the enclosing branch-list
-  length.
-- Required `baseline_branch_id` to identify the literal baseline branch when
-  exactly one such branch is present.
-- Preserved missing or ambiguous baseline compatibility instead of inferring a
-  baseline identity from branch order or another branch label.
-- Rejected structurally valid count and baseline-ID drift at their exact
-  metadata paths.
+- Bound root provenance `source_plan_id` to the enclosing Strategy source plan.
+- Bound the operator-review copy of source plan ID, planner, generation time,
+  and nested source provenance to the enclosing Strategy provenance.
+- Bound Cadence manifest provenance `source_plan_id` to the enclosing Strategy
+  source plan.
+- Preserved legacy compatibility when additive source-plan copies are omitted.
+- Rejected structurally valid provenance drift at each exact nested path.
 
 Verification:
-- Focused CampaignStrategy produced-surface tests: `5 passed`.
-- Focused plus adjacent CampaignStrategy contract tests: `7 passed`.
-- Live mutation probes: exact `$.strategy_metadata.branch_count` and
-  `$.strategy_metadata.baseline_branch_id` relationship mismatches.
-- Schema regression: `1091 passed`.
+- Focused CampaignStrategy produced-surface tests: `7 passed`.
+- Focused plus adjacent CampaignStrategy contract tests: `9 passed`.
+- Live mutation probes: exact root, operator-review, and Cadence provenance
+  relationship mismatches; additive source-plan-copy omission remained valid.
+- Schema regression: `1093 passed`.
 - Planner regression: `1888 passed`.
-- Full suite: `5617 passed` (seed `940419`).
+- Full suite: `5619 passed` (seed `940019`).
 - Schema lint: `155 passed`, `0 failed`, `0 skipped`.
 - Canonical repair hash:
   `cc41834e706fd1e04a4c5578032fdf99ceeba949a02fd75fc54c8b70cdc30d8a`.
@@ -50,12 +50,12 @@ Verification:
   `git diff --check` passed.
 
 Level 6 pillar advanced:
-Fleet-scale strategy decision-support and branch metadata integrity.
+Fleet-scale strategy decision-support and source-provenance integrity.
 
 Last published slice:
-- `5845f098` Bind Repair approval reasons (`5616 passed`; current selected
-  activity reasons and cancellation delta reasons now bind approval evidence
-  without treating stale legacy deltas as current).
+- `0058743e` Bind CampaignStrategy branch metadata (`5617 passed`; branch count
+  and unique literal baseline identity now bind Strategy metadata to its branch
+  collection).
 
 Remaining maturity gaps:
 - Audit remaining generated and source handoffs where their complete producer
@@ -70,8 +70,8 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-Continue auditing CampaignStrategy root provenance and recommendation/report
-copies only where the complete producer relationship is replayable.
+Continue auditing CampaignStrategy recommendation and embedded report copies
+only where the complete producer relationship is replayable.
 
 Blocked:
 None.

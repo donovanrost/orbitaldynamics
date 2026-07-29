@@ -47,11 +47,18 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts do
     resource_margin_overrides
     resource_availability_overrides
   )
+  @source_provenance_fields ~w(
+    source_plan_id
+    source_planner
+    source_plan_generated_at
+    source_provenance
+  )
 
   def validate(issues, artifact) do
     issues
     |> StableIdValidation.validate_optional_stable_ids("$", artifact, ["source_repair_id"])
     |> validate_branch_metadata(artifact)
+    |> validate_source_provenance(artifact)
     |> validate_optional_score_term_report(Map.get(artifact, "score_term_report"))
     |> validate_optional_objective_tradeoff_report(Map.get(artifact, "objective_tradeoff_report"))
     |> validate_optional_pareto_frontier_report(Map.get(artifact, "pareto_frontier_report"))
@@ -89,6 +96,63 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts do
   end
 
   defp validate_branch_metadata(issues, _artifact), do: issues
+
+  defp validate_source_provenance(issues, artifact) do
+    provenance = Map.get(artifact, "provenance")
+
+    issues
+    |> validate_optional_copy(
+      "$.provenance.source_plan_id",
+      provenance,
+      "source_plan_id",
+      Map.get(artifact, "source_plan_id"),
+      "must match enclosing CampaignStrategy source_plan_id"
+    )
+    |> validate_operator_review_provenance(
+      provenance,
+      get_in(artifact, ["operator_review_package", "provenance"])
+    )
+    |> validate_optional_copy(
+      "$.cadence_import_manifest.provenance.source_plan_id",
+      get_in(artifact, ["cadence_import_manifest", "provenance"]),
+      "source_plan_id",
+      Map.get(artifact, "source_plan_id"),
+      "must match enclosing CampaignStrategy source_plan_id"
+    )
+  end
+
+  defp validate_operator_review_provenance(
+         issues,
+         %{} = provenance,
+         %{} = review_provenance
+       ) do
+    Enum.reduce(@source_provenance_fields, issues, fn field, acc ->
+      if Map.has_key?(provenance, field) and Map.has_key?(review_provenance, field) do
+        validate_optional_copy(
+          acc,
+          "$.operator_review_package.provenance.#{field}",
+          review_provenance,
+          field,
+          Map.get(provenance, field),
+          "must match enclosing CampaignStrategy provenance.#{field}"
+        )
+      else
+        acc
+      end
+    end)
+  end
+
+  defp validate_operator_review_provenance(issues, _provenance, _review_provenance),
+    do: issues
+
+  defp validate_optional_copy(issues, path, %{} = container, field, expected, message) do
+    if Map.has_key?(container, field) and Map.get(container, field) != expected,
+      do: [error(path, message) | issues],
+      else: issues
+  end
+
+  defp validate_optional_copy(issues, _path, _container, _field, _expected, _message),
+    do: issues
 
   defp validate_optional_score_term_report(issues, value) when value in [nil, :null],
     do: issues

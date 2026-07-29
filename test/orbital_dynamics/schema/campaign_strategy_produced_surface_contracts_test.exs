@@ -59,6 +59,67 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContractsTest do
     end
   end
 
+  test "keeps additive CampaignStrategy source provenance copies optional", %{
+    strategy: strategy
+  } do
+    older =
+      strategy
+      |> update_in(["provenance"], &Map.delete(&1, "source_plan_id"))
+      |> update_in(
+        ["operator_review_package", "provenance"],
+        &Map.delete(&1, "source_plan_id")
+      )
+      |> update_in(
+        ["cadence_import_manifest", "provenance"],
+        &Map.delete(&1, "source_plan_id")
+      )
+
+    assert {:ok, %{"schema_contract" => "campaign_strategy.v3"}} =
+             Schema.validate_artifact(older)
+  end
+
+  test "rejects CampaignStrategy source provenance drift", %{strategy: strategy} do
+    invalid_cases = [
+      {"$.provenance.source_plan_id",
+       put_in(strategy, ["provenance", "source_plan_id"], "campaign_plan:drift")},
+      {"$.operator_review_package.provenance.source_plan_id",
+       put_in(
+         strategy,
+         ["operator_review_package", "provenance", "source_plan_id"],
+         "campaign_plan:drift"
+       )},
+      {"$.operator_review_package.provenance.source_planner",
+       put_in(
+         strategy,
+         ["operator_review_package", "provenance", "source_planner"],
+         "OrbitalDynamics.CampaignPlanner.Drift"
+       )},
+      {"$.operator_review_package.provenance.source_plan_generated_at",
+       put_in(
+         strategy,
+         ["operator_review_package", "provenance", "source_plan_generated_at"],
+         "2026-05-15T00:00:00Z"
+       )},
+      {"$.operator_review_package.provenance.source_provenance",
+       update_in(
+         strategy,
+         ["operator_review_package", "provenance", "source_provenance"],
+         &Map.put(&1, "run_id", "drift")
+       )},
+      {"$.cadence_import_manifest.provenance.source_plan_id",
+       put_in(
+         strategy,
+         ["cadence_import_manifest", "provenance", "source_plan_id"],
+         "campaign_plan:drift"
+       )}
+    ]
+
+    for {expected_path, invalid} <- invalid_cases do
+      assert {:error, report} = Schema.validate_artifact(invalid)
+      assert Enum.any?(report["errors"], &(&1["path"] == expected_path))
+    end
+  end
+
   test "rejects produced-surface drift at nested paths", %{strategy: strategy} do
     invalid =
       strategy
