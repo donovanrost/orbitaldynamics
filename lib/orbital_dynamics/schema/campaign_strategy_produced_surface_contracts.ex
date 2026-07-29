@@ -70,6 +70,7 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts do
     |> validate_branch_comparison_operational_evidence(artifact)
     |> validate_branch_comparison_repair_score_evidence(artifact)
     |> validate_branch_comparison_repair_link_selection_evidence(artifact)
+    |> validate_branch_comparison_repair_constraint_evidence(artifact)
     |> validate_source_provenance(artifact)
     |> validate_optional_score_term_report(Map.get(artifact, "score_term_report"))
     |> validate_optional_objective_tradeoff_report(Map.get(artifact, "objective_tradeoff_report"))
@@ -552,6 +553,125 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts do
          _index
        ),
        do: issues
+
+  defp validate_branch_comparison_repair_constraint_evidence(
+         issues,
+         %{
+           "branches" => branches,
+           "branch_comparison_report" => %{"rows" => rows}
+         }
+       )
+       when is_list(branches) and is_list(rows) do
+    if Enum.all?(branches, &branch_id_input?/1) and Enum.all?(rows, &branch_id_input?/1) and
+         Enum.map(rows, &Map.fetch!(&1, "branch_id")) ==
+           Enum.map(branches, &Map.fetch!(&1, "branch_id")) do
+      branches
+      |> Enum.zip(rows)
+      |> Enum.with_index()
+      |> Enum.reduce(issues, fn {{branch, row}, index}, acc ->
+        validate_branch_comparison_repair_constraint_row(acc, branch, row, index)
+      end)
+    else
+      issues
+    end
+  end
+
+  defp validate_branch_comparison_repair_constraint_evidence(issues, _artifact),
+    do: issues
+
+  defp validate_branch_comparison_repair_constraint_row(
+         issues,
+         %{"repair_result" => %{} = repair_result},
+         row,
+         index
+       ) do
+    path = "$.branch_comparison_report.rows[#{index}]"
+    constraint_report = map_value(repair_result, "constraint_report")
+
+    issues
+    |> validate_optional_copy(
+      path <> ".repair_constraint_count",
+      row,
+      "repair_constraint_count",
+      Map.get(constraint_report, "constraint_count"),
+      "must match the enclosing branch repair constraint_report.constraint_count"
+    )
+    |> validate_optional_copy(
+      path <> ".repair_constraint_row_count",
+      row,
+      "repair_constraint_row_count",
+      Map.get(constraint_report, "row_count"),
+      "must match the enclosing branch repair constraint_report.row_count"
+    )
+    |> validate_optional_copy(
+      path <> ".repair_constraint_status",
+      row,
+      "repair_constraint_status",
+      Map.get(constraint_report, "status"),
+      "must match the enclosing branch repair constraint_report.status"
+    )
+    |> validate_optional_copy(
+      path <> ".repair_constraint_pass_count",
+      row,
+      "repair_constraint_pass_count",
+      constraint_status_count(constraint_report, "pass"),
+      "must match the enclosing branch repair constraint pass count"
+    )
+    |> validate_optional_copy(
+      path <> ".repair_constraint_warning_count",
+      row,
+      "repair_constraint_warning_count",
+      constraint_status_count(constraint_report, "warning"),
+      "must match the enclosing branch repair constraint warning count"
+    )
+    |> validate_optional_copy(
+      path <> ".repair_constraint_fail_count",
+      row,
+      "repair_constraint_fail_count",
+      constraint_status_count(constraint_report, "fail"),
+      "must match the enclosing branch repair constraint fail count"
+    )
+    |> validate_optional_copy(
+      path <> ".repair_constraint_failed_ids",
+      row,
+      "repair_constraint_failed_ids",
+      constraint_ids_for_status(constraint_report, "fail"),
+      "must match the enclosing branch failed repair constraint IDs"
+    )
+    |> validate_optional_copy(
+      path <> ".repair_constraint_warning_ids",
+      row,
+      "repair_constraint_warning_ids",
+      constraint_ids_for_status(constraint_report, "warning"),
+      "must match the enclosing branch warning repair constraint IDs"
+    )
+  end
+
+  defp validate_branch_comparison_repair_constraint_row(issues, _branch, _row, _index),
+    do: issues
+
+  defp constraint_status_count(report, status) do
+    report
+    |> constraint_rows()
+    |> Enum.count(&(Map.get(&1, "status") == status))
+  end
+
+  defp constraint_ids_for_status(report, status) do
+    report
+    |> constraint_rows()
+    |> Enum.filter(&(Map.get(&1, "status") == status))
+    |> Enum.map(&Map.get(&1, "constraint_id"))
+    |> Enum.reject(&is_nil/1)
+    |> Enum.uniq()
+    |> Enum.sort()
+  end
+
+  defp constraint_rows(%{} = report) do
+    case Map.get(report, "rows") do
+      rows when is_list(rows) -> Enum.filter(rows, &is_map/1)
+      _rows -> []
+    end
+  end
 
   defp map_value(%{} = container, field) do
     case Map.get(container, field) do

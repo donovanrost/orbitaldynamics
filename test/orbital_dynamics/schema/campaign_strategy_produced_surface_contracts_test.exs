@@ -395,6 +395,39 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContractsTest do
     end
   end
 
+  test "rejects CampaignStrategy branch comparison repair constraint evidence drift", %{
+    strategy: strategy
+  } do
+    row = Enum.at(strategy["branch_comparison_report"]["rows"], 1)
+
+    invalid_cases = [
+      {"repair_constraint_count", row["repair_constraint_count"] + 1},
+      {"repair_constraint_row_count", row["repair_constraint_row_count"] + 1},
+      {"repair_constraint_status", "warning"},
+      {"repair_constraint_pass_count", row["repair_constraint_pass_count"] + 1},
+      {"repair_constraint_warning_count", row["repair_constraint_warning_count"] + 1},
+      {"repair_constraint_fail_count", row["repair_constraint_fail_count"] + 1},
+      {"repair_constraint_failed_ids", ["campaign:schema_valid_drift"]},
+      {"repair_constraint_warning_ids", ["campaign:schema_valid_drift"]}
+    ]
+
+    for {field, value} <- invalid_cases do
+      invalid =
+        put_in(
+          strategy,
+          ["branch_comparison_report", "rows", Access.at(1), field],
+          value
+        )
+
+      assert {:error, validation_report} = Schema.validate_artifact(invalid)
+
+      assert Enum.any?(
+               validation_report["errors"],
+               &(&1["path"] == "$.branch_comparison_report.rows[1].#{field}")
+             )
+    end
+  end
+
   test "keeps additive CampaignStrategy source provenance copies optional", %{
     strategy: strategy
   } do
