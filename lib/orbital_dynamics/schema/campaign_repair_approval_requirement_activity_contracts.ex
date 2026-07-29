@@ -5,6 +5,8 @@ defmodule OrbitalDynamics.Schema.CampaignRepairApprovalRequirementActivityContra
 
   import OrbitalDynamics.Schema.PrimitiveValidation, only: [error: 2]
 
+  @context_identity_fields ["activity_id", "activity_type"]
+
   def validate(
         issues,
         %{"activities" => activities, "approval_requirements" => requirements}
@@ -44,7 +46,42 @@ defmodule OrbitalDynamics.Schema.CampaignRepairApprovalRequirementActivityContra
 
   def validate(issues, _artifact), do: issues
 
-  defp validate_requirement(issues, path, requirement, [activity]) do
+  defp validate_requirement(issues, path, requirement, matching_activities) do
+    issues
+    |> validate_context_identity(path, requirement)
+    |> validate_selected_activity_context(path, requirement, matching_activities)
+  end
+
+  defp validate_context_identity(issues, path, requirement) do
+    case get_in(requirement, ["activity_context", "timeline_identity"]) do
+      %{} = identity ->
+        Enum.reduce(@context_identity_fields, issues, fn field, acc ->
+          validate_context_identity_field(acc, path, requirement, identity, field)
+        end)
+
+      _missing_or_invalid_identity ->
+        issues
+    end
+  end
+
+  defp validate_context_identity_field(issues, path, requirement, identity, field) do
+    case {Map.get(requirement, field), Map.get(identity, field)} do
+      {actual, expected}
+      when is_binary(actual) and is_binary(expected) and actual != expected ->
+        [
+          error(
+            path <> ".#{field}",
+            "must match activity_context.timeline_identity.#{field}"
+          )
+          | issues
+        ]
+
+      _matching_or_unreplayable ->
+        issues
+    end
+  end
+
+  defp validate_selected_activity_context(issues, path, requirement, [activity]) do
     case {Map.get(requirement, "activity_context"), RepairActivityIdentity.context(activity)} do
       {%{} = actual, %{} = expected} when actual != expected ->
         [
@@ -60,6 +97,11 @@ defmodule OrbitalDynamics.Schema.CampaignRepairApprovalRequirementActivityContra
     end
   end
 
-  defp validate_requirement(issues, _path, _requirement, _missing_or_ambiguous_activity),
-    do: issues
+  defp validate_selected_activity_context(
+         issues,
+         _path,
+         _requirement,
+         _missing_or_ambiguous_activity
+       ),
+       do: issues
 end

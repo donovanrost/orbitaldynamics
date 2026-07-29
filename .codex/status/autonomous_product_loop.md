@@ -5,48 +5,46 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Bind Repair approval activity contexts.
+Bind Repair approval context identities.
 
 Status:
-Verified from clean published base `9d2aef28`; ready to publish.
+Verified from clean published base `b2d6033c`; ready to publish.
 
 Selection evidence:
-- `RepairAccumulator.add_approval_requirement/5` copies
-  `RepairActivityIdentity.context/1` from the activity that owns the approval
-  requirement.
-- Existing validation checks each approval requirement in isolation and binds
-  optional downstream review/import mirrors, but it does not bind that copied
-  context to the uniquely matching selected Repair activity.
-- After removing optional operator-review and Cadence-import mirrors, a live
-  mutation changed only the selected requirement's `activity_context`;
-  `Schema.validate_artifact/1` still returned `:ok`.
-- The checked readiness Repair has one uniquely matching selected activity and
-  its generated context matches exactly; the canonical cancellation Repair has
-  no matching selected activity and establishes the compatibility boundary.
+- `RepairAccumulator.add_approval_requirement/5` copies root `activity_id` and
+  `activity_type` from the same activity used to build the requirement's
+  `activity_context.timeline_identity`.
+- Existing requirement validation checks those fields structurally but does not
+  bind the duplicated root and context identities.
+- After removing optional operator-review and Cadence-import mirrors, isolated
+  root activity ID and type mutations still returned `:ok` from
+  `Schema.validate_artifact/1`.
+- Both checked Repair artifacts already have exact root/context activity ID and
+  type agreement, including the cancellation artifact with no selected
+  activity row.
 
 Delivered behavior:
-- Added a Repair-specific approval requirement relationship contract that
-  indexes selected activities by the same encoded identity used by the
-  producer.
-- Required a present map-valued requirement `activity_context` to match the
-  producer-derived context when exactly one selected activity owns that
-  requirement identity.
-- Preserved legacy requirements without the additive context and cancellation
-  requirements whose source activity is not present in the selected activity
-  list.
-- Left malformed or ambiguous activity rows to the existing structural
-  validators instead of crashing or inferring a relationship.
-- Rejected replayable drift at the exact approval requirement context path
-  without depending on optional operator-review or Cadence-import mirrors.
+- Extended the Repair approval activity relationship contract to replay root
+  identity copies against `activity_context.timeline_identity`.
+- Required present string-valued `activity_id` and `activity_type` copies to
+  agree at their exact root fields.
+- Applied the relationship independently of selected-activity lookup, covering
+  cancellation requirements whose source activity is absent from the selected
+  activity list.
+- Preserved requirements with missing, partial, or non-string legacy context
+  identities while structural validators retain their existing ownership.
+- Retained the selected-activity full-context projection check from the prior
+  slice.
 
 Verification:
-- Focused approval activity-context contract tests: `3 passed`.
-- Focused plus adjacent approval/replacement contract tests: `34 passed`.
-- Live optional-mirror-absent mutation probe: exact
-  `$.approval_requirements[0].activity_context` selected-activity mismatch.
-- Schema regression: `1085 passed`.
+- Focused approval activity relationship tests: `4 passed`.
+- Focused plus adjacent approval/replacement contract tests: `35 passed`.
+- Live optional-mirror-absent mutation probes: exact
+  `$.approval_requirements[0].activity_id` and `activity_type` context-identity
+  mismatches.
+- Schema regression: `1086 passed`.
 - Planner regression: `1888 passed`.
-- Full suite: `5611 passed` (seed `416121`).
+- Full suite: `5612 passed` (seed `128472`).
 - Schema lint: `155 passed`, `0 failed`, `0 skipped`.
 - Canonical repair hash:
   `cc41834e706fd1e04a4c5578032fdf99ceeba949a02fd75fc54c8b70cdc30d8a`.
@@ -60,9 +58,9 @@ Level 6 pillar advanced:
 Fleet-scale candidate-pool integrity and operator-review evidence fidelity.
 
 Last published slice:
-- `9d2aef28` Bind current PlanDelta planned scenarios (`5608 passed`; present
-  current planned scenario copies now match their timeline identities while
-  older additive snapshots remain compatible).
+- `b2d6033c` Bind Repair approval activity contexts (`5611 passed`; present
+  selected-activity approval contexts now match the producer projection while
+  legacy cancellation and missing-context requirements remain compatible).
 
 Remaining maturity gaps:
 - Audit remaining generated and source handoffs where their complete producer
@@ -77,9 +75,9 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-Continue auditing Repair approval requirement fields only where the complete
-producer relationship can be replayed without weakening legacy cancellation
-compatibility.
+Audit remaining Repair approval action, reason, and requirement-type copies only
+where their complete producer derivation can be replayed across all transition
+shapes.
 
 Blocked:
 None.

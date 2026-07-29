@@ -11,7 +11,7 @@ defmodule OrbitalDynamics.Schema.CampaignRepairApprovalRequirementActivityContra
     }
   end
 
-  test "validates selected-activity and cancellation approval contexts", context do
+  test "validates selected-activity and cancellation approval relationships", context do
     for artifact <- [context.selected_activity_repair, context.cancellation_repair] do
       assert {:ok, %{"schema_contract" => "campaign_repair.v2"}} =
                Schema.validate_artifact(artifact)
@@ -50,6 +50,35 @@ defmodule OrbitalDynamics.Schema.CampaignRepairApprovalRequirementActivityContra
              report["errors"],
              &(&1["path"] == "$.approval_requirements[0].activity_context")
            )
+  end
+
+  test "rejects Repair approval root and context activity identity drift", %{
+    cancellation_repair: cancellation,
+    selected_activity_repair: selected
+  } do
+    invalid_cases = [
+      {"$.approval_requirements[0].activity_id",
+       put_in(
+         cancellation,
+         ["approval_requirements", Access.at(0), "activity_id"],
+         "drifted_activity"
+       )},
+      {"$.approval_requirements[0].activity_type",
+       put_in(
+         selected,
+         ["approval_requirements", Access.at(0), "activity_type"],
+         "observe"
+       )}
+    ]
+
+    for {expected_path, invalid} <- invalid_cases do
+      assert {:error, report} =
+               invalid
+               |> drop_approval_handoffs()
+               |> Schema.validate_artifact()
+
+      assert Enum.any?(report["errors"], &(&1["path"] == expected_path))
+    end
   end
 
   defp drop_approval_handoffs(repair) do
