@@ -409,10 +409,29 @@ defmodule OrbitalDynamics.Schema.CampaignRepairReplacementRankingContractsTest d
            )
 
     without_source_plan_evidence =
-      Map.delete(duration_drift, "source_timeline_feedback_report")
+      Map.delete(context.artifact, "source_timeline_feedback_report")
 
     assert {:ok, %{"schema_contract" => "campaign_repair.v2"}} =
              Schema.validate_artifact(without_source_plan_evidence)
+  end
+
+  test "binds current repair source context to the corresponding producer delta", context do
+    source_context_path =
+      "$.activities[#{context.activity_index}].repair.source_activity_context"
+
+    context_drift =
+      context.artifact
+      |> Map.delete("source_timeline_feedback_report")
+      |> put_in_path(source_context_path <> ".duration_s", 61.0)
+
+    assert {:error, report} = Schema.validate_artifact(context_drift)
+
+    assert Enum.any?(
+             report["errors"],
+             &(&1["path"] == source_context_path and
+                 &1["message"] ==
+                   "must match the corresponding Repair delta source_activity_context")
+           )
   end
 
   test "rejects temporally ineligible current ranking candidates", context do

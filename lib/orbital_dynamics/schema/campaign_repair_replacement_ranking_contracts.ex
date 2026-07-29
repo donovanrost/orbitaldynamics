@@ -158,6 +158,14 @@ defmodule OrbitalDynamics.Schema.CampaignRepairReplacementRankingContracts do
             "requires_approval",
             "must match the corresponding Repair delta requires_approval"
           )
+          |> validate_current_delta_map(
+            path <> ".source_activity_context",
+            repair,
+            "source_activity_context",
+            delta,
+            "source_activity_context",
+            "must match the corresponding Repair delta source_activity_context"
+          )
 
         _missing_or_ambiguous_delta ->
           issues
@@ -196,6 +204,24 @@ defmodule OrbitalDynamics.Schema.CampaignRepairReplacementRankingContracts do
        ) do
     case {Map.get(repair, repair_field), Map.get(delta, delta_field)} do
       {actual, expected} when is_boolean(actual) and is_boolean(expected) ->
+        validate_equal(issues, path, actual, expected, message)
+
+      _unreplayable ->
+        issues
+    end
+  end
+
+  defp validate_current_delta_map(
+         issues,
+         path,
+         repair,
+         repair_field,
+         delta,
+         delta_field,
+         message
+       ) do
+    case {Map.get(repair, repair_field), Map.get(delta, delta_field)} do
+      {%{} = actual, %{} = expected} ->
         validate_equal(issues, path, actual, expected, message)
 
       _unreplayable ->

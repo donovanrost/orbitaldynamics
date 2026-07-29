@@ -5,38 +5,43 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Bind Repair selected activity approval flags to their producer deltas.
+Bind Repair selected source contexts to their producer deltas.
 
 Status:
-Verified from clean published base `b4af8c48`; ready to publish.
+Verified from clean published base `982c489c`; ready to publish.
 
 Selection evidence:
-- Replacement transitions pass the same approval decision into the selected
-  activity's `repair.requires_approval` and the corresponding delta's
-  `requires_approval`.
-- Current ranking validation now binds the adjacent action and reason copies to
-  the uniquely identified delta, but not this boolean decision.
-- A live mutation changed only the selected activity's approval flag from
-  `true` to `false` while its producer delta remained `true`;
-  `Schema.validate_artifact/1` still returned `:ok`.
+- Replacement transitions derive the selected activity's
+  `repair.source_activity_context` and the corresponding delta's
+  `source_activity_context` from the same `RepairActivityIdentity.context/1`
+  projection.
+- Existing validation compares the selected copy to an optional source-plan
+  report, but does not bind it to the always-adjacent unique producer delta.
+- After removing that optional report, a live mutation changed only the
+  selected context's `duration_s` while its producer delta retained the
+  original context; `Schema.validate_artifact/1` still returned `:ok`.
+- All checked-in current-ranking artifacts with one identity-matched delta
+  already carry equal source-context copies.
 
 Delivered behavior:
-- Reused the unique current delta handoff to compare its approval boolean after
-  the adjacent action and reason comparisons.
-- Required the selected activity's `repair.requires_approval` to match the
-  corresponding Repair delta's `requires_approval` exactly.
-- Preserved legacy, missing, ambiguous, and non-boolean compatibility while
-  rejecting replayable drift at the exact selected-activity field path.
+- Extended the unique current delta handoff to compare the selected activity's
+  full source context with its producer-owned delta copy.
+- Required map-valued `repair.source_activity_context` to equal the unique
+  delta's map-valued `source_activity_context` exactly.
+- Preserved legacy, missing, ambiguous, and non-map compatibility, including
+  unchanged current artifacts without the optional source-plan report.
+- Rejected replayable source-context drift at the exact selected-activity
+  context path even when that optional report is absent.
 
 Verification:
-- Focused replacement-ranking contract tests: `17 passed`.
-- Adjacent replacement and plan-delta handoff tests: `27 passed`.
-- Live mutation probe: exact
-  `$.activities[0].repair.requires_approval` error with the producer-delta
-  approval mismatch message.
-- Schema regression: `1080 passed`.
+- Focused replacement-ranking contract tests: `18 passed`.
+- Focused plus adjacent plan-delta handoff tests: `21 passed`.
+- Focused plus adjacent replacement-transition tests: `19 passed`.
+- Live optional-report-absent mutation probe: exact
+  `$.activities[0].repair.source_activity_context` producer-delta mismatch.
+- Schema regression: `1081 passed`.
 - Planner regression: `1888 passed`.
-- Full suite: `5606 passed` (seed `788674`).
+- Full suite: `5607 passed` (seed `857423`).
 - Schema lint: `155 passed`, `0 failed`, `0 skipped`.
 - Canonical repair hash:
   `cc41834e706fd1e04a4c5578032fdf99ceeba949a02fd75fc54c8b70cdc30d8a`.
@@ -49,9 +54,9 @@ Level 6 pillar advanced:
 Fleet-scale candidate-pool integrity and operator-review evidence fidelity.
 
 Last published slice:
-- `b4af8c48` Bind Repair selected activity reasons (`5605 passed`; current
-  selected activity action and reason strings now match their uniquely
-  identified producer deltas).
+- `982c489c` Bind Repair selected activity approval flags (`5606 passed`;
+  current selected activity action, reason, and approval fields now match their
+  uniquely identified producer deltas).
 
 Remaining maturity gaps:
 - Audit remaining generated and source handoffs where their complete producer
@@ -66,7 +71,7 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-Continue current selected-activity-to-delta handoff audits after approval flags
+Continue current selected-activity-to-delta handoff audits after source contexts
 are bound.
 
 Blocked:
