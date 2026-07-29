@@ -616,6 +616,49 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContractsTest do
     end
   end
 
+  test "rejects CampaignStrategy branch comparison resource projection availability drift", %{
+    strategy: strategy
+  } do
+    count_fields = ~w(
+      resource_projection_unavailable_spacecraft_count
+      resource_projection_payload_unavailable_count
+      resource_projection_degraded_payload_unavailable_count
+      resource_projection_antenna_unavailable_count
+      resource_projection_activity_type_suppressed_count
+      resource_projection_activity_type_incompatible_count
+    )
+
+    id_fields = ~w(
+      resource_projection_unavailable_spacecraft_ids
+      resource_projection_payload_unavailable_spacecraft_ids
+      resource_projection_degraded_payload_unavailable_spacecraft_ids
+      resource_projection_antenna_unavailable_spacecraft_ids
+      resource_projection_activity_type_suppressed_spacecraft_ids
+      resource_projection_activity_type_incompatible_spacecraft_ids
+    )
+
+    drift_values =
+      Enum.map(count_fields, &{&1, 1}) ++
+        Enum.map(id_fields, &{&1, ["leo_1"]}) ++
+        [{"resource_projection_availability_pressure_types", ["payload_unavailable"]}]
+
+    for {field, drift} <- drift_values do
+      invalid =
+        put_in(
+          strategy,
+          ["branch_comparison_report", "rows", Access.at(1), field],
+          drift
+        )
+
+      assert {:error, validation_report} = Schema.validate_artifact(invalid)
+
+      assert Enum.any?(
+               validation_report["errors"],
+               &(&1["path"] == "$.branch_comparison_report.rows[1].#{field}")
+             )
+    end
+  end
+
   test "rejects CampaignStrategy branch comparison repair score evidence drift", %{
     strategy: strategy
   } do

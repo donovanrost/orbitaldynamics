@@ -5,43 +5,43 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Bind CampaignStrategy branch comparison resource projection aggregates.
+Bind CampaignStrategy branch comparison resource projection availability.
 
 Status:
-Verified locally from clean published base `5218980d`; publish pending.
+Verified locally from clean published base `50c5336d`; publish pending.
 
 Selection evidence:
-- `BranchComparisonResourceProjection.fields/1` derives ten margin, remaining-
-  capacity, overflow/shortfall, and throughput aggregates from projected-
-  resource rows.
-- Four populated fields exactly match their complete producer across `25`
-  eligible rows; six nullable aggregates and both empty-report branches are
-  omitted consistently across all `27` checked rows.
-- Independently drifting or inventing any aggregate still returned `:ok` from
-  `Schema.validate_artifact/1`.
+- `BranchComparisonResourceProjection.fields/1` derives six availability count/
+  spacecraft-ID pairs and a normalized availability-pressure type set from
+  projected-resource rows.
+- All `13` fields exactly match their complete producer on `25` eligible rows
+  and are consistently omitted for both empty-report branches.
+- Independently drifting any count, ID set, or pressure-type set still returned
+  `:ok` from `Schema.validate_artifact/1`.
 
 Delivered behavior:
-- CampaignStrategy validation now reproduces the producer's minimum and maximum
-  resource-projection aggregates for each identity-aligned comparison row.
-- Remaining storage/downlink capacity uses the same explicit-value-or-capacity-
-  minus-use fallback and zero floor as the producer.
-- Nullable and empty-report omission remains compatible; populated drift or an
-  invented aggregate fails at its exact indexed row path.
+- CampaignStrategy validation now reproduces all six resource-projection
+  availability count/spacecraft-ID pairs for each identity-aligned comparison
+  row.
+- Availability pressure types use the producer's allowlist, normalization,
+  deduplication, sorting, and stable spacecraft/scenario ID fallback.
+- Empty-report omission remains compatible; independent count, ID, or type drift
+  fails at its exact indexed row path.
 
 Verification:
-- Focused produced-surface contracts: `25 passed` (seed `471268`).
-- Adjacent produced-surface and campaign-repair/strategy contracts: `27 passed`
-  (seed `320060`).
-- Live checked-artifact mutation probe detected all ten exact aggregate paths,
-  including all six nullable/omitted fields.
-- Broad schema suite: `1111 passed` (seed `42562`).
-- Planner suite: `1890 passed` (seed `638184`); only the pre-existing
+- Focused produced-surface contracts: `26 passed` (seed `649352`).
+- Adjacent produced-surface and campaign-repair/strategy contracts: `28 passed`
+  (seed `352703`).
+- Live checked-artifact mutation probe detected all `13` exact availability
+  paths.
+- Broad schema suite: `1112 passed` (seed `356952`).
+- Planner suite: `1890 passed` (seed `957156`); only the pre-existing
   `campaign_planner/support.exs` discovery warning appeared.
 - Schema lint: `155` artifacts, `0` errors, `0` warnings.
 - Canonical repair and strategy artifacts regenerated with unchanged SHA-256
   hashes `cc41834e706fd1e04a4c5578032fdf99ceeba949a02fd75fc54c8b70cdc30d8a`
   and `57602722702969da587e2754df84bca1e06e86cc32fa5af7f3f78451b72f9985`.
-- Full suite: `5637 passed` in `760.5s` (seed `725959`); only the pre-existing
+- Full suite: `5638 passed` in `749.8s` (seed `800`); only the pre-existing
   support/fixture discovery warning appeared.
 - `mix format --check-formatted` and `git diff --check` passed.
 
@@ -49,9 +49,9 @@ Level 6 pillar advanced:
 Fleet-scale strategy decision-support and embedded-report identity integrity.
 
 Last published slice:
-- `5218980d` Bind CampaignStrategy resource projection summary (`5636 passed`;
-  five comparison report counts and provenance maps now bind to identity-
-  aligned enclosing resource-projection reports).
+- `50c5336d` Bind CampaignStrategy resource projection aggregates (`5637
+  passed`; ten comparison margin/capacity/pressure aggregates now bind to
+  identity-aligned enclosing resource-projection reports).
 
 Remaining maturity gaps:
 - Audit remaining generated and source handoffs where their complete producer
@@ -67,8 +67,8 @@ Remaining maturity gaps:
 
 Next candidate:
 Publish this slice, then audit remaining CampaignStrategy branch-comparison
-resource-projection availability, peak-flow, and contextual fields against
-their complete producers.
+resource-projection peak-flow and first-pressure contextual fields against their
+complete producers.
 
 Blocked:
 None.

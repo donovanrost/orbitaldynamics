@@ -115,6 +115,30 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts do
     {"storage_limited_downlinked_mb", "storage_limited_downlinked_mb"},
     {"unused_downlink_capacity_mb", "unused_downlink_capacity_mb"}
   ]
+  @branch_comparison_resource_projection_availability_pairs [
+    {"resource_projection_payload_unavailable_count",
+     "resource_projection_payload_unavailable_spacecraft_ids", "payload_unavailable"},
+    {"resource_projection_degraded_payload_unavailable_count",
+     "resource_projection_degraded_payload_unavailable_spacecraft_ids",
+     "spacecraft_degraded_payload_unavailable"},
+    {"resource_projection_antenna_unavailable_count",
+     "resource_projection_antenna_unavailable_spacecraft_ids", "antenna_unavailable"},
+    {"resource_projection_activity_type_suppressed_count",
+     "resource_projection_activity_type_suppressed_spacecraft_ids",
+     "activity_type_suppressed_by_resource_summary"},
+    {"resource_projection_activity_type_incompatible_count",
+     "resource_projection_activity_type_incompatible_spacecraft_ids",
+     "activity_type_incompatible_with_resource_summary"}
+  ]
+  @resource_projection_availability_pressure_types ~w(
+    spacecraft_unavailable
+    payload_unavailable
+    spacecraft_degraded_payload_unavailable
+    antenna_unavailable
+    activity_type_suppressed_by_resource_summary
+    activity_type_incompatible_with_resource_summary
+  )
+  @stable_id_regex ~r/^[A-Za-z0-9][A-Za-z0-9._:@-]*$/
 
   def validate(issues, artifact) do
     issues
@@ -129,6 +153,7 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts do
     |> validate_branch_comparison_resource_impacts(artifact)
     |> validate_branch_comparison_resource_projection_summary(artifact)
     |> validate_branch_comparison_resource_projection_aggregates(artifact)
+    |> validate_branch_comparison_resource_projection_availability(artifact)
     |> validate_branch_comparison_feedback_evidence(artifact)
     |> validate_branch_comparison_priority_commitments(artifact)
     |> validate_branch_comparison_downlink_completion(artifact)
@@ -823,6 +848,137 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts do
 
   defp map_field(%{} = map, field), do: Map.get(map, field)
   defp map_field(_value, _field), do: nil
+
+  defp validate_branch_comparison_resource_projection_availability(
+         issues,
+         %{
+           "branches" => branches,
+           "branch_comparison_report" => %{"rows" => rows}
+         }
+       )
+       when is_list(branches) and is_list(rows) do
+    if Enum.all?(branches, &branch_id_input?/1) and Enum.all?(rows, &branch_id_input?/1) and
+         Enum.map(rows, &Map.fetch!(&1, "branch_id")) ==
+           Enum.map(branches, &Map.fetch!(&1, "branch_id")) do
+      branches
+      |> Enum.zip(rows)
+      |> Enum.with_index()
+      |> Enum.reduce(issues, fn {{branch, row}, index}, acc ->
+        validate_branch_comparison_resource_projection_availability_row(
+          acc,
+          branch,
+          row,
+          index
+        )
+      end)
+    else
+      issues
+    end
+  end
+
+  defp validate_branch_comparison_resource_projection_availability(issues, _artifact),
+    do: issues
+
+  defp validate_branch_comparison_resource_projection_availability_row(
+         issues,
+         branch,
+         row,
+         index
+       ) do
+    case Map.get(branch, "resource_projection_report") do
+      %{"projected_resources" => resource_rows}
+      when is_list(resource_rows) and resource_rows != [] ->
+        path = "$.branch_comparison_report.rows[#{index}]"
+        unavailable_ids = resource_projection_unavailable_spacecraft_ids(resource_rows)
+
+        issues
+        |> validate_optional_copy(
+          path <> ".resource_projection_unavailable_spacecraft_count",
+          row,
+          "resource_projection_unavailable_spacecraft_count",
+          length(unavailable_ids),
+          "must match the enclosing branch unavailable spacecraft count"
+        )
+        |> validate_optional_copy(
+          path <> ".resource_projection_unavailable_spacecraft_ids",
+          row,
+          "resource_projection_unavailable_spacecraft_ids",
+          unavailable_ids,
+          "must match the enclosing branch unavailable spacecraft IDs"
+        )
+        |> validate_resource_projection_availability_pairs(path, row, resource_rows)
+        |> validate_optional_copy(
+          path <> ".resource_projection_availability_pressure_types",
+          row,
+          "resource_projection_availability_pressure_types",
+          resource_projection_availability_pressure_types(resource_rows),
+          "must match the enclosing branch resource availability pressure types"
+        )
+
+      _report ->
+        issues
+    end
+  end
+
+  defp validate_resource_projection_availability_pairs(issues, path, row, resource_rows) do
+    Enum.reduce(
+      @branch_comparison_resource_projection_availability_pairs,
+      issues,
+      fn {count_field, ids_field, pressure_type}, acc ->
+        ids =
+          resource_projection_availability_pressure_spacecraft_ids(resource_rows, pressure_type)
+
+        acc
+        |> validate_optional_copy(
+          path <> ".#{count_field}",
+          row,
+          count_field,
+          length(ids),
+          "must match the enclosing branch #{pressure_type} spacecraft count"
+        )
+        |> validate_optional_copy(
+          path <> ".#{ids_field}",
+          row,
+          ids_field,
+          ids,
+          "must match the enclosing branch #{pressure_type} spacecraft IDs"
+        )
+      end
+    )
+  end
+
+  defp resource_projection_unavailable_spacecraft_ids(resource_rows) do
+    resource_rows
+    |> Enum.filter(&(map_field(&1, "spacecraft_available") == false))
+    |> Enum.map(&map_field(&1, "spacecraft_id"))
+    |> Enum.reject(&is_nil/1)
+    |> Enum.uniq()
+    |> Enum.sort()
+  end
+
+  defp resource_projection_availability_pressure_spacecraft_ids(resource_rows, pressure_type) do
+    resource_rows
+    |> Enum.filter(fn resource_row ->
+      pressure_type in List.wrap(map_field(resource_row, "resource_pressure_types"))
+    end)
+    |> Enum.map(fn resource_row ->
+      map_field(resource_row, "spacecraft_id") || map_field(resource_row, "scenario_id")
+    end)
+    |> Enum.filter(&stable_id_string?/1)
+    |> Enum.uniq()
+    |> Enum.sort()
+  end
+
+  defp resource_projection_availability_pressure_types(resource_rows) do
+    resource_rows
+    |> Enum.flat_map(&(map_field(&1, "resource_pressure_types") |> List.wrap()))
+    |> Enum.filter(&(&1 in @resource_projection_availability_pressure_types))
+    |> Enum.uniq()
+    |> Enum.sort()
+  end
+
+  defp stable_id_string?(value),
+    do: is_binary(value) and value != "" and Regex.match?(@stable_id_regex, value)
 
   defp validate_branch_comparison_feedback_evidence(
          issues,
