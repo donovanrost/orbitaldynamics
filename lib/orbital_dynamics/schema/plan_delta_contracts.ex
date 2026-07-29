@@ -313,14 +313,41 @@ defmodule OrbitalDynamics.Schema.PlanDeltaContracts do
     end
   end
 
-  defp validate_optional_realized_delta_activity(issues, path, %{
-         "realized" => realized
-       })
+  defp validate_optional_realized_delta_activity(
+         issues,
+         path,
+         %{"realized" => realized} = delta
+       )
        when is_map(realized) do
-    validate_realized_activity(issues, path <> ".realized", realized)
+    issues
+    |> validate_realized_activity(path <> ".realized", realized)
+    |> validate_realized_source_outcome(path <> ".realized", realized, delta)
   end
 
   defp validate_optional_realized_delta_activity(issues, _path, _delta), do: issues
+
+  defp validate_realized_source_outcome(issues, path, realized, delta) do
+    [
+      {"id", "activity_id"},
+      {"status", "status"}
+    ]
+    |> Enum.reduce(issues, fn {realized_field, delta_field}, acc ->
+      case {Map.get(realized, realized_field), Map.get(delta, delta_field)} do
+        {actual, expected} when is_binary(actual) and is_binary(expected) ->
+          expect_field_equals(
+            acc,
+            path,
+            realized,
+            realized_field,
+            expected,
+            "must match enclosing PlanDelta #{delta_field}"
+          )
+
+        _unreplayable ->
+          acc
+      end
+    end)
+  end
 
   defp validate_optional_schema_contract(issues, path, map, contract),
     do: SchemaContractField.validate_optional(issues, path, map, contract)

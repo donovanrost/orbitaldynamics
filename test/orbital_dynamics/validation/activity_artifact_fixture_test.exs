@@ -393,6 +393,18 @@ defmodule OrbitalDynamics.Validation.ActivityArtifactFixtureTest do
       assert Enum.any?(invalid_report["errors"], &(&1["path"] == expected_path))
     end
 
+    invalid_realized_outcomes = [
+      {"$.realized.id", put_in(report, ["realized", "id"], "other")},
+      {"$.realized.status", put_in(report, ["realized", "status"], "missed")}
+    ]
+
+    for {expected_path, invalid} <- invalid_realized_outcomes do
+      assert {:error, invalid_report} =
+               Schema.validate_artifact(invalid, schema_contract: "plan_delta.v1")
+
+      assert Enum.any?(invalid_report["errors"], &(&1["path"] == expected_path))
+    end
+
     replacement_report =
       report
       |> Map.put("replacement_activity_id", "leo_1_observe_target_a_2")
