@@ -23,12 +23,20 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairLinkCapacityRequirementsTest do
     satisfying_candidate =
       "dl_satisfies"
       |> refreshed_downlink(500.0, 560.0)
-      |> Map.merge(%{"score" => 9.5, "estimated_throughput_mb" => 50.0})
+      |> Map.merge(%{
+        "score" => 9.5,
+        "score_terms" => %{"contact_value" => 9.5},
+        "estimated_throughput_mb" => 50.0
+      })
 
     deeper_shortfall_candidate =
       "dl_deeper_shortfall"
       |> refreshed_downlink(500.0, 560.0)
-      |> Map.merge(%{"score" => 9.0, "estimated_throughput_mb" => 48.0})
+      |> Map.merge(%{
+        "score" => 9.0,
+        "score_terms" => %{"contact_value" => 9.0},
+        "estimated_throughput_mb" => 48.0
+      })
 
     plan = %{
       "activities" => [missed_downlink, future_downlink],

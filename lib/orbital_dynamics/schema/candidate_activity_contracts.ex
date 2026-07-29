@@ -101,8 +101,9 @@ defmodule OrbitalDynamics.Schema.CandidateActivityContracts do
     |> validate_source_window_identity(path, activity)
   end
 
-  defp validate_score(issues, path, %{"score" => score, "score_terms" => terms})
-       when is_number(score) and is_map(terms) do
+  @doc false
+  def validate_score(issues, path, %{"score" => score, "score_terms" => terms})
+      when is_number(score) and is_map(terms) do
     numeric_terms = Enum.filter(Map.values(terms), &is_number/1)
 
     if length(numeric_terms) == map_size(terms) do
@@ -118,7 +119,7 @@ defmodule OrbitalDynamics.Schema.CandidateActivityContracts do
     end
   end
 
-  defp validate_score(issues, _path, _activity), do: issues
+  def validate_score(issues, _path, _activity), do: issues
 
   defp validate_source_window_identity(
          issues,

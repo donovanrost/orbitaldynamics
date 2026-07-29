@@ -87,6 +87,7 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairStationCalendarAnnotationTest do
       "dl_nominal"
       |> refreshed_downlink(570.0, 630.0)
       |> Map.put("score", 9.8)
+      |> Map.put("score_terms", %{"contact_value" => 9.8})
 
     plan = %{
       "activities" => [downlink("dl_1", 100.0, 160.0)],

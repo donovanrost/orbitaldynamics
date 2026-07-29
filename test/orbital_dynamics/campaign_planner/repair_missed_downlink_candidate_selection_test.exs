@@ -13,14 +13,17 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairMissedDownlinkCandidateSelection
     duplicate_a =
       refreshed_downlink("dl_duplicate", 500.0, 560.0)
       |> Map.put("score", 500.0)
+      |> Map.put("score_terms", %{"contact_value" => 500.0})
 
     duplicate_b =
       refreshed_downlink("dl_duplicate", 700.0, 760.0)
       |> Map.put("score", 600.0)
+      |> Map.put("score_terms", %{"contact_value" => 600.0})
 
     unique_replacement =
       refreshed_downlink("dl_unique", 900.0, 960.0)
       |> Map.put("score", 1.0)
+      |> Map.put("score_terms", %{"contact_value" => 1.0})
 
     artifact =
       repair(

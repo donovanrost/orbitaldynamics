@@ -2,7 +2,12 @@ defmodule OrbitalDynamics.Schema.CampaignRepairCandidateValueContracts do
   @moduledoc false
 
   alias OrbitalDynamics.CampaignPlanner.{ActivityIdentity, ScalarValues}
-  alias OrbitalDynamics.Schema.CampaignRepairReplacementRankingVersion
+
+  alias OrbitalDynamics.Schema.{
+    CampaignRepairReplacementRankingVersion,
+    CandidateActivityContracts
+  }
+
   alias OrbitalDynamics.Timeline
 
   import OrbitalDynamics.Schema.PrimitiveValidation, only: [error: 2]
@@ -10,18 +15,19 @@ defmodule OrbitalDynamics.Schema.CampaignRepairCandidateValueContracts do
   @tolerance 1.0e-9
 
   def validate(issues, artifact) when is_map(artifact) do
+    source_candidates = Map.get(artifact, "source_candidate_activities", [])
+
     source_candidates_by_id =
-      artifact
-      |> Map.get("source_candidate_activities", [])
-      |> source_candidates_by_id()
+      source_candidates_by_id(source_candidates)
 
     source_plan_activities_by_id =
       artifact
       |> Map.get("source_timeline_feedback_report")
       |> source_plan_activities_by_id()
 
-    validate_activities(
-      issues,
+    issues
+    |> validate_source_candidate_scores(source_candidates)
+    |> validate_activities(
       Map.get(artifact, "activities", []),
       source_candidates_by_id,
       source_plan_activities_by_id
@@ -37,6 +43,20 @@ defmodule OrbitalDynamics.Schema.CampaignRepairCandidateValueContracts do
   end
 
   defp source_candidates_by_id(_candidates), do: %{}
+
+  defp validate_source_candidate_scores(issues, candidates) when is_list(candidates) do
+    candidates
+    |> Enum.with_index()
+    |> Enum.reduce(issues, fn {candidate, index}, acc ->
+      CandidateActivityContracts.validate_score(
+        acc,
+        "$.source_candidate_activities[#{index}]",
+        candidate
+      )
+    end)
+  end
+
+  defp validate_source_candidate_scores(issues, _candidates), do: issues
 
   defp source_plan_activities_by_id(%{"rows" => rows}) when is_list(rows) do
     rows

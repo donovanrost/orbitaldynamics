@@ -555,6 +555,21 @@ defmodule OrbitalDynamics.Schema.CampaignRepairReplacementRankingContractsTest d
            )
   end
 
+  test "binds source candidate scores to their embedded score terms", context do
+    score_term_drift =
+      context.artifact
+      |> put_in_path("$.source_candidate_activities[0].score_terms.contact_value", 999.0)
+      |> put_in_path("$.activities[#{context.activity_index}].score_terms.contact_value", 999.0)
+
+    assert {:error, report} = Schema.validate_artifact(score_term_drift)
+
+    assert Enum.any?(
+             report["errors"],
+             &(&1["path"] == "$.source_candidate_activities[0].score" and
+                 &1["message"] == "must equal numeric score_terms sum")
+           )
+  end
+
   test "rejects empty or malformed optional pressure evidence", context do
     row_path = ranking_path(context.activity_index) <> ".rows[0]"
 

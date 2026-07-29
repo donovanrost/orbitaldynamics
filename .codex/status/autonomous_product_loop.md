@@ -5,35 +5,38 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Bind Repair replacement ranking source contexts to source-plan evidence.
+Bind Repair source candidate scores to their embedded score terms.
 
 Status:
-Verified from clean published base `74f8c5a8`; ready to publish.
+Verified from clean published base `6545b7b8`; ready to publish.
 
 Selection evidence:
-- The replacement producer derives `repair.source_activity_context` with
-  `Timeline.activity_context/1` from the source planned activity.
-- Current-ranking validation checks source timing and identity internally but
-  does not bind the full context projection to embedded source-plan evidence.
-- A live artifact mutation changed only the ranking source duration from 60 to
-  61 seconds while its `source_timeline_feedback_report` planned activity
-  remained unchanged; `Schema.validate_artifact/1` still returned `:ok`.
+- Standalone candidate validation requires a numeric candidate `score` to equal
+  the sum of its numeric `score_terms` when both are present.
+- Repair validates its source candidate pool structurally and replays ranking
+  `candidate_score`, but does not apply that score-explanation invariant to the
+  embedded source snapshots.
+- A live coordinated mutation changed both selected and source candidate
+  `score_terms.contact_value` from 10 to 999 while leaving `score: 10`;
+  `Schema.validate_artifact/1` still returned `:ok`.
 
 Delivered behavior:
-- Derive uniquely identified source planned activities from embedded timeline
-  feedback evidence.
-- Require every current replacement ranking with replayable source-plan
-  evidence to carry the exact `Timeline.activity_context/1` projection.
-- Preserve compatibility when source-plan evidence is missing or ambiguous, and
-  reject a focused duration drift at the exact source-context path.
+- Reuse the standalone candidate score-explanation invariant for every embedded
+  Repair source candidate when both `score` and `score_terms` are present.
+- Preserve compatibility for unscored embedded candidates while rejecting
+  additive score-term drift at the exact source-candidate score path.
+- Keep six intentionally reweighted candidates in three planner fixtures
+  self-explaining by updating their `contact_value` terms with their scores.
 
 Verification:
-- Focused replacement-ranking contracts: `12 passed`.
-- Adjacent replacement selection and ranking contracts: `19 passed`.
-- Live post-fix artifact mutation returned the exact source-context error.
-- Schema regression: `1075 passed`.
+- Focused replacement-ranking contracts: `13 passed`.
+- Adjacent replacement selection and ranking contracts: `20 passed`.
+- Affected duplicate, station-calendar, and link-capacity modules: `15 passed`.
+- Live post-fix artifact mutation returned the exact
+  `$.source_candidate_activities[0].score` error.
+- Schema regression: `1076 passed`.
 - Campaign planner regression: `1888 passed`.
-- Full suite: `5601 passed` (seed `193142`).
+- Full suite: `5602 passed` (seed `351685`).
 - Schema lint: `155` artifacts passed, `0` errors, `0` warnings.
 - Canonical Repair and Strategy regeneration passed with stable byte hashes:
   `cc41834e706fd1e04a4c5578032fdf99ceeba949a02fd75fc54c8b70cdc30d8a`
@@ -44,9 +47,8 @@ Level 6 pillar advanced:
 Fleet-scale candidate-pool integrity and operator-review evidence fidelity.
 
 Last published slice:
-- `74f8c5a8` Bind Repair ranking scores to unscored candidates (`5600 passed`;
-  every uniquely identified replacement score now replays the producer's
-  numeric normalization and zero fallback).
+- `6545b7b8` Bind Repair ranking source contexts (`5601 passed`; replayable
+  current source contexts now match their exact planned activity projection).
 
 Remaining maturity gaps:
 - Audit remaining generated and source handoffs where their complete producer
@@ -61,8 +63,8 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-Continue replacement-ranking replay audits after source contexts are bound to
-their authoritative planned activity projections.
+Continue replacement-ranking candidate snapshot audits after embedded score
+explanations are bound.
 
 Blocked:
 None.
