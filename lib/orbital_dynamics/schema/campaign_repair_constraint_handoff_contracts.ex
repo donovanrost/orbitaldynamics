@@ -2,7 +2,13 @@ defmodule OrbitalDynamics.Schema.CampaignRepairConstraintHandoffContracts do
   @moduledoc false
 
   import OrbitalDynamics.Schema.CampaignRepairHandoffValidation,
-    only: [indexed_rows: 2, row_source: 1, validate_equal: 5, validate_source_copies: 6]
+    only: [
+      indexed_rows: 2,
+      row_source: 1,
+      validate_equal: 5,
+      validate_source_copies: 6,
+      validate_source_identities: 6
+    ]
 
   @repair_source_constraint "campaign_repair.source_constraint_report.rows"
 
@@ -60,6 +66,13 @@ defmodule OrbitalDynamics.Schema.CampaignRepairConstraintHandoffContracts do
       length(import_rows),
       length(constraint_rows),
       "must contain one Repair source constraint import row per enclosing non-passing report row"
+    )
+    |> validate_source_identities(
+      "$.cadence_import_manifest.rows",
+      import_rows,
+      List.duplicate(@repair_source_constraint, length(constraint_rows)),
+      [["source"], ["source_review_row", "source"]],
+      "must match the enclosing Repair source constraint family"
     )
     |> validate_source_copies(
       "$.cadence_import_manifest.rows",
