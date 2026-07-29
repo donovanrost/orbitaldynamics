@@ -5,45 +5,54 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Bind current PlanDelta planned scenarios.
+Bind Repair approval activity contexts.
 
 Status:
-Verified from clean published base `63428327`; ready to publish.
+Verified from clean published base `9d2aef28`; ready to publish.
 
 Selection evidence:
-- `RepairAccumulator.planned_snapshot/2` copies the source activity's top-level
-  `scenario_id` separately from the merged operational context.
-- Current planned context projection validation binds the nested timeline
-  identity map but not that adjacent top-level scenario copy.
+- `RepairAccumulator.add_approval_requirement/5` copies
+  `RepairActivityIdentity.context/1` from the activity that owns the approval
+  requirement.
+- Existing validation checks each approval requirement in isolation and binds
+  optional downstream review/import mirrors, but it does not bind that copied
+  context to the uniquely matching selected Repair activity.
 - After removing optional operator-review and Cadence-import mirrors, a live
-  mutation changed only current `planned.scenario_id`;
+  mutation changed only the selected requirement's `activity_context`;
   `Schema.validate_artifact/1` still returned `:ok`.
-- Every checked-in current PlanDelta planned scenario already matches
-  `planned.timeline_identity.scenario_id`.
+- The checked readiness Repair has one uniquely matching selected activity and
+  its generated context matches exactly; the canonical cancellation Repair has
+  no matching selected activity and establishes the compatibility boundary.
 
 Delivered behavior:
-- Extended current planned-snapshot relationship validation with the remaining
-  separately copied scenario coordinate.
-- Required present string-valued `planned.scenario_id` to match
-  `planned.timeline_identity.scenario_id`.
-- Preserved missing, partial, and non-string compatibility while existing
-  stable-ID validation continues to report malformed values.
-- Rejected replayable drift at the exact `$.planned.scenario_id` path without
-  depending on optional operator-review or Cadence-import mirrors.
+- Added a Repair-specific approval requirement relationship contract that
+  indexes selected activities by the same encoded identity used by the
+  producer.
+- Required a present map-valued requirement `activity_context` to match the
+  producer-derived context when exactly one selected activity owns that
+  requirement identity.
+- Preserved legacy requirements without the additive context and cancellation
+  requirements whose source activity is not present in the selected activity
+  list.
+- Left malformed or ambiguous activity rows to the existing structural
+  validators instead of crashing or inferring a relationship.
+- Rejected replayable drift at the exact approval requirement context path
+  without depending on optional operator-review or Cadence-import mirrors.
 
 Verification:
-- Focused curated PlanDelta fixture tests: `6 passed`.
-- Focused plus adjacent PlanDelta/Repair contract tests: `28 passed`.
+- Focused approval activity-context contract tests: `3 passed`.
+- Focused plus adjacent approval/replacement contract tests: `34 passed`.
 - Live optional-mirror-absent mutation probe: exact
-  `$.deltas[0].planned.scenario_id` timeline-identity mismatch.
-- Schema regression: `1082 passed`.
+  `$.approval_requirements[0].activity_context` selected-activity mismatch.
+- Schema regression: `1085 passed`.
 - Planner regression: `1888 passed`.
-- Full suite: `5608 passed` (seed `222247`).
+- Full suite: `5611 passed` (seed `416121`).
 - Schema lint: `155 passed`, `0 failed`, `0 skipped`.
 - Canonical repair hash:
   `cc41834e706fd1e04a4c5578032fdf99ceeba949a02fd75fc54c8b70cdc30d8a`.
 - Canonical strategy hash:
   `57602722702969da587e2754df84bca1e06e86cc32fa5af7f3f78451b72f9985`.
+- Canonical regeneration produced no artifact diffs.
 - Formatting and whitespace gates: `mix format --check-formatted` and
   `git diff --check` passed.
 
@@ -51,9 +60,9 @@ Level 6 pillar advanced:
 Fleet-scale candidate-pool integrity and operator-review evidence fidelity.
 
 Last published slice:
-- `63428327` Bind current PlanDelta planned contexts (`5608 passed`; current
-  planned snapshots now contain an exact copy of every source activity context
-  field while older additive snapshots remain compatible).
+- `9d2aef28` Bind current PlanDelta planned scenarios (`5608 passed`; present
+  current planned scenario copies now match their timeline identities while
+  older additive snapshots remain compatible).
 
 Remaining maturity gaps:
 - Audit remaining generated and source handoffs where their complete producer
@@ -68,8 +77,9 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-Continue PlanDelta and current Repair projection audits after planned scenarios
-are bound.
+Continue auditing Repair approval requirement fields only where the complete
+producer relationship can be replayed without weakening legacy cancellation
+compatibility.
 
 Blocked:
 None.

@@ -1,0 +1,64 @@
+defmodule OrbitalDynamics.Schema.CampaignRepairApprovalRequirementActivityContractsTest do
+  use ExUnit.Case, async: true
+
+  alias OrbitalDynamics.Schema
+
+  setup do
+    %{
+      cancellation_repair: read_json!("study_results/leo_constellation_campaign_repair_v2.json"),
+      selected_activity_repair:
+        read_json!("study_results/campaign_repair_readiness_source_handoff_v2.json")
+    }
+  end
+
+  test "validates selected-activity and cancellation approval contexts", context do
+    for artifact <- [context.selected_activity_repair, context.cancellation_repair] do
+      assert {:ok, %{"schema_contract" => "campaign_repair.v2"}} =
+               Schema.validate_artifact(artifact)
+    end
+  end
+
+  test "keeps additive approval activity contexts optional", %{
+    selected_activity_repair: repair
+  } do
+    older =
+      repair
+      |> update_in(
+        ["approval_requirements", Access.at(0)],
+        &Map.delete(&1, "activity_context")
+      )
+      |> drop_approval_handoffs()
+
+    assert {:ok, %{"schema_contract" => "campaign_repair.v2"}} =
+             Schema.validate_artifact(older)
+  end
+
+  test "rejects selected Repair approval activity context drift", %{
+    selected_activity_repair: repair
+  } do
+    invalid =
+      repair
+      |> put_in(
+        ["approval_requirements", Access.at(0), "activity_context", "duration_s"],
+        61
+      )
+      |> drop_approval_handoffs()
+
+    assert {:error, report} = Schema.validate_artifact(invalid)
+
+    assert Enum.any?(
+             report["errors"],
+             &(&1["path"] == "$.approval_requirements[0].activity_context")
+           )
+  end
+
+  defp drop_approval_handoffs(repair) do
+    Map.drop(repair, ["operator_review_package", "cadence_import_manifest"])
+  end
+
+  defp read_json!(path) do
+    path
+    |> File.read!()
+    |> :json.decode()
+  end
+end
