@@ -659,6 +659,60 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContractsTest do
     end
   end
 
+  test "rejects CampaignStrategy branch comparison resource projection peak drift", %{
+    strategy: strategy
+  } do
+    fields = ~w(
+      resource_projection_peak_storage_overflow_mb
+      resource_projection_peak_downlink_shortfall_mb
+      resource_projection_peak_battery_overuse_wh
+      resource_projection_peak_unused_downlink_capacity_mb
+    )
+
+    for field <- fields do
+      invalid =
+        put_in(
+          strategy,
+          ["branch_comparison_report", "rows", Access.at(1), field],
+          1.0
+        )
+
+      assert {:error, validation_report} = Schema.validate_artifact(invalid)
+
+      assert Enum.any?(
+               validation_report["errors"],
+               &(&1["path"] == "$.branch_comparison_report.rows[1].#{field}")
+             )
+    end
+
+    coherent =
+      strategy
+      |> put_in(
+        [
+          "branches",
+          Access.at(1),
+          "resource_projection_report",
+          "projected_resources",
+          Access.at(0),
+          "activity_resource_flow",
+          Access.at(0),
+          "unused_downlink_capacity_mb"
+        ],
+        1.0
+      )
+      |> put_in(
+        [
+          "branch_comparison_report",
+          "rows",
+          Access.at(1),
+          "resource_projection_peak_unused_downlink_capacity_mb"
+        ],
+        1.0
+      )
+
+    assert {:ok, _validation_report} = Schema.validate_artifact(coherent)
+  end
+
   test "rejects CampaignStrategy branch comparison repair score evidence drift", %{
     strategy: strategy
   } do

@@ -115,6 +115,12 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts do
     {"storage_limited_downlinked_mb", "storage_limited_downlinked_mb"},
     {"unused_downlink_capacity_mb", "unused_downlink_capacity_mb"}
   ]
+  @branch_comparison_resource_projection_peak_fields [
+    {"resource_projection_peak_storage_overflow_mb", "storage_overflow_mb"},
+    {"resource_projection_peak_downlink_shortfall_mb", "downlink_shortfall_mb"},
+    {"resource_projection_peak_battery_overuse_wh", "battery_overuse_wh"},
+    {"resource_projection_peak_unused_downlink_capacity_mb", "unused_downlink_capacity_mb"}
+  ]
   @branch_comparison_resource_projection_availability_pairs [
     {"resource_projection_payload_unavailable_count",
      "resource_projection_payload_unavailable_spacecraft_ids", "payload_unavailable"},
@@ -154,6 +160,7 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts do
     |> validate_branch_comparison_resource_projection_summary(artifact)
     |> validate_branch_comparison_resource_projection_aggregates(artifact)
     |> validate_branch_comparison_resource_projection_availability(artifact)
+    |> validate_branch_comparison_resource_projection_peaks(artifact)
     |> validate_branch_comparison_feedback_evidence(artifact)
     |> validate_branch_comparison_priority_commitments(artifact)
     |> validate_branch_comparison_downlink_completion(artifact)
@@ -695,11 +702,16 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts do
 
   defp resource_projection_flow_count(resource_rows) do
     resource_rows
+    |> resource_projection_flow_rows()
+    |> length()
+  end
+
+  defp resource_projection_flow_rows(resource_rows) do
+    resource_rows
     |> Enum.flat_map(fn
       %{"activity_resource_flow" => flows} when is_list(flows) -> flows
       _row -> []
     end)
-    |> length()
   end
 
   defp validate_branch_comparison_resource_projection_aggregates(
@@ -979,6 +991,48 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts do
 
   defp stable_id_string?(value),
     do: is_binary(value) and value != "" and Regex.match?(@stable_id_regex, value)
+
+  defp validate_branch_comparison_resource_projection_peaks(
+         issues,
+         %{
+           "branches" => branches,
+           "branch_comparison_report" => %{"rows" => rows}
+         }
+       )
+       when is_list(branches) and is_list(rows) do
+    if Enum.all?(branches, &branch_id_input?/1) and Enum.all?(rows, &branch_id_input?/1) and
+         Enum.map(rows, &Map.fetch!(&1, "branch_id")) ==
+           Enum.map(branches, &Map.fetch!(&1, "branch_id")) do
+      branches
+      |> Enum.zip(rows)
+      |> Enum.with_index()
+      |> Enum.reduce(issues, fn {{branch, row}, index}, acc ->
+        validate_branch_comparison_resource_projection_peak_row(acc, branch, row, index)
+      end)
+    else
+      issues
+    end
+  end
+
+  defp validate_branch_comparison_resource_projection_peaks(issues, _artifact), do: issues
+
+  defp validate_branch_comparison_resource_projection_peak_row(issues, branch, row, index) do
+    case Map.get(branch, "resource_projection_report") do
+      %{"projected_resources" => resource_rows}
+      when is_list(resource_rows) and resource_rows != [] ->
+        validate_resource_projection_aggregate_fields(
+          issues,
+          "$.branch_comparison_report.rows[#{index}]",
+          row,
+          resource_projection_flow_rows(resource_rows),
+          @branch_comparison_resource_projection_peak_fields,
+          &maximum_present/2
+        )
+
+      _report ->
+        issues
+    end
+  end
 
   defp validate_branch_comparison_feedback_evidence(
          issues,
