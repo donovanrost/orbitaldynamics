@@ -58,6 +58,7 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts do
     issues
     |> StableIdValidation.validate_optional_stable_ids("$", artifact, ["source_repair_id"])
     |> validate_branch_metadata(artifact)
+    |> validate_ranked_branch_eligibility(artifact)
     |> validate_source_provenance(artifact)
     |> validate_optional_score_term_report(Map.get(artifact, "score_term_report"))
     |> validate_optional_objective_tradeoff_report(Map.get(artifact, "objective_tradeoff_report"))
@@ -96,6 +97,49 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts do
   end
 
   defp validate_branch_metadata(issues, _artifact), do: issues
+
+  defp validate_ranked_branch_eligibility(
+         issues,
+         %{
+           "branches" => branches,
+           "recommendation" => %{"ranked_branch_ids" => ranked_branch_ids}
+         }
+       )
+       when is_list(branches) and is_list(ranked_branch_ids) do
+    if Enum.all?(branches, &valid_branch_rank_input?/1) and
+         Enum.all?(ranked_branch_ids, &is_binary/1) do
+      branch_ids = Enum.map(branches, &Map.fetch!(&1, "branch_id"))
+
+      selectable_branch_ids =
+        branches
+        |> Enum.reject(&(&1["approval_status"] == "blocked_by_policy"))
+        |> Enum.map(&Map.fetch!(&1, "branch_id"))
+
+      expected_branch_ids =
+        if selectable_branch_ids == [], do: branch_ids, else: selectable_branch_ids
+
+      if ranked_branch_ids == expected_branch_ids do
+        issues
+      else
+        [
+          error(
+            "$.recommendation.ranked_branch_ids",
+            "must equal selectable branch IDs in enclosing branch order, falling back to all branch IDs when every branch is blocked"
+          )
+          | issues
+        ]
+      end
+    else
+      issues
+    end
+  end
+
+  defp validate_ranked_branch_eligibility(issues, _artifact), do: issues
+
+  defp valid_branch_rank_input?(%{"branch_id" => id, "approval_status" => status}),
+    do: is_binary(id) and is_binary(status)
+
+  defp valid_branch_rank_input?(_branch), do: false
 
   defp validate_source_provenance(issues, artifact) do
     provenance = Map.get(artifact, "provenance")

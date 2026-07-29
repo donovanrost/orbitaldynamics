@@ -2,6 +2,7 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContractsTest do
   use ExUnit.Case, async: true
 
   alias OrbitalDynamics.Schema
+  alias OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts
 
   @produced_fields ~w(
     source_repair_id
@@ -57,6 +58,52 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContractsTest do
       assert {:error, report} = Schema.validate_artifact(invalid)
       assert Enum.any?(report["errors"], &(&1["path"] == expected_path))
     end
+  end
+
+  test "rejects CampaignStrategy ranked branch eligibility drift", %{strategy: strategy} do
+    ranked_branch_ids = strategy["recommendation"]["ranked_branch_ids"]
+
+    blocked_branch_id =
+      strategy["branches"]
+      |> Enum.find(&(&1["approval_status"] == "blocked_by_policy"))
+      |> Map.fetch!("branch_id")
+
+    invalid_cases = [
+      ranked_branch_ids ++ [blocked_branch_id],
+      Enum.drop(ranked_branch_ids, -1),
+      ranked_branch_ids ++ [List.last(ranked_branch_ids)],
+      [hd(ranked_branch_ids) | Enum.reverse(tl(ranked_branch_ids))]
+    ]
+
+    for invalid_ranked_branch_ids <- invalid_cases do
+      invalid =
+        put_in(
+          strategy,
+          ["recommendation", "ranked_branch_ids"],
+          invalid_ranked_branch_ids
+        )
+
+      assert {:error, report} = Schema.validate_artifact(invalid)
+
+      assert Enum.any?(
+               report["errors"],
+               &(&1["path"] == "$.recommendation.ranked_branch_ids")
+             )
+    end
+  end
+
+  test "keeps the producer all-blocked ranking fallback" do
+    artifact = %{
+      "branches" => [
+        %{"branch_id" => "branch:first", "approval_status" => "blocked_by_policy"},
+        %{"branch_id" => "branch:second", "approval_status" => "blocked_by_policy"}
+      ],
+      "recommendation" => %{
+        "ranked_branch_ids" => ["branch:first", "branch:second"]
+      }
+    }
+
+    assert [] == CampaignStrategyProducedSurfaceContracts.validate([], artifact)
   end
 
   test "keeps additive CampaignStrategy source provenance copies optional", %{
