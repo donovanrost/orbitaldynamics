@@ -206,9 +206,15 @@ defmodule OrbitalDynamics.Schema.PlanDeltaContracts do
     end
   end
 
-  defp validate_optional_planned_delta_activity(issues, path, %{"planned" => planned})
+  defp validate_optional_planned_delta_activity(
+         issues,
+         path,
+         %{"planned" => planned} = delta
+       )
        when is_map(planned) do
-    validate_planned_snapshot(issues, path <> ".planned", planned)
+    issues
+    |> validate_planned_snapshot(path <> ".planned", planned)
+    |> validate_planned_source_identity(path <> ".planned", planned, delta)
   end
 
   defp validate_optional_planned_delta_activity(issues, _path, _delta), do: issues
@@ -237,6 +243,74 @@ defmodule OrbitalDynamics.Schema.PlanDeltaContracts do
     |> validate_interval(path, planned)
     |> expect_optional_type(path, planned, "timeline_identity", :map)
     |> expect_optional_type(path, planned, "cadence_import", :map)
+  end
+
+  defp validate_planned_source_identity(issues, path, planned, delta) do
+    issues
+    |> validate_optional_planned_identity_field(
+      path,
+      planned,
+      "id",
+      delta,
+      "activity_id"
+    )
+    |> validate_optional_planned_identity_field(
+      path,
+      planned,
+      "type",
+      delta,
+      "activity_type"
+    )
+    |> validate_planned_timeline_identity(path, planned, delta)
+  end
+
+  defp validate_planned_timeline_identity(
+         issues,
+         path,
+         %{"timeline_identity" => %{} = identity},
+         delta
+       ) do
+    [
+      {"activity_id", "activity_id"},
+      {"activity_type", "activity_type"},
+      {"timeline_id", "source_timeline_id"}
+    ]
+    |> Enum.reduce(issues, fn {identity_field, delta_field}, acc ->
+      validate_optional_planned_identity_field(
+        acc,
+        path <> ".timeline_identity",
+        identity,
+        identity_field,
+        delta,
+        delta_field
+      )
+    end)
+  end
+
+  defp validate_planned_timeline_identity(issues, _path, _planned, _delta), do: issues
+
+  defp validate_optional_planned_identity_field(
+         issues,
+         path,
+         planned_identity,
+         planned_field,
+         delta,
+         delta_field
+       ) do
+    case {Map.get(planned_identity, planned_field), Map.get(delta, delta_field)} do
+      {actual, expected} when is_binary(actual) and is_binary(expected) ->
+        expect_field_equals(
+          issues,
+          path,
+          planned_identity,
+          planned_field,
+          expected,
+          "must match enclosing PlanDelta #{delta_field}"
+        )
+
+      _unreplayable ->
+        issues
+    end
   end
 
   defp validate_optional_realized_delta_activity(issues, path, %{

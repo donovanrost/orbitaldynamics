@@ -351,6 +351,48 @@ defmodule OrbitalDynamics.Validation.ActivityArtifactFixtureTest do
              &(&1["path"] == "$.source_activity_context.timeline_identity.activity_id")
            )
 
+    planned_identity_report =
+      put_in(
+        report,
+        ["planned", "timeline_identity"],
+        get_in(report, ["source_activity_context", "timeline_identity"])
+      )
+
+    assert {:ok, _valid_planned_identity_report} =
+             Schema.validate_artifact(planned_identity_report,
+               schema_contract: "plan_delta.v1"
+             )
+
+    invalid_planned_identities = [
+      {"$.planned.id", put_in(planned_identity_report, ["planned", "id"], "other")},
+      {"$.planned.type", put_in(planned_identity_report, ["planned", "type"], "other_type")},
+      {"$.planned.timeline_identity.activity_id",
+       put_in(
+         planned_identity_report,
+         ["planned", "timeline_identity", "activity_id"],
+         "other"
+       )},
+      {"$.planned.timeline_identity.activity_type",
+       put_in(
+         planned_identity_report,
+         ["planned", "timeline_identity", "activity_type"],
+         "other_type"
+       )},
+      {"$.planned.timeline_identity.timeline_id",
+       put_in(
+         planned_identity_report,
+         ["planned", "timeline_identity", "timeline_id"],
+         "timeline:planned:drift"
+       )}
+    ]
+
+    for {expected_path, invalid} <- invalid_planned_identities do
+      assert {:error, invalid_report} =
+               Schema.validate_artifact(invalid, schema_contract: "plan_delta.v1")
+
+      assert Enum.any?(invalid_report["errors"], &(&1["path"] == expected_path))
+    end
+
     replacement_report =
       report
       |> Map.put("replacement_activity_id", "leo_1_observe_target_a_2")
