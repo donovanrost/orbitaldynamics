@@ -5,44 +5,42 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Bind CampaignStrategy ranked branch eligibility.
+Bind CampaignStrategy recommended branch evidence.
 
 Status:
-Verified from clean published base `cbb0779d`; ready to publish.
+Verified from clean published base `5b7660de`; ready to publish.
 
 Selection evidence:
-- `StrategyRecommendationBuilder.build/1` preserves branch order while removing
-  `blocked_by_policy` branches whenever at least one selectable branch exists,
-  and falls back to all branches only when every branch is blocked.
-- The checked Strategy has 27 branches and exactly 7 selectable branches; its
-  ranked IDs exactly match that replayable producer selection and order.
-- Existing recommendation validation binds the recommended ID to the first
-  ranked ID but does not bind the ranked collection to the enclosing branches.
-- Structurally valid mutations added a blocked branch, omitted an eligible
-  branch, duplicated an eligible ID, or reordered the eligible tail;
+- `StrategyRecommendationBuilder.build/1` copies the uniquely recommended
+  branch's approval status, risk indicators, and approval requirements into the
+  recommendation.
+- The builder also derives one fixed recommendation reason from the selected
+  branch approval status.
+- The checked Strategy has exactly one branch matching `recommended_branch_id`,
+  and all four recommendation surfaces match their producer values exactly.
+- Schema-valid mutations independently changed the recommendation reason,
+  removed a risk, removed approval requirements, or changed approval status;
   `Schema.validate_artifact/1` still returned `:ok` for every case.
 
 Delivered behavior:
-- Extended CampaignStrategy produced-surface validation with ranked branch
-  eligibility and order.
-- Required `recommendation.ranked_branch_ids` to equal the enclosing selectable
-  branch IDs in producer order.
-- Preserved the producer fallback that ranks all branches in enclosing order
-  when every branch is blocked by policy.
-- Rejected blocked additions, eligible omissions, duplicate IDs, and reordered
-  eligible IDs at the exact recommendation ranking path.
+- Extended CampaignStrategy produced-surface validation with recommended-branch
+  evidence relationships.
+- Bound recommendation approval status, remaining risks, and approval
+  requirements to the uniquely recommended enclosing branch.
+- Bound the recommendation reason to the producer mapping for auto-approvable,
+  operator-review-required, and all-blocked outcomes.
+- Rejected structurally valid evidence drift at each exact recommendation path.
+- Avoided inferring evidence when the recommended branch identity is missing or
+  ambiguous.
 
 Verification:
-- Focused CampaignStrategy produced-surface tests: `9 passed`.
-- Focused plus adjacent CampaignStrategy contract tests: `11 passed`.
-- Live mutation probes: blocked addition, eligible omission, duplicate ID, and
-  reordering all failed at `$.recommendation.ranked_branch_ids`; the all-blocked
-  producer fallback remained valid.
-- Schema regression: `1095 passed` with `--timeout 120000`.
-- Initial default-timeout schema run: `1094/1095 passed`; the sole schema-export
-  timeout passed alone in 19.7 seconds and the complete timed rerun passed.
+- Focused CampaignStrategy produced-surface tests: `11 passed`.
+- Focused plus adjacent CampaignStrategy contract tests: `13 passed`.
+- Live mutation probes: reason, risks, approval requirements, and approval
+  status drift all failed at their exact recommendation paths.
+- Schema regression: `1097 passed` with `--timeout 120000`.
 - Planner regression: `1888 passed`.
-- Full suite: `5621 passed` (seed `242225`).
+- Full suite: `5623 passed` (seed `627129`).
 - Schema lint: `155 passed`, `0 failed`, `0 skipped`.
 - Canonical repair hash:
   `cc41834e706fd1e04a4c5578032fdf99ceeba949a02fd75fc54c8b70cdc30d8a`.
@@ -53,12 +51,12 @@ Verification:
   `git diff --check` passed.
 
 Level 6 pillar advanced:
-Fleet-scale strategy decision-support and recommendation-ranking integrity.
+Fleet-scale strategy decision-support and recommended-branch evidence integrity.
 
 Last published slice:
-- `cbb0779d` Bind CampaignStrategy source provenance (`5619 passed`; root,
-  operator-review, and Cadence source provenance now stays aligned while
-  additive source-plan copies remain backward compatible).
+- `5b7660de` Bind CampaignStrategy ranked branch eligibility (`5621 passed`;
+  ranked IDs now exactly follow selectable branch eligibility and producer
+  order, including the all-blocked fallback).
 
 Remaining maturity gaps:
 - Audit remaining generated and source handoffs where their complete producer
@@ -73,7 +71,7 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-Continue auditing CampaignStrategy recommendation-to-branch and embedded report
+Continue auditing CampaignStrategy recommendation tradeoffs and embedded report
 relationships only where the complete producer rule is replayable.
 
 Blocked:

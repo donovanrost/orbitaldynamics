@@ -106,6 +106,61 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContractsTest do
     assert [] == CampaignStrategyProducedSurfaceContracts.validate([], artifact)
   end
 
+  test "rejects CampaignStrategy recommended branch evidence drift", %{strategy: strategy} do
+    approval_status_drift =
+      strategy
+      |> put_in(["recommendation", "approval_status"], "blocked_by_policy")
+      |> update_in(["recommendation", "requires_approval"], fn rows ->
+        Enum.map(rows, &Map.put(&1, "policy_classification", "blocked_by_policy"))
+      end)
+
+    invalid_cases = [
+      {"$.recommendation.reason",
+       put_in(strategy, ["recommendation", "reason"], "schema_valid_drift")},
+      {"$.recommendation.risks_remaining",
+       update_in(strategy, ["recommendation", "risks_remaining"], &tl/1)},
+      {"$.recommendation.requires_approval",
+       put_in(strategy, ["recommendation", "requires_approval"], [])},
+      {"$.recommendation.approval_status", approval_status_drift}
+    ]
+
+    for {expected_path, invalid} <- invalid_cases do
+      assert {:error, report} = Schema.validate_artifact(invalid)
+      assert Enum.any?(report["errors"], &(&1["path"] == expected_path))
+    end
+  end
+
+  test "accepts every producer recommendation reason" do
+    cases = [
+      {"auto_approvable", "best_expected_score_within_auto_approval_policy"},
+      {"operator_review_required", "best_expected_score_requiring_operator_review"},
+      {"blocked_by_policy", "all_branches_blocked_highest_score_reported_for_review"}
+    ]
+
+    for {approval_status, reason} <- cases do
+      artifact = %{
+        "branches" => [
+          %{
+            "branch_id" => "branch:selected",
+            "approval_status" => approval_status,
+            "risk_indicators" => [],
+            "approval_requirements" => []
+          }
+        ],
+        "recommendation" => %{
+          "recommended_branch_id" => "branch:selected",
+          "ranked_branch_ids" => ["branch:selected"],
+          "approval_status" => approval_status,
+          "reason" => reason,
+          "risks_remaining" => [],
+          "requires_approval" => []
+        }
+      }
+
+      assert [] == CampaignStrategyProducedSurfaceContracts.validate([], artifact)
+    end
+  end
+
   test "keeps additive CampaignStrategy source provenance copies optional", %{
     strategy: strategy
   } do

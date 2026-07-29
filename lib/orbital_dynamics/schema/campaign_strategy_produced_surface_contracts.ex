@@ -53,12 +53,18 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts do
     source_plan_generated_at
     source_provenance
   )
+  @recommendation_reasons %{
+    "auto_approvable" => "best_expected_score_within_auto_approval_policy",
+    "operator_review_required" => "best_expected_score_requiring_operator_review",
+    "blocked_by_policy" => "all_branches_blocked_highest_score_reported_for_review"
+  }
 
   def validate(issues, artifact) do
     issues
     |> StableIdValidation.validate_optional_stable_ids("$", artifact, ["source_repair_id"])
     |> validate_branch_metadata(artifact)
     |> validate_ranked_branch_eligibility(artifact)
+    |> validate_recommended_branch_evidence(artifact)
     |> validate_source_provenance(artifact)
     |> validate_optional_score_term_report(Map.get(artifact, "score_term_report"))
     |> validate_optional_objective_tradeoff_report(Map.get(artifact, "objective_tradeoff_report"))
@@ -140,6 +146,69 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts do
     do: is_binary(id) and is_binary(status)
 
   defp valid_branch_rank_input?(_branch), do: false
+
+  defp validate_recommended_branch_evidence(
+         issues,
+         %{
+           "branches" => branches,
+           "recommendation" =>
+             %{"recommended_branch_id" => recommended_branch_id} =
+               recommendation
+         }
+       )
+       when is_list(branches) and is_binary(recommended_branch_id) do
+    case Enum.filter(
+           branches,
+           &(is_map(&1) and Map.get(&1, "branch_id") == recommended_branch_id)
+         ) do
+      [recommended_branch] ->
+        issues
+        |> validate_optional_copy(
+          "$.recommendation.approval_status",
+          recommendation,
+          "approval_status",
+          Map.get(recommended_branch, "approval_status"),
+          "must match the recommended branch approval_status"
+        )
+        |> validate_optional_copy(
+          "$.recommendation.risks_remaining",
+          recommendation,
+          "risks_remaining",
+          Map.get(recommended_branch, "risk_indicators"),
+          "must match the recommended branch risk_indicators"
+        )
+        |> validate_optional_copy(
+          "$.recommendation.requires_approval",
+          recommendation,
+          "requires_approval",
+          Map.get(recommended_branch, "approval_requirements"),
+          "must match the recommended branch approval_requirements"
+        )
+        |> validate_recommendation_reason(recommendation, recommended_branch)
+
+      _missing_or_ambiguous_branch ->
+        issues
+    end
+  end
+
+  defp validate_recommended_branch_evidence(issues, _artifact), do: issues
+
+  defp validate_recommendation_reason(issues, recommendation, recommended_branch) do
+    case Map.fetch(@recommendation_reasons, Map.get(recommended_branch, "approval_status")) do
+      {:ok, expected_reason} ->
+        validate_optional_copy(
+          issues,
+          "$.recommendation.reason",
+          recommendation,
+          "reason",
+          expected_reason,
+          "must match the recommended branch approval_status reason"
+        )
+
+      :error ->
+        issues
+    end
+  end
 
   defp validate_source_provenance(issues, artifact) do
     provenance = Map.get(artifact, "provenance")
