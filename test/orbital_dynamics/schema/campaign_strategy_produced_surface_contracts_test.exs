@@ -332,6 +332,44 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContractsTest do
     end
   end
 
+  test "rejects CampaignStrategy branch comparison feedback evidence drift", %{
+    strategy: strategy
+  } do
+    row = Enum.at(strategy["branch_comparison_report"]["rows"], 1)
+
+    fields = [
+      "feedback_score_adjustment",
+      "contact_success_factor",
+      "contact_success_factor_source",
+      "contact_success_factor_activity_source",
+      "observation_success_factor",
+      "observation_success_factor_source",
+      "observation_success_factor_activity_source",
+      "station_throughput_factor",
+      "station_throughput_factor_source",
+      "station_throughput_factor_activity_source"
+    ]
+
+    for field <- fields do
+      value = row[field]
+      drift = if is_number(value), do: value + 0.01, else: value <> ".schema_valid_drift"
+
+      invalid =
+        put_in(
+          strategy,
+          ["branch_comparison_report", "rows", Access.at(1), field],
+          drift
+        )
+
+      assert {:error, validation_report} = Schema.validate_artifact(invalid)
+
+      assert Enum.any?(
+               validation_report["errors"],
+               &(&1["path"] == "$.branch_comparison_report.rows[1].#{field}")
+             )
+    end
+  end
+
   test "rejects CampaignStrategy branch comparison repair score evidence drift", %{
     strategy: strategy
   } do

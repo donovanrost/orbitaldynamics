@@ -58,6 +58,18 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts do
     "operator_review_required" => "best_expected_score_requiring_operator_review",
     "blocked_by_policy" => "all_branches_blocked_highest_score_reported_for_review"
   }
+  @branch_comparison_feedback_fields [
+    {"feedback_score_adjustment", "score_adjustment"},
+    {"contact_success_factor", "contact_success_factor"},
+    {"contact_success_factor_source", "contact_success_factor_source"},
+    {"contact_success_factor_activity_source", "contact_success_factor_activity_source"},
+    {"observation_success_factor", "observation_success_factor"},
+    {"observation_success_factor_source", "observation_success_factor_source"},
+    {"observation_success_factor_activity_source", "observation_success_factor_activity_source"},
+    {"station_throughput_factor", "station_throughput_factor"},
+    {"station_throughput_factor_source", "station_throughput_factor_source"},
+    {"station_throughput_factor_activity_source", "station_throughput_factor_activity_source"}
+  ]
 
   def validate(issues, artifact) do
     issues
@@ -69,6 +81,7 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts do
     |> validate_branch_comparison_score_evidence(artifact)
     |> validate_branch_comparison_operational_evidence(artifact)
     |> validate_branch_comparison_risk_classifications(artifact)
+    |> validate_branch_comparison_feedback_evidence(artifact)
     |> validate_branch_comparison_repair_score_evidence(artifact)
     |> validate_branch_comparison_repair_link_selection_evidence(artifact)
     |> validate_branch_comparison_repair_constraint_evidence(artifact)
@@ -482,6 +495,46 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts do
 
   defp list_maps(values) when is_list(values), do: Enum.filter(values, &is_map/1)
   defp list_maps(_values), do: []
+
+  defp validate_branch_comparison_feedback_evidence(
+         issues,
+         %{
+           "branches" => branches,
+           "branch_comparison_report" => %{"rows" => rows}
+         }
+       )
+       when is_list(branches) and is_list(rows) do
+    if Enum.all?(branches, &branch_id_input?/1) and Enum.all?(rows, &branch_id_input?/1) and
+         Enum.map(rows, &Map.fetch!(&1, "branch_id")) ==
+           Enum.map(branches, &Map.fetch!(&1, "branch_id")) do
+      branches
+      |> Enum.zip(rows)
+      |> Enum.with_index()
+      |> Enum.reduce(issues, fn {{branch, row}, index}, acc ->
+        validate_branch_comparison_feedback_row(acc, branch, row, index)
+      end)
+    else
+      issues
+    end
+  end
+
+  defp validate_branch_comparison_feedback_evidence(issues, _artifact), do: issues
+
+  defp validate_branch_comparison_feedback_row(issues, branch, row, index) do
+    path = "$.branch_comparison_report.rows[#{index}]"
+    feedback_adjustments = map_value(branch, "feedback_adjustments")
+
+    Enum.reduce(@branch_comparison_feedback_fields, issues, fn {row_field, source_field}, acc ->
+      validate_optional_copy(
+        acc,
+        path <> ".#{row_field}",
+        row,
+        row_field,
+        Map.get(feedback_adjustments, source_field),
+        "must match the enclosing branch feedback_adjustments.#{source_field}"
+      )
+    end)
+  end
 
   defp validate_branch_comparison_repair_score_evidence(
          issues,
