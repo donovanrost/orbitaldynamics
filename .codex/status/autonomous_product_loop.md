@@ -5,45 +5,43 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Bind Repair delta replacement contexts to selected activities.
+Bind PlanDelta replacement timeline identities.
 
 Status:
-Verified from clean published base `bf2f6b4f`; ready to publish.
+Verified from clean published base `967abc8e`; ready to publish.
 
 Selection evidence:
-- `RepairAccumulator.add_delta/9` derives `replacement_activity_context`
-  directly from the selected replacement activity with
-  `RepairActivityIdentity.context/1`.
-- Current ranking validation identifies the unique producer delta but does not
-  compare that delta projection back to the enclosing selected activity.
+- `PlanDeltaContracts` binds `source_activity_context.timeline_identity` to
+  top-level source activity/timeline IDs, but has no symmetric replacement
+  identity check.
+- The delta's `replacement_activity_context.timeline_identity` is the durable
+  evidence for its top-level `replacement_activity_id` and
+  `replacement_timeline_id`.
 - After removing optional operator-review and Cadence-import mirrors, a live
-  mutation changed only the delta replacement context's `duration_s` while the
-  selected activity remained unchanged; `Schema.validate_artifact/1` still
-  returned `:ok`.
-- The checked-in current-ranking artifact's unique replacement context already
-  equals the selected activity projection exactly.
+  mutation changed only the top-level replacement timeline ID;
+  `Schema.validate_artifact/1` still returned `:ok`.
+- Every checked-in delta with a replacement timeline identity already matches
+  both top-level replacement IDs.
 
 Delivered behavior:
-- Retained each Repair delta's original array index while grouping deltas for
-  the existing unique replacement/source identity match.
-- Replayed `RepairActivityIdentity.context/1` from the enclosing selected
-  activity and required the unique delta's map-valued
-  `replacement_activity_context` to match it exactly.
-- Preserved legacy, missing, ambiguous, and non-map compatibility.
-- Rejected replayable drift at the exact
-  `$.deltas[n].replacement_activity_context` path without depending on optional
-  operator-review or Cadence-import mirrors.
+- Added the missing symmetric PlanDelta replacement identity validation beside
+  the existing source identity validation.
+- Required present string-valued top-level `replacement_activity_id` and
+  `replacement_timeline_id` to match their corresponding
+  `replacement_activity_context.timeline_identity` fields.
+- Preserved source-only, legacy, missing, and non-string compatibility while
+  existing type and stable-ID validation continue to report malformed values.
+- Rejected replayable drift at the exact top-level replacement ID paths without
+  depending on optional review/import mirrors.
 
 Verification:
-- Focused replacement-ranking contract tests: `19 passed`.
-- Focused plus adjacent plan-delta and replacement-transition tests:
-  `23 passed`.
+- Focused curated PlanDelta fixture tests: `6 passed`.
+- Focused plus adjacent PlanDelta/Repair contract tests: `28 passed`.
 - Live optional-mirror-absent mutation probe: exact
-  `$.deltas[0].replacement_activity_context` selected-activity projection
-  mismatch.
+  `$.deltas[0].replacement_timeline_id` replacement-context identity mismatch.
 - Schema regression: `1082 passed`.
 - Planner regression: `1888 passed`.
-- Full suite: `5608 passed` (seed `665703`).
+- Full suite: `5608 passed` (seed `353248`).
 - Schema lint: `155 passed`, `0 failed`, `0 skipped`.
 - Canonical repair hash:
   `cc41834e706fd1e04a4c5578032fdf99ceeba949a02fd75fc54c8b70cdc30d8a`.
@@ -56,9 +54,9 @@ Level 6 pillar advanced:
 Fleet-scale candidate-pool integrity and operator-review evidence fidelity.
 
 Last published slice:
-- `bf2f6b4f` Bind Repair selected source contexts (`5607 passed`; current
-  selected source contexts now match their uniquely identified producer
-  deltas even without optional source-plan evidence).
+- `967abc8e` Bind Repair delta replacement contexts (`5608 passed`; unique
+  current delta replacement contexts now match their selected activity
+  projections at exact delta paths).
 
 Remaining maturity gaps:
 - Audit remaining generated and source handoffs where their complete producer
@@ -73,8 +71,8 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-Continue current selected-activity-to-delta handoff audits after replacement
-contexts are bound.
+Continue PlanDelta and current Repair identity-copy audits after replacement
+timeline identities are bound.
 
 Blocked:
 None.

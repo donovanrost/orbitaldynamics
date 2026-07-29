@@ -63,6 +63,7 @@ defmodule OrbitalDynamics.Schema.PlanDeltaContracts do
     |> validate_optional_planned_delta_activity(path, delta)
     |> validate_optional_realized_delta_activity(path, delta)
     |> validate_source_identity(path, delta)
+    |> validate_replacement_identity(path, delta)
   end
 
   defp validate_source_identity(
@@ -104,6 +105,56 @@ defmodule OrbitalDynamics.Schema.PlanDeltaContracts do
   end
 
   defp validate_source_identity(issues, _path, _delta), do: issues
+
+  defp validate_replacement_identity(
+         issues,
+         path,
+         %{
+           "replacement_activity_context" => %{"timeline_identity" => %{} = identity}
+         } = delta
+       ) do
+    issues
+    |> validate_optional_replacement_identity_field(
+      path,
+      delta,
+      "replacement_activity_id",
+      identity,
+      "activity_id"
+    )
+    |> validate_optional_replacement_identity_field(
+      path,
+      delta,
+      "replacement_timeline_id",
+      identity,
+      "timeline_id"
+    )
+  end
+
+  defp validate_replacement_identity(issues, _path, _delta), do: issues
+
+  defp validate_optional_replacement_identity_field(
+         issues,
+         path,
+         delta,
+         delta_field,
+         identity,
+         identity_field
+       ) do
+    case {Map.get(delta, delta_field), Map.get(identity, identity_field)} do
+      {actual, expected} when is_binary(actual) and is_binary(expected) ->
+        expect_field_equals(
+          issues,
+          path,
+          delta,
+          delta_field,
+          expected,
+          "must match replacement_activity_context.timeline_identity.#{identity_field}"
+        )
+
+      _unreplayable ->
+        issues
+    end
+  end
 
   defp validate_optional_planned_delta_activity(issues, path, %{"planned" => planned})
        when is_map(planned) do
