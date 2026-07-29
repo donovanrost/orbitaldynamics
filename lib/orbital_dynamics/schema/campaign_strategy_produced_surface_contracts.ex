@@ -133,6 +133,10 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts do
      "station_calendar_provider_entry_id"},
     {"first_resource_pressure_station_calendar_directions", "station_calendar_directions"}
   ]
+  @branch_comparison_target_identity_fields ~w(
+    target_branch_base_id
+    target_branch_identity
+  )
   @branch_comparison_resource_projection_availability_pairs [
     {"resource_projection_payload_unavailable_count",
      "resource_projection_payload_unavailable_spacecraft_ids", "payload_unavailable"},
@@ -165,6 +169,7 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts do
     |> validate_ranked_branch_eligibility(artifact)
     |> validate_recommended_branch_evidence(artifact)
     |> validate_branch_comparison_identity(artifact)
+    |> validate_branch_comparison_target_identity(artifact)
     |> validate_branch_comparison_score_evidence(artifact)
     |> validate_branch_comparison_operational_evidence(artifact)
     |> validate_branch_comparison_risk_classifications(artifact)
@@ -366,6 +371,46 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts do
   end
 
   defp validate_branch_comparison_identity(issues, _artifact), do: issues
+
+  defp validate_branch_comparison_target_identity(
+         issues,
+         %{
+           "branches" => branches,
+           "branch_comparison_report" => %{"rows" => rows}
+         }
+       )
+       when is_list(branches) and is_list(rows) do
+    if Enum.all?(branches, &branch_id_input?/1) and Enum.all?(rows, &branch_id_input?/1) and
+         Enum.map(rows, &Map.fetch!(&1, "branch_id")) ==
+           Enum.map(branches, &Map.fetch!(&1, "branch_id")) do
+      branches
+      |> Enum.zip(rows)
+      |> Enum.with_index()
+      |> Enum.reduce(issues, fn {{branch, row}, index}, acc ->
+        validate_branch_comparison_target_identity_row(acc, branch, row, index)
+      end)
+    else
+      issues
+    end
+  end
+
+  defp validate_branch_comparison_target_identity(issues, _artifact), do: issues
+
+  defp validate_branch_comparison_target_identity_row(issues, branch, row, index) do
+    path = "$.branch_comparison_report.rows[#{index}]"
+    metadata = branch |> map_value("provenance") |> map_value("branch_metadata")
+
+    Enum.reduce(@branch_comparison_target_identity_fields, issues, fn field, acc ->
+      validate_optional_copy(
+        acc,
+        path <> ".#{field}",
+        row,
+        field,
+        Map.get(metadata, field),
+        "must match the enclosing branch provenance branch_metadata.#{field}"
+      )
+    end)
+  end
 
   defp branch_id_input?(%{"branch_id" => branch_id}), do: is_binary(branch_id)
   defp branch_id_input?(_row), do: false
