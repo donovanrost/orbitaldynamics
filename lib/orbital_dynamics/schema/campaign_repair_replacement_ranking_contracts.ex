@@ -247,6 +247,32 @@ defmodule OrbitalDynamics.Schema.CampaignRepairReplacementRankingContracts do
         "replacement_timeline_id" => replacement_timeline_id
       }
     )
+    |> validate_current_selected_churn(ranking, repair_path, repair)
+  end
+
+  defp validate_current_selected_churn(issues, ranking, repair_path, repair) do
+    rows = Map.get(ranking, "rows")
+
+    if CampaignRepairReplacementRankingVersion.current?(rows) do
+      selected_rows = Enum.filter(rows, &(Map.get(&1, "selected") == true))
+
+      case {Map.get(repair, "schedule_churn_s"), selected_rows} do
+        {actual, [%{"schedule_churn_s" => expected}]}
+        when is_number(actual) and is_number(expected) ->
+          validate_equal(
+            issues,
+            repair_path <> ".schedule_churn_s",
+            actual,
+            expected,
+            "must match the selected replacement-ranking row schedule_churn_s"
+          )
+
+        _unreplayable ->
+          issues
+      end
+    else
+      issues
+    end
   end
 
   defp activity_id(%{"id" => _id} = activity), do: ActivityIdentity.activity_id(activity)

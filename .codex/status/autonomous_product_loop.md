@@ -5,38 +5,38 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Bind Repair source candidate scores to their embedded score terms.
+Bind Repair activity churn to the selected replacement-ranking row.
 
 Status:
-Verified from clean published base `6545b7b8`; ready to publish.
+Verified from clean published base `243a30e7`; ready to publish.
 
 Selection evidence:
-- Standalone candidate validation requires a numeric candidate `score` to equal
-  the sum of its numeric `score_terms` when both are present.
-- Repair validates its source candidate pool structurally and replays ranking
-  `candidate_score`, but does not apply that score-explanation invariant to the
-  embedded source snapshots.
-- A live coordinated mutation changed both selected and source candidate
-  `score_terms.contact_value` from 10 to 999 while leaving `score: 10`;
-  `Schema.validate_artifact/1` still returned `:ok`.
+- The replacement producer derives both `repair.schedule_churn_s` and the
+  selected ranking row's `schedule_churn_s` from the same source-to-candidate
+  start-time delta.
+- Row validation replays its churn from embedded source evidence, while repair
+  score validation only consumes the activity-level value through a weighted
+  aggregate.
+- With `schedule_move_cost_weight: 0`, a live artifact carried 400 seconds in
+  both producer fields; changing only `repair.schedule_churn_s` to 999 still
+  returned `:ok` from `Schema.validate_artifact/1`.
 
 Delivered behavior:
-- Reuse the standalone candidate score-explanation invariant for every embedded
-  Repair source candidate when both `score` and `score_terms` are present.
-- Preserve compatibility for unscored embedded candidates while rejecting
-  additive score-term drift at the exact source-candidate score path.
-- Keep six intentionally reweighted candidates in three planner fixtures
-  self-explaining by updating their `contact_value` terms with their scores.
+- Require each current replacement ranking's activity-level
+  `repair.schedule_churn_s` to equal the only selected row's replayed
+  `schedule_churn_s`.
+- Preserve legacy ranking compatibility and defer malformed or ambiguous rows to
+  their existing structural diagnostics.
+- Reject focused activity-level churn drift at its exact repair metadata path.
 
 Verification:
-- Focused replacement-ranking contracts: `13 passed`.
-- Adjacent replacement selection and ranking contracts: `20 passed`.
-- Affected duplicate, station-calendar, and link-capacity modules: `15 passed`.
-- Live post-fix artifact mutation returned the exact
-  `$.source_candidate_activities[0].score` error.
-- Schema regression: `1076 passed`.
+- Focused replacement-ranking contracts: `14 passed`.
+- Adjacent replacement selection and ranking contracts: `21 passed`.
+- Live zero-move-weight mutation returned the exact
+  `$.activities[0].repair.schedule_churn_s` error.
+- Schema regression: `1077 passed`.
 - Campaign planner regression: `1888 passed`.
-- Full suite: `5602 passed` (seed `351685`).
+- Full suite: `5603 passed` (seed `839321`).
 - Schema lint: `155` artifacts passed, `0` errors, `0` warnings.
 - Canonical Repair and Strategy regeneration passed with stable byte hashes:
   `cc41834e706fd1e04a4c5578032fdf99ceeba949a02fd75fc54c8b70cdc30d8a`
@@ -47,8 +47,9 @@ Level 6 pillar advanced:
 Fleet-scale candidate-pool integrity and operator-review evidence fidelity.
 
 Last published slice:
-- `6545b7b8` Bind Repair ranking source contexts (`5601 passed`; replayable
-  current source contexts now match their exact planned activity projection).
+- `243a30e7` Bind Repair source candidate score terms (`5602 passed`; scored
+  embedded candidates now remain self-explaining while unscored compatibility
+  is preserved).
 
 Remaining maturity gaps:
 - Audit remaining generated and source handoffs where their complete producer
@@ -63,8 +64,8 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-Continue replacement-ranking candidate snapshot audits after embedded score
-explanations are bound.
+Continue current replacement-ranking repair-handoff audits after selected churn
+is bound.
 
 Blocked:
 None.

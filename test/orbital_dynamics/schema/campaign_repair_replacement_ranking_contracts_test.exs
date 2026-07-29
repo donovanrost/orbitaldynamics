@@ -325,6 +325,31 @@ defmodule OrbitalDynamics.Schema.CampaignRepairReplacementRankingContractsTest d
              Schema.validate_artifact(legacy_drift)
   end
 
+  test "binds current repair churn to the selected replacement-ranking row", context do
+    repair_path = "$.activities[#{context.activity_index}].repair"
+
+    selected_row =
+      context.artifact
+      |> get_in_path(ranking_path(context.activity_index) <> ".rows")
+      |> Enum.find(& &1["selected"])
+
+    churn_drift =
+      put_in_path(
+        context.artifact,
+        repair_path <> ".schedule_churn_s",
+        selected_row["schedule_churn_s"] + 1.0
+      )
+
+    assert {:error, report} = Schema.validate_artifact(churn_drift)
+
+    assert Enum.any?(
+             report["errors"],
+             &(&1["path"] == repair_path <> ".schedule_churn_s" and
+                 &1["message"] ==
+                   "must match the selected replacement-ranking row schedule_churn_s")
+           )
+  end
+
   test "binds current source context to the source-plan activity projection", context do
     source_context_path =
       "$.activities[#{context.activity_index}].repair.source_activity_context"
