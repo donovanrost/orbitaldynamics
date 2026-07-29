@@ -5,37 +5,36 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Reject wrong-source Repair source objective-tradeoff Cadence imports.
+Reject wrong-source Repair source timeline-integrity Cadence imports.
 
 Status:
-Verified from clean published base `0bef8474`; ready to publish.
+Verified from clean published base `34e754d2`; ready to publish.
 
 Selection evidence:
-- A generated Repair with CandidateRefresh source objective-tradeoff evidence
-  carries the producer identity at both `source` and
-  `source_review_row.source`.
+- A generated Repair with CandidateRefresh source timeline-integrity evidence
+  carries the producer identity at both `source` and `source_review_row.source`.
 - The source handoff contract classifies that import by the first available
-  source and validates objective-tradeoff evidence copies without validating
-  the nested identity.
+  source and validates integrity evidence copies without validating the nested
+  identity.
 - A live producer-fixture mutation changed only `source_review_row.source` to an
-  unrelated source-report family and `Schema.validate_artifact/1` still returned
-  `:ok`.
+  unrelated timeline-report family and `Schema.validate_artifact/1` still
+  returned `:ok`.
 
 Delivered behavior:
-- Keep additive source objective-tradeoff evidence copies optional.
-- Require every present Cadence source objective-tradeoff identity to match the
+- Keep additive source timeline-integrity evidence copies optional.
+- Require every present Cadence source timeline-integrity identity to match the
   CandidateRefresh-derived Repair producer family.
 - A focused mutation challenge now rejects independently drifted nested source
   identity at its exact Cadence manifest path while retaining existing producer-
   order and count challenges.
 
 Verification:
-- Focused source objective-tradeoff handoff contracts: `3 passed`.
-- Adjacent objective-tradeoff and Cadence import contracts: `41 passed`.
+- Focused source timeline-integrity handoff contracts: `3 passed`.
+- Adjacent timeline-integrity and Cadence import contracts: `34 passed`.
 - Live post-fix producer mutation returned the exact nested-source error.
 - Schema regression: `1073 passed`.
 - Campaign planner regression: `1888 passed`.
-- Full suite: `5599 passed` (seed `249425`).
+- Full suite: `5599 passed` (seed `368296`).
 - Schema lint: `155` artifacts passed, `0` errors, `0` warnings.
 - Canonical Repair and Strategy regeneration passed with stable byte hashes:
   `cc41834e706fd1e04a4c5578032fdf99ceeba949a02fd75fc54c8b70cdc30d8a`
@@ -46,9 +45,9 @@ Level 6 pillar advanced:
 Fleet-scale candidate-pool integrity and operator-review evidence fidelity.
 
 Last published slice:
-- `0bef8474` Reject wrong-source Repair source score term imports (`5599 passed`;
-  present CandidateRefresh-derived source score-term identities now match their
-  Repair producer family).
+- `34e754d2` Reject wrong-source Repair source objective tradeoff imports (`5599
+  passed`; present CandidateRefresh-derived source objective-tradeoff identities
+  now match their Repair producer family).
 
 Remaining maturity gaps:
 - Audit remaining generated and source handoffs where their complete producer
@@ -63,8 +62,8 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-Continue the generated source-handoff audit after the source objective-tradeoff
-pair closes the currently observed scoring-report drift.
+Reject independently driftable nested source identity for CandidateRefresh-
+sourced timeline lifecycle-state summaries after this integrity fix is stable.
 
 Blocked:
 None.

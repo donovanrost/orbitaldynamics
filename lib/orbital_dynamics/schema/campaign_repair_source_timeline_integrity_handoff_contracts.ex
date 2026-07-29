@@ -2,7 +2,13 @@ defmodule OrbitalDynamics.Schema.CampaignRepairSourceTimelineIntegrityHandoffCon
   @moduledoc false
 
   import OrbitalDynamics.Schema.CampaignRepairHandoffValidation,
-    only: [indexed_rows: 2, row_source: 1, validate_equal: 5, validate_source_copies: 6]
+    only: [
+      indexed_rows: 2,
+      row_source: 1,
+      validate_equal: 5,
+      validate_source_copies: 6,
+      validate_source_identities: 6
+    ]
 
   @repair_source_integrity "campaign_repair.source_timeline_integrity_report.rows"
 
@@ -60,6 +66,13 @@ defmodule OrbitalDynamics.Schema.CampaignRepairSourceTimelineIntegrityHandoffCon
       length(import_rows),
       length(integrity_rows),
       "must contain one Repair source timeline-integrity import row per enclosing report row"
+    )
+    |> validate_source_identities(
+      "$.cadence_import_manifest.rows",
+      import_rows,
+      List.duplicate(@repair_source_integrity, length(integrity_rows)),
+      [["source"], ["source_review_row", "source"]],
+      "must match the enclosing Repair source timeline-integrity family"
     )
     |> validate_source_copies(
       "$.cadence_import_manifest.rows",
