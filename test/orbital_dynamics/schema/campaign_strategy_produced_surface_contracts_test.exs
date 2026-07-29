@@ -370,6 +370,104 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContractsTest do
     end
   end
 
+  test "rejects CampaignStrategy branch comparison priority commitment drift", %{
+    strategy: strategy
+  } do
+    row = Enum.at(strategy["branch_comparison_report"]["rows"], 1)
+
+    put_row = fn artifact, field, value ->
+      put_in(
+        artifact,
+        ["branch_comparison_report", "rows", Access.at(1), field],
+        value
+      )
+    end
+
+    coherent_required_drift =
+      strategy
+      |> put_row.(
+        "priority_commitment_required_target_ids",
+        row["priority_commitment_required_target_ids"] ++ ["target_schema_valid_drift"]
+      )
+      |> put_row.(
+        "priority_commitment_required_target_count",
+        row["priority_commitment_required_target_count"] + 1
+      )
+
+    coherent_satisfied_drift =
+      strategy
+      |> put_row.(
+        "priority_commitment_satisfied_target_ids",
+        row["priority_commitment_satisfied_target_ids"] ++ ["target_schema_valid_drift"]
+      )
+      |> put_row.(
+        "priority_commitment_satisfied_target_count",
+        row["priority_commitment_satisfied_target_count"] + 1
+      )
+
+    coherent_missed_drift =
+      strategy
+      |> put_row.("priority_commitment_missed_target_ids", ["target_schema_valid_drift"])
+      |> put_row.("priority_commitment_missed_target_count", 1)
+
+    invalid_cases = [
+      {[
+         "priority_commitment_required_target_count",
+         "priority_commitment_required_target_ids"
+       ], coherent_required_drift},
+      {[
+         "priority_commitment_satisfied_target_count",
+         "priority_commitment_satisfied_target_ids"
+       ], coherent_satisfied_drift},
+      {[
+         "priority_commitment_missed_target_count",
+         "priority_commitment_missed_target_ids"
+       ], coherent_missed_drift},
+      {["priority_commitment_required_target_ids"],
+       put_row.(
+         strategy,
+         "priority_commitment_required_target_ids",
+         ["target_schema_valid_drift"]
+       )},
+      {["priority_commitment_satisfied_target_ids"],
+       put_row.(
+         strategy,
+         "priority_commitment_satisfied_target_ids",
+         ["target_schema_valid_drift"]
+       )},
+      {["priority_commitment_required_observation_count"],
+       put_row.(
+         strategy,
+         "priority_commitment_required_observation_count",
+         row["priority_commitment_required_observation_count"] + 1
+       )},
+      {["priority_commitment_planned_observation_count"],
+       put_row.(
+         strategy,
+         "priority_commitment_planned_observation_count",
+         row["priority_commitment_planned_observation_count"] + 1
+       )},
+      {["priority_commitment_missing_observation_count"],
+       put_row.(
+         strategy,
+         "priority_commitment_missing_observation_count",
+         row["priority_commitment_missing_observation_count"] + 1
+       )},
+      {["priority_commitment_ratio"], put_row.(strategy, "priority_commitment_ratio", 0.99)}
+    ]
+
+    for {expected_fields, invalid} <- invalid_cases do
+      assert {:error, validation_report} = Schema.validate_artifact(invalid)
+
+      for field <- expected_fields do
+        assert Enum.any?(
+                 validation_report["errors"],
+                 &(&1["path"] == "$.branch_comparison_report.rows[1].#{field}")
+               )
+      end
+    end
+  end
+
   test "rejects CampaignStrategy branch comparison repair score evidence drift", %{
     strategy: strategy
   } do

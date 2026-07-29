@@ -70,6 +70,17 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts do
     {"station_throughput_factor_source", "station_throughput_factor_source"},
     {"station_throughput_factor_activity_source", "station_throughput_factor_activity_source"}
   ]
+  @branch_comparison_priority_target_fields [
+    {"required", "required_target_ids"},
+    {"satisfied", "satisfied_target_ids"},
+    {"missed", "missed_target_ids"}
+  ]
+  @branch_comparison_priority_scalar_fields [
+    {"priority_commitment_required_observation_count", "required_observation_count"},
+    {"priority_commitment_planned_observation_count", "planned_observation_count"},
+    {"priority_commitment_missing_observation_count", "missing_observation_count"},
+    {"priority_commitment_ratio", "ratio"}
+  ]
 
   def validate(issues, artifact) do
     issues
@@ -82,6 +93,7 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts do
     |> validate_branch_comparison_operational_evidence(artifact)
     |> validate_branch_comparison_risk_classifications(artifact)
     |> validate_branch_comparison_feedback_evidence(artifact)
+    |> validate_branch_comparison_priority_commitments(artifact)
     |> validate_branch_comparison_repair_score_evidence(artifact)
     |> validate_branch_comparison_repair_link_selection_evidence(artifact)
     |> validate_branch_comparison_repair_constraint_evidence(artifact)
@@ -534,6 +546,88 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts do
         "must match the enclosing branch feedback_adjustments.#{source_field}"
       )
     end)
+  end
+
+  defp validate_branch_comparison_priority_commitments(
+         issues,
+         %{
+           "branches" => branches,
+           "branch_comparison_report" => %{"rows" => rows}
+         }
+       )
+       when is_list(branches) and is_list(rows) do
+    if Enum.all?(branches, &branch_id_input?/1) and Enum.all?(rows, &branch_id_input?/1) and
+         Enum.map(rows, &Map.fetch!(&1, "branch_id")) ==
+           Enum.map(branches, &Map.fetch!(&1, "branch_id")) do
+      branches
+      |> Enum.zip(rows)
+      |> Enum.with_index()
+      |> Enum.reduce(issues, fn {{branch, row}, index}, acc ->
+        validate_branch_comparison_priority_commitment_row(acc, branch, row, index)
+      end)
+    else
+      issues
+    end
+  end
+
+  defp validate_branch_comparison_priority_commitments(issues, _artifact), do: issues
+
+  defp validate_branch_comparison_priority_commitment_row(issues, branch, row, index) do
+    path = "$.branch_comparison_report.rows[#{index}]"
+
+    priority_commitments =
+      branch
+      |> map_value("objective_satisfaction")
+      |> map_value("priority_commitments")
+
+    issues =
+      Enum.reduce(
+        @branch_comparison_priority_target_fields,
+        issues,
+        fn {kind, source_field}, acc ->
+          target_ids = list_value(priority_commitments, source_field)
+          count_field = "priority_commitment_#{kind}_target_count"
+          ids_field = "priority_commitment_#{kind}_target_ids"
+
+          acc
+          |> validate_optional_copy(
+            path <> ".#{count_field}",
+            row,
+            count_field,
+            length(target_ids),
+            "must match the enclosing branch #{source_field} count"
+          )
+          |> validate_optional_copy(
+            path <> ".#{ids_field}",
+            row,
+            ids_field,
+            target_ids,
+            "must match the enclosing branch objective priority #{source_field}"
+          )
+        end
+      )
+
+    Enum.reduce(
+      @branch_comparison_priority_scalar_fields,
+      issues,
+      fn {row_field, source_field}, acc ->
+        validate_optional_copy(
+          acc,
+          path <> ".#{row_field}",
+          row,
+          row_field,
+          Map.get(priority_commitments, source_field),
+          "must match the enclosing branch objective priority #{source_field}"
+        )
+      end
+    )
+  end
+
+  defp list_value(%{} = container, field) do
+    case Map.get(container, field, []) do
+      values when is_list(values) -> values
+      _values -> []
+    end
   end
 
   defp validate_branch_comparison_repair_score_evidence(
