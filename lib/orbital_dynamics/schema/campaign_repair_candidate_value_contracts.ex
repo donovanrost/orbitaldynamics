@@ -3,6 +3,7 @@ defmodule OrbitalDynamics.Schema.CampaignRepairCandidateValueContracts do
 
   alias OrbitalDynamics.CampaignPlanner.{ActivityIdentity, ScalarValues}
   alias OrbitalDynamics.Schema.CampaignRepairReplacementRankingVersion
+  alias OrbitalDynamics.Timeline
 
   import OrbitalDynamics.Schema.PrimitiveValidation, only: [error: 2]
 
@@ -14,10 +15,16 @@ defmodule OrbitalDynamics.Schema.CampaignRepairCandidateValueContracts do
       |> Map.get("source_candidate_activities", [])
       |> source_candidates_by_id()
 
+    source_plan_activities_by_id =
+      artifact
+      |> Map.get("source_timeline_feedback_report")
+      |> source_plan_activities_by_id()
+
     validate_activities(
       issues,
       Map.get(artifact, "activities", []),
-      source_candidates_by_id
+      source_candidates_by_id,
+      source_plan_activities_by_id
     )
   end
 
@@ -31,7 +38,27 @@ defmodule OrbitalDynamics.Schema.CampaignRepairCandidateValueContracts do
 
   defp source_candidates_by_id(_candidates), do: %{}
 
-  defp validate_activities(issues, activities, source_candidates_by_id)
+  defp source_plan_activities_by_id(%{"rows" => rows}) when is_list(rows) do
+    rows
+    |> Enum.flat_map(fn
+      %{"planned_activity" => %{"id" => activity_id} = activity}
+      when is_binary(activity_id) ->
+        [activity]
+
+      _row ->
+        []
+    end)
+    |> Enum.group_by(&Map.get(&1, "id"))
+  end
+
+  defp source_plan_activities_by_id(_report), do: %{}
+
+  defp validate_activities(
+         issues,
+         activities,
+         source_candidates_by_id,
+         source_plan_activities_by_id
+       )
        when is_list(activities) do
     activities
     |> Enum.with_index()
@@ -54,10 +81,22 @@ defmodule OrbitalDynamics.Schema.CampaignRepairCandidateValueContracts do
         rows,
         source_candidates_by_id
       )
+      |> validate_current_source_context(
+        "$.activities[#{activity_index}].repair.source_activity_context",
+        activity,
+        rows,
+        source_plan_activities_by_id
+      )
     end)
   end
 
-  defp validate_activities(issues, _activities, _source_candidates_by_id), do: issues
+  defp validate_activities(
+         issues,
+         _activities,
+         _source_candidates_by_id,
+         _source_plan_activities_by_id
+       ),
+       do: issues
 
   defp validate_rows(issues, path, rows, source_candidates_by_id) when is_list(rows) do
     rows
@@ -111,6 +150,50 @@ defmodule OrbitalDynamics.Schema.CampaignRepairCandidateValueContracts do
        do: issues
 
   defp base_snapshot(activity), do: Map.delete(activity, "repair")
+
+  defp validate_current_source_context(
+         issues,
+         path,
+         %{
+           "repair" => %{
+             "source_activity_id" => source_activity_id,
+             "source_activity_context" => %{} = source_context
+           }
+         },
+         rows,
+         source_plan_activities_by_id
+       ) do
+    if CampaignRepairReplacementRankingVersion.current?(rows) do
+      case Map.get(source_plan_activities_by_id, source_activity_id, []) do
+        [%{} = source_activity] ->
+          if source_context == Timeline.activity_context(source_activity) do
+            issues
+          else
+            [
+              error(
+                path,
+                "must match the source-plan activity context projection"
+              )
+              | issues
+            ]
+          end
+
+        _missing_or_ambiguous_source_activity ->
+          issues
+      end
+    else
+      issues
+    end
+  end
+
+  defp validate_current_source_context(
+         issues,
+         _path,
+         _activity,
+         _rows,
+         _source_plan_activities_by_id
+       ),
+       do: issues
 
   defp validate_row(issues, path, %{} = row, source_candidates_by_id) do
     candidate_id = Map.get(row, "candidate_id")

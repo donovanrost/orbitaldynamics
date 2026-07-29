@@ -5,36 +5,35 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Bind Repair replacement ranking scores to unscored source candidates.
+Bind Repair replacement ranking source contexts to source-plan evidence.
 
 Status:
-Verified from clean published base `bb4ea674`; ready to publish.
+Verified from clean published base `74f8c5a8`; ready to publish.
 
 Selection evidence:
-- The replacement-ranking producer maps a missing or nonnumeric embedded
-  candidate `score` to the explicit `0.0` fallback.
-- Candidate-value validation replays numeric embedded scores but skips the
-  producer fallback for a uniquely identified candidate without `score`.
-- A live producer-shaped mutation added a viable unscored candidate with
-  `candidate_score: -100.0` and a coherently altered `ranking_score`;
-  `Schema.validate_artifact/1` still returned `:ok`.
+- The replacement producer derives `repair.source_activity_context` with
+  `Timeline.activity_context/1` from the source planned activity.
+- Current-ranking validation checks source timing and identity internally but
+  does not bind the full context projection to embedded source-plan evidence.
+- A live artifact mutation changed only the ranking source duration from 60 to
+  61 seconds while its `source_timeline_feedback_report` planned activity
+  remained unchanged; `Schema.validate_artifact/1` still returned `:ok`.
 
 Delivered behavior:
-- Reuse the producer's numeric normalization when replaying every uniquely
-  identified replacement candidate score.
-- Bind candidates without a numeric embedded `score` to the producer's `0.0`
-  fallback without requiring older candidate snapshots to add the field.
-- A focused producer-shaped challenge now rejects an arbitrary nonzero score on
-  a viable unscored candidate at the exact ranking-row path.
+- Derive uniquely identified source planned activities from embedded timeline
+  feedback evidence.
+- Require every current replacement ranking with replayable source-plan
+  evidence to carry the exact `Timeline.activity_context/1` projection.
+- Preserve compatibility when source-plan evidence is missing or ambiguous, and
+  reject a focused duration drift at the exact source-context path.
 
 Verification:
-- Focused replacement-ranking contracts: `11 passed`.
-- Adjacent replacement selection and ranking contracts: `18 passed`.
-- Live post-fix producer-shaped mutation returned the exact candidate-score
-  error.
-- Schema regression: `1074 passed`.
+- Focused replacement-ranking contracts: `12 passed`.
+- Adjacent replacement selection and ranking contracts: `19 passed`.
+- Live post-fix artifact mutation returned the exact source-context error.
+- Schema regression: `1075 passed`.
 - Campaign planner regression: `1888 passed`.
-- Full suite: `5600 passed` (seed `99941`).
+- Full suite: `5601 passed` (seed `193142`).
 - Schema lint: `155` artifacts passed, `0` errors, `0` warnings.
 - Canonical Repair and Strategy regeneration passed with stable byte hashes:
   `cc41834e706fd1e04a4c5578032fdf99ceeba949a02fd75fc54c8b70cdc30d8a`
@@ -45,9 +44,9 @@ Level 6 pillar advanced:
 Fleet-scale candidate-pool integrity and operator-review evidence fidelity.
 
 Last published slice:
-- `bb4ea674` Reject wrong-source Repair source constraint imports (`5599 passed`;
-  present CandidateRefresh-derived constraint identities now match their Repair
-  producer family).
+- `74f8c5a8` Bind Repair ranking scores to unscored candidates (`5600 passed`;
+  every uniquely identified replacement score now replays the producer's
+  numeric normalization and zero fallback).
 
 Remaining maturity gaps:
 - Audit remaining generated and source handoffs where their complete producer
@@ -62,8 +61,8 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-Continue replacement-ranking replay audits after unscored candidate defaults
-are bound to the producer contract.
+Continue replacement-ranking replay audits after source contexts are bound to
+their authoritative planned activity projections.
 
 Blocked:
 None.

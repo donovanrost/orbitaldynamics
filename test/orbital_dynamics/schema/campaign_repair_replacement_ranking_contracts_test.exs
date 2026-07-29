@@ -325,6 +325,28 @@ defmodule OrbitalDynamics.Schema.CampaignRepairReplacementRankingContractsTest d
              Schema.validate_artifact(legacy_drift)
   end
 
+  test "binds current source context to the source-plan activity projection", context do
+    source_context_path =
+      "$.activities[#{context.activity_index}].repair.source_activity_context"
+
+    duration_drift =
+      put_in_path(context.artifact, source_context_path <> ".duration_s", 61.0)
+
+    assert {:error, report} = Schema.validate_artifact(duration_drift)
+
+    assert Enum.any?(
+             report["errors"],
+             &(&1["path"] == source_context_path and
+                 &1["message"] == "must match the source-plan activity context projection")
+           )
+
+    without_source_plan_evidence =
+      Map.delete(duration_drift, "source_timeline_feedback_report")
+
+    assert {:ok, %{"schema_contract" => "campaign_repair.v2"}} =
+             Schema.validate_artifact(without_source_plan_evidence)
+  end
+
   test "rejects temporally ineligible current ranking candidates", context do
     ranking_path = ranking_path(context.activity_index)
     candidate_path = ranking_path <> ".rows[1].candidate_id"
