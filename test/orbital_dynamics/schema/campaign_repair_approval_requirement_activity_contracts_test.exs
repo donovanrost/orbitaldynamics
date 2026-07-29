@@ -2,6 +2,7 @@ defmodule OrbitalDynamics.Schema.CampaignRepairApprovalRequirementActivityContra
   use ExUnit.Case, async: true
 
   alias OrbitalDynamics.Schema
+  alias OrbitalDynamics.Schema.CampaignRepairApprovalRequirementActivityContracts
 
   setup do
     %{
@@ -113,6 +114,60 @@ defmodule OrbitalDynamics.Schema.CampaignRepairApprovalRequirementActivityContra
                &(&1["path"] == "$.approval_requirements[0].requirement_type")
              )
     end
+  end
+
+  test "rejects Repair approval producer reason drift", context do
+    for artifact <- [context.selected_activity_repair, context.cancellation_repair] do
+      invalid =
+        artifact
+        |> put_in(
+          ["approval_requirements", Access.at(0), "reason"],
+          "drifted_reason"
+        )
+        |> drop_approval_handoffs()
+
+      assert {:error, report} = Schema.validate_artifact(invalid)
+
+      assert Enum.any?(
+               report["errors"],
+               &(&1["path"] == "$.approval_requirements[0].reason")
+             )
+    end
+  end
+
+  test "prefers a uniquely selected activity reason over its earlier delta reason" do
+    artifact = %{
+      "activities" => [%{"id" => "activity", "repair" => %{"reason" => "selected_reason"}}],
+      "approval_requirements" => [%{"activity_id" => "activity", "reason" => "selected_reason"}],
+      "deltas" => [%{"activity_id" => "activity", "reason" => "earlier_delta_reason"}]
+    }
+
+    assert [] = CampaignRepairApprovalRequirementActivityContracts.validate([], artifact)
+
+    legacy_without_selected_reason =
+      update_in(
+        artifact,
+        ["activities", Access.at(0), "repair"],
+        &Map.delete(&1, "reason")
+      )
+
+    assert [] =
+             CampaignRepairApprovalRequirementActivityContracts.validate(
+               [],
+               legacy_without_selected_reason
+             )
+
+    invalid =
+      put_in(
+        artifact,
+        ["approval_requirements", Access.at(0), "reason"],
+        "earlier_delta_reason"
+      )
+
+    assert Enum.any?(
+             CampaignRepairApprovalRequirementActivityContracts.validate([], invalid),
+             &(&1["path"] == "$.approval_requirements[0].reason")
+           )
   end
 
   defp drop_approval_handoffs(repair) do
