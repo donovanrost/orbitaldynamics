@@ -5,38 +5,40 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Bind Repair activity churn to the selected replacement-ranking row.
+Bind Repair selected candidate-diff metadata to source-report evidence.
 
 Status:
-Verified from clean published base `243a30e7`; ready to publish.
+Verified from clean published base `91ced19a`; ready to publish.
 
 Selection evidence:
-- The replacement producer derives both `repair.schedule_churn_s` and the
-  selected ranking row's `schedule_churn_s` from the same source-to-candidate
-  start-time delta.
-- Row validation replays its churn from embedded source evidence, while repair
-  score validation only consumes the activity-level value through a weighted
-  aggregate.
-- With `schedule_move_cost_weight: 0`, a live artifact carried 400 seconds in
-  both producer fields; changing only `repair.schedule_churn_s` to 999 still
-  returned `:ok` from `Schema.validate_artifact/1`.
+- The replacement producer selects source candidate-diff rows by source and
+  replacement identity, resolves unique or ambiguous matches, and stores the
+  exact `CandidateDiffMetadata.metadata/1` projection on the selected activity.
+- Current validation replays `semantic_candidate_diff_match` for every ranking
+  row but does not compare the selected activity's `repair.candidate_diff`
+  projection with the same embedded source-report rows.
+- A focused live mutation changed only the selected activity's
+  `repair.candidate_diff.invalidated_reason` to `stale_reason`;
+  `Schema.validate_artifact/1` still returned `:ok`.
 
 Delivered behavior:
-- Require each current replacement ranking's activity-level
-  `repair.schedule_churn_s` to equal the only selected row's replayed
-  `schedule_churn_s`.
-- Preserve legacy ranking compatibility and defer malformed or ambiguous rows to
-  their existing structural diagnostics.
-- Reject focused activity-level churn drift at its exact repair metadata path.
+- Reuse the producer's source/replacement identity match, unique-or-ambiguous
+  resolution, and `CandidateDiffMetadata.metadata/1` projection for the current
+  ranking's selected semantic candidate.
+- Require `repair.candidate_diff` to equal that exact embedded source-report
+  projection whenever the selected semantic match is replayable.
+- Preserve legacy, unmatched, missing-source, and structurally ambiguous
+  compatibility while rejecting stale selected metadata at its exact repair
+  path.
 
 Verification:
-- Focused replacement-ranking contracts: `14 passed`.
-- Adjacent replacement selection and ranking contracts: `21 passed`.
-- Live zero-move-weight mutation returned the exact
-  `$.activities[0].repair.schedule_churn_s` error.
+- Focused unique and ambiguous candidate-diff selection: `2 passed`.
+- Adjacent candidate-diff handoff and replacement-ranking contracts: `21 passed`.
+- Focused stale `invalidated_reason` mutation returned the exact
+  `$.activities[0].repair.candidate_diff` error.
 - Schema regression: `1077 passed`.
 - Campaign planner regression: `1888 passed`.
-- Full suite: `5603 passed` (seed `839321`).
+- Full suite: `5603 passed` (seed `263253`).
 - Schema lint: `155` artifacts passed, `0` errors, `0` warnings.
 - Canonical Repair and Strategy regeneration passed with stable byte hashes:
   `cc41834e706fd1e04a4c5578032fdf99ceeba949a02fd75fc54c8b70cdc30d8a`
@@ -47,9 +49,8 @@ Level 6 pillar advanced:
 Fleet-scale candidate-pool integrity and operator-review evidence fidelity.
 
 Last published slice:
-- `243a30e7` Bind Repair source candidate score terms (`5602 passed`; scored
-  embedded candidates now remain self-explaining while unscored compatibility
-  is preserved).
+- `91ced19a` Bind Repair selected ranking churn (`5603 passed`; current activity
+  churn metadata now matches its selected ranking row).
 
 Remaining maturity gaps:
 - Audit remaining generated and source handoffs where their complete producer
@@ -64,8 +65,8 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-Continue current replacement-ranking repair-handoff audits after selected churn
-is bound.
+Continue current replacement-ranking repair-handoff audits after selected
+candidate-diff metadata is bound.
 
 Blocked:
 None.

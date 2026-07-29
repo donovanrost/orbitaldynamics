@@ -2,9 +2,12 @@ defmodule OrbitalDynamics.Schema.CampaignRepairCandidateDiffRankingContracts do
   @moduledoc false
 
   alias OrbitalDynamics.CampaignPlanner.{
+    CandidateDiffMetadata,
     RepairActivityIdentity,
     RepairCandidateDiff
   }
+
+  alias OrbitalDynamics.Schema.CampaignRepairReplacementRankingVersion
 
   import OrbitalDynamics.Schema.PrimitiveValidation, only: [error: 2]
 
@@ -29,11 +32,19 @@ defmodule OrbitalDynamics.Schema.CampaignRepairCandidateDiffRankingContracts do
     activities
     |> Enum.with_index()
     |> Enum.reduce(issues, fn {activity, activity_index}, acc ->
-      {source_activity_id, source_window_id, rows} = ranking_context(activity)
+      {repair, source_activity_id, source_window_id, rows} = ranking_context(activity)
 
-      validate_rows(
-        acc,
+      acc
+      |> validate_rows(
         "$.activities[#{activity_index}].repair.replacement_ranking.rows",
+        rows,
+        replacement_rows,
+        source_activity_id,
+        source_window_id
+      )
+      |> validate_selected_candidate_diff(
+        "$.activities[#{activity_index}].repair.candidate_diff",
+        repair,
         rows,
         replacement_rows,
         source_activity_id,
@@ -52,10 +63,60 @@ defmodule OrbitalDynamics.Schema.CampaignRepairCandidateDiffRankingContracts do
     source_window_id =
       if is_map(source_context), do: RepairActivityIdentity.source_window_id(source_context)
 
-    {Map.get(repair, "source_activity_id"), source_window_id, rows}
+    {repair, Map.get(repair, "source_activity_id"), source_window_id, rows}
   end
 
-  defp ranking_context(_activity), do: {nil, nil, nil}
+  defp ranking_context(_activity), do: {nil, nil, nil, nil}
+
+  defp validate_selected_candidate_diff(
+         issues,
+         path,
+         repair,
+         rows,
+         replacement_rows,
+         source_activity_id,
+         source_window_id
+       ) do
+    if CampaignRepairReplacementRankingVersion.current?(rows) do
+      selected_rows = Enum.filter(rows, &(Map.get(&1, "selected") == true))
+
+      case selected_rows do
+        [%{"semantic_candidate_diff_match" => true} = selected_row] ->
+          expected =
+            replacement_rows
+            |> Enum.filter(
+              &candidate_diff_match?(
+                &1,
+                selected_row,
+                source_activity_id,
+                source_window_id
+              )
+            )
+            |> RepairCandidateDiff.match("source")
+            |> case do
+              %{} = row -> CandidateDiffMetadata.metadata(row)
+              _missing -> nil
+            end
+
+          if is_map(expected) and Map.get(repair, "candidate_diff") != expected do
+            [
+              error(
+                path,
+                "must match embedded source candidate-diff replacement metadata"
+              )
+              | issues
+            ]
+          else
+            issues
+          end
+
+        _missing_or_ambiguous_selection ->
+          issues
+      end
+    else
+      issues
+    end
+  end
 
   defp validate_rows(
          issues,
@@ -99,12 +160,10 @@ defmodule OrbitalDynamics.Schema.CampaignRepairCandidateDiffRankingContracts do
          source_window_id
        ) do
     expected =
-      Enum.any?(replacement_rows, fn replacement ->
-        replacement["replacement_candidate_id"] == row["candidate_id"] and
-          (replacement["id"] == source_activity_id or
-             (not is_nil(source_window_id) and
-                replacement["source_window_id"] == source_window_id))
-      end)
+      Enum.any?(
+        replacement_rows,
+        &candidate_diff_match?(&1, row, source_activity_id, source_window_id)
+      )
 
     case Map.get(row, "semantic_candidate_diff_match") do
       actual when is_boolean(actual) and actual != expected ->
@@ -130,4 +189,11 @@ defmodule OrbitalDynamics.Schema.CampaignRepairCandidateDiffRankingContracts do
          _source_window_id
        ),
        do: issues
+
+  defp candidate_diff_match?(replacement, row, source_activity_id, source_window_id) do
+    replacement["replacement_candidate_id"] == row["candidate_id"] and
+      (replacement["id"] == source_activity_id or
+         (not is_nil(source_window_id) and
+            replacement["source_window_id"] == source_window_id))
+  end
 end
