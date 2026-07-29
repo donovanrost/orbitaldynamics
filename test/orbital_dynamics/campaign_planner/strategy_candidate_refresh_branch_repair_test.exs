@@ -250,6 +250,35 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyCandidateRefreshBranchRepairTe
 
     assert {:ok, %{"schema_contract" => "branch_comparison_report.v1"}} =
              Schema.validate_artifact(artifact["branch_comparison_report"])
+
+    assert {:ok, %{"schema_contract" => "campaign_strategy.v3"}} =
+             Schema.validate_artifact(artifact)
+
+    outage_row_index =
+      Enum.find_index(
+        artifact["branch_comparison_report"]["rows"],
+        &(&1["branch_id"] == "outage")
+      )
+
+    invalid =
+      put_in(
+        artifact,
+        [
+          "branch_comparison_report",
+          "rows",
+          Access.at(outage_row_index),
+          "first_resource_pressure_kind"
+        ],
+        "battery_depletion"
+      )
+
+    assert {:error, validation_report} = Schema.validate_artifact(invalid)
+
+    assert Enum.any?(
+             validation_report["errors"],
+             &(&1["path"] ==
+                 "$.branch_comparison_report.rows[#{outage_row_index}].first_resource_pressure_kind")
+           )
   end
 
   test "strategy branch can override shared candidate refresh candidates" do

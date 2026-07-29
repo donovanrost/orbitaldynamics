@@ -713,6 +713,39 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContractsTest do
     assert {:ok, _validation_report} = Schema.validate_artifact(coherent)
   end
 
+  test "rejects CampaignStrategy branch comparison first resource pressure context drift", %{
+    strategy: strategy
+  } do
+    drift_values = %{
+      "first_resource_pressure_activity_id" => "drift",
+      "first_resource_pressure_activity_type" => "downlink",
+      "first_resource_pressure_kind" => "downlink_shortfall",
+      "first_resource_pressure_starts_at_s" => 1.0,
+      "first_resource_pressure_direction" => "downlink",
+      "first_resource_pressure_ground_station_id" => "drift",
+      "first_resource_pressure_station_calendar_entry_id" => "drift",
+      "first_resource_pressure_station_calendar_provider_id" => "drift",
+      "first_resource_pressure_station_calendar_provider_entry_id" => "drift",
+      "first_resource_pressure_station_calendar_directions" => ["downlink"]
+    }
+
+    for {field, drift} <- drift_values do
+      invalid =
+        put_in(
+          strategy,
+          ["branch_comparison_report", "rows", Access.at(1), field],
+          drift
+        )
+
+      assert {:error, validation_report} = Schema.validate_artifact(invalid)
+
+      assert Enum.any?(
+               validation_report["errors"],
+               &(&1["path"] == "$.branch_comparison_report.rows[1].#{field}")
+             )
+    end
+  end
+
   test "rejects CampaignStrategy branch comparison repair score evidence drift", %{
     strategy: strategy
   } do

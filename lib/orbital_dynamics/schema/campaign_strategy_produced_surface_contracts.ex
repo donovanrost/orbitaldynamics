@@ -121,6 +121,18 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts do
     {"resource_projection_peak_battery_overuse_wh", "battery_overuse_wh"},
     {"resource_projection_peak_unused_downlink_capacity_mb", "unused_downlink_capacity_mb"}
   ]
+  @branch_comparison_first_resource_pressure_fields [
+    {"first_resource_pressure_activity_id", "activity_id"},
+    {"first_resource_pressure_activity_type", "activity_type"},
+    {"first_resource_pressure_starts_at_s", "starts_at_s"},
+    {"first_resource_pressure_direction", "direction"},
+    {"first_resource_pressure_ground_station_id", "ground_station_id"},
+    {"first_resource_pressure_station_calendar_entry_id", "station_calendar_entry_id"},
+    {"first_resource_pressure_station_calendar_provider_id", "station_calendar_provider_id"},
+    {"first_resource_pressure_station_calendar_provider_entry_id",
+     "station_calendar_provider_entry_id"},
+    {"first_resource_pressure_station_calendar_directions", "station_calendar_directions"}
+  ]
   @branch_comparison_resource_projection_availability_pairs [
     {"resource_projection_payload_unavailable_count",
      "resource_projection_payload_unavailable_spacecraft_ids", "payload_unavailable"},
@@ -161,6 +173,7 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts do
     |> validate_branch_comparison_resource_projection_aggregates(artifact)
     |> validate_branch_comparison_resource_projection_availability(artifact)
     |> validate_branch_comparison_resource_projection_peaks(artifact)
+    |> validate_branch_comparison_first_resource_pressure_context(artifact)
     |> validate_branch_comparison_feedback_evidence(artifact)
     |> validate_branch_comparison_priority_commitments(artifact)
     |> validate_branch_comparison_downlink_completion(artifact)
@@ -1033,6 +1046,110 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts do
         issues
     end
   end
+
+  defp validate_branch_comparison_first_resource_pressure_context(
+         issues,
+         %{
+           "branches" => branches,
+           "branch_comparison_report" => %{"rows" => rows}
+         }
+       )
+       when is_list(branches) and is_list(rows) do
+    if Enum.all?(branches, &branch_id_input?/1) and Enum.all?(rows, &branch_id_input?/1) and
+         Enum.map(rows, &Map.fetch!(&1, "branch_id")) ==
+           Enum.map(branches, &Map.fetch!(&1, "branch_id")) do
+      branches
+      |> Enum.zip(rows)
+      |> Enum.with_index()
+      |> Enum.reduce(issues, fn {{branch, row}, index}, acc ->
+        validate_branch_comparison_first_resource_pressure_context_row(
+          acc,
+          branch,
+          row,
+          index
+        )
+      end)
+    else
+      issues
+    end
+  end
+
+  defp validate_branch_comparison_first_resource_pressure_context(issues, _artifact),
+    do: issues
+
+  defp validate_branch_comparison_first_resource_pressure_context_row(
+         issues,
+         branch,
+         row,
+         index
+       ) do
+    case Map.get(branch, "resource_projection_report") do
+      %{"projected_resources" => resource_rows}
+      when is_list(resource_rows) and resource_rows != [] ->
+        path = "$.branch_comparison_report.rows[#{index}]"
+        first_pressure = resource_rows |> resource_projection_flow_rows() |> first_pressure()
+
+        issues
+        |> validate_first_resource_pressure_fields(path, row, first_pressure)
+        |> validate_optional_copy(
+          path <> ".first_resource_pressure_kind",
+          row,
+          "first_resource_pressure_kind",
+          resource_pressure_kind(first_pressure),
+          "must match the enclosing branch first resource pressure kind"
+        )
+
+      _report ->
+        issues
+    end
+  end
+
+  defp validate_first_resource_pressure_fields(issues, path, row, first_pressure) do
+    Enum.reduce(
+      @branch_comparison_first_resource_pressure_fields,
+      issues,
+      fn {row_field, source_field}, acc ->
+        validate_optional_copy(
+          acc,
+          path <> ".#{row_field}",
+          row,
+          row_field,
+          map_field(first_pressure, source_field),
+          "must match the enclosing branch first resource pressure #{source_field}"
+        )
+      end
+    )
+  end
+
+  defp first_pressure(flow_rows) do
+    Enum.find(flow_rows, %{}, fn flow_row ->
+      positive_number?(map_field(flow_row, "storage_overflow_mb")) or
+        positive_number?(map_field(flow_row, "downlink_shortfall_mb")) or
+        positive_number?(map_field(flow_row, "battery_overuse_wh")) or
+        map_field(flow_row, "resource_effect_reason") in @resource_projection_availability_pressure_types
+    end)
+  end
+
+  defp resource_pressure_kind(flow_row) do
+    cond do
+      positive_number?(map_field(flow_row, "storage_overflow_mb")) ->
+        "storage_overflow"
+
+      positive_number?(map_field(flow_row, "downlink_shortfall_mb")) ->
+        "downlink_shortfall"
+
+      positive_number?(map_field(flow_row, "battery_overuse_wh")) ->
+        "battery_depletion"
+
+      map_field(flow_row, "resource_effect_reason") in @resource_projection_availability_pressure_types ->
+        map_field(flow_row, "resource_effect_reason")
+
+      true ->
+        nil
+    end
+  end
+
+  defp positive_number?(value), do: is_number(value) and value > 0.0
 
   defp validate_branch_comparison_feedback_evidence(
          issues,
