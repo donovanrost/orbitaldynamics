@@ -65,6 +65,7 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts do
     |> validate_branch_metadata(artifact)
     |> validate_ranked_branch_eligibility(artifact)
     |> validate_recommended_branch_evidence(artifact)
+    |> validate_branch_comparison_identity(artifact)
     |> validate_source_provenance(artifact)
     |> validate_optional_score_term_report(Map.get(artifact, "score_term_report"))
     |> validate_optional_objective_tradeoff_report(Map.get(artifact, "objective_tradeoff_report"))
@@ -209,6 +210,50 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts do
         issues
     end
   end
+
+  defp validate_branch_comparison_identity(
+         issues,
+         %{
+           "branches" => branches,
+           "recommendation" => %{} = recommendation,
+           "branch_comparison_report" => %{"rows" => rows} = report
+         }
+       )
+       when is_list(branches) and is_list(rows) do
+    issues =
+      validate_optional_copy(
+        issues,
+        "$.branch_comparison_report.recommended_branch_id",
+        report,
+        "recommended_branch_id",
+        Map.get(recommendation, "recommended_branch_id"),
+        "must match the enclosing CampaignStrategy recommendation"
+      )
+
+    if Enum.all?(branches, &branch_id_input?/1) and Enum.all?(rows, &branch_id_input?/1) do
+      branch_ids = Enum.map(branches, &Map.fetch!(&1, "branch_id"))
+      report_branch_ids = Enum.map(rows, &Map.fetch!(&1, "branch_id"))
+
+      if report_branch_ids == branch_ids do
+        issues
+      else
+        [
+          error(
+            "$.branch_comparison_report.rows",
+            "branch_id values must match enclosing CampaignStrategy branches in order"
+          )
+          | issues
+        ]
+      end
+    else
+      issues
+    end
+  end
+
+  defp validate_branch_comparison_identity(issues, _artifact), do: issues
+
+  defp branch_id_input?(%{"branch_id" => branch_id}), do: is_binary(branch_id)
+  defp branch_id_input?(_row), do: false
 
   defp validate_source_provenance(issues, artifact) do
     provenance = Map.get(artifact, "provenance")

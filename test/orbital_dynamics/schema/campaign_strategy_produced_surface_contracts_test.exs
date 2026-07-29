@@ -161,6 +161,46 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContractsTest do
     end
   end
 
+  test "rejects CampaignStrategy branch comparison identity drift", %{strategy: strategy} do
+    report = strategy["branch_comparison_report"]
+    [first, second, third | rest] = report["rows"]
+
+    reordered =
+      put_in(
+        strategy,
+        ["branch_comparison_report", "rows"],
+        [first, third, second | rest]
+      )
+
+    alternate_recommended_branch_id = second["branch_id"]
+    alternate_recommended_score = second["score"]
+
+    alternate_report =
+      report
+      |> Map.put("recommended_branch_id", alternate_recommended_branch_id)
+      |> Map.update!("rows", fn rows ->
+        Enum.map(rows, fn row ->
+          row
+          |> Map.put("selected", row["branch_id"] == alternate_recommended_branch_id)
+          |> Map.put(
+            "score_delta_from_recommended",
+            row["score"] - alternate_recommended_score
+          )
+        end)
+      end)
+
+    invalid_cases = [
+      {"$.branch_comparison_report.rows", reordered},
+      {"$.branch_comparison_report.recommended_branch_id",
+       Map.put(strategy, "branch_comparison_report", alternate_report)}
+    ]
+
+    for {expected_path, invalid} <- invalid_cases do
+      assert {:error, validation_report} = Schema.validate_artifact(invalid)
+      assert Enum.any?(validation_report["errors"], &(&1["path"] == expected_path))
+    end
+  end
+
   test "keeps additive CampaignStrategy source provenance copies optional", %{
     strategy: strategy
   } do
