@@ -1,7 +1,7 @@
 defmodule OrbitalDynamics.Schema.CampaignRepairCandidateValueContracts do
   @moduledoc false
 
-  alias OrbitalDynamics.CampaignPlanner.ActivityIdentity
+  alias OrbitalDynamics.CampaignPlanner.{ActivityIdentity, ScalarValues}
   alias OrbitalDynamics.Schema.CampaignRepairReplacementRankingVersion
 
   import OrbitalDynamics.Schema.PrimitiveValidation, only: [error: 2]
@@ -116,11 +116,9 @@ defmodule OrbitalDynamics.Schema.CampaignRepairCandidateValueContracts do
     candidate_id = Map.get(row, "candidate_id")
 
     case Map.get(source_candidates_by_id, candidate_id, []) do
-      [%{"score" => source_score}] when is_number(source_score) ->
+      [%{} = candidate] ->
+        source_score = ScalarValues.numeric_or_nil(Map.get(candidate, "score")) || 0.0
         validate_score(issues, path, Map.get(row, "candidate_score"), source_score)
-
-      [_candidate] ->
-        issues
 
       [] ->
         [

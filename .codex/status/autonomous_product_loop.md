@@ -5,35 +5,36 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Reject wrong-source Repair source constraint Cadence imports.
+Bind Repair replacement ranking scores to unscored source candidates.
 
 Status:
-Verified from clean published base `99e5522a`; ready to publish.
+Verified from clean published base `bb4ea674`; ready to publish.
 
 Selection evidence:
-- A Repair with CandidateRefresh source constraint evidence carries the
-  producer identity at both `source` and `source_review_row.source`.
-- The source constraint handoff contract classifies that import by the first
-  available source and validates source evidence copies without validating the
-  nested identity.
-- A live producer-fixture mutation changed only `source_review_row.source` to an
-  unrelated family and `Schema.validate_artifact/1` still returned `:ok`.
+- The replacement-ranking producer maps a missing or nonnumeric embedded
+  candidate `score` to the explicit `0.0` fallback.
+- Candidate-value validation replays numeric embedded scores but skips the
+  producer fallback for a uniquely identified candidate without `score`.
+- A live producer-shaped mutation added a viable unscored candidate with
+  `candidate_score: -100.0` and a coherently altered `ranking_score`;
+  `Schema.validate_artifact/1` still returned `:ok`.
 
 Delivered behavior:
-- Keep additive source constraint evidence copies optional.
-- Require every present Cadence source constraint identity to match the
-  CandidateRefresh-derived Repair producer family.
-- A focused mutation challenge now rejects an independently drifted nested
-  source identity at its exact Cadence manifest path while retaining existing
-  producer-order, count, and evidence-copy challenges.
+- Reuse the producer's numeric normalization when replaying every uniquely
+  identified replacement candidate score.
+- Bind candidates without a numeric embedded `score` to the producer's `0.0`
+  fallback without requiring older candidate snapshots to add the field.
+- A focused producer-shaped challenge now rejects an arbitrary nonzero score on
+  a viable unscored candidate at the exact ranking-row path.
 
 Verification:
-- Focused source constraint handoff contracts: `3 passed`.
-- Adjacent Repair constraint and Cadence import contracts: `20 passed`.
-- Live post-fix producer mutation returned the exact nested-source error.
-- Schema regression: `1073 passed`.
+- Focused replacement-ranking contracts: `11 passed`.
+- Adjacent replacement selection and ranking contracts: `18 passed`.
+- Live post-fix producer-shaped mutation returned the exact candidate-score
+  error.
+- Schema regression: `1074 passed`.
 - Campaign planner regression: `1888 passed`.
-- Full suite: `5599 passed` (seed `897490`).
+- Full suite: `5600 passed` (seed `99941`).
 - Schema lint: `155` artifacts passed, `0` errors, `0` warnings.
 - Canonical Repair and Strategy regeneration passed with stable byte hashes:
   `cc41834e706fd1e04a4c5578032fdf99ceeba949a02fd75fc54c8b70cdc30d8a`
@@ -44,8 +45,8 @@ Level 6 pillar advanced:
 Fleet-scale candidate-pool integrity and operator-review evidence fidelity.
 
 Last published slice:
-- `99e5522a` Reject wrong-source Repair generated constraint imports (`5599
-  passed`; present generated constraint identities now match their Repair
+- `bb4ea674` Reject wrong-source Repair source constraint imports (`5599 passed`;
+  present CandidateRefresh-derived constraint identities now match their Repair
   producer family).
 
 Remaining maturity gaps:
@@ -61,8 +62,8 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-Continue the remaining generated/source handoff identity audit after this
-source constraint slice is stable.
+Continue replacement-ranking replay audits after unscored candidate defaults
+are bound to the producer contract.
 
 Blocked:
 None.

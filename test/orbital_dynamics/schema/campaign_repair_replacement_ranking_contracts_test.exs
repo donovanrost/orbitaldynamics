@@ -505,6 +505,34 @@ defmodule OrbitalDynamics.Schema.CampaignRepairReplacementRankingContractsTest d
     end
   end
 
+  test "binds unscored current candidates to the producer zero-score fallback", context do
+    row_path = ranking_path(context.activity_index) <> ".rows[1]"
+
+    unscored_candidate =
+      context
+      |> add_unselected_candidate("dl_unscored", 520.0, 0.0)
+      |> update_source_candidate(
+        "dl_unscored",
+        &Map.drop(&1, ["score", "score_terms"])
+      )
+
+    assert {:ok, %{"schema_contract" => "campaign_repair.v2"}} =
+             Schema.validate_artifact(unscored_candidate)
+
+    score_drift =
+      unscored_candidate
+      |> put_in_path(row_path <> ".candidate_score", -100.0)
+      |> put_in_path(row_path <> ".ranking_score", -204.2)
+
+    assert {:error, report} = Schema.validate_artifact(score_drift)
+
+    assert Enum.any?(
+             report["errors"],
+             &(&1["path"] == row_path <> ".candidate_score" and
+                 &1["message"] == "must match the exact embedded source candidate score")
+           )
+  end
+
   test "rejects empty or malformed optional pressure evidence", context do
     row_path = ranking_path(context.activity_index) <> ".rows[0]"
 
