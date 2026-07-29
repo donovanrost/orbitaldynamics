@@ -115,6 +115,7 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts do
     |> validate_branch_comparison_operational_evidence(artifact)
     |> validate_branch_comparison_risk_classifications(artifact)
     |> validate_branch_comparison_resource_impacts(artifact)
+    |> validate_branch_comparison_resource_projection_summary(artifact)
     |> validate_branch_comparison_feedback_evidence(artifact)
     |> validate_branch_comparison_priority_commitments(artifact)
     |> validate_branch_comparison_downlink_completion(artifact)
@@ -575,6 +576,92 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts do
         )
       end
     )
+  end
+
+  defp validate_branch_comparison_resource_projection_summary(
+         issues,
+         %{
+           "branches" => branches,
+           "branch_comparison_report" => %{"rows" => rows}
+         }
+       )
+       when is_list(branches) and is_list(rows) do
+    if Enum.all?(branches, &branch_id_input?/1) and Enum.all?(rows, &branch_id_input?/1) and
+         Enum.map(rows, &Map.fetch!(&1, "branch_id")) ==
+           Enum.map(branches, &Map.fetch!(&1, "branch_id")) do
+      branches
+      |> Enum.zip(rows)
+      |> Enum.with_index()
+      |> Enum.reduce(issues, fn {{branch, row}, index}, acc ->
+        validate_branch_comparison_resource_projection_summary_row(acc, branch, row, index)
+      end)
+    else
+      issues
+    end
+  end
+
+  defp validate_branch_comparison_resource_projection_summary(issues, _artifact), do: issues
+
+  defp validate_branch_comparison_resource_projection_summary_row(
+         issues,
+         branch,
+         row,
+         index
+       ) do
+    case Map.get(branch, "resource_projection_report") do
+      %{"projected_resources" => resource_rows} = report
+      when is_list(resource_rows) and resource_rows != [] ->
+        path = "$.branch_comparison_report.rows[#{index}]"
+
+        issues
+        |> validate_optional_copy(
+          path <> ".resource_projection_spacecraft_count",
+          row,
+          "resource_projection_spacecraft_count",
+          length(resource_rows),
+          "must match the enclosing branch resource projection spacecraft count"
+        )
+        |> validate_optional_copy(
+          path <> ".resource_projection_flow_count",
+          row,
+          "resource_projection_flow_count",
+          resource_projection_flow_count(resource_rows),
+          "must match the enclosing branch resource projection flow count"
+        )
+        |> validate_optional_copy(
+          path <> ".resource_projection_warning_count",
+          row,
+          "resource_projection_warning_count",
+          report |> Map.get("warnings", []) |> list_length(),
+          "must match the enclosing branch resource projection warning count"
+        )
+        |> validate_optional_copy(
+          path <> ".resource_source_quality_counts",
+          row,
+          "resource_source_quality_counts",
+          Map.get(report, "resource_source_quality_counts"),
+          "must match the enclosing branch resource projection source-quality counts"
+        )
+        |> validate_optional_copy(
+          path <> ".resource_trust_boundary_status_counts",
+          row,
+          "resource_trust_boundary_status_counts",
+          Map.get(report, "resource_trust_boundary_status_counts"),
+          "must match the enclosing branch resource projection trust-boundary counts"
+        )
+
+      _report ->
+        issues
+    end
+  end
+
+  defp resource_projection_flow_count(resource_rows) do
+    resource_rows
+    |> Enum.flat_map(fn
+      %{"activity_resource_flow" => flows} when is_list(flows) -> flows
+      _row -> []
+    end)
+    |> length()
   end
 
   defp validate_branch_comparison_feedback_evidence(

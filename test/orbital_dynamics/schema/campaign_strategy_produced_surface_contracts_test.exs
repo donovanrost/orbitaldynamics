@@ -555,6 +555,34 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContractsTest do
     end
   end
 
+  test "rejects CampaignStrategy branch comparison resource projection summary drift", %{
+    strategy: strategy
+  } do
+    drift_values = %{
+      "resource_projection_spacecraft_count" => 2,
+      "resource_projection_flow_count" => 4,
+      "resource_projection_warning_count" => 3,
+      "resource_source_quality_counts" => %{"operator_supplied" => 2},
+      "resource_trust_boundary_status_counts" => %{"missing" => 2}
+    }
+
+    for {field, drift} <- drift_values do
+      invalid =
+        put_in(
+          strategy,
+          ["branch_comparison_report", "rows", Access.at(1), field],
+          drift
+        )
+
+      assert {:error, validation_report} = Schema.validate_artifact(invalid)
+
+      assert Enum.any?(
+               validation_report["errors"],
+               &(&1["path"] == "$.branch_comparison_report.rows[1].#{field}")
+             )
+    end
+  end
+
   test "rejects CampaignStrategy branch comparison repair score evidence drift", %{
     strategy: strategy
   } do
