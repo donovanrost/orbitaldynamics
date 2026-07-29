@@ -377,6 +377,22 @@ defmodule OrbitalDynamics.Schema.CampaignRepairReplacementRankingContractsTest d
            )
   end
 
+  test "binds current repair approval flag to the corresponding producer delta", context do
+    approval_path =
+      "$.activities[#{context.activity_index}].repair.requires_approval"
+
+    approval_drift = put_in_path(context.artifact, approval_path, false)
+
+    assert {:error, report} = Schema.validate_artifact(approval_drift)
+
+    assert Enum.any?(
+             report["errors"],
+             &(&1["path"] == approval_path and
+                 &1["message"] ==
+                   "must match the corresponding Repair delta requires_approval")
+           )
+  end
+
   test "binds current source context to the source-plan activity projection", context do
     source_context_path =
       "$.activities[#{context.activity_index}].repair.source_activity_context"
