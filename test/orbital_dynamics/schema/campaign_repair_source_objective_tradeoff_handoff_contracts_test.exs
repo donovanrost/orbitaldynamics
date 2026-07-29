@@ -102,6 +102,19 @@ defmodule OrbitalDynamics.Schema.CampaignRepairSourceObjectiveTradeoffHandoffCon
         "source_objective_tradeoff_report.tradeoffs"
       )
 
+    cadence_nested_source_drift =
+      put_in(
+        repair,
+        [
+          "cadence_import_manifest",
+          "rows",
+          Access.at(import_index),
+          "source_review_row",
+          "source"
+        ],
+        "source_objective_tradeoff_report.tradeoffs"
+      )
+
     review_copy_drift =
       put_in(
         repair,
@@ -131,6 +144,8 @@ defmodule OrbitalDynamics.Schema.CampaignRepairSourceObjectiveTradeoffHandoffCon
     invalid_cases = [
       {"$.operator_review_package.rows", review_count_drift},
       {"$.cadence_import_manifest.rows", cadence_count_drift},
+      {"$.cadence_import_manifest.rows[#{import_index}].source_review_row.source",
+       cadence_nested_source_drift},
       {"$.operator_review_package.rows[#{review_index}].source_objective_tradeoff",
        review_copy_drift},
       {"$.cadence_import_manifest.rows[#{import_index}].source_objective_tradeoff",

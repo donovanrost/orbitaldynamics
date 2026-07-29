@@ -2,7 +2,13 @@ defmodule OrbitalDynamics.Schema.CampaignRepairSourceObjectiveTradeoffHandoffCon
   @moduledoc false
 
   import OrbitalDynamics.Schema.CampaignRepairHandoffValidation,
-    only: [indexed_rows: 2, row_source: 1, validate_equal: 5, validate_source_copies: 6]
+    only: [
+      indexed_rows: 2,
+      row_source: 1,
+      validate_equal: 5,
+      validate_source_copies: 6,
+      validate_source_identities: 6
+    ]
 
   @repair_source_tradeoff "campaign_repair.source_objective_tradeoff_report.tradeoffs"
 
@@ -60,6 +66,13 @@ defmodule OrbitalDynamics.Schema.CampaignRepairSourceObjectiveTradeoffHandoffCon
       length(import_rows),
       length(tradeoffs),
       "must contain one Repair source objective-tradeoff import row per enclosing report row"
+    )
+    |> validate_source_identities(
+      "$.cadence_import_manifest.rows",
+      import_rows,
+      List.duplicate(@repair_source_tradeoff, length(tradeoffs)),
+      [["source"], ["source_review_row", "source"]],
+      "must match the enclosing Repair source objective-tradeoff family"
     )
     |> validate_source_copies(
       "$.cadence_import_manifest.rows",
