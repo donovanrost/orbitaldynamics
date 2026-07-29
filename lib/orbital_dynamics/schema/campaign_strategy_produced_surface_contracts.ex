@@ -170,6 +170,7 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts do
     |> validate_recommended_branch_evidence(artifact)
     |> validate_branch_comparison_identity(artifact)
     |> validate_branch_comparison_target_identity(artifact)
+    |> validate_branch_comparison_event_summary(artifact)
     |> validate_branch_comparison_score_evidence(artifact)
     |> validate_branch_comparison_operational_evidence(artifact)
     |> validate_branch_comparison_risk_classifications(artifact)
@@ -410,6 +411,87 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts do
         "must match the enclosing branch provenance branch_metadata.#{field}"
       )
     end)
+  end
+
+  defp validate_branch_comparison_event_summary(
+         issues,
+         %{
+           "branches" => branches,
+           "branch_comparison_report" => %{"rows" => rows}
+         }
+       )
+       when is_list(branches) and is_list(rows) do
+    if Enum.all?(branches, &branch_id_input?/1) and Enum.all?(rows, &branch_id_input?/1) and
+         Enum.map(rows, &Map.fetch!(&1, "branch_id")) ==
+           Enum.map(branches, &Map.fetch!(&1, "branch_id")) do
+      branches
+      |> Enum.zip(rows)
+      |> Enum.with_index()
+      |> Enum.reduce(issues, fn {{branch, row}, index}, acc ->
+        validate_branch_comparison_event_summary_row(acc, branch, row, index)
+      end)
+    else
+      issues
+    end
+  end
+
+  defp validate_branch_comparison_event_summary(issues, _artifact), do: issues
+
+  defp validate_branch_comparison_event_summary_row(issues, branch, row, index) do
+    path = "$.branch_comparison_report.rows[#{index}]"
+    events = Map.get(branch, "events", [])
+
+    issues
+    |> validate_optional_copy(
+      path <> ".branch_event_count",
+      row,
+      "branch_event_count",
+      list_length(events),
+      "must match the enclosing branch event count"
+    )
+    |> validate_optional_copy(
+      path <> ".branch_event_types",
+      row,
+      "branch_event_types",
+      branch_event_types(events),
+      "must match the enclosing branch event types"
+    )
+    |> validate_optional_copy(
+      path <> ".branch_event_trust_boundary_status_counts",
+      row,
+      "branch_event_trust_boundary_status_counts",
+      branch_event_trust_boundary_status_counts(events),
+      "must match the enclosing branch event trust-boundary status counts"
+    )
+  end
+
+  defp branch_event_types(events) when is_list(events) do
+    events
+    |> Enum.map(&map_field(&1, "type"))
+    |> Enum.filter(&(is_binary(&1) and &1 != ""))
+    |> Enum.uniq()
+    |> Enum.sort()
+  end
+
+  defp branch_event_types(_events), do: []
+
+  defp branch_event_trust_boundary_status_counts(events) when is_list(events) do
+    events
+    |> Enum.map(&branch_event_trust_boundary_status/1)
+    |> Enum.frequencies()
+  end
+
+  defp branch_event_trust_boundary_status_counts(_events), do: %{}
+
+  defp branch_event_trust_boundary_status(event) do
+    trust_boundary =
+      [
+        map_field(event, "trust_boundary"),
+        event |> map_field("provenance") |> map_field("trust_boundary")
+      ]
+      |> Enum.find(&(is_binary(&1) and &1 != ""))
+
+    if is_binary(trust_boundary), do: "declared", else: "missing"
   end
 
   defp branch_id_input?(%{"branch_id" => branch_id}), do: is_binary(branch_id)
