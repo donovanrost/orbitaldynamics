@@ -91,6 +91,18 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts do
     {"coverage_observed_target_count", "coverage", "observed_target_count"},
     {"revisit_count", "revisit", "revisit_count"}
   ]
+  @branch_comparison_resource_impact_fields [
+    {"fuel_margin", "fuel_margin"},
+    {"power_margin", "power_margin"},
+    {"storage_margin", "storage_margin"},
+    {"downlink_capacity_margin", "downlink_capacity_margin"},
+    {"thermal_margin_c", "thermal_margin_c"},
+    {"spacecraft_availability", "spacecraft_availability"},
+    {"payload_availability", "payload_availability"},
+    {"antenna_availability", "antenna_availability"},
+    {"resource_score_adjustment", "score_adjustment"},
+    {"fuel_preservation_mode", "fuel_preservation_mode"}
+  ]
 
   def validate(issues, artifact) do
     issues
@@ -102,6 +114,7 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts do
     |> validate_branch_comparison_score_evidence(artifact)
     |> validate_branch_comparison_operational_evidence(artifact)
     |> validate_branch_comparison_risk_classifications(artifact)
+    |> validate_branch_comparison_resource_impacts(artifact)
     |> validate_branch_comparison_feedback_evidence(artifact)
     |> validate_branch_comparison_priority_commitments(artifact)
     |> validate_branch_comparison_downlink_completion(artifact)
@@ -519,6 +532,50 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts do
 
   defp list_maps(values) when is_list(values), do: Enum.filter(values, &is_map/1)
   defp list_maps(_values), do: []
+
+  defp validate_branch_comparison_resource_impacts(
+         issues,
+         %{
+           "branches" => branches,
+           "branch_comparison_report" => %{"rows" => rows}
+         }
+       )
+       when is_list(branches) and is_list(rows) do
+    if Enum.all?(branches, &branch_id_input?/1) and Enum.all?(rows, &branch_id_input?/1) and
+         Enum.map(rows, &Map.fetch!(&1, "branch_id")) ==
+           Enum.map(branches, &Map.fetch!(&1, "branch_id")) do
+      branches
+      |> Enum.zip(rows)
+      |> Enum.with_index()
+      |> Enum.reduce(issues, fn {{branch, row}, index}, acc ->
+        validate_branch_comparison_resource_impact_row(acc, branch, row, index)
+      end)
+    else
+      issues
+    end
+  end
+
+  defp validate_branch_comparison_resource_impacts(issues, _artifact), do: issues
+
+  defp validate_branch_comparison_resource_impact_row(issues, branch, row, index) do
+    path = "$.branch_comparison_report.rows[#{index}]"
+    resource_impacts = map_value(branch, "resource_impacts")
+
+    Enum.reduce(
+      @branch_comparison_resource_impact_fields,
+      issues,
+      fn {row_field, source_field}, acc ->
+        validate_optional_copy(
+          acc,
+          path <> ".#{row_field}",
+          row,
+          row_field,
+          Map.get(resource_impacts, source_field),
+          "must match the enclosing branch resource_impacts.#{source_field}"
+        )
+      end
+    )
+  end
 
   defp validate_branch_comparison_feedback_evidence(
          issues,

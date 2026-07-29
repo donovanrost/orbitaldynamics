@@ -522,6 +522,39 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContractsTest do
     end
   end
 
+  test "rejects CampaignStrategy branch comparison resource impact drift", %{
+    strategy: strategy
+  } do
+    drift_values = %{
+      "fuel_margin" => 0.19,
+      "power_margin" => 0.1,
+      "storage_margin" => 0.17,
+      "downlink_capacity_margin" => 0.63,
+      "thermal_margin_c" => 1.0,
+      "spacecraft_availability" => 0.51,
+      "payload_availability" => 0.99,
+      "antenna_availability" => 0.99,
+      "resource_score_adjustment" => -73.0,
+      "fuel_preservation_mode" => true
+    }
+
+    for {field, drift} <- drift_values do
+      invalid =
+        put_in(
+          strategy,
+          ["branch_comparison_report", "rows", Access.at(1), field],
+          drift
+        )
+
+      assert {:error, validation_report} = Schema.validate_artifact(invalid)
+
+      assert Enum.any?(
+               validation_report["errors"],
+               &(&1["path"] == "$.branch_comparison_report.rows[1].#{field}")
+             )
+    end
+  end
+
   test "rejects CampaignStrategy branch comparison repair score evidence drift", %{
     strategy: strategy
   } do
