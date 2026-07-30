@@ -489,6 +489,7 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts do
     |> validate_branch_comparison_repair_link_selection_evidence(artifact)
     |> validate_branch_comparison_repair_constraint_evidence(artifact)
     |> validate_source_provenance(artifact)
+    |> OrbitalDynamics.Schema.CampaignStrategyScoreTermContracts.validate(artifact)
     |> validate_optional_score_term_report(Map.get(artifact, "score_term_report"))
     |> validate_optional_objective_tradeoff_report(Map.get(artifact, "objective_tradeoff_report"))
     |> validate_optional_pareto_frontier_report(Map.get(artifact, "pareto_frontier_report"))

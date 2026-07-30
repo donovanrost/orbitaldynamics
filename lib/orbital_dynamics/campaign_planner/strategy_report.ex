@@ -14,11 +14,32 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyReport do
         %StrategicScoringPolicy{} = policy,
         model_limits
       ) do
+    score_term_report_from_artifact(
+      Enum.map(branches, fn %PlanBranch{} = branch ->
+        %{
+          "branch_id" => branch.id,
+          "score" => branch.score,
+          "score_terms" => branch.score_terms
+        }
+      end),
+      recommendation.recommended_branch_id,
+      strategy_policy_to_map(policy),
+      model_limits
+    )
+  end
+
+  def score_term_report_from_artifact(
+        branches,
+        recommended_branch_id,
+        policy,
+        model_limits
+      )
+      when is_list(branches) and is_binary(recommended_branch_id) and is_map(policy) do
     rows =
       branches
       |> Enum.with_index(1)
       |> Enum.flat_map(fn {branch, rank} ->
-        strategy_score_term_rows(branch, rank, recommendation.recommended_branch_id)
+        strategy_score_term_rows(branch, rank, recommended_branch_id)
       end)
       |> Enum.sort_by(&{&1["rank"], &1["branch_id"], &1["term_key"]})
 
@@ -33,7 +54,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyReport do
       "assumptions" => %{
         "score_term_source" => "campaign_strategy.branches.score_terms",
         "scenario_id_represents" => "branch_id",
-        "policy" => strategy_policy_to_map(policy)
+        "policy" => policy
       }
     }
   end
@@ -85,25 +106,36 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyReport do
     }
   end
 
-  defp strategy_score_term_rows(%PlanBranch{} = branch, rank, recommended_branch_id) do
-    branch.score_terms
+  defp strategy_score_term_rows(
+         %{
+           "branch_id" => branch_id,
+           "score" => score,
+           "score_terms" => score_terms
+         },
+         rank,
+         recommended_branch_id
+       ) do
+    score_terms
     |> Enum.map(fn {term_key, value} ->
       %{
-        "id" => score_term_row_id(branch.id, rank, term_key),
+        "id" => score_term_row_id(branch_id, rank, term_key),
         "rank" => rank,
-        "scenario_id" => branch.id,
-        "branch_id" => branch.id,
+        "scenario_id" => branch_id,
+        "branch_id" => branch_id,
         "term_key" => term_key,
         "value" => value,
-        "timeline_score" => branch.score,
-        "selected" => branch.id == recommended_branch_id
+        "timeline_score" => score,
+        "selected" => branch_id == recommended_branch_id
       }
     end)
   end
 
   defp strategy_score_term_keys(branches) do
     branches
-    |> Enum.flat_map(fn %PlanBranch{} = branch -> Map.keys(branch.score_terms) end)
+    |> Enum.flat_map(fn
+      %PlanBranch{} = branch -> Map.keys(branch.score_terms)
+      %{"score_terms" => score_terms} -> Map.keys(score_terms)
+    end)
     |> Enum.uniq()
     |> Enum.sort()
   end
