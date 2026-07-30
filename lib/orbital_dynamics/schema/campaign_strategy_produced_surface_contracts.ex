@@ -93,6 +93,24 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts do
     branch_partially_timed_source_window_count
     branch_source_window_timing_coverage_status
   )
+  @branch_comparison_operational_event_fields [
+    {"branch_feedback_sources", ["feedback_source"]},
+    {"branch_feedback_scopes", ["feedback_scope"]},
+    {"branch_contact_results", ["contact_result"]},
+    {"branch_contact_allocation_statuses", ["allocation_status"]},
+    {"branch_contact_allocation_effective_statuses", ["effective_allocation_status"]},
+    {"branch_contact_allocation_reasons", ["allocation_reason"]},
+    {"branch_contact_allocation_review_statuses", ["review_status"]},
+    {"branch_contact_allocation_approval_statuses", ["approval_status"]},
+    {"branch_contact_allocation_policy_classifications", ["policy_classification"]},
+    {"branch_realized_statuses", ["realized_status"]},
+    {"branch_source_activity_ids", ["source_activity_id", "source_activity_ids"]}
+  ]
+  @branch_comparison_transition_fields [
+    {"branch_transition_types", "transition_type"},
+    {"branch_transition_categories", "transition_category"},
+    {"branch_transition_reasons", "transition_reason"}
+  ]
   @branch_comparison_priority_target_fields [
     {"required", "required_target_ids"},
     {"satisfied", "satisfied_target_ids"},
@@ -689,6 +707,7 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts do
       "must match the enclosing branch directions"
     )
     |> validate_branch_comparison_source_window_fields(path, row, events)
+    |> validate_branch_comparison_operational_event_fields(path, row, events)
     |> validate_branch_comparison_mission_identity_fields(path, row, events)
     |> validate_branch_comparison_station_calendar_fields(path, row, events)
     |> validate_branch_comparison_station_reservation_fields(path, row, branch, events)
@@ -713,6 +732,49 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts do
     )
     |> validate_branch_comparison_timeline_activity_precondition_fields(path, row, events)
     |> validate_branch_comparison_timeline_preservation_fields(path, row, events)
+  end
+
+  defp validate_branch_comparison_operational_event_fields(issues, path, row, events) do
+    issues =
+      Enum.reduce(@branch_comparison_operational_event_fields, issues, fn {row_field, sources},
+                                                                          acc ->
+        validate_optional_copy(
+          acc,
+          path <> ".#{row_field}",
+          row,
+          row_field,
+          branch_event_unique_values(events, sources),
+          "must match the enclosing branch operational-event values"
+        )
+      end)
+
+    issues =
+      Enum.reduce(@branch_comparison_transition_fields, issues, fn {row_field, source}, acc ->
+        validate_optional_copy(
+          acc,
+          path <> ".#{row_field}",
+          row,
+          row_field,
+          branch_event_transition_values(events, source),
+          "must match the enclosing branch transition values"
+        )
+      end)
+
+    issues
+    |> validate_optional_copy(
+      path <> ".branch_requires_operator_review",
+      row,
+      "branch_requires_operator_review",
+      branch_event_requires_operator_review(events),
+      "must match the enclosing branch operator-review requirement"
+    )
+    |> validate_optional_copy(
+      path <> ".branch_requires_operator_review_count",
+      row,
+      "branch_requires_operator_review_count",
+      branch_event_operator_review_count(events),
+      "must match the enclosing branch operator-review event count"
+    )
   end
 
   defp validate_branch_comparison_source_window_fields(issues, path, row, events) do
@@ -1305,6 +1367,72 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts do
   end
 
   defp branch_event_unique_values(_events, _fields), do: []
+
+  defp branch_event_transition_values(events, field) do
+    events
+    |> list_maps()
+    |> Enum.flat_map(fn event ->
+      [map_field(event, field), event |> map_field("status_transition") |> map_field(field)]
+    end)
+    |> Enum.flat_map(&List.wrap/1)
+    |> Enum.filter(&(is_binary(&1) and &1 != ""))
+    |> Enum.uniq()
+    |> Enum.sort()
+  end
+
+  defp branch_event_requires_operator_review(events) do
+    values =
+      events
+      |> list_maps()
+      |> Enum.map(&branch_event_operator_review_value/1)
+      |> Enum.filter(&is_boolean/1)
+
+    cond do
+      Enum.any?(values, &(&1 == true)) -> true
+      values != [] -> false
+      true -> nil
+    end
+  end
+
+  defp branch_event_operator_review_count(events) do
+    count =
+      events
+      |> list_maps()
+      |> Enum.count(&(branch_event_operator_review_value(&1) == true))
+
+    if count > 0, do: count
+  end
+
+  defp branch_event_operator_review_value(event) do
+    [
+      map_field(event, "requires_operator_review"),
+      event
+      |> map_field("status_transition")
+      |> map_field("requires_operator_review")
+    ]
+    |> Enum.map(&event_boolean/1)
+    |> Enum.find(&is_boolean/1)
+  end
+
+  defp event_boolean(value) when is_boolean(value), do: value
+
+  defp event_boolean(value) when is_number(value) do
+    cond do
+      value == 1 -> true
+      value == 0 -> false
+      true -> nil
+    end
+  end
+
+  defp event_boolean(value) when is_binary(value) do
+    case value |> String.trim() |> String.downcase() do
+      token when token in ["true", "1", "yes", "y"] -> true
+      token when token in ["false", "0", "no", "n"] -> false
+      _token -> nil
+    end
+  end
+
+  defp event_boolean(_value), do: nil
 
   defp branch_source_window_context(events) do
     source_window_ids =

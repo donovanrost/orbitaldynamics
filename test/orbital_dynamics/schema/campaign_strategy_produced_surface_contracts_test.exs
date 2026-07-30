@@ -986,6 +986,81 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContractsTest do
     end
   end
 
+  test "rejects CampaignStrategy branch comparison operational-event context drift", %{
+    strategy: strategy
+  } do
+    fields = ~w(
+      branch_feedback_sources
+      branch_feedback_scopes
+      branch_contact_results
+      branch_contact_allocation_statuses
+      branch_contact_allocation_effective_statuses
+      branch_contact_allocation_reasons
+      branch_contact_allocation_review_statuses
+      branch_contact_allocation_approval_statuses
+      branch_contact_allocation_policy_classifications
+      branch_realized_statuses
+      branch_transition_types
+      branch_transition_categories
+      branch_transition_reasons
+      branch_requires_operator_review
+      branch_requires_operator_review_count
+      branch_source_activity_ids
+    )
+
+    transition_fields = ~w(
+      branch_transition_types
+      branch_transition_categories
+      branch_transition_reasons
+    )
+
+    for field <- fields do
+      current = get_in(strategy, ["branch_comparison_report", "rows", Access.at(1), field])
+
+      replacement =
+        cond do
+          field == "branch_requires_operator_review" ->
+            if is_boolean(current), do: not current, else: true
+
+          field == "branch_requires_operator_review_count" ->
+            if is_integer(current), do: current + 1, else: 1
+
+          true ->
+            ["invented_operational_event_value"]
+        end
+
+      invalid =
+        put_in(
+          strategy,
+          ["branch_comparison_report", "rows", Access.at(1), field],
+          replacement
+        )
+
+      expected_message =
+        cond do
+          field in transition_fields ->
+            "must match the enclosing branch transition values"
+
+          field == "branch_requires_operator_review" ->
+            "must match the enclosing branch operator-review requirement"
+
+          field == "branch_requires_operator_review_count" ->
+            "must match the enclosing branch operator-review event count"
+
+          true ->
+            "must match the enclosing branch operational-event values"
+        end
+
+      assert {:error, validation_report} = Schema.validate_artifact(invalid)
+
+      assert Enum.any?(
+               validation_report["errors"],
+               &(&1["path"] == "$.branch_comparison_report.rows[1].#{field}" and
+                   &1["message"] == expected_message)
+             )
+    end
+  end
+
   test "rejects CampaignStrategy branch comparison score evidence drift", %{
     strategy: strategy
   } do

@@ -34,6 +34,36 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
       branch_source_window_timing_coverage_status
     )
 
+    operational_event_fields = ~w(
+      branch_feedback_sources
+      branch_feedback_scopes
+      branch_contact_results
+      branch_contact_allocation_statuses
+      branch_contact_allocation_effective_statuses
+      branch_contact_allocation_reasons
+      branch_contact_allocation_review_statuses
+      branch_contact_allocation_approval_statuses
+      branch_contact_allocation_policy_classifications
+      branch_realized_statuses
+      branch_transition_types
+      branch_transition_categories
+      branch_transition_reasons
+      branch_requires_operator_review
+      branch_requires_operator_review_count
+      branch_source_activity_ids
+    )
+
+    review_operational_event_fields =
+      operational_event_fields --
+        ~w(
+          branch_contact_allocation_statuses
+          branch_contact_allocation_effective_statuses
+          branch_contact_allocation_reasons
+          branch_contact_allocation_review_statuses
+          branch_contact_allocation_approval_statuses
+          branch_contact_allocation_policy_classifications
+        )
+
     branch_context_fields =
       source_window_context_fields ++
         [
@@ -401,6 +431,41 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
       "branch_source_objective_statuses" => ["missed_quality_threshold"]
     }
 
+    expected_operational_event_context = %{
+      "branch_contact_results" => ["missed", "no-contact", "same_station_contention"],
+      "branch_contact_allocation_statuses" => ["deferred"],
+      "branch_contact_allocation_effective_statuses" => ["deferred"],
+      "branch_contact_allocation_reasons" => ["same_station_contention"],
+      "branch_contact_allocation_review_statuses" => ["operator_review_required"],
+      "branch_contact_allocation_approval_statuses" => [
+        "approved",
+        "blocked_by_policy",
+        "operator_review_required"
+      ],
+      "branch_contact_allocation_policy_classifications" => [
+        "blocked_by_policy",
+        "review_only"
+      ],
+      "branch_realized_statuses" => ["deferred", "degraded", "executed", "failed", "missed"],
+      "branch_transition_types" => ["status_changed", "throughput_changed"],
+      "branch_transition_categories" => [
+        "capacity_exception",
+        "planned_to_executed",
+        "quality_exception",
+        "terminal_exception"
+      ],
+      "branch_transition_reasons" => [
+        "activity execution recorded",
+        "command execution timed out",
+        "contact was missed by provider report",
+        "maneuver failed after acceptance",
+        "observation quality degraded",
+        "station throughput below plan"
+      ],
+      "branch_requires_operator_review" => true,
+      "branch_requires_operator_review_count" => 11
+    }
+
     recommendation_summary =
       artifact["recommendation"]["explanation"]
       |> Enum.find(&(&1["type"] == "branch_event_summary"))
@@ -464,6 +529,36 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
     assert Map.take(recommendation_summary, mission_identity_fields) ==
              expected_mission_identity_context
+
+    recommendation_operational_event_context =
+      Map.take(recommendation_summary, operational_event_fields)
+
+    assert Map.take(
+             recommendation_operational_event_context,
+             Map.keys(expected_operational_event_context)
+           ) == expected_operational_event_context
+
+    for {field, expected_count} <- [
+          {"branch_feedback_sources", 38},
+          {"branch_feedback_scopes", 38},
+          {"branch_source_activity_ids", 34}
+        ] do
+      values = recommendation_operational_event_context[field]
+      assert length(values) == expected_count
+      assert values == Enum.sort(values)
+    end
+
+    assert "mission_state.source_contact_allocation_capacity_pack_summary" in recommendation_operational_event_context[
+             "branch_feedback_sources"
+           ]
+
+    assert "timeline_preservation" in recommendation_operational_event_context[
+             "branch_feedback_scopes"
+           ]
+
+    assert "dl_capacity_overflow" in recommendation_operational_event_context[
+             "branch_source_activity_ids"
+           ]
 
     comparison_downlink_context =
       artifact["branch_comparison_report"]["rows"]
@@ -556,6 +651,13 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
     assert comparison_mission_identity_context == expected_mission_identity_context
 
+    comparison_operational_event_context =
+      artifact["branch_comparison_report"]["rows"]
+      |> Enum.find(&(&1["branch_id"] == "urgent"))
+      |> Map.take(operational_event_fields)
+
+    assert comparison_operational_event_context == recommendation_operational_event_context
+
     assert source_window_ids == Enum.sort(source_window_ids)
     assert length(source_window_ids) == 11
     assert length(source_window_bounds) == 10
@@ -614,6 +716,9 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
     assert Map.take(recommendation_review_row, mission_identity_fields) ==
              expected_mission_identity_context
 
+    assert Map.take(recommendation_review_row, operational_event_fields) ==
+             Map.take(recommendation_operational_event_context, review_operational_event_fields)
+
     assert recommendation_review_row["branch_station_reservation_expiration_statuses"] == [
              "active"
            ]
@@ -656,6 +761,9 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
     assert Map.take(selected_import_row, mission_identity_fields) ==
              expected_mission_identity_context
 
+    assert Map.take(selected_import_row, operational_event_fields) ==
+             recommendation_operational_event_context
+
     assert selected_import_row["branch_station_reservation_expiration_statuses"] == ["active"]
 
     review_import =
@@ -689,6 +797,9 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
     assert Map.take(review_import_row, mission_identity_fields) ==
              expected_mission_identity_context
+
+    assert Map.take(review_import_row, operational_event_fields) ==
+             Map.take(recommendation_operational_event_context, review_operational_event_fields)
 
     assert review_import_row["branch_station_reservation_expiration_statuses"] == ["active"]
 
@@ -727,6 +838,9 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
     assert Map.take(review_import_row["source_review_row"], mission_identity_fields) ==
              expected_mission_identity_context
+
+    assert Map.take(review_import_row["source_review_row"], operational_event_fields) ==
+             Map.take(recommendation_operational_event_context, review_operational_event_fields)
 
     assert review_import_row["source_review_row"][
              "branch_station_reservation_expiration_statuses"
@@ -1007,6 +1121,28 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
                  "$.branch_comparison_report.rows[#{urgent_row_index}].branch_source_window_ids" and
                  &1["message"] ==
                    "must match the enclosing branch source-window context")
+           )
+
+    operational_event_invalid =
+      put_in(
+        artifact,
+        [
+          "branch_comparison_report",
+          "rows",
+          Access.at(urgent_row_index),
+          "branch_transition_types"
+        ],
+        ["stale_transition_type"]
+      )
+
+    assert {:error, operational_event_report} =
+             Schema.validate_artifact(operational_event_invalid)
+
+    assert Enum.any?(
+             operational_event_report["errors"],
+             &(&1["path"] ==
+                 "$.branch_comparison_report.rows[#{urgent_row_index}].branch_transition_types" and
+                 &1["message"] == "must match the enclosing branch transition values")
            )
 
     assert {:ok, %{"schema_contract" => "cadence_import_manifest.v1", "status" => "pass"}} =
