@@ -5,51 +5,55 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Bind CampaignStrategy comparison assumptions.
+Bind CampaignStrategy comparison collection-latency evidence.
 
 Status:
-Implemented and fully verified from clean published base `c61fdfef`; ready to
+Implemented and fully verified from clean published base `5558c613`; ready to
 publish.
 
 Selection evidence:
-- `BranchComparisonReport.report/3` emits seven fixed assumptions describing
-  branch order, score/probability semantics, and blocked-branch visibility.
-- Generic comparison validation requires only an assumptions map; model limits,
-  row counts, selected membership, and score deltas are already bound elsewhere.
-- A live canonical prechange probe confirmed schema-valid stale values are
-  accepted independently for all seven assumptions (`7/7`).
+- `RecommendationObjective.comparison_fields/1` copies five collection-latency
+  summary values into every populated branch-comparison row: ratio, objective
+  count, observation count, satisfied observation count, and unsatisfied
+  observation count.
+- Produced-surface validation already binds priority commitments, downlink
+  completion, coverage, and revisit summaries, but does not bind these five
+  collection-latency copies to `branches[*].objective_satisfaction`.
+- The real derived downlink-relief scenario populates all five fields; the
+  canonical stored strategy does not exercise this optional objective path.
 
 Delivered behavior:
-- CampaignStrategy produced-surface validation now binds all seven comparison
-  assumptions to the producer's fixed ordering, score/probability, and
-  blocked-branch visibility semantics.
-- Canonical mutation coverage challenges every assumption independently on its
-  exact path, while existing comparison review/import handoffs remain unchanged.
+- CampaignStrategy produced-surface validation now binds all five optional
+  collection-latency comparison summaries to the enclosing branch objective
+  satisfaction report.
+- A real derived downlink-relief scenario challenges every copied field on its
+  exact comparison-row path while retaining optional compatibility when the
+  collection-latency objective is absent.
 
 Verification:
-- Populated canonical assumption scenario: `1 passed, 54 excluded` in 16.0s
-  (seed `557624`).
-- Focused produced-surface contracts: `55 passed` in 303.1s (seed `843784`).
-- Adjacent produced-surface, review, and import coverage: `59 passed` in 302.7s
-  (seed `741669`).
-- Live canonical mutation probe: `7/7` stale values rejected on their exact
-  producer-binding paths.
-- Broad schema: `1141 passed` in 446.1s (seed `31426`).
-- Campaign planner: `1888 passed` in 361.4s (seed `295931`); only the known
+- Populated derived collection-latency scenario: `1 passed, 23 excluded` in
+  1.5s (seed `938166`).
+- Focused produced-surface contracts: `55 passed` in 298.1s (seed `504098`).
+- Adjacent strategy review/import handoffs: `4 passed, 85 excluded` in 6.3s
+  (seed `941281`).
+- Live canonical injection and mutation probe: `5/5` stale collection-latency
+  copies rejected on their exact producer-binding paths.
+- Broad schema: `1165 passed` in 576.6s (seed `209689`).
+- Campaign planner: `1888 passed` in 356.8s (seed `892124`); only the known
   `support.exs` test-pattern warning.
 - Stored-artifact lint: `155` artifacts, `0` errors, `0` warnings.
 - Canonical repair/strategy regeneration retained hashes `cc41834e...cdc30d8a`
   and `57602722...2f9985`.
-- Full suite: `5667 passed` in 756.9s (seed `266246`); only known support-fixture
+- Full suite: `5667 passed` in 789.2s (seed `893152`); only known support-fixture
   test-pattern warnings.
 - Final formatting and whitespace checks passed.
 
 Level 6 pillar advanced:
-Fleet-scale strategy decision-support and embedded-report identity integrity.
+Fleet-scale strategy decision-support and objective-evidence integrity.
 
 Last published slice:
-- `c61fdfef` Bind CampaignStrategy comparison row identity (`5666 passed`; row
-  IDs and one-based ranks now bind to validated branch order).
+- `5558c613` Bind CampaignStrategy comparison assumptions (`5667 passed`; all
+  seven fixed comparison semantics are now producer-bound).
 
 Remaining maturity gaps:
 - Audit remaining generated and source handoffs where their complete producer

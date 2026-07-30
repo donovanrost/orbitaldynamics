@@ -460,6 +460,37 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyDownlinkReliefBranchTest do
              "collection_latency_unsatisfied_observation_count" => 0
            } = comparison_row
 
+    comparison_index =
+      Enum.find_index(
+        artifact["branch_comparison_report"]["rows"],
+        &(&1["branch_id"] == "derived_collection_latency_obs_target_a")
+      )
+
+    for field <- [
+          "collection_latency_ratio",
+          "collection_latency_objective_count",
+          "collection_latency_observation_count",
+          "collection_latency_satisfied_observation_count",
+          "collection_latency_unsatisfied_observation_count"
+        ] do
+      drift = if field == "collection_latency_ratio", do: 0.75, else: comparison_row[field] + 1
+
+      invalid =
+        put_in(
+          artifact,
+          ["branch_comparison_report", "rows", Access.at(comparison_index), field],
+          drift
+        )
+
+      assert {:error, validation_report} = Schema.validate_artifact(invalid)
+
+      assert Enum.any?(
+               validation_report["errors"],
+               &(&1["path"] ==
+                   "$.branch_comparison_report.rows[#{comparison_index}].#{field}")
+             )
+    end
+
     assert get_in(artifact, [
              "pareto_frontier_report",
              "objective_directions",

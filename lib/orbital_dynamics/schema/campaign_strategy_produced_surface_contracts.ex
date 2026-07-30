@@ -185,6 +185,13 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts do
     {"coverage_observed_target_count", "coverage", "observed_target_count"},
     {"revisit_count", "revisit", "revisit_count"}
   ]
+  @branch_comparison_collection_latency_fields [
+    {"collection_latency_ratio", "ratio"},
+    {"collection_latency_objective_count", "objective_count"},
+    {"collection_latency_observation_count", "observation_count"},
+    {"collection_latency_satisfied_observation_count", "satisfied_observation_count"},
+    {"collection_latency_unsatisfied_observation_count", "unsatisfied_observation_count"}
+  ]
   @branch_comparison_resource_impact_fields [
     {"fuel_margin", "fuel_margin"},
     {"power_margin", "power_margin"},
@@ -439,6 +446,7 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts do
     |> validate_branch_comparison_priority_commitments(artifact)
     |> validate_branch_comparison_downlink_completion(artifact)
     |> validate_branch_comparison_coverage_and_revisit(artifact)
+    |> validate_branch_comparison_collection_latency(artifact)
     |> validate_branch_comparison_repair_score_evidence(artifact)
     |> validate_branch_comparison_repair_link_selection_evidence(artifact)
     |> validate_branch_comparison_repair_constraint_evidence(artifact)
@@ -2870,6 +2878,54 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts do
           row_field,
           objective_satisfaction |> map_value(group) |> Map.get(source_field),
           "must match the enclosing branch objective #{group}.#{source_field}"
+        )
+      end
+    )
+  end
+
+  defp validate_branch_comparison_collection_latency(
+         issues,
+         %{
+           "branches" => branches,
+           "branch_comparison_report" => %{"rows" => rows}
+         }
+       )
+       when is_list(branches) and is_list(rows) do
+    if Enum.all?(branches, &branch_id_input?/1) and Enum.all?(rows, &branch_id_input?/1) and
+         Enum.map(rows, &Map.fetch!(&1, "branch_id")) ==
+           Enum.map(branches, &Map.fetch!(&1, "branch_id")) do
+      branches
+      |> Enum.zip(rows)
+      |> Enum.with_index()
+      |> Enum.reduce(issues, fn {{branch, row}, index}, acc ->
+        validate_branch_comparison_collection_latency_row(acc, branch, row, index)
+      end)
+    else
+      issues
+    end
+  end
+
+  defp validate_branch_comparison_collection_latency(issues, _artifact), do: issues
+
+  defp validate_branch_comparison_collection_latency_row(issues, branch, row, index) do
+    path = "$.branch_comparison_report.rows[#{index}]"
+
+    collection_latency =
+      branch
+      |> map_value("objective_satisfaction")
+      |> map_value("collection_latency")
+
+    Enum.reduce(
+      @branch_comparison_collection_latency_fields,
+      issues,
+      fn {row_field, source_field}, acc ->
+        validate_optional_copy(
+          acc,
+          path <> ".#{row_field}",
+          row,
+          row_field,
+          Map.get(collection_latency, source_field),
+          "must match the enclosing branch objective collection_latency.#{source_field}"
         )
       end
     )
