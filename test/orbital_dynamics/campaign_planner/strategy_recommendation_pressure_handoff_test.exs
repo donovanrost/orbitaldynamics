@@ -323,6 +323,79 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
       ]
     }
 
+    mission_identity_fields = ~w(
+      branch_scenario_ids
+      branch_target_ids
+      branch_collection_ids
+      branch_product_ids
+      branch_payload_ids
+      branch_instrument_ids
+      branch_objective_ids
+      branch_objective_types
+      branch_objective_statuses
+      branch_source_objective_statuses
+    )
+
+    expected_mission_identity_context = %{
+      "branch_scenario_ids" => ["leo_1", "leo_projection_selected"],
+      "branch_target_ids" => [
+        "target_hot",
+        "target_objective_quality",
+        "target_score_term",
+        "target_tradeoff"
+      ],
+      "branch_collection_ids" => [
+        "collection_hot",
+        "collection_objective_quality",
+        "collection_objective_quality_backup",
+        "collection_relay",
+        "collection_score_alpha",
+        "collection_score_beta",
+        "collection_tradeoff_alpha",
+        "collection_tradeoff_beta"
+      ],
+      "branch_product_ids" => [
+        "product_hot",
+        "product_objective_quality",
+        "product_objective_quality_backup",
+        "product_relay",
+        "product_score_alpha",
+        "product_score_beta",
+        "product_tradeoff_alpha",
+        "product_tradeoff_beta"
+      ],
+      "branch_payload_ids" => [
+        "payload_nadir",
+        "payload_objective_quality",
+        "payload_objective_quality_backup",
+        "payload_score_alpha",
+        "payload_score_beta",
+        "payload_tradeoff_alpha",
+        "payload_tradeoff_beta"
+      ],
+      "branch_instrument_ids" => [
+        "camera_nadir",
+        "instrument_objective_quality",
+        "instrument_objective_quality_backup",
+        "instrument_score_alpha",
+        "instrument_score_beta",
+        "instrument_tradeoff_alpha",
+        "instrument_tradeoff_beta"
+      ],
+      "branch_objective_ids" => [
+        "objective:target_quality",
+        "objective_tradeoff:latency_gap",
+        "score_term:downlink_shortfall"
+      ],
+      "branch_objective_types" => [
+        "collection_latency",
+        "observation_quality",
+        "score_term_gap"
+      ],
+      "branch_objective_statuses" => ["at_risk"],
+      "branch_source_objective_statuses" => ["missed_quality_threshold"]
+    }
+
     recommendation_summary =
       artifact["recommendation"]["explanation"]
       |> Enum.find(&(&1["type"] == "branch_event_summary"))
@@ -383,6 +456,9 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
     assert Map.take(recommendation_summary, timeline_preservation_fields) ==
              expected_timeline_preservation_context
+
+    assert Map.take(recommendation_summary, mission_identity_fields) ==
+             expected_mission_identity_context
 
     comparison_downlink_context =
       artifact["branch_comparison_report"]["rows"]
@@ -468,6 +544,13 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
     assert comparison_timeline_preservation_context == expected_timeline_preservation_context
 
+    comparison_mission_identity_context =
+      artifact["branch_comparison_report"]["rows"]
+      |> Enum.find(&(&1["branch_id"] == "urgent"))
+      |> Map.take(mission_identity_fields)
+
+    assert comparison_mission_identity_context == expected_mission_identity_context
+
     assert source_window_ids == Enum.sort(source_window_ids)
     assert length(source_window_ids) == 11
     assert length(source_window_bounds) == 10
@@ -523,6 +606,9 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
     assert Map.take(recommendation_review_row, timeline_preservation_fields) == %{}
 
+    assert Map.take(recommendation_review_row, mission_identity_fields) ==
+             expected_mission_identity_context
+
     assert recommendation_review_row["branch_station_reservation_expiration_statuses"] == [
              "active"
            ]
@@ -562,6 +648,9 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
     assert Map.take(selected_import_row, timeline_preservation_fields) ==
              expected_timeline_preservation_context
 
+    assert Map.take(selected_import_row, mission_identity_fields) ==
+             expected_mission_identity_context
+
     assert selected_import_row["branch_station_reservation_expiration_statuses"] == ["active"]
 
     review_import =
@@ -592,6 +681,9 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
     assert Map.take(review_import_row, timeline_activity_precondition_fields) == %{}
 
     assert Map.take(review_import_row, timeline_preservation_fields) == %{}
+
+    assert Map.take(review_import_row, mission_identity_fields) ==
+             expected_mission_identity_context
 
     assert review_import_row["branch_station_reservation_expiration_statuses"] == ["active"]
 
@@ -627,6 +719,9 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
            ) == %{}
 
     assert Map.take(review_import_row["source_review_row"], timeline_preservation_fields) == %{}
+
+    assert Map.take(review_import_row["source_review_row"], mission_identity_fields) ==
+             expected_mission_identity_context
 
     assert review_import_row["source_review_row"][
              "branch_station_reservation_expiration_statuses"
@@ -849,6 +944,26 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
              timeline_preservation_report["errors"],
              &(&1["path"] ==
                  "$.branch_comparison_report.rows[#{urgent_row_index}].branch_timeline_preservation_statuses")
+           )
+
+    mission_identity_invalid =
+      put_in(
+        artifact,
+        [
+          "branch_comparison_report",
+          "rows",
+          Access.at(urgent_row_index),
+          "branch_objective_statuses"
+        ],
+        ["stale_branch_objective_status"]
+      )
+
+    assert {:error, mission_identity_report} = Schema.validate_artifact(mission_identity_invalid)
+
+    assert Enum.any?(
+             mission_identity_report["errors"],
+             &(&1["path"] ==
+                 "$.branch_comparison_report.rows[#{urgent_row_index}].branch_objective_statuses")
            )
 
     assert {:ok, %{"schema_contract" => "cadence_import_manifest.v1", "status" => "pass"}} =

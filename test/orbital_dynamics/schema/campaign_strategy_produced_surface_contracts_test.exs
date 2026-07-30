@@ -868,6 +868,39 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContractsTest do
     end
   end
 
+  test "rejects CampaignStrategy branch comparison mission identity context drift", %{
+    strategy: strategy
+  } do
+    fields = ~w(
+      branch_scenario_ids
+      branch_target_ids
+      branch_collection_ids
+      branch_product_ids
+      branch_payload_ids
+      branch_instrument_ids
+      branch_objective_ids
+      branch_objective_types
+      branch_objective_statuses
+      branch_source_objective_statuses
+    )
+
+    for field <- fields do
+      invalid =
+        put_in(
+          strategy,
+          ["branch_comparison_report", "rows", Access.at(1), field],
+          ["invented_branch_mission_identity_value"]
+        )
+
+      assert {:error, validation_report} = Schema.validate_artifact(invalid)
+
+      assert Enum.any?(
+               validation_report["errors"],
+               &(&1["path"] == "$.branch_comparison_report.rows[1].#{field}")
+             )
+    end
+  end
+
   test "rejects CampaignStrategy branch comparison score evidence drift", %{
     strategy: strategy
   } do

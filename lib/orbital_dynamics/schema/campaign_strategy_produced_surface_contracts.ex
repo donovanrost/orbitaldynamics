@@ -70,6 +70,18 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts do
     {"station_throughput_factor_source", "station_throughput_factor_source"},
     {"station_throughput_factor_activity_source", "station_throughput_factor_activity_source"}
   ]
+  @branch_comparison_mission_identity_fields [
+    {"branch_scenario_ids", ["scenario_id"]},
+    {"branch_target_ids", ["target_id"]},
+    {"branch_collection_ids", ["collection_id", "collection_ids"]},
+    {"branch_product_ids", ["product_id", "product_ids"]},
+    {"branch_payload_ids", ["payload_id", "payload_ids"]},
+    {"branch_instrument_ids", ["instrument_id", "instrument_ids"]},
+    {"branch_objective_ids", ["objective_id", "objective_ids"]},
+    {"branch_objective_types", ["objective_type"]},
+    {"branch_objective_statuses", ["objective_status"]},
+    {"branch_source_objective_statuses", ["source_objective_status"]}
+  ]
   @branch_comparison_priority_target_fields [
     {"required", "required_target_ids"},
     {"satisfied", "satisfied_target_ids"},
@@ -665,6 +677,7 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts do
       branch_event_unique_values(events, ["direction"]),
       "must match the enclosing branch directions"
     )
+    |> validate_branch_comparison_mission_identity_fields(path, row, events)
     |> validate_branch_comparison_station_calendar_fields(path, row, events)
     |> validate_branch_comparison_station_reservation_fields(path, row, branch, events)
     |> validate_branch_comparison_station_reservation_conflict_fields(
@@ -688,6 +701,20 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts do
     )
     |> validate_branch_comparison_timeline_activity_precondition_fields(path, row, events)
     |> validate_branch_comparison_timeline_preservation_fields(path, row, events)
+  end
+
+  defp validate_branch_comparison_mission_identity_fields(issues, path, row, events) do
+    Enum.reduce(@branch_comparison_mission_identity_fields, issues, fn {row_field, sources},
+                                                                       acc ->
+      validate_optional_copy(
+        acc,
+        path <> ".#{row_field}",
+        row,
+        row_field,
+        branch_event_unique_values(events, sources),
+        "must match the enclosing branch mission identity values"
+      )
+    end)
   end
 
   defp validate_branch_comparison_station_calendar_fields(issues, path, row, events) do
