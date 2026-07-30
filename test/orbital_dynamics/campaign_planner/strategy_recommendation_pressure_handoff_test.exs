@@ -50,6 +50,34 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
       "capacity_pack_required_capacity_sources"
     ]
 
+    capacity_pack_direction_fields = [
+      "capacity_pack_contact_ids_by_direction",
+      "capacity_pack_selected_contact_ids_by_direction",
+      "capacity_pack_deferred_contact_ids_by_direction",
+      "capacity_pack_required_capacity_fraction_by_direction",
+      "capacity_pack_selected_required_capacity_fraction_by_direction",
+      "capacity_pack_deferred_required_capacity_fraction_by_direction"
+    ]
+
+    expected_capacity_pack_direction_context = %{
+      "capacity_pack_contact_ids_by_direction" => %{
+        "downlink" => ["dl_capacity_overflow", "dl_capacity_selected"]
+      },
+      "capacity_pack_selected_contact_ids_by_direction" => %{
+        "downlink" => ["dl_capacity_selected"]
+      },
+      "capacity_pack_deferred_contact_ids_by_direction" => %{
+        "downlink" => ["dl_capacity_overflow"]
+      },
+      "capacity_pack_required_capacity_fraction_by_direction" => %{"downlink" => 0.75},
+      "capacity_pack_selected_required_capacity_fraction_by_direction" => %{
+        "downlink" => 0.5
+      },
+      "capacity_pack_deferred_required_capacity_fraction_by_direction" => %{
+        "downlink" => 0.25
+      }
+    }
+
     recommendation_summary =
       artifact["recommendation"]["explanation"]
       |> Enum.find(&(&1["type"] == "branch_event_summary"))
@@ -87,6 +115,9 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
     assert recommendation_summary["branch_actual_downlink_completion_ratio"] == 0.22
 
+    assert Map.take(recommendation_summary, capacity_pack_direction_fields) ==
+             expected_capacity_pack_direction_context
+
     comparison_downlink_context =
       artifact["branch_comparison_report"]["rows"]
       |> Enum.find(&(&1["branch_id"] == "urgent"))
@@ -109,6 +140,14 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
              "branch_planned_downlink_mb" => 70.0,
              "branch_actual_downlink_completion_ratio" => 0.22
            }
+
+    comparison_capacity_pack_direction_context =
+      artifact["branch_comparison_report"]["rows"]
+      |> Enum.find(&(&1["branch_id"] == "urgent"))
+      |> Map.take(capacity_pack_direction_fields)
+
+    assert comparison_capacity_pack_direction_context ==
+             expected_capacity_pack_direction_context
 
     assert source_window_ids == Enum.sort(source_window_ids)
     assert length(source_window_ids) == 11
@@ -148,6 +187,8 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
     assert Map.take(recommendation_review_row, branch_context_fields) ==
              recommendation_branch_context
 
+    assert Map.take(recommendation_review_row, capacity_pack_direction_fields) == %{}
+
     assert recommendation_review_row["branch_station_reservation_expiration_statuses"] == [
              "active"
            ]
@@ -163,6 +204,9 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
     assert Map.take(selected_import_row, branch_context_fields) == recommendation_branch_context
 
+    assert Map.take(selected_import_row, capacity_pack_direction_fields) ==
+             expected_capacity_pack_direction_context
+
     assert selected_import_row["branch_station_reservation_expiration_statuses"] == ["active"]
 
     review_import =
@@ -177,6 +221,8 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
     assert Map.take(review_import_row, branch_context_fields) == recommendation_branch_context
 
+    assert Map.take(review_import_row, capacity_pack_direction_fields) == %{}
+
     assert review_import_row["branch_station_reservation_expiration_statuses"] == ["active"]
 
     assert Map.take(review_import_row["source_review_row"], Map.keys(emitted_expected_handoff)) ==
@@ -184,6 +230,8 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
     assert Map.take(review_import_row["source_review_row"], branch_context_fields) ==
              recommendation_branch_context
+
+    assert Map.take(review_import_row["source_review_row"], capacity_pack_direction_fields) == %{}
 
     assert review_import_row["source_review_row"][
              "branch_station_reservation_expiration_statuses"
@@ -238,6 +286,27 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
              capacity_pack_context_report["errors"],
              &(&1["path"] ==
                  "$.branch_comparison_report.rows[#{urgent_row_index}].capacity_pack_total_required_capacity_fraction")
+           )
+
+    capacity_pack_direction_invalid =
+      put_in(
+        artifact,
+        [
+          "branch_comparison_report",
+          "rows",
+          Access.at(urgent_row_index),
+          "capacity_pack_required_capacity_fraction_by_direction"
+        ],
+        %{"downlink" => 0.5}
+      )
+
+    assert {:error, capacity_pack_direction_report} =
+             Schema.validate_artifact(capacity_pack_direction_invalid)
+
+    assert Enum.any?(
+             capacity_pack_direction_report["errors"],
+             &(&1["path"] ==
+                 "$.branch_comparison_report.rows[#{urgent_row_index}].capacity_pack_required_capacity_fraction_by_direction")
            )
 
     assert {:ok, %{"schema_contract" => "cadence_import_manifest.v1", "status" => "pass"}} =

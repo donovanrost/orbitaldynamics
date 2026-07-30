@@ -5,48 +5,46 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Bind CampaignStrategy branch capacity-pack aggregate context.
+Bind CampaignStrategy branch capacity-pack direction maps.
 
 Status:
-Verified locally from clean published base `fe54e3f0`; publish pending.
+Verified locally from clean published base `46bd7c45`; publish pending.
 
 Selection evidence:
-- `BranchComparisonContext.event_fields/1` derives capacity-pack group IDs and
-  statuses, minimum capacity fraction, maximum used and required fractions,
-  total required fraction, and required-fraction sources directly from each
-  branch event list.
-- The real recommendation-pressure fixture's `urgent` branch populates all seven
-  aggregate fields and carries them through recommendation, operator-review,
-  and Cadence import surfaces.
-- Independently inventing any of the seven fields in that populated comparison
+- `BranchComparisonContext.event_fields/1` merges the three capacity-pack
+  contact-ID maps by direction with sorted uniqueness and sums the three
+  required-capacity maps by direction directly from each branch event list.
+- The real recommendation-pressure fixture's `urgent` branch populates all six
+  maps in comparison/recommendation output and direct Cadence import; the
+  strategy-recommendation review row intentionally omits this map-heavy detail.
+- Independently inventing any of the six maps in that populated comparison
   still returned `:ok` from `Schema.validate_artifact/1`.
 
 Delivered behavior:
-- CampaignStrategy validation now binds capacity-pack group IDs and statuses,
-  minimum capacity fraction, maximum used and required fractions, total required
-  fraction, and required-fraction sources to each identity-aligned branch event
-  list.
-- The populated recommendation-pressure scenario proves all seven producer
-  aggregates continue unchanged through recommendation, operator-review, and
-  Cadence import surfaces.
-- Producer sorting, uniqueness, numeric-string parsing, min/max/sum selection,
-  and omission remain intact.
+- CampaignStrategy validation now binds the three merged capacity-pack contact-ID
+  maps and three summed required-capacity maps to each identity-aligned branch
+  event list.
+- The populated recommendation-pressure scenario proves all six maps remain
+  exact in comparison/recommendation output and direct Cadence import while the
+  strategy-recommendation review path preserves its deliberate omission.
+- Producer per-direction merge, sorted uniqueness, numeric-string parsing,
+  numeric summation, and omission remain intact.
 
 Verification:
-- Focused produced-surface contracts: `38 passed` in `161.7s` (seed `772596`).
+- Focused produced-surface contracts: `39 passed` in `166.6s` (seed `752752`).
 - Adjacent produced-surface, campaign-repair/strategy, and populated
-  recommendation-pressure scenario: `41 passed`, `953 excluded`, in `158.6s`
-  (seed `897761`).
-- Live populated-fixture mutation probe detected all seven exact capacity-pack
-  aggregate paths.
-- Broad schema suite: `1124 passed` in `288.3s` (seed `417036`).
-- Planner suite: `1888 passed` in `350.6s` (seed `624903`); only the
+  recommendation-pressure scenario: `42 passed`, `953 excluded`, in `174.6s`
+  (seed `620500`).
+- Live populated-fixture mutation probe detected all six exact capacity-pack
+  direction-map paths.
+- Broad schema suite: `1125 passed` in `337.9s` (seed `572963`).
+- Planner suite: `1888 passed` in `355.6s` (seed `898386`); only the
   pre-existing `campaign_planner/support.exs` discovery warning appeared.
 - Schema lint: `155` artifacts, `0` errors, `0` warnings.
 - Canonical repair and strategy artifacts regenerated with unchanged SHA-256
   hashes `cc41834e706fd1e04a4c5578032fdf99ceeba949a02fd75fc54c8b70cdc30d8a`
   and `57602722702969da587e2754df84bca1e06e86cc32fa5af7f3f78451b72f9985`.
-- Full suite: `5650 passed` in `739.2s` (seed `478417`); only the pre-existing
+- Full suite: `5651 passed` in `741.5s` (seed `714746`); only the pre-existing
   support/fixture discovery warning appeared.
 - Final formatting and whitespace checks passed.
 
@@ -54,8 +52,8 @@ Level 6 pillar advanced:
 Fleet-scale strategy decision-support and embedded-report identity integrity.
 
 Last published slice:
-- `fe54e3f0` Bind CampaignStrategy branch event downlink context (`5649 passed`;
-  all seven latency/downlink fields now bind to their enclosing branch events).
+- `46bd7c45` Bind CampaignStrategy capacity-pack aggregates (`5650 passed`; all
+  seven scalar/list capacity-pack aggregates now bind to their branch events).
 
 Remaining maturity gaps:
 - Audit remaining generated and source handoffs where their complete producer
@@ -70,8 +68,8 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-Publish this slice, then audit the remaining CampaignStrategy capacity-pack
-direction maps against their producer merge and numeric-sum rules.
+Publish this slice, then audit the remaining CampaignStrategy timeline event
+context fields against their `TimelineFields` producer rules.
 
 Blocked:
 None.

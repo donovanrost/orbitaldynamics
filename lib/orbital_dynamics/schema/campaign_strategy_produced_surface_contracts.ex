@@ -168,6 +168,16 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts do
     {"branch_station_reservation_conflict_match_statuses",
      ["station_reservation_match_status", "reservation_match_status"], true}
   ]
+  @branch_comparison_capacity_pack_contact_map_fields ~w(
+    capacity_pack_contact_ids_by_direction
+    capacity_pack_selected_contact_ids_by_direction
+    capacity_pack_deferred_contact_ids_by_direction
+  )
+  @branch_comparison_capacity_pack_numeric_map_fields ~w(
+    capacity_pack_required_capacity_fraction_by_direction
+    capacity_pack_selected_required_capacity_fraction_by_direction
+    capacity_pack_deferred_required_capacity_fraction_by_direction
+  )
   @branch_comparison_resource_projection_availability_pairs [
     {"resource_projection_payload_unavailable_count",
      "resource_projection_payload_unavailable_spacecraft_ids", "payload_unavailable"},
@@ -846,6 +856,30 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts do
       branch_event_unique_values(events, ["required_capacity_fraction_source"]),
       "must match the enclosing branch required capacity-fraction sources"
     )
+    |> then(fn issues ->
+      Enum.reduce(@branch_comparison_capacity_pack_contact_map_fields, issues, fn field, acc ->
+        validate_optional_copy(
+          acc,
+          path <> ".#{field}",
+          row,
+          field,
+          event_merged_string_list_maps(events, field),
+          "must match the enclosing branch merged #{field}"
+        )
+      end)
+    end)
+    |> then(fn issues ->
+      Enum.reduce(@branch_comparison_capacity_pack_numeric_map_fields, issues, fn field, acc ->
+        validate_optional_copy(
+          acc,
+          path <> ".#{field}",
+          row,
+          field,
+          event_merged_numeric_maps(events, field),
+          "must match the enclosing branch summed #{field}"
+        )
+      end)
+    end)
   end
 
   defp branch_event_unique_values(events, fields) when is_list(events) do
@@ -947,6 +981,45 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts do
   end
 
   defp event_numeric_values(_events, _field), do: []
+
+  defp event_merged_string_list_maps(events, field) when is_list(events) do
+    events
+    |> Enum.map(&map_field(&1, field))
+    |> Enum.filter(&is_map/1)
+    |> Enum.reduce(%{}, fn map, acc ->
+      Enum.reduce(map, acc, fn {key, value}, inner ->
+        values =
+          value
+          |> List.wrap()
+          |> Enum.filter(&(is_binary(&1) and &1 != ""))
+
+        Map.update(inner, key, values, fn existing ->
+          (List.wrap(existing) ++ values)
+          |> Enum.uniq()
+          |> Enum.sort()
+        end)
+      end)
+    end)
+    |> Map.new(fn {key, values} -> {key, Enum.sort(Enum.uniq(values))} end)
+  end
+
+  defp event_merged_string_list_maps(_events, _field), do: %{}
+
+  defp event_merged_numeric_maps(events, field) when is_list(events) do
+    events
+    |> Enum.map(&map_field(&1, field))
+    |> Enum.filter(&is_map/1)
+    |> Enum.reduce(%{}, fn map, acc ->
+      Enum.reduce(map, acc, fn {key, value}, inner ->
+        case event_number(value) do
+          nil -> inner
+          number -> Map.update(inner, key, number, &(&1 + number))
+        end
+      end)
+    end)
+  end
+
+  defp event_merged_numeric_maps(_events, _field), do: %{}
 
   defp event_number(value) when is_integer(value) or is_float(value), do: value
 

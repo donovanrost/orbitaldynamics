@@ -600,6 +600,43 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContractsTest do
     end
   end
 
+  test "rejects CampaignStrategy branch comparison capacity-pack direction-map drift", %{
+    strategy: strategy
+  } do
+    drift_values = %{
+      "capacity_pack_contact_ids_by_direction" => %{"invented" => ["invented_contact"]},
+      "capacity_pack_selected_contact_ids_by_direction" => %{
+        "invented" => ["invented_selected_contact"]
+      },
+      "capacity_pack_deferred_contact_ids_by_direction" => %{
+        "invented" => ["invented_deferred_contact"]
+      },
+      "capacity_pack_required_capacity_fraction_by_direction" => %{"invented" => 1.0},
+      "capacity_pack_selected_required_capacity_fraction_by_direction" => %{
+        "invented" => 1.0
+      },
+      "capacity_pack_deferred_required_capacity_fraction_by_direction" => %{
+        "invented" => 1.0
+      }
+    }
+
+    for {field, drift} <- drift_values do
+      invalid =
+        put_in(
+          strategy,
+          ["branch_comparison_report", "rows", Access.at(1), field],
+          drift
+        )
+
+      assert {:error, validation_report} = Schema.validate_artifact(invalid)
+
+      assert Enum.any?(
+               validation_report["errors"],
+               &(&1["path"] == "$.branch_comparison_report.rows[1].#{field}")
+             )
+    end
+  end
+
   test "rejects CampaignStrategy branch comparison score evidence drift", %{
     strategy: strategy
   } do
