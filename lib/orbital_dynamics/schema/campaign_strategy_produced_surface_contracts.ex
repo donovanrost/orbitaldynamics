@@ -445,6 +445,7 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts do
     |> validate_branch_comparison_identity(artifact)
     |> validate_branch_comparison_assumptions(artifact)
     |> validate_strategy_ranking_comparison_identity(artifact)
+    |> validate_strategy_ranking_comparison_score_ranked_evidence(artifact)
     |> validate_branch_comparison_target_identity(artifact)
     |> validate_branch_comparison_event_summary(artifact)
     |> validate_branch_comparison_score_evidence(artifact)
@@ -729,6 +730,128 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts do
   end
 
   defp validate_strategy_ranking_comparison_identity(issues, _artifact), do: issues
+
+  defp validate_strategy_ranking_comparison_score_ranked_evidence(
+         issues,
+         %{
+           "branches" => branches,
+           "ranking_comparison_report" => %{"rows" => rows} = report
+         }
+       )
+       when is_list(branches) and is_list(rows) do
+    if Enum.all?(branches, &branch_score_input?/1) and Enum.all?(rows, &is_map/1) do
+      branch_count = length(branches)
+
+      issues =
+        Enum.reduce(
+          [
+            {"left_count", branch_count},
+            {"right_count", branch_count},
+            {"matched_count", branch_count},
+            {"left_only_count", 0},
+            {"right_only_count", 0},
+            {"row_count", branch_count}
+          ],
+          issues,
+          fn {field, expected}, acc ->
+            validate_optional_copy(
+              acc,
+              "$.ranking_comparison_report.#{field}",
+              report,
+              field,
+              expected,
+              "must match the deterministic all-branch ranking comparison count"
+            )
+          end
+        )
+
+      issues =
+        case {Map.get(report, "winner"), List.first(branches)} do
+          {%{} = winner, %{"branch_id" => branch_id}} ->
+            validate_optional_copy(
+              issues,
+              "$.ranking_comparison_report.winner.right_scenario_id",
+              winner,
+              "right_scenario_id",
+              branch_id,
+              "must match the first score-ranked CampaignStrategy branch"
+            )
+
+          _winner ->
+            issues
+        end
+
+      if length(rows) == branch_count do
+        branches
+        |> Enum.zip(rows)
+        |> Enum.with_index(1)
+        |> Enum.reduce(issues, fn {{branch, row}, rank}, acc ->
+          validate_strategy_ranking_comparison_score_ranked_row(acc, branch, row, rank)
+        end)
+      else
+        [
+          error(
+            "$.ranking_comparison_report.rows",
+            "row count must match enclosing CampaignStrategy branches"
+          )
+          | issues
+        ]
+      end
+    else
+      issues
+    end
+  end
+
+  defp validate_strategy_ranking_comparison_score_ranked_evidence(issues, _artifact),
+    do: issues
+
+  defp validate_strategy_ranking_comparison_score_ranked_row(issues, branch, row, rank) do
+    path = "$.ranking_comparison_report.rows[#{rank - 1}]"
+    branch_id = Map.fetch!(branch, "branch_id")
+    branch_score = Map.fetch!(branch, "score")
+
+    issues
+    |> validate_optional_copy(
+      path <> ".scenario_id",
+      row,
+      "scenario_id",
+      branch_id,
+      "must match the score-ranked CampaignStrategy branch"
+    )
+    |> validate_optional_copy(
+      path <> ".status",
+      row,
+      "status",
+      "matched",
+      "must remain matched across input-order and score-ranked branches"
+    )
+    |> validate_optional_copy(
+      path <> ".right_rank",
+      row,
+      "right_rank",
+      rank,
+      "must match the one-based score-ranked CampaignStrategy branch position"
+    )
+    |> validate_optional_copy(
+      path <> ".left_value",
+      row,
+      "left_value",
+      branch_score,
+      "must match the CampaignStrategy branch score"
+    )
+    |> validate_optional_copy(
+      path <> ".right_value",
+      row,
+      "right_value",
+      branch_score,
+      "must match the CampaignStrategy branch score"
+    )
+  end
+
+  defp branch_score_input?(%{"branch_id" => branch_id, "score" => score}),
+    do: is_binary(branch_id) and is_number(score)
+
+  defp branch_score_input?(_branch), do: false
 
   defp validate_branch_comparison_target_identity(
          issues,
