@@ -1436,6 +1436,29 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyDownlinkCompletionBranchTest d
         &(&1["branch_id"] == "derived_downlink_constrained")
       )
 
+    objective_required_downlink_invalid =
+      put_in(
+        artifact,
+        [
+          "branch_comparison_report",
+          "rows",
+          Access.at(downlink_row_index),
+          "downlink_completion_required_downlink_mb"
+        ],
+        121.0
+      )
+
+    assert {:error, objective_required_downlink_report} =
+             Schema.validate_artifact(objective_required_downlink_invalid)
+
+    assert Enum.any?(
+             objective_required_downlink_report["errors"],
+             &(&1["path"] ==
+                 "$.branch_comparison_report.rows[#{downlink_row_index}].downlink_completion_required_downlink_mb" and
+                 &1["message"] ==
+                   "must match the enclosing branch objective downlink_completion.required_downlink_mb")
+           )
+
     required_downlink_invalid =
       put_in(
         artifact,

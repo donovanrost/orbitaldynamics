@@ -178,6 +178,7 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts do
   @branch_comparison_downlink_fields [
     {"downlink_completion_required_contacts", "required_contacts"},
     {"downlink_completion_planned_contacts", "planned_contacts"},
+    {"downlink_completion_required_downlink_mb", "required_downlink_mb"},
     {"downlink_completion_planned_downlink_mb", "planned_downlink_mb"},
     {"downlink_completion_ratio", "ratio"}
   ]
