@@ -111,6 +111,18 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts do
     {"branch_transition_categories", "transition_category"},
     {"branch_transition_reasons", "transition_reason"}
   ]
+  @branch_comparison_execution_uncertainty_fields [
+    {"branch_maneuver_execution_uncertainty_activity_ids", "activity_id"},
+    {"branch_maneuver_execution_uncertainty_timeline_ids", "timeline_id"},
+    {"branch_maneuver_execution_uncertainty_maneuver_ids", "maneuver_id"},
+    {"branch_maneuver_execution_uncertainty_statuses", "execution_uncertainty_status"},
+    {"branch_maneuver_execution_uncertainty_sources", "execution_uncertainty_source"}
+  ]
+  @branch_comparison_execution_uncertainty_maximum_fields [
+    {"branch_maneuver_execution_uncertainty_max_timing_3sigma_s", "timing_3sigma_s"},
+    {"branch_maneuver_execution_uncertainty_max_delta_v_3sigma_magnitude_km_s",
+     "delta_v_3sigma_magnitude_km_s"}
+  ]
   @branch_comparison_priority_target_fields [
     {"required", "required_target_ids"},
     {"satisfied", "satisfied_target_ids"},
@@ -708,6 +720,7 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts do
     )
     |> validate_branch_comparison_source_window_fields(path, row, events)
     |> validate_branch_comparison_operational_event_fields(path, row, events)
+    |> validate_branch_comparison_execution_uncertainty_fields(path, row, events)
     |> validate_branch_comparison_mission_identity_fields(path, row, events)
     |> validate_branch_comparison_station_calendar_fields(path, row, events)
     |> validate_branch_comparison_station_reservation_fields(path, row, branch, events)
@@ -732,6 +745,57 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts do
     )
     |> validate_branch_comparison_timeline_activity_precondition_fields(path, row, events)
     |> validate_branch_comparison_timeline_preservation_fields(path, row, events)
+  end
+
+  defp validate_branch_comparison_execution_uncertainty_fields(issues, path, row, events) do
+    uncertainty_events =
+      events
+      |> list_maps()
+      |> Enum.filter(&(map_field(&1, "type") == "maneuver_execution_uncertainty_feedback"))
+
+    issues =
+      validate_optional_copy(
+        issues,
+        path <> ".branch_missed_downlink_activity_ids",
+        row,
+        "branch_missed_downlink_activity_ids",
+        branch_event_unique_values(events, [
+          "missed_downlink_activity_id",
+          "missed_downlink_activity_ids"
+        ]),
+        "must match the enclosing branch missed-downlink activity IDs"
+      )
+
+    issues =
+      Enum.reduce(
+        @branch_comparison_execution_uncertainty_fields,
+        issues,
+        fn {row_field, source}, acc ->
+          validate_optional_copy(
+            acc,
+            path <> ".#{row_field}",
+            row,
+            row_field,
+            branch_event_unique_values(uncertainty_events, [source]),
+            "must match the enclosing branch execution-uncertainty #{source} values"
+          )
+        end
+      )
+
+    Enum.reduce(
+      @branch_comparison_execution_uncertainty_maximum_fields,
+      issues,
+      fn {row_field, source}, acc ->
+        validate_optional_copy(
+          acc,
+          path <> ".#{row_field}",
+          row,
+          row_field,
+          event_maximum_present(uncertainty_events, source),
+          "must match the enclosing branch execution-uncertainty #{source} maximum"
+        )
+      end
+    )
   end
 
   defp validate_branch_comparison_operational_event_fields(issues, path, row, events) do

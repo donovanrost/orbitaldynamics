@@ -53,6 +53,17 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
       branch_source_activity_ids
     )
 
+    execution_uncertainty_fields = ~w(
+      branch_missed_downlink_activity_ids
+      branch_maneuver_execution_uncertainty_activity_ids
+      branch_maneuver_execution_uncertainty_timeline_ids
+      branch_maneuver_execution_uncertainty_maneuver_ids
+      branch_maneuver_execution_uncertainty_statuses
+      branch_maneuver_execution_uncertainty_sources
+      branch_maneuver_execution_uncertainty_max_timing_3sigma_s
+      branch_maneuver_execution_uncertainty_max_delta_v_3sigma_magnitude_km_s
+    )
+
     review_operational_event_fields =
       operational_event_fields --
         ~w(
@@ -466,6 +477,22 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
       "branch_requires_operator_review_count" => 11
     }
 
+    expected_execution_uncertainty_context = %{
+      "branch_missed_downlink_activity_ids" => [
+        "dl_objective_missed",
+        "dl_objective_selected"
+      ],
+      "branch_maneuver_execution_uncertainty_activity_ids" => ["burn_uncertain_review"],
+      "branch_maneuver_execution_uncertainty_timeline_ids" => [
+        "timeline:maneuver:burn_uncertain_review"
+      ],
+      "branch_maneuver_execution_uncertainty_maneuver_ids" => ["burn_uncertain_review"],
+      "branch_maneuver_execution_uncertainty_statuses" => ["declared"],
+      "branch_maneuver_execution_uncertainty_sources" => ["ops_covariance_review"],
+      "branch_maneuver_execution_uncertainty_max_timing_3sigma_s" => 75.0,
+      "branch_maneuver_execution_uncertainty_max_delta_v_3sigma_magnitude_km_s" => 0.005
+    }
+
     recommendation_summary =
       artifact["recommendation"]["explanation"]
       |> Enum.find(&(&1["type"] == "branch_event_summary"))
@@ -559,6 +586,9 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
     assert "dl_capacity_overflow" in recommendation_operational_event_context[
              "branch_source_activity_ids"
            ]
+
+    assert Map.take(recommendation_summary, execution_uncertainty_fields) ==
+             expected_execution_uncertainty_context
 
     comparison_downlink_context =
       artifact["branch_comparison_report"]["rows"]
@@ -658,6 +688,13 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
     assert comparison_operational_event_context == recommendation_operational_event_context
 
+    comparison_execution_uncertainty_context =
+      artifact["branch_comparison_report"]["rows"]
+      |> Enum.find(&(&1["branch_id"] == "urgent"))
+      |> Map.take(execution_uncertainty_fields)
+
+    assert comparison_execution_uncertainty_context == expected_execution_uncertainty_context
+
     assert source_window_ids == Enum.sort(source_window_ids)
     assert length(source_window_ids) == 11
     assert length(source_window_bounds) == 10
@@ -719,6 +756,9 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
     assert Map.take(recommendation_review_row, operational_event_fields) ==
              Map.take(recommendation_operational_event_context, review_operational_event_fields)
 
+    assert Map.take(recommendation_review_row, execution_uncertainty_fields) ==
+             expected_execution_uncertainty_context
+
     assert recommendation_review_row["branch_station_reservation_expiration_statuses"] == [
              "active"
            ]
@@ -764,6 +804,9 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
     assert Map.take(selected_import_row, operational_event_fields) ==
              recommendation_operational_event_context
 
+    assert Map.take(selected_import_row, execution_uncertainty_fields) ==
+             expected_execution_uncertainty_context
+
     assert selected_import_row["branch_station_reservation_expiration_statuses"] == ["active"]
 
     review_import =
@@ -800,6 +843,9 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
     assert Map.take(review_import_row, operational_event_fields) ==
              Map.take(recommendation_operational_event_context, review_operational_event_fields)
+
+    assert Map.take(review_import_row, execution_uncertainty_fields) ==
+             expected_execution_uncertainty_context
 
     assert review_import_row["branch_station_reservation_expiration_statuses"] == ["active"]
 
@@ -841,6 +887,9 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
     assert Map.take(review_import_row["source_review_row"], operational_event_fields) ==
              Map.take(recommendation_operational_event_context, review_operational_event_fields)
+
+    assert Map.take(review_import_row["source_review_row"], execution_uncertainty_fields) ==
+             expected_execution_uncertainty_context
 
     assert review_import_row["source_review_row"][
              "branch_station_reservation_expiration_statuses"
@@ -1143,6 +1192,29 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
              &(&1["path"] ==
                  "$.branch_comparison_report.rows[#{urgent_row_index}].branch_transition_types" and
                  &1["message"] == "must match the enclosing branch transition values")
+           )
+
+    execution_uncertainty_invalid =
+      put_in(
+        artifact,
+        [
+          "branch_comparison_report",
+          "rows",
+          Access.at(urgent_row_index),
+          "branch_maneuver_execution_uncertainty_max_timing_3sigma_s"
+        ],
+        76.0
+      )
+
+    assert {:error, execution_uncertainty_report} =
+             Schema.validate_artifact(execution_uncertainty_invalid)
+
+    assert Enum.any?(
+             execution_uncertainty_report["errors"],
+             &(&1["path"] ==
+                 "$.branch_comparison_report.rows[#{urgent_row_index}].branch_maneuver_execution_uncertainty_max_timing_3sigma_s" and
+                 &1["message"] ==
+                   "must match the enclosing branch execution-uncertainty timing_3sigma_s maximum")
            )
 
     assert {:ok, %{"schema_contract" => "cadence_import_manifest.v1", "status" => "pass"}} =

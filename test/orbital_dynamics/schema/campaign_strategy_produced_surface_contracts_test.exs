@@ -1061,6 +1061,53 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContractsTest do
     end
   end
 
+  test "rejects CampaignStrategy branch comparison execution-uncertainty context drift", %{
+    strategy: strategy
+  } do
+    cases = [
+      {"branch_missed_downlink_activity_ids",
+       "must match the enclosing branch missed-downlink activity IDs"},
+      {"branch_maneuver_execution_uncertainty_activity_ids",
+       "must match the enclosing branch execution-uncertainty activity_id values"},
+      {"branch_maneuver_execution_uncertainty_timeline_ids",
+       "must match the enclosing branch execution-uncertainty timeline_id values"},
+      {"branch_maneuver_execution_uncertainty_maneuver_ids",
+       "must match the enclosing branch execution-uncertainty maneuver_id values"},
+      {"branch_maneuver_execution_uncertainty_statuses",
+       "must match the enclosing branch execution-uncertainty execution_uncertainty_status values"},
+      {"branch_maneuver_execution_uncertainty_sources",
+       "must match the enclosing branch execution-uncertainty execution_uncertainty_source values"},
+      {"branch_maneuver_execution_uncertainty_max_timing_3sigma_s",
+       "must match the enclosing branch execution-uncertainty timing_3sigma_s maximum"},
+      {"branch_maneuver_execution_uncertainty_max_delta_v_3sigma_magnitude_km_s",
+       "must match the enclosing branch execution-uncertainty delta_v_3sigma_magnitude_km_s maximum"}
+    ]
+
+    for {field, expected_message} <- cases do
+      replacement =
+        if String.contains?(field, "_max_") do
+          12_345.0
+        else
+          ["invented_execution_uncertainty_value"]
+        end
+
+      invalid =
+        put_in(
+          strategy,
+          ["branch_comparison_report", "rows", Access.at(1), field],
+          replacement
+        )
+
+      assert {:error, validation_report} = Schema.validate_artifact(invalid)
+
+      assert Enum.any?(
+               validation_report["errors"],
+               &(&1["path"] == "$.branch_comparison_report.rows[1].#{field}" and
+                   &1["message"] == expected_message)
+             )
+    end
+  end
+
   test "rejects CampaignStrategy branch comparison score evidence drift", %{
     strategy: strategy
   } do
