@@ -66,9 +66,22 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts do
     {"observation_success_factor", "observation_success_factor"},
     {"observation_success_factor_source", "observation_success_factor_source"},
     {"observation_success_factor_activity_source", "observation_success_factor_activity_source"},
+    {"image_quality_score", "image_quality_score"},
+    {"image_quality_score_source", "image_quality_score_source"},
+    {"image_quality_statuses", "image_quality_statuses"},
+    {"image_quality_sources", "image_quality_sources"},
+    {"cloud_cover_fraction", "cloud_cover_fraction"},
+    {"cloud_cover_fraction_source", "cloud_cover_fraction_source"},
+    {"blur_score", "blur_score"},
+    {"blur_score_source", "blur_score_source"},
+    {"maneuver_success_factor", "maneuver_success_factor"},
+    {"maneuver_success_factor_source", "maneuver_success_factor_source"},
+    {"command_success_factor", "command_success_factor"},
+    {"command_success_factor_source", "command_success_factor_source"},
     {"station_throughput_factor", "station_throughput_factor"},
     {"station_throughput_factor_source", "station_throughput_factor_source"},
-    {"station_throughput_factor_activity_source", "station_throughput_factor_activity_source"}
+    {"station_throughput_factor_activity_source", "station_throughput_factor_activity_source"},
+    {"feedback_weight_sources", "feedback_weight_sources"}
   ]
   @branch_comparison_mission_identity_fields [
     {"branch_scenario_ids", ["scenario_id"]},

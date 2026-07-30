@@ -1357,6 +1357,63 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContractsTest do
     end
   end
 
+  test "rejects CampaignStrategy branch comparison feedback-detail drift", %{
+    strategy: strategy
+  } do
+    feedback_details = %{
+      "image_quality_score" => 0.37,
+      "image_quality_score_source" => "operator_review.image_quality_score",
+      "image_quality_statuses" => ["cloud_limited"],
+      "image_quality_sources" => ["provider_imagery_quality"],
+      "cloud_cover_fraction" => 0.42,
+      "cloud_cover_fraction_source" => "operator_review.cloud_cover_fraction",
+      "blur_score" => 0.21,
+      "blur_score_source" => "operator_review.blur_score",
+      "maneuver_success_factor" => 0.83,
+      "maneuver_success_factor_source" => "operator_review.maneuver_success_factor",
+      "command_success_factor" => 0.76,
+      "command_success_factor_source" => "operator_review.command_success_factor",
+      "feedback_weight_sources" => ["operator_sample_size"]
+    }
+
+    artifact =
+      strategy
+      |> update_in(["branches", Access.at(1), "feedback_adjustments"], fn adjustments ->
+        Map.merge(adjustments, feedback_details)
+      end)
+      |> update_in(["branch_comparison_report", "rows", Access.at(1)], fn row ->
+        Map.merge(row, feedback_details)
+      end)
+
+    assert {:ok, %{"schema_contract" => "campaign_strategy.v3"}} =
+             Schema.validate_artifact(artifact)
+
+    for {field, value} <- feedback_details do
+      drift =
+        cond do
+          is_number(value) -> value + 0.01
+          is_binary(value) -> value <> ".schema_valid_drift"
+          is_list(value) -> ["schema_valid_drift"]
+        end
+
+      invalid =
+        put_in(
+          artifact,
+          ["branch_comparison_report", "rows", Access.at(1), field],
+          drift
+        )
+
+      assert {:error, validation_report} = Schema.validate_artifact(invalid)
+
+      assert Enum.any?(
+               validation_report["errors"],
+               &(&1["path"] == "$.branch_comparison_report.rows[1].#{field}" and
+                   &1["message"] ==
+                     "must match the enclosing branch feedback_adjustments.#{field}")
+             )
+    end
+  end
+
   test "rejects CampaignStrategy branch comparison priority commitment drift", %{
     strategy: strategy
   } do

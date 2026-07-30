@@ -77,6 +77,22 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
       branch_operational_readiness_non_passed_gate_ids
     )
 
+    feedback_detail_fields = ~w(
+      image_quality_score
+      image_quality_score_source
+      image_quality_statuses
+      image_quality_sources
+      cloud_cover_fraction
+      cloud_cover_fraction_source
+      blur_score
+      blur_score_source
+      maneuver_success_factor
+      maneuver_success_factor_source
+      command_success_factor
+      command_success_factor_source
+      feedback_weight_sources
+    )
+
     review_operational_event_fields =
       operational_event_fields --
         ~w(
@@ -515,6 +531,25 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
       "branch_operational_readiness_gate_classifications" => ["review_only"]
     }
 
+    expected_feedback_detail_context = %{
+      "image_quality_score" => 0.435,
+      "image_quality_score_source" => "operational_feedback.image_quality_score",
+      "image_quality_statuses" => ["marginal"],
+      "image_quality_sources" => ["provider_imagery_quality"],
+      "cloud_cover_fraction" => 0.5850000000000001,
+      "cloud_cover_fraction_source" => "operational_feedback.cloud_cover_fraction",
+      "blur_score" => 0.28,
+      "blur_score_source" => "operational_feedback.blur_score",
+      "maneuver_success_factor" => 0.4,
+      "maneuver_success_factor_source" => "operational_feedback.maneuver_success_rate"
+    }
+
+    expected_import_feedback_detail_context =
+      Map.take(expected_feedback_detail_context, [
+        "maneuver_success_factor",
+        "maneuver_success_factor_source"
+      ])
+
     recommendation_summary =
       artifact["recommendation"]["explanation"]
       |> Enum.find(&(&1["type"] == "branch_event_summary"))
@@ -614,6 +649,13 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
     assert Map.take(recommendation_summary, operational_readiness_fields) ==
              expected_operational_readiness_context
+
+    recommendation_feedback =
+      artifact["recommendation"]["explanation"]
+      |> Enum.find(&(&1["type"] == "operational_feedback_driver"))
+
+    assert Map.take(recommendation_feedback, feedback_detail_fields) ==
+             expected_feedback_detail_context
 
     comparison_downlink_context =
       artifact["branch_comparison_report"]["rows"]
@@ -727,6 +769,13 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
     assert comparison_operational_readiness_context == expected_operational_readiness_context
 
+    comparison_feedback_detail_context =
+      artifact["branch_comparison_report"]["rows"]
+      |> Enum.find(&(&1["branch_id"] == "urgent"))
+      |> Map.take(feedback_detail_fields)
+
+    assert comparison_feedback_detail_context == expected_feedback_detail_context
+
     assert source_window_ids == Enum.sort(source_window_ids)
     assert length(source_window_ids) == 11
     assert length(source_window_bounds) == 10
@@ -793,6 +842,8 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
     assert Map.take(recommendation_review_row, operational_readiness_fields) == %{}
 
+    assert Map.take(recommendation_review_row, feedback_detail_fields) == %{}
+
     assert recommendation_review_row["branch_station_reservation_expiration_statuses"] == [
              "active"
            ]
@@ -844,6 +895,9 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
     assert Map.take(selected_import_row, operational_readiness_fields) ==
              expected_operational_readiness_context
 
+    assert Map.take(selected_import_row, feedback_detail_fields) ==
+             expected_import_feedback_detail_context
+
     assert selected_import_row["branch_station_reservation_expiration_statuses"] == ["active"]
 
     review_import =
@@ -885,6 +939,8 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
              expected_execution_uncertainty_context
 
     assert Map.take(review_import_row, operational_readiness_fields) == %{}
+
+    assert Map.take(review_import_row, feedback_detail_fields) == %{}
 
     assert review_import_row["branch_station_reservation_expiration_statuses"] == ["active"]
 
@@ -931,6 +987,8 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
              expected_execution_uncertainty_context
 
     assert Map.take(review_import_row["source_review_row"], operational_readiness_fields) == %{}
+
+    assert Map.take(review_import_row["source_review_row"], feedback_detail_fields) == %{}
 
     assert review_import_row["source_review_row"][
              "branch_station_reservation_expiration_statuses"
@@ -1279,6 +1337,28 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
                  "$.branch_comparison_report.rows[#{urgent_row_index}].branch_operational_readiness_levels" and
                  &1["message"] ==
                    "must match the enclosing branch operational-readiness values")
+           )
+
+    feedback_detail_invalid =
+      put_in(
+        artifact,
+        [
+          "branch_comparison_report",
+          "rows",
+          Access.at(urgent_row_index),
+          "image_quality_score_source"
+        ],
+        "stale_image_quality_score_source"
+      )
+
+    assert {:error, feedback_detail_report} = Schema.validate_artifact(feedback_detail_invalid)
+
+    assert Enum.any?(
+             feedback_detail_report["errors"],
+             &(&1["path"] ==
+                 "$.branch_comparison_report.rows[#{urgent_row_index}].image_quality_score_source" and
+                 &1["message"] ==
+                   "must match the enclosing branch feedback_adjustments.image_quality_score_source")
            )
 
     assert {:ok, %{"schema_contract" => "cadence_import_manifest.v1", "status" => "pass"}} =
