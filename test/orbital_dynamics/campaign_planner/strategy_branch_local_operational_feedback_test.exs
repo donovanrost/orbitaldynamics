@@ -1296,6 +1296,27 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyBranchLocalOperationalFeedback
              &(&1["path"] ==
                  "$.branch_comparison_report.rows[#{command_row_index}].branch_directions")
            )
+
+    calendar_context_invalid =
+      put_in(
+        artifact,
+        [
+          "branch_comparison_report",
+          "rows",
+          Access.at(command_row_index),
+          "branch_station_calendar_provider_ids"
+        ],
+        ["drift_provider"]
+      )
+
+    assert {:error, calendar_validation_report} =
+             Schema.validate_artifact(calendar_context_invalid)
+
+    assert Enum.any?(
+             calendar_validation_report["errors"],
+             &(&1["path"] ==
+                 "$.branch_comparison_report.rows[#{command_row_index}].branch_station_calendar_provider_ids")
+           )
   end
 
   defp command(id, scenario_id, starts_at_s, ends_at_s) do

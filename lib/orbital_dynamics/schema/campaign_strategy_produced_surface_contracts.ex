@@ -137,6 +137,19 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts do
     target_branch_base_id
     target_branch_identity
   )
+  @branch_comparison_station_calendar_fields [
+    {"branch_station_calendar_entry_ids",
+     ["station_calendar_entry_id", "station_calendar_entry_ids"]},
+    {"branch_station_calendar_provider_ids",
+     ["station_calendar_provider_id", "station_calendar_provider_ids"]},
+    {"branch_station_calendar_provider_entry_ids",
+     ["station_calendar_provider_entry_id", "station_calendar_provider_entry_ids"]},
+    {"branch_station_calendar_directions",
+     ["station_calendar_direction", "station_calendar_directions"]},
+    {"branch_station_calendar_statuses", ["station_calendar_status", "calendar_status"]},
+    {"branch_station_calendar_trust_boundary_statuses",
+     ["station_calendar_trust_boundary_status"]}
+  ]
   @branch_comparison_resource_projection_availability_pairs [
     {"resource_projection_payload_unavailable_count",
      "resource_projection_payload_unavailable_spacecraft_ids", "payload_unavailable"},
@@ -505,6 +518,21 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts do
       branch_event_unique_values(events, ["direction"]),
       "must match the enclosing branch directions"
     )
+    |> validate_branch_comparison_station_calendar_fields(path, row, events)
+  end
+
+  defp validate_branch_comparison_station_calendar_fields(issues, path, row, events) do
+    Enum.reduce(@branch_comparison_station_calendar_fields, issues, fn {row_field, sources},
+                                                                       acc ->
+      validate_optional_copy(
+        acc,
+        path <> ".#{row_field}",
+        row,
+        row_field,
+        branch_event_unique_values(events, sources),
+        "must match the enclosing branch station-calendar #{row_field}"
+      )
+    end)
   end
 
   defp branch_event_unique_values(events, fields) when is_list(events) do

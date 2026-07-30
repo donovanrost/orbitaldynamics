@@ -313,6 +313,35 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContractsTest do
     end
   end
 
+  test "rejects CampaignStrategy branch comparison station calendar context drift", %{
+    strategy: strategy
+  } do
+    drift_values = %{
+      "branch_station_calendar_entry_ids" => ["entry"],
+      "branch_station_calendar_provider_ids" => ["provider"],
+      "branch_station_calendar_provider_entry_ids" => ["provider_entry"],
+      "branch_station_calendar_directions" => ["uplink"],
+      "branch_station_calendar_statuses" => ["reserved"],
+      "branch_station_calendar_trust_boundary_statuses" => ["declared"]
+    }
+
+    for {field, drift} <- drift_values do
+      invalid =
+        put_in(
+          strategy,
+          ["branch_comparison_report", "rows", Access.at(1), field],
+          drift
+        )
+
+      assert {:error, validation_report} = Schema.validate_artifact(invalid)
+
+      assert Enum.any?(
+               validation_report["errors"],
+               &(&1["path"] == "$.branch_comparison_report.rows[1].#{field}")
+             )
+    end
+  end
+
   test "rejects CampaignStrategy branch comparison score evidence drift", %{
     strategy: strategy
   } do
