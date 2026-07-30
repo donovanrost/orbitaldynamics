@@ -512,6 +512,34 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContractsTest do
     end
   end
 
+  test "rejects CampaignStrategy branch comparison event quality context drift", %{
+    strategy: strategy
+  } do
+    drift_values = %{
+      "branch_image_quality_min_score" => 0.5,
+      "branch_image_quality_statuses" => ["marginal"],
+      "branch_image_quality_sources" => ["provider"],
+      "branch_cloud_cover_max_fraction" => 0.5,
+      "branch_blur_max_score" => 0.5
+    }
+
+    for {field, drift} <- drift_values do
+      invalid =
+        put_in(
+          strategy,
+          ["branch_comparison_report", "rows", Access.at(1), field],
+          drift
+        )
+
+      assert {:error, validation_report} = Schema.validate_artifact(invalid)
+
+      assert Enum.any?(
+               validation_report["errors"],
+               &(&1["path"] == "$.branch_comparison_report.rows[1].#{field}")
+             )
+    end
+  end
+
   test "rejects CampaignStrategy branch comparison score evidence drift", %{
     strategy: strategy
   } do

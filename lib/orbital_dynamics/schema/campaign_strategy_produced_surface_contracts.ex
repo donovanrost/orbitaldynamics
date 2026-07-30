@@ -544,6 +544,7 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts do
       branch,
       events
     )
+    |> validate_branch_comparison_event_quality_fields(path, row, events)
   end
 
   defp validate_branch_comparison_station_calendar_fields(issues, path, row, events) do
@@ -699,6 +700,45 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts do
   end
 
   defp branch_station_reservation_conflict_match_status?(_status), do: false
+
+  defp validate_branch_comparison_event_quality_fields(issues, path, row, events) do
+    issues
+    |> validate_optional_copy(
+      path <> ".branch_image_quality_min_score",
+      row,
+      "branch_image_quality_min_score",
+      event_minimum_present(events, "image_quality_score"),
+      "must match the enclosing branch minimum image-quality score"
+    )
+    |> validate_optional_copy(
+      path <> ".branch_image_quality_statuses",
+      row,
+      "branch_image_quality_statuses",
+      branch_event_unique_values(events, ["image_quality_status"]),
+      "must match the enclosing branch image-quality statuses"
+    )
+    |> validate_optional_copy(
+      path <> ".branch_image_quality_sources",
+      row,
+      "branch_image_quality_sources",
+      branch_event_unique_values(events, ["image_quality_source"]),
+      "must match the enclosing branch image-quality sources"
+    )
+    |> validate_optional_copy(
+      path <> ".branch_cloud_cover_max_fraction",
+      row,
+      "branch_cloud_cover_max_fraction",
+      event_maximum_present(events, "cloud_cover_fraction"),
+      "must match the enclosing branch maximum cloud-cover fraction"
+    )
+    |> validate_optional_copy(
+      path <> ".branch_blur_max_score",
+      row,
+      "branch_blur_max_score",
+      event_maximum_present(events, "blur_score"),
+      "must match the enclosing branch maximum blur score"
+    )
+  end
 
   defp branch_event_unique_values(events, fields) when is_list(events) do
     events

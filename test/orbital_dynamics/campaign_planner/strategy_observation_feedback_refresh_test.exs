@@ -621,6 +621,33 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyObservationFeedbackRefreshTest
 
     assert {:ok, %{"schema_contract" => "campaign_strategy.v3", "status" => "pass"}} =
              Schema.validate_artifact(artifact)
+
+    quality_row_index =
+      Enum.find_index(
+        artifact["branch_comparison_report"]["rows"],
+        &(&1["branch_id"] == "quality_feedback")
+      )
+
+    quality_context_invalid =
+      put_in(
+        artifact,
+        [
+          "branch_comparison_report",
+          "rows",
+          Access.at(quality_row_index),
+          "branch_blur_max_score"
+        ],
+        0.7
+      )
+
+    assert {:error, quality_context_report} =
+             Schema.validate_artifact(quality_context_invalid)
+
+    assert Enum.any?(
+             quality_context_report["errors"],
+             &(&1["path"] ==
+                 "$.branch_comparison_report.rows[#{quality_row_index}].branch_blur_max_score")
+           )
   end
 
   test "strategy derives branch-local refresh from operational image quality feedback" do
