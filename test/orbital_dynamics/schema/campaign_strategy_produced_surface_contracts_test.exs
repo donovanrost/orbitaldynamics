@@ -237,6 +237,38 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContractsTest do
     end
   end
 
+  test "rejects CampaignStrategy ranking comparison identity drift", %{strategy: strategy} do
+    report = strategy["ranking_comparison_report"]
+
+    for field <- ["source", "objective", "objective_direction", "left_label", "right_label"] do
+      invalid =
+        put_in(
+          strategy,
+          ["ranking_comparison_report", field],
+          report[field] <> ".schema_valid_drift"
+        )
+
+      assert {:error, validation_report} = Schema.validate_artifact(invalid)
+
+      assert Enum.any?(
+               validation_report["errors"],
+               &(&1["path"] == "$.ranking_comparison_report.#{field}")
+             )
+    end
+
+    for {field, value} <- report["assumptions"] do
+      drift = if is_boolean(value), do: not value, else: value <> ".schema_valid_drift"
+      invalid = put_in(strategy, ["ranking_comparison_report", "assumptions", field], drift)
+
+      assert {:error, validation_report} = Schema.validate_artifact(invalid)
+
+      assert Enum.any?(
+               validation_report["errors"],
+               &(&1["path"] == "$.ranking_comparison_report.assumptions.#{field}")
+             )
+    end
+  end
+
   test "rejects CampaignStrategy branch comparison target identity drift", %{
     strategy: strategy
   } do

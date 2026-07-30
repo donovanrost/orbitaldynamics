@@ -5,54 +5,54 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Bind CampaignStrategy combined source-branch lineage.
+Bind CampaignStrategy ranking-report identity.
 
 Status:
-Implemented and fully verified from clean published base `9c60d799`; ready to
+Implemented and fully verified from clean published base `e12223ef`; ready to
 publish.
 
 Selection evidence:
-- `BranchComparisonContext.event_fields/1` emits sorted unique
-  `combined_source_branch_ids` from each event's source-branch array, falling
-  back to the singular source only when the array key is absent.
-- Both the checked canonical combined-mission branch and the real lineage
-  normalization scenario populate this comparison-row field.
-- A live canonical mutation probe confirmed a schema-valid stale branch ID is
-  accepted on its exact row path.
+- `BranchComparisonReport.ranking_report/2` fixes report source, objective,
+  direction, left/right labels, and three comparison assumptions for every
+  CampaignStrategy ranking report.
+- Generic report validation already binds schema/model/model limits and internal
+  counts, but treats these eight producer-owned identity values as arbitrary
+  schema-valid strings or booleans.
+- A live canonical prechange probe confirmed independent stale values are
+  accepted for all five static fields and all three assumptions (`8/8`).
 
 Delivered behavior:
-- CampaignStrategy produced-surface validation now binds optional combined
-  source-branch lineage to the enclosing branch events, preserving the
-  producer's array-first/singular-fallback rule and sorted unique output.
-- Canonical mutation coverage rejects stale lineage on its exact row path, while
-  the real normalization scenario and lineage-absent older rows remain valid.
+- CampaignStrategy produced-surface validation now binds the ranking report's
+  fixed source, objective, direction, labels, and all three deterministic
+  comparison assumptions to the producer contract.
+- Canonical mutation coverage challenges all eight values independently on
+  exact paths; generic report counts/model limits and optional compatibility
+  remain owned by their existing validators.
 
 Verification:
-- Populated canonical lineage mutation: `1 passed, 55 excluded` in 5.9s (seed
-  `948339`).
-- Real lineage-normalization scenario: `1 passed, 7 excluded` in 0.7s (seed
-  `636899`).
-- Focused produced-surface contracts: `56 passed` in 297.3s (seed `818330`).
-- Adjacent strategy review/import handoffs: `4 passed, 85 excluded` in 6.5s
-  (seed `169483`).
-- Live canonical mutation probe: zero baseline issues and the stale combined
-  source-branch list rejected on its exact producer-binding path.
-- Broad schema: `1166 passed` in 602.6s (seed `294743`).
-- Campaign planner: `1888 passed` in 353.2s (seed `587562`); only the known
+- Populated canonical ranking identity scenario: `1 passed, 56 excluded` in
+  11.9s (seed `918544`).
+- Focused produced-surface contracts: `57 passed` in 307.7s (seed `30588`).
+- Adjacent strategy review/import handoffs: `4 passed, 85 excluded` in 9.0s
+  (seed `430263`).
+- Live canonical mutation probe: all static fields (`5/5`) and assumptions
+  (`3/3`) rejected on their exact producer-binding paths.
+- Broad schema: `1167 passed` in 668.7s (seed `116682`).
+- Campaign planner: `1888 passed` in 349.3s (seed `883168`); only the known
   `support.exs` test-pattern warning.
 - Stored-artifact lint: `155` artifacts, `0` errors, `0` warnings.
 - Canonical repair/strategy regeneration retained hashes `cc41834e...cdc30d8a`
   and `57602722...2f9985`.
-- Full suite: `5668 passed` in 731.3s (seed `853496`); only known support-fixture
+- Full suite: `5669 passed` in 731.8s (seed `207612`); only known support-fixture
   test-pattern warnings.
 - Final formatting and whitespace checks passed.
 
 Level 6 pillar advanced:
-Fleet-scale strategy decision-support and objective-evidence integrity.
+Fleet-scale strategy decision-support and embedded-report identity integrity.
 
 Last published slice:
-- `9c60d799` Complete CampaignStrategy comparison downlink evidence (`5667
-  passed`; the emitted downlink-completion summary set is producer-bound).
+- `e12223ef` Bind CampaignStrategy combined source branch lineage (`5668 passed`;
+  optional combined lineage now follows the exact event aggregation rule).
 
 Remaining maturity gaps:
 - Audit remaining generated and source handoffs where their complete producer
@@ -67,9 +67,9 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-After this slice, audit replayable score-ranked membership and static producer
-metadata within the ranking report; keep input-order fields deferred because
-their source ordering is not preserved in the artifact.
+After this slice, bind replayable score-ranked membership, ranks, and values
+within the ranking report; keep input-order fields deferred because their source
+ordering is not preserved in the artifact.
 
 Blocked:
 None.

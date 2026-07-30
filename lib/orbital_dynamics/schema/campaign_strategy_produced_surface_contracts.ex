@@ -67,6 +67,18 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts do
     "expected_score" => "raw_score_times_branch_probability_times_probability_weight",
     "blocked_branches_remain_visible" => true
   }
+  @strategy_ranking_comparison_fields %{
+    "source" => "campaign_strategy.branch_comparison_report",
+    "objective" => "strategy_branch_score",
+    "objective_direction" => "maximize",
+    "left_label" => "normalized_branch_order",
+    "right_label" => "score_ranked_branches"
+  }
+  @strategy_ranking_comparison_assumptions %{
+    "comparison_scope" => "ranked_scenario_rows",
+    "rank_source" => "input_order",
+    "external_solver" => false
+  }
   @branch_comparison_feedback_fields [
     {"feedback_score_adjustment", "score_adjustment"},
     {"contact_success_factor", "contact_success_factor"},
@@ -432,6 +444,7 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts do
     |> validate_recommended_branch_evidence(artifact)
     |> validate_branch_comparison_identity(artifact)
     |> validate_branch_comparison_assumptions(artifact)
+    |> validate_strategy_ranking_comparison_identity(artifact)
     |> validate_branch_comparison_target_identity(artifact)
     |> validate_branch_comparison_event_summary(artifact)
     |> validate_branch_comparison_score_evidence(artifact)
@@ -676,6 +689,46 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts do
   end
 
   defp validate_branch_comparison_assumptions(issues, _artifact), do: issues
+
+  defp validate_strategy_ranking_comparison_identity(
+         issues,
+         %{"ranking_comparison_report" => %{} = report}
+       ) do
+    issues =
+      Enum.reduce(@strategy_ranking_comparison_fields, issues, fn {field, expected}, acc ->
+        validate_optional_copy(
+          acc,
+          "$.ranking_comparison_report.#{field}",
+          report,
+          field,
+          expected,
+          "must match the CampaignStrategy ranking-report producer identity"
+        )
+      end)
+
+    case Map.get(report, "assumptions") do
+      %{} = assumptions ->
+        Enum.reduce(
+          @strategy_ranking_comparison_assumptions,
+          issues,
+          fn {field, expected}, acc ->
+            validate_optional_copy(
+              acc,
+              "$.ranking_comparison_report.assumptions.#{field}",
+              assumptions,
+              field,
+              expected,
+              "must match the deterministic ranking-comparison assumption"
+            )
+          end
+        )
+
+      _assumptions ->
+        issues
+    end
+  end
+
+  defp validate_strategy_ranking_comparison_identity(issues, _artifact), do: issues
 
   defp validate_branch_comparison_target_identity(
          issues,
