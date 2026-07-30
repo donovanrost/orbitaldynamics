@@ -213,6 +213,30 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContractsTest do
     end
   end
 
+  test "rejects CampaignStrategy branch comparison assumption drift", %{strategy: strategy} do
+    assumptions = strategy["branch_comparison_report"]["assumptions"]
+
+    for {field, value} <- assumptions do
+      drift = if is_boolean(value), do: not value, else: value <> ".schema_valid_drift"
+
+      invalid =
+        put_in(
+          strategy,
+          ["branch_comparison_report", "assumptions", field],
+          drift
+        )
+
+      assert {:error, validation_report} = Schema.validate_artifact(invalid)
+
+      assert Enum.any?(
+               validation_report["errors"],
+               &(&1["path"] == "$.branch_comparison_report.assumptions.#{field}" and
+                   &1["message"] ==
+                     "must match the deterministic branch comparison assumption")
+             )
+    end
+  end
+
   test "rejects CampaignStrategy branch comparison target identity drift", %{
     strategy: strategy
   } do

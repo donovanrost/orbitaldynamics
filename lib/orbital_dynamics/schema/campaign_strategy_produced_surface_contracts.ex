@@ -58,6 +58,15 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts do
     "operator_review_required" => "best_expected_score_requiring_operator_review",
     "blocked_by_policy" => "all_branches_blocked_highest_score_reported_for_review"
   }
+  @branch_comparison_assumptions %{
+    "branch_order" => "score_descending_then_branch_id",
+    "score_delta_from_recommended" => "row_score_minus_recommended_branch_score",
+    "score" => "probability_weighted_expected_score",
+    "raw_score" => "score_before_branch_probability_multiplier",
+    "branch_probability" => "independent branch likelihood or confidence multiplier in [0,1]",
+    "expected_score" => "raw_score_times_branch_probability_times_probability_weight",
+    "blocked_branches_remain_visible" => true
+  }
   @branch_comparison_feedback_fields [
     {"feedback_score_adjustment", "score_adjustment"},
     {"contact_success_factor", "contact_success_factor"},
@@ -414,6 +423,7 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts do
     |> validate_ranked_branch_eligibility(artifact)
     |> validate_recommended_branch_evidence(artifact)
     |> validate_branch_comparison_identity(artifact)
+    |> validate_branch_comparison_assumptions(artifact)
     |> validate_branch_comparison_target_identity(artifact)
     |> validate_branch_comparison_event_summary(artifact)
     |> validate_branch_comparison_score_evidence(artifact)
@@ -638,6 +648,25 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts do
   end
 
   defp validate_branch_comparison_identity(issues, _artifact), do: issues
+
+  defp validate_branch_comparison_assumptions(
+         issues,
+         %{"branch_comparison_report" => %{"assumptions" => assumptions}}
+       )
+       when is_map(assumptions) do
+    Enum.reduce(@branch_comparison_assumptions, issues, fn {field, expected}, acc ->
+      validate_optional_copy(
+        acc,
+        "$.branch_comparison_report.assumptions.#{field}",
+        assumptions,
+        field,
+        expected,
+        "must match the deterministic branch comparison assumption"
+      )
+    end)
+  end
+
+  defp validate_branch_comparison_assumptions(issues, _artifact), do: issues
 
   defp validate_branch_comparison_target_identity(
          issues,
