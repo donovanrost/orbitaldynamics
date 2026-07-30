@@ -1579,6 +1579,33 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyContactAllocationPressureTest 
 
     assert {:ok, %{"schema_contract" => "campaign_strategy.v3", "status" => "pass"}} =
              Schema.validate_artifact(artifact)
+
+    reservation_row_index =
+      Enum.find_index(
+        artifact["branch_comparison_report"]["rows"],
+        &(&1["branch_id"] == reservation_branch["branch_id"])
+      )
+
+    conflict_context_invalid =
+      put_in(
+        artifact,
+        [
+          "branch_comparison_report",
+          "rows",
+          Access.at(reservation_row_index),
+          "branch_station_reservation_conflict_reservation_ids"
+        ],
+        ["drift_reservation"]
+      )
+
+    assert {:error, conflict_context_report} =
+             Schema.validate_artifact(conflict_context_invalid)
+
+    assert Enum.any?(
+             conflict_context_report["errors"],
+             &(&1["path"] ==
+                 "$.branch_comparison_report.rows[#{reservation_row_index}].branch_station_reservation_conflict_reservation_ids")
+           )
   end
 
   test "strategy derives branch refresh from prior-plan contact allocation summary pressure" do

@@ -410,6 +410,108 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContractsTest do
            )
   end
 
+  test "rejects CampaignStrategy branch comparison station reservation conflict drift", %{
+    strategy: strategy
+  } do
+    conflict_fields = [
+      "branch_station_reservation_conflict_contact_ids",
+      "branch_station_reservation_conflict_reservation_ids",
+      "branch_station_reservation_conflict_match_statuses"
+    ]
+
+    event_fallback_invalid =
+      strategy
+      |> update_in(
+        ["branches", Access.at(1), "events", Access.at(0)],
+        &Map.merge(&1, %{
+          "contact_id" => "event_contact",
+          "station_reservation_id" => "event_reservation",
+          "station_reservation_match_status" => "unmatched-overlap"
+        })
+      )
+      |> put_in(
+        [
+          "branch_comparison_report",
+          "rows",
+          Access.at(1),
+          "branch_station_reservation_ids"
+        ],
+        ["event_reservation"]
+      )
+      |> put_in(
+        [
+          "branch_comparison_report",
+          "rows",
+          Access.at(1),
+          "branch_station_reservation_match_statuses"
+        ],
+        ["unmatched-overlap"]
+      )
+      |> update_in(
+        ["branch_comparison_report", "rows", Access.at(1)],
+        &Map.merge(&1, %{
+          "branch_station_reservation_conflict_contact_ids" => ["invented_contact"],
+          "branch_station_reservation_conflict_reservation_ids" => ["invented_reservation"],
+          "branch_station_reservation_conflict_match_statuses" => ["matched"]
+        })
+      )
+
+    assert {:error, event_fallback_report} =
+             Schema.validate_artifact(event_fallback_invalid)
+
+    for field <- conflict_fields do
+      assert Enum.any?(
+               event_fallback_report["errors"],
+               &(&1["path"] == "$.branch_comparison_report.rows[1].#{field}")
+             )
+    end
+
+    pressure_branch_index =
+      Enum.find_index(
+        strategy["branches"],
+        &(&1["branch_id"] == "derived_downlink_constrained")
+      )
+
+    pressure_risk_index =
+      strategy
+      |> get_in(["branches", Access.at(pressure_branch_index), "risk_indicators"])
+      |> Enum.find_index(&(&1["type"] == "downlink_completion_gap"))
+
+    risk_override_invalid =
+      strategy
+      |> update_in(
+        [
+          "branches",
+          Access.at(pressure_branch_index),
+          "risk_indicators",
+          Access.at(pressure_risk_index)
+        ],
+        &Map.merge(&1, %{
+          "contact_id" => "risk_contact",
+          "station_reservation_id" => "risk_reservation",
+          "station_reservation_match_status" => "matched"
+        })
+      )
+      |> update_in(
+        ["branch_comparison_report", "rows", Access.at(pressure_branch_index)],
+        &Map.merge(&1, %{
+          "branch_station_reservation_conflict_contact_ids" => ["event_contact"],
+          "branch_station_reservation_conflict_reservation_ids" => ["event_reservation"],
+          "branch_station_reservation_conflict_match_statuses" => ["unmatched_overlap"]
+        })
+      )
+
+    assert {:error, risk_override_report} = Schema.validate_artifact(risk_override_invalid)
+
+    for field <- conflict_fields do
+      assert Enum.any?(
+               risk_override_report["errors"],
+               &(&1["path"] ==
+                   "$.branch_comparison_report.rows[#{pressure_branch_index}].#{field}")
+             )
+    end
+  end
+
   test "rejects CampaignStrategy branch comparison score evidence drift", %{
     strategy: strategy
   } do

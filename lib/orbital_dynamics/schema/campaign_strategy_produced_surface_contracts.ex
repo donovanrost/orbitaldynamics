@@ -160,6 +160,14 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts do
     {"branch_station_reservation_match_statuses",
      ["station_reservation_match_status", "reservation_match_status"]}
   ]
+  @branch_comparison_station_reservation_conflict_fields [
+    {"branch_station_reservation_conflict_contact_ids",
+     ["contact_id", "source_activity_id", "source_activity_ids"], false},
+    {"branch_station_reservation_conflict_reservation_ids",
+     ["station_reservation_id", "reservation_id"], false},
+    {"branch_station_reservation_conflict_match_statuses",
+     ["station_reservation_match_status", "reservation_match_status"], true}
+  ]
   @branch_comparison_resource_projection_availability_pairs [
     {"resource_projection_payload_unavailable_count",
      "resource_projection_payload_unavailable_spacecraft_ids", "payload_unavailable"},
@@ -530,6 +538,12 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts do
     )
     |> validate_branch_comparison_station_calendar_fields(path, row, events)
     |> validate_branch_comparison_station_reservation_fields(path, row, branch, events)
+    |> validate_branch_comparison_station_reservation_conflict_fields(
+      path,
+      row,
+      branch,
+      events
+    )
   end
 
   defp validate_branch_comparison_station_calendar_fields(issues, path, row, events) do
@@ -603,6 +617,88 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts do
         statuses
     end
   end
+
+  defp validate_branch_comparison_station_reservation_conflict_fields(
+         issues,
+         path,
+         row,
+         branch,
+         events
+       ) do
+    conflict_events =
+      events
+      |> list_maps()
+      |> Enum.filter(&branch_station_reservation_conflict_event?/1)
+
+    conflict_risks =
+      branch
+      |> Map.get("risk_indicators")
+      |> list_maps()
+      |> Enum.filter(&branch_station_reservation_conflict_risk?/1)
+
+    Enum.reduce(
+      @branch_comparison_station_reservation_conflict_fields,
+      issues,
+      fn {row_field, sources, filter_match_statuses?}, acc ->
+        event_values =
+          conflict_events
+          |> branch_event_unique_values(sources)
+          |> maybe_filter_branch_station_reservation_conflict_match_statuses(
+            filter_match_statuses?
+          )
+
+        expected =
+          case branch_event_unique_values(conflict_risks, sources) do
+            [] -> event_values
+            risk_values -> risk_values
+          end
+
+        validate_optional_copy(
+          acc,
+          path <> ".#{row_field}",
+          row,
+          row_field,
+          expected,
+          "must match the enclosing branch station-reservation conflict #{row_field}"
+        )
+      end
+    )
+  end
+
+  defp branch_station_reservation_conflict_event?(event) do
+    event
+    |> List.wrap()
+    |> branch_event_unique_values([
+      "station_reservation_match_status",
+      "reservation_match_status"
+    ])
+    |> Enum.any?(&branch_station_reservation_conflict_match_status?/1)
+  end
+
+  defp branch_station_reservation_conflict_risk?(risk) do
+    Map.get(risk, "type") in [
+      "downlink_completion_gap",
+      "provider_reservation_request_review"
+    ] and not is_nil(Map.get(risk, "station_reservation_match_status"))
+  end
+
+  defp maybe_filter_branch_station_reservation_conflict_match_statuses(values, true),
+    do: Enum.filter(values, &branch_station_reservation_conflict_match_status?/1)
+
+  defp maybe_filter_branch_station_reservation_conflict_match_statuses(values, false),
+    do: values
+
+  defp branch_station_reservation_conflict_match_status?(status) when is_binary(status) do
+    normalized_status =
+      status
+      |> String.trim()
+      |> String.downcase()
+      |> String.replace(~r/[\s-]+/, "_")
+
+    normalized_status not in ["", "matched", "owner_matched", "owned", "owner"]
+  end
+
+  defp branch_station_reservation_conflict_match_status?(_status), do: false
 
   defp branch_event_unique_values(events, fields) when is_list(events) do
     events

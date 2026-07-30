@@ -5,48 +5,45 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Bind CampaignStrategy branch station reservation context.
+Bind CampaignStrategy branch station reservation conflict context.
 
 Status:
-Verified locally from clean published base `41855a89`; publish pending.
+Verified locally from clean published base `fdac310f`; publish pending.
 
 Selection evidence:
-- `BranchComparisonContext.event_fields/1` derives reservation IDs, owners,
-  statuses, and match statuses from branch events with normalized unique
-  ordering.
-- `BranchComparisonReport` then merges `RiskFields`: a non-empty
-  `expired`/`missing` pressure-risk status list replaces event values, while an
-  omitted empty risk field leaves event-derived statuses intact.
-- A real command-feedback scenario populates four of the five fields and carries
-  them into downstream operator-review and Cadence import surfaces.
-- Independently inventing any of the five fields in the canonical comparison
+- `BranchComparisonContext.event_fields/1` derives conflict contact IDs,
+  reservation IDs, and match statuses only from events whose normalized match
+  status is not a matched/owned variant.
+- `BranchComparisonReport` then merges `RiskFields` field by field: qualifying
+  downlink-gap/provider-review risks override each event-derived list only when
+  their corresponding risk-derived list is non-empty.
+- Real contact-allocation pressure scenarios populate all three fields and carry
+  them through operator-review and Cadence import surfaces.
+- Independently inventing any of the three fields in the canonical comparison
   still returned `:ok` from `Schema.validate_artifact/1`.
 
 Delivered behavior:
-- CampaignStrategy validation now binds reservation IDs, owners, statuses, and
-  match statuses to each identity-aligned branch event list.
-- Reservation expiration statuses bind to the producer's conditional merge:
-  filtered pressure-risk values win when present, otherwise event values remain.
-- Producer scalar/plural flattening, normalized unique ordering, and omission
-  remain intact.
+- CampaignStrategy validation now binds conflict contact IDs, reservation IDs,
+  and match statuses to the producer's exact field-by-field event/risk merge.
+- Event fallback preserves normalized conflict eligibility, while non-empty
+  qualifying-risk values override without incorrectly excluding matched risk
+  evidence.
+- Producer scalar/plural flattening, normalized unique ordering, partial-risk
+  fallback, and omission remain intact.
 
 Verification:
-- Focused produced-surface contracts: `34 passed` in `160.4s` (seed `998115`),
-  including active-event fallback and non-empty pressure-risk override coverage.
-- All five planner scenarios that exposed expiration precedence variants:
-  `5 passed` (seed `996604`).
-- Adjacent produced-surface, campaign-repair/strategy, and populated command-
-  feedback scenario: `44 passed` in `177.4s` (seed `826215`).
-- Live canonical mutation probe detected all five exact reservation-context
-  paths.
-- Broad schema suite: `1120 passed` in `347.1s` (seed `891778`).
-- Planner suite: `1888 passed` in `366.5s` (seed `178166`); only the
+- Focused produced-surface contracts: `35 passed` in `164.2s` (seed `519967`).
+- Adjacent produced-surface, campaign-repair/strategy, and populated allocation-
+  pressure scenario: `38 passed`, `8 excluded`, in `145.2s` (seed `766898`).
+- Live canonical mutation probe detected all three exact conflict-context paths.
+- Broad schema suite: `1121 passed` in `306.1s` (seed `339015`).
+- Planner suite: `1888 passed` in `374.3s` (seed `492793`); only the
   pre-existing `campaign_planner/support.exs` discovery warning appeared.
 - Schema lint: `155` artifacts, `0` errors, `0` warnings.
 - Canonical repair and strategy artifacts regenerated with unchanged SHA-256
   hashes `cc41834e706fd1e04a4c5578032fdf99ceeba949a02fd75fc54c8b70cdc30d8a`
   and `57602722702969da587e2754df84bca1e06e86cc32fa5af7f3f78451b72f9985`.
-- Full suite: `5646 passed` in `899.5s` (seed `978051`); only the pre-existing
+- Full suite: `5647 passed` in `779.3s` (seed `883515`); only the pre-existing
   support/fixture discovery warning appeared.
 - `mix format --check-formatted` and `git diff --check` passed.
 
@@ -54,9 +51,9 @@ Level 6 pillar advanced:
 Fleet-scale strategy decision-support and embedded-report identity integrity.
 
 Last published slice:
-- `41855a89` Bind CampaignStrategy branch station calendar context (`5645
-  passed`; all six calendar-context fields now bind to each enclosing branch
-  event list).
+- `fdac310f` Bind CampaignStrategy branch station reservation context (`5646
+  passed`; all five reservation-context fields now follow event/risk producer
+  precedence).
 
 Remaining maturity gaps:
 - Audit remaining generated and source handoffs where their complete producer
@@ -71,9 +68,8 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-Publish this slice, then audit CampaignStrategy branch station-reservation
-conflict contact IDs, reservation IDs, and match statuses against the producer's
-conflict eligibility and normalization rules.
+Publish this slice, then audit the remaining CampaignStrategy branch event-
+quality context fields against their complete producer normalization rules.
 
 Blocked:
 None.
