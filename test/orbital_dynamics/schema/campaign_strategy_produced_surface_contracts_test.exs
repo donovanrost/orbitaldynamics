@@ -342,6 +342,74 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContractsTest do
     end
   end
 
+  test "rejects CampaignStrategy branch comparison station reservation context drift", %{
+    strategy: strategy
+  } do
+    drift_values = %{
+      "branch_station_reservation_ids" => ["reservation"],
+      "branch_station_reserved_by" => ["team"],
+      "branch_station_reservation_statuses" => ["confirmed"],
+      "branch_station_reservation_match_statuses" => ["unmatched_overlap"],
+      "branch_station_reservation_expiration_statuses" => ["expired"]
+    }
+
+    for {field, drift} <- drift_values do
+      source_strategy =
+        if field == "branch_station_reservation_expiration_statuses" do
+          update_in(
+            strategy,
+            ["branches", Access.at(1), "events", Access.at(0)],
+            &Map.put(&1, "station_reservation_expiration_status", "active")
+          )
+        else
+          strategy
+        end
+
+      invalid =
+        put_in(
+          source_strategy,
+          ["branch_comparison_report", "rows", Access.at(1), field],
+          drift
+        )
+
+      assert {:error, validation_report} = Schema.validate_artifact(invalid)
+
+      assert Enum.any?(
+               validation_report["errors"],
+               &(&1["path"] == "$.branch_comparison_report.rows[1].#{field}")
+             )
+    end
+
+    pressure_override_invalid =
+      strategy
+      |> update_in(
+        ["branches", Access.at(1), "events", Access.at(0)],
+        &Map.put(&1, "station_reservation_expiration_status", "active")
+      )
+      |> update_in(
+        ["branches", Access.at(1), "risk_indicators", Access.at(0)],
+        &Map.put(&1, "station_reservation_expiration_status", "expired")
+      )
+      |> put_in(
+        [
+          "branch_comparison_report",
+          "rows",
+          Access.at(1),
+          "branch_station_reservation_expiration_statuses"
+        ],
+        ["active"]
+      )
+
+    assert {:error, pressure_override_report} =
+             Schema.validate_artifact(pressure_override_invalid)
+
+    assert Enum.any?(
+             pressure_override_report["errors"],
+             &(&1["path"] ==
+                 "$.branch_comparison_report.rows[1].branch_station_reservation_expiration_statuses")
+           )
+  end
+
   test "rejects CampaignStrategy branch comparison score evidence drift", %{
     strategy: strategy
   } do

@@ -150,6 +150,16 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts do
     {"branch_station_calendar_trust_boundary_statuses",
      ["station_calendar_trust_boundary_status"]}
   ]
+  @branch_comparison_station_reservation_fields [
+    {"branch_station_reservation_ids",
+     ["station_reservation_id", "reservation_id", "station_calendar_reservation_ids"]},
+    {"branch_station_reserved_by",
+     ["station_reserved_by", "reserved_by", "station_calendar_reserved_by"]},
+    {"branch_station_reservation_statuses",
+     ["station_reservation_status", "reservation_status", "station_calendar_reservation_statuses"]},
+    {"branch_station_reservation_match_statuses",
+     ["station_reservation_match_status", "reservation_match_status"]}
+  ]
   @branch_comparison_resource_projection_availability_pairs [
     {"resource_projection_payload_unavailable_count",
      "resource_projection_payload_unavailable_spacecraft_ids", "payload_unavailable"},
@@ -519,6 +529,7 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts do
       "must match the enclosing branch directions"
     )
     |> validate_branch_comparison_station_calendar_fields(path, row, events)
+    |> validate_branch_comparison_station_reservation_fields(path, row, branch, events)
   end
 
   defp validate_branch_comparison_station_calendar_fields(issues, path, row, events) do
@@ -533,6 +544,64 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts do
         "must match the enclosing branch station-calendar #{row_field}"
       )
     end)
+  end
+
+  defp validate_branch_comparison_station_reservation_fields(
+         issues,
+         path,
+         row,
+         branch,
+         events
+       ) do
+    issues
+    |> then(fn issues ->
+      Enum.reduce(
+        @branch_comparison_station_reservation_fields,
+        issues,
+        fn {row_field, sources}, acc ->
+          validate_optional_copy(
+            acc,
+            path <> ".#{row_field}",
+            row,
+            row_field,
+            branch_event_unique_values(events, sources),
+            "must match the enclosing branch station-reservation #{row_field}"
+          )
+        end
+      )
+    end)
+    |> validate_optional_copy(
+      path <> ".branch_station_reservation_expiration_statuses",
+      row,
+      "branch_station_reservation_expiration_statuses",
+      branch_station_reservation_expiration_statuses(branch, events),
+      "must match the enclosing branch station-reservation expiration pressure risks"
+    )
+  end
+
+  defp branch_station_reservation_expiration_statuses(branch, events) do
+    pressure_statuses =
+      branch
+      |> Map.get("risk_indicators")
+      |> list_maps()
+      |> Enum.filter(fn risk ->
+        Map.get(risk, "station_reservation_expiration_status") in ["expired", "missing"]
+      end)
+      |> branch_event_unique_values([
+        "station_reservation_expiration_status",
+        "station_reservation_expiration_statuses"
+      ])
+
+    case pressure_statuses do
+      [] ->
+        branch_event_unique_values(events, [
+          "station_reservation_expiration_status",
+          "station_reservation_expiration_statuses"
+        ])
+
+      statuses ->
+        statuses
+    end
   end
 
   defp branch_event_unique_values(events, fields) when is_list(events) do
