@@ -2970,6 +2970,55 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts do
       Map.get(link_capacity_report, "selected_capacity_adjusted_throughput_mb"),
       "must match the enclosing branch repair link_capacity_report.selected_capacity_adjusted_throughput_mb"
     )
+    |> validate_optional_copy(
+      path <> ".repair_link_required_downlink_mb",
+      row,
+      "repair_link_required_downlink_mb",
+      Map.get(link_capacity_report, "required_downlink_mb"),
+      "must match the enclosing branch repair link_capacity_report.required_downlink_mb"
+    )
+    |> validate_optional_copy(
+      path <> ".repair_link_selected_downlink_shortfall_mb",
+      row,
+      "repair_link_selected_downlink_shortfall_mb",
+      Map.get(link_capacity_report, "selected_downlink_shortfall_mb"),
+      "must match the enclosing branch repair link_capacity_report.selected_downlink_shortfall_mb"
+    )
+    |> validate_optional_copy(
+      path <> ".repair_link_downlink_requirement_status",
+      row,
+      "repair_link_downlink_requirement_status",
+      Map.get(link_capacity_report, "downlink_requirement_status"),
+      "must match the enclosing branch repair link_capacity_report.downlink_requirement_status"
+    )
+    |> validate_optional_copy(
+      path <> ".repair_link_actual_throughput_mb",
+      row,
+      "repair_link_actual_throughput_mb",
+      Map.get(link_capacity_report, "actual_throughput_mb"),
+      "must match the enclosing branch repair link_capacity_report.actual_throughput_mb"
+    )
+    |> validate_optional_copy(
+      path <> ".repair_link_actual_downlink_completion_ratio",
+      row,
+      "repair_link_actual_downlink_completion_ratio",
+      Map.get(link_capacity_report, "actual_downlink_completion_ratio"),
+      "must match the enclosing branch repair link_capacity_report.actual_downlink_completion_ratio"
+    )
+    |> validate_optional_copy(
+      path <> ".repair_link_actual_downlink_shortfall_mb",
+      row,
+      "repair_link_actual_downlink_shortfall_mb",
+      Map.get(link_capacity_report, "actual_downlink_shortfall_mb"),
+      "must match the enclosing branch repair link_capacity_report.actual_downlink_shortfall_mb"
+    )
+    |> validate_optional_copy(
+      path <> ".repair_link_actual_downlink_requirement_status",
+      row,
+      "repair_link_actual_downlink_requirement_status",
+      Map.get(link_capacity_report, "actual_downlink_requirement_status"),
+      "must match the enclosing branch repair link_capacity_report.actual_downlink_requirement_status"
+    )
   end
 
   defp validate_branch_comparison_repair_link_selection_row(

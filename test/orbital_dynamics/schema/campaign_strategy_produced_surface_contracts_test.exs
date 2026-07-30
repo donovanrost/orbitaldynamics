@@ -1882,6 +1882,56 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContractsTest do
     end
   end
 
+  test "rejects CampaignStrategy branch comparison repair link completion evidence drift" do
+    link_capacity_details = %{
+      "required_downlink_mb" => 120.0,
+      "selected_downlink_shortfall_mb" => 80.0,
+      "downlink_requirement_status" => "shortfall",
+      "actual_throughput_mb" => 15.0,
+      "actual_downlink_completion_ratio" => 0.25,
+      "actual_downlink_shortfall_mb" => 105.0,
+      "actual_downlink_requirement_status" => "shortfall"
+    }
+
+    row =
+      link_capacity_details
+      |> Map.new(fn {field, value} -> {"repair_link_#{field}", value} end)
+      |> Map.put("branch_id", "branch:repair_link")
+
+    artifact = %{
+      "branches" => [
+        %{
+          "branch_id" => "branch:repair_link",
+          "repair_result" => %{"link_capacity_report" => link_capacity_details}
+        }
+      ],
+      "branch_comparison_report" => %{"rows" => [row]}
+    }
+
+    assert [] == CampaignStrategyProducedSurfaceContracts.validate([], artifact)
+
+    for {field, value} <- link_capacity_details do
+      drift = if is_number(value), do: value + 1.0, else: "schema_valid_drift"
+      row_field = "repair_link_#{field}"
+
+      invalid =
+        put_in(
+          artifact,
+          ["branch_comparison_report", "rows", Access.at(0), row_field],
+          drift
+        )
+
+      issues = CampaignStrategyProducedSurfaceContracts.validate([], invalid)
+
+      assert Enum.any?(
+               issues,
+               &(&1["path"] == "$.branch_comparison_report.rows[0].#{row_field}" and
+                   &1["message"] ==
+                     "must match the enclosing branch repair link_capacity_report.#{field}")
+             )
+    end
+  end
+
   test "rejects CampaignStrategy branch comparison repair constraint evidence drift", %{
     strategy: strategy
   } do

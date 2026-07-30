@@ -287,6 +287,35 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyReducedCapacityBranchTest do
     assert capacity_row["repair_link_actual_downlink_shortfall_mb"] == 45.0
     assert capacity_row["repair_link_actual_downlink_requirement_status"] == "shortfall"
 
+    capacity_row_index =
+      Enum.find_index(
+        artifact["branch_comparison_report"]["rows"],
+        &(&1["branch_id"] == "capacity_window")
+      )
+
+    actual_completion_invalid =
+      put_in(
+        artifact,
+        [
+          "branch_comparison_report",
+          "rows",
+          Access.at(capacity_row_index),
+          "repair_link_actual_downlink_completion_ratio"
+        ],
+        0.75
+      )
+
+    assert {:error, actual_completion_report} =
+             Schema.validate_artifact(actual_completion_invalid)
+
+    assert Enum.any?(
+             actual_completion_report["errors"],
+             &(&1["path"] ==
+                 "$.branch_comparison_report.rows[#{capacity_row_index}].repair_link_actual_downlink_completion_ratio" and
+                 &1["message"] ==
+                   "must match the enclosing branch repair link_capacity_report.actual_downlink_completion_ratio")
+           )
+
     assert %{
              "review_type" => "link_capacity_review",
              "source" => "campaign_strategy.branches.repair_result.link_capacity_report.rows",

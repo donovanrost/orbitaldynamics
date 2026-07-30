@@ -5,47 +5,45 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Bind CampaignStrategy branch feedback-detail context.
+Bind CampaignStrategy branch repair-link completion context.
 
 Status:
-Implemented and fully verified from clean published base `98b34caf`; ready to
+Implemented and fully verified from clean published base `1e839cf5`; ready to
 publish.
 
 Selection evidence:
-- `BranchComparisonRowFields.feedback_fields/1` copies 23 feedback fields into
-  each comparison row, but produced-surface validation binds only ten direct
-  copies plus the separately validated feedback risk types.
-- The unbound coherent remainder is thirteen quality, maneuver, command, and
-  weighting fields copied directly from the enclosing branch
-  `feedback_adjustments` map.
-- The real recommendation-pressure fixture's `urgent` branch populates ten of
-  the thirteen fields. A small synthetic producer-shaped case can exercise the
-  three command/weight fields absent from that real fixture.
+- `BranchComparisonRowFields.repair_fields/1` copies eleven link-capacity fields
+  into each comparison row, but produced-surface validation binds only the four
+  contact/selected-throughput fields.
+- The reduced-capacity strategy scenario populates all four actual-completion
+  fields; the downlink-volume strategy scenario populates all three
+  requirement/selected-shortfall fields.
+- A producer-shaped prechange probe confirmed independently stale values still
+  return no produced-surface issues for all seven missing copies (`7/7`).
 
 Delivered behavior:
-- CampaignStrategy comparison validation now binds all thirteen remaining
-  feedback-detail copies to the enclosing branch `feedback_adjustments` map,
-  including omitted-field semantics.
-- Focused coverage challenges every field with a producer-shaped synthetic case;
-  the real urgent path fixes its ten populated values through recommendation and
-  comparison, documents review omission, and preserves the existing maneuver
-  pair in direct strategy import only.
+- CampaignStrategy comparison validation now binds all seven remaining
+  link-capacity requirement, selected-shortfall, and actual-completion copies to
+  the enclosing branch repair report, including omitted-field semantics.
+- Focused coverage challenges every field independently; populated
+  reduced-capacity and downlink-volume strategy paths prove exact source values,
+  while existing review and Cadence comparison handoffs retain them unchanged.
 
 Verification:
-- Populated recommendation-pressure scenario: `1 passed, 953 excluded` in 9.4s
-  (seed `389326`).
-- Focused produced-surface contracts: `53 passed` in 308.8s (seed `871397`).
-- Adjacent produced-surface, producer, and populated handoff coverage:
-  `55 passed, 953 excluded` in 289.6s (seed `350276`).
-- Live mutation probe: `13/13` stale additions/replacements rejected on their
-  exact producer-binding paths.
-- Broad schema: `1139 passed` in 442.0s (seed `862412`).
-- Campaign planner: `1888 passed` in 360.5s (seed `336294`); only the known
+- Populated reduced-capacity/downlink-volume scenarios: `2 passed, 28 excluded`
+  in 1.0s (seed `389786`).
+- Focused produced-surface contracts: `54 passed` in 288.8s (seed `942838`).
+- Adjacent produced-surface, strategy, review, and import coverage:
+  `60 passed, 28 excluded` in 290.8s (seed `196461`).
+- Live mutation probe: `7/7` stale values rejected on their exact
+  producer-binding paths.
+- Broad schema: `1140 passed` in 455.9s (seed `279702`).
+- Campaign planner: `1888 passed` in 354.7s (seed `442509`); only the known
   `support.exs` test-pattern warning.
 - Stored-artifact lint: `155` artifacts, `0` errors, `0` warnings.
 - Canonical repair/strategy regeneration retained hashes `cc41834e...cdc30d8a`
   and `57602722...2f9985`.
-- Full suite: `5665 passed` in 744.0s (seed `139354`); only known support-fixture
+- Full suite: `5666 passed` in 744.1s (seed `983842`); only known support-fixture
   test-pattern warnings.
 - Final formatting and whitespace checks passed.
 
@@ -53,8 +51,8 @@ Level 6 pillar advanced:
 Fleet-scale strategy decision-support and embedded-report identity integrity.
 
 Last published slice:
-- `98b34caf` Bind CampaignStrategy branch operational readiness context (`5664 passed`;
-  all ten fields now bind to their exact event/risk sources and precedence).
+- `1e839cf5` Bind CampaignStrategy branch feedback detail context (`5665 passed`;
+  all thirteen remaining direct feedback copies now bind to their source map).
 
 Remaining maturity gaps:
 - Audit remaining generated and source handoffs where their complete producer
@@ -69,8 +67,9 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-After this slice, audit the remaining repair link-capacity comparison copies;
-keep unpopulated source-branch identity deferred until a real path exercises it.
+After this slice, re-run the producer/output inventory for the remaining
+CampaignStrategy comparison surfaces; keep unpopulated source-branch identity
+deferred until a real path exercises it.
 
 Blocked:
 None.

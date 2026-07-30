@@ -1430,6 +1430,35 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyDownlinkCompletionBranchTest d
              "revisit_count" => 0
            } = downlink_row
 
+    downlink_row_index =
+      Enum.find_index(
+        artifact["branch_comparison_report"]["rows"],
+        &(&1["branch_id"] == "derived_downlink_constrained")
+      )
+
+    required_downlink_invalid =
+      put_in(
+        artifact,
+        [
+          "branch_comparison_report",
+          "rows",
+          Access.at(downlink_row_index),
+          "repair_link_required_downlink_mb"
+        ],
+        121.0
+      )
+
+    assert {:error, required_downlink_report} =
+             Schema.validate_artifact(required_downlink_invalid)
+
+    assert Enum.any?(
+             required_downlink_report["errors"],
+             &(&1["path"] ==
+                 "$.branch_comparison_report.rows[#{downlink_row_index}].repair_link_required_downlink_mb" and
+                 &1["message"] ==
+                   "must match the enclosing branch repair link_capacity_report.required_downlink_mb")
+           )
+
     assert Enum.any?(
              downlink_branch["risk_indicators"],
              &(&1["type"] == "downlink_completion_gap" and
