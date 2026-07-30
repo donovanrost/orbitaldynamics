@@ -241,6 +241,25 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts do
      "required_operator_action_counts", ["none"]},
     {"branch_timeline_lifecycle_state_import_actions", "import_action_counts", []}
   ]
+  @branch_comparison_timeline_activity_lifecycle_state_fields [
+    {"branch_timeline_activity_lifecycle_state_activity_ids", ["activity_id"],
+     ["activity_id", "activity_ids", "action_routing_activity_ids", "review_activity_ids"]},
+    {"branch_timeline_activity_lifecycle_state_timeline_ids", ["timeline_id"],
+     ["timeline_id", "timeline_ids", "action_routing_timeline_ids"]},
+    {"branch_timeline_activity_lifecycle_state_transition_decisions", ["transition_decision"],
+     ["transition_decision", "transition_decisions"]},
+    {"branch_timeline_activity_lifecycle_state_required_operator_actions",
+     ["required_operator_action", "required_operator_actions"],
+     ["required_operator_action", "required_operator_actions", "required_operator_action_counts"]},
+    {"branch_timeline_activity_lifecycle_state_import_actions", ["import_action"],
+     ["import_action", "import_actions", "import_action_counts"]},
+    {"branch_timeline_activity_lifecycle_state_invalid_activity_input_reasons",
+     ["invalid_activity_input_reasons"], []},
+    {"branch_timeline_activity_lifecycle_state_status_transition_categories", [],
+     ["status_transition_categories"]},
+    {"branch_timeline_activity_lifecycle_state_approval_transition_categories", [],
+     ["approval_transition_categories"]}
+  ]
   @branch_comparison_resource_projection_availability_pairs [
     {"resource_projection_payload_unavailable_count",
      "resource_projection_payload_unavailable_spacecraft_ids", "payload_unavailable"},
@@ -624,6 +643,12 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts do
     |> validate_branch_comparison_timeline_dependency_impact_fields(path, row, events)
     |> validate_branch_comparison_timeline_publication_fields(path, row, branch, events)
     |> validate_branch_comparison_timeline_lifecycle_state_fields(path, row, branch, events)
+    |> validate_branch_comparison_timeline_activity_lifecycle_state_fields(
+      path,
+      row,
+      branch,
+      events
+    )
   end
 
   defp validate_branch_comparison_station_calendar_fields(issues, path, row, events) do
@@ -1079,6 +1104,44 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts do
           row_field,
           branch_event_unique_map_keys(lifecycle_events, event_field, rejected_values),
           "must match the enclosing branch timeline lifecycle-state #{event_field} keys"
+        )
+      end
+    )
+  end
+
+  defp validate_branch_comparison_timeline_activity_lifecycle_state_fields(
+         issues,
+         path,
+         row,
+         branch,
+         events
+       ) do
+    lifecycle_events =
+      events
+      |> list_maps()
+      |> Enum.filter(&(Map.get(&1, "type") == "timeline_activity_lifecycle_state_pressure"))
+
+    lifecycle_risks =
+      branch
+      |> map_field("risk_indicators")
+      |> list_maps()
+      |> Enum.filter(&(Map.get(&1, "type") == "timeline_activity_lifecycle_state_review"))
+
+    Enum.reduce(
+      @branch_comparison_timeline_activity_lifecycle_state_fields,
+      issues,
+      fn {row_field, event_fields, risk_fields}, acc ->
+        event_values = branch_event_unique_values(lifecycle_events, event_fields)
+        risk_values = branch_event_unique_values(lifecycle_risks, risk_fields)
+        expected = if risk_values == [], do: event_values, else: risk_values
+
+        validate_optional_copy(
+          acc,
+          path <> ".#{row_field}",
+          row,
+          row_field,
+          expected,
+          "must match the enclosing branch timeline activity lifecycle-state values using nonempty risk-summary precedence"
         )
       end
     )

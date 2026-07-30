@@ -768,6 +768,36 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContractsTest do
     end
   end
 
+  test "rejects CampaignStrategy branch comparison timeline activity lifecycle-state context drift",
+       %{strategy: strategy} do
+    fields = ~w(
+      branch_timeline_activity_lifecycle_state_activity_ids
+      branch_timeline_activity_lifecycle_state_timeline_ids
+      branch_timeline_activity_lifecycle_state_transition_decisions
+      branch_timeline_activity_lifecycle_state_required_operator_actions
+      branch_timeline_activity_lifecycle_state_import_actions
+      branch_timeline_activity_lifecycle_state_invalid_activity_input_reasons
+      branch_timeline_activity_lifecycle_state_status_transition_categories
+      branch_timeline_activity_lifecycle_state_approval_transition_categories
+    )
+
+    for field <- fields do
+      invalid =
+        put_in(
+          strategy,
+          ["branch_comparison_report", "rows", Access.at(1), field],
+          ["invented_timeline_activity_lifecycle_state_value"]
+        )
+
+      assert {:error, validation_report} = Schema.validate_artifact(invalid)
+
+      assert Enum.any?(
+               validation_report["errors"],
+               &(&1["path"] == "$.branch_comparison_report.rows[1].#{field}")
+             )
+    end
+  end
+
   test "rejects CampaignStrategy branch comparison score evidence drift", %{
     strategy: strategy
   } do
