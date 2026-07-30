@@ -546,6 +546,7 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts do
     )
     |> validate_branch_comparison_event_quality_fields(path, row, events)
     |> validate_branch_comparison_event_downlink_fields(path, row, events)
+    |> validate_branch_comparison_capacity_pack_fields(path, row, events)
   end
 
   defp validate_branch_comparison_station_calendar_fields(issues, path, row, events) do
@@ -794,6 +795,59 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts do
     )
   end
 
+  defp validate_branch_comparison_capacity_pack_fields(issues, path, row, events) do
+    issues
+    |> validate_optional_copy(
+      path <> ".capacity_pack_group_ids",
+      row,
+      "capacity_pack_group_ids",
+      branch_event_unique_values(events, ["capacity_pack_group_id"]),
+      "must match the enclosing branch capacity-pack group IDs"
+    )
+    |> validate_optional_copy(
+      path <> ".capacity_pack_statuses",
+      row,
+      "capacity_pack_statuses",
+      branch_event_unique_values(events, ["capacity_pack_status"]),
+      "must match the enclosing branch capacity-pack statuses"
+    )
+    |> validate_optional_copy(
+      path <> ".capacity_pack_min_capacity_fraction",
+      row,
+      "capacity_pack_min_capacity_fraction",
+      event_minimum_present(events, "capacity_pack_capacity_fraction"),
+      "must match the enclosing branch minimum capacity-pack capacity fraction"
+    )
+    |> validate_optional_copy(
+      path <> ".capacity_pack_max_used_fraction",
+      row,
+      "capacity_pack_max_used_fraction",
+      event_maximum_present(events, "capacity_pack_used_fraction"),
+      "must match the enclosing branch maximum capacity-pack used fraction"
+    )
+    |> validate_optional_copy(
+      path <> ".capacity_pack_max_required_capacity_fraction",
+      row,
+      "capacity_pack_max_required_capacity_fraction",
+      event_maximum_present(events, "required_capacity_fraction"),
+      "must match the enclosing branch maximum required capacity fraction"
+    )
+    |> validate_optional_copy(
+      path <> ".capacity_pack_total_required_capacity_fraction",
+      row,
+      "capacity_pack_total_required_capacity_fraction",
+      event_sum_present(events, "required_capacity_fraction"),
+      "must match the enclosing branch total required capacity fraction"
+    )
+    |> validate_optional_copy(
+      path <> ".capacity_pack_required_capacity_sources",
+      row,
+      "capacity_pack_required_capacity_sources",
+      branch_event_unique_values(events, ["required_capacity_fraction_source"]),
+      "must match the enclosing branch required capacity-fraction sources"
+    )
+  end
+
   defp branch_event_unique_values(events, fields) when is_list(events) do
     events
     |> Enum.flat_map(fn event -> Enum.map(fields, &map_field(event, &1)) end)
@@ -874,6 +928,15 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts do
     |> case do
       [] -> nil
       values -> Enum.max(values)
+    end
+  end
+
+  defp event_sum_present(events, field) do
+    events
+    |> event_numeric_values(field)
+    |> case do
+      [] -> nil
+      values -> Enum.sum(values)
     end
   end
 

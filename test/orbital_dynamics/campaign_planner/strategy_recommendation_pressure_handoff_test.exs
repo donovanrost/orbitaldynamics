@@ -40,7 +40,14 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
       "branch_required_contacts",
       "branch_planned_contacts",
       "branch_required_downlink_mb",
-      "branch_planned_downlink_mb"
+      "branch_planned_downlink_mb",
+      "capacity_pack_group_ids",
+      "capacity_pack_statuses",
+      "capacity_pack_min_capacity_fraction",
+      "capacity_pack_max_used_fraction",
+      "capacity_pack_max_required_capacity_fraction",
+      "capacity_pack_total_required_capacity_fraction",
+      "capacity_pack_required_capacity_sources"
     ]
 
     recommendation_summary =
@@ -66,7 +73,16 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
              "branch_required_contacts" => 3,
              "branch_planned_contacts" => 1,
              "branch_required_downlink_mb" => 120.0,
-             "branch_planned_downlink_mb" => 70.0
+             "branch_planned_downlink_mb" => 70.0,
+             "capacity_pack_group_ids" => ["capacity_pack_equator_prime"],
+             "capacity_pack_statuses" => ["deferred_by_reduced_station_capacity_pack"],
+             "capacity_pack_min_capacity_fraction" => 0.5,
+             "capacity_pack_max_used_fraction" => 0.5,
+             "capacity_pack_max_required_capacity_fraction" => 0.25,
+             "capacity_pack_total_required_capacity_fraction" => 0.25,
+             "capacity_pack_required_capacity_sources" => [
+               "contact_required_capacity_fraction"
+             ]
            } = recommendation_branch_context
 
     assert recommendation_summary["branch_actual_downlink_completion_ratio"] == 0.22
@@ -201,6 +217,27 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
              downlink_context_report["errors"],
              &(&1["path"] ==
                  "$.branch_comparison_report.rows[#{urgent_row_index}].branch_required_downlink_mb")
+           )
+
+    capacity_pack_context_invalid =
+      put_in(
+        artifact,
+        [
+          "branch_comparison_report",
+          "rows",
+          Access.at(urgent_row_index),
+          "capacity_pack_total_required_capacity_fraction"
+        ],
+        0.5
+      )
+
+    assert {:error, capacity_pack_context_report} =
+             Schema.validate_artifact(capacity_pack_context_invalid)
+
+    assert Enum.any?(
+             capacity_pack_context_report["errors"],
+             &(&1["path"] ==
+                 "$.branch_comparison_report.rows[#{urgent_row_index}].capacity_pack_total_required_capacity_fraction")
            )
 
     assert {:ok, %{"schema_contract" => "cadence_import_manifest.v1", "status" => "pass"}} =
