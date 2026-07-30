@@ -78,6 +78,29 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
       }
     }
 
+    timeline_integrity_fields = ~w(
+      branch_timeline_integrity_activity_ids
+      branch_timeline_integrity_timeline_ids
+      branch_missing_dependency_activity_ids
+      branch_missing_dependency_timeline_ids
+      branch_dependency_cycle_activity_ids
+      branch_dependency_cycle_timeline_ids
+      branch_dependency_order_violation_activity_ids
+      branch_dependency_order_violation_timeline_ids
+      branch_exclusivity_violation_activity_ids
+      branch_exclusivity_violation_timeline_ids
+      branch_exclusivity_violation_groups
+    )
+
+    expected_timeline_integrity_context = %{
+      "branch_timeline_integrity_activity_ids" => ["cmd_integrity_review"],
+      "branch_timeline_integrity_timeline_ids" => ["timeline:cmd_integrity_review"],
+      "branch_missing_dependency_activity_ids" => ["cmd_power_on"],
+      "branch_exclusivity_violation_activity_ids" => ["downlink_conflict"],
+      "branch_exclusivity_violation_timeline_ids" => ["timeline:downlink_conflict"],
+      "branch_exclusivity_violation_groups" => ["equator_prime"]
+    }
+
     recommendation_summary =
       artifact["recommendation"]["explanation"]
       |> Enum.find(&(&1["type"] == "branch_event_summary"))
@@ -118,6 +141,9 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
     assert Map.take(recommendation_summary, capacity_pack_direction_fields) ==
              expected_capacity_pack_direction_context
 
+    assert Map.take(recommendation_summary, timeline_integrity_fields) ==
+             expected_timeline_integrity_context
+
     comparison_downlink_context =
       artifact["branch_comparison_report"]["rows"]
       |> Enum.find(&(&1["branch_id"] == "urgent"))
@@ -148,6 +174,13 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
     assert comparison_capacity_pack_direction_context ==
              expected_capacity_pack_direction_context
+
+    comparison_timeline_integrity_context =
+      artifact["branch_comparison_report"]["rows"]
+      |> Enum.find(&(&1["branch_id"] == "urgent"))
+      |> Map.take(timeline_integrity_fields)
+
+    assert comparison_timeline_integrity_context == expected_timeline_integrity_context
 
     assert source_window_ids == Enum.sort(source_window_ids)
     assert length(source_window_ids) == 11
@@ -189,6 +222,9 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
     assert Map.take(recommendation_review_row, capacity_pack_direction_fields) == %{}
 
+    assert Map.take(recommendation_review_row, timeline_integrity_fields) ==
+             expected_timeline_integrity_context
+
     assert recommendation_review_row["branch_station_reservation_expiration_statuses"] == [
              "active"
            ]
@@ -207,6 +243,9 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
     assert Map.take(selected_import_row, capacity_pack_direction_fields) ==
              expected_capacity_pack_direction_context
 
+    assert Map.take(selected_import_row, timeline_integrity_fields) ==
+             expected_timeline_integrity_context
+
     assert selected_import_row["branch_station_reservation_expiration_statuses"] == ["active"]
 
     review_import =
@@ -223,6 +262,9 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
     assert Map.take(review_import_row, capacity_pack_direction_fields) == %{}
 
+    assert Map.take(review_import_row, timeline_integrity_fields) ==
+             expected_timeline_integrity_context
+
     assert review_import_row["branch_station_reservation_expiration_statuses"] == ["active"]
 
     assert Map.take(review_import_row["source_review_row"], Map.keys(emitted_expected_handoff)) ==
@@ -232,6 +274,9 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
              recommendation_branch_context
 
     assert Map.take(review_import_row["source_review_row"], capacity_pack_direction_fields) == %{}
+
+    assert Map.take(review_import_row["source_review_row"], timeline_integrity_fields) ==
+             expected_timeline_integrity_context
 
     assert review_import_row["source_review_row"][
              "branch_station_reservation_expiration_statuses"
@@ -307,6 +352,27 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
              capacity_pack_direction_report["errors"],
              &(&1["path"] ==
                  "$.branch_comparison_report.rows[#{urgent_row_index}].capacity_pack_required_capacity_fraction_by_direction")
+           )
+
+    timeline_integrity_invalid =
+      put_in(
+        artifact,
+        [
+          "branch_comparison_report",
+          "rows",
+          Access.at(urgent_row_index),
+          "branch_exclusivity_violation_groups"
+        ],
+        ["stale_exclusivity_group"]
+      )
+
+    assert {:error, timeline_integrity_report} =
+             Schema.validate_artifact(timeline_integrity_invalid)
+
+    assert Enum.any?(
+             timeline_integrity_report["errors"],
+             &(&1["path"] ==
+                 "$.branch_comparison_report.rows[#{urgent_row_index}].branch_exclusivity_violation_groups")
            )
 
     assert {:ok, %{"schema_contract" => "cadence_import_manifest.v1", "status" => "pass"}} =

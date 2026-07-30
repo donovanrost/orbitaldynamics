@@ -178,6 +178,19 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts do
     capacity_pack_selected_required_capacity_fraction_by_direction
     capacity_pack_deferred_required_capacity_fraction_by_direction
   )
+  @branch_comparison_timeline_integrity_fields [
+    {"branch_timeline_integrity_activity_ids", "activity_id"},
+    {"branch_timeline_integrity_timeline_ids", "timeline_id"},
+    {"branch_missing_dependency_activity_ids", "missing_dependency_activity_ids"},
+    {"branch_missing_dependency_timeline_ids", "missing_dependency_timeline_ids"},
+    {"branch_dependency_cycle_activity_ids", "dependency_cycle_activity_ids"},
+    {"branch_dependency_cycle_timeline_ids", "dependency_cycle_timeline_ids"},
+    {"branch_dependency_order_violation_activity_ids", "dependency_order_violation_activity_ids"},
+    {"branch_dependency_order_violation_timeline_ids", "dependency_order_violation_timeline_ids"},
+    {"branch_exclusivity_violation_activity_ids", "exclusivity_violation_activity_ids"},
+    {"branch_exclusivity_violation_timeline_ids", "exclusivity_violation_timeline_ids"},
+    {"branch_exclusivity_violation_groups", "exclusivity_violation_group"}
+  ]
   @branch_comparison_resource_projection_availability_pairs [
     {"resource_projection_payload_unavailable_count",
      "resource_projection_payload_unavailable_spacecraft_ids", "payload_unavailable"},
@@ -557,6 +570,7 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts do
     |> validate_branch_comparison_event_quality_fields(path, row, events)
     |> validate_branch_comparison_event_downlink_fields(path, row, events)
     |> validate_branch_comparison_capacity_pack_fields(path, row, events)
+    |> validate_branch_comparison_timeline_integrity_fields(path, row, events)
   end
 
   defp validate_branch_comparison_station_calendar_fields(issues, path, row, events) do
@@ -880,6 +894,28 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts do
         )
       end)
     end)
+  end
+
+  defp validate_branch_comparison_timeline_integrity_fields(issues, path, row, events) do
+    timeline_integrity_events =
+      events
+      |> list_maps()
+      |> Enum.filter(&(Map.get(&1, "type") == "timeline_integrity_feedback"))
+
+    Enum.reduce(
+      @branch_comparison_timeline_integrity_fields,
+      issues,
+      fn {row_field, event_field}, acc ->
+        validate_optional_copy(
+          acc,
+          path <> ".#{row_field}",
+          row,
+          row_field,
+          branch_event_unique_values(timeline_integrity_events, [event_field]),
+          "must match the enclosing branch timeline-integrity #{event_field} values"
+        )
+      end
+    )
   end
 
   defp branch_event_unique_values(events, fields) when is_list(events) do
