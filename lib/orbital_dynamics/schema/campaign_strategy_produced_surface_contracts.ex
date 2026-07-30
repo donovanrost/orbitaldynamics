@@ -260,6 +260,29 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts do
     {"branch_timeline_activity_lifecycle_state_approval_transition_categories", [],
      ["approval_transition_categories"]}
   ]
+  @branch_comparison_timeline_activity_precondition_fields [
+    {"branch_timeline_activity_precondition_activity_ids", "activity_id"},
+    {"branch_timeline_activity_precondition_timeline_ids", "timeline_id"},
+    {"branch_timeline_activity_precondition_statuses", "precondition_status"},
+    {"branch_timeline_activity_precondition_blocked_types", "blocked_precondition_types"},
+    {"branch_timeline_activity_precondition_review_types", "review_precondition_types"},
+    {"branch_timeline_activity_precondition_dependency_activity_ids", "dependency_activity_ids"},
+    {"branch_timeline_activity_precondition_dependency_timeline_ids", "dependency_timeline_ids"},
+    {"branch_timeline_activity_precondition_exclusive_with_activity_ids",
+     "exclusive_with_activity_ids"},
+    {"branch_timeline_activity_precondition_exclusive_with_timeline_ids",
+     "exclusive_with_timeline_ids"},
+    {"branch_timeline_activity_precondition_duplicate_dependency_activity_ids",
+     "duplicate_dependency_activity_ids"},
+    {"branch_timeline_activity_precondition_duplicate_dependency_timeline_ids",
+     "duplicate_dependency_timeline_ids"},
+    {"branch_timeline_activity_precondition_duplicate_exclusivity_activity_ids",
+     "duplicate_exclusivity_activity_ids"},
+    {"branch_timeline_activity_precondition_duplicate_exclusivity_timeline_ids",
+     "duplicate_exclusivity_timeline_ids"},
+    {"branch_timeline_activity_precondition_invalid_activity_input_reasons",
+     "invalid_activity_input_reason"}
+  ]
   @branch_comparison_resource_projection_availability_pairs [
     {"resource_projection_payload_unavailable_count",
      "resource_projection_payload_unavailable_spacecraft_ids", "payload_unavailable"},
@@ -649,6 +672,7 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts do
       branch,
       events
     )
+    |> validate_branch_comparison_timeline_activity_precondition_fields(path, row, events)
   end
 
   defp validate_branch_comparison_station_calendar_fields(issues, path, row, events) do
@@ -1144,6 +1168,23 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts do
           "must match the enclosing branch timeline activity lifecycle-state values using nonempty risk-summary precedence"
         )
       end
+    )
+  end
+
+  defp validate_branch_comparison_timeline_activity_precondition_fields(
+         issues,
+         path,
+         row,
+         events
+       ) do
+    validate_branch_comparison_filtered_event_fields(
+      issues,
+      path,
+      row,
+      events,
+      "timeline_activity_precondition_pressure",
+      @branch_comparison_timeline_activity_precondition_fields,
+      "timeline activity-precondition"
     )
   end
 
