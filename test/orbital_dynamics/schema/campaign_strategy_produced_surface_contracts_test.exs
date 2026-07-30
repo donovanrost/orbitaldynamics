@@ -671,6 +671,36 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContractsTest do
     end
   end
 
+  test "rejects CampaignStrategy branch comparison timeline-dependency-impact context drift", %{
+    strategy: strategy
+  } do
+    fields = ~w(
+      branch_timeline_dependency_impact_activity_ids
+      branch_timeline_dependency_impact_timeline_ids
+      branch_timeline_dependency_impact_scopes
+      branch_impacted_dependency_activity_ids
+      branch_impacted_dependency_timeline_ids
+      branch_impacted_exclusive_with_activity_ids
+      branch_impacted_exclusive_with_timeline_ids
+    )
+
+    for field <- fields do
+      invalid =
+        put_in(
+          strategy,
+          ["branch_comparison_report", "rows", Access.at(1), field],
+          ["invented_timeline_dependency_impact_value"]
+        )
+
+      assert {:error, validation_report} = Schema.validate_artifact(invalid)
+
+      assert Enum.any?(
+               validation_report["errors"],
+               &(&1["path"] == "$.branch_comparison_report.rows[1].#{field}")
+             )
+    end
+  end
+
   test "rejects CampaignStrategy branch comparison score evidence drift", %{
     strategy: strategy
   } do
