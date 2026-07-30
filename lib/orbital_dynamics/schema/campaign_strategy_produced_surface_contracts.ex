@@ -283,6 +283,20 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts do
     {"branch_timeline_activity_precondition_invalid_activity_input_reasons",
      "invalid_activity_input_reason"}
   ]
+  @branch_comparison_timeline_preservation_fields [
+    {"branch_timeline_preservation_activity_ids", "activity_id"},
+    {"branch_timeline_preservation_timeline_ids", "timeline_id"},
+    {"branch_timeline_preservation_statuses", "timeline_preservation_status"},
+    {"branch_timeline_preservation_protection_decisions", "protection_decision"},
+    {"branch_timeline_preservation_protection_categories", "protection_category"},
+    {"branch_timeline_preservation_protection_reasons", "protection_reason"},
+    {"branch_timeline_preservation_preserve_activity_ids", "preserve_activity_ids"},
+    {"branch_timeline_preservation_preserve_timeline_ids", "preserve_timeline_ids"},
+    {"branch_timeline_preservation_review_change_activity_ids", "review_change_activity_ids"},
+    {"branch_timeline_preservation_review_change_timeline_ids", "review_change_timeline_ids"},
+    {"branch_timeline_preservation_invalid_activity_input_reasons",
+     "invalid_activity_input_reason"}
+  ]
   @branch_comparison_resource_projection_availability_pairs [
     {"resource_projection_payload_unavailable_count",
      "resource_projection_payload_unavailable_spacecraft_ids", "payload_unavailable"},
@@ -673,6 +687,7 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts do
       events
     )
     |> validate_branch_comparison_timeline_activity_precondition_fields(path, row, events)
+    |> validate_branch_comparison_timeline_preservation_fields(path, row, events)
   end
 
   defp validate_branch_comparison_station_calendar_fields(issues, path, row, events) do
@@ -1185,6 +1200,18 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts do
       "timeline_activity_precondition_pressure",
       @branch_comparison_timeline_activity_precondition_fields,
       "timeline activity-precondition"
+    )
+  end
+
+  defp validate_branch_comparison_timeline_preservation_fields(issues, path, row, events) do
+    validate_branch_comparison_filtered_event_fields(
+      issues,
+      path,
+      row,
+      events,
+      "timeline_preservation_pressure",
+      @branch_comparison_timeline_preservation_fields,
+      "timeline-preservation"
     )
   end
 

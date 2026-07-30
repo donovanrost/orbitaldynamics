@@ -284,6 +284,45 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
       ]
     }
 
+    timeline_preservation_fields = ~w(
+      branch_timeline_preservation_activity_ids
+      branch_timeline_preservation_timeline_ids
+      branch_timeline_preservation_statuses
+      branch_timeline_preservation_protection_decisions
+      branch_timeline_preservation_protection_categories
+      branch_timeline_preservation_protection_reasons
+      branch_timeline_preservation_preserve_activity_ids
+      branch_timeline_preservation_preserve_timeline_ids
+      branch_timeline_preservation_review_change_activity_ids
+      branch_timeline_preservation_review_change_timeline_ids
+      branch_timeline_preservation_invalid_activity_input_reasons
+    )
+
+    expected_timeline_preservation_context = %{
+      "branch_timeline_preservation_activity_ids" => ["contact_locked_review"],
+      "branch_timeline_preservation_timeline_ids" => ["timeline:contact_locked_review"],
+      "branch_timeline_preservation_statuses" => ["review_required"],
+      "branch_timeline_preservation_protection_decisions" => ["preserve"],
+      "branch_timeline_preservation_protection_categories" => ["locked_or_approved"],
+      "branch_timeline_preservation_protection_reasons" => [
+        "activity_locked_or_approved"
+      ],
+      "branch_timeline_preservation_preserve_activity_ids" => [
+        "contact_locked_review",
+        "obs_done_review"
+      ],
+      "branch_timeline_preservation_preserve_timeline_ids" => [
+        "timeline:contact_locked_review",
+        "timeline:obs_done_review"
+      ],
+      "branch_timeline_preservation_review_change_activity_ids" => [
+        "bad_missing_type_review"
+      ],
+      "branch_timeline_preservation_review_change_timeline_ids" => [
+        "timeline:bad_missing_type_review"
+      ]
+    }
+
     recommendation_summary =
       artifact["recommendation"]["explanation"]
       |> Enum.find(&(&1["type"] == "branch_event_summary"))
@@ -341,6 +380,9 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
     assert Map.take(recommendation_summary, timeline_activity_precondition_fields) ==
              expected_timeline_activity_precondition_context
+
+    assert Map.take(recommendation_summary, timeline_preservation_fields) ==
+             expected_timeline_preservation_context
 
     comparison_downlink_context =
       artifact["branch_comparison_report"]["rows"]
@@ -419,6 +461,13 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
     assert comparison_timeline_activity_precondition_context ==
              expected_timeline_activity_precondition_context
 
+    comparison_timeline_preservation_context =
+      artifact["branch_comparison_report"]["rows"]
+      |> Enum.find(&(&1["branch_id"] == "urgent"))
+      |> Map.take(timeline_preservation_fields)
+
+    assert comparison_timeline_preservation_context == expected_timeline_preservation_context
+
     assert source_window_ids == Enum.sort(source_window_ids)
     assert length(source_window_ids) == 11
     assert length(source_window_bounds) == 10
@@ -472,6 +521,8 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
     assert Map.take(recommendation_review_row, timeline_activity_precondition_fields) == %{}
 
+    assert Map.take(recommendation_review_row, timeline_preservation_fields) == %{}
+
     assert recommendation_review_row["branch_station_reservation_expiration_statuses"] == [
              "active"
            ]
@@ -508,6 +559,9 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
     assert Map.take(selected_import_row, timeline_activity_precondition_fields) ==
              expected_timeline_activity_precondition_context
 
+    assert Map.take(selected_import_row, timeline_preservation_fields) ==
+             expected_timeline_preservation_context
+
     assert selected_import_row["branch_station_reservation_expiration_statuses"] == ["active"]
 
     review_import =
@@ -536,6 +590,8 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
     assert Map.take(review_import_row, timeline_activity_lifecycle_state_fields) == %{}
 
     assert Map.take(review_import_row, timeline_activity_precondition_fields) == %{}
+
+    assert Map.take(review_import_row, timeline_preservation_fields) == %{}
 
     assert review_import_row["branch_station_reservation_expiration_statuses"] == ["active"]
 
@@ -569,6 +625,8 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
              review_import_row["source_review_row"],
              timeline_activity_precondition_fields
            ) == %{}
+
+    assert Map.take(review_import_row["source_review_row"], timeline_preservation_fields) == %{}
 
     assert review_import_row["source_review_row"][
              "branch_station_reservation_expiration_statuses"
@@ -770,6 +828,27 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
              timeline_activity_precondition_report["errors"],
              &(&1["path"] ==
                  "$.branch_comparison_report.rows[#{urgent_row_index}].branch_timeline_activity_precondition_statuses")
+           )
+
+    timeline_preservation_invalid =
+      put_in(
+        artifact,
+        [
+          "branch_comparison_report",
+          "rows",
+          Access.at(urgent_row_index),
+          "branch_timeline_preservation_statuses"
+        ],
+        ["stale_timeline_preservation_status"]
+      )
+
+    assert {:error, timeline_preservation_report} =
+             Schema.validate_artifact(timeline_preservation_invalid)
+
+    assert Enum.any?(
+             timeline_preservation_report["errors"],
+             &(&1["path"] ==
+                 "$.branch_comparison_report.rows[#{urgent_row_index}].branch_timeline_preservation_statuses")
            )
 
     assert {:ok, %{"schema_contract" => "cadence_import_manifest.v1", "status" => "pass"}} =
