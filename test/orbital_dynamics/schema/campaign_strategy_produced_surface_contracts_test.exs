@@ -1108,6 +1108,86 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContractsTest do
     end
   end
 
+  test "rejects CampaignStrategy branch comparison operational-readiness context drift", %{
+    strategy: strategy
+  } do
+    fields = ~w(
+      branch_operational_readiness_levels
+      branch_operational_readiness_import_classifications
+      branch_operational_readiness_statuses
+      branch_operational_readiness_gate_ids
+      branch_operational_readiness_gate_statuses
+      branch_operational_readiness_gate_classifications
+      branch_operational_readiness_review_required_gate_ids
+      branch_operational_readiness_analysis_only_gate_ids
+      branch_operational_readiness_blocked_gate_ids
+      branch_operational_readiness_non_passed_gate_ids
+    )
+
+    for field <- fields do
+      invalid =
+        put_in(
+          strategy,
+          ["branch_comparison_report", "rows", Access.at(1), field],
+          ["invented_operational_readiness_value"]
+        )
+
+      expected_message =
+        if field == "branch_operational_readiness_gate_ids" do
+          "must match the enclosing branch operational-readiness gate IDs"
+        else
+          "must match the enclosing branch operational-readiness values"
+        end
+
+      assert {:error, validation_report} = Schema.validate_artifact(invalid)
+
+      assert Enum.any?(
+               validation_report["errors"],
+               &(&1["path"] == "$.branch_comparison_report.rows[1].#{field}" and
+                   &1["message"] == expected_message)
+             )
+    end
+  end
+
+  test "prefers nonempty CampaignStrategy operational-readiness risk values over event values", %{
+    strategy: strategy
+  } do
+    invalid =
+      strategy
+      |> update_in(["branches", Access.at(1), "events"], fn events ->
+        [
+          %{
+            "type" => "operational_readiness_pressure",
+            "readiness_level" => "event_readiness_value"
+          }
+          | events
+        ]
+      end)
+      |> update_in(["branches", Access.at(1), "risk_indicators"], fn risks ->
+        [
+          %{
+            "type" => "operational_readiness_pressure",
+            "readiness_level" => "risk_override_readiness_value"
+          }
+          | risks
+        ]
+      end)
+      |> put_in(
+        ["branch_comparison_report", "rows", Access.at(1), "branch_operational_readiness_levels"],
+        ["event_readiness_value"]
+      )
+
+    assert {:error, validation_report} = Schema.validate_artifact(invalid)
+
+    assert Enum.any?(
+             validation_report["errors"],
+             &(&1["path"] ==
+                 "$.branch_comparison_report.rows[1].branch_operational_readiness_levels" and
+                 &1["message"] ==
+                   "must match the enclosing branch operational-readiness values")
+           )
+  end
+
   test "rejects CampaignStrategy branch comparison score evidence drift", %{
     strategy: strategy
   } do

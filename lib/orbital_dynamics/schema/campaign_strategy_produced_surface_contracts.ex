@@ -123,6 +123,25 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts do
     {"branch_maneuver_execution_uncertainty_max_delta_v_3sigma_magnitude_km_s",
      "delta_v_3sigma_magnitude_km_s"}
   ]
+  @branch_comparison_operational_readiness_fields [
+    {"branch_operational_readiness_levels", ["readiness_level"],
+     ["readiness_level", "readiness_levels"]},
+    {"branch_operational_readiness_import_classifications", ["import_classification"],
+     ["import_classification", "import_classifications"]},
+    {"branch_operational_readiness_statuses", ["operational_readiness_status"],
+     ["operational_readiness_status", "operational_readiness_statuses"]},
+    {"branch_operational_readiness_gate_statuses", ["readiness_gate_status"],
+     ["readiness_gate_status", "gate_statuses"]},
+    {"branch_operational_readiness_gate_classifications", ["readiness_gate_classification"],
+     ["readiness_gate_classification", "gate_classifications"]},
+    {"branch_operational_readiness_review_required_gate_ids", ["review_required_gate_ids"],
+     ["review_required_gate_ids"]},
+    {"branch_operational_readiness_analysis_only_gate_ids", ["analysis_only_gate_ids"],
+     ["analysis_only_gate_ids"]},
+    {"branch_operational_readiness_blocked_gate_ids", ["blocked_gate_ids"], ["blocked_gate_ids"]},
+    {"branch_operational_readiness_non_passed_gate_ids", ["non_passed_gate_ids"],
+     ["non_passed_gate_ids"]}
+  ]
   @branch_comparison_priority_target_fields [
     {"required", "required_target_ids"},
     {"satisfied", "satisfied_target_ids"},
@@ -721,6 +740,7 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts do
     |> validate_branch_comparison_source_window_fields(path, row, events)
     |> validate_branch_comparison_operational_event_fields(path, row, events)
     |> validate_branch_comparison_execution_uncertainty_fields(path, row, events)
+    |> validate_branch_comparison_operational_readiness_fields(path, row, branch, events)
     |> validate_branch_comparison_mission_identity_fields(path, row, events)
     |> validate_branch_comparison_station_calendar_fields(path, row, events)
     |> validate_branch_comparison_station_reservation_fields(path, row, branch, events)
@@ -745,6 +765,49 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts do
     )
     |> validate_branch_comparison_timeline_activity_precondition_fields(path, row, events)
     |> validate_branch_comparison_timeline_preservation_fields(path, row, events)
+  end
+
+  defp validate_branch_comparison_operational_readiness_fields(
+         issues,
+         path,
+         row,
+         branch,
+         events
+       ) do
+    readiness_risks =
+      branch
+      |> map_field("risk_indicators")
+      |> list_maps()
+      |> Enum.filter(&(map_field(&1, "type") == "operational_readiness_pressure"))
+
+    issues =
+      validate_optional_copy(
+        issues,
+        path <> ".branch_operational_readiness_gate_ids",
+        row,
+        "branch_operational_readiness_gate_ids",
+        branch_event_unique_values(events, ["readiness_gate_id"]),
+        "must match the enclosing branch operational-readiness gate IDs"
+      )
+
+    Enum.reduce(
+      @branch_comparison_operational_readiness_fields,
+      issues,
+      fn {row_field, event_sources, risk_sources}, acc ->
+        event_values = branch_event_unique_values(events, event_sources)
+        risk_values = branch_event_unique_values(readiness_risks, risk_sources)
+        expected = if risk_values == [], do: event_values, else: risk_values
+
+        validate_optional_copy(
+          acc,
+          path <> ".#{row_field}",
+          row,
+          row_field,
+          expected,
+          "must match the enclosing branch operational-readiness values"
+        )
+      end
+    )
   end
 
   defp validate_branch_comparison_execution_uncertainty_fields(issues, path, row, events) do

@@ -64,6 +64,19 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
       branch_maneuver_execution_uncertainty_max_delta_v_3sigma_magnitude_km_s
     )
 
+    operational_readiness_fields = ~w(
+      branch_operational_readiness_levels
+      branch_operational_readiness_import_classifications
+      branch_operational_readiness_statuses
+      branch_operational_readiness_gate_ids
+      branch_operational_readiness_gate_statuses
+      branch_operational_readiness_gate_classifications
+      branch_operational_readiness_review_required_gate_ids
+      branch_operational_readiness_analysis_only_gate_ids
+      branch_operational_readiness_blocked_gate_ids
+      branch_operational_readiness_non_passed_gate_ids
+    )
+
     review_operational_event_fields =
       operational_event_fields --
         ~w(
@@ -493,6 +506,15 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
       "branch_maneuver_execution_uncertainty_max_delta_v_3sigma_magnitude_km_s" => 0.005
     }
 
+    expected_operational_readiness_context = %{
+      "branch_operational_readiness_levels" => ["operator_review"],
+      "branch_operational_readiness_import_classifications" => ["review_only"],
+      "branch_operational_readiness_statuses" => ["review_required"],
+      "branch_operational_readiness_gate_ids" => ["operator_training"],
+      "branch_operational_readiness_gate_statuses" => ["review_required"],
+      "branch_operational_readiness_gate_classifications" => ["review_only"]
+    }
+
     recommendation_summary =
       artifact["recommendation"]["explanation"]
       |> Enum.find(&(&1["type"] == "branch_event_summary"))
@@ -589,6 +611,9 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
     assert Map.take(recommendation_summary, execution_uncertainty_fields) ==
              expected_execution_uncertainty_context
+
+    assert Map.take(recommendation_summary, operational_readiness_fields) ==
+             expected_operational_readiness_context
 
     comparison_downlink_context =
       artifact["branch_comparison_report"]["rows"]
@@ -695,6 +720,13 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
     assert comparison_execution_uncertainty_context == expected_execution_uncertainty_context
 
+    comparison_operational_readiness_context =
+      artifact["branch_comparison_report"]["rows"]
+      |> Enum.find(&(&1["branch_id"] == "urgent"))
+      |> Map.take(operational_readiness_fields)
+
+    assert comparison_operational_readiness_context == expected_operational_readiness_context
+
     assert source_window_ids == Enum.sort(source_window_ids)
     assert length(source_window_ids) == 11
     assert length(source_window_bounds) == 10
@@ -759,6 +791,8 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
     assert Map.take(recommendation_review_row, execution_uncertainty_fields) ==
              expected_execution_uncertainty_context
 
+    assert Map.take(recommendation_review_row, operational_readiness_fields) == %{}
+
     assert recommendation_review_row["branch_station_reservation_expiration_statuses"] == [
              "active"
            ]
@@ -807,6 +841,9 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
     assert Map.take(selected_import_row, execution_uncertainty_fields) ==
              expected_execution_uncertainty_context
 
+    assert Map.take(selected_import_row, operational_readiness_fields) ==
+             expected_operational_readiness_context
+
     assert selected_import_row["branch_station_reservation_expiration_statuses"] == ["active"]
 
     review_import =
@@ -846,6 +883,8 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
     assert Map.take(review_import_row, execution_uncertainty_fields) ==
              expected_execution_uncertainty_context
+
+    assert Map.take(review_import_row, operational_readiness_fields) == %{}
 
     assert review_import_row["branch_station_reservation_expiration_statuses"] == ["active"]
 
@@ -890,6 +929,8 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
     assert Map.take(review_import_row["source_review_row"], execution_uncertainty_fields) ==
              expected_execution_uncertainty_context
+
+    assert Map.take(review_import_row["source_review_row"], operational_readiness_fields) == %{}
 
     assert review_import_row["source_review_row"][
              "branch_station_reservation_expiration_statuses"
@@ -1215,6 +1256,29 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
                  "$.branch_comparison_report.rows[#{urgent_row_index}].branch_maneuver_execution_uncertainty_max_timing_3sigma_s" and
                  &1["message"] ==
                    "must match the enclosing branch execution-uncertainty timing_3sigma_s maximum")
+           )
+
+    operational_readiness_invalid =
+      put_in(
+        artifact,
+        [
+          "branch_comparison_report",
+          "rows",
+          Access.at(urgent_row_index),
+          "branch_operational_readiness_levels"
+        ],
+        ["stale_operational_readiness_level"]
+      )
+
+    assert {:error, operational_readiness_report} =
+             Schema.validate_artifact(operational_readiness_invalid)
+
+    assert Enum.any?(
+             operational_readiness_report["errors"],
+             &(&1["path"] ==
+                 "$.branch_comparison_report.rows[#{urgent_row_index}].branch_operational_readiness_levels" and
+                 &1["message"] ==
+                   "must match the enclosing branch operational-readiness values")
            )
 
     assert {:ok, %{"schema_contract" => "cadence_import_manifest.v1", "status" => "pass"}} =
