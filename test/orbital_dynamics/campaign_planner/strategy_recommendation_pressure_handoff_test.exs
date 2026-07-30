@@ -123,6 +123,52 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
       "branch_impacted_exclusive_with_timeline_ids" => ["timeline:downlink_conflict"]
     }
 
+    timeline_publication_fields = ~w(
+      branch_timeline_publication_ids
+      branch_timeline_publication_statuses
+      branch_timeline_publication_source_artifact_ids
+      branch_timeline_publication_source_artifact_types
+      branch_timeline_publication_downstream_invalidation_statuses
+      branch_timeline_publication_invalidated_downstream_product_ids
+      branch_timeline_publication_downstream_invalidation_reasons
+      branch_timeline_publication_dependency_impact_statuses
+      branch_timeline_publication_impacted_source_activity_ids
+      branch_timeline_publication_impacted_source_timeline_ids
+      branch_timeline_publication_dependent_activity_ids
+      branch_timeline_publication_dependent_timeline_ids
+      branch_timeline_publication_changed_fields
+      branch_timeline_publication_changed_timeline_ids
+      branch_timeline_publication_review_timeline_ids
+    )
+
+    expected_timeline_publication_context = %{
+      "branch_timeline_publication_ids" => [
+        "timeline_publication:9:timeline:selected_plan:v2:timeline:selected_plan:v1"
+      ],
+      "branch_timeline_publication_statuses" => [
+        "published_with_downstream_invalidations"
+      ],
+      "branch_timeline_publication_source_artifact_ids" => ["timeline:selected_plan:v2"],
+      "branch_timeline_publication_source_artifact_types" => [
+        "operational_timeline_report.v1"
+      ],
+      "branch_timeline_publication_downstream_invalidation_statuses" => ["invalidated"],
+      "branch_timeline_publication_invalidated_downstream_product_ids" => [
+        "cadence_import:selected:v1",
+        "operator_review:selected:v1"
+      ],
+      "branch_timeline_publication_downstream_invalidation_reasons" => [
+        "dependency_impact_review_required"
+      ],
+      "branch_timeline_publication_dependency_impact_statuses" => ["review_required"],
+      "branch_timeline_publication_changed_fields" => ["timeline_presence"],
+      "branch_timeline_publication_changed_timeline_ids" => ["timeline:health_check:0.0"],
+      "branch_timeline_publication_review_timeline_ids" => [
+        "timeline:health_check:0.0",
+        "timeline:health_check:5.0"
+      ]
+    }
+
     recommendation_summary =
       artifact["recommendation"]["explanation"]
       |> Enum.find(&(&1["type"] == "branch_event_summary"))
@@ -168,6 +214,9 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
     assert Map.take(recommendation_summary, timeline_dependency_impact_fields) ==
              expected_timeline_dependency_impact_context
+
+    assert Map.take(recommendation_summary, timeline_publication_fields) ==
+             expected_timeline_publication_context
 
     comparison_downlink_context =
       artifact["branch_comparison_report"]["rows"]
@@ -215,6 +264,13 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
     assert comparison_timeline_dependency_impact_context ==
              expected_timeline_dependency_impact_context
 
+    comparison_timeline_publication_context =
+      artifact["branch_comparison_report"]["rows"]
+      |> Enum.find(&(&1["branch_id"] == "urgent"))
+      |> Map.take(timeline_publication_fields)
+
+    assert comparison_timeline_publication_context == expected_timeline_publication_context
+
     assert source_window_ids == Enum.sort(source_window_ids)
     assert length(source_window_ids) == 11
     assert length(source_window_bounds) == 10
@@ -260,6 +316,8 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
     assert Map.take(recommendation_review_row, timeline_dependency_impact_fields) == %{}
 
+    assert Map.take(recommendation_review_row, timeline_publication_fields) == %{}
+
     assert recommendation_review_row["branch_station_reservation_expiration_statuses"] == [
              "active"
            ]
@@ -284,6 +342,9 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
     assert Map.take(selected_import_row, timeline_dependency_impact_fields) ==
              expected_timeline_dependency_impact_context
 
+    assert Map.take(selected_import_row, timeline_publication_fields) ==
+             expected_timeline_publication_context
+
     assert selected_import_row["branch_station_reservation_expiration_statuses"] == ["active"]
 
     review_import =
@@ -305,6 +366,8 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
     assert Map.take(review_import_row, timeline_dependency_impact_fields) == %{}
 
+    assert Map.take(review_import_row, timeline_publication_fields) == %{}
+
     assert review_import_row["branch_station_reservation_expiration_statuses"] == ["active"]
 
     assert Map.take(review_import_row["source_review_row"], Map.keys(emitted_expected_handoff)) ==
@@ -322,6 +385,8 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
              review_import_row["source_review_row"],
              timeline_dependency_impact_fields
            ) == %{}
+
+    assert Map.take(review_import_row["source_review_row"], timeline_publication_fields) == %{}
 
     assert review_import_row["source_review_row"][
              "branch_station_reservation_expiration_statuses"
@@ -439,6 +504,27 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
              timeline_dependency_impact_report["errors"],
              &(&1["path"] ==
                  "$.branch_comparison_report.rows[#{urgent_row_index}].branch_timeline_dependency_impact_scopes")
+           )
+
+    timeline_publication_invalid =
+      put_in(
+        artifact,
+        [
+          "branch_comparison_report",
+          "rows",
+          Access.at(urgent_row_index),
+          "branch_timeline_publication_statuses"
+        ],
+        ["stale_publication_status"]
+      )
+
+    assert {:error, timeline_publication_report} =
+             Schema.validate_artifact(timeline_publication_invalid)
+
+    assert Enum.any?(
+             timeline_publication_report["errors"],
+             &(&1["path"] ==
+                 "$.branch_comparison_report.rows[#{urgent_row_index}].branch_timeline_publication_statuses")
            )
 
     assert {:ok, %{"schema_contract" => "cadence_import_manifest.v1", "status" => "pass"}} =

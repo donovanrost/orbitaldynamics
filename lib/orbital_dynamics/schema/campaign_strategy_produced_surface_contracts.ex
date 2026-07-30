@@ -200,6 +200,33 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts do
     {"branch_impacted_exclusive_with_activity_ids", "impacted_exclusive_with_activity_ids"},
     {"branch_impacted_exclusive_with_timeline_ids", "impacted_exclusive_with_timeline_ids"}
   ]
+  @branch_comparison_timeline_publication_fields [
+    {"branch_timeline_publication_ids", "publication_id", "publication_ids"},
+    {"branch_timeline_publication_statuses", "publication_status", nil},
+    {"branch_timeline_publication_source_artifact_ids", "source_artifact_id",
+     "source_artifact_ids"},
+    {"branch_timeline_publication_source_artifact_types", "source_artifact_type", nil},
+    {"branch_timeline_publication_downstream_invalidation_statuses",
+     "downstream_invalidation_status", nil},
+    {"branch_timeline_publication_invalidated_downstream_product_ids",
+     "invalidated_downstream_product_ids", "invalidated_downstream_product_ids"},
+    {"branch_timeline_publication_downstream_invalidation_reasons",
+     "downstream_invalidation_reasons", "downstream_invalidation_reasons"},
+    {"branch_timeline_publication_dependency_impact_statuses", "dependency_impact_status", nil},
+    {"branch_timeline_publication_impacted_source_activity_ids", "impacted_source_activity_ids",
+     "impacted_source_activity_ids"},
+    {"branch_timeline_publication_impacted_source_timeline_ids", "impacted_source_timeline_ids",
+     "impacted_source_timeline_ids"},
+    {"branch_timeline_publication_dependent_activity_ids", "dependent_activity_ids",
+     "dependent_activity_ids"},
+    {"branch_timeline_publication_dependent_timeline_ids", "dependent_timeline_ids",
+     "dependent_timeline_ids"},
+    {"branch_timeline_publication_changed_fields", "changed_fields", "changed_fields"},
+    {"branch_timeline_publication_changed_timeline_ids", "changed_timeline_ids",
+     "changed_timeline_ids"},
+    {"branch_timeline_publication_review_timeline_ids", "review_timeline_ids",
+     "review_timeline_ids"}
+  ]
   @branch_comparison_resource_projection_availability_pairs [
     {"resource_projection_payload_unavailable_count",
      "resource_projection_payload_unavailable_spacecraft_ids", "payload_unavailable"},
@@ -581,6 +608,7 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts do
     |> validate_branch_comparison_capacity_pack_fields(path, row, events)
     |> validate_branch_comparison_timeline_integrity_fields(path, row, events)
     |> validate_branch_comparison_timeline_dependency_impact_fields(path, row, events)
+    |> validate_branch_comparison_timeline_publication_fields(path, row, branch, events)
   end
 
   defp validate_branch_comparison_station_calendar_fields(issues, path, row, events) do
@@ -932,6 +960,51 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts do
       "timeline_dependency_impact_pressure",
       @branch_comparison_timeline_dependency_impact_fields,
       "timeline-dependency-impact"
+    )
+  end
+
+  defp validate_branch_comparison_timeline_publication_fields(
+         issues,
+         path,
+         row,
+         branch,
+         events
+       ) do
+    publication_events =
+      events
+      |> list_maps()
+      |> Enum.filter(&(Map.get(&1, "type") == "timeline_publication_pressure"))
+
+    publication_risks =
+      branch
+      |> map_field("risk_indicators")
+      |> list_maps()
+      |> Enum.filter(&(Map.get(&1, "type") == "timeline_publication_pressure"))
+
+    Enum.reduce(
+      @branch_comparison_timeline_publication_fields,
+      issues,
+      fn {row_field, event_field, risk_field}, acc ->
+        event_values = branch_event_unique_values(publication_events, [event_field])
+
+        risk_values =
+          if is_binary(risk_field) do
+            branch_event_unique_values(publication_risks, [risk_field])
+          else
+            []
+          end
+
+        expected = if risk_values == [], do: event_values, else: risk_values
+
+        validate_optional_copy(
+          acc,
+          path <> ".#{row_field}",
+          row,
+          row_field,
+          expected,
+          "must match the enclosing branch timeline-publication #{event_field} values using nonempty risk-summary precedence"
+        )
+      end
     )
   end
 
