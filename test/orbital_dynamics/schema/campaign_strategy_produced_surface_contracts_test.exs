@@ -1,6 +1,7 @@
 defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContractsTest do
   use ExUnit.Case, async: true
 
+  alias OrbitalDynamics.CampaignPlanner.BranchComparisonReport
   alias OrbitalDynamics.Schema
   alias OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts
 
@@ -342,6 +343,72 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContractsTest do
        )},
       {"$.ranking_comparison_report.rows[0].scenario_id", reordered},
       {"$.ranking_comparison_report.rows[0].status", coherent_status_drift}
+    ]
+
+    for {expected_path, invalid} <- invalid_cases do
+      assert {:error, validation_report} = Schema.validate_artifact(invalid)
+      assert Enum.any?(validation_report["errors"], &(&1["path"] == expected_path))
+    end
+  end
+
+  test "rejects CampaignStrategy Pareto-frontier evidence drift", %{strategy: strategy} do
+    report = strategy["pareto_frontier_report"]
+    row = hd(report["rows"])
+
+    direction_key = report["objective_directions"] |> Map.keys() |> hd()
+
+    flipped_direction =
+      if report["objective_directions"][direction_key] == "maximize",
+        do: "minimize",
+        else: "maximize"
+
+    coherent_identity_drift =
+      strategy
+      |> put_in(["pareto_frontier_report", "rows", Access.at(0), "id"], "stale_branch")
+      |> put_in(
+        ["pareto_frontier_report", "rows", Access.at(0), "scenario_id"],
+        "stale_branch"
+      )
+      |> update_in(["pareto_frontier_report", "frontier_ids"], fn ids ->
+        ids
+        |> Enum.map(&if(&1 == row["id"], do: "stale_branch", else: &1))
+        |> Enum.sort()
+      end)
+
+    reordered =
+      update_in(strategy, ["pareto_frontier_report", "rows"], fn [first, second | rest] ->
+        [second, first | rest]
+      end)
+
+    invalid_cases = [
+      {"$.pareto_frontier_report.source",
+       put_in(strategy, ["pareto_frontier_report", "source"], "schema_valid_drift")},
+      {"$.pareto_frontier_report.assumptions",
+       update_in(
+         strategy,
+         ["pareto_frontier_report", "assumptions", "external_solver"],
+         &(!&1)
+       )},
+      {"$.pareto_frontier_report.objective_directions",
+       put_in(
+         strategy,
+         ["pareto_frontier_report", "objective_directions", direction_key],
+         flipped_direction
+       )},
+      {"$.pareto_frontier_report.rows[0].objective_values",
+       update_in(
+         strategy,
+         ["pareto_frontier_report", "rows", Access.at(0), "objective_values", "score"],
+         &(&1 + 1.0)
+       )},
+      {"$.pareto_frontier_report.rows[0].id", coherent_identity_drift},
+      {"$.pareto_frontier_report.rows[0].id", reordered},
+      {"$.pareto_frontier_report.rows[0].dominates_ids",
+       update_in(
+         strategy,
+         ["pareto_frontier_report", "rows", Access.at(0), "dominates_ids"],
+         &(&1 ++ ["stale_branch"])
+       )}
     ]
 
     for {expected_path, invalid} <- invalid_cases do
@@ -1931,6 +1998,13 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContractsTest do
           "resource_projection_peak_unused_downlink_capacity_mb"
         ],
         1.0
+      )
+
+    coherent =
+      put_in(
+        coherent,
+        ["pareto_frontier_report"],
+        BranchComparisonReport.pareto_frontier_report(coherent["branch_comparison_report"])
       )
 
     assert {:ok, _validation_report} = Schema.validate_artifact(coherent)

@@ -5,54 +5,58 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Bind CampaignStrategy score-ranked evidence.
+Bind CampaignStrategy Pareto-frontier evidence.
 
 Status:
-Implemented and fully verified from clean published base `20cc568f`; ready to
+Implemented and fully verified from clean published base `5d5ed5d5`; ready to
 publish.
 
 Selection evidence:
-- The strategy artifact's `branches` array is the exact score-ranked right input
-  to `BranchComparisonReport.ranking_report/2`; its membership, order, ranks,
-  scores, all-matched counts, and right-side winner are fully replayable.
-- The report's left ranks and left-side winner depend on pre-sort request order,
-  which is not preserved in the artifact and remains outside this slice.
-- A live prechange probe confirmed seven coherent mutations that preserve
-  generic report invariants are accepted, including stale membership, ranks,
-  values, order, winner, and matched status (`7/7`).
+- `BranchComparisonReport.pareto_frontier_report/1` derives the complete Pareto
+  artifact from the preserved `branch_comparison_report`, including filtered
+  objectives, directions, dominance, ordering, counts, IDs, and assumptions.
+- Generic Pareto validation checks shape and row-derived counts but does not
+  replay the CampaignStrategy producer or validate dominance against source
+  objective vectors.
+- A live prechange probe confirmed seven coherent source/direction/value/
+  identity/order/dominance mutations remain schema-valid (`7/7`).
 
 Delivered behavior:
-- CampaignStrategy produced-surface validation now binds ranking-report counts,
-  score-ranked membership/order/ranks, shared branch scores, all-matched status,
-  and the right-side winner to the enclosing `branches` array.
-- Coherent mutation coverage preserves generic rank/value/count equations while
-  challenging producer evidence; input-order-derived left ranks and left winner
-  remain intentionally unbound.
+- CampaignStrategy produced-surface validation now replays the complete Pareto
+  report from `branch_comparison_report` and binds report counts, IDs,
+  directions, assumptions, row order, objective vectors, and dominance fields.
+- Coherent mutation coverage challenges source, assumptions, directions,
+  values, identity, ordering, and dominance while preserving generic Pareto
+  invariants.
+- The existing coherent resource-projection mutation now refreshes its Pareto
+  projection through the production function, preserving the stronger
+  cross-report contract.
 
 Verification:
-- Populated canonical score-ranked scenario: `1 passed, 57 excluded` in 11.6s
-  (seed `571423`).
-- Focused produced-surface contracts: `58 passed` in 312.6s (seed `132925`).
-- Adjacent strategy review/import handoffs: `4 passed, 85 excluded` in 6.1s
-  (seed `405443`).
+- Populated canonical Pareto mutation scenario: `1 passed, 58 excluded` in
+  11.0s (seed `759234`).
+- Focused produced-surface contracts: `59 passed` in 319.8s (seed `250177`).
+- Adjacent strategy review/import handoffs: `4 passed, 85 excluded` in 6.0s
+  (seed `336834`).
 - Live canonical mutation probe: zero baseline issues and all seven coherent
-  score-ranked mutations rejected (`7/7`).
-- Broad schema: `1168 passed` in 590.9s (seed `979757`).
-- Campaign planner: `1888 passed` in 370.7s (seed `758321`); only the known
-  `support.exs` test-pattern warning.
+  Pareto mutations rejected (`7/7`).
+- Broad schema: `1169 passed` in 646.2s (seed `978316`).
+- Expanded campaign planner gate: `1890 passed` in 360.1s (seed `180398`),
+  including the two root planner stability tests; only the known `support.exs`
+  test-pattern warning.
 - Stored-artifact lint: `155` artifacts, `0` errors, `0` warnings.
 - Canonical repair/strategy regeneration retained hashes `cc41834e...cdc30d8a`
   and `57602722...2f9985`.
-- Full suite: `5670 passed` in 776.3s (seed `860386`); only known support-fixture
+- Full suite: `5671 passed` in 798.5s (seed `317816`); only known support-fixture
   test-pattern warnings.
 - Final formatting and whitespace checks passed.
 
 Level 6 pillar advanced:
-Fleet-scale strategy decision-support and embedded-report identity integrity.
+Fleet-scale strategy decision-support and Pareto evidence integrity.
 
 Last published slice:
-- `20cc568f` Bind CampaignStrategy ranking report identity (`5669 passed`; all
-  fixed source/objective/label/assumption values are producer-bound).
+- `5d5ed5d5` Bind CampaignStrategy score ranked evidence (`5670 passed`;
+  replayable ranking membership/order/counts/values/right winner are bound).
 
 Remaining maturity gaps:
 - Audit remaining generated and source handoffs where their complete producer
@@ -67,8 +71,8 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-After this slice, audit the CampaignStrategy Pareto-frontier report against its
-fully preserved branch-comparison input; keep ranking input-order fields
+After this slice, audit the CampaignStrategy score-term and objective-tradeoff
+reports against their preserved branch inputs; keep ranking input-order fields
 deferred because their source ordering is not preserved in the artifact.
 
 Blocked:

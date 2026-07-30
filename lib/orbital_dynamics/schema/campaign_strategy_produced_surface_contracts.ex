@@ -1,6 +1,8 @@
 defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts do
   @moduledoc false
 
+  alias OrbitalDynamics.CampaignPlanner.BranchComparisonReport
+
   alias OrbitalDynamics.Schema.{
     CadenceImportValidation,
     DecisionSupportValidation,
@@ -79,6 +81,26 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts do
     "rank_source" => "input_order",
     "external_solver" => false
   }
+  @strategy_pareto_frontier_fields ~w(
+    source
+    alternative_count
+    objective_count
+    frontier_count
+    dominated_count
+    frontier_ids
+    dominated_ids
+    objective_directions
+    assumptions
+  )
+  @strategy_pareto_frontier_row_fields ~w(
+    id
+    scenario_id
+    objective_values
+    objective_keys
+    frontier
+    dominated_by_ids
+    dominates_ids
+  )
   @branch_comparison_feedback_fields [
     {"feedback_score_adjustment", "score_adjustment"},
     {"contact_success_factor", "contact_success_factor"},
@@ -446,6 +468,7 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts do
     |> validate_branch_comparison_assumptions(artifact)
     |> validate_strategy_ranking_comparison_identity(artifact)
     |> validate_strategy_ranking_comparison_score_ranked_evidence(artifact)
+    |> validate_strategy_pareto_frontier_evidence(artifact)
     |> validate_branch_comparison_target_identity(artifact)
     |> validate_branch_comparison_event_summary(artifact)
     |> validate_branch_comparison_score_evidence(artifact)
@@ -852,6 +875,69 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts do
     do: is_binary(branch_id) and is_number(score)
 
   defp branch_score_input?(_branch), do: false
+
+  defp validate_strategy_pareto_frontier_evidence(
+         issues,
+         %{
+           "branch_comparison_report" => %{"rows" => branch_rows} = branch_report,
+           "pareto_frontier_report" => %{"rows" => rows} = report
+         }
+       )
+       when is_list(branch_rows) and is_list(rows) do
+    if Enum.all?(branch_rows, &is_map/1) and Enum.all?(rows, &is_map/1) do
+      expected = BranchComparisonReport.pareto_frontier_report(branch_report)
+
+      issues =
+        Enum.reduce(@strategy_pareto_frontier_fields, issues, fn field, acc ->
+          validate_optional_copy(
+            acc,
+            "$.pareto_frontier_report.#{field}",
+            report,
+            field,
+            Map.get(expected, field),
+            "must match the Pareto report replayed from branch_comparison_report"
+          )
+        end)
+
+      expected_rows = Map.fetch!(expected, "rows")
+
+      if length(rows) == length(expected_rows) do
+        expected_rows
+        |> Enum.zip(rows)
+        |> Enum.with_index()
+        |> Enum.reduce(issues, fn {{expected_row, row}, index}, acc ->
+          validate_strategy_pareto_frontier_row(acc, expected_row, row, index)
+        end)
+      else
+        [
+          error(
+            "$.pareto_frontier_report.rows",
+            "rows must match the Pareto report replayed from branch_comparison_report"
+          )
+          | issues
+        ]
+      end
+    else
+      issues
+    end
+  end
+
+  defp validate_strategy_pareto_frontier_evidence(issues, _artifact), do: issues
+
+  defp validate_strategy_pareto_frontier_row(issues, expected_row, row, index) do
+    path = "$.pareto_frontier_report.rows[#{index}]"
+
+    Enum.reduce(@strategy_pareto_frontier_row_fields, issues, fn field, acc ->
+      validate_optional_copy(
+        acc,
+        path <> ".#{field}",
+        row,
+        field,
+        Map.get(expected_row, field),
+        "must match the Pareto row replayed from branch_comparison_report"
+      )
+    end)
+  end
 
   defp validate_branch_comparison_target_identity(
          issues,
