@@ -34,13 +34,20 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
       "branch_source_window_timing_coverage_status",
       "branch_earliest_starts_at_s",
       "branch_latest_ends_at_s",
-      "branch_station_reservation_expiration_statuses"
+      "branch_station_reservation_expiration_statuses",
+      "branch_max_latency_s",
+      "branch_planned_latency_s",
+      "branch_required_contacts",
+      "branch_planned_contacts",
+      "branch_required_downlink_mb",
+      "branch_planned_downlink_mb"
     ]
 
-    recommendation_branch_context =
+    recommendation_summary =
       artifact["recommendation"]["explanation"]
       |> Enum.find(&(&1["type"] == "branch_event_summary"))
-      |> Map.take(branch_context_fields)
+
+    recommendation_branch_context = Map.take(recommendation_summary, branch_context_fields)
 
     assert %{
              "branch_earliest_starts_at_s" => 500.0,
@@ -53,8 +60,39 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
              "branch_untimed_source_window_count" => 1,
              "branch_partially_timed_source_window_count" => 0,
              "branch_source_window_timing_coverage_status" => "partial",
-             "branch_station_reservation_expiration_statuses" => ["active"]
+             "branch_station_reservation_expiration_statuses" => ["active"],
+             "branch_max_latency_s" => 300.0,
+             "branch_planned_latency_s" => 480.0,
+             "branch_required_contacts" => 3,
+             "branch_planned_contacts" => 1,
+             "branch_required_downlink_mb" => 120.0,
+             "branch_planned_downlink_mb" => 70.0
            } = recommendation_branch_context
+
+    assert recommendation_summary["branch_actual_downlink_completion_ratio"] == 0.22
+
+    comparison_downlink_context =
+      artifact["branch_comparison_report"]["rows"]
+      |> Enum.find(&(&1["branch_id"] == "urgent"))
+      |> Map.take([
+        "branch_max_latency_s",
+        "branch_planned_latency_s",
+        "branch_required_contacts",
+        "branch_planned_contacts",
+        "branch_required_downlink_mb",
+        "branch_planned_downlink_mb",
+        "branch_actual_downlink_completion_ratio"
+      ])
+
+    assert comparison_downlink_context == %{
+             "branch_max_latency_s" => 300.0,
+             "branch_planned_latency_s" => 480.0,
+             "branch_required_contacts" => 3,
+             "branch_planned_contacts" => 1,
+             "branch_required_downlink_mb" => 120.0,
+             "branch_planned_downlink_mb" => 70.0,
+             "branch_actual_downlink_completion_ratio" => 0.22
+           }
 
     assert source_window_ids == Enum.sort(source_window_ids)
     assert length(source_window_ids) == 11
@@ -137,6 +175,33 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
     assert {:ok, %{"schema_contract" => "campaign_strategy.v3", "status" => "pass"}} =
              Schema.validate_artifact(artifact)
+
+    urgent_row_index =
+      Enum.find_index(
+        artifact["branch_comparison_report"]["rows"],
+        &(&1["branch_id"] == "urgent")
+      )
+
+    downlink_context_invalid =
+      put_in(
+        artifact,
+        [
+          "branch_comparison_report",
+          "rows",
+          Access.at(urgent_row_index),
+          "branch_required_downlink_mb"
+        ],
+        121.0
+      )
+
+    assert {:error, downlink_context_report} =
+             Schema.validate_artifact(downlink_context_invalid)
+
+    assert Enum.any?(
+             downlink_context_report["errors"],
+             &(&1["path"] ==
+                 "$.branch_comparison_report.rows[#{urgent_row_index}].branch_required_downlink_mb")
+           )
 
     assert {:ok, %{"schema_contract" => "cadence_import_manifest.v1", "status" => "pass"}} =
              Schema.validate_artifact(review_import)

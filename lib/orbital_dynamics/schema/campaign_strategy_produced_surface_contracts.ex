@@ -545,6 +545,7 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts do
       events
     )
     |> validate_branch_comparison_event_quality_fields(path, row, events)
+    |> validate_branch_comparison_event_downlink_fields(path, row, events)
   end
 
   defp validate_branch_comparison_station_calendar_fields(issues, path, row, events) do
@@ -737,6 +738,59 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts do
       "branch_blur_max_score",
       event_maximum_present(events, "blur_score"),
       "must match the enclosing branch maximum blur score"
+    )
+  end
+
+  defp validate_branch_comparison_event_downlink_fields(issues, path, row, events) do
+    issues
+    |> validate_optional_copy(
+      path <> ".branch_max_latency_s",
+      row,
+      "branch_max_latency_s",
+      event_maximum_present(events, "max_latency_s"),
+      "must match the enclosing branch maximum required latency"
+    )
+    |> validate_optional_copy(
+      path <> ".branch_planned_latency_s",
+      row,
+      "branch_planned_latency_s",
+      event_maximum_present(events, "planned_latency_s"),
+      "must match the enclosing branch maximum planned latency"
+    )
+    |> validate_optional_copy(
+      path <> ".branch_required_contacts",
+      row,
+      "branch_required_contacts",
+      event_maximum_present(events, "required_contacts"),
+      "must match the enclosing branch maximum required contacts"
+    )
+    |> validate_optional_copy(
+      path <> ".branch_planned_contacts",
+      row,
+      "branch_planned_contacts",
+      event_maximum_present(events, "planned_contacts"),
+      "must match the enclosing branch maximum planned contacts"
+    )
+    |> validate_optional_copy(
+      path <> ".branch_required_downlink_mb",
+      row,
+      "branch_required_downlink_mb",
+      event_maximum_present(events, "required_downlink_mb"),
+      "must match the enclosing branch maximum required downlink"
+    )
+    |> validate_optional_copy(
+      path <> ".branch_planned_downlink_mb",
+      row,
+      "branch_planned_downlink_mb",
+      event_maximum_present(events, "planned_downlink_mb"),
+      "must match the enclosing branch maximum planned downlink"
+    )
+    |> validate_optional_copy(
+      path <> ".branch_actual_downlink_completion_ratio",
+      row,
+      "branch_actual_downlink_completion_ratio",
+      event_minimum_present(events, "actual_downlink_completion_ratio"),
+      "must match the enclosing branch minimum actual downlink completion ratio"
     )
   end
 

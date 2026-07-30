@@ -540,6 +540,36 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContractsTest do
     end
   end
 
+  test "rejects CampaignStrategy branch comparison event latency and downlink context drift", %{
+    strategy: strategy
+  } do
+    drift_values = %{
+      "branch_max_latency_s" => 1.0,
+      "branch_planned_latency_s" => 1.0,
+      "branch_required_contacts" => 1,
+      "branch_planned_contacts" => 1,
+      "branch_required_downlink_mb" => 1.0,
+      "branch_planned_downlink_mb" => 1.0,
+      "branch_actual_downlink_completion_ratio" => 0.5
+    }
+
+    for {field, drift} <- drift_values do
+      invalid =
+        put_in(
+          strategy,
+          ["branch_comparison_report", "rows", Access.at(1), field],
+          drift
+        )
+
+      assert {:error, validation_report} = Schema.validate_artifact(invalid)
+
+      assert Enum.any?(
+               validation_report["errors"],
+               &(&1["path"] == "$.branch_comparison_report.rows[1].#{field}")
+             )
+    end
+  end
+
   test "rejects CampaignStrategy branch comparison score evidence drift", %{
     strategy: strategy
   } do
