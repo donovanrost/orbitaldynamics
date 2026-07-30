@@ -601,7 +601,28 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts do
       report_branch_ids = Enum.map(rows, &Map.fetch!(&1, "branch_id"))
 
       if report_branch_ids == branch_ids do
-        issues
+        rows
+        |> Enum.with_index(1)
+        |> Enum.reduce(issues, fn {row, rank}, acc ->
+          branch_id = Map.fetch!(row, "branch_id")
+          path = "$.branch_comparison_report.rows[#{rank - 1}]"
+
+          acc
+          |> validate_optional_copy(
+            path <> ".id",
+            row,
+            "id",
+            "branch_comparison:#{branch_id}",
+            "must match the deterministic branch comparison row ID"
+          )
+          |> validate_optional_copy(
+            path <> ".rank",
+            row,
+            "rank",
+            rank,
+            "must match the one-based branch comparison row position"
+          )
+        end)
       else
         [
           error(

@@ -5,45 +5,43 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Bind CampaignStrategy branch repair-link completion context.
+Bind CampaignStrategy comparison row identity and rank.
 
 Status:
-Implemented and fully verified from clean published base `1e839cf5`; ready to
+Implemented and fully verified from clean published base `c3888e29`; ready to
 publish.
 
 Selection evidence:
-- `BranchComparisonRowFields.repair_fields/1` copies eleven link-capacity fields
-  into each comparison row, but produced-surface validation binds only the four
-  contact/selected-throughput fields.
-- The reduced-capacity strategy scenario populates all four actual-completion
-  fields; the downlink-volume strategy scenario populates all three
-  requirement/selected-shortfall fields.
-- A producer-shaped prechange probe confirmed independently stale values still
-  return no produced-surface issues for all seven missing copies (`7/7`).
+- `BranchComparisonReport.report/3` deterministically emits each row ID as
+  `branch_comparison:<branch_id>` and its rank as the one-based row position.
+- Produced-surface validation binds branch IDs/order but not these two derived
+  fields; generic validation checks only their stable-ID/integer shapes.
+- A live canonical prechange probe confirmed schema-valid stale row IDs and
+  ranks are both accepted (`2/2`); selected flags and score deltas are already
+  rejected by existing cross-surface contracts and stay outside this slice.
 
 Delivered behavior:
-- CampaignStrategy comparison validation now binds all seven remaining
-  link-capacity requirement, selected-shortfall, and actual-completion copies to
-  the enclosing branch repair report, including omitted-field semantics.
-- Focused coverage challenges every field independently; populated
-  reduced-capacity and downlink-volume strategy paths prove exact source values,
-  while existing review and Cadence comparison handoffs retain them unchanged.
+- CampaignStrategy produced-surface validation now binds every comparison row ID
+  to `branch_comparison:<branch_id>` and every rank to its one-based row
+  position after branch order is established.
+- Canonical mutation coverage independently challenges both exact paths, while
+  existing comparison review/import handoffs remain unchanged.
 
 Verification:
-- Populated reduced-capacity/downlink-volume scenarios: `2 passed, 28 excluded`
-  in 1.0s (seed `389786`).
-- Focused produced-surface contracts: `54 passed` in 288.8s (seed `942838`).
-- Adjacent produced-surface, strategy, review, and import coverage:
-  `60 passed, 28 excluded` in 290.8s (seed `196461`).
-- Live mutation probe: `7/7` stale values rejected on their exact
+- Populated canonical identity scenario: `1 passed, 53 excluded` in 8.5s (seed
+  `246186`).
+- Focused produced-surface contracts: `54 passed` in 292.8s (seed `82139`).
+- Adjacent produced-surface, review, and import coverage: `58 passed` in 293.4s
+  (seed `712470`).
+- Live canonical mutation probe: `2/2` stale values rejected on their exact
   producer-binding paths.
-- Broad schema: `1140 passed` in 455.9s (seed `279702`).
-- Campaign planner: `1888 passed` in 354.7s (seed `442509`); only the known
+- Broad schema: `1140 passed` in 446.5s (seed `836968`).
+- Campaign planner: `1888 passed` in 345.6s (seed `90587`); only the known
   `support.exs` test-pattern warning.
 - Stored-artifact lint: `155` artifacts, `0` errors, `0` warnings.
 - Canonical repair/strategy regeneration retained hashes `cc41834e...cdc30d8a`
   and `57602722...2f9985`.
-- Full suite: `5666 passed` in 744.1s (seed `983842`); only known support-fixture
+- Full suite: `5666 passed` in 749.2s (seed `4671`); only known support-fixture
   test-pattern warnings.
 - Final formatting and whitespace checks passed.
 
@@ -51,8 +49,8 @@ Level 6 pillar advanced:
 Fleet-scale strategy decision-support and embedded-report identity integrity.
 
 Last published slice:
-- `1e839cf5` Bind CampaignStrategy branch feedback detail context (`5665 passed`;
-  all thirteen remaining direct feedback copies now bind to their source map).
+- `c3888e29` Bind CampaignStrategy branch repair link completion context
+  (`5666 passed`; all seven remaining repair-link copies now bind exactly).
 
 Remaining maturity gaps:
 - Audit remaining generated and source handoffs where their complete producer
@@ -67,9 +65,8 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-After this slice, re-run the producer/output inventory for the remaining
-CampaignStrategy comparison surfaces; keep unpopulated source-branch identity
-deferred until a real path exercises it.
+After this slice, continue the base/report-level comparison inventory; keep
+unpopulated source-branch identity deferred until a real path exercises it.
 
 Blocked:
 None.

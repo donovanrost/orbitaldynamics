@@ -192,7 +192,19 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContractsTest do
     invalid_cases = [
       {"$.branch_comparison_report.rows", reordered},
       {"$.branch_comparison_report.recommended_branch_id",
-       Map.put(strategy, "branch_comparison_report", alternate_report)}
+       Map.put(strategy, "branch_comparison_report", alternate_report)},
+      {"$.branch_comparison_report.rows[1].id",
+       put_in(
+         strategy,
+         ["branch_comparison_report", "rows", Access.at(1), "id"],
+         "branch_comparison:stale_identity"
+       )},
+      {"$.branch_comparison_report.rows[1].rank",
+       update_in(
+         strategy,
+         ["branch_comparison_report", "rows", Access.at(1), "rank"],
+         &(&1 + 10)
+       )}
     ]
 
     for {expected_path, invalid} <- invalid_cases do
