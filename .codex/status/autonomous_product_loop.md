@@ -5,45 +5,45 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Complete CampaignStrategy comparison downlink evidence.
+Bind CampaignStrategy combined source-branch lineage.
 
 Status:
-Implemented and fully verified from clean published base `aeb63bcd`; ready to
+Implemented and fully verified from clean published base `9c60d799`; ready to
 publish.
 
 Selection evidence:
-- `RecommendationObjective.comparison_fields/1` copies required downlink volume
-  alongside four already-bound downlink-completion summaries.
-- Produced-surface validation binds required/planned contacts, planned downlink
-  volume, and completion ratio, but omits
-  `downlink_completion_required_downlink_mb`.
-- The real data-volume completion scenario populates the field; a live canonical
-  injection probe confirmed a schema-valid stale copy is accepted on its exact
-  comparison-row path.
+- `BranchComparisonContext.event_fields/1` emits sorted unique
+  `combined_source_branch_ids` from each event's source-branch array, falling
+  back to the singular source only when the array key is absent.
+- Both the checked canonical combined-mission branch and the real lineage
+  normalization scenario populate this comparison-row field.
+- A live canonical mutation probe confirmed a schema-valid stale branch ID is
+  accepted on its exact row path.
 
 Delivered behavior:
-- CampaignStrategy produced-surface validation now binds the optional required
-  downlink-volume comparison copy to the enclosing branch objective satisfaction
-  report, completing the emitted downlink-completion summary set.
-- The real data-volume completion scenario challenges the objective copy on its
-  exact path alongside the independent repair-link copy; absent optional values
-  remain compatible.
+- CampaignStrategy produced-surface validation now binds optional combined
+  source-branch lineage to the enclosing branch events, preserving the
+  producer's array-first/singular-fallback rule and sorted unique output.
+- Canonical mutation coverage rejects stale lineage on its exact row path, while
+  the real normalization scenario and lineage-absent older rows remain valid.
 
 Verification:
-- Populated downlink-volume scenario: `1 passed, 24 excluded` in 1.4s (seed
-  `532015`).
-- Focused produced-surface contracts: `55 passed` in 299.1s (seed `405679`).
-- Adjacent strategy review/import handoffs: `4 passed, 85 excluded` in 6.1s
-  (seed `513522`).
-- Live canonical injection probe: zero baseline issues and the stale required
-  downlink copy rejected on its exact producer-binding path.
-- Broad schema: `1165 passed` in 578.9s (seed `769458`).
-- Campaign planner: `1888 passed` in 353.8s (seed `595428`); only the known
+- Populated canonical lineage mutation: `1 passed, 55 excluded` in 5.9s (seed
+  `948339`).
+- Real lineage-normalization scenario: `1 passed, 7 excluded` in 0.7s (seed
+  `636899`).
+- Focused produced-surface contracts: `56 passed` in 297.3s (seed `818330`).
+- Adjacent strategy review/import handoffs: `4 passed, 85 excluded` in 6.5s
+  (seed `169483`).
+- Live canonical mutation probe: zero baseline issues and the stale combined
+  source-branch list rejected on its exact producer-binding path.
+- Broad schema: `1166 passed` in 602.6s (seed `294743`).
+- Campaign planner: `1888 passed` in 353.2s (seed `587562`); only the known
   `support.exs` test-pattern warning.
 - Stored-artifact lint: `155` artifacts, `0` errors, `0` warnings.
 - Canonical repair/strategy regeneration retained hashes `cc41834e...cdc30d8a`
   and `57602722...2f9985`.
-- Full suite: `5667 passed` in 779.5s (seed `182169`); only known support-fixture
+- Full suite: `5668 passed` in 731.3s (seed `853496`); only known support-fixture
   test-pattern warnings.
 - Final formatting and whitespace checks passed.
 
@@ -51,8 +51,8 @@ Level 6 pillar advanced:
 Fleet-scale strategy decision-support and objective-evidence integrity.
 
 Last published slice:
-- `aeb63bcd` Bind CampaignStrategy collection latency evidence (`5667 passed`;
-  all five optional collection-latency summaries are producer-bound).
+- `9c60d799` Complete CampaignStrategy comparison downlink evidence (`5667
+  passed`; the emitted downlink-completion summary set is producer-bound).
 
 Remaining maturity gaps:
 - Audit remaining generated and source handoffs where their complete producer
@@ -67,9 +67,9 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-After this slice, audit replayable score-ranked membership and metadata within
-the ranking report; keep input-order and unpopulated source-branch identity
-deferred until their producer inputs are preserved by real artifact paths.
+After this slice, audit replayable score-ranked membership and static producer
+metadata within the ranking report; keep input-order fields deferred because
+their source ordering is not preserved in the artifact.
 
 Blocked:
 None.

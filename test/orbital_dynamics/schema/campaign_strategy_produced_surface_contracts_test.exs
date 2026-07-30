@@ -292,6 +292,36 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContractsTest do
     end
   end
 
+  test "rejects CampaignStrategy branch comparison combined source-branch drift", %{
+    strategy: strategy
+  } do
+    row_index =
+      Enum.find_index(
+        strategy["branch_comparison_report"]["rows"],
+        &Map.has_key?(&1, "combined_source_branch_ids")
+      )
+
+    invalid =
+      update_in(
+        strategy,
+        [
+          "branch_comparison_report",
+          "rows",
+          Access.at(row_index),
+          "combined_source_branch_ids"
+        ],
+        &(&1 ++ ["stale_source_branch"])
+      )
+
+    assert {:error, validation_report} = Schema.validate_artifact(invalid)
+
+    assert Enum.any?(
+             validation_report["errors"],
+             &(&1["path"] ==
+                 "$.branch_comparison_report.rows[#{row_index}].combined_source_branch_ids")
+           )
+  end
+
   test "rejects CampaignStrategy branch comparison event temporal envelope drift", %{
     strategy: strategy
   } do

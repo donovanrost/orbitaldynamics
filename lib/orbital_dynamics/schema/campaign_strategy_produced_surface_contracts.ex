@@ -761,6 +761,13 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts do
       "must match the enclosing branch event types"
     )
     |> validate_optional_copy(
+      path <> ".combined_source_branch_ids",
+      row,
+      "combined_source_branch_ids",
+      branch_combined_source_branch_ids(events),
+      "must match the enclosing branch event source-branch IDs"
+    )
+    |> validate_optional_copy(
       path <> ".branch_event_trust_boundary_status_counts",
       row,
       "branch_event_trust_boundary_status_counts",
@@ -1566,6 +1573,19 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts do
   end
 
   defp branch_event_unique_values(_events, _fields), do: []
+
+  defp branch_combined_source_branch_ids(events) do
+    events
+    |> list_maps()
+    |> Enum.flat_map(fn event ->
+      event
+      |> Map.get("source_branch_ids", List.wrap(Map.get(event, "source_branch_id")))
+      |> List.wrap()
+    end)
+    |> Enum.filter(&(is_binary(&1) and &1 != ""))
+    |> Enum.uniq()
+    |> Enum.sort()
+  end
 
   defp branch_event_transition_values(events, field) do
     events
