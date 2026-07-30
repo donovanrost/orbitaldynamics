@@ -256,6 +256,36 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContractsTest do
     end
   end
 
+  test "rejects CampaignStrategy branch comparison event temporal envelope drift", %{
+    strategy: strategy
+  } do
+    outage_index =
+      Enum.find_index(
+        strategy["branch_comparison_report"]["rows"],
+        &(&1["branch_id"] == "operator_station_outage")
+      )
+
+    for {field, drift} <- [
+          {"branch_earliest_starts_at_s", 700.0},
+          {"branch_latest_ends_at_s", 1700.0}
+        ] do
+      invalid =
+        put_in(
+          strategy,
+          ["branch_comparison_report", "rows", Access.at(outage_index), field],
+          drift
+        )
+
+      assert {:error, validation_report} = Schema.validate_artifact(invalid)
+
+      assert Enum.any?(
+               validation_report["errors"],
+               &(&1["path"] ==
+                   "$.branch_comparison_report.rows[#{outage_index}].#{field}")
+             )
+    end
+  end
+
   test "rejects CampaignStrategy branch comparison score evidence drift", %{
     strategy: strategy
   } do

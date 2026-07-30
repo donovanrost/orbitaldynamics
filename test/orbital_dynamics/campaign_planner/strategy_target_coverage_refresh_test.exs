@@ -183,6 +183,27 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyTargetCoverageRefreshTest do
              &(&1["path"] ==
                  "$.branch_comparison_report.rows[#{morning_index}].branch_event_types")
            )
+
+    temporal_envelope_invalid =
+      put_in(
+        artifact,
+        [
+          "branch_comparison_report",
+          "rows",
+          Access.at(morning_index),
+          "branch_earliest_starts_at_s"
+        ],
+        301.0
+      )
+
+    assert {:error, temporal_validation_report} =
+             Schema.validate_artifact(temporal_envelope_invalid)
+
+    assert Enum.any?(
+             temporal_validation_report["errors"],
+             &(&1["path"] ==
+                 "$.branch_comparison_report.rows[#{morning_index}].branch_earliest_starts_at_s")
+           )
   end
 
   test "strategy does not derive target coverage from duplicate target catalog ids" do

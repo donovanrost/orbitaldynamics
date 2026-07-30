@@ -463,6 +463,20 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts do
       branch_event_trust_boundary_status_counts(events),
       "must match the enclosing branch event trust-boundary status counts"
     )
+    |> validate_optional_copy(
+      path <> ".branch_earliest_starts_at_s",
+      row,
+      "branch_earliest_starts_at_s",
+      event_minimum_present(events, "starts_at_s"),
+      "must match the enclosing branch earliest event start"
+    )
+    |> validate_optional_copy(
+      path <> ".branch_latest_ends_at_s",
+      row,
+      "branch_latest_ends_at_s",
+      event_maximum_present(events, "ends_at_s"),
+      "must match the enclosing branch latest event end"
+    )
   end
 
   defp branch_event_types(events) when is_list(events) do
@@ -493,6 +507,43 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts do
 
     if is_binary(trust_boundary), do: "declared", else: "missing"
   end
+
+  defp event_minimum_present(events, field) do
+    events
+    |> event_numeric_values(field)
+    |> case do
+      [] -> nil
+      values -> Enum.min(values)
+    end
+  end
+
+  defp event_maximum_present(events, field) do
+    events
+    |> event_numeric_values(field)
+    |> case do
+      [] -> nil
+      values -> Enum.max(values)
+    end
+  end
+
+  defp event_numeric_values(events, field) when is_list(events) do
+    events
+    |> Enum.map(&(&1 |> map_field(field) |> event_number()))
+    |> Enum.filter(&is_number/1)
+  end
+
+  defp event_numeric_values(_events, _field), do: []
+
+  defp event_number(value) when is_integer(value) or is_float(value), do: value
+
+  defp event_number(value) when is_binary(value) do
+    case Float.parse(value) do
+      {number, ""} -> number
+      _error -> nil
+    end
+  end
+
+  defp event_number(_value), do: nil
 
   defp branch_id_input?(%{"branch_id" => branch_id}), do: is_binary(branch_id)
   defp branch_id_input?(_row), do: false
