@@ -901,6 +901,91 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContractsTest do
     end
   end
 
+  test "rejects CampaignStrategy branch comparison source-window context drift", %{
+    strategy: strategy
+  } do
+    fields = ~w(
+      branch_source_window_ids
+      branch_source_window_count
+      branch_source_window_bounds
+      branch_source_window_bound_count
+      branch_untimed_source_window_ids
+      branch_untimed_source_window_count
+      branch_partially_timed_source_window_ids
+      branch_partially_timed_source_window_count
+      branch_source_window_timing_coverage_status
+    )
+
+    complete_context = %{
+      "branch_source_window_ids" => ["invented_complete_window"],
+      "branch_source_window_count" => 1,
+      "branch_source_window_bounds" => [
+        %{
+          "source_window_id" => "invented_complete_window",
+          "earliest_starts_at_s" => 1.0,
+          "latest_ends_at_s" => 2.0
+        }
+      ],
+      "branch_source_window_bound_count" => 1,
+      "branch_untimed_source_window_ids" => [],
+      "branch_untimed_source_window_count" => 0,
+      "branch_partially_timed_source_window_ids" => [],
+      "branch_partially_timed_source_window_count" => 0,
+      "branch_source_window_timing_coverage_status" => "complete"
+    }
+
+    partial_context = %{
+      "branch_source_window_ids" => [
+        "invented_partially_timed_window",
+        "invented_untimed_window_a",
+        "invented_untimed_window_b"
+      ],
+      "branch_source_window_count" => 3,
+      "branch_source_window_bounds" => [
+        %{
+          "source_window_id" => "invented_partially_timed_window",
+          "earliest_starts_at_s" => 1.0
+        }
+      ],
+      "branch_source_window_bound_count" => 1,
+      "branch_untimed_source_window_ids" => [
+        "invented_untimed_window_a",
+        "invented_untimed_window_b"
+      ],
+      "branch_untimed_source_window_count" => 2,
+      "branch_partially_timed_source_window_ids" => [
+        "invented_partially_timed_window"
+      ],
+      "branch_partially_timed_source_window_count" => 1,
+      "branch_source_window_timing_coverage_status" => "partial"
+    }
+
+    reports =
+      for context <- [complete_context, partial_context] do
+        row =
+          strategy["branch_comparison_report"]["rows"]
+          |> Enum.at(1)
+          |> Map.drop(fields)
+          |> Map.merge(context)
+
+        invalid =
+          put_in(strategy, ["branch_comparison_report", "rows", Access.at(1)], row)
+
+        assert {:error, validation_report} = Schema.validate_artifact(invalid)
+        validation_report
+      end
+
+    errors = Enum.flat_map(reports, & &1["errors"])
+
+    for field <- fields do
+      assert Enum.any?(
+               errors,
+               &(&1["path"] == "$.branch_comparison_report.rows[1].#{field}" and
+                   &1["message"] == "must match the enclosing branch source-window context")
+             )
+    end
+  end
+
   test "rejects CampaignStrategy branch comparison score evidence drift", %{
     strategy: strategy
   } do

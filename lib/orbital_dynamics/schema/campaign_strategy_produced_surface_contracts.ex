@@ -82,6 +82,17 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts do
     {"branch_objective_statuses", ["objective_status"]},
     {"branch_source_objective_statuses", ["source_objective_status"]}
   ]
+  @branch_comparison_source_window_fields ~w(
+    branch_source_window_ids
+    branch_source_window_count
+    branch_source_window_bounds
+    branch_source_window_bound_count
+    branch_untimed_source_window_ids
+    branch_untimed_source_window_count
+    branch_partially_timed_source_window_ids
+    branch_partially_timed_source_window_count
+    branch_source_window_timing_coverage_status
+  )
   @branch_comparison_priority_target_fields [
     {"required", "required_target_ids"},
     {"satisfied", "satisfied_target_ids"},
@@ -677,6 +688,7 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts do
       branch_event_unique_values(events, ["direction"]),
       "must match the enclosing branch directions"
     )
+    |> validate_branch_comparison_source_window_fields(path, row, events)
     |> validate_branch_comparison_mission_identity_fields(path, row, events)
     |> validate_branch_comparison_station_calendar_fields(path, row, events)
     |> validate_branch_comparison_station_reservation_fields(path, row, branch, events)
@@ -701,6 +713,21 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts do
     )
     |> validate_branch_comparison_timeline_activity_precondition_fields(path, row, events)
     |> validate_branch_comparison_timeline_preservation_fields(path, row, events)
+  end
+
+  defp validate_branch_comparison_source_window_fields(issues, path, row, events) do
+    expected = branch_source_window_context(events)
+
+    Enum.reduce(@branch_comparison_source_window_fields, issues, fn field, acc ->
+      validate_optional_copy(
+        acc,
+        path <> ".#{field}",
+        row,
+        field,
+        Map.get(expected, field),
+        "must match the enclosing branch source-window context"
+      )
+    end)
   end
 
   defp validate_branch_comparison_mission_identity_fields(issues, path, row, events) do
@@ -1278,6 +1305,105 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts do
   end
 
   defp branch_event_unique_values(_events, _fields), do: []
+
+  defp branch_source_window_context(events) do
+    source_window_ids =
+      branch_event_unique_values(events, ["source_window_id", "source_window_ids"])
+
+    source_window_bounds = branch_source_window_bounds(events)
+    bounded_source_window_ids = Enum.map(source_window_bounds, & &1["source_window_id"])
+    untimed_source_window_ids = source_window_ids -- bounded_source_window_ids
+
+    partially_timed_source_window_ids =
+      Enum.flat_map(source_window_bounds, fn bound ->
+        has_start = is_number(bound["earliest_starts_at_s"])
+        has_end = is_number(bound["latest_ends_at_s"])
+
+        if has_start != has_end, do: [bound["source_window_id"]], else: []
+      end)
+
+    complete_source_window_bound_count =
+      Enum.count(source_window_bounds, fn bound ->
+        is_number(bound["earliest_starts_at_s"]) and
+          is_number(bound["latest_ends_at_s"])
+      end)
+
+    source_window_timing_coverage_status =
+      cond do
+        source_window_ids == [] -> nil
+        source_window_bounds == [] -> "untimed"
+        complete_source_window_bound_count == length(source_window_ids) -> "complete"
+        true -> "partial"
+      end
+
+    %{
+      "branch_source_window_ids" => source_window_ids,
+      "branch_source_window_count" => optional_count(source_window_ids, source_window_ids),
+      "branch_source_window_bounds" => source_window_bounds,
+      "branch_source_window_bound_count" =>
+        optional_count(source_window_ids, source_window_bounds),
+      "branch_untimed_source_window_ids" => untimed_source_window_ids,
+      "branch_untimed_source_window_count" =>
+        optional_count(source_window_ids, untimed_source_window_ids),
+      "branch_partially_timed_source_window_ids" => partially_timed_source_window_ids,
+      "branch_partially_timed_source_window_count" =>
+        optional_count(source_window_ids, partially_timed_source_window_ids),
+      "branch_source_window_timing_coverage_status" => source_window_timing_coverage_status
+    }
+  end
+
+  defp branch_source_window_bounds(events) do
+    events
+    |> list_maps()
+    |> Enum.reduce(%{}, fn event, bounds_by_id ->
+      source_window_ids =
+        branch_event_unique_values([event], ["source_window_id", "source_window_ids"])
+
+      earliest_starts_at_s = event_number(map_field(event, "starts_at_s"))
+      latest_ends_at_s = event_number(map_field(event, "ends_at_s"))
+
+      if source_window_ids == [] or
+           (is_nil(earliest_starts_at_s) and is_nil(latest_ends_at_s)) do
+        bounds_by_id
+      else
+        Enum.reduce(source_window_ids, bounds_by_id, fn source_window_id, acc ->
+          Map.update(
+            acc,
+            source_window_id,
+            source_window_bound(source_window_id, earliest_starts_at_s, latest_ends_at_s),
+            fn bound ->
+              bound
+              |> put_source_window_minimum("earliest_starts_at_s", earliest_starts_at_s)
+              |> put_source_window_maximum("latest_ends_at_s", latest_ends_at_s)
+            end
+          )
+        end)
+      end
+    end)
+    |> Map.values()
+    |> Enum.sort_by(& &1["source_window_id"])
+  end
+
+  defp source_window_bound(source_window_id, earliest_starts_at_s, latest_ends_at_s) do
+    %{"source_window_id" => source_window_id}
+    |> put_source_window_minimum("earliest_starts_at_s", earliest_starts_at_s)
+    |> put_source_window_maximum("latest_ends_at_s", latest_ends_at_s)
+  end
+
+  defp put_source_window_minimum(bound, _field, nil), do: bound
+
+  defp put_source_window_minimum(bound, field, value) do
+    Map.update(bound, field, value, &min(&1, value))
+  end
+
+  defp put_source_window_maximum(bound, _field, nil), do: bound
+
+  defp put_source_window_maximum(bound, field, value) do
+    Map.update(bound, field, value, &max(&1, value))
+  end
+
+  defp optional_count([], _values), do: nil
+  defp optional_count(_source_window_ids, values), do: length(values)
 
   defp branch_event_unique_map_keys(events, field, rejected_values) when is_list(events) do
     events

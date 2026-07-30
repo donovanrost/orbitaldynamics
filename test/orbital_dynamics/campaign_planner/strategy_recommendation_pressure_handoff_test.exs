@@ -22,33 +22,38 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
     expected_handoff = StrategyRecommendationPressureExpectedHandoffFixture.expected_handoff()
 
-    branch_context_fields = [
-      "branch_source_window_ids",
-      "branch_source_window_count",
-      "branch_source_window_bounds",
-      "branch_source_window_bound_count",
-      "branch_untimed_source_window_ids",
-      "branch_untimed_source_window_count",
-      "branch_partially_timed_source_window_ids",
-      "branch_partially_timed_source_window_count",
-      "branch_source_window_timing_coverage_status",
-      "branch_earliest_starts_at_s",
-      "branch_latest_ends_at_s",
-      "branch_station_reservation_expiration_statuses",
-      "branch_max_latency_s",
-      "branch_planned_latency_s",
-      "branch_required_contacts",
-      "branch_planned_contacts",
-      "branch_required_downlink_mb",
-      "branch_planned_downlink_mb",
-      "capacity_pack_group_ids",
-      "capacity_pack_statuses",
-      "capacity_pack_min_capacity_fraction",
-      "capacity_pack_max_used_fraction",
-      "capacity_pack_max_required_capacity_fraction",
-      "capacity_pack_total_required_capacity_fraction",
-      "capacity_pack_required_capacity_sources"
-    ]
+    source_window_context_fields = ~w(
+      branch_source_window_ids
+      branch_source_window_count
+      branch_source_window_bounds
+      branch_source_window_bound_count
+      branch_untimed_source_window_ids
+      branch_untimed_source_window_count
+      branch_partially_timed_source_window_ids
+      branch_partially_timed_source_window_count
+      branch_source_window_timing_coverage_status
+    )
+
+    branch_context_fields =
+      source_window_context_fields ++
+        [
+          "branch_earliest_starts_at_s",
+          "branch_latest_ends_at_s",
+          "branch_station_reservation_expiration_statuses",
+          "branch_max_latency_s",
+          "branch_planned_latency_s",
+          "branch_required_contacts",
+          "branch_planned_contacts",
+          "branch_required_downlink_mb",
+          "branch_planned_downlink_mb",
+          "capacity_pack_group_ids",
+          "capacity_pack_statuses",
+          "capacity_pack_min_capacity_fraction",
+          "capacity_pack_max_used_fraction",
+          "capacity_pack_max_required_capacity_fraction",
+          "capacity_pack_total_required_capacity_fraction",
+          "capacity_pack_required_capacity_sources"
+        ]
 
     capacity_pack_direction_fields = [
       "capacity_pack_contact_ids_by_direction",
@@ -964,6 +969,44 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
              mission_identity_report["errors"],
              &(&1["path"] ==
                  "$.branch_comparison_report.rows[#{urgent_row_index}].branch_objective_statuses")
+           )
+
+    invented_source_window_context = %{
+      "branch_source_window_ids" => ["invented_source_window"],
+      "branch_source_window_count" => 1,
+      "branch_source_window_bounds" => [
+        %{
+          "source_window_id" => "invented_source_window",
+          "earliest_starts_at_s" => 1.0,
+          "latest_ends_at_s" => 2.0
+        }
+      ],
+      "branch_source_window_bound_count" => 1,
+      "branch_untimed_source_window_count" => 0,
+      "branch_partially_timed_source_window_count" => 0,
+      "branch_source_window_timing_coverage_status" => "complete"
+    }
+
+    source_window_context_invalid =
+      update_in(
+        artifact,
+        ["branch_comparison_report", "rows", Access.at(urgent_row_index)],
+        fn row ->
+          row
+          |> Map.drop(source_window_context_fields)
+          |> Map.merge(invented_source_window_context)
+        end
+      )
+
+    assert {:error, source_window_context_report} =
+             Schema.validate_artifact(source_window_context_invalid)
+
+    assert Enum.any?(
+             source_window_context_report["errors"],
+             &(&1["path"] ==
+                 "$.branch_comparison_report.rows[#{urgent_row_index}].branch_source_window_ids" and
+                 &1["message"] ==
+                   "must match the enclosing branch source-window context")
            )
 
     assert {:ok, %{"schema_contract" => "cadence_import_manifest.v1", "status" => "pass"}} =

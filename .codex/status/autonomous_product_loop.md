@@ -5,47 +5,49 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Bind CampaignStrategy branch mission identity context.
+Bind CampaignStrategy branch source-window context.
 
 Status:
-Implemented and fully verified from clean published base `20a63049`; ready to
+Implemented and fully verified from clean published base `d3db90d9`; ready to
 publish.
 
 Selection evidence:
-- `BranchComparisonContext.event_fields/1` derives ten scenario, target,
-  collection, product, payload, instrument, and objective identity/status fields
-  as sorted unique values from all branch events; `RiskFields.fields/1` does not
-  override them.
-- The real recommendation-pressure fixture's `urgent` branch populates all ten
-  fields in comparison/recommendation output, strategy-recommendation review, and
-  direct Cadence import.
-- Independently inventing any of the ten fields in that populated comparison
-  still returned `:ok` from `Schema.validate_artifact/1`.
+- `BranchComparisonContext.event_fields/1` derives nine source-window identity,
+  bound, count, partial/untimed, and timing-coverage fields exclusively from the
+  branch events; `RiskFields.fields/1` does not override them.
+- Existing branch-row validation checks this context only for internal
+  consistency, not against the enclosing branch events.
+- The real recommendation-pressure fixture's `urgent` branch populates eight
+  fields; the empty partially-timed ID list is deliberately omitted.
+- Replacing that complete context with one internally consistent invented source
+  window still returned `:ok` from `Schema.validate_artifact/1`.
 
 Delivered behavior:
-- CampaignStrategy comparison validation now reproduces the producer's exact
-  event-derived membership for all ten branch mission identity/status fields.
-- Focused schema coverage independently challenges every field, while the real
-  populated handoff proves the exact values survive recommendation, comparison,
-  review, direct import, and review-derived import surfaces.
-- A stale populated comparison objective status is now rejected on its exact
-  nested path.
+- CampaignStrategy comparison validation now independently reconstructs the
+  complete nine-field source-window context from the enclosing branch events.
+- The check preserves producer semantics for numeric-string timing, per-window
+  minimum/maximum bounds, untimed/partially-timed membership, counts, canonical
+  order, and coverage classification.
+- Focused coverage uses complete and partially-timed fabricated contexts that
+  remain internally valid while challenging every exact producer-binding path;
+  the real populated handoff proves propagation through recommendation, review,
+  direct import, and review-derived import surfaces.
 
 Verification:
-- Populated recommendation-pressure scenario: `1 passed, 953 excluded` in 4.1s
-  (seed `673143`).
-- Focused produced-surface contracts: `47 passed` in 249.8s (seed `733909`).
+- Populated recommendation-pressure scenario: `1 passed, 953 excluded` in 4.0s
+  (seed `317439`).
+- Focused produced-surface contracts: `48 passed` in 246.9s (seed `651685`).
 - Adjacent produced-surface, repair/strategy, and populated handoff coverage:
-  `50 passed, 953 excluded` in 246.6s (seed `353822`).
-- Live mutation probe: `10/10` independently invented field values rejected on
-  their exact comparison paths.
-- Broad schema: `1133 passed` in 450.8s (seed `718961`).
-- Campaign planner: `1888 passed` in 356.8s (seed `47103`); only the known
+  `51 passed, 953 excluded` in 239.4s (seed `768534`).
+- Live mutation probe: `9/9` exact producer-binding paths detected across two
+  internally consistent fabricated contexts.
+- Broad schema: `1134 passed` in 390.0s (seed `545125`).
+- Campaign planner: `1888 passed` in 362.9s (seed `870712`); only the known
   `support.exs` test-pattern warning.
 - Stored-artifact lint: `155` artifacts, `0` errors, `0` warnings.
 - Canonical repair/strategy regeneration retained hashes `cc41834e...cdc30d8a`
   and `57602722...2f9985`.
-- Full suite: `5659 passed` in 717.7s (seed `757542`); only known support-fixture
+- Full suite: `5660 passed` in 729.4s (seed `183239`); only known support-fixture
   test-pattern warnings.
 - Final formatting and whitespace checks passed.
 
@@ -53,8 +55,8 @@ Level 6 pillar advanced:
 Fleet-scale strategy decision-support and embedded-report identity integrity.
 
 Last published slice:
-- `20a63049` Bind CampaignStrategy timeline preservation context (`5658 passed`;
-  all eleven fields now bind exclusively to their branch events).
+- `d3db90d9` Bind CampaignStrategy branch mission identity context (`5659 passed`;
+  all ten fields now bind exclusively to their branch events).
 
 Remaining maturity gaps:
 - Audit remaining generated and source handoffs where their complete producer
@@ -69,8 +71,8 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-Audit remaining branch source-window lineage/timing context for a bounded,
-producer-replayable next slice.
+Audit branch source-activity identity and remaining general event-summary fields
+for a bounded, producer-replayable next slice.
 
 Blocked:
 None.
