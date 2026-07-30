@@ -1269,6 +1269,33 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyBranchLocalOperationalFeedback
 
     assert {:ok, %{"schema_contract" => "campaign_strategy.v3", "status" => "pass"}} =
              Schema.validate_artifact(artifact)
+
+    command_row_index =
+      Enum.find_index(
+        artifact["branch_comparison_report"]["rows"],
+        &(&1["branch_id"] == "derived_command_window_feedback_cmd_review")
+      )
+
+    routing_context_invalid =
+      put_in(
+        artifact,
+        [
+          "branch_comparison_report",
+          "rows",
+          Access.at(command_row_index),
+          "branch_directions"
+        ],
+        ["downlink"]
+      )
+
+    assert {:error, routing_validation_report} =
+             Schema.validate_artifact(routing_context_invalid)
+
+    assert Enum.any?(
+             routing_validation_report["errors"],
+             &(&1["path"] ==
+                 "$.branch_comparison_report.rows[#{command_row_index}].branch_directions")
+           )
   end
 
   defp command(id, scenario_id, starts_at_s, ends_at_s) do

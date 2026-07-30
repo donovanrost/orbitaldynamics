@@ -286,6 +286,33 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContractsTest do
     end
   end
 
+  test "rejects CampaignStrategy branch comparison event routing context drift", %{
+    strategy: strategy
+  } do
+    drift_values = %{
+      "branch_station_availabilities" => ["reserved"],
+      "branch_station_contention_statuses" => ["reserved_overlap"],
+      "branch_ground_station_ids" => ["equator_prime"],
+      "branch_directions" => ["uplink"]
+    }
+
+    for {field, drift} <- drift_values do
+      invalid =
+        put_in(
+          strategy,
+          ["branch_comparison_report", "rows", Access.at(1), field],
+          drift
+        )
+
+      assert {:error, validation_report} = Schema.validate_artifact(invalid)
+
+      assert Enum.any?(
+               validation_report["errors"],
+               &(&1["path"] == "$.branch_comparison_report.rows[1].#{field}")
+             )
+    end
+  end
+
   test "rejects CampaignStrategy branch comparison score evidence drift", %{
     strategy: strategy
   } do

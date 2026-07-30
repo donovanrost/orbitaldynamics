@@ -477,7 +477,71 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts do
       event_maximum_present(events, "ends_at_s"),
       "must match the enclosing branch latest event end"
     )
+    |> validate_optional_copy(
+      path <> ".branch_station_availabilities",
+      row,
+      "branch_station_availabilities",
+      branch_event_station_availabilities(events),
+      "must match the enclosing branch station availabilities"
+    )
+    |> validate_optional_copy(
+      path <> ".branch_station_contention_statuses",
+      row,
+      "branch_station_contention_statuses",
+      branch_event_unique_values(events, ["station_contention_status", "contention_status"]),
+      "must match the enclosing branch station contention statuses"
+    )
+    |> validate_optional_copy(
+      path <> ".branch_ground_station_ids",
+      row,
+      "branch_ground_station_ids",
+      branch_event_unique_values(events, ["ground_station_id", "station_id"]),
+      "must match the enclosing branch ground-station IDs"
+    )
+    |> validate_optional_copy(
+      path <> ".branch_directions",
+      row,
+      "branch_directions",
+      branch_event_unique_values(events, ["direction"]),
+      "must match the enclosing branch directions"
+    )
   end
+
+  defp branch_event_unique_values(events, fields) when is_list(events) do
+    events
+    |> Enum.flat_map(fn event -> Enum.map(fields, &map_field(event, &1)) end)
+    |> Enum.flat_map(&List.wrap/1)
+    |> Enum.filter(&(is_binary(&1) and &1 != ""))
+    |> Enum.uniq()
+    |> Enum.sort()
+  end
+
+  defp branch_event_unique_values(_events, _fields), do: []
+
+  defp branch_event_station_availabilities(events) when is_list(events) do
+    events
+    |> Enum.map(fn event ->
+      cond do
+        is_map(event) and Map.has_key?(event, "station_availability") ->
+          map_field(event, "station_availability")
+
+        is_map(event) and Map.has_key?(event, "availability") ->
+          map_field(event, "availability")
+
+        true ->
+          station_availability_for_event_type(map_field(event, "type"))
+      end
+    end)
+    |> Enum.filter(&(is_binary(&1) and &1 != ""))
+    |> Enum.uniq()
+    |> Enum.sort()
+  end
+
+  defp branch_event_station_availabilities(_events), do: []
+
+  defp station_availability_for_event_type("ground_station_outage"), do: "unavailable"
+  defp station_availability_for_event_type("ground_station_reserved"), do: "reserved"
+  defp station_availability_for_event_type(_type), do: nil
 
   defp branch_event_types(events) when is_list(events) do
     events
