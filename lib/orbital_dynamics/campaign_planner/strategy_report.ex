@@ -67,12 +67,39 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyReport do
         activity_id_fun,
         downlink_activity_fun
       ) do
+    objective_tradeoff_report_from_artifact(
+      Enum.map(branches, fn %PlanBranch{} = branch ->
+        %{
+          "branch_id" => branch.id,
+          "score" => branch.score,
+          "score_terms" => branch.score_terms,
+          "repair_result" => branch.repair_result
+        }
+      end),
+      recommendation.recommended_branch_id,
+      strategy_policy_to_map(policy),
+      model_limits,
+      activity_id_fun,
+      downlink_activity_fun
+    )
+  end
+
+  def objective_tradeoff_report_from_artifact(
+        branches,
+        recommended_branch_id,
+        policy,
+        model_limits,
+        activity_id_fun,
+        downlink_activity_fun
+      )
+      when is_list(branches) and is_binary(recommended_branch_id) and is_map(policy) and
+             is_function(activity_id_fun, 1) and is_function(downlink_activity_fun, 1) do
     selected_score =
       branches
-      |> Enum.find(&(&1.id == recommendation.recommended_branch_id))
+      |> Enum.find(&(&1["branch_id"] == recommended_branch_id))
       |> case do
         nil -> 0.0
-        branch -> branch.score
+        branch -> branch["score"]
       end
 
     tradeoffs =
@@ -83,7 +110,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyReport do
           branch,
           rank,
           selected_score,
-          recommendation.recommended_branch_id,
+          recommended_branch_id,
           activity_id_fun,
           downlink_activity_fun
         )
@@ -95,7 +122,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyReport do
       "objective" => "compare strategy branch scores and score-term contributions",
       "ranking_count" => length(tradeoffs),
       "score_term_keys" => strategy_score_term_keys(branches),
-      "policy" => strategy_policy_to_map(policy),
+      "policy" => policy,
       "model_limits" => model_limits,
       "tradeoffs" => tradeoffs,
       "assumptions" => %{
@@ -141,27 +168,32 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyReport do
   end
 
   defp strategy_objective_tradeoff_row(
-         %PlanBranch{} = branch,
+         %{
+           "branch_id" => branch_id,
+           "score" => score,
+           "score_terms" => score_terms,
+           "repair_result" => repair_result
+         },
          rank,
          selected_score,
          recommended_branch_id,
          activity_id_fun,
          downlink_activity_fun
        ) do
-    activities = get_in(branch.repair_result, ["activities"]) || []
+    activities = get_in(repair_result, ["activities"]) || []
 
     %{
       "rank" => rank,
-      "scenario_id" => branch.id,
-      "branch_id" => branch.id,
-      "score" => branch.score,
-      "score_delta_from_selected" => branch.score - selected_score,
+      "scenario_id" => branch_id,
+      "branch_id" => branch_id,
+      "score" => score,
+      "score_delta_from_selected" => score - selected_score,
       "activity_count" => length(activities),
       "selected_observation_count" => Enum.count(activities, &(&1["type"] == "observation")),
       "selected_contact_count" => Enum.count(activities, downlink_activity_fun),
-      "score_terms" => branch.score_terms,
+      "score_terms" => score_terms,
       "activity_ids" => Enum.map(activities, activity_id_fun),
-      "selected" => branch.id == recommended_branch_id
+      "selected" => branch_id == recommended_branch_id
     }
   end
 
