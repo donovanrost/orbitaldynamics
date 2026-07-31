@@ -494,6 +494,7 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts do
     |> OrbitalDynamics.Schema.CampaignStrategyObjectiveTradeoffContracts.validate(artifact)
     |> validate_optional_objective_tradeoff_report(Map.get(artifact, "objective_tradeoff_report"))
     |> validate_optional_pareto_frontier_report(Map.get(artifact, "pareto_frontier_report"))
+    |> OrbitalDynamics.Schema.CampaignStrategyOperatorReviewContracts.validate(artifact)
     |> validate_optional_cadence_import_manifest(Map.get(artifact, "cadence_import_manifest"))
     |> validate_optional_operational_feedback_provenance(artifact)
   end

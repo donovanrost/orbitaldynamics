@@ -5,58 +5,59 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Bind CampaignStrategy objective-tradeoff evidence.
+Bind CampaignStrategy operator-review package evidence.
 
 Status:
-Implemented and fully verified from clean published base `3c734d37`; ready to
+Implemented and fully verified from clean published base `df4eca67`; ready to
 publish.
 
 Selection evidence:
-- `StrategyReport.objective_tradeoff_report/6` derives the complete report from
-  preserved branch scores/terms/repair activities, recommendation, and policy;
-  activity identity and downlink classification use reusable production
-  functions over the preserved activity maps.
-- Generic objective-tradeoff validation checks shape and row-derived counts,
-  keys, and activity-count consistency but does not bind rows to branches.
-- A live prechange probe confirmed seven coherent model/objective/policy/source/
-  identity/order/score mutations remain schema-valid (`7/7`).
+- `OperatorReview.from_strategy_artifact/1` deterministically derives the full
+  embedded package from preserved recommendation, branch, comparison, ranking,
+  Pareto, score-term, objective-tradeoff, approval, risk, and provenance inputs.
+- Existing handoff contracts validate review rows against their embedded source
+  copies but do not bind the package to the enclosing CampaignStrategy sources.
+- A live prechange probe regenerated packages from seven mutated shadow
+  strategies and confirmed all source-divergent packages remain schema-valid
+  when embedded in the unchanged canonical strategy (`7/7`).
 
 Delivered behavior:
-- `StrategyReport.objective_tradeoff_report/6` now delegates to a map-backed
-  replay entrypoint shared by production structs and schema validation;
-  canonical output remains byte-identical.
-- A focused CampaignStrategy objective-tradeoff contract binds producer
-  model/objective/policy assumptions, exact row membership/order, branch
-  identity, scores/deltas, score terms, activity evidence, and selection.
-- The replay validator uses the production activity-ID and downlink classifiers
-  in a bounded dedicated module while preserving report-optional compatibility
-  and generic schema/model-limit ownership.
+- A dedicated CampaignStrategy operator-review contract now binds package
+  artifact identity/provenance and the complete ordered source witnesses for
+  every populated canonical recommendation, comparison, optimization, branch
+  repair, resource, allocation, intent, suppression, and warning family.
+- Source binding compares the embedded package directly to enclosing strategy
+  evidence instead of regenerating the 2,359-row package on every validation;
+  existing row-handoff and package-summary contracts retain transformed-row and
+  aggregate ownership.
+- Report-optional compatibility remains intact, and conditional candidate-diff
+  `new_candidates` stay outside exact membership binding because their producer
+  eligibility is not a one-to-one source projection.
 
 Verification:
-- Populated canonical tradeoff mutation scenario: `1 passed, 60 excluded` in
-  24.7s (seed `529608`).
-- Focused producer scenario: `1 passed, 7 excluded` in 0.7s (seed `46497`).
-- Focused produced-surface contracts: `61 passed` in 343.2s (seed `720566`).
-- Adjacent strategy review/import handoffs: `4 passed, 85 excluded` in 6.2s
-  (seed `495604`).
+- Focused populated-source mutation scenario: `1 passed, 61 excluded` in 29.0s
+  (seed `956215`); each of seven mutations reported its intended source family.
+- Focused produced-surface contracts: `62 passed` in 412.8s (seed `465653`).
+- Adjacent strategy review/import handoffs: `4 passed, 85 excluded` in 6.3s
+  (seed `802154`).
 - Live canonical mutation probe: zero baseline issues and all seven coherent
-  objective-tradeoff mutations rejected (`7/7`).
-- Broad schema: `1171 passed` in 683.4s (seed `314026`).
-- Campaign planner: `1888 passed` in 384.8s (seed `635046`); only the known
-  `support.exs` test-pattern warning.
+  source-divergent operator-review packages rejected (`7/7`).
+- Broad schema/export/task gate: `1172 passed` in 720.3s (seed `449625`).
+- Expanded campaign planner: `1890 passed` in 372.4s (seed `505818`); only the
+  known `support.exs` test-pattern warning.
 - Stored-artifact lint: `155` artifacts, `0` errors, `0` warnings.
 - Canonical repair/strategy regeneration retained hashes `cc41834e...cdc30d8a`
   and `57602722...2f9985`.
-- Full suite: `5673 passed` in 773.8s (seed `147603`); only known support-fixture
+- Full suite: `5674 passed` in 1049.8s (seed `140982`); only known support-fixture
   test-pattern warnings.
-- Final formatting and whitespace checks passed.
+- Final formatting, whitespace, and diff review passed.
 
 Level 6 pillar advanced:
-Fleet-scale strategy tradeoff explainability and embedded-report integrity.
+Fleet-scale strategy operator-decision handoff integrity.
 
 Last published slice:
-- `3c734d37` Bind CampaignStrategy score term evidence (`5672 passed`; complete
-  score-term rows are replayed from branches, recommendation, and policy).
+- `df4eca67` Bind CampaignStrategy objective tradeoff evidence (`5673 passed`;
+  complete tradeoff rows are replayed from branches, recommendation, and policy).
 
 Remaining maturity gaps:
 - Audit remaining generated and source handoffs where their complete producer
@@ -71,8 +72,8 @@ Remaining maturity gaps:
   challenge fixtures.
 
 Next candidate:
-After this slice, audit remaining CampaignStrategy operator-review and Cadence
-handoffs against the now-bound decision-support reports; keep ranking input-order
+After this slice, audit the CampaignStrategy Cadence import manifest against its
+bound branch comparison and operator-review sources; keep ranking input-order
 fields deferred because their source ordering is not preserved in the artifact.
 
 Blocked:
