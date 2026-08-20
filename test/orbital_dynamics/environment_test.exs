@@ -178,8 +178,8 @@ defmodule OrbitalDynamics.EnvironmentTest do
 
   test "derives configured tabular Earth-orientation provider coverage from declared samples" do
     samples = [
-      %{seconds_since_j2000: 0.0, earth_rotation_angle_rad: 0.0},
       %{seconds_since_j2000: 100.0, earth_rotation_angle_rad: 0.1},
+      %{seconds_since_j2000: 0.0, earth_rotation_angle_rad: 0.0},
       %{seconds_since_j2000: 200.0, earth_rotation_angle_rad: 0.2}
     ]
 
@@ -273,16 +273,24 @@ defmodule OrbitalDynamics.EnvironmentTest do
                  %{seconds_since_j2000: 0.0, earth_rotation_angle_rad: 0.1}
                ]
              )
+  end
 
-    assert {:error, {:invalid_option, :samples}} =
-             Environment.configured_provider_capability(
-               OrbitalDynamics.Environment.TabularEarthOrientationProvider,
-               samples: [
-                 %{seconds_since_j2000: 100.0, earth_rotation_angle_rad: 0.1},
-                 %{seconds_since_j2000: 0.0, earth_rotation_angle_rad: 0.0},
-                 %{seconds_since_j2000: 200.0, earth_rotation_angle_rad: 0.2}
-               ]
+  test "sorts unordered unique tabular rotation samples before interpolation" do
+    samples = [
+      %{seconds_since_j2000: 100.0, earth_rotation_angle_rad: 1.0},
+      %{seconds_since_j2000: 0.0, earth_rotation_angle_rad: 0.0}
+    ]
+
+    assert {:ok, product} =
+             OrbitalDynamics.Environment.TabularEarthOrientationProvider.fetch(
+               :earth_rotation,
+               samples: samples,
+               seconds_since_j2000: 50.0
              )
+
+    assert product["coverage_starts_at_s"] == 0.0
+    assert product["coverage_ends_at_s"] == 100.0
+    assert product["earth_rotation_angle_rad"] == 0.5
   end
 
   test "requires trust boundaries for network-backed provider capabilities" do

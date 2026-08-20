@@ -14,6 +14,17 @@ defmodule OrbitalDynamics.EventDetectors.GroundTrackCrossings do
 
   @behaviour OrbitalDynamics.EventDetector
   @earth_rotation_rate_rad_s 7.2921150e-5
+  @campaign_provider_id "environment.provider.campaign.jpl_de441_iers_finals2000a"
+  @campaign_ground_track_known_limits [
+    :sample_cadence_limited,
+    :geocentric_spherical_coordinates,
+    :earth_rotation_from_era_and_tabular_ut1_utc,
+    :direct_era_rotation_from_eci_j2000_approximation,
+    :no_cirs_or_precession_nutation_transform,
+    :no_polar_motion_application,
+    :no_tirs_claim,
+    :refinement_not_root_solved
+  ]
 
   @doc """
   Declares the detector model, timing policy, and known limits.
@@ -447,6 +458,9 @@ defmodule OrbitalDynamics.EventDetectors.GroundTrackCrossings do
       earth_rotation_dataset_revision:
         Map.get(before_metadata, :earth_rotation_dataset_revision) ||
           Map.get(after_metadata, :earth_rotation_dataset_revision),
+      earth_rotation_dataset_semantic_sha256:
+        Map.get(before_metadata, :earth_rotation_dataset_semantic_sha256) ||
+          Map.get(after_metadata, :earth_rotation_dataset_semantic_sha256),
       earth_rotation_content_sha256:
         Map.get(before_metadata, :earth_rotation_content_sha256) ||
           Map.get(after_metadata, :earth_rotation_content_sha256),
@@ -456,6 +470,17 @@ defmodule OrbitalDynamics.EventDetectors.GroundTrackCrossings do
       earth_rotation_provider_provenance:
         Map.get(before_metadata, :earth_rotation_provider_provenance) ||
           Map.get(after_metadata, :earth_rotation_provider_provenance),
+      earth_rotation_frame:
+        Map.get(before_metadata, :earth_rotation_frame) ||
+          Map.get(after_metadata, :earth_rotation_frame),
+      polar_motion_applied:
+        Map.get(before_metadata, :polar_motion_applied) ||
+          Map.get(after_metadata, :polar_motion_applied),
+      known_limits:
+        ground_track_known_limits(
+          Map.get(before_metadata, :earth_rotation_provider_id) ||
+            Map.get(after_metadata, :earth_rotation_provider_id)
+        ),
       earth_rotation_rate_rad_s:
         Map.get(before_metadata, :earth_rotation_rate_rad_s) ||
           Map.get(after_metadata, :earth_rotation_rate_rad_s),
@@ -490,9 +515,13 @@ defmodule OrbitalDynamics.EventDetectors.GroundTrackCrossings do
              earth_rotation_provider_sample_count: get_product_value(product, "sample_count"),
              earth_rotation_provider_revision: get_product_value(product, "provider_revision"),
              earth_rotation_dataset_revision: get_product_value(product, "dataset_revision"),
+             earth_rotation_dataset_semantic_sha256:
+               get_product_value(product, "dataset_semantic_sha256"),
              earth_rotation_content_sha256: get_product_value(product, "content_sha256"),
              earth_rotation_source_table_id: get_product_value(product, "source_table_id"),
              earth_rotation_provider_provenance: get_product_value(product, "provenance"),
+             earth_rotation_frame: get_product_value(product, "frame"),
+             polar_motion_applied: get_product_value(product, "polar_motion_applied"),
              earth_rotation_angle_rad: angle_rad
            }}
         else
@@ -508,10 +537,18 @@ defmodule OrbitalDynamics.EventDetectors.GroundTrackCrossings do
   end
 
   defp get_product_value(%{} = product, key) when is_binary(key) do
-    Map.get(product, key) || Map.get(product, String.to_existing_atom(key))
+    case Map.fetch(product, key) do
+      {:ok, value} -> value
+      :error -> Map.get(product, String.to_existing_atom(key))
+    end
   rescue
     ArgumentError -> Map.get(product, key)
   end
+
+  defp ground_track_known_limits(@campaign_provider_id),
+    do: @campaign_ground_track_known_limits
+
+  defp ground_track_known_limits(_provider_id), do: nil
 
   defp crossing_type(:latitude), do: :latitude_crossing
   defp crossing_type(:longitude), do: :longitude_crossing

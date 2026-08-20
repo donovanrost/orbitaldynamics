@@ -15,6 +15,8 @@ defmodule OrbitalDynamics.StudyRunner do
     TargetVisibility
   }
 
+  alias OrbitalDynamics.Environment.CampaignEnvironmentProvider
+
   alias OrbitalDynamics.{
     CentralBody,
     Environment,
@@ -306,8 +308,15 @@ defmodule OrbitalDynamics.StudyRunner do
       nil ->
         {:ok, nil}
 
-      {provider, provider_opts} when is_atom(provider) and is_list(provider_opts) ->
-        prepare_campaign_environment_provider(study, provider, provider_opts)
+      {CampaignEnvironmentProvider, provider_opts} when is_list(provider_opts) ->
+        prepare_campaign_environment_provider(
+          study,
+          CampaignEnvironmentProvider,
+          provider_opts
+        )
+
+      {provider, _provider_opts} when is_atom(provider) ->
+        {:error, {:untrusted_campaign_environment_provider, provider}}
 
       _campaign_environment ->
         {:error, {:invalid_option, :campaign_environment}}
@@ -359,7 +368,8 @@ defmodule OrbitalDynamics.StudyRunner do
       bodies: Enum.map(scenarios, & &1.central_body.name) |> Enum.uniq(),
       outputs: [:sun_direction, :earth_rotation],
       frames:
-        (Enum.map(scenarios, & &1.initial_state.frame.name) ++ [:iers_tirs])
+        (Enum.map(scenarios, & &1.initial_state.frame.name) ++
+           [:earth_fixed_era_from_eci_j2000_approximation])
         |> Enum.uniq(),
       time_scales: Enum.map(scenarios, & &1.initial_state.epoch.scale) |> Enum.uniq()
     }
@@ -417,7 +427,7 @@ defmodule OrbitalDynamics.StudyRunner do
         provider_opts =
           campaign_environment.provider_opts
           |> Keyword.put(:body, :earth)
-          |> Keyword.put(:frame, :iers_tirs)
+          |> Keyword.put(:frame, :earth_fixed_era_from_eci_j2000_approximation)
           |> Keyword.put(:time_scale, :utc)
 
         {:ok,

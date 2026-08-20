@@ -26,7 +26,7 @@ defmodule OrbitalDynamics.CampaignEnvironmentProviderTest do
       ends_at_s: @coverage_end_s,
       body: :earth,
       outputs: [:sun_direction, :earth_rotation],
-      frames: [:eci_j2000, :iers_tirs],
+      frames: [:eci_j2000, :earth_fixed_era_from_eci_j2000_approximation],
       time_scale: :utc
     }
 
@@ -38,11 +38,17 @@ defmodule OrbitalDynamics.CampaignEnvironmentProviderTest do
 
     provenance = Provider.provenance(dataset)
 
-    assert provenance["provider_revision"] == "campaign_environment_provider.v1"
-    assert provenance["dataset_revision"] == "jpl_de441__iers_finals2000a_2026-08-13"
+    assert provenance["provider_revision"] == "campaign_environment_provider.v2"
+    assert provenance["dataset_revision"] == "jpl_de441__iers_finals2000a_2026-08-13.v2"
+
+    assert provenance["dataset_semantic_sha256"] ==
+             "afb0c7252b0b2d2c7e987651e639e02b76bc9ac1ff19d0927b3bf3e6a9ebb5db"
 
     assert provenance["content_sha256"] ==
-             "bce2201bc77cc17d029542c383462ea70d2cafd930a296baebc80399aed82bdb"
+             "757d8d4d1694d0a3cf3897b337cfd2ec818e3ab8715d7103df999d1a0a3697e9"
+
+    assert provenance["earth_fixed_frame"] ==
+             "earth_fixed_era_from_eci_j2000_approximation"
 
     assert provenance["coverage"]["starts_at_s"] == @coverage_start_s
     assert provenance["coverage"]["ends_at_s"] == @coverage_end_s
@@ -129,7 +135,7 @@ defmodule OrbitalDynamics.CampaignEnvironmentProviderTest do
 
     assert {:error,
             {:campaign_environment_identity_mismatch, "dataset_revision", "stale_revision",
-             "jpl_de441__iers_finals2000a_2026-08-13"}} = Provider.load(wrong_revision_opts)
+             "jpl_de441__iers_finals2000a_2026-08-13.v2"}} = Provider.load(wrong_revision_opts)
 
     table = checked_in_table()
 
@@ -193,22 +199,129 @@ defmodule OrbitalDynamics.CampaignEnvironmentProviderTest do
              Provider.load(opts)
   end
 
+  test "rejects forged in-memory datasets before configured capability or fetch" do
+    assert {:ok, dataset} = Provider.load(Provider.checked_in_options())
+
+    forged_samples =
+      update_in(dataset.samples, [Access.at(0), :sun_position_km], fn {x, y, z} ->
+        {x + 1.0, y, z}
+      end)
+
+    forged_sources =
+      update_in(dataset.sources, [Access.at(0)], &Map.put(&1, "source_revision", "DE440"))
+
+    forged = [
+      %{dataset | samples: forged_samples},
+      %{dataset | sources: forged_sources},
+      %{dataset | coverage: Map.put(dataset.coverage, "ends_at_s", @coverage_end_s - 1.0)}
+    ]
+
+    for forged_dataset <- forged do
+      assert {:error,
+              {:invalid_campaign_environment_dataset, :semantic_digest_mismatch, _expected,
+               _actual}} = Provider.configured_capability(dataset: forged_dataset)
+
+      assert {:error,
+              {:invalid_campaign_environment_dataset, :semantic_digest_mismatch, _expected,
+               _actual}} =
+               Provider.fetch(:sun_direction,
+                 dataset: forged_dataset,
+                 seconds_since_j2000: @coverage_start_s
+               )
+
+      assert {:error,
+              {:invalid_campaign_environment_dataset, :semantic_digest_mismatch, _expected,
+               _actual}} = Provider.provenance(forged_dataset)
+    end
+
+    forged_verification =
+      %{
+        dataset
+        | content_verification:
+            Map.put(dataset.content_verification, "actual_sha256", String.duplicate("0", 64))
+      }
+
+    assert {:error, {:invalid_campaign_environment_dataset, :file_verification}} =
+             Provider.configured_capability(dataset: forged_verification)
+
+    assert {:error, {:invalid_campaign_environment_dataset, :file_verification}} =
+             Provider.fetch(:earth_rotation,
+               dataset: forged_verification,
+               seconds_since_j2000: @coverage_start_s
+             )
+  end
+
+  test "rejects duplicate JSON keys at top-level, source, and sample nesting" do
+    bytes = checked_in_bytes()
+
+    duplicate_cases = [
+      {"top-identical.json", "  \"body\": \"earth\",", "  \"body\": \"earth\",", "body"},
+      {"top-conflicting.json", "  \"body\": \"earth\",", "  \"body\": \"mars\",", "body"},
+      {"source-identical.json", "      \"source_revision\": \"DE441\",",
+       "      \"source_revision\": \"DE441\",", "source_revision"},
+      {"source-conflicting.json", "      \"source_revision\": \"DE441\",",
+       "      \"source_revision\": \"DE440\",", "source_revision"},
+      {"sample-identical.json", "      \"mjd_utc\": 61041.0,", "      \"mjd_utc\": 61041.0,",
+       "mjd_utc"},
+      {"sample-conflicting.json", "      \"mjd_utc\": 61041.0,", "      \"mjd_utc\": 0.0,",
+       "mjd_utc"}
+    ]
+
+    for {name, expected_line, inserted_line, key} <- duplicate_cases do
+      duplicate_bytes =
+        String.replace(bytes, expected_line, inserted_line <> "\n" <> expected_line,
+          global: false
+        )
+
+      assert {:error, {:invalid_campaign_environment_table, {:duplicate_json_key, ^key}}} =
+               load_raw_table(duplicate_bytes, name)
+    end
+  end
+
+  test "binds checked-in Horizons rows and derives every sample epoch and vector from them" do
+    table = checked_in_table()
+    horizons = hd(table["sources"])
+    payload = Enum.join(horizons["raw_soe_rows"], "\n") <> "\n"
+
+    assert sha256(payload) == horizons["extracted_payload_sha256"]
+
+    altered_sample =
+      update_in(
+        table,
+        ["samples", Access.at(0), "sun_position_icrf_km", Access.at(0)],
+        &(&1 + 1.0)
+      )
+
+    assert {:error, {:invalid_campaign_environment_table, {:horizons_sample_mismatch, 0}}} =
+             load_reencoded_table(altered_sample, "altered-derived-sample.json")
+
+    altered_row =
+      update_in(table, ["sources", Access.at(0), "raw_soe_rows", Access.at(0)], &(&1 <> " "))
+
+    assert {:error, {:invalid_campaign_environment_table, :horizons_payload_digest_mismatch}} =
+             load_reencoded_table(altered_row, "altered-source-row.json")
+  end
+
   defp earth_rotation(dataset, seconds_since_j2000) do
     Provider.fetch(:earth_rotation,
       dataset: dataset,
       seconds_since_j2000: seconds_since_j2000,
       body: :earth,
-      frame: :iers_tirs,
+      frame: :earth_fixed_era_from_eci_j2000_approximation,
       time_scale: :utc,
       interpolation: :linear_sample_bracket
     )
   end
 
   defp checked_in_table do
+    checked_in_bytes()
+    |> :json.decode()
+  end
+
+  defp checked_in_bytes do
     Provider.checked_in_options()
     |> Keyword.fetch!(:path)
     |> File.read!()
-    |> :json.decode()
   end
 
   defp load_reencoded_table(table, name) do
@@ -219,6 +332,16 @@ defmodule OrbitalDynamics.CampaignEnvironmentProviderTest do
 
   defp reencoded_table_options(table, name) do
     bytes = table |> :json.encode() |> IO.iodata_to_binary()
+    raw_table_options(bytes, name)
+  end
+
+  defp load_raw_table(bytes, name) do
+    bytes
+    |> raw_table_options(name)
+    |> Provider.load()
+  end
+
+  defp raw_table_options(bytes, name) do
     path = temporary_path(name)
     File.write!(path, bytes)
 

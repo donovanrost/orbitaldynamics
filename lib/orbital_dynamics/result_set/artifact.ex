@@ -402,6 +402,7 @@ defmodule OrbitalDynamics.ResultSet.Artifact do
                   :sun_direction_provider_id,
                   :sun_direction_provider_revision,
                   :sun_direction_dataset_revision,
+                  :sun_direction_dataset_semantic_sha256,
                   :sun_direction_content_sha256,
                   :sun_direction_provider_coverage,
                   :sun_direction_interpolation,
@@ -471,7 +472,7 @@ defmodule OrbitalDynamics.ResultSet.Artifact do
           start_sample_index: Map.get(event.metadata, :start_sample_index),
           end_sample_index: Map.get(event.metadata, :end_sample_index),
           sample_index: Map.get(event.metadata, :sample_index),
-          model_limits: model_limits(GroundTrackCrossings),
+          model_limits: ground_track_model_limits(event),
           assumptions:
             encode_value(
               Map.take(
@@ -482,12 +483,15 @@ defmodule OrbitalDynamics.ResultSet.Artifact do
                   :earth_rotation_provider_id,
                   :earth_rotation_provider_revision,
                   :earth_rotation_dataset_revision,
+                  :earth_rotation_dataset_semantic_sha256,
                   :earth_rotation_content_sha256,
                   :earth_rotation_source_table_id,
                   :earth_rotation_provider_coverage_starts_at_s,
                   :earth_rotation_provider_coverage_ends_at_s,
                   :earth_rotation_provider_sample_count,
                   :earth_rotation_provider_provenance,
+                  :earth_rotation_frame,
+                  :polar_motion_applied,
                   :earth_rotation_model,
                   :earth_rotation_rate_rad_s,
                   :earth_rotation_interpolation,
@@ -508,6 +512,16 @@ defmodule OrbitalDynamics.ResultSet.Artifact do
       end)
     end)
   end
+
+  defp ground_track_model_limits(%{metadata: %{known_limits: limits}})
+       when is_list(limits) do
+    Enum.map(limits, fn
+      limit when is_atom(limit) -> Atom.to_string(limit)
+      limit when is_binary(limit) -> limit
+    end)
+  end
+
+  defp ground_track_model_limits(_event), do: model_limits(GroundTrackCrossings)
 
   defp model_limits(module) do
     module.capabilities()

@@ -408,6 +408,7 @@ defmodule OrbitalDynamics.EventDetectors.Eclipses do
         sun_direction_provider_id: provider_model.capability["id"],
         sun_direction_provider_revision: provenance["provider_revision"],
         sun_direction_dataset_revision: provenance["dataset_revision"],
+        sun_direction_dataset_semantic_sha256: provenance["dataset_semantic_sha256"],
         sun_direction_content_sha256: provenance["content_sha256"],
         sun_direction_provider_coverage: provenance["coverage"],
         sun_direction_interpolation: provider_model.capability["interpolation"],

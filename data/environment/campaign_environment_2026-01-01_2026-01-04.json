@@ -1,13 +1,13 @@
 {
   "schema_contract": "campaign_environment_table.v1",
-  "table_id": "campaign_environment:jpl_de441_iers_finals2000a:2026-01-01_2026-01-04",
+  "table_id": "campaign_environment:jpl_de441_iers_finals2000a:2026-01-01_2026-01-04:v2",
   "provider_id": "environment.provider.campaign.jpl_de441_iers_finals2000a",
-  "provider_revision": "campaign_environment_provider.v1",
-  "dataset_revision": "jpl_de441__iers_finals2000a_2026-08-13",
+  "provider_revision": "campaign_environment_provider.v2",
+  "dataset_revision": "jpl_de441__iers_finals2000a_2026-08-13.v2",
   "body": "earth",
   "source_inertial_frame": "icrf",
   "provider_inertial_frame": "eci_j2000",
-  "earth_fixed_frame": "iers_tirs",
+  "earth_fixed_frame": "earth_fixed_era_from_eci_j2000_approximation",
   "time_scale": "utc",
   "epoch_origin": "2000-01-01T12:00:00Z",
   "sample_interval_s": 86400.0,
@@ -19,9 +19,9 @@
   "derivation": {
     "seconds_since_j2000": "(mjd_utc - 51544.5) * 86400; no time-scale conversion",
     "sun_direction": "linearly interpolate the geocentric geometric ICRF Sun position components within one adjacent daily bracket, then normalize the vector",
-    "frame_mapping": "the JPL ICRF vector axes are treated as the repository eci_j2000 axes; Horizons documents alignment at approximately 0.02 arcsecond but not identity",
-    "earth_rotation_angle": "ERA = 2*pi*(0.7790572732640 + 1.00273781191135448*(JD_UT1 - 2451545.0)); JD_UT1 = mjd_utc + 2400000.5 + ut1_utc_s/86400; retain whole turns from the first sample for linear interpolation",
-    "earth_orientation": "linearly interpolate IERS Bulletin B polar-motion x/y and UT1-UTC values within one adjacent daily bracket; polar motion is archived but is not applied by current spherical ground-track geometry"
+    "frame_mapping": "the JPL ICRF vector axes are treated separately as an approximation to the repository eci_j2000 axes; Horizons documents alignment at approximately 0.02 arcsecond but not identity",
+    "earth_rotation_angle": "ERA = 2*pi*(0.7790572732640 + 1.00273781191135448*(JD_UT1 - 2451545.0)); JD_UT1 = mjd_utc + 2400000.5 + ut1_utc_s/86400; retain whole turns from the first sample for linear interpolation; apply ERA directly to repository eci_j2000 only as the declared earth_fixed_era_from_eci_j2000_approximation",
+    "earth_orientation": "linearly interpolate IERS Bulletin B polar-motion x/y and UT1-UTC values within one adjacent daily bracket; no CIRS or precession-nutation transform is applied, polar motion is not applied, and the output does not claim TIRS"
   },
   "sources": [
     {
@@ -29,8 +29,17 @@
       "product_id": "JPL Horizons geocentric Sun vector response; target 10; center 500@399",
       "source_revision": "DE441",
       "source_url": "https://ssd.jpl.nasa.gov/api/horizons.api?format=text&COMMAND=%2710%27&OBJ_DATA=%27YES%27&MAKE_EPHEM=%27YES%27&EPHEM_TYPE=%27VECTORS%27&CENTER=%27500%40399%27&START_TIME=%272026-01-01%27&STOP_TIME=%272026-01-04%27&STEP_SIZE=%271+d%27&TIME_TYPE=%27UT%27&TIME_DIGITS=%27SECONDS%27&REF_SYSTEM=%27ICRF%27&REF_PLANE=%27FRAME%27&OUT_UNITS=%27KM-S%27&VEC_TABLE=%271%27&VEC_CORR=%27NONE%27&CSV_FORMAT=%27YES%27&VEC_LABELS=%27YES%27",
-      "retrieved_at": "2026-08-20T07:33:15Z",
-      "response_sha256": "0f6c4d48cf23769550d6d9660df29e03a467456268174f588fddc07c0fe20fa8",
+      "retrieved_at": "2026-08-20T08:34:35Z",
+      "response_sha256": "df5082ca82ce63f7d89a5ac3cff8c729c210695f72830fe2b2990f310de8ed64",
+      "response_sha256_scope": "full retrieval response metadata; the response contains dynamic generation text and is not reproduced from checked-in bytes",
+      "extracted_payload_encoding": "the four raw CSV rows between $$SOE and $$EOE, joined in source order with LF and one final LF",
+      "extracted_payload_sha256": "b8daa37d9404d73f7eb5551bfe8f71f6561c85f9972b96aab807a83a67c3c9ca",
+      "raw_soe_rows": [
+        "2461041.500000000, A.D. 2026-Jan-01 00:00:00.0000,  2.607419936057027E+07, -1.328313610972322E+08, -5.757975047838372E+07,",
+        "2461042.500000000, A.D. 2026-Jan-02 00:00:00.0000,  2.864372099489588E+07, -1.323830186867355E+08, -5.738542395719544E+07,",
+        "2461043.500000000, A.D. 2026-Jan-03 00:00:00.0000,  3.120428647251716E+07, -1.318937192519719E+08, -5.717336983585898E+07,",
+        "2461044.500000000, A.D. 2026-Jan-04 00:00:00.0000,  3.375517125793039E+07, -1.313636149586642E+08, -5.694365170675455E+07,"
+      ],
       "query": {
         "target": "Sun (10)",
         "center": "Earth body center (500@399)",
@@ -107,9 +116,10 @@
   "known_limits": [
     "finite four-day campaign table only",
     "daily source cadence with linear interpolation only inside an adjacent sample bracket",
-    "ICRF is treated as repository ECI J2000 with the documented approximately 0.02 arcsecond alignment limit",
+    "JPL ICRF axes are treated separately as an approximation to repository ECI J2000 with the documented approximately 0.02 arcsecond alignment limit",
     "geometric Sun direction only; no light-time, aberration, solar range, or penumbra model",
-    "Earth rotation uses IERS Bulletin B UT1-UTC and the IERS ERA relation",
+    "Earth rotation applies IERS ERA directly to repository ECI J2000 only as earth_fixed_era_from_eci_j2000_approximation",
+    "no CIRS or precession-nutation transform is applied and the Earth-fixed output does not claim TIRS",
     "IERS polar motion is archived and interpolated but not applied by current spherical ground-track geometry",
     "source binding is not the Domain 18 external numerical acceptance case"
   ]

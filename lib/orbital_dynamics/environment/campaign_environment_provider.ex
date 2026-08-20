@@ -12,8 +12,10 @@ defmodule OrbitalDynamics.Environment.CampaignEnvironmentProvider do
   Cartesian source vectors and normalizing the result. Earth rotation delegates
   its angle interpolation to `TabularEarthOrientationProvider`; the angle samples
   are derived from IERS UT1-UTC using the IERS ERA relation. Polar motion and
-  UT1-UTC are interpolated and archived, but polar motion is not applied by the
-  current spherical ground-track geometry.
+  UT1-UTC are interpolated and archived. This path applies ERA directly to
+  repository ECI J2000 as an explicitly named approximation: it does not apply
+  the CIRS/precession-nutation transform or polar motion and does not claim a
+  TIRS output.
   """
 
   @behaviour OrbitalDynamics.Environment.Provider
@@ -23,9 +25,13 @@ defmodule OrbitalDynamics.Environment.CampaignEnvironmentProvider do
 
   @schema_contract "campaign_environment_table.v1"
   @provider_id "environment.provider.campaign.jpl_de441_iers_finals2000a"
-  @provider_revision "campaign_environment_provider.v1"
-  @dataset_revision "jpl_de441__iers_finals2000a_2026-08-13"
-  @table_sha256 "bce2201bc77cc17d029542c383462ea70d2cafd930a296baebc80399aed82bdb"
+  @table_id "campaign_environment:jpl_de441_iers_finals2000a:2026-01-01_2026-01-04:v2"
+  @provider_revision "campaign_environment_provider.v2"
+  @dataset_revision "jpl_de441__iers_finals2000a_2026-08-13.v2"
+  @earth_fixed_frame "earth_fixed_era_from_eci_j2000_approximation"
+  @table_sha256 "757d8d4d1694d0a3cf3897b337cfd2ec818e3ab8715d7103df999d1a0a3697e9"
+  @horizons_extracted_payload_sha256 "b8daa37d9404d73f7eb5551bfe8f71f6561c85f9972b96aab807a83a67c3c9ca"
+  @dataset_semantic_sha256 "afb0c7252b0b2d2c7e987651e639e02b76bc9ac1ff19d0927b3bf3e6a9ebb5db"
   @j2000_mjd_utc 51_544.5
   @seconds_per_day 86_400.0
   @era_at_j2000_turns 0.779_057_273_264_0
@@ -39,7 +45,8 @@ defmodule OrbitalDynamics.Environment.CampaignEnvironmentProvider do
       "source_revision" => "DE441",
       "source_url" =>
         "https://ssd.jpl.nasa.gov/api/horizons.api?format=text&COMMAND=%2710%27&OBJ_DATA=%27YES%27&MAKE_EPHEM=%27YES%27&EPHEM_TYPE=%27VECTORS%27&CENTER=%27500%40399%27&START_TIME=%272026-01-01%27&STOP_TIME=%272026-01-04%27&STEP_SIZE=%271+d%27&TIME_TYPE=%27UT%27&TIME_DIGITS=%27SECONDS%27&REF_SYSTEM=%27ICRF%27&REF_PLANE=%27FRAME%27&OUT_UNITS=%27KM-S%27&VEC_TABLE=%271%27&VEC_CORR=%27NONE%27&CSV_FORMAT=%27YES%27&VEC_LABELS=%27YES%27",
-      "response_sha256" => "0f6c4d48cf23769550d6d9660df29e03a467456268174f588fddc07c0fe20fa8"
+      "response_sha256" => "df5082ca82ce63f7d89a5ac3cff8c729c210695f72830fe2b2990f310de8ed64",
+      "extracted_payload_sha256" => @horizons_extracted_payload_sha256
     },
     %{
       "product_id" => "finals2000A.all; Bulletin B final PM-x, PM-y, and UT1-UTC columns",
@@ -59,9 +66,10 @@ defmodule OrbitalDynamics.Environment.CampaignEnvironmentProvider do
   @known_limits [
     "finite four-day campaign table only",
     "daily source cadence with linear interpolation only inside an adjacent sample bracket",
-    "ICRF is treated as repository ECI J2000 with the documented approximately 0.02 arcsecond alignment limit",
+    "JPL ICRF axes are treated separately as an approximation to repository ECI J2000 with the documented approximately 0.02 arcsecond alignment limit",
     "geometric Sun direction only; no light-time, aberration, solar range, or penumbra model",
-    "Earth rotation uses IERS Bulletin B UT1-UTC and the IERS ERA relation",
+    "Earth rotation applies IERS ERA directly to repository ECI J2000 only as earth_fixed_era_from_eci_j2000_approximation",
+    "no CIRS or precession-nutation transform is applied and the Earth-fixed output does not claim TIRS",
     "IERS polar motion is archived and interpolated but not applied by current spherical ground-track geometry",
     "source binding is not the Domain 18 external numerical acceptance case"
   ]
@@ -109,7 +117,7 @@ defmodule OrbitalDynamics.Environment.CampaignEnvironmentProvider do
       expected_body: "earth",
       expected_source_inertial_frame: "icrf",
       expected_provider_inertial_frame: "eci_j2000",
-      expected_earth_fixed_frame: "iers_tirs",
+      expected_earth_fixed_frame: @earth_fixed_frame,
       expected_time_scale: "utc",
       expected_interpolation: "linear_sample_bracket"
     ]
@@ -132,7 +140,7 @@ defmodule OrbitalDynamics.Environment.CampaignEnvironmentProvider do
       },
       "interpolation" => "linear_sample_bracket",
       "supported_bodies" => ["earth"],
-      "supported_frames" => ["eci_j2000", "iers_tirs"],
+      "supported_frames" => ["eci_j2000", @earth_fixed_frame],
       "supported_time_scales" => ["utc"],
       "network_access" => false,
       "outputs" => [
@@ -169,29 +177,32 @@ defmodule OrbitalDynamics.Environment.CampaignEnvironmentProvider do
            ),
          {:ok, table} <- decode_table(bytes),
          :ok <- validate_table_identity(table, opts),
-         {:ok, samples} <- normalized_samples(table),
-         :ok <- validate_declared_coverage(table, samples),
          :ok <- validate_sources(table["sources"]),
-         :ok <- validate_known_limits(table["known_limits"]) do
-      {:ok,
-       %Dataset{
-         table_id: table["table_id"],
-         provider_id: table["provider_id"],
-         provider_revision: table["provider_revision"],
-         dataset_revision: table["dataset_revision"],
-         body: table["body"],
-         source_inertial_frame: table["source_inertial_frame"],
-         provider_inertial_frame: table["provider_inertial_frame"],
-         earth_fixed_frame: table["earth_fixed_frame"],
-         time_scale: table["time_scale"],
-         interpolation: table["interpolation"],
-         sample_interval_s: table["sample_interval_s"] * 1.0,
-         coverage: table["coverage"],
-         samples: samples,
-         sources: table["sources"],
-         known_limits: table["known_limits"],
-         content_verification: evidence
-       }}
+         {:ok, samples} <- normalized_samples(table),
+         :ok <- validate_horizons_source_rows(table["sources"], samples),
+         :ok <- validate_declared_coverage(table, samples),
+         :ok <- validate_known_limits(table["known_limits"]),
+         dataset =
+           %Dataset{
+             table_id: table["table_id"],
+             provider_id: table["provider_id"],
+             provider_revision: table["provider_revision"],
+             dataset_revision: table["dataset_revision"],
+             body: table["body"],
+             source_inertial_frame: table["source_inertial_frame"],
+             provider_inertial_frame: table["provider_inertial_frame"],
+             earth_fixed_frame: table["earth_fixed_frame"],
+             time_scale: table["time_scale"],
+             interpolation: table["interpolation"],
+             sample_interval_s: table["sample_interval_s"] * 1.0,
+             coverage: table["coverage"],
+             samples: samples,
+             sources: table["sources"],
+             known_limits: table["known_limits"],
+             content_verification: evidence
+           },
+         :ok <- validate_dataset(dataset) do
+      {:ok, dataset}
     end
   end
 
@@ -214,6 +225,7 @@ defmodule OrbitalDynamics.Environment.CampaignEnvironmentProvider do
            "sample_count" => length(dataset.samples),
            "sample_interval_s" => dataset.sample_interval_s,
            "dataset_revision" => dataset.dataset_revision,
+           "dataset_semantic_sha256" => dataset_semantic_sha256(dataset),
            "source_inertial_frame" => dataset.source_inertial_frame,
            "provider_inertial_frame" => dataset.provider_inertial_frame,
            "earth_fixed_frame" => dataset.earth_fixed_frame
@@ -270,7 +282,7 @@ defmodule OrbitalDynamics.Environment.CampaignEnvironmentProvider do
        |> Map.merge(common_product(dataset, seconds_since_j2000))
        |> Map.merge(orientation)
        |> Map.merge(%{
-         "model" => "iers_era_with_tabular_earth_orientation",
+         "model" => "earth_fixed_era_from_eci_j2000_approximation",
          "frame" => dataset.earth_fixed_frame,
          "polar_motion_applied" => false
        })}
@@ -283,10 +295,18 @@ defmodule OrbitalDynamics.Environment.CampaignEnvironmentProvider do
   Returns the exact provider, revision, coverage, content, and source identity.
   """
   def provenance(%Dataset{} = dataset) do
+    case validate_dataset(dataset) do
+      :ok -> dataset_provenance(dataset)
+      {:error, reason} -> {:error, reason}
+    end
+  end
+
+  defp dataset_provenance(dataset) do
     %{
       "provider_id" => dataset.provider_id,
       "provider_revision" => dataset.provider_revision,
       "dataset_revision" => dataset.dataset_revision,
+      "dataset_semantic_sha256" => dataset_semantic_sha256(dataset),
       "source_table_id" => dataset.table_id,
       "content_sha256" => dataset.content_verification["actual_sha256"],
       "coverage" => Map.merge(dataset.coverage, %{"time_scale" => dataset.time_scale}),
@@ -318,23 +338,115 @@ defmodule OrbitalDynamics.Environment.CampaignEnvironmentProvider do
 
   defp dataset_from_opts(opts) do
     case Keyword.get(opts, :dataset) do
-      %Dataset{} = dataset -> {:ok, dataset}
-      nil -> load(opts)
-      _dataset -> {:error, {:invalid_option, :dataset}}
+      %Dataset{} = dataset ->
+        case validate_dataset(dataset) do
+          :ok -> {:ok, dataset}
+          {:error, reason} -> {:error, reason}
+        end
+
+      nil ->
+        load(opts)
+
+      _dataset ->
+        {:error, {:invalid_option, :dataset}}
     end
   end
+
+  defp validate_dataset(%Dataset{} = dataset) do
+    with :ok <- validate_dataset_file_verification(dataset.content_verification) do
+      actual_sha256 = dataset_semantic_sha256(dataset)
+
+      if actual_sha256 == @dataset_semantic_sha256 do
+        :ok
+      else
+        {:error,
+         {:invalid_campaign_environment_dataset, :semantic_digest_mismatch,
+          @dataset_semantic_sha256, actual_sha256}}
+      end
+    end
+  end
+
+  defp validate_dataset_file_verification(%{} = evidence) do
+    expected = %{
+      "algorithm" => "sha256",
+      "consumer" => "environment.campaign_environment_provider",
+      "status" => "pass",
+      "reason" => "content_identity_match",
+      "expected_sha256" => @table_sha256,
+      "actual_sha256" => @table_sha256,
+      "verification_scope" => "exact_file_bytes",
+      "verified_before_consumption" => true
+    }
+
+    if Map.take(evidence, Map.keys(expected)) == expected and
+         is_integer(evidence["byte_count"]) and evidence["byte_count"] > 0 do
+      :ok
+    else
+      {:error, {:invalid_campaign_environment_dataset, :file_verification}}
+    end
+  end
+
+  defp validate_dataset_file_verification(_evidence),
+    do: {:error, {:invalid_campaign_environment_dataset, :file_verification}}
+
+  defp dataset_semantic_sha256(%Dataset{} = dataset) do
+    dataset
+    |> Map.from_struct()
+    |> Map.update!(:content_verification, fn evidence ->
+      Map.drop(evidence, ["path", "verification_id"])
+    end)
+    |> canonical_term()
+    |> :erlang.term_to_binary([:deterministic])
+    |> sha256()
+  end
+
+  defp canonical_term(%{} = map) do
+    {:map,
+     map
+     |> Enum.map(fn {key, value} -> {canonical_term(key), canonical_term(value)} end)
+     |> Enum.sort()}
+  end
+
+  defp canonical_term(list) when is_list(list), do: {:list, Enum.map(list, &canonical_term/1)}
+
+  defp canonical_term(tuple) when is_tuple(tuple) do
+    {:tuple, tuple |> Tuple.to_list() |> Enum.map(&canonical_term/1)}
+  end
+
+  defp canonical_term(value), do: value
 
   defp validate_keyword(opts) do
     if Keyword.keyword?(opts), do: :ok, else: {:error, {:invalid_option, :campaign_environment}}
   end
 
   defp decode_table(bytes) do
-    case :json.decode(bytes) do
-      %{} = table -> {:ok, table}
-      _value -> {:error, {:invalid_campaign_environment_table, :expected_json_object}}
+    decoders = %{
+      object_start: fn _old_acc -> %{} end,
+      object_push: fn key, value, object ->
+        if Map.has_key?(object, key) do
+          throw({:duplicate_campaign_environment_json_key, key})
+        else
+          Map.put(object, key, value)
+        end
+      end,
+      object_finish: fn object, old_acc -> {object, old_acc} end
+    }
+
+    case :json.decode(bytes, :campaign_environment_root, decoders) do
+      {%{} = table, :campaign_environment_root, <<>>} ->
+        {:ok, table}
+
+      {_value, :campaign_environment_root, <<>>} ->
+        {:error, {:invalid_campaign_environment_table, :expected_json_object}}
+
+      {_value, :campaign_environment_root, _trailing_bytes} ->
+        {:error, {:invalid_campaign_environment_table, :trailing_json_bytes}}
     end
   rescue
     _error -> {:error, {:invalid_campaign_environment_table, :invalid_json}}
+  catch
+    {:duplicate_campaign_environment_json_key, key} ->
+      {:error, {:invalid_campaign_environment_table, {:duplicate_json_key, key}}}
   end
 
   defp validate_table_identity(table, opts) do
@@ -363,13 +475,14 @@ defmodule OrbitalDynamics.Environment.CampaignEnvironmentProvider do
 
   defp validate_supported_table_contract(table) do
     supported = [
+      {"table_id", @table_id},
       {"provider_id", @provider_id},
       {"provider_revision", @provider_revision},
       {"dataset_revision", @dataset_revision},
       {"body", "earth"},
       {"source_inertial_frame", "icrf"},
       {"provider_inertial_frame", "eci_j2000"},
-      {"earth_fixed_frame", "iers_tirs"},
+      {"earth_fixed_frame", @earth_fixed_frame},
       {"time_scale", "utc"},
       {"interpolation", "linear_sample_bracket"}
     ]
@@ -577,8 +690,108 @@ defmodule OrbitalDynamics.Environment.CampaignEnvironmentProvider do
   defp source_identities(sources) do
     Enum.map(
       sources,
-      &Map.take(&1, ["product_id", "source_revision", "source_url", "response_sha256"])
+      &Map.take(&1, [
+        "product_id",
+        "source_revision",
+        "source_url",
+        "response_sha256",
+        "extracted_payload_sha256"
+      ])
     )
+  end
+
+  defp validate_horizons_source_rows(
+         [%{"raw_soe_rows" => rows, "extracted_payload_sha256" => declared_sha256} | _sources],
+         samples
+       )
+       when is_list(rows) and is_binary(declared_sha256) do
+    actual_sha256 = sha256(Enum.join(rows, "\n") <> "\n")
+
+    cond do
+      declared_sha256 != @horizons_extracted_payload_sha256 ->
+        {:error, {:invalid_campaign_environment_table, :horizons_payload_identity_mismatch}}
+
+      actual_sha256 != declared_sha256 ->
+        {:error, {:invalid_campaign_environment_table, :horizons_payload_digest_mismatch}}
+
+      length(rows) != length(samples) ->
+        {:error, {:invalid_campaign_environment_table, :horizons_sample_count_mismatch}}
+
+      true ->
+        validate_horizons_sample_rows(rows, samples)
+    end
+  end
+
+  defp validate_horizons_source_rows(_sources, _samples),
+    do: {:error, {:invalid_campaign_environment_table, :horizons_source_rows}}
+
+  defp validate_horizons_sample_rows(rows, samples) do
+    rows
+    |> Enum.zip(samples)
+    |> Enum.with_index()
+    |> Enum.reduce_while(:ok, fn {{row, sample}, index}, :ok ->
+      case parse_horizons_row(row) do
+        {:ok, source_sample} ->
+          if horizons_sample_matches?(source_sample, sample) do
+            {:cont, :ok}
+          else
+            {:halt,
+             {:error, {:invalid_campaign_environment_table, {:horizons_sample_mismatch, index}}}}
+          end
+
+        {:error, reason} ->
+          {:halt, {:error, {:invalid_campaign_environment_table, {reason, index}}}}
+      end
+    end)
+  end
+
+  defp parse_horizons_row(row) when is_binary(row) do
+    case String.split(row, ",") do
+      [jd, calendar, x, y, z, ""] ->
+        with {:ok, jd_utc} <- strict_float(String.trim(jd)),
+             {:ok, calendar_utc} <- horizons_calendar_utc(String.trim(calendar)),
+             {:ok, x_km} <- strict_float(String.trim(x)),
+             {:ok, y_km} <- strict_float(String.trim(y)),
+             {:ok, z_km} <- strict_float(String.trim(z)) do
+          {:ok,
+           %{
+             mjd_utc: jd_utc - 2_400_000.5,
+             calendar_utc: calendar_utc,
+             sun_position_km: {x_km, y_km, z_km}
+           }}
+        end
+
+      _parts ->
+        {:error, :invalid_horizons_source_row}
+    end
+  end
+
+  defp parse_horizons_row(_row), do: {:error, :invalid_horizons_source_row}
+
+  defp horizons_calendar_utc(calendar) do
+    case Regex.run(
+           ~r/\AA\.D\. (\d{4})-Jan-(\d{2}) (\d{2}):(\d{2}):(\d{2})\.0000\z/,
+           calendar
+         ) do
+      [_match, year, day, hour, minute, second] ->
+        {:ok, "#{year}-01-#{day}T#{hour}:#{minute}:#{second}Z"}
+
+      _match ->
+        {:error, :invalid_horizons_source_epoch}
+    end
+  end
+
+  defp strict_float(value) do
+    case Float.parse(value) do
+      {number, ""} -> {:ok, number}
+      _parsed -> {:error, :invalid_horizons_source_number}
+    end
+  end
+
+  defp horizons_sample_matches?(source_sample, sample) do
+    source_sample.mjd_utc == sample.mjd_utc and
+      source_sample.calendar_utc == sample.calendar_utc and
+      source_sample.sun_position_km == sample.sun_position_km
   end
 
   defp validate_known_limits(@known_limits), do: :ok
@@ -740,6 +953,7 @@ defmodule OrbitalDynamics.Environment.CampaignEnvironmentProvider do
       "provider_id" => dataset.provider_id,
       "provider_revision" => dataset.provider_revision,
       "dataset_revision" => dataset.dataset_revision,
+      "dataset_semantic_sha256" => dataset_semantic_sha256(dataset),
       "source_table_id" => dataset.table_id,
       "content_sha256" => dataset.content_verification["actual_sha256"],
       "seconds_since_j2000" => seconds_since_j2000,
@@ -748,7 +962,7 @@ defmodule OrbitalDynamics.Environment.CampaignEnvironmentProvider do
       "coverage_time_scale" => dataset.time_scale,
       "sample_count" => length(dataset.samples),
       "network_access" => false,
-      "provenance" => provenance(dataset),
+      "provenance" => dataset_provenance(dataset),
       "known_limits" => dataset.known_limits
     }
   end
@@ -775,4 +989,9 @@ defmodule OrbitalDynamics.Environment.CampaignEnvironmentProvider do
 
   defp positive_number(value, _field) when is_number(value) and value > 0, do: :ok
   defp positive_number(_value, field), do: {:error, {:invalid_campaign_environment_table, field}}
+
+  defp sha256(bytes) do
+    :crypto.hash(:sha256, bytes)
+    |> Base.encode16(case: :lower)
+  end
 end

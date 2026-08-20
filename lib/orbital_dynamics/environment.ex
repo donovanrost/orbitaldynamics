@@ -383,10 +383,10 @@ defmodule OrbitalDynamics.Environment do
 
   defp campaign_environment_model(:earth_rotation, provenance) do
     %{
-      "id" => "environment.earth_rotation.campaign_iers_era",
+      "id" => "environment.earth_rotation.campaign_era_from_eci_j2000_approximation",
       "schema_contract" => "environment_model_capability.v1",
       "category" => "body_rotation",
-      "model" => "iers_era_with_tabular_earth_orientation",
+      "model" => "earth_fixed_era_from_eci_j2000_approximation",
       "source" => provenance_value(provenance, "source_table_id"),
       "validation_level" => "analysis",
       "coordinate_frame" => provenance_value(provenance, "earth_fixed_frame"),
@@ -406,6 +406,7 @@ defmodule OrbitalDynamics.Environment do
       "provider_id" => provenance_value(provenance, "provider_id"),
       "provider_revision" => provenance_value(provenance, "provider_revision"),
       "dataset_revision" => provenance_value(provenance, "dataset_revision"),
+      "dataset_semantic_sha256" => provenance_value(provenance, "dataset_semantic_sha256"),
       "content_sha256" => provenance_value(provenance, "content_sha256"),
       "coverage" => provenance_value(provenance, "coverage"),
       "sample_count" => provenance_value(provenance, "sample_count")

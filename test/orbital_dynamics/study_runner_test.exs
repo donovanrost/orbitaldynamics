@@ -16,6 +16,14 @@ defmodule OrbitalDynamics.StudyRunnerTest do
   alias OrbitalDynamics.Propagators.TwoBodyNxCompiled
   alias OrbitalDynamics.Environment.CampaignEnvironmentProvider
 
+  defmodule UntrustedCampaignProvider do
+    defdelegate load(opts), to: CampaignEnvironmentProvider
+    defdelegate configured_capability(opts), to: CampaignEnvironmentProvider
+    defdelegate provenance(dataset), to: CampaignEnvironmentProvider
+    defdelegate capabilities(), to: CampaignEnvironmentProvider
+    defdelegate fetch(kind, opts), to: CampaignEnvironmentProvider
+  end
+
   test "runs trajectories and access windows for a study" do
     earth = CentralBody.earth()
 
@@ -223,7 +231,7 @@ defmodule OrbitalDynamics.StudyRunnerTest do
         %{
           id: :campaign_meridian,
           crossing: :longitude,
-          longitude_deg: 0.0,
+          longitude_deg: -80.0,
           frame: :body_fixed
         }
       ]
@@ -238,11 +246,17 @@ defmodule OrbitalDynamics.StudyRunnerTest do
     assert provenance["provider_id"] ==
              "environment.provider.campaign.jpl_de441_iers_finals2000a"
 
-    assert provenance["provider_revision"] == "campaign_environment_provider.v1"
-    assert provenance["dataset_revision"] == "jpl_de441__iers_finals2000a_2026-08-13"
+    assert provenance["provider_revision"] == "campaign_environment_provider.v2"
+    assert provenance["dataset_revision"] == "jpl_de441__iers_finals2000a_2026-08-13.v2"
+
+    assert provenance["dataset_semantic_sha256"] ==
+             "afb0c7252b0b2d2c7e987651e639e02b76bc9ac1ff19d0927b3bf3e6a9ebb5db"
 
     assert provenance["content_sha256"] ==
-             "bce2201bc77cc17d029542c383462ea70d2cafd930a296baebc80399aed82bdb"
+             "757d8d4d1694d0a3cf3897b337cfd2ec818e3ab8715d7103df999d1a0a3697e9"
+
+    assert provenance["earth_fixed_frame"] ==
+             "earth_fixed_era_from_eci_j2000_approximation"
 
     assert provenance["coverage"] == %{
              "starts_at_s" => 820_497_600.0,
@@ -267,18 +281,79 @@ defmodule OrbitalDynamics.StudyRunnerTest do
     assert artifact_provenance["provider_id"] == provenance["provider_id"]
     assert artifact_provenance["provider_revision"] == provenance["provider_revision"]
     assert artifact_provenance["dataset_revision"] == provenance["dataset_revision"]
+
+    assert artifact_provenance["dataset_semantic_sha256"] ==
+             provenance["dataset_semantic_sha256"]
+
     assert artifact_provenance["content_sha256"] == provenance["content_sha256"]
     assert artifact_provenance["coverage"] == provenance["coverage"]
 
     assert Enum.map(artifact.assumptions["environment_models"], & &1["id"]) == [
              "environment.solar.campaign_tabular_geocentric_direction",
-             "environment.earth_rotation.campaign_iers_era"
+             "environment.earth_rotation.campaign_era_from_eci_j2000_approximation"
            ]
 
     assert Enum.all?(artifact.assumptions["environment_models"], fn model ->
              model["parameters"]["content_sha256"] == provenance["content_sha256"] and
+               model["parameters"]["dataset_semantic_sha256"] ==
+                 provenance["dataset_semantic_sha256"] and
                model["parameters"]["coverage"] == provenance["coverage"]
            end)
+
+    assert [campaign_crossing] = artifact.ground_track_crossings
+
+    assert "earth_rotation_from_era_and_tabular_ut1_utc" in campaign_crossing.model_limits
+    assert "direct_era_rotation_from_eci_j2000_approximation" in campaign_crossing.model_limits
+    assert "no_cirs_or_precession_nutation_transform" in campaign_crossing.model_limits
+    assert "no_polar_motion_application" in campaign_crossing.model_limits
+    assert "no_tirs_claim" in campaign_crossing.model_limits
+    refute "constant_earth_rotation_body_fixed" in campaign_crossing.model_limits
+    refute "no_earth_orientation_parameters" in campaign_crossing.model_limits
+
+    assert campaign_crossing.assumptions["earth_rotation_frame"] ==
+             "earth_fixed_era_from_eci_j2000_approximation"
+
+    assert campaign_crossing.assumptions["earth_rotation_model"] ==
+             "earth_fixed_era_from_eci_j2000_approximation"
+
+    assert campaign_crossing.assumptions["polar_motion_applied"] == false
+
+    assert campaign_crossing.assumptions["earth_rotation_dataset_semantic_sha256"] ==
+             provenance["dataset_semantic_sha256"]
+
+    crossing_provenance =
+      campaign_crossing.assumptions["earth_rotation_provider_provenance"]
+
+    assert crossing_provenance["provider_id"] == provenance["provider_id"]
+    assert crossing_provenance["provider_revision"] == provenance["provider_revision"]
+    assert crossing_provenance["dataset_revision"] == provenance["dataset_revision"]
+
+    assert crossing_provenance["dataset_semantic_sha256"] ==
+             provenance["dataset_semantic_sha256"]
+
+    assert crossing_provenance["content_sha256"] == provenance["content_sha256"]
+    assert crossing_provenance["earth_fixed_frame"] == provenance["earth_fixed_frame"]
+    assert crossing_provenance["coverage"] == provenance["coverage"]
+  end
+
+  test "rejects unknown campaign provider modules before event generation" do
+    earth = CentralBody.earth()
+
+    study =
+      Study.new!(
+        :untrusted_campaign_environment,
+        [campaign_scenario(:untrusted, earth, 820_497_600.0)],
+        outputs: [:eclipses, :ground_track_crossings]
+      )
+
+    assert {:error, {:untrusted_campaign_environment_provider, UntrustedCampaignProvider}} =
+             StudyRunner.run(study,
+               campaign_environment:
+                 {UntrustedCampaignProvider, CampaignEnvironmentProvider.checked_in_options()},
+               ground_track_crossings: [
+                 %{id: :untrusted, crossing: :longitude, longitude_deg: 0.0, frame: :body_fixed}
+               ]
+             )
   end
 
   test "rejects campaign environment requests outside finite coverage or in the wrong time scale" do
@@ -341,6 +416,11 @@ defmodule OrbitalDynamics.StudyRunnerTest do
 
     eclipse_result = Enum.find(result_set.event_results, &(&1.event_type == :eclipse))
     assert eclipse_result.source == %{shadow_model: :cylindrical_central_body_shadow}
+
+    legacy_artifact = OrbitalDynamics.ResultSet.Artifact.build(result_set)
+    assert [legacy_crossing | _events] = legacy_artifact.ground_track_crossings
+    assert "constant_earth_rotation_body_fixed" in legacy_crossing.model_limits
+    assert "no_earth_orientation_parameters" in legacy_crossing.model_limits
   end
 
   test "supports ground-track crossings as a study output" do
