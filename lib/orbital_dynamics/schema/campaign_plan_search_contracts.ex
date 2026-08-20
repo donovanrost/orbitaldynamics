@@ -53,7 +53,8 @@ defmodule OrbitalDynamics.Schema.CampaignPlanSearchContracts do
 
         if JsonSafety.errors(trace, "$.optimizer_search_trace") == [] and
              trace_structure_valid?(trace) and
-             search_result_structure_valid?(trace["search_result"]) do
+             search_result_structure_valid?(trace["search_result"]) and
+             search_root_structure_valid?(trace["search_root"]) do
           issues
           |> validate_plan_binding(artifact, trace)
           |> validate_present_handoffs(artifact, trace)
@@ -1610,46 +1611,56 @@ defmodule OrbitalDynamics.Schema.CampaignPlanSearchContracts do
 
   defp validate_selected_plan_root_binding(issues, artifact, trace) do
     selected_id = trace["selected_alternative_id"]
+    bindings = get_in(trace, ["search_root", "alternative_plan_bindings"])
 
-    binding =
-      trace["search_root"]["alternative_plan_bindings"]
-      |> Enum.find(&(&1["alternative_id"] == selected_id))
+    if map_list?(bindings) do
+      binding = Enum.find(bindings, &(&1["alternative_id"] == selected_id))
 
-    issues
-    |> ensure(
-      is_map(binding),
-      "$.optimizer_search_trace.search_root.alternative_plan_bindings",
-      "must contain the selected evaluated plan binding"
-    )
-    |> ensure(
-      is_map(binding) and
-        binding["plan_content_identity"] ==
-          LocalSearchSelection.evaluated_plan_content_identity(artifact),
-      "$.optimizer_search_trace.search_root.alternative_plan_bindings",
-      "selected evaluated plan content identity must match the enclosing rebuilt plan"
-    )
-    |> ensure(
-      is_map(binding) and binding["effective_scoring_policy"] == trace["selected_scoring_policy"],
-      "$.optimizer_search_trace.search_root.alternative_plan_bindings",
-      "selected plan policy copy is stale"
-    )
-    |> ensure(
-      is_map(binding) and
-        binding["first_ranked_timeline_scenario_id"] == trace["selected_timeline_scenario_id"],
-      "$.optimizer_search_trace.search_root.alternative_plan_bindings",
-      "selected timeline scenario copy is stale"
-    )
-    |> ensure(
-      is_map(binding) and
-        binding["first_ranked_timeline_score"] == trace["selected_timeline_score"],
-      "$.optimizer_search_trace.search_root.alternative_plan_bindings",
-      "selected timeline score copy is stale"
-    )
-    |> ensure(
-      is_map(binding) and binding["selected_activity_ids"] == trace["selected_activity_ids"],
-      "$.optimizer_search_trace.search_root.alternative_plan_bindings",
-      "selected activity IDs copy is stale"
-    )
+      issues
+      |> ensure(
+        is_map(binding),
+        "$.optimizer_search_trace.search_root.alternative_plan_bindings",
+        "must contain the selected evaluated plan binding"
+      )
+      |> ensure(
+        is_map(binding) and
+          binding["plan_content_identity"] ==
+            LocalSearchSelection.evaluated_plan_content_identity(artifact),
+        "$.optimizer_search_trace.search_root.alternative_plan_bindings",
+        "selected evaluated plan content identity must match the enclosing rebuilt plan"
+      )
+      |> ensure(
+        is_map(binding) and
+          binding["effective_scoring_policy"] == trace["selected_scoring_policy"],
+        "$.optimizer_search_trace.search_root.alternative_plan_bindings",
+        "selected plan policy copy is stale"
+      )
+      |> ensure(
+        is_map(binding) and
+          binding["first_ranked_timeline_scenario_id"] == trace["selected_timeline_scenario_id"],
+        "$.optimizer_search_trace.search_root.alternative_plan_bindings",
+        "selected timeline scenario copy is stale"
+      )
+      |> ensure(
+        is_map(binding) and
+          binding["first_ranked_timeline_score"] == trace["selected_timeline_score"],
+        "$.optimizer_search_trace.search_root.alternative_plan_bindings",
+        "selected timeline score copy is stale"
+      )
+      |> ensure(
+        is_map(binding) and binding["selected_activity_ids"] == trace["selected_activity_ids"],
+        "$.optimizer_search_trace.search_root.alternative_plan_bindings",
+        "selected activity IDs copy is stale"
+      )
+    else
+      [
+        error(
+          "$.optimizer_search_trace.search_root.alternative_plan_bindings",
+          "must be a proper list of maps"
+        )
+        | issues
+      ]
+    end
   end
 
   defp validate_present_handoffs(issues, artifact, trace) do

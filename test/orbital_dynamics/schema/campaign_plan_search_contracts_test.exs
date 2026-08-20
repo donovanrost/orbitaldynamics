@@ -7,6 +7,7 @@ defmodule OrbitalDynamics.Schema.CampaignPlanSearchContractsTest do
   alias OrbitalDynamics.CampaignPlanner.BuildArtifact
   alias OrbitalDynamics.CampaignPlanner.LocalSearchSupport, as: Support
   alias OrbitalDynamics.Schema
+  alias OrbitalDynamics.Schema.JsonSafety
 
   test "exports the standalone trace and optional nested campaign-plan property" do
     assert {:ok, trace_schema} = Schema.json_schema("campaign_plan_search_trace.v1")
@@ -212,6 +213,81 @@ defmodule OrbitalDynamics.Schema.CampaignPlanSearchContractsTest do
 
       assert_error_path(Map.put(plan, "optimizer_search_trace", malformed_trace), plan_path)
     end)
+  end
+
+  test "enclosing selected-plan binding validation rejects every malformed binding container" do
+    plan = valid_plan()
+    trace = plan["optimizer_search_trace"]
+    selected_id = trace["selected_alternative_id"]
+    path = "$.optimizer_search_trace.search_root.alternative_plan_bindings"
+
+    mutations = [
+      {path, &Map.delete(&1, "alternative_plan_bindings")},
+      {path, &Map.put(&1, "alternative_plan_bindings", :null)},
+      {path, &Map.put(&1, "alternative_plan_bindings", %{"unexpected" => "row"})},
+      {path,
+       &Map.put(
+         &1,
+         "alternative_plan_bindings",
+         [hd(&1["alternative_plan_bindings"]) | :improper]
+       )},
+      {"#{path}[0].generation_index",
+       &Map.put(&1, "alternative_plan_bindings", [%{"alternative_id" => selected_id}])}
+    ]
+
+    Enum.each(mutations, fn {expected_path, mutate_root} ->
+      malformed_trace = update_in(trace, ["search_root"], mutate_root)
+      assert_error_path(Map.put(plan, "optimizer_search_trace", malformed_trace), expected_path)
+    end)
+  end
+
+  test "JSON safety preflight enforces deterministic depth, node, collection, byte, and issue budgets" do
+    limits = JsonSafety.limits()
+
+    deep =
+      Enum.reduce(1..(limits["max_depth"] + 1), :null, fn _index, nested -> [nested] end)
+
+    wide = List.duplicate(:null, limits["max_collection_items"] + 1)
+    large = String.duplicate("x", limits["max_aggregate_bytes"] + 1)
+
+    node_width = 200
+
+    node_heavy =
+      List.duplicate(
+        List.duplicate(:null, node_width),
+        div(limits["max_nodes"], node_width) + 1
+      )
+
+    resource_cases = [
+      {deep, "exceeds maximum JSON nesting depth of #{limits["max_depth"]}", "$["},
+      {node_heavy, "exceeds maximum JSON node budget of #{limits["max_nodes"]}", "$["},
+      {wide, "exceeds maximum JSON collection size of #{limits["max_collection_items"]}", "$"},
+      {large,
+       "exceeds maximum aggregate JSON string byte budget of #{limits["max_aggregate_bytes"]}",
+       "$"}
+    ]
+
+    Enum.each(resource_cases, fn {term, message, path_prefix} ->
+      assert [%{"path" => path, "message" => ^message}] = JsonSafety.errors(term)
+      assert String.starts_with?(path, path_prefix)
+      assert JsonSafety.errors(term) == JsonSafety.errors(term)
+    end)
+
+    unsafe = List.duplicate({:unsafe, :tuple}, limits["max_issues"] + 10)
+    issues = JsonSafety.errors(unsafe)
+
+    assert length(issues) == limits["max_issues"]
+
+    assert List.last(issues) == %{
+             "path" => "$[#{limits["max_issues"] - 1}]",
+             "message" =>
+               "JSON safety issue budget exhausted after #{limits["max_issues"] - 1} errors",
+             "severity" => "error"
+           }
+
+    assert_raise ArgumentError, ~r/exceeds JSON safety limits at \$/, fn ->
+      JsonSafety.normalize_input!(large, "oversized input")
+    end
   end
 
   test "immutable root rejects a coordinated registry and feasibility-copy rebase" do
