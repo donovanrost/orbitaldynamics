@@ -2,6 +2,7 @@ defmodule OrbitalDynamics.OptimizerHardFeasibilityTest do
   use ExUnit.Case, async: true
 
   alias OrbitalDynamics.Optimizer
+  alias OrbitalDynamics.Optimizer.CandidateBinding
   alias OrbitalDynamics.Optimizer.HardFeasibility
   alias OrbitalDynamics.Search.Local
 
@@ -101,6 +102,7 @@ defmodule OrbitalDynamics.OptimizerHardFeasibilityTest do
     assert result["selected_score"] == nil
     assert result["improvement_from_seed"] == nil
     assert result["improved"] == false
+    assert result["feasibility_transition"] == nil
     assert result["eligible_count"] == 0
     assert result["infeasible_count"] == 3
     assert Enum.all?(result["alternatives"], &is_nil(&1["rank"]))
@@ -113,6 +115,29 @@ defmodule OrbitalDynamics.OptimizerHardFeasibilityTest do
              "reason" => "all_alternatives_infeasible",
              "eligible_count" => 0,
              "infeasible_count" => 3
+           }
+  end
+
+  test "an ineligible seed has no comparable score improvement" do
+    config =
+      hard_config()
+      |> update_candidate("hard:seed", fn candidate ->
+        put_in(candidate, ["resource_threshold", "threshold"], 0.9)
+      end)
+
+    result = run_search(config)
+
+    assert result["selected_id"] == "hard:x:increase"
+    assert result["improvement_from_seed"] == nil
+    assert result["improved"] == false
+
+    assert result["feasibility_transition"] == %{
+             "schema_contract" => "local_search_feasibility_transition.v1",
+             "status" => "seed_ineligible_selected_feasible",
+             "from_alternative_id" => "hard:seed",
+             "to_alternative_id" => "hard:x:increase",
+             "score_improvement_comparable" => false,
+             "reason" => "seed_is_not_in_the_ranked_feasible_set"
            }
   end
 
@@ -148,62 +173,123 @@ defmodule OrbitalDynamics.OptimizerHardFeasibilityTest do
            ) == evaluation
   end
 
-  test "parameter, resource-trace, and link-budget revision mismatches fail closed" do
-    config =
-      hard_config()
-      |> update_candidate("hard:x:increase", &Map.put(&1, "parameter_revision", "parameters-r0"))
-      |> update_candidate("hard:seed", &Map.put(&1, "resource_state_trace_revision", "trace-r0"))
-      |> update_candidate(
-        "hard:x:decrease",
-        &Map.put(&1, "downlink_link_budget_revision", "rf-config-r0")
-      )
-
-    result = run_search(config)
+  test "source artifacts bound to a stale parameter revision fail closed" do
+    result = hard_config() |> Map.put(:parameter_revision, "parameters-r2") |> run_search()
 
     assert result["selected_id"] == nil
 
-    assert feasibility(result, "hard:x:increase")["blocker_reasons"] == [
-             "parameter_revision_mismatch"
+    assert Enum.all?(result["candidate_feasibility_evaluations"], fn evaluation ->
+             evaluation["blocker_reasons"] == [
+               "resource_state_trace_candidate_binding_mismatch",
+               "downlink_link_budget_candidate_binding_mismatch"
+             ]
+           end)
+  end
+
+  test "cross-alternative and stale parameter-content evidence reuse fail closed" do
+    base = hard_config()
+    seed = candidate_config(base, "hard:seed")
+
+    cross_reused =
+      update_candidate(base, "hard:x:increase", fn candidate ->
+        candidate
+        |> Map.put("resource_state_trace", seed["resource_state_trace"])
+        |> Map.put("downlink_link_budget", seed["downlink_link_budget"])
+      end)
+      |> run_search()
+
+    assert cross_reused["selected_id"] == "hard:seed"
+
+    assert feasibility(cross_reused, "hard:x:increase")["blocker_reasons"] == [
+             "resource_state_trace_candidate_binding_mismatch",
+             "downlink_link_budget_candidate_binding_mismatch"
            ]
 
-    assert feasibility(result, "hard:seed")["blocker_reasons"] == [
-             "resource_state_trace_revision_mismatch"
-           ]
+    stale_binding = CandidateBinding.build("hard:x:increase", "parameters-r1", %{"x" => 0.5})
 
-    assert feasibility(result, "hard:x:decrease")["blocker_reasons"] == [
-             "downlink_link_budget_revision_mismatch"
+    stale_content =
+      hard_config()
+      |> update_candidate("hard:x:increase", &replace_sources(&1, stale_binding))
+      |> run_search()
+
+    assert stale_content["selected_id"] == "hard:seed"
+
+    assert feasibility(stale_content, "hard:x:increase")["blocker_reasons"] == [
+             "resource_state_trace_candidate_binding_mismatch",
+             "downlink_link_budget_candidate_binding_mismatch"
            ]
   end
 
-  test "parameter content and source artifact identity mismatches fail closed" do
+  test "source artifacts carry typed candidate bindings accepted by their semantic paths" do
+    alternatives =
+      Local.neighborhood(%{x: 0.0}, steps: %{x: 1.0}, id_prefix: "hard")["alternatives"]
+
+    assert {:hard, prepared} =
+             HardFeasibility.prepare([hard_feasibility: hard_config()], alternatives)
+
+    evidence = prepared.candidates["hard:x:increase"]
+    trace = evidence["resource_state_trace"]
+    budget = evidence["downlink_link_budget"]
+
+    assert {:ok, _report} =
+             OrbitalDynamics.Schema.validate_artifact(trace,
+               schema_contract: "resource_state_trace.v1"
+             )
+
+    assert :ok =
+             OrbitalDynamics.Communications.DownlinkLinkBudget.validate_artifact(budget)
+
+    assert get_in(trace, ["provenance", "caller", "candidate_binding"]) ==
+             budget["candidate_binding"]
+
+    assert budget["candidate_binding"] ==
+             CandidateBinding.build(
+               "hard:x:increase",
+               "parameters-r1",
+               %{"x" => 1.0}
+             )
+  end
+
+  test "missing source candidate bindings fail closed after semantic validation" do
     config =
       hard_config()
       |> update_candidate("hard:x:increase", fn candidate ->
-        Map.put(candidate, "parameter_content_identity", %{"sha256" => String.duplicate("0", 64)})
+        trace_core =
+          candidate["resource_state_trace"]
+          |> update_in(["provenance", "caller"], &Map.delete(&1, "candidate_binding"))
+          |> Map.delete("id")
+
+        trace =
+          Map.put(
+            trace_core,
+            "id",
+            OrbitalDynamics.ResourceStateTrace.artifact_id(trace_core)
+          )
+
+        budget_core =
+          candidate["downlink_link_budget"]
+          |> Map.delete("candidate_binding")
+          |> Map.delete("id")
+
+        budget =
+          Map.put(
+            budget_core,
+            "id",
+            OrbitalDynamics.Communications.DownlinkLinkBudget.artifact_id(budget_core)
+          )
+
+        candidate
+        |> Map.put("resource_state_trace", trace)
+        |> Map.put("downlink_link_budget", budget)
       end)
-      |> update_candidate(
-        "hard:seed",
-        &Map.put(&1, "resource_state_trace_id", "resource_state_trace:forged")
-      )
-      |> update_candidate(
-        "hard:x:decrease",
-        &Map.put(&1, "downlink_link_budget_id", "downlink_link_budget:forged")
-      )
 
     result = run_search(config)
 
-    assert result["selected_id"] == nil
+    assert result["selected_id"] == "hard:seed"
 
     assert feasibility(result, "hard:x:increase")["blocker_reasons"] == [
-             "parameter_content_identity_mismatch"
-           ]
-
-    assert feasibility(result, "hard:seed")["blocker_reasons"] == [
-             "resource_state_trace_identity_mismatch"
-           ]
-
-    assert feasibility(result, "hard:x:decrease")["blocker_reasons"] == [
-             "downlink_link_budget_identity_mismatch"
+             "resource_state_trace_candidate_binding_missing_or_malformed",
+             "downlink_link_budget_candidate_binding_missing_or_malformed"
            ]
   end
 
@@ -227,9 +313,7 @@ defmodule OrbitalDynamics.OptimizerHardFeasibilityTest do
         forged =
           Map.put(core, "id", OrbitalDynamics.ResourceStateTrace.artifact_id(core))
 
-        candidate
-        |> Map.put("resource_state_trace", forged)
-        |> Map.put("resource_state_trace_id", forged["id"])
+        Map.put(candidate, "resource_state_trace", forged)
       end)
 
     malformed = run_search(malformed_config)
@@ -239,6 +323,125 @@ defmodule OrbitalDynamics.OptimizerHardFeasibilityTest do
     assert feasibility(malformed, "hard:x:increase")["blocker_reasons"] == [
              "malformed_resource_state_trace"
            ]
+
+    unsafe =
+      hard_config()
+      |> update_candidate("hard:x:increase", fn candidate ->
+        put_in(candidate, ["resource_state_trace", "provenance", "caller", "unsafe"], self())
+      end)
+
+    assert_raise ArgumentError, ~r/unsupported non-JSON-safe value/, fn ->
+      run_search(unsafe)
+    end
+  end
+
+  test "rehashed resource-state arithmetic forgery fails semantic validation" do
+    config =
+      hard_config()
+      |> update_candidate("hard:x:increase", fn candidate ->
+        core =
+          candidate["resource_state_trace"]
+          |> put_in(["final_state", "battery_state_of_charge"], 0.1)
+          |> Map.delete("id")
+
+        forged = Map.put(core, "id", OrbitalDynamics.ResourceStateTrace.artifact_id(core))
+        Map.put(candidate, "resource_state_trace", forged)
+      end)
+
+    result = run_search(config)
+
+    assert result["selected_id"] == "hard:seed"
+
+    assert feasibility(result, "hard:x:increase")["blocker_reasons"] == [
+             "malformed_resource_state_trace"
+           ]
+  end
+
+  test "physical threshold domains fail closed with stable reasons" do
+    resource_low =
+      hard_config()
+      |> update_candidate("hard:x:increase", fn candidate ->
+        put_in(candidate, ["resource_threshold", "threshold"], -0.01)
+      end)
+      |> run_search()
+
+    resource_high =
+      hard_config()
+      |> update_candidate("hard:x:increase", fn candidate ->
+        put_in(candidate, ["resource_threshold", "threshold"], 1.01)
+      end)
+      |> run_search()
+
+    completion_high =
+      hard_config()
+      |> update_candidate("hard:x:increase", fn candidate ->
+        put_in(candidate, ["downlink_threshold", "threshold"], 1.01)
+      end)
+      |> run_search()
+
+    completion_low =
+      hard_config()
+      |> update_candidate("hard:x:increase", fn candidate ->
+        put_in(candidate, ["downlink_threshold", "threshold"], -0.01)
+      end)
+      |> run_search()
+
+    shortfall_negative =
+      hard_config()
+      |> update_candidate("hard:x:increase", fn candidate ->
+        candidate
+        |> put_in(["downlink_threshold", "metric"], "shortfall_mb")
+        |> put_in(["downlink_threshold", "operator"], "less_than_or_equal")
+        |> put_in(["downlink_threshold", "threshold"], -0.01)
+      end)
+      |> run_search()
+
+    non_positive_volume =
+      hard_config()
+      |> update_candidate("hard:x:increase", fn candidate ->
+        put_in(candidate, ["downlink_threshold", "required_volume_mb"], 0.0)
+      end)
+      |> run_search()
+
+    for result <- [resource_low, resource_high] do
+      assert feasibility(result, "hard:x:increase")["blocker_reasons"] == [
+               "resource_threshold_out_of_domain"
+             ]
+    end
+
+    for result <- [completion_low, completion_high, shortfall_negative, non_positive_volume] do
+      assert feasibility(result, "hard:x:increase")["blocker_reasons"] == [
+               "downlink_threshold_out_of_domain"
+             ]
+    end
+
+    malformed =
+      hard_config()
+      |> update_candidate("hard:x:increase", fn candidate ->
+        put_in(candidate, ["resource_threshold", "threshold"], :infinity)
+      end)
+      |> run_search()
+
+    assert feasibility(malformed, "hard:x:increase")["blocker_reasons"] == [
+             "malformed_resource_threshold"
+           ]
+  end
+
+  test "inclusive threshold boundaries remain supported" do
+    config =
+      hard_config()
+      |> update_all_candidates(fn candidate ->
+        candidate
+        |> put_in(["resource_threshold", "threshold"], 0.0)
+        |> put_in(["downlink_threshold", "metric"], "shortfall_mb")
+        |> put_in(["downlink_threshold", "operator"], "less_than_or_equal")
+        |> put_in(["downlink_threshold", "threshold"], 0.0)
+      end)
+
+    result = run_search(config)
+
+    assert result["eligible_count"] == 3
+    assert result["selected_id"] == "hard:x:increase"
   end
 
   test "unknown modes, duplicate normalized keys, and unsupported thresholds are rejected" do
@@ -304,6 +507,13 @@ defmodule OrbitalDynamics.OptimizerHardFeasibilityTest do
     assert result["evaluated_count"] == 3
     assert result["model_limits"] == Optimizer.local_search_model_limits()
     assert "no_constraint_or_feasibility_evaluation_beyond_bounds" in result["model_limits"]
+
+    assert result
+           |> :erlang.term_to_binary([:deterministic])
+           |> then(&:crypto.hash(:sha256, &1))
+           |> Base.encode16(case: :lower) ==
+             "2423de6ab2d8d5162687c963e7808077e54b90c381bee887ced6be1b3ba5d535"
+
     refute Map.has_key?(result, "feasibility_mode")
     refute Map.has_key?(result, "recommendation_outcome")
     refute Enum.any?(result["alternatives"], &Map.has_key?(&1, "candidate_feasibility"))
@@ -318,30 +528,26 @@ defmodule OrbitalDynamics.OptimizerHardFeasibilityTest do
   end
 
   defp hard_config do
-    trace = resource_trace()
-    budget = downlink_budget()
-
     candidates =
       Local.neighborhood(%{x: 0.0}, steps: %{x: 1.0}, id_prefix: "hard")
       |> Map.fetch!("alternatives")
       |> Enum.map(fn alternative ->
+        binding =
+          CandidateBinding.build(
+            alternative["id"],
+            "parameters-r1",
+            alternative["parameters"]
+          )
+
         %{
           "alternative_id" => alternative["id"],
-          "parameter_revision" => "parameters-r1",
-          "parameter_content_identity" =>
-            HardFeasibility.parameter_content_identity(alternative["parameters"]),
-          "spacecraft_id" => "sc_1",
-          "resource_state_trace" => trace,
-          "resource_state_trace_id" => trace["id"],
-          "resource_state_trace_revision" => "trace-r1",
+          "resource_state_trace" => resource_trace(binding),
           "resource_threshold" => %{
             "metric" => "minimum_battery_state_of_charge",
             "operator" => "greater_than_or_equal",
             "threshold" => 0.5
           },
-          "downlink_link_budget" => budget,
-          "downlink_link_budget_id" => budget["id"],
-          "downlink_link_budget_revision" => "rf-config-r4",
+          "downlink_link_budget" => downlink_budget(binding),
           "downlink_threshold" => %{
             "metric" => "completion_fraction",
             "operator" => "greater_than_or_equal",
@@ -365,12 +571,24 @@ defmodule OrbitalDynamics.OptimizerHardFeasibilityTest do
   defp update_all_candidates(config, update),
     do: Map.update!(config, :candidates, &Enum.map(&1, update))
 
+  defp candidate_config(config, id),
+    do: Enum.find(config.candidates, &(&1["alternative_id"] == id))
+
+  defp replace_sources(candidate, binding) do
+    candidate
+    |> Map.put("resource_state_trace", resource_trace(binding))
+    |> Map.put("downlink_link_budget", downlink_budget(binding))
+  end
+
   defp candidate(result, id), do: Enum.find(result["alternatives"], &(&1["id"] == id))
   defp feasibility(result, id), do: candidate(result, id)["candidate_feasibility"]
 
-  defp resource_trace do
+  defp resource_trace(binding) do
     OrbitalDynamics.resource_state_trace([], initial_resource_summary(),
-      provenance: %{resource_state_trace_revision: "trace-r1"}
+      provenance: %{
+        resource_state_trace_revision: "trace-r1",
+        candidate_binding: binding
+      }
     )
   end
 
@@ -389,7 +607,7 @@ defmodule OrbitalDynamics.OptimizerHardFeasibilityTest do
     }
   end
 
-  defp downlink_budget do
+  defp downlink_budget(binding) do
     OrbitalDynamics.downlink_link_budget(
       %{
         id: "dl_1",
@@ -403,7 +621,7 @@ defmodule OrbitalDynamics.OptimizerHardFeasibilityTest do
         source_window_id: "access_1",
         source_window_revision: "window-r7"
       },
-      downlink_parameters()
+      Map.put(downlink_parameters(), :candidate_binding, binding)
     )
   end
 

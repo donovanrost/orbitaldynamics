@@ -294,9 +294,10 @@ defmodule OrbitalDynamics.Optimizer do
     selected = List.first(ranked)
     alternatives = ranked ++ infeasible
     seed = Enum.find(alternatives, &(&1["id"] == neighborhood["seed_id"]))
+    seed_eligible = get_in(seed, ["candidate_feasibility", "eligible"])
 
     improvement_from_seed =
-      if selected,
+      if selected && seed_eligible,
         do: improvement_from_seed(selected, seed, objective_direction),
         else: nil
 
@@ -337,6 +338,7 @@ defmodule OrbitalDynamics.Optimizer do
         Enum.map(feasibility_evaluated, & &1["candidate_feasibility"]),
       "recommendation_outcome" =>
         HardFeasibility.outcome(selected, eligible_count, infeasible_count),
+      "feasibility_transition" => feasibility_transition(seed, selected),
       "alternatives" => alternatives,
       "rejected_moves" => neighborhood["rejected_moves"],
       "neighborhood" => Map.drop(neighborhood, ["alternatives", "rejected_moves"]),
@@ -620,6 +622,22 @@ defmodule OrbitalDynamics.Optimizer do
       true ->
         local_search_selection_explanation(alternative, selected, objective_direction)
     end
+  end
+
+  defp feasibility_transition(_seed, nil), do: nil
+
+  defp feasibility_transition(%{"candidate_feasibility" => %{"eligible" => true}}, _selected),
+    do: nil
+
+  defp feasibility_transition(seed, selected) do
+    %{
+      "schema_contract" => "local_search_feasibility_transition.v1",
+      "status" => "seed_ineligible_selected_feasible",
+      "from_alternative_id" => seed["id"],
+      "to_alternative_id" => selected["id"],
+      "score_improvement_comparable" => false,
+      "reason" => "seed_is_not_in_the_ranked_feasible_set"
+    }
   end
 
   defp normalize_ranking(rows) do

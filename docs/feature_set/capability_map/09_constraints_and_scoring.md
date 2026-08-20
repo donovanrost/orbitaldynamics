@@ -126,17 +126,22 @@ Status: **implemented** (core), with **partial**, **near-term**, **later**, and 
   calibrated, or pure.
 - Bounded local search also accepts an opt-in `hard_feasibility` map with exact
   mode `hard`, one parameter revision, and identity-bound evidence for each
-  generated alternative. Each candidate row binds the alternative ID and
-  parameter-content SHA-256 to one content-addressed
-  `resource_state_trace.v1` plus its caller-declared trace revision and one
-  validated `downlink_link_budget.v1` plus its RF-source revision.
+  generated alternative. The trace and link-budget artifacts themselves carry
+  a typed `local_search_candidate_binding.v1` for the alternative ID, parameter
+  revision, and deterministic BEAM-term parameter-content SHA-256. The declared
+  algorithm is deliberately BEAM-specific and is not represented as portable
+  JSON canonicalization. Each source artifact's content identity covers its
+  binding; the trace also carries its caller-supplied trace revision.
 - The bounded hard model supports exactly one minimum-battery-state-of-charge
   threshold and one downlink completion-fraction or shortfall threshold per
   candidate. Resource values are read from the supplied trace states; downlink
   completion and shortfall are derived from the supplied budget's supported
-  volume and an explicit required volume. It does not propagate another state,
-  recompute geometry, infer operational truth, allocate across candidates, or
-  repair a result after ranking.
+  volume and an explicit positive required volume. State of charge and
+  completion thresholds must be finite values in `[0, 1]`; shortfall thresholds
+  must be finite and non-negative. The full `resource_state_trace.v1` semantic
+  validator runs before identity comparison. It does not propagate another
+  state, recompute geometry, infer operational truth, allocate across
+  candidates, or repair a result after ranking.
 - Hard feasibility is evaluated before ranks are assigned. Only eligible
   alternatives receive numeric ranks; every alternative carries an inline
   `candidate_feasibility.v1`-style evaluation with stable blocker reasons and
@@ -146,6 +151,9 @@ Status: **implemented** (core), with **partial**, **near-term**, **later**, and 
   and incumbent identity. Missing, malformed, stale, mismatched, ambiguous, or
   unsupported evidence fails closed. Omitting `hard_feasibility` preserves the
   legacy search result and its existing model-limit declaration unchanged.
+- When the seed is ineligible but another candidate is feasible, score
+  improvement against the seed is null rather than presented as comparable;
+  the result emits a typed feasibility transition to the selected candidate.
 
 ### Branch-comparison feedback
 

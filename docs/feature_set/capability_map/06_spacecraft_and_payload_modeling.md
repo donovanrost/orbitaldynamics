@@ -414,10 +414,11 @@ Status: **partial**.
 - Resource summaries remain normalized artifact inputs with the existing thin
   availability/margin filter and status-aware `ResourceProjection` defaults.
   The opt-in `resource_state_trace.v1` advances battery/recorder behavior to a
-  time-indexed discrete state sequence, but no campaign, repair, strategy, or
-  search path consumes that trace as hard pre-selection feasibility yet. That
-  planner-eligibility integration belongs to the separate constraints/search
-  lane.
+  time-indexed discrete state sequence. Opt-in bounded local-search hard
+  feasibility can consume a semantically valid trace carrying an immutable
+  candidate binding before ranking. Campaign, repair, and strategy planners do
+  not consume it as planner eligibility or perform post-ranking repair; that
+  broader integration remains in the separate constraints/search lane.
 
 ### Map input normalization
 
