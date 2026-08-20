@@ -59,6 +59,20 @@ defmodule OrbitalDynamics.CampaignPlanner.BuildArtifact do
     |> attach_operational_readiness_reports()
   end
 
+  def attach_optimizer_search_trace(%{} = artifact, %{} = trace) do
+    artifact
+    |> Map.drop([
+      "operator_review_package",
+      "cadence_import_manifest",
+      "operational_readiness_report",
+      "quality_gate_report"
+    ])
+    |> Map.put("optimizer_search_trace", trace)
+    |> attach_operator_review()
+    |> attach_cadence_import()
+    |> attach_operational_readiness_reports()
+  end
+
   defp attach_operator_review(artifact) do
     Map.put(artifact, "operator_review_package", OperatorReview.from_campaign_artifact(artifact))
   end

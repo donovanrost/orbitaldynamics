@@ -3,6 +3,7 @@ defmodule OrbitalDynamics.OperatorReview.OptimizationReview do
 
   alias OrbitalDynamics.OperatorReview.Capabilities
   alias OrbitalDynamics.OperatorReview.PackageBuilder
+  alias OrbitalDynamics.Schema.JsonSafety
 
   @schema_contract "operator_review_package.v1"
 
@@ -28,6 +29,40 @@ defmodule OrbitalDynamics.OperatorReview.OptimizationReview do
     {rows, source_artifact_id, provenance} = pareto_frontier_package_input(report)
 
     build_package(rows, "pareto_frontier_report.v1", source_artifact_id, provenance)
+  end
+
+  def local_search_rows(trace, source \\ "campaign_plan.optimizer_search_trace")
+
+  def local_search_rows(nil, _source), do: []
+
+  def local_search_rows(%{} = trace, source) do
+    trace = JsonSafety.normalize_input!(trace, "campaign local-search review trace")
+    plan_id = trace["plan_id"]
+
+    [
+      %{
+        "id" => review_id(["local_search", plan_id]),
+        "review_type" => "local_search_review",
+        "source" => source,
+        "subject_id" => plan_id,
+        "plan_id" => plan_id,
+        "selection_contract" => trace["selection_contract"],
+        "base_scoring_policy" => trace["base_scoring_policy"],
+        "selected_scoring_policy" => trace["selected_scoring_policy"],
+        "selected_alternative_id" => trace["selected_alternative_id"],
+        "scenario_id" => trace["selected_timeline_scenario_id"],
+        "selected_timeline_scenario_id" => trace["selected_timeline_scenario_id"],
+        "selected_timeline_score" => trace["selected_timeline_score"],
+        "selected_activity_ids" => trace["selected_activity_ids"],
+        "selected_activity_count" => trace["selected_activity_count"],
+        "action" => "review_local_search",
+        "required_operator_action" => "review_local_search",
+        "approval_status" => "operator_review_required",
+        "reason" => local_search_reason(trace),
+        "source_optimizer_search_trace" => trace
+      }
+      |> compact_map()
+    ]
   end
 
   def ranking_comparison_package_input(report) do
@@ -379,6 +414,11 @@ defmodule OrbitalDynamics.OperatorReview.OptimizationReview do
   end
 
   defp pareto_frontier_reason(_row), do: "review Pareto frontier row"
+
+  defp local_search_reason(trace) do
+    "review V1 local-search selection #{trace["selected_alternative_id"]} for " <>
+      "#{trace["selected_timeline_scenario_id"]}: score #{encode_value(trace["selected_timeline_score"])}"
+  end
 
   defp review_id(parts) do
     parts

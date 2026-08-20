@@ -46,6 +46,7 @@ defmodule OrbitalDynamics.Schema.CampaignRegistryContracts do
           "objective_satisfaction_report",
           "operational_timeline_report",
           "operator_review_package",
+          "optimizer_search_trace",
           "operational_readiness_report",
           "quality_gate_report"
         ],
@@ -72,9 +73,38 @@ defmodule OrbitalDynamics.Schema.CampaignRegistryContracts do
           "objective_satisfaction_report.v1",
           "operational_timeline_report.v1",
           "operator_review_package.v1",
+          "campaign_plan_search_trace.v1",
           "operational_readiness_report.v1",
           "quality_gate_report.v1"
         ]
+      },
+      "campaign_plan_search_trace.v1" => %{
+        "schema_contract" => "campaign_plan_search_trace.v1",
+        "artifact_family" => "campaign_plan_search_trace",
+        "schema_version" => 1,
+        "required_fields" => [
+          "schema_contract",
+          "id",
+          "plan_id",
+          "status",
+          "selection_contract",
+          "objective",
+          "objective_direction",
+          "base_scoring_policy",
+          "selected_scoring_policy",
+          "searched_scoring_policy_keys",
+          "fixed_constraints",
+          "selected_alternative_id",
+          "selected_alternative",
+          "selected_timeline_scenario_id",
+          "selected_timeline_score",
+          "selected_activity_ids",
+          "selected_activity_count",
+          "search_root",
+          "search_result"
+        ],
+        "optional_fields" => [],
+        "nested_contracts" => []
       },
       "campaign_repair.v2" => %{
         "schema_contract" => "campaign_repair.v2",

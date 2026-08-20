@@ -639,6 +639,15 @@ defmodule OrbitalDynamics.Schema.ArtifactValidationRouter do
     CampaignArtifactValidation.validate_plan([], artifact)
   end
 
+  def validate("campaign_plan_search_trace.v1", contract, artifact) do
+    OrbitalDynamics.Schema.CampaignPlanSearchContracts.validate_trace(
+      [],
+      "$",
+      artifact,
+      contract["required_fields"]
+    )
+  end
+
   def validate("campaign_repair.v2", _contract, artifact) do
     CampaignArtifactValidation.validate_repair([], artifact)
   end

@@ -10,6 +10,7 @@ defmodule OrbitalDynamics.Schema.CampaignPlanJsonSchema do
     "generated_at",
     "planning_horizon",
     "provenance",
+    "optimizer_search_trace",
     "target_commitments",
     "ranking_explanation",
     "ranked_timelines",
@@ -137,6 +138,10 @@ defmodule OrbitalDynamics.Schema.CampaignPlanJsonSchema do
         "propagator_opts" => %{"type" => ["object", "null"]}
       }
     }
+  end
+
+  def property("optimizer_search_trace", _opts) do
+    OrbitalDynamics.Schema.CampaignPlanSearchTraceJsonSchema.json_schema()
   end
 
   def property("planning_horizon", _opts) do

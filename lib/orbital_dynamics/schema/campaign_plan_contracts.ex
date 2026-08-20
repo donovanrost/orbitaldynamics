@@ -16,6 +16,7 @@ defmodule OrbitalDynamics.Schema.CampaignPlanContracts do
     CampaignPlanProvenanceContracts,
     CampaignPlanProposedContactContracts,
     CampaignPlanScoreContracts,
+    CampaignPlanSearchContracts,
     CampaignPlanTargetCommitmentContracts,
     CampaignPlanTradeoffContracts,
     CampaignPlanWarningContracts
@@ -156,6 +157,7 @@ defmodule OrbitalDynamics.Schema.CampaignPlanContracts do
     |> call(callbacks, :validate_optional_contact_filter_report, [
       Map.get(artifact, "contact_filter_report")
     ])
+    |> CampaignPlanSearchContracts.validate_plan(artifact)
   end
 
   defp callback(callbacks, name), do: Keyword.fetch!(callbacks, name)

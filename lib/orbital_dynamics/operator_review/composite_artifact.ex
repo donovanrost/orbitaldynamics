@@ -169,6 +169,7 @@ defmodule OrbitalDynamics.OperatorReview.CompositeArtifact do
         get_in(artifact, ["objective_satisfaction_report", "rows"]) || [],
         "campaign_plan.objective_satisfaction_report.rows"
       ) ++
+      OptimizationReview.local_search_rows(Map.get(artifact, "optimizer_search_trace")) ++
       OptimizationReview.score_term_rows(
         get_in(artifact, ["score_term_report", "rows"]) || [],
         "campaign_plan.score_term_report.rows"

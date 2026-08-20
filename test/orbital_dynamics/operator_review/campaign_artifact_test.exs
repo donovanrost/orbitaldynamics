@@ -1,7 +1,11 @@
+Code.require_file("../campaign_planner/local_search_support.exs", __DIR__)
+
 defmodule OrbitalDynamics.OperatorReview.CampaignArtifactTest do
   use ExUnit.Case, async: true
 
   alias OrbitalDynamics.{OperatorReview, Schema}
+  alias OrbitalDynamics.CampaignPlanner
+  alias OrbitalDynamics.CampaignPlanner.LocalSearchSupport, as: LocalSearchSupport
 
   test "builds campaign review package from contact contention recommendations" do
     artifact = %{
@@ -204,5 +208,35 @@ defmodule OrbitalDynamics.OperatorReview.CampaignArtifactTest do
 
     assert {:ok, %{"schema_contract" => "operator_review_package.v1"}} =
              Schema.validate_artifact(package)
+  end
+
+  test "campaign review package lifts one exact local-search trace row" do
+    plan =
+      CampaignPlanner.build_with_local_search(
+        LocalSearchSupport.result_set(),
+        campaign: LocalSearchSupport.campaign(),
+        generated_at: LocalSearchSupport.generated_at(),
+        local_search: LocalSearchSupport.local_search()
+      )
+
+    trace = plan["optimizer_search_trace"]
+    package = plan["operator_review_package"]
+
+    assert [row] =
+             Enum.filter(package["rows"], &(&1["review_type"] == "local_search_review"))
+
+    assert row["source_optimizer_search_trace"] == trace
+    assert row["subject_id"] == plan["plan_id"]
+    assert row["plan_id"] == plan["plan_id"]
+    assert row["selection_contract"] == "v1_outer_local_search_inner_greedy"
+    assert row["base_scoring_policy"] == trace["base_scoring_policy"]
+    assert row["selected_scoring_policy"] == trace["selected_scoring_policy"]
+    assert row["selected_alternative_id"] == trace["selected_alternative_id"]
+    assert row["selected_timeline_scenario_id"] == trace["selected_timeline_scenario_id"]
+    assert row["selected_timeline_score"] == trace["selected_timeline_score"]
+    assert row["selected_activity_ids"] == trace["selected_activity_ids"]
+    assert row["selected_activity_count"] == trace["selected_activity_count"]
+    assert row["required_operator_action"] == "review_local_search"
+    assert {:ok, _report} = Schema.validate_artifact(package)
   end
 end

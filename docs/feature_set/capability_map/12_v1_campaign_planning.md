@@ -226,6 +226,56 @@ objective-tradeoff report. The required ranking explanation has executable and
 exported objective/formula/policy-object shape while the optimizer itself
 remains optional for compatibility.
 
+### Opt-in outer local-search selection
+
+`CampaignPlanner.build_with_local_search/2` and
+`OrbitalDynamics.campaign_plan_with_local_search/2` provide a separate,
+explicitly opt-in outer selection pass. The default `CampaignPlanner.build/2`,
+`OrbitalDynamics.campaign_plan/2`, and V1 build orchestration are unchanged.
+Each bounded alternative is evaluated by that unchanged V1 orchestration, and
+the private objective is always the first ranked timeline aggregate score,
+maximized. Callers cannot replace the objective callback or seed: the seed is
+the campaign's scoring policy.
+
+The outer pass can step only the numeric V1 policy keys
+`target_value_weight`, `contact_value_weight`, `eclipse_penalty_weight`,
+`downlink_rate_mb_s`, `activity_count_penalty`, `required_downlink_mb`,
+`downlink_completion_weight`, `timeline_precondition_weight`, and
+`resource_projection_weight`. Campaign constraints, rank limit, and contact
+activity types stay fixed. Inputs cross a strict finite JSON-safe boundary;
+unsupported keys, atom/string collisions, improper containers, and unsafe
+runtime terms fail closed.
+
+Selection uses the existing explainable bounded local search with typed hard-
+feasibility evidence. Infeasible alternatives are excluded before objective
+ranking and retain a null rank, so a higher raw timeline score cannot outrank a
+feasible alternative. The selected alternative is bound back to the exact V1
+plan built for its effective policy. If every alternative is infeasible, the
+API returns `{:no_selected_plan, trace}` and does not construct a campaign,
+operator-review, Cadence-import, readiness, or repair artifact.
+
+Successful plans may contain `optimizer_search_trace` under the standalone
+`campaign_plan_search_trace.v1` contract. Its
+`v1_outer_local_search_inner_greedy` selection identity keeps the existing V1
+optimizer contract and timeline selector as the inner greedy model. The trace
+binds its ID to the plan ID and retains the base/effective policies, fixed
+constraints, exact selected alternative, first timeline scenario/score,
+selected activity IDs/count, and the untouched local-search result including
+neighborhood bounds and budget, rejections, feasibility evaluations, counts,
+ordering, selection, improvement, and outcome.
+
+After the trace is attached, review, Cadence import, and readiness are rebuilt
+deterministically. Exactly one `local_search_review` row retains the entire
+trace, and exactly one Cadence `review_local_search` action retains the entire
+review row. Executable validation rejects stale or cross-plan copies and also
+rejects either handoff when no trace is present.
+
+The source-evidence registry is trusted routing evidence, not authentication.
+It binds alternative parameters and revisions to exact typed resource/link
+artifact IDs and fails closed on missing or mismatched evidence, but it has no
+signature or independent authenticity guarantee. Coordinated replacement by a
+caller already inside that trusted composition boundary remains out of scope.
+
 ## Partial
 
 - Station contention resolution is deterministic and priority-aware, but still not a live reservation service.

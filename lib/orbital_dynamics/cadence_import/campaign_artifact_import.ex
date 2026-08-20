@@ -15,6 +15,7 @@ defmodule OrbitalDynamics.CadenceImport.CampaignArtifactImport do
     resource_projection_review
     timeline_activity_precondition_review
     objective_satisfaction_review
+    local_search_review
     score_term_review
     objective_tradeoff_review
     contact_allocation_review
@@ -59,13 +60,20 @@ defmodule OrbitalDynamics.CadenceImport.CampaignArtifactImport do
       %{
         "source_artifact_type" => "campaign_plan.v1",
         "source_artifact_id" => source_id,
-        "row_source" =>
-          "campaign_plan.proposed_contacts_contact_contention_groups_recommendations_operational_timeline_integrity_activity_precondition_command_window_station_calendar_link_capacity_resource_projection_objective_satisfaction_score_term_objective_tradeoff_and_contact_allocation_rows",
+        "row_source" => row_source(artifact),
         "deterministic_ordering" =>
           "proposed_contacts_starts_at_s_then_contact_id_then_operator_review_row_order"
       }
       |> Map.merge(summary_context)
     )
+  end
+
+  defp row_source(%{"optimizer_search_trace" => %{}}) do
+    "campaign_plan.proposed_contacts_contact_contention_groups_recommendations_operational_timeline_integrity_activity_precondition_command_window_station_calendar_link_capacity_resource_projection_objective_satisfaction_local_search_score_term_objective_tradeoff_and_contact_allocation_rows"
+  end
+
+  defp row_source(_artifact) do
+    "campaign_plan.proposed_contacts_contact_contention_groups_recommendations_operational_timeline_integrity_activity_precondition_command_window_station_calendar_link_capacity_resource_projection_objective_satisfaction_score_term_objective_tradeoff_and_contact_allocation_rows"
   end
 
   defp callback(callbacks, key), do: Keyword.fetch!(callbacks, key)

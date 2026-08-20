@@ -19,6 +19,7 @@ defmodule OrbitalDynamics.CadenceImport.GenericReviewActionPolicy do
   def resolve("score_term_review"), do: "review_score_term"
   def resolve("objective_tradeoff_review"), do: "review_objective_tradeoff"
   def resolve("objective_satisfaction_review"), do: "review_objective_satisfaction"
+  def resolve("local_search_review"), do: "review_local_search"
   def resolve("resource_projection_review"), do: "review_resource_projection"
   def resolve("contact_suppression"), do: "review_contact_suppression"
   def resolve("resource_suppression"), do: "review_resource_suppression"
