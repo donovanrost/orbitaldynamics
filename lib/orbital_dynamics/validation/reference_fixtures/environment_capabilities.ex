@@ -197,7 +197,7 @@ defmodule OrbitalDynamics.Validation.ReferenceFixtures.EnvironmentCapabilities d
         "output_count" => 3,
         "supported_body_count" => 1,
         "network_access" => false,
-        "parameter_count" => 0,
+        "parameter_count" => 2,
         "known_limit_count" => 4
       },
       "tolerances" => %{
