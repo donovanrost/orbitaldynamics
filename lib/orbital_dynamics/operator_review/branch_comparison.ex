@@ -1,8 +1,9 @@
 defmodule OrbitalDynamics.OperatorReview.BranchComparison do
   @moduledoc false
 
-  alias OrbitalDynamics.OperatorReview.Capabilities
-  alias OrbitalDynamics.OperatorReview.PackageBuilder
+  alias OrbitalDynamics.CampaignPlanner.StrategyRecommendationEligibility
+
+  alias OrbitalDynamics.OperatorReview.{Capabilities, PackageBuilder}
 
   @schema_contract "operator_review_package.v1"
 
@@ -24,7 +25,11 @@ defmodule OrbitalDynamics.OperatorReview.BranchComparison do
 
   def rows(rows, source \\ "branch_comparison_report.rows") do
     rows
-    |> Enum.map(&stringify_keys/1)
+    |> Enum.map(fn row ->
+      row
+      |> stringify_keys()
+      |> StrategyRecommendationEligibility.normalize_comparison_row_json_values()
+    end)
     |> Enum.with_index(1)
     |> Enum.map(fn {row, index} ->
       branch_id = Map.get(row, "branch_id")
@@ -40,6 +45,14 @@ defmodule OrbitalDynamics.OperatorReview.BranchComparison do
         "required_operator_action" => "review_branch_comparison",
         "approval_status" => Map.get(row, "approval_status", "operator_review_required"),
         "reason" => reason(row),
+        "recommendation_eligibility_status" => row["recommendation_eligibility_status"],
+        "recommendation_eligible" => row["recommendation_eligible"],
+        "recommendation_eligibility_rank" => row["recommendation_eligibility_rank"],
+        "recommendation_blocker_reasons" => row["recommendation_blocker_reasons"],
+        "recommendation_counterfactual" => row["recommendation_counterfactual"],
+        "eligibility_status" => row["eligibility_status"],
+        "authority_context" => row["authority_context"],
+        "authority_context_evaluation" => row["authority_context_evaluation"],
         "dimension" => "branch_score",
         "baseline" => Map.get(row, "score"),
         "recommended" => recommended_score(row),
@@ -425,6 +438,15 @@ defmodule OrbitalDynamics.OperatorReview.BranchComparison do
   end
 
   defp recommended_score(_row), do: nil
+
+  defp reason(%{
+         "recommendation_counterfactual" => true,
+         "branch_id" => branch_id,
+         "recommendation_blocker_reasons" => blocker_reasons
+       })
+       when is_list(blocker_reasons) do
+    "review-only rejected branch #{branch_id}: #{Enum.join(blocker_reasons, ", ")}"
+  end
 
   defp reason(%{
          "branch_id" => branch_id,

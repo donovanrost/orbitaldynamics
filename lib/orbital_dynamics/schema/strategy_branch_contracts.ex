@@ -79,7 +79,12 @@ defmodule OrbitalDynamics.Schema.StrategyBranchContracts do
   end
 
   defp validate_summary_consistency(issues, path, branch) do
-    policy_decision = Map.get(branch, "policy_decision", %{})
+    policy_decision =
+      case Map.get(branch, "policy_decision") do
+        %{} = decision -> decision
+        _decision -> %{}
+      end
+
     approval_requirements = Map.get(branch, "approval_requirements", [])
     risk_indicators = Map.get(branch, "risk_indicators", [])
 

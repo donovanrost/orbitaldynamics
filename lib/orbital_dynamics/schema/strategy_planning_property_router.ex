@@ -171,7 +171,8 @@ defmodule OrbitalDynamics.Schema.StrategyPlanningPropertyRouter do
       contract,
       fn arg1, arg2, arg3 -> fallback(arg1, arg2, arg3, context) end,
       {fn -> provider(context, :branch_comparison_row_json_schema, []) end,
-       &OrbitalDynamics.CampaignPlanner.branch_comparison_model_limits/0}
+       &OrbitalDynamics.CampaignPlanner.branch_comparison_model_limits/0,
+       context_value(context, :stable_id_pattern)}
     )
   end
 

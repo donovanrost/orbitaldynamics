@@ -22,7 +22,8 @@ defmodule OrbitalDynamics.Schema.StrategyManeuverRegistryContracts do
           "status",
           "eligibility_status",
           "authority_context",
-          "authority_context_evaluation"
+          "authority_context_evaluation",
+          "counterfactual"
         ],
         "nested_contracts" => ["approval_requirement.v1", "authority_context.v1"]
       },

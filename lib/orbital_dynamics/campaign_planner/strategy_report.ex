@@ -34,7 +34,9 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyReport do
         policy,
         model_limits
       )
-      when is_list(branches) and is_binary(recommended_branch_id) and is_map(policy) do
+      when is_list(branches) and
+             (is_binary(recommended_branch_id) or is_nil(recommended_branch_id) or
+                recommended_branch_id == :null) and is_map(policy) do
     rows =
       branches
       |> Enum.with_index(1)
@@ -92,7 +94,9 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyReport do
         activity_id_fun,
         downlink_activity_fun
       )
-      when is_list(branches) and is_binary(recommended_branch_id) and is_map(policy) and
+      when is_list(branches) and
+             (is_binary(recommended_branch_id) or is_nil(recommended_branch_id) or
+                recommended_branch_id == :null) and is_map(policy) and
              is_function(activity_id_fun, 1) and is_function(downlink_activity_fun, 1) do
     selected_score =
       branches

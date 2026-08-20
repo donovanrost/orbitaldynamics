@@ -12,6 +12,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyOrchestration do
     StrategyArtifact,
     StrategyBranchEvaluation,
     StrategyPolicyNormalization,
+    StrategyRecommendationEligibility,
     StrategyRecommendationBuilder,
     StrategyReport
   }
@@ -43,15 +44,35 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyOrchestration do
       end)
 
     branches = Enum.sort_by(input_order_branches, &{-&1.score, &1.id})
-    recommendation = StrategyRecommendationBuilder.build(branches)
+
+    recommendation_eligibility =
+      StrategyRecommendationEligibility.evaluate(branches, request.recommendation_eligibility)
+
+    recommendation =
+      case recommendation_eligibility do
+        :legacy -> StrategyRecommendationBuilder.build(branches)
+        eligibility -> StrategyRecommendationBuilder.build(branches, eligibility)
+      end
+
     source_plan_id = RepairMetadata.source_plan_id(request.prior_plan)
 
     branch_comparison =
-      BranchComparisonReport.report(
-        branches,
-        recommendation,
-        ModelLimits.branch_comparison_model_limits()
-      )
+      case recommendation_eligibility do
+        :legacy ->
+          BranchComparisonReport.report(
+            branches,
+            recommendation,
+            ModelLimits.branch_comparison_model_limits()
+          )
+
+        eligibility ->
+          BranchComparisonReport.report(
+            branches,
+            recommendation,
+            ModelLimits.branch_comparison_model_limits(),
+            eligibility
+          )
+      end
 
     branch_maps = Enum.map(branches, &StrategyArtifact.branch_map/1)
 
@@ -79,6 +100,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyOrchestration do
       %{
         branch_maps: branch_maps,
         recommendation: recommendation,
+        recommendation_eligibility: recommendation_eligibility,
         branch_comparison: branch_comparison,
         score_term: score_term_report,
         objective_tradeoff: objective_tradeoff_report,

@@ -21,6 +21,7 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyJsonSchema do
     "approval_policy",
     "branches",
     "recommendation",
+    "recommendation_eligibility",
     "operational_feedback",
     "source_repair_id",
     "score_term_report",
@@ -57,6 +58,10 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyJsonSchema do
   end
 
   def property_opts("source_repair_id", deps) do
+    [stable_id_pattern: fetch_dep!(deps, :stable_id_pattern)]
+  end
+
+  def property_opts("recommendation_eligibility", deps) do
     [stable_id_pattern: fetch_dep!(deps, :stable_id_pattern)]
   end
 
@@ -109,6 +114,12 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyJsonSchema do
       "type" => ["string", "null"],
       "pattern" => Keyword.fetch!(opts, :stable_id_pattern)
     }
+  end
+
+  def property("recommendation_eligibility", opts) do
+    OrbitalDynamics.Schema.StrategyRecommendationEligibilityContracts.json_schema(
+      Keyword.fetch!(opts, :stable_id_pattern)
+    )
   end
 
   def property(field, opts) when is_map_key(@embedded_report_contracts, field) do

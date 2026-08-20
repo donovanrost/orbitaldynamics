@@ -51,11 +51,26 @@ defmodule OrbitalDynamics.Schema.BranchComparisonRowJsonSchema do
           "rank" => %{"type" => "integer"},
           "branch_id" => %{"type" => "string", "pattern" => stable_id_pattern},
           "score" => %{"type" => "number"},
-          "score_delta_from_recommended" => %{"type" => "number"},
+          "score_delta_from_recommended" => %{"type" => ["number", "null"]},
           "raw_score" => %{"type" => "number"},
           "branch_probability" => %{"type" => "number", "minimum" => 0.0, "maximum" => 1.0},
           "expected_score" => %{"type" => "number"},
           "selected" => %{"type" => "boolean"},
+          "recommendation_eligibility_status" => %{
+            "type" => "string",
+            "enum" => [
+              "eligible",
+              "infeasible",
+              "policy_blocked",
+              "infeasible_and_policy_blocked"
+            ]
+          },
+          "recommendation_eligible" => %{"type" => "boolean"},
+          "recommendation_eligibility_rank" => %{"type" => ["integer", "null"]},
+          "recommendation_blocker_reasons" => string_array_schema,
+          "recommendation_hard_feasibility" => %{"type" => "object"},
+          "recommendation_policy_blocker" => %{"type" => ["object", "null"]},
+          "recommendation_counterfactual" => %{"type" => "boolean"},
           "approval_status" => %{
             "type" => "string",
             "enum" => ["auto_approvable", "operator_review_required", "blocked_by_policy"]

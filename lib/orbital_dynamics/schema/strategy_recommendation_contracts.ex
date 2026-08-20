@@ -15,7 +15,7 @@ defmodule OrbitalDynamics.Schema.StrategyRecommendationContracts do
     ]
 
   import OrbitalDynamics.Schema.StableIdValidation,
-    only: [validate_stable_id_list: 3, validate_stable_ids: 4]
+    only: [validate_optional_stable_ids: 4, validate_stable_id_list: 3]
 
   def validate(
         issues,
@@ -37,7 +37,7 @@ defmodule OrbitalDynamics.Schema.StrategyRecommendationContracts do
       "risks_remaining",
       "requires_approval"
     ])
-    |> validate_stable_ids(path, recommendation, ["recommended_branch_id"])
+    |> validate_optional_stable_ids(path, recommendation, ["recommended_branch_id"])
     |> validate_stable_id_list(
       path <> ".ranked_branch_ids",
       Map.get(recommendation, "ranked_branch_ids")
@@ -51,6 +51,7 @@ defmodule OrbitalDynamics.Schema.StrategyRecommendationContracts do
     |> expect_optional_type(path, recommendation, "authority_context", :map)
     |> expect_optional_type(path, recommendation, "authority_context_evaluation", :map)
     |> expect_optional_type(path, recommendation, "eligibility_status", :binary)
+    |> expect_optional_type(path, recommendation, "counterfactual", :map)
     |> OrbitalDynamics.Schema.AuthorityContextContracts.validate_recommendation_boundary(
       path,
       recommendation
@@ -60,6 +61,7 @@ defmodule OrbitalDynamics.Schema.StrategyRecommendationContracts do
     |> expect_type(path, recommendation, "requires_approval", :list)
     |> expect_type(path, recommendation, "explanation", :list)
     |> validate_consistency(path, recommendation)
+    |> validate_no_recommendable(path, recommendation)
     |> validate_optional_rows(
       path <> ".tradeoffs",
       Map.get(recommendation, "tradeoffs"),
@@ -186,6 +188,53 @@ defmodule OrbitalDynamics.Schema.StrategyRecommendationContracts do
 
   defp validate_approval_requirements(issues, _path, _recommendation), do: issues
 
+  defp validate_no_recommendable(
+         issues,
+         path,
+         %{
+           "status" => "no_recommendable_branch",
+           "recommended_branch_id" => recommended_branch_id,
+           "approval_status" => approval_status,
+           "reason" => reason,
+           "ranked_branch_ids" => ranked_branch_ids,
+           "tradeoffs" => tradeoffs,
+           "explanation" => explanation,
+           "risks_remaining" => risks,
+           "requires_approval" => approvals,
+           "counterfactual" => %{} = counterfactual
+         }
+       ) do
+    issues
+    |> ensure(
+      recommended_branch_id in [nil, :null],
+      path <> ".recommended_branch_id",
+      "must be JSON null when no branch is recommendable"
+    )
+    |> ensure(
+      approval_status == "not_applicable",
+      path <> ".approval_status",
+      "must be not_applicable when no branch is recommendable"
+    )
+    |> ensure(
+      reason == "all_branches_infeasible_or_policy_blocked",
+      path <> ".reason",
+      "must retain the typed no-recommendable-branch reason"
+    )
+    |> ensure(
+      ranked_branch_ids == [] and tradeoffs == [] and explanation == [] and risks == [] and
+        approvals == [],
+      path,
+      "must not retain selected-branch ranking or handoff evidence"
+    )
+    |> ensure(
+      counterfactual["review_only"] == true and counterfactual["importable"] == false,
+      path <> ".counterfactual",
+      "must remain review-only and non-importable"
+    )
+  end
+
+  defp validate_no_recommendable(issues, _path, _recommendation), do: issues
+
   defp validate_tradeoff(issues, path, row) do
     issues
     |> require_fields(path, row, ["dimension", "baseline", "recommended", "delta"])
@@ -222,4 +271,7 @@ defmodule OrbitalDynamics.Schema.StrategyRecommendationContracts do
     |> require_fields(path, risk, ["type", "severity", "reason"])
     |> scoped_downlink_context_validator.(path, risk)
   end
+
+  defp ensure(issues, true, _path, _message), do: issues
+  defp ensure(issues, false, path, message), do: [error(path, message) | issues]
 end

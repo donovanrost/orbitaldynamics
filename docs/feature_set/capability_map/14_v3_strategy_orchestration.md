@@ -104,6 +104,28 @@ branch comparison, with:
   consistency.
 - Explicit raw score, branch probability, and expected score fields.
 
+## Opt-in hard recommendation eligibility
+
+V3 accepts an optional `recommendation_eligibility` request object with
+`mode: "hard"`. It reuses the typed hard-feasibility configuration fields
+`evidence_registry` and `candidates`; each registry parameter identity is bound
+to the exact computed branch `score_terms` rather than to a caller-repinned
+duplicate. The default path does not emit the new surface and retains its
+existing recommendation behavior and artifact shape.
+
+Hard mode combines `candidate_feasibility.v1` results with each branch's
+already-derived `policy_decision.v1` before ordering. Only eligible branches are
+ranked, deterministically by score descending and then `branch_id` ascending.
+Authority status and evidence come from the branch policy decision; request
+fields cannot override that result.
+
+When no branch is eligible, `recommended_branch_id` and
+`selected_branch_id` are JSON null, the eligible ranking is empty, and no
+selected recommendation review or import row is emitted. The highest-scoring
+rejected branch remains as a `review_only: true`, `importable: false`
+counterfactual with its hard-feasibility and policy/authority blocker evidence.
+All outputs remain artifact-only and perform no Cadence writes.
+
 ## Score-term and tradeoff reports
 
 Branch-level `score_term_report.v1` and `objective_tradeoff_report.v1` rows

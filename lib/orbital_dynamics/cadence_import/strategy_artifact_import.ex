@@ -1,6 +1,8 @@
 defmodule OrbitalDynamics.CadenceImport.StrategyArtifactImport do
   @moduledoc false
 
+  alias OrbitalDynamics.CampaignPlanner.StrategyRecommendationEligibility
+
   alias OrbitalDynamics.CadenceImport.{
     JsonNormalization,
     ReviewSummaryContext,
@@ -17,8 +19,13 @@ defmodule OrbitalDynamics.CadenceImport.StrategyArtifactImport do
         get_in(artifact, ["strategy_metadata", "strategy_id"])
       )
 
-    recommendation = artifact["recommendation"] || %{}
+    recommendation =
+      artifact
+      |> Map.get("recommendation", %{})
+      |> StrategyRecommendationEligibility.normalize_recommendation_json_values()
+
     comparison_rows = get_in(artifact, ["branch_comparison_report", "rows"]) || []
+
     review_package = StrategyReview.package(artifact)
 
     feedback_context =
@@ -26,7 +33,11 @@ defmodule OrbitalDynamics.CadenceImport.StrategyArtifactImport do
 
     rows =
       comparison_rows
-      |> Enum.map(&JsonNormalization.stringify_keys/1)
+      |> Enum.map(fn row ->
+        row
+        |> JsonNormalization.stringify_keys()
+        |> StrategyRecommendationEligibility.normalize_comparison_row_json_values()
+      end)
       |> Enum.sort_by(&{Map.get(&1, "rank", 0), Map.get(&1, "branch_id", "")})
       |> Enum.with_index(1)
       |> Enum.map(fn {row, rank} ->

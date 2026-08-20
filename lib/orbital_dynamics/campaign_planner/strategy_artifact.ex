@@ -29,6 +29,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyArtifact do
       "provenance" => provenance(request.prior_plan, source_plan_id),
       "strategy_metadata" => metadata(request, branch_maps, source_plan_id)
     }
+    |> maybe_put_recommendation_eligibility(Map.get(reports, :recommendation_eligibility))
     |> maybe_put("eligibility_status", recommendation.eligibility_status)
     |> maybe_put("authority_context", recommendation.authority_context)
     |> maybe_put("authority_context_evaluation", recommendation.authority_context_evaluation)
@@ -69,8 +70,8 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyArtifact do
   def recommendation_map(%StrategyRecommendation{} = recommendation) do
     %{
       "schema_contract" => "strategy_recommendation.v1",
-      "status" => "pass",
-      "recommended_branch_id" => recommendation.recommended_branch_id,
+      "status" => recommendation.status || "pass",
+      "recommended_branch_id" => recommendation.recommended_branch_id || :null,
       "approval_status" => recommendation.approval_status,
       "reason" => recommendation.reason,
       "ranked_branch_ids" => recommendation.ranked_branch_ids,
@@ -79,6 +80,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyArtifact do
       "risks_remaining" => recommendation.risks_remaining,
       "requires_approval" => recommendation.requires_approval
     }
+    |> maybe_put_counterfactual(recommendation.counterfactual)
     |> maybe_put("eligibility_status", recommendation.eligibility_status)
     |> maybe_put("authority_context", recommendation.authority_context)
     |> maybe_put("authority_context_evaluation", recommendation.authority_context_evaluation)
@@ -118,13 +120,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyArtifact do
 
   defp strategy_id(request, branch_maps, source_plan_id) do
     stable_input =
-      {
-        source_plan_id,
-        strip_realized_snapshot_model_limits(request.mission_state),
-        request.strategy_policy,
-        request.approval_policy,
-        strip_realized_snapshot_model_limits(branch_maps)
-      }
+      strategy_identity_input(request, branch_maps, source_plan_id)
       |> encode_value()
       |> canonical_hash_term()
 
@@ -193,6 +189,34 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyArtifact do
   defp encode_value(value) when is_boolean(value), do: value
   defp encode_value(value) when is_atom(value), do: Atom.to_string(value)
   defp encode_value(value), do: value
+
+  defp strategy_identity_input(request, branch_maps, source_plan_id) do
+    legacy =
+      {
+        source_plan_id,
+        strip_realized_snapshot_model_limits(request.mission_state),
+        request.strategy_policy,
+        request.approval_policy,
+        strip_realized_snapshot_model_limits(branch_maps)
+      }
+
+    case request.recommendation_eligibility do
+      :legacy ->
+        legacy
+
+      recommendation_eligibility ->
+        Tuple.insert_at(legacy, tuple_size(legacy), recommendation_eligibility)
+    end
+  end
+
+  defp maybe_put_recommendation_eligibility(map, :legacy), do: map
+  defp maybe_put_recommendation_eligibility(map, nil), do: map
+
+  defp maybe_put_recommendation_eligibility(map, recommendation_eligibility),
+    do: Map.put(map, "recommendation_eligibility", recommendation_eligibility)
+
+  defp maybe_put_counterfactual(map, value) when value in [nil, :null], do: map
+  defp maybe_put_counterfactual(map, value), do: Map.put(map, "counterfactual", value)
 
   defp maybe_put(map, _key, nil), do: map
   defp maybe_put(map, key, value), do: Map.put(map, key, value)
