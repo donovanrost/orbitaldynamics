@@ -77,18 +77,45 @@ V3 strategy artifacts emit `branch_comparison_report.v1` rows that flatten, for 
 - **Functions** — `Optimizer.pareto_frontier_report/2` and `OrbitalDynamics.pareto_frontier_report/2` emit a schema-validated `pareto_frontier_report.v1` dominance summary over supplied objective vectors. It records objective directions, frontier/dominated IDs, and dominance links **without generating alternatives or invoking a solver**, with report-level `model_limits` validation against `Optimizer.pareto_frontier_model_limits/0` and clean numeric-string objective vector values normalized before dominance checks.
 - **Embedded in V3 strategy artifacts** — V3 strategy artifacts embed the same Pareto frontier contract over branch comparison objective vectors, including repaired constraint warning/fail counts as minimization objectives. Both standalone and embedded reports normalize to `pareto_frontier_review` operator-review/import rows, with typed `review_pareto_frontier` Cadence gates preserving objective vectors and dominance context.
 
+### Bounded explainable local search
+
+- **Neighborhood generation** — `Search.Local.neighborhood/2` generates the
+  seed plus deterministically ordered single-axis decrease/increase moves over
+  named numeric parameters. Optional box bounds reject out-of-range moves with
+  explicit reasons, and `max_alternatives` deterministically truncates the
+  feasible set. At most 32 parameters may be stepped; the default bound is 17
+  alternatives and the hard limit is 65 (seed plus two moves per parameter).
+- **Generation plus evaluation** — `Optimizer.explainable_local_search/3` and
+  `OrbitalDynamics.explainable_local_search/3` evaluate the generated set from
+  a caller-supplied non-empty numeric score-term map. They select by summed
+  score, then generation order, then alternative ID; the result retains seed
+  delta, every parameter move, score contribution, rank, selection reason,
+  rejected move, ordering rule, and model limit.
+- **Reproducibility boundary** — no RNG or external solver is used. Identical
+  inputs produce identical generation and ranking when the caller-supplied
+  score-term function is pure and deterministic.
+- **Model limits** — this is one numeric, single-axis, single-step
+  neighborhood with box bounds only. It performs no iterative convergence,
+  coupled moves, campaign feasibility/constraint evaluation, physical model
+  validation, or calibration from operational outcomes.
+
 ## Partial
 
 - Candidate generation can be refreshed from planning-state artifacts, including per-branch V3 refresh inputs, but optimizers remain transparent and simple.
-- Ranking comparison is pairwise over supplied rows and Pareto reporting summarizes supplied objective vectors, but neither performs local search.
+- Ranking comparison and Pareto reporting still operate only on supplied rows;
+  the additive local-search path generates and evaluates a small alternative
+  set but is not wired into V1, V2, or V3 planner execution.
 
 ## Near-term
 
 - Broaden comparison reports across richer branch generations, saved result-set comparisons, and operator workflows that need persisted dominance context beyond branch-local objective vectors.
+- Add schema-versioned persistence for local-search evidence only when a stable
+  operator or interchange consumer requires it.
 
 ## Later
 
-- Local search, MILP/CP-SAT, stochastic search, evolutionary methods, dynamic programming, and external optimizer adapters.
+- Iterative and coupled-move local search, MILP/CP-SAT, stochastic search,
+  evolutionary methods, dynamic programming, and external optimizer adapters.
 
 ## Out of scope
 

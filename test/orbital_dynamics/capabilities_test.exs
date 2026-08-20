@@ -61,6 +61,7 @@ defmodule OrbitalDynamics.CapabilitiesTest do
     assert "template:observe:basic" in catalog.planning.activity_templates.template_ids
     assert catalog.planning.candidate_refresh == OrbitalDynamics.CandidateRefresh.capabilities()
     assert catalog.planning.search.grid == OrbitalDynamics.Search.Grid.capabilities()
+    assert catalog.planning.search.local == OrbitalDynamics.Search.Local.capabilities()
     assert catalog.planning.search.monte_carlo == OrbitalDynamics.Search.MonteCarlo.capabilities()
 
     assert [
