@@ -6,7 +6,6 @@ defmodule Mix.Tasks.OrbitalDynamics.Level5WorkflowTest do
 
   import ExUnit.CaptureIO
 
-  alias OrbitalDynamics.AuthorityContext
   alias OrbitalDynamics.CadenceImport
   alias OrbitalDynamics.CampaignPlanner.LocalSearchSupport, as: HardSupport
   alias OrbitalDynamics.CampaignPlanner.TestSupport, as: Support
@@ -18,6 +17,13 @@ defmodule Mix.Tasks.OrbitalDynamics.Level5WorkflowTest do
   @tmp_prefix "orbital_dynamics_level5_workflow_"
   @ownership_marker ".orbital_dynamics_level5_workflow_owner"
   @tmp_creation_attempts 32
+  @task_allowlist %{
+    "orbital_dynamics.capabilities" => Mix.Tasks.OrbitalDynamics.Capabilities,
+    "orbital_dynamics.schema.export" => Mix.Tasks.OrbitalDynamics.Schema.Export,
+    "orbital_dynamics.manifest.schema.export" => Mix.Tasks.OrbitalDynamics.Manifest.Schema.Export,
+    "orbital_dynamics.study.run" => Mix.Tasks.OrbitalDynamics.Study.Run,
+    "orbital_dynamics.campaign.run" => Mix.Tasks.OrbitalDynamics.Campaign.Run
+  }
 
   defmodule ExactNoWriteAdapter do
     @behaviour OrbitalDynamics.CadenceImport.Adapter
@@ -60,7 +66,6 @@ defmodule Mix.Tasks.OrbitalDynamics.Level5WorkflowTest do
 
     validate_documentation_links!(index)
     validate_referenced_tasks!(index)
-    validate_inputs!(index)
 
     {tmp_root, ownership_token} = create_owned_tmp_root!()
 
@@ -72,10 +77,12 @@ defmodule Mix.Tasks.OrbitalDynamics.Level5WorkflowTest do
       end
     end)
 
+    materialize_indexed_inputs!(index, tmp_root)
+    validate_inputs!(index, tmp_root)
     execute_indexed_support_commands!(index, tmp_root)
 
     outputs =
-      for workflow <- index["workflows"] do
+      Map.new(index["workflows"], fn workflow ->
         task = workflow["task"]
         argv = materialize_paths(workflow["argv"], tmp_root)
         output_path = materialize_path(workflow["output"], tmp_root)
@@ -83,10 +90,8 @@ defmodule Mix.Tasks.OrbitalDynamics.Level5WorkflowTest do
         assert Path.dirname(output_path) == tmp_root
         assert output_path in argv
 
-        Mix.Task.reenable(task)
-
         summary =
-          capture_io(fn -> Mix.Task.run(task, argv) end)
+          capture_io(fn -> run_indexed_task!(task, argv) end)
           |> String.trim()
           |> :json.decode()
 
@@ -112,19 +117,28 @@ defmodule Mix.Tasks.OrbitalDynamics.Level5WorkflowTest do
         assert expected_version == expected["schema_version"]
         assert_index_assertions!(artifact, expected["assertions"])
 
-        output_path
-      end
+        {workflow["id"], %{"artifact" => artifact, "path" => output_path}}
+      end)
 
-    assert length(outputs) == 3
-    assert Enum.uniq(outputs) == outputs
-    assert Enum.all?(outputs, &File.regular?/1)
+    assert map_size(outputs) == 3
+
+    output_paths = outputs |> Map.values() |> Enum.map(& &1["path"])
+    assert Enum.uniq(output_paths) == output_paths
+    assert Enum.all?(output_paths, &File.regular?/1)
+
+    assert_indexed_v3_hard_eligibility_and_cadence_parity!(
+      index,
+      get_in(outputs, ["v3_campaign_strategy", "artifact"])
+    )
 
     assert_broken_pinned_source_path!(index, tmp_root)
   end
 
   test "rejects a missing indexed Mix task" do
     absent_task = "orbital_dynamics.level5_workflow.absent"
-    assert is_nil(Mix.Task.get(absent_task))
+    atom_count_before = :erlang.system_info(:atom_count)
+    assert :error = allowed_task_module(absent_task)
+    assert :erlang.system_info(:atom_count) == atom_count_before
 
     index =
       workflow_index!()
@@ -153,71 +167,38 @@ defmodule Mix.Tasks.OrbitalDynamics.Level5WorkflowTest do
     assert File.read!(Path.join(preexisting_root, @ownership_marker)) == preexisting_token
   end
 
-  test "opt-in hard-eligibility V3 dry-runs identically as artifact and manifest" do
-    authority_context =
-      AuthorityContext.new!(%{
-        "schema_contract" => "authority_context.v1",
-        "authority_source" => "mission-operations-authority-registry",
-        "source_revision" => "level5-workflow-r1",
-        "effective_from" => "2026-05-14T00:00:00Z",
-        "valid_until" => "2026-05-15T00:00:00Z",
-        "evaluation_time" => "2026-05-14T12:00:00Z"
-      })
-
-    prior_plan =
-      Support.base_plan(%{
-        "planning_horizon" => %{"duration_s" => 2_000.0},
-        "candidate_activities" => [Support.downlink("dl_1", 100.0, 160.0)]
-      })
-
-    strategy_opts = [
-      branches: [%{id: "baseline"}, %{id: "alternate", probability: 1.0}],
-      mission_state: Support.mission_state([]),
-      current_epoch_s: 0.0,
-      authority_context_mode: "explicit",
-      authority_context: authority_context
-    ]
-
-    legacy = Support.strategy(prior_plan, strategy_opts)
-
-    alternatives =
-      legacy["branches"]
-      |> Enum.with_index()
-      |> Enum.map(fn {branch, generation_index} ->
-        %{
-          "id" => branch["branch_id"],
-          "generation_index" => generation_index,
-          "parameters" => branch["score_terms"]
-        }
-      end)
-
-    hard_eligibility =
-      HardSupport.hard_feasibility(
-        alternatives: alternatives,
-        higher_score_infeasible?: false
-      )
-
-    artifact =
-      Support.strategy(
-        prior_plan,
-        Keyword.put(strategy_opts, :recommendation_eligibility, hard_eligibility)
-      )
-      |> :json.encode()
-      |> IO.iodata_to_binary()
-      |> :json.decode()
-
+  defp assert_indexed_v3_hard_eligibility_and_cadence_parity!(index, artifact) do
+    workflow = Enum.find(index["workflows"], &(&1["id"] == "v3_campaign_strategy"))
+    proof = workflow["hard_eligibility_proof"]
+    request_input = Enum.find(workflow["inputs"], &(&1["role"] == "campaign_request"))
+    indexed_request = request_input["materialization"]["document"]
+    eligibility = artifact["recommendation_eligibility"]
     manifest = artifact["cadence_import_manifest"]
 
-    assert artifact["recommendation_eligibility"]["mode"] == "hard"
-    assert artifact["recommendation_eligibility"]["eligible_count"] == 2
-    assert artifact["recommendation_eligibility"]["rejected_count"] == 0
+    selected =
+      Enum.find(eligibility["evaluations"], &(&1["branch_id"] == proof["selected_branch_id"]))
 
-    assert artifact["recommendation_eligibility"]["selected_branch_id"] in artifact[
-             "recommendation_eligibility"
-           ]["eligible_ranked_branch_ids"]
+    rejected =
+      Enum.find(eligibility["evaluations"], &(&1["branch_id"] == proof["rejected_branch_id"]))
 
+    selected_branch = Support.branch(artifact, proof["selected_branch_id"])
+    rejected_branch = Support.branch(artifact, proof["rejected_branch_id"])
+
+    assert eligibility["mode"] == proof["mode"]
+    assert eligibility["selected_branch_id"] == proof["selected_branch_id"]
+    assert selected["status"] == proof["selected_status"]
+    assert selected["eligible"] == true
+    assert rejected["status"] == proof["rejected_status"]
+    assert rejected["eligible"] == false
+    assert proof["rejected_reason"] in rejected["blocker_reasons"]
+    assert proof["score_relation"] == "rejected_greater_than_selected"
+    assert rejected["score"] > selected["score"]
+    assert selected["score"] == selected_branch["score"]
+    assert rejected["score"] == rejected_branch["score"]
+    assert artifact["recommendation"]["recommended_branch_id"] == selected["branch_id"]
     assert artifact["eligibility_status"] == "eligible"
-    assert artifact["authority_context"] == authority_context
+    assert artifact["authority_context"] == indexed_request["authority_context"]
+    assert proof["cadence_full_direct_parity"] == true
 
     recommendation_review =
       Enum.find(
@@ -293,11 +274,30 @@ defmodule Mix.Tasks.OrbitalDynamics.Level5WorkflowTest do
   end
 
   defp validate_referenced_tasks!(index) do
-    for task <- referenced_tasks(index) do
-      task_module = Mix.Task.get(task)
-      refute is_nil(task_module), "missing referenced Mix task #{task}"
-      assert is_atom(task_module), "invalid referenced Mix task #{task}"
+    for task_name <- referenced_tasks(index) do
+      case allowed_task_module(task_name) do
+        {:ok, task_module} ->
+          assert Code.ensure_loaded?(task_module),
+                 "referenced Mix task module is unavailable: #{task_name}"
+
+          assert function_exported?(task_module, :run, 1),
+                 "referenced Mix task module has no run/1: #{task_name}"
+
+        :error ->
+          flunk("missing referenced Mix task #{task_name}")
+      end
     end
+  end
+
+  defp allowed_task_module(task_name) when is_binary(task_name),
+    do: Map.fetch(@task_allowlist, task_name)
+
+  defp allowed_task_module(_task_name), do: :error
+
+  defp run_indexed_task!(task_name, argv) do
+    assert {:ok, task_module} = allowed_task_module(task_name)
+    Mix.Task.reenable(task_name)
+    task_module.run(argv)
   end
 
   defp referenced_tasks(index) do
@@ -311,15 +311,17 @@ defmodule Mix.Tasks.OrbitalDynamics.Level5WorkflowTest do
   end
 
   defp reenable_referenced_tasks!(index) do
-    Enum.each(referenced_tasks(index), &Mix.Task.reenable/1)
+    Enum.each(referenced_tasks(index), fn task_name ->
+      assert {:ok, _task_module} = allowed_task_module(task_name)
+      Mix.Task.reenable(task_name)
+    end)
   end
 
   defp execute_indexed_support_commands!(index, tmp_root) do
     capability = index["capability_discovery"]
-    Mix.Task.reenable(capability["task"])
 
     capability_catalog =
-      capture_io(fn -> Mix.Task.run(capability["task"], capability["argv"]) end)
+      capture_io(fn -> run_indexed_task!(capability["task"], capability["argv"]) end)
       |> String.trim()
       |> :json.decode()
 
@@ -332,10 +334,8 @@ defmodule Mix.Tasks.OrbitalDynamics.Level5WorkflowTest do
     assert_direct_child!(schema_output_path, tmp_root)
     refute File.exists?(schema_output_path)
 
-    Mix.Task.reenable(schema_registry["task"])
-
     schema_output =
-      capture_io(fn -> Mix.Task.run(schema_registry["task"], schema_argv) end)
+      capture_io(fn -> run_indexed_task!(schema_registry["task"], schema_argv) end)
 
     assert schema_output =~ "wrote: #{schema_output_path}"
     assert File.regular?(schema_output_path)
@@ -369,10 +369,8 @@ defmodule Mix.Tasks.OrbitalDynamics.Level5WorkflowTest do
     assert_direct_child!(manifest_output_path, tmp_root)
     refute File.exists?(manifest_output_path)
 
-    Mix.Task.reenable(manifest_schema["task"])
-
     manifest_output =
-      capture_io(fn -> Mix.Task.run(manifest_schema["task"], manifest_argv) end)
+      capture_io(fn -> run_indexed_task!(manifest_schema["task"], manifest_argv) end)
 
     assert manifest_output =~ "wrote: #{manifest_output_path}"
     assert File.regular?(manifest_output_path)
@@ -417,9 +415,59 @@ defmodule Mix.Tasks.OrbitalDynamics.Level5WorkflowTest do
     end
   end
 
-  defp validate_inputs!(index) do
+  defp materialize_indexed_inputs!(index, tmp_root) do
+    for workflow <- index["workflows"],
+        input <- workflow["inputs"],
+        materialization = input["materialization"],
+        not is_nil(materialization) do
+      assert materialization["mode"] == "indexed_hard_eligibility_request"
+
+      output_path = materialize_path(input["path"], tmp_root)
+      assert_direct_child!(output_path, tmp_root)
+      refute File.exists?(output_path)
+
+      hard_eligibility = materialization["hard_eligibility"]
+
+      assert hard_eligibility["builder"] ==
+               "OrbitalDynamics.CampaignPlanner.LocalSearchSupport.hard_feasibility/1"
+
+      alternatives =
+        Enum.map(hard_eligibility["alternatives"], fn alternative ->
+          %{
+            "id" => alternative["id"],
+            "generation_index" => alternative["generation_index"],
+            "parameters" =>
+              Map.merge(
+                hard_eligibility["common_parameters"],
+                alternative["parameter_overrides"]
+              )
+          }
+        end)
+
+      recommendation_eligibility =
+        HardSupport.hard_feasibility(alternatives: alternatives)
+
+      assert recommendation_eligibility["mode"] == "hard"
+
+      assert recommendation_eligibility["evidence_registry"]["id"] ==
+               hard_eligibility["expected_evidence_registry_id"]
+
+      request =
+        materialization["document"]
+        |> Map.put("recommendation_eligibility", recommendation_eligibility)
+
+      source_plan = Enum.find(workflow["inputs"], &(&1["role"] == "source_plan"))
+      assert request["source_plan_ref"]["path"] == source_plan["path"]
+      assert request["source_plan_ref"]["artifact_key"] == source_plan["artifact_key"]
+
+      File.write!(output_path, :json.encode(request))
+      assert output_path |> File.read!() |> :json.decode() == request
+    end
+  end
+
+  defp validate_inputs!(index, tmp_root) do
     for workflow <- index["workflows"], input <- workflow["inputs"] do
-      path = input["path"]
+      path = materialize_path(input["path"], tmp_root)
       assert File.regular?(path), "missing workflow input #{path}"
 
       source = path |> File.read!() |> :json.decode()
@@ -497,11 +545,9 @@ defmodule Mix.Tasks.OrbitalDynamics.Level5WorkflowTest do
         end
       end)
 
-    Mix.Task.reenable(workflow["task"])
-
     output =
       capture_io(fn ->
-        error = assert_raise Mix.Error, fn -> Mix.Task.run(workflow["task"], argv) end
+        error = assert_raise Mix.Error, fn -> run_indexed_task!(workflow["task"], argv) end
         assert Exception.message(error) =~ failure["exception"]
       end)
 

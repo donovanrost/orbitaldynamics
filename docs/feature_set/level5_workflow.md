@@ -284,7 +284,7 @@ The fenced block is the source of truth consumed by the focused workflow test.
         "--type",
         "strategy",
         "--request",
-        "studies/leo_constellation_campaign_strategy_v3.json",
+        "${OUTPUT_ROOT}/v3_campaign_strategy_request.json",
         "--output",
         "${OUTPUT_ROOT}/v3_campaign_strategy.json",
         "--format",
@@ -294,9 +294,134 @@ The fenced block is the source of truth consumed by the focused workflow test.
       "inputs": [
         {
           "role": "campaign_request",
-          "path": "studies/leo_constellation_campaign_strategy_v3.json",
+          "path": "${OUTPUT_ROOT}/v3_campaign_strategy_request.json",
           "request_type": "campaign_strategy_v3",
-          "schema_version": 1
+          "schema_version": 1,
+          "materialization": {
+            "mode": "indexed_hard_eligibility_request",
+            "document": {
+              "schema_version": 1,
+              "request_type": "campaign_strategy_v3",
+              "source_plan_ref": {
+                "path": "study_results/leo_constellation_campaign.json",
+                "artifact_key": "campaign_plan"
+              },
+              "current_epoch_s": 0.0,
+              "remaining_horizon": {
+                "starts_at_s": 0.0,
+                "ends_at_s": 3600.0
+              },
+              "generated_at": "2026-05-14T20:23:00Z",
+              "derive_branches": false,
+              "branches": [
+                {
+                  "id": "baseline",
+                  "probability": 0.5
+                },
+                {
+                  "id": "blocked:increase",
+                  "probability": 1.0
+                }
+              ],
+              "mission_state": {
+                "snapshot_id": "level5-workflow-v3"
+              },
+              "authority_context_mode": "explicit",
+              "authority_context": {
+                "schema_contract": "authority_context.v1",
+                "authority_context_id": "authority_context:7602bacdb0ca9b119ebbf4584145bdf627193e1d63136664c46dbcd5718a4097",
+                "authority_source": "mission-operations-authority-registry",
+                "source_revision": "level5-workflow-r2",
+                "effective_from": "2026-05-14T00:00:00.000000Z",
+                "valid_until": "2026-05-15T00:00:00.000000Z",
+                "evaluation_time": "2026-05-14T12:00:00.000000Z"
+              }
+            },
+            "hard_eligibility": {
+              "builder": "OrbitalDynamics.CampaignPlanner.LocalSearchSupport.hard_feasibility/1",
+              "expected_evidence_registry_id": "local_search_source_evidence_registry:af928bd29ed16452ad05177aa8a350962dfd0f994410a94d8f629bacabb248d5",
+              "common_parameters": {
+                "timeline_activity_state_pressure_penalty": 0.0,
+                "resource_filter_pressure_penalty": 0.0,
+                "candidate_diff_pressure_penalty": 0.0,
+                "risk_penalty": 0.0,
+                "validation_safety_case_pressure_penalty": 0.0,
+                "objective_gap_pressure_penalty": 0.0,
+                "refresh_freshness_pressure_penalty": 0.0,
+                "execution_feedback_pressure_penalty": 0.0,
+                "timeline_pressure_penalty": 0.0,
+                "resource_margin_pressure_penalty": 0.0,
+                "latency_penalty": -0.0,
+                "battery_depletion_pressure_penalty": 0.0,
+                "import_readiness_pressure_penalty": 0.0,
+                "timeline_publication_pressure_penalty": 0.0,
+                "station_reservation_conflict_pressure_penalty": 0.0,
+                "fuel_preservation_score": 6.25,
+                "model_acceptance_pressure_penalty": 0.0,
+                "command_window_pressure_penalty": 0.0,
+                "priority_commitment_score": 0.0,
+                "raw_score": 1458.5231832107565,
+                "timeline_precondition_pressure_penalty": 0.0,
+                "timeline_dependency_impact_pressure_penalty": 0.0,
+                "resource_projection_pressure_penalty": 0.0,
+                "contact_contention_pressure_penalty": 0.0,
+                "quality_gate_pressure_penalty": 0.0,
+                "storage_downlink_pressure_penalty": 0.0,
+                "relay_data_path_pressure_penalty": 0.0,
+                "validation_refresh_pressure_penalty": 0.0,
+                "station_reservation_expiration_pressure_penalty": 0.0,
+                "schema_validation_pressure_penalty": 0.0,
+                "operational_readiness_pressure_penalty": 0.0,
+                "link_capacity_pressure_penalty": 0.0,
+                "approval_boundary_pressure_penalty": 0.0,
+                "timeline_lifecycle_pressure_penalty": 0.0,
+                "asset_balance_score": 10.0,
+                "feedback_adjustment_score": 0.0,
+                "contact_intent_pressure_penalty": 0.0,
+                "station_calendar_pressure_penalty": 0.0,
+                "resource_score": 0.0,
+                "timeline_feedback_pressure_penalty": 0.0,
+                "schedule_stability_penalty": -0.0,
+                "contact_allocation_pressure_penalty": 0.0,
+                "coverage_score": 25.0,
+                "timeline_integrity_pressure_penalty": 0.0,
+                "contact_filter_pressure_penalty": 0.0,
+                "mission_value_score": 1417.2731832107565,
+                "operational_timeline_pressure_penalty": 0.0,
+                "candidate_rejection_pressure_penalty": 0.0,
+                "maneuver_review_pressure_penalty": 0.0,
+                "timeline_preservation_pressure_penalty": 0.0,
+                "refresh_budget_pressure_penalty": 0.0,
+                "timeline_diff_pressure_penalty": 0.0,
+                "resource_availability_pressure_penalty": 0.0,
+                "provider_reservation_request_pressure_penalty": 0.0,
+                "timeline_transition_application_pressure_penalty": 0.0,
+                "approval_load_penalty": 0.0,
+                "downlink_completion_score": 0.0,
+                "revisit_score": 0.0,
+                "operator_training_pressure_penalty": 0.0,
+                "provider_counteroffer_pressure_penalty": 0.0
+              },
+              "alternatives": [
+                {
+                  "id": "blocked:increase",
+                  "generation_index": 0,
+                  "parameter_overrides": {
+                    "branch_probability": 1.0,
+                    "expected_score": 1458.5231832107565
+                  }
+                },
+                {
+                  "id": "baseline",
+                  "generation_index": 1,
+                  "parameter_overrides": {
+                    "branch_probability": 0.5,
+                    "expected_score": 729.2615916053783
+                  }
+                }
+              ]
+            }
+          }
         },
         {
           "role": "source_plan",
@@ -326,7 +451,7 @@ The fenced block is the source of truth consumed by the focused workflow test.
           },
           {
             "path": ["strategy_metadata", "strategy_id"],
-            "value": "f1551dff11d98e6f008b7f4a2c75db9194cd24289ebea02117eab052bc194bf9"
+            "value": "ed642b8886e45a6d4adf41eeefd21f4b129337daff5198fb80fee26cf08cb4a3"
           },
           {
             "path": ["source_plan_id"],
@@ -339,6 +464,34 @@ The fenced block is the source of truth consumed by the focused workflow test.
           {
             "path": ["cadence_import_manifest", "schema_contract"],
             "value": "cadence_import_manifest.v1"
+          },
+          {
+            "path": ["recommendation_eligibility", "mode"],
+            "value": "hard"
+          },
+          {
+            "path": ["recommendation_eligibility", "eligible_count"],
+            "value": 1
+          },
+          {
+            "path": ["recommendation_eligibility", "rejected_count"],
+            "value": 1
+          },
+          {
+            "path": ["recommendation_eligibility", "selected_branch_id"],
+            "value": "baseline"
+          },
+          {
+            "path": ["recommendation", "recommended_branch_id"],
+            "value": "baseline"
+          },
+          {
+            "path": ["eligibility_status"],
+            "value": "eligible"
+          },
+          {
+            "path": ["authority_context", "authority_context_id"],
+            "value": "authority_context:7602bacdb0ca9b119ebbf4584145bdf627193e1d63136664c46dbcd5718a4097"
           }
         ],
         "summary_assertions": [
@@ -356,9 +509,19 @@ The fenced block is the source of truth consumed by the focused workflow test.
           }
         ]
       },
+      "hard_eligibility_proof": {
+        "mode": "hard",
+        "selected_branch_id": "baseline",
+        "selected_status": "eligible",
+        "rejected_branch_id": "blocked:increase",
+        "rejected_status": "infeasible",
+        "rejected_reason": "downlink_threshold_not_met",
+        "score_relation": "rejected_greater_than_selected",
+        "cadence_full_direct_parity": true
+      },
       "failure": {
         "diagnostic": "source_plan_ref.path does not exist",
-        "remediation": "Restore the pinned source_plan_ref.path study_results/leo_constellation_campaign.json, then run mix orbital_dynamics.campaign.lint --type strategy --request studies/leo_constellation_campaign_strategy_v3.json before retrying."
+        "remediation": "Restore the pinned source_plan_ref.path study_results/leo_constellation_campaign.json, materialize the indexed request under ${OUTPUT_ROOT}, then run mix orbital_dynamics.campaign.lint --type strategy --request ${OUTPUT_ROOT}/v3_campaign_strategy_request.json before retrying."
       }
     }
   ]
