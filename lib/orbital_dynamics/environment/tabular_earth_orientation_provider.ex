@@ -29,6 +29,8 @@ defmodule OrbitalDynamics.Environment.TabularEarthOrientationProvider do
       },
       "interpolation" => "linear_declared_rotation_sample",
       "supported_bodies" => ["earth"],
+      "supported_frames" => ["earth_fixed_era_from_eci_j2000_approximation"],
+      "supported_time_scales" => ["tdb", "tai", "utc"],
       "network_access" => false,
       "outputs" => ["earth_rotation", "earth_rotation_angle_rad", "earth_rotation_rate_rad_s"],
       "parameters" => %{
@@ -75,6 +77,7 @@ defmodule OrbitalDynamics.Environment.TabularEarthOrientationProvider do
     seconds_since_j2000 = Keyword.get(opts, :seconds_since_j2000)
 
     with :ok <- validate_number(:seconds_since_j2000, seconds_since_j2000),
+         :ok <- validate_request_context(opts),
          {:ok, samples} <- normalized_samples(Keyword.get(opts, :samples, [])),
          {:ok, before, after_sample} <- bracketing_samples(samples, seconds_since_j2000) do
       {:ok, product(before, after_sample, seconds_since_j2000, samples, opts)}
@@ -309,8 +312,29 @@ defmodule OrbitalDynamics.Environment.TabularEarthOrientationProvider do
     samples
     |> Enum.map(& &1.seconds_since_j2000)
     |> Enum.chunk_every(2, 1, :discard)
-    |> Enum.any?(fn [before_s, after_s] -> before_s == after_s end)
+    |> Enum.any?(fn [before_s, after_s] -> after_s == before_s end)
   end
+
+  defp validate_request_context(opts) do
+    checks = [
+      {:body, normalize_label(Keyword.get(opts, :body, :earth)), "earth", ["earth"]},
+      {:frame, normalize_label(Keyword.get(opts, :frame)), nil,
+       [nil, "earth_fixed_era_from_eci_j2000_approximation"]},
+      {:time_scale, normalize_label(Keyword.get(opts, :time_scale)), nil,
+       [nil, "tdb", "tai", "utc"]},
+      {:interpolation, normalize_label(Keyword.get(opts, :interpolation)), nil,
+       [nil, "linear_sample_bracket", "linear_declared_rotation_sample"]}
+    ]
+
+    case Enum.find(checks, fn {_field, actual, _default, supported} -> actual not in supported end) do
+      nil -> :ok
+      {field, _actual, _default, _supported} -> {:error, {:invalid_option, field}}
+    end
+  end
+
+  defp normalize_label(nil), do: nil
+  defp normalize_label(value) when is_atom(value), do: Atom.to_string(value)
+  defp normalize_label(value), do: value
 
   defp bracketing_samples([sample], seconds_since_j2000) do
     if sample.seconds_since_j2000 == seconds_since_j2000 do

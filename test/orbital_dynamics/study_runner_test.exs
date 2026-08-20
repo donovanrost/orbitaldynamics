@@ -14,6 +14,40 @@ defmodule OrbitalDynamics.StudyRunnerTest do
   }
 
   alias OrbitalDynamics.Propagators.TwoBodyNxCompiled
+  alias OrbitalDynamics.Environment.CampaignEnvironmentProvider
+
+  defmodule UntrustedCampaignProvider do
+    defdelegate load(opts), to: CampaignEnvironmentProvider
+    defdelegate configured_capability(opts), to: CampaignEnvironmentProvider
+    defdelegate provenance(dataset), to: CampaignEnvironmentProvider
+    defdelegate capabilities(), to: CampaignEnvironmentProvider
+    defdelegate fetch(kind, opts), to: CampaignEnvironmentProvider
+  end
+
+  defmodule CounterfeitGroundTrackCapabilityProvider do
+    def capabilities, do: CampaignEnvironmentProvider.capabilities()
+    def fetch(_kind, _opts), do: raise("reserved capability must fail before fetch")
+  end
+
+  defmodule CounterfeitGroundTrackProductProvider do
+    alias OrbitalDynamics.Environment.ConstantEarthRotationProvider
+
+    def capabilities, do: ConstantEarthRotationProvider.capabilities()
+
+    def fetch(:earth_rotation, opts) do
+      with {:ok, product} <- ConstantEarthRotationProvider.fetch(:earth_rotation, opts) do
+        {:ok,
+         product
+         |> Map.put(
+           "provider_id",
+           "environment.provider.campaign.jpl_de441_iers_finals2000a"
+         )
+         |> Map.put("campaign_environment", %{
+           "trust_boundary" => "sha256_verified_checked_in_campaign_table"
+         })}
+      end
+    end
+  end
 
   test "runs trajectories and access windows for a study" do
     earth = CentralBody.earth()
@@ -205,6 +239,301 @@ defmodule OrbitalDynamics.StudyRunnerTest do
 
     assert result_set.errors == []
     assert result_set.assumptions.sun_direction == {-1.0, 0.0, 0.0}
+  end
+
+  test "consumes one finite campaign environment and archives exact result provenance" do
+    earth = CentralBody.earth()
+
+    study =
+      Study.new!(:campaign_environment, [campaign_scenario(:campaign, earth, 820_497_600.0)],
+        outputs: [:eclipses, :ground_track_crossings]
+      )
+
+    opts = [
+      campaign_environment:
+        {CampaignEnvironmentProvider, CampaignEnvironmentProvider.checked_in_options()},
+      ground_track_crossings: [
+        %{
+          id: :campaign_meridian,
+          crossing: :longitude,
+          longitude_deg: -80.0,
+          frame: :body_fixed
+        }
+      ]
+    ]
+
+    assert :ok = StudyRunner.validate_run_inputs(study, opts)
+    assert {:ok, result_set} = StudyRunner.run(study, opts)
+    assert result_set.errors == []
+
+    provenance = result_set.assumptions.campaign_environment
+
+    assert provenance["provider_id"] ==
+             "environment.provider.campaign.jpl_de441_iers_finals2000a"
+
+    assert provenance["provider_revision"] == "campaign_environment_provider.v2"
+    assert provenance["dataset_revision"] == "jpl_de441__iers_finals2000a_2026-08-13.v2"
+
+    assert provenance["dataset_semantic_sha256"] ==
+             "afb0c7252b0b2d2c7e987651e639e02b76bc9ac1ff19d0927b3bf3e6a9ebb5db"
+
+    assert provenance["content_sha256"] ==
+             "757d8d4d1694d0a3cf3897b337cfd2ec818e3ab8715d7103df999d1a0a3697e9"
+
+    assert provenance["earth_fixed_frame"] ==
+             "earth_fixed_era_from_eci_j2000_approximation"
+
+    assert provenance["coverage"] == %{
+             "starts_at_s" => 820_497_600.0,
+             "ends_at_s" => 820_756_800.0,
+             "time_scale" => "utc"
+           }
+
+    eclipse_result = Enum.find(result_set.event_results, &(&1.event_type == :eclipse))
+
+    ground_track_result =
+      Enum.find(result_set.event_results, &(&1.event_type == :ground_track_crossing))
+
+    assert eclipse_result.source.campaign_environment == provenance
+    assert ground_track_result.source.campaign_environment == provenance
+
+    artifact =
+      OrbitalDynamics.ResultSet.Artifact.build(result_set,
+        generated_at: ~U[2026-08-20 00:00:00Z]
+      )
+
+    artifact_provenance = artifact.assumptions["campaign_environment"]
+    assert artifact_provenance["provider_id"] == provenance["provider_id"]
+    assert artifact_provenance["provider_revision"] == provenance["provider_revision"]
+    assert artifact_provenance["dataset_revision"] == provenance["dataset_revision"]
+
+    assert artifact_provenance["dataset_semantic_sha256"] ==
+             provenance["dataset_semantic_sha256"]
+
+    assert artifact_provenance["content_sha256"] == provenance["content_sha256"]
+    assert artifact_provenance["coverage"] == provenance["coverage"]
+
+    assert Enum.map(artifact.assumptions["environment_models"], & &1["id"]) == [
+             "environment.solar.campaign_tabular_geocentric_direction",
+             "environment.earth_rotation.campaign_era_from_eci_j2000_approximation"
+           ]
+
+    assert Enum.all?(artifact.assumptions["environment_models"], fn model ->
+             model["parameters"]["content_sha256"] == provenance["content_sha256"] and
+               model["parameters"]["dataset_semantic_sha256"] ==
+                 provenance["dataset_semantic_sha256"] and
+               model["parameters"]["coverage"] == provenance["coverage"]
+           end)
+
+    assert [campaign_crossing] = artifact.ground_track_crossings
+
+    assert "earth_rotation_from_era_and_tabular_ut1_utc" in campaign_crossing.model_limits
+    assert "direct_era_rotation_from_eci_j2000_approximation" in campaign_crossing.model_limits
+    assert "no_cirs_or_precession_nutation_transform" in campaign_crossing.model_limits
+    assert "no_polar_motion_application" in campaign_crossing.model_limits
+    assert "no_tirs_claim" in campaign_crossing.model_limits
+    refute "constant_earth_rotation_body_fixed" in campaign_crossing.model_limits
+    refute "no_earth_orientation_parameters" in campaign_crossing.model_limits
+
+    assert campaign_crossing.assumptions["earth_rotation_frame"] ==
+             "earth_fixed_era_from_eci_j2000_approximation"
+
+    assert campaign_crossing.assumptions["earth_rotation_model"] ==
+             "earth_fixed_era_from_eci_j2000_approximation"
+
+    assert campaign_crossing.assumptions["polar_motion_applied"] == false
+
+    assert campaign_crossing.assumptions["earth_rotation_dataset_semantic_sha256"] ==
+             provenance["dataset_semantic_sha256"]
+
+    crossing_provenance =
+      campaign_crossing.assumptions["earth_rotation_provider_provenance"]
+
+    assert crossing_provenance["provider_id"] == provenance["provider_id"]
+    assert crossing_provenance["provider_revision"] == provenance["provider_revision"]
+    assert crossing_provenance["dataset_revision"] == provenance["dataset_revision"]
+
+    assert crossing_provenance["dataset_semantic_sha256"] ==
+             provenance["dataset_semantic_sha256"]
+
+    assert crossing_provenance["content_sha256"] == provenance["content_sha256"]
+    assert crossing_provenance["earth_fixed_frame"] == provenance["earth_fixed_frame"]
+    assert crossing_provenance["coverage"] == provenance["coverage"]
+  end
+
+  test "archives constant-rate Earth rotation when campaign and AccessGeometry are both consumed" do
+    earth = CentralBody.earth()
+
+    study =
+      Study.new!(:mixed_campaign_access, [campaign_scenario(:mixed, earth, 820_497_600.0)],
+        outputs: [:eclipses, :access_windows]
+      )
+
+    assert {:ok, result_set} =
+             StudyRunner.run(study,
+               campaign_environment:
+                 {CampaignEnvironmentProvider, CampaignEnvironmentProvider.checked_in_options()},
+               ground_stations: [GroundStation.new!(:equator, 0.0, 0.0)],
+               central_body: earth
+             )
+
+    artifact = OrbitalDynamics.ResultSet.Artifact.build(result_set)
+
+    assert Enum.map(artifact.assumptions["environment_models"], & &1["id"]) == [
+             "environment.solar.campaign_tabular_geocentric_direction",
+             "environment.earth_rotation.constant_rate"
+           ]
+  end
+
+  test "rejects unknown campaign provider modules before event generation" do
+    earth = CentralBody.earth()
+
+    study =
+      Study.new!(
+        :untrusted_campaign_environment,
+        [campaign_scenario(:untrusted, earth, 820_497_600.0)],
+        outputs: [:eclipses, :ground_track_crossings]
+      )
+
+    assert {:error, {:untrusted_campaign_environment_provider, UntrustedCampaignProvider}} =
+             StudyRunner.run(study,
+               campaign_environment:
+                 {UntrustedCampaignProvider, CampaignEnvironmentProvider.checked_in_options()},
+               ground_track_crossings: [
+                 %{id: :untrusted, crossing: :longitude, longitude_deg: 0.0, frame: :body_fixed}
+               ]
+             )
+  end
+
+  test "rejects reserved campaign claims through generic ground-track providers before execution" do
+    earth = CentralBody.earth()
+
+    study =
+      Study.new!(:counterfeit_ground_track, [scenario(:counterfeit, earth)],
+        outputs: [:ground_track_crossings]
+      )
+
+    request = fn provider ->
+      [
+        %{
+          id: :counterfeit,
+          crossing: :longitude,
+          longitude_deg: 0.0,
+          frame: :body_fixed,
+          earth_rotation_provider: provider
+        }
+      ]
+    end
+
+    assert {:error,
+            {:untrusted_campaign_environment_provider, CounterfeitGroundTrackCapabilityProvider}} =
+             StudyRunner.run(study,
+               ground_track_crossings: request.(CounterfeitGroundTrackCapabilityProvider)
+             )
+
+    assert {:error,
+            {:untrusted_campaign_environment_evidence, CounterfeitGroundTrackProductProvider}} =
+             StudyRunner.run(study,
+               ground_track_crossings: request.(CounterfeitGroundTrackProductProvider)
+             )
+
+    assert {:error, {:untrusted_campaign_environment_evidence, :ground_track_crossings}} =
+             StudyRunner.run(study,
+               ground_track_crossings: [
+                 request.(OrbitalDynamics.Environment.ConstantEarthRotationProvider)
+                 |> hd()
+                 |> Map.put(:campaign_environment, %{
+                   "provider_id" => "environment.provider.campaign.jpl_de441_iers_finals2000a"
+                 })
+               ]
+             )
+  end
+
+  test "rejects campaign environment requests outside finite coverage or in the wrong time scale" do
+    earth = CentralBody.earth()
+    provider = {CampaignEnvironmentProvider, CampaignEnvironmentProvider.checked_in_options()}
+
+    outside_study =
+      Study.new!(
+        :campaign_outside,
+        [campaign_scenario(:outside, earth, 820_756_800.0)],
+        outputs: [:eclipses]
+      )
+
+    assert {:error,
+            {:campaign_environment_request_outside_coverage,
+             %{starts_at_s: 820_756_800.0, ends_at_s: 820_757_400.0}}} =
+             StudyRunner.run(outside_study, campaign_environment: provider)
+
+    wrong_scale_study =
+      Study.new!(
+        :campaign_wrong_scale,
+        [campaign_scenario(:wrong_scale, earth, 820_497_600.0, :tdb)],
+        outputs: [:eclipses]
+      )
+
+    assert {:error, {:campaign_environment_request_mismatch, request}} =
+             StudyRunner.run(wrong_scale_study, campaign_environment: provider)
+
+    assert request.time_scales == [:tdb]
+  end
+
+  test "requires the exact checked-in campaign option boundary" do
+    earth = CentralBody.earth()
+
+    study =
+      Study.new!(
+        :campaign_option_boundary,
+        [campaign_scenario(:option_boundary, earth, 820_497_600.0)],
+        outputs: [:eclipses]
+      )
+
+    forged_options =
+      CampaignEnvironmentProvider.checked_in_options()
+      |> Keyword.put(:caller_provenance, %{"provider_id" => "forged"})
+
+    assert {:error, {:invalid_campaign_environment_configuration, :checked_in_options_required}} =
+             StudyRunner.run(study,
+               campaign_environment: {CampaignEnvironmentProvider, forged_options}
+             )
+  end
+
+  test "preserves fixed-Sun and constant-rotation defaults without campaign opt-in" do
+    earth = CentralBody.earth()
+
+    study =
+      Study.new!(:legacy_environment, [scenario(:legacy, earth)],
+        outputs: [:eclipses, :ground_track_crossings]
+      )
+
+    assert {:ok, result_set} =
+             StudyRunner.run(study,
+               ground_track_crossings: [
+                 %{
+                   id: :legacy_meridian,
+                   crossing: :longitude,
+                   longitude_deg: 0.0,
+                   frame: :body_fixed
+                 }
+               ]
+             )
+
+    refute Map.has_key?(result_set.assumptions, :campaign_environment)
+    assert result_set.assumptions.sun_direction == {1.0, 0.0, 0.0}
+
+    assert Enum.map(OrbitalDynamics.Environment.records_for_result_set(result_set), & &1["id"]) ==
+             [
+               "environment.solar.fixed_inertial_direction",
+               "environment.earth_rotation.constant_rate"
+             ]
+
+    eclipse_result = Enum.find(result_set.event_results, &(&1.event_type == :eclipse))
+    assert eclipse_result.source == %{shadow_model: :cylindrical_central_body_shadow}
+
+    legacy_artifact = OrbitalDynamics.ResultSet.Artifact.build(result_set)
+    assert [legacy_crossing | _events] = legacy_artifact.ground_track_crossings
+    assert "constant_earth_rotation_body_fixed" in legacy_crossing.model_limits
+    assert "no_earth_orientation_parameters" in legacy_crossing.model_limits
   end
 
   test "supports ground-track crossings as a study output" do
@@ -739,6 +1068,24 @@ defmodule OrbitalDynamics.StudyRunnerTest do
 
   defp scenario(id, earth) do
     Scenario.new!(id, Spacecraft.new!(:"sat_#{id}", 250.0), state({7_000.0, 0.0, 0.0}, earth),
+      duration_s: 600.0,
+      output_step_s: 60.0,
+      central_body: earth
+    )
+  end
+
+  defp campaign_scenario(id, earth, seconds_since_j2000, scale \\ :utc) do
+    velocity_km_s = :math.sqrt(earth.mu_km3_s2 / 7_000.0)
+
+    initial_state =
+      StateVector.new!(
+        {7_000.0, 0.0, 0.0},
+        {0.0, velocity_km_s, 0.0},
+        Epoch.new!(seconds_since_j2000, scale),
+        Frame.earth_inertial_j2000()
+      )
+
+    Scenario.new!(id, Spacecraft.new!(:"sat_#{id}", 250.0), initial_state,
       duration_s: 600.0,
       output_step_s: 60.0,
       central_body: earth

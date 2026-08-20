@@ -2,6 +2,7 @@ defmodule OrbitalDynamics.EnvironmentTest do
   use ExUnit.Case, async: true
 
   alias OrbitalDynamics.{Environment, Schema}
+  alias OrbitalDynamics.Environment.CampaignEnvironmentProvider
 
   test "declares internal environment provider capabilities" do
     assert [
@@ -273,6 +274,24 @@ defmodule OrbitalDynamics.EnvironmentTest do
                  %{seconds_since_j2000: 0.0, earth_rotation_angle_rad: 0.1}
                ]
              )
+  end
+
+  test "sorts unordered unique tabular rotation samples before interpolation" do
+    samples = [
+      %{seconds_since_j2000: 100.0, earth_rotation_angle_rad: 1.0},
+      %{seconds_since_j2000: 0.0, earth_rotation_angle_rad: 0.0}
+    ]
+
+    assert {:ok, product} =
+             OrbitalDynamics.Environment.TabularEarthOrientationProvider.fetch(
+               :earth_rotation,
+               samples: samples,
+               seconds_since_j2000: 50.0
+             )
+
+    assert product["coverage_starts_at_s"] == 0.0
+    assert product["coverage_ends_at_s"] == 100.0
+    assert product["earth_rotation_angle_rad"] == 0.5
   end
 
   test "requires trust boundaries for network-backed provider capabilities" do
@@ -591,6 +610,41 @@ defmodule OrbitalDynamics.EnvironmentTest do
              })
 
     assert [] = Environment.records_for_assumptions(%{outputs: [:trajectories]})
+  end
+
+  test "archives constant rotation only when mixed campaign outputs consume AccessGeometry" do
+    assert {:ok, dataset} =
+             CampaignEnvironmentProvider.load(CampaignEnvironmentProvider.checked_in_options())
+
+    provenance = CampaignEnvironmentProvider.provenance(dataset)
+
+    assert Enum.map(
+             Environment.records_for_assumptions(%{
+               outputs: [:eclipses, :access_windows],
+               campaign_environment: provenance
+             }),
+             & &1["id"]
+           ) == [
+             "environment.solar.campaign_tabular_geocentric_direction",
+             "environment.earth_rotation.constant_rate"
+           ]
+
+    assert Enum.map(
+             Environment.records_for_assumptions(%{
+               outputs: [:target_visibility],
+               campaign_environment: provenance
+             }),
+             & &1["id"]
+           ) == ["environment.earth_rotation.constant_rate"]
+
+    assert Enum.map(
+             Environment.records_for_assumptions(%{
+               outputs: [:ground_track_crossings],
+               ground_track_crossings: [%{crossing: :longitude, frame: :body_fixed}],
+               campaign_environment: provenance
+             }),
+             & &1["id"]
+           ) == ["environment.earth_rotation.campaign_era_from_eci_j2000_approximation"]
   end
 
   test "public API accepts assumptions or result-set-like maps" do

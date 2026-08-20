@@ -386,7 +386,7 @@ defmodule OrbitalDynamics.ResultSet.Artifact do
           sun_direction: encode_value(event.metadata.sun_direction),
           minimum_shadow_axis_distance_km: event.metadata.minimum_shadow_axis_distance_km,
           maximum_shadow_margin_km: event.metadata.maximum_shadow_margin_km,
-          model_limits: model_limits(Eclipses),
+          model_limits: eclipse_model_limits(event),
           assumptions:
             encode_value(
               Map.take(
@@ -395,7 +395,18 @@ defmodule OrbitalDynamics.ResultSet.Artifact do
                   :shadow_model,
                   :central_body,
                   :central_body_radius_km,
-                  :interpolation
+                  :interpolation,
+                  :sun_direction_time_varying,
+                  :sun_direction_at_start_sample,
+                  :sun_direction_at_end_sample,
+                  :sun_direction_provider_id,
+                  :sun_direction_provider_revision,
+                  :sun_direction_dataset_revision,
+                  :sun_direction_dataset_semantic_sha256,
+                  :sun_direction_content_sha256,
+                  :sun_direction_provider_coverage,
+                  :sun_direction_interpolation,
+                  :campaign_environment
                 ] ++ @event_timing_keys
               )
             )
@@ -404,6 +415,12 @@ defmodule OrbitalDynamics.ResultSet.Artifact do
       end)
     end)
   end
+
+  defp eclipse_model_limits(%{metadata: %{known_limits: limits}}) when is_list(limits) do
+    Enum.map(limits, &Atom.to_string/1)
+  end
+
+  defp eclipse_model_limits(_event), do: model_limits(Eclipses)
 
   defp target_visibility_windows(event_results) do
     event_results
@@ -455,7 +472,7 @@ defmodule OrbitalDynamics.ResultSet.Artifact do
           start_sample_index: Map.get(event.metadata, :start_sample_index),
           end_sample_index: Map.get(event.metadata, :end_sample_index),
           sample_index: Map.get(event.metadata, :sample_index),
-          model_limits: model_limits(GroundTrackCrossings),
+          model_limits: ground_track_model_limits(event),
           assumptions:
             encode_value(
               Map.take(
@@ -464,6 +481,17 @@ defmodule OrbitalDynamics.ResultSet.Artifact do
                   :coordinate_model,
                   :earth_rotation_provider,
                   :earth_rotation_provider_id,
+                  :earth_rotation_provider_revision,
+                  :earth_rotation_dataset_revision,
+                  :earth_rotation_dataset_semantic_sha256,
+                  :earth_rotation_content_sha256,
+                  :earth_rotation_source_table_id,
+                  :earth_rotation_provider_coverage_starts_at_s,
+                  :earth_rotation_provider_coverage_ends_at_s,
+                  :earth_rotation_provider_sample_count,
+                  :earth_rotation_provider_provenance,
+                  :earth_rotation_frame,
+                  :polar_motion_applied,
                   :earth_rotation_model,
                   :earth_rotation_rate_rad_s,
                   :earth_rotation_interpolation,
@@ -484,6 +512,16 @@ defmodule OrbitalDynamics.ResultSet.Artifact do
       end)
     end)
   end
+
+  defp ground_track_model_limits(%{metadata: %{known_limits: limits}})
+       when is_list(limits) do
+    Enum.map(limits, fn
+      limit when is_atom(limit) -> Atom.to_string(limit)
+      limit when is_binary(limit) -> limit
+    end)
+  end
+
+  defp ground_track_model_limits(_event), do: model_limits(GroundTrackCrossings)
 
   defp model_limits(module) do
     module.capabilities()

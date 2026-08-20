@@ -52,6 +52,10 @@ Additional request-fit facades:
   inertial/provider-defined Earth-fixed state transforms. This does not make the
   declared samples authoritative Earth-orientation data.
 - Configured tabular provider capabilities derive finite coverage and sample-count parameters from declared samples.
+- The public tabular adapter preserves its legacy compatibility rule by sorting
+  unordered unique samples before deriving coverage or interpolating; duplicate
+  epochs still fail. The source-bound campaign loader applies its own stricter
+  source-order and uniform-gap checks before delegating to this adapter.
 - Public configured-provider request-fit helpers can reject out-of-table use before an adapter is selected.
 - Study-runner ground-track validation now uses that configured request-fit check against the full scenario horizon, so unsupported products or short declared sample tables fail as option validation instead of late event-detection errors.
 - The opt-in `OrbitalDynamics.fetch_tabular_earth_orientation_from_file/3`
@@ -60,6 +64,74 @@ Additional request-fit facades:
   products preserve verification provenance, a declared or digest-derived
   stable table ID, ordered assumptions, and known limits. Inline `samples`
   configuration remains unchanged and does not require a digest.
+
+### Source-bound campaign environment
+
+- `CampaignEnvironmentProvider` is an opt-in, network-free combined provider
+  for a finite campaign horizon. It supplies a time-varying geocentric Sun
+  direction and Earth rotation/orientation from one exact-byte-verified table;
+  the fixed-Sun and constant-Earth-rotation defaults are unchanged when the
+  provider is absent.
+- The checked-in demonstration table covers 2026-01-01T00:00:00Z through
+  2026-01-04T00:00:00Z at one-day intervals. Its Sun positions are from the
+  JPL Horizons `DE441` geocentric-Sun vector response, and its polar motion and
+  UT1-UTC values are final Bulletin B columns from the IERS/USNO
+  `finals2000A.all` product. The table records the exact source URLs, product
+  and source revisions, query and epoch conventions, derivations, retrieval
+  timestamp, raw IERS source rows, the four exact Horizons `$$SOE` rows, a
+  reproducible SHA-256 of those extracted rows, retrieval-response SHA-256
+  metadata, and its own SHA-256 identity. Loading parses the checked-in
+  Horizons rows and requires every table epoch/vector to match them exactly.
+- The only supported interpolation is deterministic component-wise linear
+  interpolation inside the declared adjacent sample bracket. Sun Cartesian
+  positions are interpolated before normalization; Earth rotation angle uses
+  the IERS Earth Rotation Angle expression evaluated at each sample's UT1 and
+  then linearly interpolated without discarding whole turns. ERA properly
+  relates CIRS to TIRS, but this bounded path does not implement the required
+  celestial-intermediate/precession-nutation transform. It therefore labels
+  its direct ERA rotation of repository `eci_j2000` as
+  `earth_fixed_era_from_eci_j2000_approximation`, does not claim TIRS, and does
+  not apply polar motion. Polar motion and UT1-UTC are still archived and
+  interpolated component-wise. The separate JPL ICRF-to-repository
+  `eci_j2000` axis mapping remains an explicitly documented approximation.
+- Loading rejects an unverified table, an unexpected provider/table/source
+  revision, source digest mismatch, wrong body/frame/time scale, duplicate or
+  nonmonotonic epochs, nonuniform gaps, inconsistent coverage, and unsupported
+  interpolation. JSON objects with duplicate keys are rejected at every
+  nesting level before semantic decode. Loaded datasets are sealed by one
+  hardcoded canonical digest of every semantic dataset field and normalized
+  file-verification evidence; altered caller-constructed dataset structs fail
+  closed. Improper lists and malformed containers also return structured
+  dataset errors on every public reuse path rather than escaping validation.
+  Requests must fit wholly within the finite table coverage.
+- `StudyRunner` accepts only the built-in provider through the programmatic
+  `campaign_environment: {CampaignEnvironmentProvider, options}` run option;
+  the selectable file configuration must be the exact checked-in option set,
+  while the reused `Dataset` form is accepted only when its sealed semantic and
+  exact-file identities match the checked-in bytes. This is a built-in-module
+  and content-identity boundary, not caller authentication or a signature over
+  the upstream products. Arbitrary caller modules fail before event generation. The
+  generic ground-track provider extension remains available, but its configured
+  capability is bound to its module capability and every returned identity or
+  provenance field is checked against that configured capability. A generic
+  module cannot claim the reserved campaign ID, limits, digests, table identity,
+  or `campaign_environment` provenance; only the exact built-in provider with a
+  validated checked-in configuration may emit that evidence. Consumed
+  eclipse and body-fixed ground-track results, result artifact assumptions,
+  checkpoint identity, and exported environment-model rows archive the exact
+  provider, provider revision, dataset revision, semantic dataset SHA-256,
+  table ID/content SHA-256, honest approximation frame, finite coverage,
+  interpolation, and source-product provenance. Campaign ground-track result
+  limits describe ERA/UT1 consumption and the omitted frame transforms;
+  legacy runs retain the constant-rotation/no-EOP limits unchanged. Mixed
+  campaign runs also archive `environment.earth_rotation.constant_rate` when
+  access-window or target-visibility work consumes `AccessGeometry`; a
+  campaign-only body-fixed ground-track run archives only the ERA approximation
+  rotation model.
+- This is a source-binding and request-fit proof. It is not the Domain 18
+  external numerical acceptance case: the checked-in derived table is small,
+  no independent high-fidelity oracle comparison or error budget is claimed,
+  and no general-purpose SPICE/EOP ingest or update service is provided.
 
 ## Status: **partial**
 
@@ -70,14 +142,18 @@ There is now a provider behaviour and internal assumption-backed providers, incl
 
 But the following are still missing:
 
-- no Sun/Moon/planet ephemeris data provider;
+- no general-purpose Sun/Moon/planet ephemeris data provider beyond the bounded
+  checked-in campaign table;
 - no live external-provider data source adapter;
 - no Nx or EXLA propagator consumes atmosphere density as drag; the only J2
   consumer is the bounded opt-in scalar `J2Drag` path.
 
 ## Status: **near-term**
 
-- Add external ephemeris or Earth-orientation provider adapters only behind the provider contract, with explicit source coverage, request-fit validation, interpolation method, supported bodies, declared outputs, and network policy.
+- Add general external ephemeris or Earth-orientation provider adapters only
+  behind the provider contract, with explicit source coverage, request-fit
+  validation, interpolation method, supported bodies, declared outputs, and
+  network policy.
 
 ## Status: **later**
 
@@ -87,4 +163,6 @@ But the following are still missing:
 
 ## Status: **out of scope**
 
-- Bundling or maintaining authoritative external ephemeris data as a core project obligation.
+- Bundling or maintaining a general authoritative external ephemeris archive as
+  a core project obligation; the small checked-in campaign proof is deliberately
+  finite and immutable.
