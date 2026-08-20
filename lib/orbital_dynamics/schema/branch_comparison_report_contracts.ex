@@ -89,6 +89,14 @@ defmodule OrbitalDynamics.Schema.BranchComparisonReportContracts do
   def row_count_fields, do: @row_count_fields
 
   def validate(issues, path, report) do
+    {issues, report} =
+      OrbitalDynamics.Schema.CollectionValidation.sanitize_list_field(
+        issues,
+        path,
+        report,
+        "rows"
+      )
+
     issues
     |> expect_equal(path, report, "schema_contract", "branch_comparison_report.v1")
     |> expect_equal(

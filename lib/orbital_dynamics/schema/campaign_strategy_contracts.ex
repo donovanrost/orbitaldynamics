@@ -1,7 +1,8 @@
 defmodule OrbitalDynamics.Schema.CampaignStrategyContracts do
   @moduledoc false
 
-  import OrbitalDynamics.Schema.CollectionValidation, only: [validate_rows: 4]
+  import OrbitalDynamics.Schema.CollectionValidation,
+    only: [sanitize_list_field: 4, validate_rows: 4]
 
   import OrbitalDynamics.Schema.PrimitiveValidation,
     only: [expect_equal: 5, expect_type: 5, require_fields: 4, require_nested: 4]
@@ -25,6 +26,8 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyContracts do
              is_function(branch_comparison_validator, 2) and
              is_function(ranking_comparison_validator, 2) and
              is_function(operator_review_package_validator, 2) do
+    {issues, artifact} = sanitize_strategy_collections(issues, artifact)
+
     issues
     |> require_fields("$", artifact, required_fields)
     |> validate_stable_ids("$", artifact, ["source_plan_id"])
@@ -68,5 +71,25 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyContracts do
     )
     |> OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts.validate(artifact)
     |> OrbitalDynamics.Schema.AuthorityContextContracts.validate_strategy_propagation(artifact)
+  end
+
+  defp sanitize_strategy_collections(issues, artifact) do
+    {issues, artifact} = sanitize_list_field(issues, "$", artifact, "branches")
+
+    [
+      {"operator_review_package", "$.operator_review_package"},
+      {"cadence_import_manifest", "$.cadence_import_manifest"},
+      {"branch_comparison_report", "$.branch_comparison_report"}
+    ]
+    |> Enum.reduce({issues, artifact}, fn {field, path}, {acc, current_artifact} ->
+      case Map.get(current_artifact, field) do
+        %{} = container ->
+          {acc, container} = sanitize_list_field(acc, path, container, "rows")
+          {acc, Map.put(current_artifact, field, container)}
+
+        _container ->
+          {acc, current_artifact}
+      end
+    end)
   end
 end

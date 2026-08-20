@@ -8,6 +8,29 @@ defmodule OrbitalDynamics.Schema.AuthorityContextContracts do
   @propagation_fields ~w(eligibility_status authority_context authority_context_evaluation)
   @evidence_propagation_fields ~w(authority_context authority_context_evaluation)
   @retained_recommendation_fields ~w(approval_status eligibility_status authority_context authority_context_evaluation)
+  @strategy_recommendation_source_required_fields ~w(
+    schema_contract
+    recommended_branch_id
+    approval_status
+    reason
+    ranked_branch_ids
+    tradeoffs
+    explanation
+    risks_remaining
+    requires_approval
+  )
+  @branch_comparison_source_required_fields ~w(
+    id
+    rank
+    branch_id
+    score
+    score_delta_from_recommended
+    selected
+    approval_status
+    risk_count
+    approval_requirement_count
+    score_terms
+  )
 
   def validate(issues, path, context) do
     case OrbitalDynamics.AuthorityContext.validate(context) do
@@ -380,7 +403,7 @@ defmodule OrbitalDynamics.Schema.AuthorityContextContracts do
   defp require_branch_comparison_source(issues, path, row) do
     source = retained_branch_comparison(row)
 
-    if map_size(source) > 0 and is_binary(source["approval_status"]) do
+    if complete_branch_comparison_source?(source) do
       issues
     else
       [
@@ -394,10 +417,21 @@ defmodule OrbitalDynamics.Schema.AuthorityContextContracts do
   end
 
   defp authoritative_recommendation?(recommendation) do
-    map_size(recommendation) > 0 and
+    complete_source_fields?(recommendation, @strategy_recommendation_source_required_fields) and
+      recommendation["schema_contract"] == "strategy_recommendation.v1" and
       is_binary(recommendation["approval_status"]) and
       is_binary(recommendation["eligibility_status"]) and
       is_map(recommendation["authority_context_evaluation"])
+  end
+
+  defp complete_branch_comparison_source?(source) do
+    complete_source_fields?(source, @branch_comparison_source_required_fields) and
+      is_binary(source["id"]) and is_binary(source["branch_id"]) and
+      is_binary(source["approval_status"])
+  end
+
+  defp complete_source_fields?(source, fields) when is_map(source) do
+    map_size(source) > 0 and Enum.all?(fields, &Map.has_key?(source, &1))
   end
 
   defp authority_bearing_strategy_row?(row) do
@@ -582,6 +616,7 @@ defmodule OrbitalDynamics.Schema.AuthorityContextContracts do
           else: @retained_recommendation_fields
 
       issues
+      |> validate_complete_recommendation_source(path, row, recommendation)
       |> validate_retained_source_boundary(
         path <> ".source_recommendation",
         recommendation,
@@ -604,6 +639,7 @@ defmodule OrbitalDynamics.Schema.AuthorityContextContracts do
 
     if map_size(source) > 0 do
       issues
+      |> validate_complete_branch_comparison_source(path, row, source)
       |> validate_retained_source_boundary(
         path <> ".source_branch_comparison",
         source,
@@ -619,6 +655,35 @@ defmodule OrbitalDynamics.Schema.AuthorityContextContracts do
     else
       issues
     end
+  end
+
+  defp validate_complete_recommendation_source(issues, path, row, recommendation) do
+    if authority_strategy_source_row?(row) do
+      OrbitalDynamics.Schema.CampaignArtifactValidation.validate_recommendation_artifact(
+        issues,
+        path <> ".source_recommendation",
+        recommendation
+      )
+    else
+      issues
+    end
+  end
+
+  defp validate_complete_branch_comparison_source(issues, path, row, source) do
+    if authority_bearing_strategy_row?(row) and cadence_strategy_row?(row) do
+      OrbitalDynamics.Schema.BranchComparisonReportContracts.validate_row(
+        issues,
+        path <> ".source_branch_comparison",
+        source
+      )
+    else
+      issues
+    end
+  end
+
+  defp authority_strategy_source_row?(row) do
+    authority_bearing_strategy_row?(row) and
+      (row["review_type"] == "strategy_recommendation" or cadence_strategy_row?(row))
   end
 
   defp validate_retained_source_boundary(issues, path, source, classification) do

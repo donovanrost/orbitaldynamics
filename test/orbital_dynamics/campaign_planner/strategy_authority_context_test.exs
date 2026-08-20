@@ -1202,6 +1202,137 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyAuthorityContextTest do
     end
   end
 
+  @tag :authority_context_final_followup
+  test "improper public row and branch containers fail closed standalone and enclosing" do
+    context = AuthorityContext.new!(authority_attrs("improper-public-containers"))
+
+    artifact =
+      strategy(
+        test_plan(),
+        strategy_request(authority_context_mode: "explicit", authority_context: context)
+      )
+
+    standalone_mutations = [
+      {Map.put(
+         artifact["operator_review_package"],
+         "rows",
+         improper_container(artifact["operator_review_package"]["rows"])
+       ), "$.rows"},
+      {Map.put(
+         artifact["cadence_import_manifest"],
+         "rows",
+         improper_container(artifact["cadence_import_manifest"]["rows"])
+       ), "$.rows"},
+      {Map.put(
+         artifact["branch_comparison_report"],
+         "rows",
+         improper_container(artifact["branch_comparison_report"]["rows"])
+       ), "$.rows"}
+    ]
+
+    enclosing_mutations = [
+      {Map.put(artifact, "branches", improper_container(artifact["branches"])), "$.branches"},
+      {put_in(
+         artifact,
+         ["operator_review_package", "rows"],
+         improper_container(artifact["operator_review_package"]["rows"])
+       ), "$.operator_review_package.rows"},
+      {put_in(
+         artifact,
+         ["cadence_import_manifest", "rows"],
+         improper_container(artifact["cadence_import_manifest"]["rows"])
+       ), "$.cadence_import_manifest.rows"},
+      {put_in(
+         artifact,
+         ["branch_comparison_report", "rows"],
+         improper_container(artifact["branch_comparison_report"]["rows"])
+       ), "$.branch_comparison_report.rows"}
+    ]
+
+    for {mutated, expected_path} <- standalone_mutations ++ enclosing_mutations do
+      assert {:error, report} = Schema.validate_artifact(mutated)
+
+      assert Enum.any?(report["errors"], fn issue ->
+               issue["path"] == expected_path and issue["message"] == "must be a proper list"
+             end)
+    end
+  end
+
+  @tag :authority_context_final_followup
+  test "shallow retained strategy source spoofs fail standalone and enclosing validation" do
+    context = AuthorityContext.new!(authority_attrs("shallow-retained-source"))
+
+    artifact =
+      strategy(
+        test_plan(),
+        strategy_request(authority_context_mode: "explicit", authority_context: context)
+      )
+
+    spoofed_review =
+      update_in(artifact, ["operator_review_package", "rows"], fn rows ->
+        Enum.map(rows, fn
+          %{"review_type" => "strategy_recommendation"} = row ->
+            shallow =
+              Map.take(
+                row["source_recommendation"],
+                ~w(approval_status eligibility_status authority_context authority_context_evaluation)
+              )
+
+            Map.put(row, "source_recommendation", shallow)
+
+          row ->
+            row
+        end)
+      end)["operator_review_package"]
+
+    spoofed_manifest =
+      update_in(artifact, ["cadence_import_manifest", "rows"], fn rows ->
+        Enum.map(rows, fn
+          %{"source_review_type" => "strategy_branch_comparison"} = row ->
+            shallow_recommendation =
+              Map.take(
+                row["source_recommendation"],
+                ~w(approval_status eligibility_status authority_context authority_context_evaluation)
+              )
+
+            shallow_comparison = Map.take(row["source_branch_comparison"], ["approval_status"])
+
+            row
+            |> Map.put("source_recommendation", shallow_recommendation)
+            |> Map.put("source_branch_comparison", shallow_comparison)
+
+          row ->
+            row
+        end)
+      end)["cadence_import_manifest"]
+
+    for artifact_under_validation <- [
+          spoofed_review,
+          Map.put(artifact, "operator_review_package", spoofed_review)
+        ] do
+      assert {:error, report} = Schema.validate_artifact(artifact_under_validation)
+
+      assert Enum.any?(report["errors"], fn issue ->
+               String.ends_with?(issue["path"], ".source_recommendation.schema_contract")
+             end)
+    end
+
+    for artifact_under_validation <- [
+          spoofed_manifest,
+          Map.put(artifact, "cadence_import_manifest", spoofed_manifest)
+        ] do
+      assert {:error, report} = Schema.validate_artifact(artifact_under_validation)
+
+      assert Enum.any?(report["errors"], fn issue ->
+               String.ends_with?(issue["path"], ".source_branch_comparison.id")
+             end)
+
+      assert Enum.any?(report["errors"], fn issue ->
+               String.ends_with?(issue["path"], ".source_recommendation.recommended_branch_id")
+             end)
+    end
+  end
+
   defp authority_attrs(revision, overrides \\ []) do
     %{
       "schema_contract" => "authority_context.v1",
@@ -1238,6 +1369,8 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyAuthorityContextTest do
   defp selected_strategy_manifest_row(manifest) do
     Enum.find(manifest["rows"], &(&1["import_action"] == "import_strategy_recommendation"))
   end
+
+  defp improper_container([head | _tail]), do: [head | :improper_tail]
 
   defp propagation_fields,
     do: ~w(eligibility_status authority_context authority_context_evaluation)

@@ -3,7 +3,46 @@ defmodule OrbitalDynamics.Schema.CollectionValidation do
 
   alias OrbitalDynamics.Schema.PrimitiveValidation
 
+  def proper_list?([]), do: true
+  def proper_list?([_head | tail]), do: proper_list?(tail)
+  def proper_list?(_value), do: false
+
+  def sanitize_list_field(issues, path, map, field) when is_map(map) do
+    case Map.fetch(map, field) do
+      :error ->
+        {issues, map}
+
+      {:ok, value} ->
+        cond do
+          proper_list?(value) ->
+            {issues, map}
+
+          is_list(value) ->
+            {
+              [PrimitiveValidation.error("#{path}.#{field}", "must be a proper list") | issues],
+              Map.put(map, field, [])
+            }
+
+          true ->
+            {
+              [PrimitiveValidation.error("#{path}.#{field}", "must be a list") | issues],
+              Map.put(map, field, [])
+            }
+        end
+    end
+  end
+
   def validate_rows(issues, path, rows, validator) when is_list(rows) do
+    if proper_list?(rows) do
+      reduce_rows(issues, path, rows, validator)
+    else
+      [PrimitiveValidation.error(path, "must be a proper list") | issues]
+    end
+  end
+
+  def validate_rows(issues, _path, _rows, _validator), do: issues
+
+  defp reduce_rows(issues, path, rows, validator) do
     rows
     |> Enum.with_index()
     |> Enum.reduce(issues, fn {row, index}, acc ->
@@ -14,8 +53,6 @@ defmodule OrbitalDynamics.Schema.CollectionValidation do
       end
     end)
   end
-
-  def validate_rows(issues, _path, _rows, _validator), do: issues
 
   def validate_optional_rows(issues, _path, nil, _validator), do: issues
 
