@@ -50,7 +50,7 @@ defmodule OrbitalDynamics.Search.Local do
   def neighborhood(seed_parameters, opts)
       when is_map(seed_parameters) and is_list(opts) do
     parameters = normalize_numeric_map!(seed_parameters, :seed_parameters, allow_empty?: false)
-    steps = opts |> Keyword.fetch!(:steps) |> normalize_steps!()
+    steps = opts |> required_steps!() |> normalize_steps!()
     bounds = opts |> Keyword.get(:bounds, %{}) |> normalize_bounds!()
     id_prefix = Keyword.get(opts, :id_prefix, "local")
     max_alternatives = Keyword.get(opts, :max_alternatives, @default_max_alternatives)
@@ -119,6 +119,13 @@ defmodule OrbitalDynamics.Search.Local do
   def neighborhood(_seed_parameters, _opts) do
     raise ArgumentError,
           "seed_parameters must be a non-empty numeric map and opts must be a keyword list"
+  end
+
+  defp required_steps!(opts) do
+    case Keyword.fetch(opts, :steps) do
+      {:ok, steps} -> steps
+      :error -> raise ArgumentError, "missing required :steps option"
+    end
   end
 
   defp normalize_steps!(steps) do

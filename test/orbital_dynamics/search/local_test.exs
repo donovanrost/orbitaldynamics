@@ -92,6 +92,12 @@ defmodule OrbitalDynamics.Search.LocalTest do
     end
   end
 
+  test "raises a clear argument error when the required steps option is missing" do
+    assert_raise ArgumentError, "missing required :steps option", fn ->
+      Local.neighborhood(%{x: 1.0}, bounds: %{x: {0.0, 2.0}})
+    end
+  end
+
   test "repeats byte-for-byte equivalent neighborhood data" do
     opts = [
       steps: %{burn_epoch_s: 5.0, tangential_delta_v_km_s: 0.002},
