@@ -17,6 +17,13 @@ defmodule OrbitalDynamics.Schema.ResultArtifactContracts do
 
   import OrbitalDynamics.Schema.StableIdValidation, only: [validate_stable_ids: 4]
 
+  @optional_numeric_trajectory_fields [
+    {"final_radius_km", :final_radius_km},
+    {"final_speed_km_s", :final_speed_km_s},
+    {"semi_major_axis_km", :semi_major_axis_km},
+    {"eccentricity", :eccentricity}
+  ]
+
   def validate(issues, path, artifact, execution_report_validator)
       when is_function(execution_report_validator, 1) do
     issues
@@ -48,6 +55,7 @@ defmodule OrbitalDynamics.Schema.ResultArtifactContracts do
 
     issues
     |> validate_payload_metrics(path, artifact)
+    |> validate_trajectory_rows(path, artifact)
     |> validate_rows(
       "#{path}.ground_track_crossings",
       Map.get(artifact, "ground_track_crossings", []),
@@ -158,6 +166,96 @@ defmodule OrbitalDynamics.Schema.ResultArtifactContracts do
   end
 
   defp validate_payload_metric_sections(issues, _metrics_path, _sections), do: issues
+
+  defp validate_trajectory_rows(issues, path, artifact) do
+    rows = Map.get(artifact, "trajectories", [])
+    rows_path = "#{path}.trajectories"
+
+    case rows do
+      [] ->
+        validate_rows(issues, rows_path, rows, &validate_trajectory/3)
+
+      [_row | _rows] ->
+        if proper_list?(rows) do
+          validate_rows(issues, rows_path, rows, &validate_trajectory/3)
+        else
+          [error(rows_path, "must be a list") | issues]
+        end
+
+      _value ->
+        issues
+    end
+  end
+
+  defp validate_trajectory(issues, path, row) do
+    issues
+    |> require_fields(path, row, [
+      "scenario_id",
+      "sample_count",
+      "starts_at_s",
+      "ends_at_s",
+      "final_position_km",
+      "final_velocity_km_s",
+      "assumptions"
+    ])
+    |> validate_stable_ids(path, row, ["scenario_id"])
+    |> expect_type(path, row, "sample_count", :integer)
+    |> expect_number(path, row, "starts_at_s")
+    |> expect_number(path, row, "ends_at_s")
+    |> validate_number_triplet("#{path}.final_position_km", Map.get(row, "final_position_km"))
+    |> validate_number_triplet(
+      "#{path}.final_velocity_km_s",
+      Map.get(row, "final_velocity_km_s")
+    )
+    |> expect_type(path, row, "assumptions", :map)
+    |> validate_optional_trajectory_numbers(path, row)
+    |> validate_optional_trajectory_node(path, row)
+  end
+
+  defp validate_optional_trajectory_node(issues, path, row) do
+    issues = reject_atom_alias(issues, path, row, "node", :node)
+
+    if Map.has_key?(row, "node") and not is_binary(Map.get(row, "node")) do
+      [error("#{path}.node", "must be a string") | issues]
+    else
+      issues
+    end
+  end
+
+  defp validate_optional_trajectory_numbers(issues, path, row) do
+    Enum.reduce(@optional_numeric_trajectory_fields, issues, fn {field, atom_field}, acc ->
+      acc
+      |> reject_atom_alias(path, row, field, atom_field)
+      |> validate_optional_trajectory_number(path, row, field)
+    end)
+  end
+
+  defp validate_optional_trajectory_number(issues, path, row, field) do
+    if Map.has_key?(row, field) and not is_number(Map.get(row, field)) do
+      [error("#{path}.#{field}", "must be a number") | issues]
+    else
+      issues
+    end
+  end
+
+  defp reject_atom_alias(issues, path, row, field, atom_field) do
+    if Map.has_key?(row, atom_field) do
+      [error("#{path}.#{field}", "atom-key alias is not allowed") | issues]
+    else
+      issues
+    end
+  end
+
+  defp validate_number_triplet(issues, _path, [x, y, z])
+       when is_number(x) and is_number(y) and is_number(z),
+       do: issues
+
+  defp validate_number_triplet(issues, path, _value),
+    do: [error(path, "must be a three-element number array") | issues]
+
+  defp proper_list?([]), do: true
+  defp proper_list?([_value | rest]), do: proper_list?(rest)
+  defp proper_list?(_value), do: false
 
   defp validate_ground_track_crossing(issues, path, row) do
     issues
