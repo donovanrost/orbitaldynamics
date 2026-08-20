@@ -201,8 +201,18 @@ coverage provenance. Its explicit arithmetic-safety envelope accepts Earth
 `mu` from 350,000 to 450,000 km^3/s^2, radius from 6,000 to 7,000 km, J2 from
 zero to 0.002, total mass from 0.1 to 10,000,000 kg, drag area up to 1,000,000
 m^2, drag coefficient up to 5, and density up to 0.001 kg/m^3; unsupported
-finite values return typed errors. Its 24-hour 10 s versus 5 s fixture is
-internal numerical step-convergence evidence, not external model acceptance.
+finite values return typed errors. Those are computability guards, not the
+external accuracy envelope. The externally checked D3 state-error envelope is
+the content-bound eight-case Orekit 13.1.7 corpus: fixed Earth constants and
+the built-in exponential-atmosphere/constant-rotation path, initial altitude
+250--800 km, duration 1--24 hours, fixed RK4 step 5--30 s, total mass
+100--500 kg, area 1--8 m^2, coefficient 2.0--2.4, reference density
+0--2e-11 kg/m^3 at 400 km, and scale height 50--70 km. Six combined J2-drag
+cases plus zero-density J2 and zero-J2 drag branches compare 200 full-horizon
+states to 0.01 m position and 0.00001 m/s velocity maximum-component
+tolerances. Unsampled continuous combinations and the broader computability
+guards are not promoted. The separate 24-hour 10 s versus 5 s fixture remains
+internal convergence evidence only.
 
 ## Roadmap
 

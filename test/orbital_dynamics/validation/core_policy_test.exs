@@ -87,7 +87,11 @@ defmodule OrbitalDynamics.Validation.CorePolicyTest do
                 "coarse_max_step_s" => 10.0,
                 "fine_max_step_s" => 5.0,
                 "coarse_fine_position_delta_km" => 1.0e-3,
-                "coarse_fine_velocity_delta_km_s" => 1.0e-6
+                "coarse_fine_velocity_delta_km_s" => 1.0e-6,
+                "external_position_max_component_error_m" => 0.01,
+                "external_velocity_max_component_error_m_s" => 1.0e-5,
+                "external_case_count" => 8,
+                "external_state_sample_count" => 200
               }
             }} = Validation.record(J2Drag)
 

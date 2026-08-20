@@ -61,7 +61,7 @@ defmodule OrbitalDynamics.Validation.ReferenceFixtures.PolicyEvidenceArtifacts d
           "schema and public-surface stability checks for checked-in artifacts",
         "current_event_timing_policy" => "sampled_state_linear_boundary",
         "validated_level_description" =>
-          "reserved for future external reference-tool or operational validation evidence"
+          "external reference-tool or operational evidence within the record's exact covered regime and declared tolerances"
       },
       "tolerances" => %{
         "validation_level_count" => 0,

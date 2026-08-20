@@ -61,18 +61,24 @@ defmodule OrbitalDynamics.Validation.Registry do
       "implementation" => "OrbitalDynamics.Propagators.J2Drag",
       "validation_level" => "educational",
       "covered_regime" =>
-        "Earth/J2000/TDB LEO fixed-step RK4 up to 24 hours with point-mass gravity, J2, explicit ballistic properties, and one captured offline atmosphere policy",
+        "general Earth/J2000/TDB LEO fixed-step RK4 remains educational; external state-error evidence covers the declared eight-case 250..800 km, 1..24 hour, 5..30 second sample envelope with fixed Earth constants and the built-in exponential-atmosphere/constant-rotation path",
       "tolerances" => %{
         "planning_horizon_s" => 86_400.0,
         "coarse_max_step_s" => 10.0,
         "fine_max_step_s" => 5.0,
         "coarse_fine_position_delta_km" => 1.0e-3,
-        "coarse_fine_velocity_delta_km_s" => 1.0e-6
+        "coarse_fine_velocity_delta_km_s" => 1.0e-6,
+        "external_position_max_component_error_m" => 0.01,
+        "external_velocity_max_component_error_m_s" => 1.0e-5,
+        "external_case_count" => 8,
+        "external_state_sample_count" => 200
       },
       "evidence" => [
         "instantaneous total acceleration is checked against the declared component vector sum",
         "zero-density and zero-J2 controlled limits are checked against the scalar J2 and two-body-drag reference paths",
-        "the 24-hour 10-second versus 5-second fixture is internal step convergence, not external acceptance"
+        "the 24-hour 10-second versus 5-second fixture is internal step convergence, not external acceptance",
+        "the content-bound Apache Orekit 13.1.7 corpus independently checks 200 full-horizon states across six combined-force cases plus zero-density J2 and zero-J2 drag branches",
+        "counterfactual tests perturb combined and controlled-branch position and velocity observations beyond the external tolerances"
       ],
       "known_limits" => J2Drag.model_limits()
     },

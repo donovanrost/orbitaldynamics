@@ -37,8 +37,22 @@
   radius to 6,000--7,000 km, J2 to 0--0.002, total spacecraft mass to
   0.1--10,000,000 kg, drag area to 0--1,000,000 m^2, drag coefficient to 0--5,
   and density to 0--0.001 kg/m^3 before force arithmetic. Out-of-envelope
-  values return typed errors. A 24-hour 10 s versus 5 s fixture supplies
-  internal step-convergence evidence only.
+  values return typed errors. Those broad limits are computability guards, not
+  the externally validated accuracy envelope. The D3 state-error claim is
+  bounded to the checked eight-case Apache Orekit 13.1.7 corpus: fixed Earth
+  constants and the built-in exponential-atmosphere/constant-rotation path,
+  initial altitude 250--800 km, inclination 0--98 degrees, eccentricity up to
+  0.036084741, duration 1--24 hours, fixed RK4 step 5--30 s, total mass
+  100--500 kg, drag area 1--8 m^2, coefficient 2.0--2.4, atmosphere reference
+  density 0--2e-11 kg/m^3 at 400 km, and scale height 50--70 km. Six combined
+  J2-drag cases plus a zero-density J2 branch and a zero-J2 drag branch compare
+  25 full-horizon states per case (200 total) at 0.01 m position and 0.00001 m/s
+  velocity maximum-component tolerances. The observed maxima are
+  3.112945705652237e-6 m and 3.1113813747651875e-9 m/s. Counterfactual tests
+  perturb combined and controlled-branch states beyond both tolerances. The
+  separate 24-hour 10 s versus 5 s fixture remains internal convergence only;
+  unsampled continuous combinations and the broader computability guards are
+  not promoted by the external corpus.
 - `partial`: maneuver support is impulsive only; J2 and atmospheric drag are
   combined only in the bounded scalar `J2Drag` path, not in existing scalar
   defaults or accelerated backends;

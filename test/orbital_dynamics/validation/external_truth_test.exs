@@ -11,8 +11,12 @@ defmodule OrbitalDynamics.Validation.ExternalTruthTest do
     %{observations: observations}
   end
 
-  test "registers only the exact externally validated model combination" do
-    assert [registration] = ExternalTruth.all()
+  test "registers the exact case alongside the bounded J2 plus drag envelope" do
+    assert [envelope_registration, registration] = ExternalTruth.all()
+
+    assert envelope_registration["id"] ==
+             "external_truth.orekit_13_1_7.earth_j2_drag_bounded_envelope_v1"
+
     assert registration["id"] == @case_id
     assert registration["validation_level"] == "validated"
     assert String.contains?(registration["covered_regime"], "all 2161 ten-second states")
