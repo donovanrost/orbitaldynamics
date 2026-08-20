@@ -2,9 +2,9 @@ defmodule OrbitalDynamics.Spacecraft do
   @moduledoc """
   Spacecraft properties attached to a mission scenario.
 
-  The atmospheric-drag evaluator and opt-in scalar two-body-drag propagator
-  consume mass and ballistic properties. Other propagators leave them as
-  metadata.
+  The atmospheric-drag evaluator and opt-in scalar two-body-drag and J2-drag
+  propagators consume mass and ballistic properties. Other propagators leave
+  them as metadata.
   """
 
   @enforce_keys [:id, :dry_mass_kg]

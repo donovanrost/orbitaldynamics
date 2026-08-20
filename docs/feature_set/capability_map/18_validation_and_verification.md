@@ -46,6 +46,11 @@ Curated fixtures that can be verified into `validation_reference_fixture_report.
 - Opt-in scalar two-body plus atmospheric-drag propagation over a curated
   400 km/600 s case, including final state, specific-energy decay, provider
   identity, and exact model-limit evidence through the public `Study` path.
+- Opt-in scalar point-mass plus J2 plus atmospheric-drag propagation over the
+  declared 24-hour Earth/J2000/TDB envelope. The fixture compares 10 s and 5 s
+  fixed-step outputs against 0.001 km position and 0.000001 km/s velocity
+  internal convergence tolerances. This is educational step-convergence
+  evidence, not external truth, acceptance, or flight validation.
 - Access-window, eclipse, target-visibility event, and ground-track crossing.
 - Campaign V1, repair V2, strategy V3 artifact.
 - Standalone operator-review package.

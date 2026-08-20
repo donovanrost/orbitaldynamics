@@ -10,6 +10,7 @@ defmodule OrbitalDynamics.ValidationTest do
       eclipse_fixture_observations: 0,
       ground_track_crossing_fixture_observations: 0,
       j2_fixture_observations: 0,
+      j2_drag_convergence_fixture_observations: 0,
       target_visibility_fixture_observations: 0,
       two_body_drag_fixture_observations: 0,
       two_body_fixture_observations: 0
@@ -765,6 +766,8 @@ defmodule OrbitalDynamics.ValidationTest do
         "fixture.force_model.atmospheric_drag.earth_400km" =>
           atmospheric_drag_fixture_observations(),
         "fixture.j2.circular_leo_600s" => j2_fixture_observations(),
+        "fixture.propagator.j2_drag.earth_400km_24h_step_convergence" =>
+          j2_drag_convergence_fixture_observations(),
         "fixture.propagator.two_body_drag.earth_400km_600s" =>
           two_body_drag_fixture_observations(),
         "fixture.two_body.circular_leo_600s" => two_body_fixture_observations()
@@ -773,8 +776,8 @@ defmodule OrbitalDynamics.ValidationTest do
     assert %{
              "schema_contract" => "validation_reference_fixture_report.v1",
              "status" => "pass",
-             "fixture_count" => 202,
-             "status_counts" => %{"pass" => 202},
+             "fixture_count" => 203,
+             "status_counts" => %{"pass" => 203},
              "reports" => reports
            } = report
 
@@ -989,6 +992,7 @@ defmodule OrbitalDynamics.ValidationTest do
              "fixture.event.target_visibility.equator_overhead_120s",
              "fixture.force_model.atmospheric_drag.earth_400km",
              "fixture.j2.circular_leo_600s",
+             "fixture.propagator.j2_drag.earth_400km_24h_step_convergence",
              "fixture.propagator.two_body_drag.earth_400km_600s",
              "fixture.two_body.circular_leo_600s"
            ]

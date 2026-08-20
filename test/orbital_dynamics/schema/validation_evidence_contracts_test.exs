@@ -252,6 +252,10 @@ defmodule OrbitalDynamics.Schema.ValidationEvidenceContractsTest do
           "final_position_km" => [5584.070997735894, 4217.992693724331, 0.0],
           "final_velocity_km_s" => [-4.554400191561496, 6.019254825378945, 0.0]
         },
+        "fixture.propagator.j2_drag.earth_400km_24h_step_convergence" =>
+          Validation.reference_fixtures()
+          |> Map.fetch!("fixture.propagator.j2_drag.earth_400km_24h_step_convergence")
+          |> Map.fetch!("expected"),
         "fixture.two_body.circular_leo_600s" => %{
           "sample_count" => 6,
           "final_epoch_s" => 600.0,

@@ -13,7 +13,7 @@
 
 - `Environment.Provider` defines a provider capability contract with source coverage, interpolation, supported bodies, network access, and time-span coverage validation.
 - Internal fixed-Sun and constant-Earth-rotation provider adapters expose the current simplified assumptions through that contract.
-- The internal `ExponentialAtmosphereProvider` exposes a deterministic reference atmosphere-density product. The public atmospheric-drag evaluator and opt-in scalar `TwoBodyDrag` propagator consume that density with spacecraft ballistic properties while preserving provider identity and model provenance. JSON study manifests can select it as `exponential_reference` and declare reference altitude, reference density, and scale height without network or dynamic module loading; custom providers remain programmatic-only.
+- The internal `ExponentialAtmosphereProvider` exposes a deterministic reference atmosphere-density product. The public atmospheric-drag evaluator and opt-in scalar `TwoBodyDrag` and `J2Drag` propagators consume that density with spacecraft ballistic properties while preserving provider identity and model provenance. `J2Drag` additionally captures source, caller/built-in revision, coverage, interpolation, and offline policy once across its full requested horizon. JSON study manifests can select it only for `TwoBodyDrag` as `exponential_reference`; `J2Drag` and custom providers remain programmatic-only.
 
 ### Schema contracts and validation
 
@@ -65,14 +65,15 @@ Additional request-fit facades:
 
 There is now a provider behaviour and internal assumption-backed providers, including:
 
-- a reference atmosphere-density provider consumed by a standalone drag acceleration evaluator and opt-in scalar two-body-drag propagation;
+- a reference atmosphere-density provider consumed by a standalone drag acceleration evaluator and opt-in scalar two-body-drag and J2-drag propagation;
 - a declared-sample Earth-orientation table adapter.
 
 But the following are still missing:
 
 - no Sun/Moon/planet ephemeris data provider;
 - no live external-provider data source adapter;
-- no J2, Nx, or EXLA propagator consumes atmosphere density as drag.
+- no Nx or EXLA propagator consumes atmosphere density as drag; the only J2
+  consumer is the bounded opt-in scalar `J2Drag` path.
 
 ## Status: **near-term**
 

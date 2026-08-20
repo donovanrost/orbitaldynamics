@@ -5,6 +5,7 @@ defmodule OrbitalDynamics.Validation.Registry do
 
   alias OrbitalDynamics.Propagators.{
     J2,
+    J2Drag,
     J2ExlaCpu,
     TwoBody,
     TwoBodyDrag,
@@ -53,6 +54,27 @@ defmodule OrbitalDynamics.Validation.Registry do
         "curated 600 second LEO fixture is evaluated through the public programmatic Study path"
       ],
       "known_limits" => TwoBodyDrag.model_limits()
+    },
+    "propagator.j2_drag" => %{
+      "id" => "propagator.j2_drag",
+      "model" => "fixed_step_earth_j2_with_co_rotating_reference_atmosphere_drag",
+      "implementation" => "OrbitalDynamics.Propagators.J2Drag",
+      "validation_level" => "educational",
+      "covered_regime" =>
+        "Earth/J2000/TDB LEO fixed-step RK4 up to 24 hours with point-mass gravity, J2, explicit ballistic properties, and one captured offline atmosphere policy",
+      "tolerances" => %{
+        "planning_horizon_s" => 86_400.0,
+        "coarse_max_step_s" => 10.0,
+        "fine_max_step_s" => 5.0,
+        "coarse_fine_position_delta_km" => 1.0e-3,
+        "coarse_fine_velocity_delta_km_s" => 1.0e-6
+      },
+      "evidence" => [
+        "instantaneous total acceleration is checked against the declared component vector sum",
+        "zero-density and zero-J2 controlled limits are checked against the scalar J2 and two-body-drag reference paths",
+        "the 24-hour 10-second versus 5-second fixture is internal step convergence, not external acceptance"
+      ],
+      "known_limits" => J2Drag.model_limits()
     },
     "propagator.two_body" => %{
       "id" => "propagator.two_body",
@@ -273,6 +295,7 @@ defmodule OrbitalDynamics.Validation.Registry do
   @propagator_ids %{
     TwoBody => "propagator.two_body",
     TwoBodyDrag => "propagator.two_body_drag",
+    J2Drag => "propagator.j2_drag",
     TwoBodyExlaCpu => "propagator.two_body",
     TwoBodyNxCompiled => "propagator.two_body_nx",
     TwoBodyNx => "propagator.two_body_nx",

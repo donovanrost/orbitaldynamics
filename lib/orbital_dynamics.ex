@@ -12,6 +12,7 @@ defmodule OrbitalDynamics do
 
   alias OrbitalDynamics.Propagators.{
     J2,
+    J2Drag,
     J2ExlaCpu,
     TwoBody,
     TwoBodyDrag,
@@ -75,6 +76,17 @@ defmodule OrbitalDynamics do
   """
   def propagate(scenario, opts \\ []) do
     TwoBody.propagate(scenario, opts)
+  end
+
+  @doc """
+  Propagates one scenario through the opt-in scalar J2-plus-drag path.
+
+  This facade does not change `propagate/2`, study manifests, or planner
+  defaults. See `OrbitalDynamics.Propagators.J2Drag.propagate/2` for the
+  supported LEO envelope and provider policy.
+  """
+  def propagate_j2_drag(scenario, opts \\ []) do
+    J2Drag.propagate(scenario, opts)
   end
 
   @doc """
@@ -144,6 +156,7 @@ defmodule OrbitalDynamics do
           two_body: TwoBody.capabilities(),
           two_body_drag: TwoBodyDrag.capabilities(),
           j2: J2.capabilities(),
+          j2_drag: J2Drag.capabilities(),
           two_body_nx: TwoBodyNx.capabilities(),
           two_body_nx_compiled: TwoBodyNxCompiled.capabilities(),
           two_body_exla_cpu: TwoBodyExlaCpu.capabilities(),
@@ -1291,6 +1304,17 @@ defmodule OrbitalDynamics do
   """
   def atmospheric_drag_acceleration(state, spacecraft, central_body, opts \\ []) do
     AtmosphericDrag.evaluate(state, spacecraft, central_body, opts)
+  end
+
+  @doc """
+  Evaluates the opt-in scalar J2-plus-drag acceleration component sum.
+
+  The result declares point-mass, J2, atmospheric-drag, and total acceleration
+  vectors plus the captured offline provider provenance. No propagation is
+  performed.
+  """
+  def j2_drag_acceleration(state, spacecraft, central_body, opts \\ []) do
+    J2Drag.acceleration_components(state, spacecraft, central_body, opts)
   end
 
   @doc """
