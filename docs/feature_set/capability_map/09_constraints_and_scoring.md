@@ -118,6 +118,12 @@ Status: **implemented** (core), with **partial**, **near-term**, **later**, and 
 
 - Score-term, objective-tradeoff, branch-comparison, ranking-comparison, and Pareto-frontier reports now emit schema-visible `model_limits` arrays for their deterministic explainability and no-solver/no-autonomous-execution boundaries.
 - Result-artifact `scenario_rankings` now expose `ResultSet.Report` model-limit metadata for artifact-only ranking.
+- Bounded local search requires a caller-supplied non-empty numeric score-term
+  map for every generated alternative. `Optimizer.explainable_local_search/3`
+  makes the total score exactly the sum of those visible contributions and
+  retains every term, parameter move, rank, and tie-break explanation. This
+  does not validate whether the caller's term function is physically complete,
+  calibrated, or pure.
 
 ### Branch-comparison feedback
 
@@ -144,6 +150,8 @@ Status: **implemented** (core), with **partial**, **near-term**, **later**, and 
   - V3 recommendation tradeoffs over the main strategic score dimensions.
 - Cadence import rows that preserve top-level `source_objective_satisfaction`, `source_objective_tradeoff`, `source_score_term`, `source_constraint_row`, or communications/resource source pressure rows replay the same branch pressure without nested review rows.
 - **Caveat** — score-term records are still not shared across every workflow.
+- **Caveat** — local-search score terms are inspectable in the returned search
+  result but are not a schema-versioned artifact or planner scoring policy.
 
 ## Near-term
 

@@ -1,14 +1,27 @@
 defmodule OrbitalDynamics.Optimizer do
   @moduledoc """
-  Artifact-level optimizer contracts for planner outputs.
+  Transparent optimizer contracts and bounded search for mission alternatives.
 
-  These records explain the optimizer model used to select activities. They do
-  not introduce an external solver or hide decisions behind opaque weights.
+  These records and results explain the model used to select an alternative.
+  They do not introduce an external solver or hide decisions behind opaque
+  weights.
   """
 
   @greedy_optimizer "per_spacecraft_greedy_non_overlapping"
+  @local_search_model "deterministic_bounded_axis_step_local_search"
   @ranking_comparison_model "scenario_ranking_pairwise_delta"
   @pareto_frontier_model "objective_vector_pareto_frontier"
+  @local_search_model_limits [
+    "numeric_scalar_parameters_only",
+    "single_axis_single_step_moves_only",
+    "box_bounds_only",
+    "one_neighborhood_generation",
+    "score_is_sum_of_caller_supplied_terms",
+    "caller_must_supply_a_pure_deterministic_score_terms_function",
+    "no_constraint_or_feasibility_evaluation_beyond_bounds",
+    "no_solver_execution",
+    "not_calibrated_from_operational_outcomes"
+  ]
   @ranking_comparison_model_limits [
     "deterministic_rank_comparison_only",
     "input_order_is_rank_source",
@@ -29,6 +42,8 @@ defmodule OrbitalDynamics.Optimizer do
     "score_terms"
   ]
 
+  alias OrbitalDynamics.Search.Local
+
   @doc """
   Declares supported optimizer contract models and known limits.
   """
@@ -36,8 +51,18 @@ defmodule OrbitalDynamics.Optimizer do
     %{
       artifact_contract: "optimizer_contract.v1",
       models: [@greedy_optimizer],
+      local_search_models: [@local_search_model],
       comparison_models: [@ranking_comparison_model, @pareto_frontier_model],
       validation_level: :artifact_contract,
+      local_search_validation_level: :input_validated,
+      local_search_generator: Local.capabilities().model,
+      local_search_deterministic_ordering: [
+        :objective_score_by_direction,
+        :generation_index_ascending,
+        :alternative_id_ascending
+      ],
+      local_search_model_limits: @local_search_model_limits,
+      public_facades: [:explainable_local_search],
       deterministic_ordering: [
         :score_descending,
         :start_time_ascending,
@@ -66,6 +91,11 @@ defmodule OrbitalDynamics.Optimizer do
   Returns the declared model limits for Pareto frontier reports.
   """
   def pareto_frontier_model_limits, do: @pareto_frontier_model_limits
+
+  @doc """
+  Returns the declared model limits for bounded explainable local search.
+  """
+  def local_search_model_limits, do: @local_search_model_limits
 
   @doc """
   Builds the V1 optimizer contract for ranked campaign timelines.
@@ -109,6 +139,102 @@ defmodule OrbitalDynamics.Optimizer do
         "external_solver" => false
       }
     }
+  end
+
+  @doc """
+  Generates and evaluates one deterministic, bounded local neighborhood.
+
+  `score_terms_fun` receives each alternative's normalized string-keyed
+  parameter map and must return a non-empty map of named numeric score
+  contributions. The optimizer sums those contributions, then ranks by score,
+  generation order, and alternative ID. Required option `:steps`, plus optional
+  `:bounds`, `:id_prefix`, and `:max_alternatives`, are passed to
+  `OrbitalDynamics.Search.Local.neighborhood/2`.
+
+  This is one inspectable local step, not an iterative or constraint-aware
+  solver. Reproducibility requires a pure deterministic `score_terms_fun`.
+  """
+  def explainable_local_search(seed_parameters, score_terms_fun, opts \\ [])
+
+  def explainable_local_search(seed_parameters, score_terms_fun, opts)
+      when is_map(seed_parameters) and is_function(score_terms_fun, 1) and is_list(opts) do
+    objective = Keyword.get(opts, :objective, "sum_of_score_terms")
+
+    objective_direction =
+      normalize_objective_direction!(Keyword.get(opts, :objective_direction, :maximize))
+
+    if not is_binary(objective) or objective == "" do
+      raise ArgumentError, "objective must be a non-empty string"
+    end
+
+    neighborhood =
+      Local.neighborhood(
+        seed_parameters,
+        Keyword.take(opts, [:steps, :bounds, :id_prefix, :max_alternatives])
+      )
+
+    evaluated =
+      Enum.map(neighborhood["alternatives"], fn alternative ->
+        score_terms = evaluate_score_terms!(score_terms_fun, alternative)
+
+        alternative
+        |> Map.put("score_terms", score_terms)
+        |> Map.put("score", sum_score_terms(score_terms))
+      end)
+
+    ranked =
+      evaluated
+      |> Enum.sort_by(&local_search_sort_key(&1, objective_direction))
+      |> Enum.with_index(1)
+      |> Enum.map(fn {alternative, rank} -> Map.put(alternative, "rank", rank) end)
+
+    selected = List.first(ranked)
+    seed = Enum.find(ranked, &(&1["id"] == neighborhood["seed_id"]))
+    improvement_from_seed = improvement_from_seed(selected, seed, objective_direction)
+
+    alternatives =
+      Enum.map(ranked, fn alternative ->
+        alternative
+        |> Map.put("score_delta_from_seed", alternative["score"] - seed["score"])
+        |> Map.put("selected", alternative["id"] == selected["id"])
+        |> Map.put(
+          "selection_explanation",
+          local_search_selection_explanation(alternative, selected, objective_direction)
+        )
+      end)
+
+    %{
+      "model" => @local_search_model,
+      "objective" => objective,
+      "objective_direction" => Atom.to_string(objective_direction),
+      "seed_id" => seed["id"],
+      "seed_score" => seed["score"],
+      "selected_id" => selected["id"],
+      "selected_score" => selected["score"],
+      "improved" => improvement_from_seed > 0,
+      "improvement_from_seed" => improvement_from_seed,
+      "evaluated_count" => length(alternatives),
+      "alternatives" => alternatives,
+      "rejected_moves" => neighborhood["rejected_moves"],
+      "neighborhood" => Map.drop(neighborhood, ["alternatives", "rejected_moves"]),
+      "deterministic_ordering" => [
+        objective_score_order(objective_direction),
+        "generation_index ascending",
+        "alternative id ascending"
+      ],
+      "model_limits" => @local_search_model_limits,
+      "assumptions" => %{
+        "score_rule" => "sum_of_score_terms",
+        "score_terms_function" => "caller_supplied_and_expected_pure",
+        "external_solver" => false,
+        "iterations" => 1
+      }
+    }
+  end
+
+  def explainable_local_search(_seed_parameters, _score_terms_fun, _opts) do
+    raise ArgumentError,
+          "seed_parameters must be a map, score_terms_fun must have arity 1, and opts must be a keyword list"
   end
 
   @doc """
@@ -266,6 +392,99 @@ defmodule OrbitalDynamics.Optimizer do
     end)
     |> Enum.uniq()
     |> Enum.sort()
+  end
+
+  defp normalize_objective_direction!(direction) when direction in [:maximize, "maximize"],
+    do: :maximize
+
+  defp normalize_objective_direction!(direction) when direction in [:minimize, "minimize"],
+    do: :minimize
+
+  defp normalize_objective_direction!(_direction) do
+    raise ArgumentError,
+          "objective_direction must be :maximize, :minimize, \"maximize\", or \"minimize\""
+  end
+
+  defp evaluate_score_terms!(score_terms_fun, alternative) do
+    case score_terms_fun.(alternative["parameters"]) do
+      score_terms when is_map(score_terms) and map_size(score_terms) > 0 ->
+        normalize_score_terms!(score_terms, alternative["id"])
+
+      _invalid ->
+        raise ArgumentError,
+              "score_terms_fun must return a non-empty numeric map for #{alternative["id"]}"
+    end
+  end
+
+  defp normalize_score_terms!(score_terms, alternative_id) do
+    entries =
+      Enum.map(score_terms, fn
+        {key, value} when (is_atom(key) or is_binary(key)) and is_number(value) ->
+          {normalize_score_term_name!(key, alternative_id), value}
+
+        _entry ->
+          raise ArgumentError,
+                "score_terms_fun must return named numeric contributions for #{alternative_id}"
+      end)
+
+    names = Enum.map(entries, &elem(&1, 0))
+
+    if length(names) != length(Enum.uniq(names)) do
+      raise ArgumentError,
+            "score_terms_fun returned duplicate names after key normalization for #{alternative_id}"
+    end
+
+    Map.new(entries)
+  end
+
+  defp normalize_score_term_name!(key, alternative_id) do
+    name = to_string(key)
+
+    if Regex.match?(~r/^[A-Za-z][A-Za-z0-9_.-]*$/, name) do
+      name
+    else
+      raise ArgumentError,
+            "score_terms_fun returned an invalid contribution name for #{alternative_id}"
+    end
+  end
+
+  defp sum_score_terms(score_terms) do
+    score_terms
+    |> Enum.sort_by(&elem(&1, 0))
+    |> Enum.reduce(0, fn {_name, value}, score -> score + value end)
+  end
+
+  defp objective_score_order(:maximize), do: "objective score descending"
+  defp objective_score_order(:minimize), do: "objective score ascending"
+
+  defp local_search_sort_key(alternative, :maximize) do
+    {-alternative["score"], alternative["generation_index"], alternative["id"]}
+  end
+
+  defp local_search_sort_key(alternative, :minimize) do
+    {alternative["score"], alternative["generation_index"], alternative["id"]}
+  end
+
+  defp improvement_from_seed(selected, seed, :maximize),
+    do: selected["score"] - seed["score"]
+
+  defp improvement_from_seed(selected, seed, :minimize),
+    do: seed["score"] - selected["score"]
+
+  defp local_search_selection_explanation(alternative, selected, objective_direction) do
+    cond do
+      alternative["id"] == selected["id"] ->
+        "selected_best_score_then_generation_order_then_id"
+
+      alternative["score"] == selected["score"] ->
+        "equal_score_later_generation_order_or_id"
+
+      objective_direction == :maximize ->
+        "lower_score"
+
+      objective_direction == :minimize ->
+        "higher_score"
+    end
   end
 
   defp normalize_ranking(rows) do

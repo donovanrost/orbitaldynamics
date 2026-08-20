@@ -8,6 +8,11 @@ defmodule OrbitalDynamics.OptimizerTest do
              artifact_contract: "optimizer_contract.v1",
              validation_level: :artifact_contract,
              models: ["per_spacecraft_greedy_non_overlapping"],
+             local_search_models: local_search_models,
+             local_search_generator: :deterministic_bounded_single_axis_step,
+             local_search_deterministic_ordering: local_search_deterministic_ordering,
+             local_search_model_limits: local_search_model_limits,
+             public_facades: [:explainable_local_search],
              comparison_models: comparison_models,
              deterministic_ordering: deterministic_ordering,
              preserved_lineage_fields: preserved_lineage_fields,
@@ -16,11 +21,156 @@ defmodule OrbitalDynamics.OptimizerTest do
 
     assert "scenario_ranking_pairwise_delta" in comparison_models
     assert "objective_vector_pareto_frontier" in comparison_models
+    assert "deterministic_bounded_axis_step_local_search" in local_search_models
+    assert :generation_index_ascending in local_search_deterministic_ordering
+    assert "one_neighborhood_generation" in local_search_model_limits
+    assert "no_solver_execution" in local_search_model_limits
     assert :score_descending in deterministic_ordering
     assert "source_window" in preserved_lineage_fields
     assert :no_milp_or_cp_sat_solver in known_limits
     assert :ranking_comparison_not_solver_search in known_limits
     assert :pareto_frontier_summary_not_solver_search in known_limits
+  end
+
+  test "generates, evaluates, and selects an inspectable local alternative" do
+    score_terms_fun = fn parameters ->
+      %{
+        "apogee_gain_proxy" => parameters["tangential_delta_v_km_s"] * 10_000.0,
+        "timing_penalty" => -abs(parameters["burn_epoch_s"] - 65.0)
+      }
+    end
+
+    result =
+      Optimizer.explainable_local_search(
+        %{burn_epoch_s: 60.0, tangential_delta_v_km_s: 0.01},
+        score_terms_fun,
+        steps: %{burn_epoch_s: 5.0, tangential_delta_v_km_s: 0.002},
+        bounds: %{burn_epoch_s: {55.0, 65.0}, tangential_delta_v_km_s: {0.0, 0.011}},
+        id_prefix: "raise_apogee",
+        objective: "maximize apogee gain proxy with timing penalty"
+      )
+
+    assert result["model"] == "deterministic_bounded_axis_step_local_search"
+    assert result["objective_direction"] == "maximize"
+    assert result["seed_score"] == 95.0
+    assert result["selected_id"] == "raise_apogee:burn_epoch_s:increase"
+    assert result["selected_score"] == 100.0
+    assert result["improved"] == true
+    assert result["improvement_from_seed"] == 5.0
+    assert result["evaluated_count"] == 4
+
+    assert Enum.map(result["alternatives"], & &1["id"]) == [
+             "raise_apogee:burn_epoch_s:increase",
+             "raise_apogee:seed",
+             "raise_apogee:burn_epoch_s:decrease",
+             "raise_apogee:tangential_delta_v_km_s:decrease"
+           ]
+
+    assert %{
+             "rank" => 1,
+             "parameters" => %{
+               "burn_epoch_s" => 65.0,
+               "tangential_delta_v_km_s" => 0.01
+             },
+             "move" => %{
+               "parameter" => "burn_epoch_s",
+               "direction" => "increase",
+               "from" => 60.0,
+               "to" => 65.0
+             },
+             "score_terms" => %{
+               "apogee_gain_proxy" => 100.0,
+               "timing_penalty" => -0.0
+             },
+             "selected" => true,
+             "selection_explanation" => "selected_best_score_then_generation_order_then_id"
+           } = hd(result["alternatives"])
+
+    assert result["rejected_moves"] == [
+             %{
+               "id" => "raise_apogee:tangential_delta_v_km_s:increase",
+               "generation_index" => 4,
+               "move" => %{
+                 "type" => "axis_step",
+                 "parameter" => "tangential_delta_v_km_s",
+                 "direction" => "increase",
+                 "delta" => 0.002,
+                 "from" => 0.01,
+                 "to" => 0.012
+               },
+               "reason" => "above_maximum_bound"
+             }
+           ]
+
+    assert result["model_limits"] == Optimizer.local_search_model_limits()
+    assert "score_is_sum_of_caller_supplied_terms" in result["model_limits"]
+
+    assert "caller_must_supply_a_pure_deterministic_score_terms_function" in result[
+             "model_limits"
+           ]
+
+    assert result["assumptions"]["external_solver"] == false
+    assert result["assumptions"]["iterations"] == 1
+  end
+
+  test "resolves local-search score ties by generation order then alternative id" do
+    result =
+      Optimizer.explainable_local_search(%{x: 10.0}, fn _parameters -> %{flat: 1.0} end,
+        steps: %{x: 2.0},
+        id_prefix: "tie"
+      )
+
+    assert result["selected_id"] == "tie:seed"
+    assert result["improved"] == false
+
+    assert Enum.map(result["alternatives"], &{&1["id"], &1["rank"], &1["selection_explanation"]}) ==
+             [
+               {"tie:seed", 1, "selected_best_score_then_generation_order_then_id"},
+               {"tie:x:decrease", 2, "equal_score_later_generation_order_or_id"},
+               {"tie:x:increase", 3, "equal_score_later_generation_order_or_id"}
+             ]
+  end
+
+  test "rejects invalid local-search scoring and direction inputs" do
+    assert_raise ArgumentError, ~r/objective_direction must be/, fn ->
+      Optimizer.explainable_local_search(%{x: 1.0}, fn _ -> %{score: 1.0} end,
+        steps: %{x: 0.5},
+        objective_direction: :sideways
+      )
+    end
+
+    assert_raise ArgumentError,
+                 "score_terms_fun must return a non-empty numeric map for local:seed",
+                 fn ->
+                   Optimizer.explainable_local_search(%{x: 1.0}, fn _ -> 1.0 end,
+                     steps: %{x: 0.5}
+                   )
+                 end
+
+    assert_raise ArgumentError,
+                 "score_terms_fun must return named numeric contributions for local:seed",
+                 fn ->
+                   Optimizer.explainable_local_search(%{x: 1.0}, fn _ -> %{score: "opaque"} end,
+                     steps: %{x: 0.5}
+                   )
+                 end
+  end
+
+  test "repeats identical local-search evaluation through the public facade" do
+    score_terms_fun = fn parameters ->
+      %{
+        target_value: -abs(parameters["x"] - 4.0),
+        fixed_cost: -0.25
+      }
+    end
+
+    opts = [steps: %{x: 1.0}, bounds: %{x: {0.0, 5.0}}, id_prefix: "repeatable"]
+
+    first = OrbitalDynamics.explainable_local_search(%{x: 3.0}, score_terms_fun, opts)
+    second = OrbitalDynamics.explainable_local_search(%{"x" => 3.0}, score_terms_fun, opts)
+
+    assert first == second
+    assert first["selected_id"] == "repeatable:x:increase"
   end
 
   test "builds deterministic greedy timeline optimizer contracts" do

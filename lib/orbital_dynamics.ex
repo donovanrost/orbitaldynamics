@@ -50,6 +50,7 @@ defmodule OrbitalDynamics do
   alias OrbitalDynamics.Schema
   alias OrbitalDynamics.ScenarioRunner
   alias OrbitalDynamics.Search.Grid
+  alias OrbitalDynamics.Search.Local
   alias OrbitalDynamics.Search.MonteCarlo
   alias OrbitalDynamics.Study
   alias OrbitalDynamics.Study.Benchmark.Report, as: StudyBenchmarkReport
@@ -161,6 +162,7 @@ defmodule OrbitalDynamics do
         subsystem_models: SubsystemModel.capabilities(),
         search: %{
           grid: Grid.capabilities(),
+          local: Local.capabilities(),
           monte_carlo: MonteCarlo.capabilities()
         }
       },
@@ -1296,6 +1298,13 @@ defmodule OrbitalDynamics do
   """
   def pareto_frontier_report(rows, opts \\ []) do
     Optimizer.pareto_frontier_report(rows, opts)
+  end
+
+  @doc """
+  Generates and evaluates one deterministic, bounded, explainable local neighborhood.
+  """
+  def explainable_local_search(seed_parameters, score_terms_fun, opts \\ []) do
+    Optimizer.explainable_local_search(seed_parameters, score_terms_fun, opts)
   end
 
   @doc """
