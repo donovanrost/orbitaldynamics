@@ -218,6 +218,149 @@ defmodule OrbitalDynamics.ResultSet.ArtifactTest do
     assert :json.encode(artifact) |> IO.iodata_to_binary() =~ ~s("eclipse_intervals")
   end
 
+  test "whole result artifact assigns the builder node to a nil-node local result" do
+    result_set = result_set()
+    [trajectory_result] = result_set.trajectory_results
+
+    artifact =
+      %{result_set | trajectory_results: [Map.put(trajectory_result, :node, nil)]}
+      |> Artifact.build(generated_at: DateTime.from_unix!(1_700_000_000))
+
+    assert artifact.execution_report.scenario_count == 1
+    assert artifact.execution_report.node_distribution == %{Atom.to_string(node()) => 1}
+
+    assert [%{"scenario_id" => "artifact_1", "node" => serialized_node}] =
+             artifact |> json_round_trip() |> Map.fetch!("trajectories")
+
+    assert serialized_node == Atom.to_string(node())
+
+    assert Enum.sum(Map.values(artifact.execution_report.node_distribution)) ==
+             artifact.execution_report.scenario_count
+
+    assert {:ok, %{"schema_contract" => "result_artifact.v1"}} =
+             artifact
+             |> json_round_trip()
+             |> Schema.validate_artifact(contract: "result_artifact.v1")
+  end
+
+  test "node distribution preserves atom and string nodes across results and errors" do
+    result_set = result_set()
+    failed_result_set = failed_result_set()
+    [trajectory_result] = result_set.trajectory_results
+    [error] = failed_result_set.errors
+
+    string_node_result =
+      trajectory_result
+      |> Map.put(:scenario_id, :artifact_string_node)
+      |> Map.delete(:node)
+      |> Map.put("node", "result@string")
+
+    string_node_error =
+      error
+      |> Map.put(:scenario_id, :bad_artifact_string_node)
+      |> Map.delete(:node)
+      |> Map.put("node", "error@string")
+
+    malformed_atom_string_node_result =
+      trajectory_result
+      |> Map.put(:scenario_id, :artifact_malformed_atom_string_node)
+      |> Map.put(:node, %{malformed: true})
+      |> Map.put("node", "result@string")
+
+    run_metadata =
+      result_set.metadata.run["metadata"]
+      |> Map.put("scenario_count", 5)
+      |> update_in(["execution_plan"], &Map.put(&1, "scenario_count", 5))
+
+    result_set = %{
+      result_set
+      | trajectory_results: [
+          Map.merge(trajectory_result, %{"node" => "ignored@string", node: :result_atom}),
+          string_node_result,
+          malformed_atom_string_node_result
+        ],
+        errors: [
+          Map.merge(error, %{"node" => "ignored-error@string", node: :error_atom}),
+          string_node_error
+        ],
+        metadata:
+          Map.put(
+            result_set.metadata,
+            :run,
+            Map.put(result_set.metadata.run, "metadata", run_metadata)
+          )
+    }
+
+    artifact = Artifact.build(result_set, generated_at: DateTime.from_unix!(1_700_000_000))
+
+    assert artifact.execution_report.node_distribution == %{
+             "error@string" => 1,
+             "error_atom" => 1,
+             "result@string" => 2,
+             "result_atom" => 1
+           }
+
+    assert Enum.map(artifact.trajectories, &{&1.scenario_id, &1.node}) == [
+             {"artifact_1", "result_atom"},
+             {"artifact_string_node", "result@string"},
+             {"artifact_malformed_atom_string_node", "result@string"}
+           ]
+
+    assert Enum.map(
+             artifact |> json_round_trip() |> Map.fetch!("trajectories"),
+             &{&1["scenario_id"], &1["node"]}
+           ) == [
+             {"artifact_1", "result_atom"},
+             {"artifact_string_node", "result@string"},
+             {"artifact_malformed_atom_string_node", "result@string"}
+           ]
+
+    assert Enum.map(
+             artifact.execution_report.failed_scenarios,
+             &{&1.scenario_id, &1.node}
+           ) == [
+             {"bad_artifact", "error_atom"},
+             {"bad_artifact_string_node", "error@string"}
+           ]
+
+    assert Enum.sum(Map.values(artifact.execution_report.node_distribution)) ==
+             artifact.execution_report.scenario_count
+
+    assert {:ok, %{"schema_contract" => "result_artifact.v1"}} =
+             artifact
+             |> json_round_trip()
+             |> Schema.validate_artifact(contract: "result_artifact.v1")
+  end
+
+  test "node distribution uses unknown for malformed results without a builder node" do
+    result_set = result_set()
+    [trajectory_result] = result_set.trajectory_results
+
+    result_set = %{
+      result_set
+      | trajectory_results: [Map.put(trajectory_result, :node, %{malformed: true})],
+        metadata:
+          Map.put(
+            result_set.metadata,
+            :run,
+            Map.put(result_set.metadata.run, "node", nil)
+          )
+    }
+
+    artifact = Artifact.build(result_set, generated_at: DateTime.from_unix!(1_700_000_000))
+
+    assert artifact.execution_report.scenario_count == 1
+    assert artifact.execution_report.node_distribution == %{"unknown" => 1}
+
+    assert [%{"scenario_id" => "artifact_1", "node" => "unknown"}] =
+             artifact |> json_round_trip() |> Map.fetch!("trajectories")
+
+    assert {:ok, %{"schema_contract" => "result_artifact.v1"}} =
+             artifact
+             |> json_round_trip()
+             |> Schema.validate_artifact(contract: "result_artifact.v1")
+  end
+
   test "exports mode-specific access refinement evidence" do
     result_set = result_set()
 
@@ -264,6 +407,7 @@ defmodule OrbitalDynamics.ResultSet.ArtifactTest do
     assert artifact.execution_report.failed_scenario_count == 1
     assert "failed_scenarios_are_reported_not_retried" in artifact.execution_report.model_limits
     expected_node = Atom.to_string(node())
+    assert artifact.execution_report.node_distribution == %{expected_node => 1}
 
     assert [
              %{
