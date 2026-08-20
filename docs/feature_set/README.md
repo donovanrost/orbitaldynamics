@@ -32,6 +32,8 @@ as the reference map after a slice has been selected.
 
 ## Strategy and process
 
+- [v4_activation_gate_decision.md](v4_activation_gate_decision.md) — accepted
+  architecture decision gating V4 activation on the Level 5 exit review.
 - [recommended_roadmap.md](recommended_roadmap.md) — compact implementation
   queue and long-term direction.
 - [definition_of_feature_complete.md](definition_of_feature_complete.md) — what
