@@ -304,6 +304,28 @@ mix orbital_dynamics.study.run --manifest studies/leo_access_demo.json --output 
 The same guard is available to Elixir callers as
 `OrbitalDynamics.ResultSet.Artifact.resume_check/2`.
 
+Long local runs can opt into between-scenario checkpointing. Use `--checkpoint`
+for a new checkpoint and repeat the run with `--resume-checkpoint` after an
+interruption:
+
+```bash
+mix orbital_dynamics.study.run --manifest studies/leo_access_demo.json --output /tmp/leo_access_demo.json --checkpoint /tmp/leo_access_demo.checkpoint.json --format json
+mix orbital_dynamics.study.run --manifest studies/leo_access_demo.json --output /tmp/leo_access_demo.json --resume-checkpoint /tmp/leo_access_demo.checkpoint.json --format json
+```
+
+Checkpoint recovery is local and opt-in. It validates the checkpoint contract,
+manifest/study/model/run-option identities, the complete ordered scenario
+manifest, the checkpoint content hash, and every completed-scenario payload
+hash before reuse. It runs only missing scenario indexes, then emits exact
+reused/run counts and provenance in the JSON summary and execution report.
+Checkpoint and output paths must not alias. This mode does not support batch or
+distributed execution, within-scenario recovery, persistent queues, or
+automatic retry, and remains separate from whole-artifact `--resume` and
+explicit `--retry-failed-from`. Checkpoint file contents are synced before
+atomic publication or replacement, but the portable implementation does not
+sync containing-directory metadata and therefore does not claim survival of a
+sudden power loss.
+
 Summarize or compare saved study artifacts:
 
 ```bash
@@ -757,9 +779,9 @@ about result-transfer costs without decoding every payload by hand. They also
 include `execution_report.v1`, a compact run review record with execution mode,
 task settings, deterministic execution-plan metadata, adaptive chunk-size
 recommendations for task-supervisor runs, phase timings, node distribution, and
-per-scenario failure rows; it is audit metadata, not checkpointed execution,
-though the manifest runner can reuse an already validated output with
-`--resume`. Study run assumptions and run
+per-scenario failure rows. It is audit metadata; opt-in interrupted execution
+uses the separate `study_checkpoint.v1` file, while `--resume` continues to
+reuse only an already validated complete output. Study run assumptions and run
 metadata also include `external_provider_policy`, which defaults to
 offline-only and records any explicitly configured provider boundaries; explicit
 external provider rows must carry a direct or provenance-supplied

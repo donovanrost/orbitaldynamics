@@ -12,6 +12,8 @@ Status: **implemented** (with **partial**, **near-term**, **later**, and **out o
 - Benchmark commands and artifacts.
 - Runtime telemetry in artifacts.
 - Explicit failed-scenario retry batches from validated manifest-run artifacts.
+- Opt-in local between-scenario checkpoint creation and recovery with exact
+  completed-outcome reuse/run accounting.
 
 ## Result payload metrics
 
@@ -34,6 +36,11 @@ Status: **implemented** (with **partial**, **near-term**, **later**, and **out o
   failed-scenario retry, no checkpoint resume, no source-result merge, no
   persistent queue, and no automatic retry. Executable validation requires the
   list and assumptions to match the execution plan.
+- Local-checkpoint execution plans preserve the full manifest index/ID list in
+  the versioned checkpoint, validate checkpoint and per-entry content hashes,
+  run only missing scenarios, and publish exact reused/run index partitions.
+  Executable report validation pins the local-only/no-batch/no-distributed/
+  no-automatic-retry boundary.
 - Explicit external-provider policy metadata declaring whether the run was offline-only or had configured provider boundaries.
 
 ### Standalone fixture
@@ -90,9 +97,11 @@ A checked-in standalone `execution_report.v1` fixture now demonstrates a distrib
   invalid or mismatched failure rows, and run only failed scenarios in original
   manifest order. The new result retains original zero-based scenario indexes
   and source provenance; it does not overwrite or merge the source artifact.
-- No checkpoint resume, completed-result merge, persistent queue, or transparent
-  recovery for long-running studies. Existing `--resume` remains checked
-  whole-artifact reuse rather than execution continuation.
+- Local checkpoint resume covers completed scenario propagation outcomes only.
+  Existing `--resume` remains checked whole-artifact reuse, and explicit failed
+  retry remains a separate mode with no source-result merge.
+- No persistent queue, transparent or automatic retry, within-scenario
+  checkpoint, batch recovery, distributed worker recovery, or planner changes.
 - Adaptive chunking is a deterministic V1 recommendation/execution policy for task-supervisor runs, not a feedback loop from historical benchmark telemetry.
 - Transfer overhead, payload costs, and failure-isolation rows are now visible in artifacts and can be compared against scale targets, but are not yet modeled by the planner.
 - Nx remains experimental evidence, not a default performance win.
@@ -104,7 +113,8 @@ A checked-in standalone `execution_report.v1` fixture now demonstrates a distrib
 
 ## Status: later
 
-- Checkpoint/merge resume, persistent queues, adaptive distribution, native kernel pools, service backends, and hardware-aware scheduling.
+- Distributed worker recovery, persistent queues, adaptive distribution, native
+  kernel pools, service backends, and hardware-aware scheduling.
 
 ## Status: out of scope
 

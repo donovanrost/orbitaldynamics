@@ -664,13 +664,34 @@ defmodule OrbitalDynamics.ResultSet.Artifact do
   end
 
   @doc """
+  Returns the declared model limits for local between-scenario checkpoint recovery.
+  """
+  def checkpoint_execution_report_model_limits do
+    [
+      "artifact_level_execution_summary",
+      "local_checkpoint_resume",
+      "completed_scenario_outcomes_are_integrity_checked_and_reused",
+      "no_within_scenario_checkpoint",
+      "no_distributed_recovery",
+      "no_batch_recovery",
+      "no_persistent_queue",
+      "failed_scenarios_are_not_automatically_retried"
+    ]
+  end
+
+  @doc """
   Returns the exact execution-report model limits for a report or run metadata map.
   """
   def execution_report_model_limits(report_or_run_metadata) when is_map(report_or_run_metadata) do
-    if failed_scenario_retry?(report_or_run_metadata) do
-      retry_execution_report_model_limits()
-    else
-      execution_report_model_limits()
+    cond do
+      local_checkpoint_resume?(report_or_run_metadata) ->
+        checkpoint_execution_report_model_limits()
+
+      failed_scenario_retry?(report_or_run_metadata) ->
+        retry_execution_report_model_limits()
+
+      true ->
+        execution_report_model_limits()
     end
   end
 
@@ -678,7 +699,10 @@ defmodule OrbitalDynamics.ResultSet.Artifact do
   Returns every execution-report model-limit value accepted by JSON Schema.
   """
   def execution_report_model_limit_values do
-    Enum.uniq(execution_report_model_limits() ++ retry_execution_report_model_limits())
+    Enum.uniq(
+      execution_report_model_limits() ++
+        retry_execution_report_model_limits() ++ checkpoint_execution_report_model_limits()
+    )
   end
 
   defp execution_report_assumptions(run_metadata) do
@@ -690,29 +714,69 @@ defmodule OrbitalDynamics.ResultSet.Artifact do
       resumability: "not_resumable"
     }
 
-    if failed_scenario_retry?(run_metadata) do
-      Map.merge(assumptions, %{
-        resumability: "failed_scenario_retry",
-        retry_scope: "failed_scenarios_only",
-        checkpoint_resume: false,
-        source_results_merged: false,
-        persistent_queue: false,
-        automatic_retry: false
-      })
-    else
-      assumptions
+    cond do
+      local_checkpoint_resume?(run_metadata) ->
+        Map.merge(assumptions, %{
+          resumability: "local_checkpoint_resume",
+          checkpoint_resume: checkpoint_mode(run_metadata) == "resume",
+          checkpoint_scope: "completed_scenario_propagation_outcomes",
+          checkpoint_results_reused: checkpoint_reused_scenario_count(run_metadata) > 0,
+          within_scenario_checkpoint: false,
+          distributed_recovery: false,
+          batch_recovery: false,
+          persistent_queue: false,
+          automatic_retry: false
+        })
+
+      failed_scenario_retry?(run_metadata) ->
+        Map.merge(assumptions, %{
+          resumability: "failed_scenario_retry",
+          retry_scope: "failed_scenarios_only",
+          checkpoint_resume: false,
+          source_results_merged: false,
+          persistent_queue: false,
+          automatic_retry: false
+        })
+
+      true ->
+        assumptions
     end
   end
 
+  defp local_checkpoint_resume?(report_or_run_metadata) do
+    execution_resumability(report_or_run_metadata) == "local_checkpoint_resume"
+  end
+
   defp failed_scenario_retry?(report_or_run_metadata) do
+    execution_resumability(report_or_run_metadata) == "failed_scenario_retry"
+  end
+
+  defp execution_resumability(report_or_run_metadata) do
     execution_plan =
       Map.get(report_or_run_metadata, "execution_plan") ||
         Map.get(report_or_run_metadata, :execution_plan) || %{}
 
-    resumability =
-      Map.get(execution_plan, "resumability") || Map.get(execution_plan, :resumability)
+    Map.get(execution_plan, "resumability") || Map.get(execution_plan, :resumability)
+  end
 
-    resumability == "failed_scenario_retry"
+  defp checkpoint_mode(report_or_run_metadata) do
+    report_or_run_metadata
+    |> checkpoint_execution_provenance()
+    |> then(&(Map.get(&1, "checkpoint_mode") || Map.get(&1, :checkpoint_mode)))
+  end
+
+  defp checkpoint_reused_scenario_count(report_or_run_metadata) do
+    report_or_run_metadata
+    |> checkpoint_execution_provenance()
+    |> then(&(Map.get(&1, "reused_scenario_count") || Map.get(&1, :reused_scenario_count) || 0))
+  end
+
+  defp checkpoint_execution_provenance(report_or_run_metadata) do
+    execution_plan =
+      Map.get(report_or_run_metadata, "execution_plan") ||
+        Map.get(report_or_run_metadata, :execution_plan) || %{}
+
+    Map.get(execution_plan, "checkpoint") || Map.get(execution_plan, :checkpoint) || %{}
   end
 
   defp encoded_run(%{run: run}), do: encode_value(run)

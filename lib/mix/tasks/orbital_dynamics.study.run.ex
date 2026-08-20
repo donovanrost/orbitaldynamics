@@ -9,6 +9,8 @@ defmodule Mix.Tasks.OrbitalDynamics.Study.Run do
       mix orbital_dynamics.study.run --manifest studies/leo_access_demo.json --output study_results/manifest_run.json --run-id leo_access_demo-20260514 --generated-at 2026-05-14T00:00:00Z
       mix orbital_dynamics.study.run --manifest studies/leo_access_demo.json --output /tmp/manifest_run.json --format json
       mix orbital_dynamics.study.run --manifest studies/leo_access_demo.json --output study_results/manifest_run.json --resume
+      mix orbital_dynamics.study.run --manifest studies/leo_access_demo.json --output study_results/manifest_run.json --checkpoint study_results/manifest_run.checkpoint.json
+      mix orbital_dynamics.study.run --manifest studies/leo_access_demo.json --output study_results/manifest_run.json --resume-checkpoint study_results/manifest_run.checkpoint.json
       mix orbital_dynamics.study.run --manifest studies/leo_access_demo.json --retry-failed-from study_results/failed_run.json --output study_results/retry_run.json
   """
 
@@ -38,8 +40,10 @@ defmodule Mix.Tasks.OrbitalDynamics.Study.Run do
     output_path =
       Keyword.get_lazy(opts, :output, fn -> default_output_path(manifest.study.id) end)
 
+    validate_checkpoint_output_path!(opts, output_path)
+
     format = Keyword.fetch!(opts, :format)
-    run_opts = run_opts(manifest.run_opts, opts)
+    run_opts = manifest.run_opts |> run_opts(opts) |> checkpoint_run_opts(opts)
 
     case Keyword.get(opts, :retry_failed_from) do
       nil ->
@@ -68,6 +72,8 @@ defmodule Mix.Tasks.OrbitalDynamics.Study.Run do
           run_id: :string,
           format: :string,
           resume: :boolean,
+          checkpoint: :string,
+          resume_checkpoint: :string,
           retry_failed_from: :string
         ]
       )
@@ -88,6 +94,21 @@ defmodule Mix.Tasks.OrbitalDynamics.Study.Run do
 
     if Keyword.get(parsed, :resume, false) and Keyword.has_key?(parsed, :retry_failed_from) do
       Mix.raise("--resume and --retry-failed-from cannot be used together")
+    end
+
+    checkpoint? = Keyword.has_key?(parsed, :checkpoint)
+    resume_checkpoint? = Keyword.has_key?(parsed, :resume_checkpoint)
+
+    if checkpoint? and resume_checkpoint? do
+      Mix.raise("--checkpoint and --resume-checkpoint cannot be used together")
+    end
+
+    if Keyword.get(parsed, :resume, false) and (checkpoint? or resume_checkpoint?) do
+      Mix.raise("--resume cannot be combined with local checkpoint execution")
+    end
+
+    if Keyword.has_key?(parsed, :retry_failed_from) and (checkpoint? or resume_checkpoint?) do
+      Mix.raise("--retry-failed-from cannot be combined with local checkpoint execution")
     end
 
     Keyword.put(parsed, :format, format)
@@ -208,6 +229,15 @@ defmodule Mix.Tasks.OrbitalDynamics.Study.Run do
       )
     end
 
+    if summary["checkpoint_execution"] do
+      Mix.shell().info("checkpoint: #{summary["checkpoint_path"]}")
+      Mix.shell().info("checkpoint mode: #{summary["checkpoint_mode"]}")
+
+      Mix.shell().info(
+        "checkpoint scenarios reused/run: #{summary["checkpoint_reused_scenario_count"]}/#{summary["checkpoint_run_scenario_count"]}"
+      )
+    end
+
     Mix.shell().info("#{summary["output_action"]}: #{summary["output"]}")
   end
 
@@ -239,6 +269,7 @@ defmodule Mix.Tasks.OrbitalDynamics.Study.Run do
       "output_action" => if(resumed?, do: "reused", else: "wrote")
     }
     |> add_retry_summary(result_set)
+    |> add_checkpoint_summary(result_set)
   end
 
   defp summary_from_artifact(artifact, manifest_path, output_path, resumed?) do
@@ -385,6 +416,145 @@ defmodule Mix.Tasks.OrbitalDynamics.Study.Run do
 
       _value ->
         summary
+    end
+  end
+
+  defp add_checkpoint_summary(summary, result_set) do
+    checkpoint =
+      Map.get(result_set.assumptions, :checkpoint) ||
+        Map.get(result_set.assumptions, "checkpoint")
+
+    case checkpoint do
+      %{} ->
+        Map.merge(summary, %{
+          "checkpoint_execution" => true,
+          "checkpoint_path" =>
+            Map.get(checkpoint, :checkpoint_path) || Map.get(checkpoint, "checkpoint_path"),
+          "checkpoint_sha256" =>
+            Map.get(checkpoint, :checkpoint_sha256) ||
+              Map.get(checkpoint, "checkpoint_sha256"),
+          "checkpoint_mode" =>
+            Map.get(checkpoint, :checkpoint_mode) || Map.get(checkpoint, "checkpoint_mode"),
+          "checkpoint_reused_scenario_count" =>
+            Map.get(checkpoint, :reused_scenario_count) ||
+              Map.get(checkpoint, "reused_scenario_count") || 0,
+          "checkpoint_run_scenario_count" =>
+            Map.get(checkpoint, :run_scenario_count) ||
+              Map.get(checkpoint, "run_scenario_count") || 0,
+          "checkpoint_reused_scenario_indexes" =>
+            Map.get(checkpoint, :reused_scenario_indexes) ||
+              Map.get(checkpoint, "reused_scenario_indexes") || [],
+          "checkpoint_run_scenario_indexes" =>
+            Map.get(checkpoint, :run_scenario_indexes) ||
+              Map.get(checkpoint, "run_scenario_indexes") || []
+        })
+
+      _value ->
+        summary
+    end
+  end
+
+  defp checkpoint_run_opts(run_opts, opts) do
+    checkpoint =
+      cond do
+        path = Keyword.get(opts, :checkpoint) -> %{path: path, mode: :create}
+        path = Keyword.get(opts, :resume_checkpoint) -> %{path: path, mode: :resume}
+        true -> nil
+      end
+
+    if checkpoint, do: Keyword.put(run_opts, :checkpoint, checkpoint), else: run_opts
+  end
+
+  defp validate_checkpoint_output_path!(opts, output_path) do
+    checkpoint_path = Keyword.get(opts, :checkpoint) || Keyword.get(opts, :resume_checkpoint)
+
+    if checkpoint_path do
+      case filesystem_alias?(checkpoint_path, output_path) do
+        {:ok, true} ->
+          Mix.raise("checkpoint path must differ from --output")
+
+        {:ok, false} ->
+          :ok
+
+        {:error, reason} ->
+          Mix.raise("cannot safely resolve checkpoint and output paths: #{inspect(reason)}")
+      end
+    end
+  end
+
+  defp filesystem_alias?(left, right) do
+    with {:ok, resolved_left} <- resolve_filesystem_path(left),
+         {:ok, resolved_right} <- resolve_filesystem_path(right),
+         {:ok, same_file?} <- same_existing_file?(left, right) do
+      case_fold_alias? = String.downcase(resolved_left) == String.downcase(resolved_right)
+      {:ok, resolved_left == resolved_right or case_fold_alias? or same_file?}
+    end
+  end
+
+  defp resolve_filesystem_path(path),
+    do: resolve_filesystem_path(Path.expand(path), 0)
+
+  defp resolve_filesystem_path(_path, symlink_count) when symlink_count > 40,
+    do: {:error, :too_many_symlinks}
+
+  defp resolve_filesystem_path(path, symlink_count) do
+    case Path.split(path) do
+      [root | components] -> resolve_path_components(root, components, symlink_count)
+      [] -> {:error, :empty_path}
+    end
+  end
+
+  defp resolve_path_components(current, [], _symlink_count), do: {:ok, current}
+
+  defp resolve_path_components(current, [component | remaining], symlink_count) do
+    candidate = Path.join(current, component)
+
+    case :file.read_link_all(String.to_charlist(candidate)) do
+      {:ok, target} ->
+        target = List.to_string(target)
+
+        target_path =
+          if Path.type(target) == :absolute,
+            do: target,
+            else: Path.expand(target, Path.dirname(candidate))
+
+        with {:ok, resolved_target} <- resolve_filesystem_path(target_path, symlink_count + 1) do
+          resolve_path_components(resolved_target, remaining, symlink_count + 1)
+        end
+
+      {:error, :einval} ->
+        resolve_path_components(candidate, remaining, symlink_count)
+
+      {:error, :enoent} ->
+        {:ok, Enum.reduce(remaining, candidate, &Path.join(&2, &1))}
+
+      {:error, reason} ->
+        {:error, {:path_resolution_failed, candidate, reason}}
+    end
+  end
+
+  defp same_existing_file?(left, right) do
+    case {File.stat(left), File.stat(right)} do
+      {{:ok, left_stat}, {:ok, right_stat}} ->
+        {:ok,
+         left_stat.major_device == right_stat.major_device and
+           left_stat.minor_device == right_stat.minor_device and
+           left_stat.inode == right_stat.inode}
+
+      {{:error, :enoent}, {:error, :enoent}} ->
+        {:ok, false}
+
+      {{:error, :enoent}, {:ok, _right_stat}} ->
+        {:ok, false}
+
+      {{:ok, _left_stat}, {:error, :enoent}} ->
+        {:ok, false}
+
+      {{:error, reason}, _right} ->
+        {:error, {:file_identity_failed, left, reason}}
+
+      {_left, {:error, reason}} ->
+        {:error, {:file_identity_failed, right, reason}}
     end
   end
 

@@ -22,6 +22,7 @@ defmodule OrbitalDynamics.StudyRunner do
     ResultSet,
     ScenarioRunner,
     Study,
+    StudyCheckpoint,
     StudyRun,
     Target
   }
@@ -51,6 +52,7 @@ defmodule OrbitalDynamics.StudyRunner do
     task_supervisors = Keyword.get(opts, :task_supervisors)
     scenario_indexes = Keyword.get(opts, :scenario_indexes)
     retry_plan = Keyword.get(opts, :retry_plan)
+    checkpoint_config = Keyword.get(opts, :checkpoint)
     external_provider_policy = external_provider_policy(opts)
 
     explicit_task_distribution? =
@@ -65,7 +67,17 @@ defmodule OrbitalDynamics.StudyRunner do
 
     with :ok <- validate_run_inputs(study, opts),
          :ok <- validate_scenario_indexes(study, scenario_indexes),
-         :ok <- validate_task_supervisor_config(task_supervisor, task_supervisors) do
+         :ok <- validate_task_supervisor_config(task_supervisor, task_supervisors),
+         :ok <-
+           validate_checkpoint_execution(
+             checkpoint_config,
+             task_supervisor,
+             task_supervisors,
+             batch_propagation?,
+             scenario_indexes,
+             retry_plan,
+             opts
+           ) do
       execution_plan =
         execution_plan(study,
           max_concurrency: max_concurrency,
@@ -73,12 +85,13 @@ defmodule OrbitalDynamics.StudyRunner do
           task_supervisor: task_supervisor,
           task_supervisors: task_supervisors,
           batch_propagation?: batch_propagation?,
-          retry_plan: retry_plan
+          retry_plan: retry_plan,
+          checkpoint: checkpoint_config
         )
 
       task_chunk_size = execution_plan.resolved_task_chunk_size
 
-      {propagation_results, propagation_ms} =
+      {propagation_outcome, propagation_ms} =
         timed(fn ->
           propagate_scenarios(study,
             max_concurrency: max_concurrency,
@@ -87,77 +100,102 @@ defmodule OrbitalDynamics.StudyRunner do
             task_supervisors: task_supervisors,
             task_chunk_size: task_chunk_size,
             batch_propagation?: batch_propagation?,
-            scenario_indexes: scenario_indexes
+            scenario_indexes: scenario_indexes,
+            checkpoint: checkpoint_config,
+            checkpoint_identity_inputs:
+              checkpoint_identity_inputs(study, opts,
+                central_body: central_body,
+                ground_stations: ground_stations,
+                targets: targets,
+                ground_track_crossings: ground_track_crossings,
+                sun_direction: sun_direction,
+                max_concurrency: max_concurrency,
+                timeout: timeout,
+                requested_task_chunk_size: requested_task_chunk_size,
+                resolved_task_chunk_size: task_chunk_size,
+                task_supervisor: task_supervisor,
+                batch_propagation?: batch_propagation?
+              ),
+            checkpoint_test_hook: Keyword.get(opts, :checkpoint_test_hook),
+            checkpoint_initial_publish_test_hook:
+              Keyword.get(opts, :checkpoint_initial_publish_test_hook)
           )
         end)
 
-      trajectory_results = trajectory_results(propagation_results)
-      propagation_errors = propagation_errors(propagation_results)
+      with {:ok, propagation_results, checkpoint_provenance} <- propagation_outcome do
+        execution_plan =
+          put_checkpoint_execution_provenance(execution_plan, checkpoint_provenance)
 
-      {{event_results, event_errors}, event_detection_ms} =
-        timed(fn ->
-          event_results(
+        trajectory_results = trajectory_results(propagation_results)
+        propagation_errors = propagation_errors(propagation_results)
+
+        {{event_results, event_errors}, event_detection_ms} =
+          timed(fn ->
+            event_results(
+              study,
+              trajectory_results,
+              ground_stations,
+              targets,
+              ground_track_crossings,
+              central_body,
+              sun_direction
+            )
+          end)
+
+        errors = propagation_errors ++ event_errors
+        completed_at = DateTime.utc_now()
+        duration_ms = elapsed_ms(started_monotonic)
+
+        assumptions =
+          assumptions(
             study,
-            trajectory_results,
+            central_body,
             ground_stations,
             targets,
             ground_track_crossings,
-            central_body,
-            sun_direction
+            sun_direction,
+            external_provider_policy,
+            backend_selection_policy,
+            retry_plan,
+            checkpoint_provenance
           )
-        end)
 
-      errors = propagation_errors ++ event_errors
-      completed_at = DateTime.utc_now()
-      duration_ms = elapsed_ms(started_monotonic)
-
-      assumptions =
-        assumptions(
-          study,
-          central_body,
-          ground_stations,
-          targets,
-          ground_track_crossings,
-          sun_direction,
-          external_provider_policy,
-          backend_selection_policy,
-          retry_plan
-        )
-
-      {:ok,
-       ResultSet.new!(%{
-         study_id: study.id,
-         trajectory_results: maybe_include_trajectories(study.outputs, trajectory_results),
-         event_results: event_results,
-         errors: errors,
-         assumptions: assumptions,
-         metadata:
-           metadata(study, opts,
-             started_at: started_at,
-             completed_at: completed_at,
-             duration_ms: duration_ms,
-             assumptions: assumptions,
-             trajectory_results: trajectory_results,
-             event_results: event_results,
-             errors: errors,
-             max_concurrency: max_concurrency,
-             effective_task_concurrency:
-               effective_task_concurrency(max_concurrency, task_supervisors),
-             timeout: timeout,
-             task_chunk_size: task_chunk_size,
-             task_supervisor: task_supervisor,
-             task_supervisors: task_supervisors,
-             batch_propagation?: batch_propagation?,
-             external_provider_policy: external_provider_policy,
-             backend_selection_policy: backend_selection_policy,
-             execution_plan: execution_plan,
-             retry_plan: retry_plan,
-             phase_timings_ms: %{
-               propagation: propagation_ms,
-               event_detection: event_detection_ms
-             }
-           )
-       })}
+        {:ok,
+         ResultSet.new!(%{
+           study_id: study.id,
+           trajectory_results: maybe_include_trajectories(study.outputs, trajectory_results),
+           event_results: event_results,
+           errors: errors,
+           assumptions: assumptions,
+           metadata:
+             metadata(study, opts,
+               started_at: started_at,
+               completed_at: completed_at,
+               duration_ms: duration_ms,
+               assumptions: assumptions,
+               trajectory_results: trajectory_results,
+               event_results: event_results,
+               errors: errors,
+               max_concurrency: max_concurrency,
+               effective_task_concurrency:
+                 effective_task_concurrency(max_concurrency, task_supervisors),
+               timeout: timeout,
+               task_chunk_size: task_chunk_size,
+               task_supervisor: task_supervisor,
+               task_supervisors: task_supervisors,
+               batch_propagation?: batch_propagation?,
+               external_provider_policy: external_provider_policy,
+               backend_selection_policy: backend_selection_policy,
+               execution_plan: execution_plan,
+               retry_plan: retry_plan,
+               checkpoint_provenance: checkpoint_provenance,
+               phase_timings_ms: %{
+                 propagation: propagation_ms,
+                 event_detection: event_detection_ms
+               }
+             )
+         })}
+      end
     end
   end
 
@@ -512,7 +550,89 @@ defmodule OrbitalDynamics.StudyRunner do
   defp validate_task_supervisor_config(_task_supervisor, _supervisors),
     do: {:error, {:invalid_option, :task_supervisors}}
 
+  defp validate_checkpoint_execution(
+         nil,
+         _task_supervisor,
+         _task_supervisors,
+         _batch?,
+         _scenario_indexes,
+         _retry_plan,
+         _opts
+       ),
+       do: :ok
+
+  defp validate_checkpoint_execution(
+         checkpoint,
+         task_supervisor,
+         task_supervisors,
+         batch_propagation?,
+         scenario_indexes,
+         retry_plan,
+         opts
+       )
+       when is_map(checkpoint) do
+    cond do
+      not is_nil(retry_plan) or not is_nil(scenario_indexes) ->
+        {:error, {:unsupported_checkpoint_mode, :failed_scenario_retry}}
+
+      is_list(task_supervisors) ->
+        {:error, {:unsupported_checkpoint_mode, :task_supervisors}}
+
+      is_tuple(task_supervisor) ->
+        {:error, {:unsupported_checkpoint_mode, :distributed_task_supervisor}}
+
+      batch_propagation? ->
+        {:error, {:unsupported_checkpoint_mode, :batch_propagation}}
+
+      not is_map(Keyword.get(opts, :manifest)) ->
+        {:error, {:checkpoint_identity_required, :manifest}}
+
+      true ->
+        :ok
+    end
+  end
+
+  defp validate_checkpoint_execution(
+         _checkpoint,
+         _task_supervisor,
+         _task_supervisors,
+         _batch_propagation?,
+         _scenario_indexes,
+         _retry_plan,
+         _opts
+       ),
+       do: {:error, {:invalid_checkpoint_option, :checkpoint}}
+
   defp propagate_scenarios(%Study{} = study, opts) do
+    case Keyword.fetch!(opts, :checkpoint) do
+      nil ->
+        {:ok, propagate_scenarios_without_checkpoint(study, opts), nil}
+
+      checkpoint_config ->
+        StudyCheckpoint.execute(
+          study,
+          checkpoint_config,
+          Keyword.fetch!(opts, :checkpoint_identity_inputs),
+          Keyword.fetch!(opts, :task_chunk_size),
+          fn scenarios, scenario_indexes ->
+            ScenarioRunner.run(scenarios,
+              propagator: study.propagator,
+              propagator_opts: study.propagator_opts,
+              max_concurrency: Keyword.fetch!(opts, :max_concurrency),
+              timeout: Keyword.fetch!(opts, :timeout),
+              task_supervisor: Keyword.fetch!(opts, :task_supervisor),
+              task_supervisors: nil,
+              task_chunk_size: 1,
+              scenario_indexes: scenario_indexes
+            )
+          end,
+          test_hook: Keyword.fetch!(opts, :checkpoint_test_hook),
+          initial_publish_test_hook: Keyword.fetch!(opts, :checkpoint_initial_publish_test_hook)
+        )
+    end
+  end
+
+  defp propagate_scenarios_without_checkpoint(%Study{} = study, opts) do
     if Keyword.fetch!(opts, :batch_propagation?) do
       propagate_batch(study, Keyword.fetch!(opts, :scenario_indexes))
     else
@@ -892,7 +1012,8 @@ defmodule OrbitalDynamics.StudyRunner do
          sun_direction,
          external_provider_policy,
          backend_selection_policy,
-         retry_plan
+         retry_plan,
+         checkpoint_provenance
        ) do
     %{
       propagator: study.propagator,
@@ -909,6 +1030,7 @@ defmodule OrbitalDynamics.StudyRunner do
       backend_selection_policy: backend_selection_policy
     }
     |> maybe_put_map(:retry, retry_plan)
+    |> maybe_put_map(:checkpoint, checkpoint_provenance)
   end
 
   defp metadata(study, opts, run_data) do
@@ -984,6 +1106,7 @@ defmodule OrbitalDynamics.StudyRunner do
       git_revision: Keyword.get_lazy(opts, :git_revision, &git_revision/0)
     }
     |> maybe_put_map(:retry, Keyword.fetch!(run_data, :retry_plan))
+    |> maybe_put_map(:checkpoint, Keyword.fetch!(run_data, :checkpoint_provenance))
   end
 
   defp execution_plan(%Study{} = study, opts) do
@@ -993,6 +1116,7 @@ defmodule OrbitalDynamics.StudyRunner do
     task_supervisors = Keyword.fetch!(opts, :task_supervisors)
     batch_propagation? = Keyword.fetch!(opts, :batch_propagation?)
     retry_plan = Keyword.fetch!(opts, :retry_plan)
+    checkpoint = Keyword.fetch!(opts, :checkpoint)
     supervisor_count = supervisor_count(Keyword.fetch!(opts, :task_supervisor), task_supervisors)
     effective_task_concurrency = effective_task_concurrency(max_concurrency, task_supervisors)
 
@@ -1048,9 +1172,31 @@ defmodule OrbitalDynamics.StudyRunner do
       batches_per_wave: batches_per_wave,
       wave_count:
         if(task_batch_count == 0, do: 0, else: ceil_div(task_batch_count, batches_per_wave)),
-      resumability: if(retry_plan, do: "failed_scenario_retry", else: "not_resumable")
+      resumability:
+        cond do
+          retry_plan -> "failed_scenario_retry"
+          checkpoint -> "local_checkpoint_resume"
+          true -> "not_resumable"
+        end
     }
     |> maybe_put_map(:retry, retry_plan)
+    |> maybe_put_map(:checkpoint, checkpoint_execution_config(checkpoint))
+  end
+
+  defp checkpoint_execution_config(nil), do: nil
+
+  defp checkpoint_execution_config(checkpoint) do
+    %{
+      schema_contract: StudyCheckpoint.schema_contract(),
+      checkpoint_mode: checkpoint[:mode] || checkpoint["mode"],
+      checkpoint_path: checkpoint[:path] || checkpoint["path"]
+    }
+  end
+
+  defp put_checkpoint_execution_provenance(execution_plan, nil), do: execution_plan
+
+  defp put_checkpoint_execution_provenance(execution_plan, checkpoint_provenance) do
+    Map.put(execution_plan, :checkpoint, checkpoint_provenance)
   end
 
   defp supervisor_count(_task_supervisor, task_supervisors) when is_list(task_supervisors),
@@ -1110,6 +1256,49 @@ defmodule OrbitalDynamics.StudyRunner do
 
   defp batch_selection_reason(false, false), do: "propagator_does_not_support_batching"
   defp batch_selection_reason(false, true), do: "batch_selected_without_declared_capability"
+
+  defp checkpoint_identity_inputs(%Study{} = study, opts, run_data) do
+    %{
+      manifest: Keyword.get(opts, :manifest),
+      model: %{
+        propagator: study.propagator,
+        propagator_opts: study.propagator_opts,
+        implementation_sha256: module_implementation_sha256(study.propagator)
+      },
+      run_options: %{
+        central_body: Keyword.fetch!(run_data, :central_body),
+        ground_stations: Keyword.fetch!(run_data, :ground_stations),
+        targets: Keyword.fetch!(run_data, :targets),
+        ground_track_crossings: Keyword.fetch!(run_data, :ground_track_crossings),
+        sun_direction: Keyword.fetch!(run_data, :sun_direction),
+        external_providers: Keyword.get(opts, :external_providers, []),
+        max_concurrency: Keyword.fetch!(run_data, :max_concurrency),
+        timeout: Keyword.fetch!(run_data, :timeout),
+        requested_task_chunk_size: Keyword.fetch!(run_data, :requested_task_chunk_size),
+        resolved_task_chunk_size: Keyword.fetch!(run_data, :resolved_task_chunk_size),
+        task_supervisor: Keyword.fetch!(run_data, :task_supervisor),
+        task_supervisor_explicit: Keyword.has_key?(opts, :task_supervisor),
+        batch_propagation: Keyword.fetch!(run_data, :batch_propagation?),
+        batch_propagation_preference: Keyword.get(opts, :batch_propagation, :auto),
+        run_id: Keyword.get(opts, :run_id),
+        git_revision: Keyword.get_lazy(opts, :git_revision, &git_revision/0),
+        elixir_version: System.version(),
+        otp_release: List.to_string(:erlang.system_info(:otp_release)),
+        system_architecture: List.to_string(:erlang.system_info(:system_architecture))
+      }
+    }
+  end
+
+  defp module_implementation_sha256(module) do
+    case :code.get_object_code(module) do
+      {^module, object_code, _path} ->
+        :crypto.hash(:sha256, object_code)
+        |> Base.encode16(case: :lower)
+
+      :error ->
+        nil
+    end
+  end
 
   defp external_provider_policy(opts) do
     providers = Keyword.get(opts, :external_providers, [])

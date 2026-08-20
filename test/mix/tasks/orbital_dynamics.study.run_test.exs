@@ -206,6 +206,197 @@ defmodule Mix.Tasks.OrbitalDynamics.Study.RunTest do
     end
   end
 
+  test "resumes an interrupted local checkpoint and matches uninterrupted semantic output" do
+    unique = System.unique_integer([:positive])
+    manifest_path = Path.join(System.tmp_dir!(), "orbital_dynamics_checkpoint_#{unique}.json")
+    checkpoint_path = Path.join(System.tmp_dir!(), "orbital_dynamics_checkpoint_#{unique}.state")
+    output_path = Path.join(System.tmp_dir!(), "orbital_dynamics_checkpoint_#{unique}.result")
+
+    uninterrupted_path =
+      Path.join(System.tmp_dir!(), "orbital_dynamics_checkpoint_#{unique}.uninterrupted")
+
+    on_exit(fn ->
+      File.rm(manifest_path)
+      File.rm(checkpoint_path)
+      File.rm(output_path)
+      File.rm(uninterrupted_path)
+      Mix.Task.reenable("orbital_dynamics.study.run")
+    end)
+
+    File.write!(manifest_path, checkpoint_json_manifest())
+    {:ok, manifest} = OrbitalDynamics.Study.Manifest.from_file(manifest_path)
+    parent = self()
+
+    interruption =
+      Task.async(fn ->
+        OrbitalDynamics.StudyRunner.run(
+          manifest.study,
+          manifest.run_opts ++
+            [
+              run_id: "task-checkpoint-run",
+              checkpoint: %{path: checkpoint_path, mode: :create},
+              checkpoint_test_hook: fn event ->
+                send(parent, {:checkpoint_chunk_published, event})
+
+                receive do
+                  :interrupt_checkpoint -> {:error, :planned_after_first_chunk}
+                after
+                  5_000 -> {:error, :checkpoint_barrier_timeout}
+                end
+              end
+            ]
+        )
+      end)
+
+    assert_receive {:checkpoint_chunk_published,
+                    %{
+                      chunk_number: 1,
+                      completed_scenario_indexes: [0, 1],
+                      published_completed_scenario_count: 2
+                    }},
+                   5_000
+
+    send(interruption.pid, :interrupt_checkpoint)
+
+    assert {:error, {:checkpoint_test_interruption, :planned_after_first_chunk}} =
+             Task.await(interruption, 5_000)
+
+    partial_checkpoint = checkpoint_path |> File.read!() |> :json.decode()
+    assert partial_checkpoint["schema_contract"] == "study_checkpoint.v1"
+    assert partial_checkpoint["schema_version"] == 1
+    assert partial_checkpoint["completed_scenario_count"] == 2
+
+    assert Enum.map(partial_checkpoint["completed_scenarios"], & &1["scenario_index"]) == [
+             0,
+             1
+           ]
+
+    resume_output =
+      capture_io(fn ->
+        Mix.Task.run("orbital_dynamics.study.run", [
+          "--manifest",
+          manifest_path,
+          "--output",
+          output_path,
+          "--resume-checkpoint",
+          checkpoint_path,
+          "--run-id",
+          "task-checkpoint-run",
+          "--generated-at",
+          "2026-08-20T12:00:00Z",
+          "--format",
+          "json"
+        ])
+      end)
+
+    assert %{
+             "checkpoint_execution" => true,
+             "checkpoint_path" => ^checkpoint_path,
+             "checkpoint_mode" => "resume",
+             "checkpoint_reused_scenario_count" => 2,
+             "checkpoint_run_scenario_count" => 2,
+             "checkpoint_reused_scenario_indexes" => [0, 1],
+             "checkpoint_run_scenario_indexes" => [2, 3]
+           } = resume_output |> String.trim() |> :json.decode()
+
+    resumed_artifact = output_path |> File.read!() |> :json.decode()
+    checkpoint_plan = resumed_artifact["execution_report"]["execution_plan"]["checkpoint"]
+
+    assert checkpoint_plan["reused_scenario_count"] == 2
+    assert checkpoint_plan["run_scenario_count"] == 2
+    assert checkpoint_plan["ordering"] == "source_manifest_scenario_order"
+
+    assert resumed_artifact["execution_report"]["model_limits"] ==
+             OrbitalDynamics.ResultSet.Artifact.checkpoint_execution_report_model_limits()
+
+    assert {:ok, %{"schema_contract" => "result_artifact.v1"}} =
+             OrbitalDynamics.Schema.validate_artifact(resumed_artifact,
+               contract: "result_artifact.v1"
+             )
+
+    Mix.Task.reenable("orbital_dynamics.study.run")
+
+    capture_io(fn ->
+      Mix.Task.run("orbital_dynamics.study.run", [
+        "--manifest",
+        manifest_path,
+        "--output",
+        uninterrupted_path,
+        "--run-id",
+        "task-uninterrupted-run",
+        "--generated-at",
+        "2026-08-20T12:00:00Z"
+      ])
+    end)
+
+    uninterrupted_artifact = uninterrupted_path |> File.read!() |> :json.decode()
+
+    assert semantic_artifact(resumed_artifact) == semantic_artifact(uninterrupted_artifact)
+
+    complete_checkpoint = checkpoint_path |> File.read!() |> :json.decode()
+    assert complete_checkpoint["completed_scenario_count"] == 4
+    assert complete_checkpoint["write_sequence"] == 2
+  end
+
+  test "rejects output and checkpoint path aliases" do
+    unique = System.unique_integer([:positive])
+    manifest_path = Path.join(System.tmp_dir!(), "orbital_dynamics_alias_#{unique}.json")
+    output_path = Path.join(System.tmp_dir!(), "orbital_dynamics_alias_#{unique}.result")
+    alias_root = Path.join(System.tmp_dir!(), "orbital_dynamics_alias_root_#{unique}")
+    real_parent = Path.join(alias_root, "real")
+    symlink_parent = Path.join(alias_root, "linked")
+
+    on_exit(fn ->
+      File.rm(manifest_path)
+      File.rm(output_path)
+      File.rm(symlink_parent)
+      File.rmdir(real_parent)
+      File.rmdir(alias_root)
+      Mix.Task.reenable("orbital_dynamics.study.run")
+    end)
+
+    File.write!(manifest_path, checkpoint_json_manifest())
+    File.mkdir_p!(real_parent)
+    File.ln_s!(real_parent, symlink_parent)
+
+    assert_raise Mix.Error, ~r/checkpoint path must differ from --output/, fn ->
+      Mix.Task.run("orbital_dynamics.study.run", [
+        "--manifest",
+        manifest_path,
+        "--output",
+        output_path,
+        "--checkpoint",
+        Path.relative_to_cwd(output_path)
+      ])
+    end
+
+    Mix.Task.reenable("orbital_dynamics.study.run")
+
+    assert_raise Mix.Error, ~r/checkpoint path must differ from --output/, fn ->
+      Mix.Task.run("orbital_dynamics.study.run", [
+        "--manifest",
+        manifest_path,
+        "--output",
+        Path.join(real_parent, "result.json"),
+        "--checkpoint",
+        Path.join(symlink_parent, "result.json")
+      ])
+    end
+
+    Mix.Task.reenable("orbital_dynamics.study.run")
+
+    assert_raise Mix.Error, ~r/checkpoint path must differ from --output/, fn ->
+      Mix.Task.run("orbital_dynamics.study.run", [
+        "--manifest",
+        manifest_path,
+        "--output",
+        Path.join(real_parent, "CaseSensitiveResult.json"),
+        "--checkpoint",
+        Path.join(real_parent, "casesensitiveresult.json")
+      ])
+    end
+  end
+
   test "retries only failed manifest scenarios into a separate provenance-linked artifact" do
     unique = System.unique_integer([:positive])
     manifest_path = Path.join(System.tmp_dir!(), "orbital_dynamics_retry_#{unique}.json")
@@ -346,6 +537,50 @@ defmodule Mix.Tasks.OrbitalDynamics.Study.RunTest do
     end
   end
 
+  test "keeps whole-artifact resume, checkpoint resume, and failed retry mutually exclusive" do
+    on_exit(fn -> Mix.Task.reenable("orbital_dynamics.study.run") end)
+
+    assert_raise Mix.Error,
+                 ~r/--checkpoint and --resume-checkpoint cannot be used together/,
+                 fn ->
+                   Mix.Task.run("orbital_dynamics.study.run", [
+                     "--manifest",
+                     "unused.json",
+                     "--checkpoint",
+                     "fresh.json",
+                     "--resume-checkpoint",
+                     "prior.json"
+                   ])
+                 end
+
+    Mix.Task.reenable("orbital_dynamics.study.run")
+
+    assert_raise Mix.Error, ~r/--resume cannot be combined with local checkpoint execution/, fn ->
+      Mix.Task.run("orbital_dynamics.study.run", [
+        "--manifest",
+        "unused.json",
+        "--resume",
+        "--resume-checkpoint",
+        "prior.json"
+      ])
+    end
+
+    Mix.Task.reenable("orbital_dynamics.study.run")
+
+    assert_raise Mix.Error,
+                 ~r/--retry-failed-from cannot be combined with local checkpoint execution/,
+                 fn ->
+                   Mix.Task.run("orbital_dynamics.study.run", [
+                     "--manifest",
+                     "unused.json",
+                     "--retry-failed-from",
+                     "failed.json",
+                     "--checkpoint",
+                     "fresh.json"
+                   ])
+                 end
+  end
+
   test "rejects unsupported summary formats" do
     on_exit(fn -> Mix.Task.reenable("orbital_dynamics.study.run") end)
 
@@ -409,6 +644,40 @@ defmodule Mix.Tasks.OrbitalDynamics.Study.RunTest do
     }
     |> :json.encode()
     |> IO.iodata_to_binary()
+  end
+
+  defp checkpoint_json_manifest do
+    %{
+      "schema_version" => 1,
+      "study_id" => "task_checkpoint_manifest",
+      "central_body" => "earth",
+      "propagator" => "two_body",
+      "propagator_opts" => %{"max_step_s" => 10.0},
+      "outputs" => ["trajectories", "eclipses"],
+      "sun_direction" => [1.0, 0.0, 0.0],
+      "run_options" => %{"max_concurrency" => 2, "task_chunk_size" => 2},
+      "scenarios" =>
+        for scenario_number <- 1..4 do
+          explicit_scenario("checkpoint_#{scenario_number}", [7_000.0, 0.0, 0.0])
+        end
+    }
+    |> :json.encode()
+    |> IO.iodata_to_binary()
+  end
+
+  defp semantic_artifact(artifact) do
+    artifact
+    |> Map.take([
+      "study_id",
+      "trajectories",
+      "maneuver_recommendations",
+      "access_windows",
+      "eclipse_intervals",
+      "target_visibility_windows",
+      "ground_track_crossings",
+      "errors"
+    ])
+    |> Map.put("assumptions", Map.drop(artifact["assumptions"], ["checkpoint"]))
   end
 
   defp explicit_scenario(id, position_km) do
