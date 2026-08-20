@@ -638,20 +638,29 @@ defmodule OrbitalDynamics.Schema.AuthorityContextContracts do
     source = retained_branch_comparison(row)
 
     if map_size(source) > 0 do
-      issues
-      |> validate_complete_branch_comparison_source(path, row, source)
-      |> validate_retained_source_boundary(
-        path <> ".source_branch_comparison",
-        source,
-        retained_source_classification(source)
-      )
-      |> validate_required_source_fields(
-        path,
-        row,
-        %{"approval_status" => retained_source_classification(source)},
-        ["approval_status"],
-        "source_branch_comparison"
-      )
+      classification = retained_source_classification(source)
+
+      issues =
+        issues
+        |> validate_complete_branch_comparison_source(path, row, source)
+        |> validate_retained_source_boundary(
+          path <> ".source_branch_comparison",
+          source,
+          classification
+        )
+
+      if is_nil(classification) do
+        issues
+      else
+        validate_required_source_fields(
+          issues,
+          path,
+          row,
+          %{"approval_status" => classification},
+          ["approval_status"],
+          "source_branch_comparison"
+        )
+      end
     else
       issues
     end

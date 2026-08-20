@@ -641,6 +641,52 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyAuthorityContextTest do
     assert {:ok, %{"status" => "pass"}} = Schema.validate_artifact(artifact)
   end
 
+  test "authority-bearing retained branch source requires its own approval status" do
+    context = AuthorityContext.new!(authority_attrs("retained-branch-source-approval"))
+
+    artifact =
+      strategy(
+        test_plan(),
+        strategy_request(authority_context_mode: "explicit", authority_context: context)
+      )
+
+    manifest = artifact["cadence_import_manifest"]
+    selected_row = selected_strategy_manifest_row(manifest)
+    source = selected_row["source_branch_comparison"]
+
+    assert selected_row["authority_context"] == context
+    assert is_binary(source["approval_status"])
+    assert {:ok, %{"status" => "pass"}} = Schema.validate_artifact(manifest)
+
+    missing_source_approval =
+      update_in(manifest, ["rows"], fn rows ->
+        Enum.map(rows, fn
+          %{"import_action" => "import_strategy_recommendation"} = row ->
+            update_in(
+              row,
+              ["source_branch_comparison"],
+              &Map.delete(&1, "approval_status")
+            )
+
+          row ->
+            row
+        end)
+      end)
+
+    assert {:error, report} = Schema.validate_artifact(missing_source_approval)
+
+    assert Enum.any?(report["errors"], fn issue ->
+             String.ends_with?(
+               issue["path"],
+               ".source_branch_comparison.approval_status"
+             ) and issue["message"] == "is required"
+           end)
+
+    refute Enum.any?(report["errors"], fn issue ->
+             issue["message"] == "must match source_branch_comparison.approval_status"
+           end)
+  end
+
   test "authority revision changes context and strategy identity without nondeterminism" do
     first_context = AuthorityContext.new!(authority_attrs("authority-revision-17"))
     second_context = AuthorityContext.new!(authority_attrs("authority-revision-18"))
