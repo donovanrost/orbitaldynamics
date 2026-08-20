@@ -579,14 +579,19 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshReportJsonSchema do
         "ground_station_id",
         "trajectory_sample_count",
         "access_windows_sha256",
-        "eclipse_intervals_sha256"
+        "eclipse_intervals_sha256",
+        "candidate_source_windows_sha256"
       ],
       "properties" => %{
         "scenario_id" => %{"type" => "string", "pattern" => stable_id_pattern},
         "ground_station_id" => %{"type" => "string", "pattern" => stable_id_pattern},
         "trajectory_sample_count" => %{"type" => "integer", "minimum" => 2},
         "access_windows_sha256" => %{"type" => "string", "pattern" => "^[0-9a-f]{64}$"},
-        "eclipse_intervals_sha256" => %{"type" => "string", "pattern" => "^[0-9a-f]{64}$"}
+        "eclipse_intervals_sha256" => %{"type" => "string", "pattern" => "^[0-9a-f]{64}$"},
+        "candidate_source_windows_sha256" => %{
+          "type" => "string",
+          "pattern" => "^[0-9a-f]{64}$"
+        }
       }
     }
   end

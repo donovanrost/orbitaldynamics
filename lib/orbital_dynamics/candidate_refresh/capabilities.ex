@@ -132,6 +132,9 @@ defmodule OrbitalDynamics.CandidateRefresh.Capabilities do
         report_contract: "candidate_refresh_execution.v1",
         candidate_sources: [:ground_station_access],
         archived_event_families: [:eclipse],
+        implementation_identity: :captured_executable_beam_digests,
+        atmosphere_evaluation: :canonical_captured_exponential_provider,
+        stage_drift_policy: :verify_before_and_after_each_execution_stage,
         network_access: false
       },
       inputs: [

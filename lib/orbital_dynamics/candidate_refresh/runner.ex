@@ -9,6 +9,7 @@ defmodule OrbitalDynamics.CandidateRefresh.Runner do
   }
 
   alias OrbitalDynamics.EventDetectors.{AccessWindows, Eclipses}
+  alias OrbitalDynamics.Environment.ExponentialAtmosphereProvider
   alias OrbitalDynamics.Propagators.J2Drag
 
   alias OrbitalDynamics.{
@@ -66,78 +67,29 @@ defmodule OrbitalDynamics.CandidateRefresh.Runner do
 
   @type execution_error :: {:candidate_refresh_execution_failed, stage(), term()}
 
-  defmodule CapturedAtmosphereBackend do
-    @moduledoc false
-
-    def capabilities, do: %{"composition" => "captured_candidate_refresh_policy_only"}
-
-    def configured_capability(opts) when is_list(opts) do
-      case Keyword.fetch(opts, :captured_capability) do
-        {:ok, %{} = capability} -> {:ok, capability}
-        _value -> {:error, {:invalid_option, :captured_capability}}
-      end
-    end
-
-    def configured_capability(_opts), do: {:error, {:invalid_option, :captured_capability}}
-
-    def fetch(:atmosphere_density, opts) when is_list(opts) do
-      try do
-        with {:ok, %{} = capability} <- Keyword.fetch(opts, :captured_capability),
-             %{} = parameters <- Map.get(capability, "parameters"),
-             altitude_km when is_number(altitude_km) <- Keyword.get(opts, :altitude_km),
-             reference_altitude_km when is_number(reference_altitude_km) <-
-               parameters["reference_altitude_km"],
-             reference_density_kg_m3 when is_number(reference_density_kg_m3) <-
-               parameters["reference_density_kg_m3"],
-             scale_height_km when is_number(scale_height_km) and scale_height_km > 0.0 <-
-               parameters["scale_height_km"] do
-          density_kg_m3 =
-            reference_density_kg_m3 *
-              :math.exp(-(altitude_km - reference_altitude_km) / scale_height_km)
-
-          {:ok,
-           %{
-             "provider_id" => capability["id"],
-             "model" => capability["model"],
-             "altitude_km" => altitude_km * 1.0,
-             "density_kg_m3" => density_kg_m3,
-             "reference_altitude_km" => reference_altitude_km * 1.0,
-             "reference_density_kg_m3" => reference_density_kg_m3 * 1.0,
-             "scale_height_km" => scale_height_km * 1.0,
-             "source_revision" => Keyword.get(opts, :captured_source_revision)
-           }}
-        else
-          _value -> {:error, {:invalid_option, :captured_atmosphere_product}}
-        end
-      rescue
-        ArithmeticError -> {:error, {:environment_provider_error, :atmosphere_density_arithmetic}}
-      end
-    end
-
-    def fetch(kind, _opts), do: {:error, {:unsupported_environment_product, kind}}
-  end
-
   def run(refresh, opts) do
     with {:ok, context} <-
            stage(:validate_input, fn -> validate_input(refresh, opts) end),
          {:ok, policy} <-
            stage(:capture_policy, fn -> ExecutionPolicy.capture(context.policy_input) end),
          {:ok, scenario} <-
-           stage(:build_scenario, fn -> build_scenario(policy) end),
+           execution_stage(:build_scenario, policy, fn -> build_scenario(policy) end),
          {:ok, trajectory} <-
-           stage(:propagate, fn -> propagate(scenario, policy) end),
+           execution_stage(:propagate, policy, fn -> propagate(scenario, policy) end),
          {:ok, access_events} <-
-           stage(:detect_ground_station_access, fn ->
+           execution_stage(:detect_ground_station_access, policy, fn ->
              detect_ground_station_access(trajectory, policy)
            end),
          {:ok, eclipse_events} <-
-           stage(:detect_eclipse, fn -> detect_eclipse(trajectory, policy) end),
+           execution_stage(:detect_eclipse, policy, fn -> detect_eclipse(trajectory, policy) end),
          {:ok, artifact} <-
-           stage(:build_artifact, fn ->
+           execution_stage(:build_artifact, policy, fn ->
              build_artifact(context, policy, trajectory, access_events, eclipse_events)
            end),
          {:ok, _report} <-
-           stage(:validate_artifact, fn -> Schema.validate_artifact(artifact) end) do
+           execution_stage(:validate_artifact, policy, fn ->
+             Schema.validate_artifact(artifact)
+           end) do
       {:ok, artifact}
     end
   end
@@ -152,7 +104,6 @@ defmodule OrbitalDynamics.CandidateRefresh.Runner do
          :ok <- validate_accepted_state_contract(accepted_state),
          {:ok, state} <- single_spacecraft_state(accepted_state),
          :ok <- reject_maneuvers(accepted_state, state),
-         :ok <- validate_identity_aliases(refresh, accepted_state, state),
          {:ok, current_epoch_s, horizon} <- aligned_horizon(refresh, state),
          {:ok, policy_source} <- policy_source(refresh, accepted_state, state, options),
          {:ok, preliminary_policy} <- ExecutionPolicy.validate_request(policy_source),
@@ -165,6 +116,12 @@ defmodule OrbitalDynamics.CandidateRefresh.Runner do
          {:ok, study_id} <- study_id(refresh, options, state),
          {:ok, normalized_refresh} <-
            normalize_refresh(refresh, accepted_state, current_epoch_s, horizon),
+         :ok <-
+           ExecutionPolicy.validate_refresh_identity_aliases(
+             normalized_refresh,
+             canonical_state,
+             canonical_coverage
+           ),
          {:ok, policy_input} <-
            complete_policy_input(
              policy_source,
@@ -250,64 +207,6 @@ defmodule OrbitalDynamics.CandidateRefresh.Runner do
       deltas != [] -> {:error, {:unsupported_input, :maneuver_execution_deltas}}
       maneuvers not in [nil, []] -> {:error, {:unsupported_input, :maneuvers}}
       true -> :ok
-    end
-  end
-
-  defp validate_identity_aliases(refresh, accepted_state, state) do
-    with :ok <-
-           compare_identity_projections(
-             :snapshot_id,
-             [
-               accepted_state["snapshot_id"],
-               state["snapshot_id"],
-               get_in(state, ["metadata", "snapshot_id"]),
-               get_in(state, ["metadata", "scenario_snapshot_id"]),
-               get_in(state, ["source", "snapshot_id"]),
-               refresh["snapshot_id"],
-               refresh["scenario_snapshot_id"],
-               get_in(refresh, ["mission_state", "snapshot_id"]),
-               get_in(refresh, ["mission_state", "scenario_snapshot_id"])
-             ]
-           ),
-         :ok <-
-           compare_identity_projections(
-             :spacecraft_id,
-             [
-               state["spacecraft_id"],
-               get_in(state, ["metadata", "spacecraft_id"]),
-               accepted_state["spacecraft_id"],
-               refresh["spacecraft_id"],
-               get_in(refresh, ["mission_state", "spacecraft_id"])
-             ]
-           ),
-         :ok <-
-           compare_identity_projections(
-             :scenario_id,
-             [
-               state["scenario_id"],
-               get_in(state, ["metadata", "scenario_id"]),
-               accepted_state["scenario_id"],
-               refresh["scenario_id"],
-               get_in(refresh, ["mission_state", "scenario_id"])
-             ]
-           ),
-         :ok <-
-           compare_identity_projections(
-             :frame,
-             [state["frame"], get_in(state, ["metadata", "frame"])],
-             &normalize_token/1
-           ),
-         :ok <-
-           compare_identity_projections(
-             :time_scale,
-             [
-               get_in(state, ["epoch", "time_scale"]),
-               get_in(state, ["metadata", "time_scale"])
-             ],
-             &normalize_token/1
-           ),
-         {:ok, _body} <- declared_body(state, accepted_state) do
-      :ok
     end
   end
 
@@ -930,14 +829,17 @@ defmodule OrbitalDynamics.CandidateRefresh.Runner do
   defp propagate(scenario, policy) do
     document = ExecutionPolicy.serialize(policy)
     atmosphere = document["environment"]["atmosphere_provider"]
+    earth_rotation = document["environment"]["earth_rotation_provider"]
 
-    J2Drag.propagate(scenario,
-      max_step_s: document["propagation"]["max_step_s"],
-      atmosphere_provider:
-        {CapturedAtmosphereBackend,
-         captured_capability: atmosphere["capability"],
-         captured_source_revision: atmosphere["source_revision"]},
-      atmosphere_source_revision: atmosphere["source_revision"]
+    J2Drag.propagate_captured(
+      scenario,
+      %{
+        "atmosphere_capability" => atmosphere["capability"],
+        "atmosphere_source_revision" => atmosphere["source_revision"],
+        "earth_rotation_capability" => earth_rotation["capability"],
+        "earth_rotation_source_revision" => earth_rotation["source_revision"]
+      },
+      max_step_s: document["propagation"]["max_step_s"]
     )
   end
 
@@ -1014,7 +916,7 @@ defmodule OrbitalDynamics.CandidateRefresh.Runner do
           propagator: J2Drag,
           propagator_opts: [
             max_step_s: serialized_policy["propagation"]["max_step_s"],
-            atmosphere_provider: CapturedAtmosphereBackend,
+            atmosphere_provider: ExponentialAtmosphereProvider,
             atmosphere_source_revision:
               serialized_policy["environment"]["atmosphere_provider"]["source_revision"]
           ],
@@ -1056,14 +958,19 @@ defmodule OrbitalDynamics.CandidateRefresh.Runner do
     with {:ok, access_sha256} <-
            ExecutionPolicy.canonical_sha256(windows["access_windows"]),
          {:ok, eclipse_sha256} <-
-           ExecutionPolicy.canonical_sha256(windows["eclipse_intervals"]) do
+           ExecutionPolicy.canonical_sha256(windows["eclipse_intervals"]),
+         {:ok, source_window_bindings} <-
+           ExecutionPolicy.candidate_source_window_bindings(windows["access_windows"]),
+         {:ok, source_window_sha256} <-
+           ExecutionPolicy.canonical_sha256(source_window_bindings) do
       {:ok,
        %{
          "scenario_id" => trajectory.scenario_id,
          "ground_station_id" => document["ground_station"]["ground_station_id"],
          "trajectory_sample_count" => length(trajectory.states),
          "access_windows_sha256" => access_sha256,
-         "eclipse_intervals_sha256" => eclipse_sha256
+         "eclipse_intervals_sha256" => eclipse_sha256,
+         "candidate_source_windows_sha256" => source_window_sha256
        }}
     end
   end
@@ -1111,6 +1018,29 @@ defmodule OrbitalDynamics.CandidateRefresh.Runner do
       },
       "model_limits" => ExecutionPolicy.model_limits()
     }
+  end
+
+  defp execution_stage(stage_name, policy, fun) do
+    stage(stage_name, fn ->
+      with :ok <- ExecutionPolicy.verify_executable_modules(policy) do
+        result = execute_stage_fun(fun)
+
+        case ExecutionPolicy.verify_executable_modules(policy) do
+          :ok -> result
+          {:error, _reason} = error -> error
+        end
+      end
+    end)
+  end
+
+  defp execute_stage_fun(fun) do
+    try do
+      fun.()
+    rescue
+      error -> {:error, {:exception, error.__struct__, Exception.message(error)}}
+    catch
+      kind, reason -> {:error, {:caught, kind, reason}}
+    end
   end
 
   defp stage(stage, fun) do
@@ -1169,23 +1099,6 @@ defmodule OrbitalDynamics.CandidateRefresh.Runner do
 
   defp require_equal(value, value, _reason), do: :ok
   defp require_equal(_value, _expected, reason), do: {:error, reason}
-
-  defp compare_identity_projections(field, values, normalizer \\ &identity_value/1) do
-    normalized =
-      values
-      |> Enum.reject(&(&1 in [nil, ""]))
-      |> Enum.map(normalizer)
-
-    cond do
-      normalized == [] -> {:error, {:missing_input, field}}
-      Enum.any?(normalized, &is_nil/1) -> {:error, {:invalid_identity_projection, field}}
-      length(Enum.uniq(normalized)) == 1 -> :ok
-      true -> {:error, {:conflicting_identity_projection, field}}
-    end
-  end
-
-  defp identity_value(value) when is_binary(value), do: value
-  defp identity_value(_value), do: nil
 
   defp normalize_token(value) when is_binary(value),
     do: value |> String.trim() |> String.downcase()

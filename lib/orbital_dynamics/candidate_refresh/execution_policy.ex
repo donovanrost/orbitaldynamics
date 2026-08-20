@@ -18,6 +18,7 @@ defmodule OrbitalDynamics.CandidateRefresh.ExecutionPolicy do
 
   alias OrbitalDynamics.EventDetectors.{AccessWindows, Eclipses}
   alias OrbitalDynamics.Propagators.J2Drag
+  alias OrbitalDynamics.CandidateRefresh.CandidateActivityFields
   alias OrbitalDynamics.{AccessGeometry, CentralBody, Vector3}
 
   @bundle_id "candidate_refresh.earth_j2_drag_access_eclipse.v1"
@@ -35,6 +36,7 @@ defmodule OrbitalDynamics.CandidateRefresh.ExecutionPolicy do
   @max_key_bytes 512
   @max_binary_bytes 1_048_576
   @max_visited_terms 100_000
+  @max_total_byte_work 4_194_304
 
   @atmosphere_revision "exponential-reference.v1"
   @earth_rotation_revision "constant-earth-rotation.v1"
@@ -61,7 +63,6 @@ defmodule OrbitalDynamics.CandidateRefresh.ExecutionPolicy do
 
   @module_allowlist [
     "OrbitalDynamics.Propagators.J2Drag",
-    "OrbitalDynamics.CandidateRefresh.Runner.CapturedAtmosphereBackend",
     "OrbitalDynamics.Environment.ExponentialAtmosphereProvider",
     "OrbitalDynamics.Environment.ConstantEarthRotationProvider",
     "OrbitalDynamics.EventDetectors.AccessWindows",
@@ -100,6 +101,7 @@ defmodule OrbitalDynamics.CandidateRefresh.ExecutionPolicy do
     eclipse_detector
     eclipse_source_revision
     environment
+    executable_beam_digests
     earth_rotation_provider
     earth_rotation_source_revision
     execution_bundle
@@ -195,6 +197,14 @@ defmodule OrbitalDynamics.CandidateRefresh.ExecutionPolicy do
   def normalize_json_input(value), do: normalize_public_value(value, "$")
 
   @doc false
+  def validate_json_term(value) do
+    case normalize_root(value, "$", :artifact) do
+      {:ok, _normalized} -> :ok
+      {:error, reason} -> {:error, reason}
+    end
+  end
+
+  @doc false
   def canonical_sort_key(value) do
     case normalize_json_input(value) do
       {:ok, normalized} -> normalized |> canonical_term() |> :erlang.term_to_binary()
@@ -213,6 +223,53 @@ defmodule OrbitalDynamics.CandidateRefresh.ExecutionPolicy do
        |> Base.encode16(case: :lower)}
     end
   end
+
+  @doc false
+  def candidate_source_window_bindings(access_windows) when is_list(access_windows) do
+    access_windows
+    |> Enum.with_index(1)
+    |> Enum.reduce_while({:ok, []}, fn
+      {%{} = window, index}, {:ok, acc} ->
+        case candidate_source_window_binding(window, index) do
+          {:ok, binding} -> {:cont, {:ok, [binding | acc]}}
+          {:error, reason} -> {:halt, {:error, reason}}
+        end
+
+      {_window, index}, _acc ->
+        {:halt, {:error, {:invalid_access_window_binding, index}}}
+    end)
+    |> case do
+      {:ok, bindings} -> {:ok, Enum.reverse(bindings)}
+      {:error, reason} -> {:error, reason}
+    end
+  end
+
+  def candidate_source_window_bindings(_access_windows),
+    do: {:error, {:invalid_access_window_binding, :collection}}
+
+  @doc false
+  def verify_executable_modules(%__MODULE__{document: document}),
+    do: verify_executable_modules(document)
+
+  def verify_executable_modules(%{} = document) do
+    expected = Map.get(document, "executable_beam_digests")
+
+    with {:ok, actual} <- current_executable_beam_digests(),
+         true <- is_map(expected) do
+      case Enum.find(executable_modules(), fn {name, _module} ->
+             Map.get(expected, name) != Map.get(actual, name)
+           end) do
+        nil -> :ok
+        {name, _module} -> {:error, {:execution_policy_drift, {:executable_beam_digest, name}}}
+      end
+    else
+      false -> {:error, {:execution_policy_drift, :executable_beam_digests}}
+      {:error, reason} -> {:error, reason}
+    end
+  end
+
+  def verify_executable_modules(_document),
+    do: {:error, {:execution_policy_drift, :executable_beam_digests}}
 
   @doc """
   Validates and normalizes the caller-controlled portion of a policy request.
@@ -306,6 +363,137 @@ defmodule OrbitalDynamics.CandidateRefresh.ExecutionPolicy do
 
   def validate_serialized(_document), do: {:error, :invalid_execution_policy}
 
+  @doc false
+  def validate_refresh_identity_aliases(%{} = refresh, %{} = initial_state, %{} = coverage) do
+    accepted_state = Map.get(refresh, "accepted_planning_state")
+    mission_state = Map.get(refresh, "mission_state", %{})
+
+    state =
+      case accepted_state do
+        %{"spacecraft_states" => [%{} = value]} -> value
+        _value -> nil
+      end
+
+    with true <- is_map(accepted_state),
+         true <- is_map(state),
+         true <- is_map(mission_state),
+         :ok <-
+           validate_projection(
+             :snapshot_id,
+             [
+               accepted_state["snapshot_id"],
+               state["snapshot_id"],
+               get_in(state, ["metadata", "snapshot_id"]),
+               get_in(state, ["metadata", "scenario_snapshot_id"]),
+               get_in(state, ["source", "snapshot_id"]),
+               refresh["snapshot_id"],
+               refresh["scenario_snapshot_id"],
+               mission_state["snapshot_id"],
+               mission_state["scenario_snapshot_id"]
+             ],
+             initial_state["snapshot_id"],
+             &identity_string/1
+           ),
+         :ok <-
+           validate_projection(
+             :spacecraft_id,
+             [
+               state["spacecraft_id"],
+               get_in(state, ["metadata", "spacecraft_id"]),
+               accepted_state["spacecraft_id"],
+               refresh["spacecraft_id"],
+               mission_state["spacecraft_id"]
+             ],
+             initial_state["spacecraft_id"],
+             &identity_string/1
+           ),
+         :ok <-
+           validate_projection(
+             :scenario_id,
+             [
+               state["scenario_id"],
+               get_in(state, ["metadata", "scenario_id"]),
+               accepted_state["scenario_id"],
+               refresh["scenario_id"],
+               mission_state["scenario_id"]
+             ],
+             initial_state["scenario_id"],
+             &identity_string/1
+           ),
+         :ok <-
+           validate_projection(
+             :body,
+             [
+               state["body"],
+               get_in(state, ["metadata", "body"]),
+               get_in(state, ["metadata", "center_name"]),
+               accepted_state["body"],
+               get_in(accepted_state, ["source", "body"]),
+               get_in(accepted_state, ["source", "center_name"]),
+               refresh["body"],
+               refresh["center_name"],
+               mission_state["body"],
+               mission_state["center_name"]
+             ],
+             initial_state["body"],
+             &identity_token/1
+           ),
+         :ok <-
+           validate_projection(
+             :frame,
+             [
+               state["frame"],
+               get_in(state, ["metadata", "frame"]),
+               accepted_state["frame"],
+               refresh["frame"],
+               mission_state["frame"]
+             ],
+             initial_state["frame"],
+             &identity_token/1
+           ),
+         :ok <-
+           validate_projection(
+             :time_scale,
+             [
+               get_in(state, ["epoch", "time_scale"]),
+               get_in(state, ["metadata", "time_scale"]),
+               get_in(accepted_state, ["current_epoch", "time_scale"]),
+               get_in(refresh, ["current_epoch", "time_scale"]),
+               get_in(mission_state, ["current_epoch", "time_scale"]),
+               accepted_state["time_scale"],
+               refresh["time_scale"],
+               mission_state["time_scale"]
+             ],
+             initial_state["time_scale"],
+             &identity_token/1
+           ),
+         :ok <-
+           validate_projection(
+             :current_epoch_s,
+             [
+               get_in(state, ["epoch", "seconds_since_j2000"]),
+               accepted_state["current_epoch_s"],
+               get_in(accepted_state, ["current_epoch", "seconds_since_j2000"]),
+               refresh["current_epoch_s"],
+               get_in(refresh, ["current_epoch", "seconds_since_j2000"]),
+               mission_state["current_epoch_s"],
+               get_in(mission_state, ["current_epoch", "seconds_since_j2000"]),
+               coverage["starts_at_s"]
+             ],
+             initial_state["epoch_s"],
+             &identity_number/1
+           ),
+         :ok <- validate_horizon_projections(refresh, accepted_state, mission_state, coverage) do
+      :ok
+    else
+      false -> {:error, {:invalid_policy_input, :refresh_identity_input}}
+      {:error, reason} -> {:error, reason}
+    end
+  end
+
+  def validate_refresh_identity_aliases(_refresh, _initial_state, _coverage),
+    do: {:error, {:invalid_policy_input, :refresh_identity_input}}
+
   defp build_document(request) do
     try do
       with :ok <- Environment.validate_provider_capability(@atmosphere_capability),
@@ -324,7 +512,8 @@ defmodule OrbitalDynamics.CandidateRefresh.ExecutionPolicy do
                @earth_rotation_capability,
                request.coverage,
                :earth_rotation
-             ) do
+             ),
+           {:ok, executable_beam_digests} <- current_executable_beam_digests() do
         raw_document =
           captured_document(
             request,
@@ -333,7 +522,8 @@ defmodule OrbitalDynamics.CandidateRefresh.ExecutionPolicy do
             @fixed_sun_capability,
             @propagator_capability,
             @access_capability,
-            @eclipse_capability
+            @eclipse_capability,
+            executable_beam_digests
           )
 
         with {:ok, document} <- normalize_internal_value(raw_document, "$capture") do
@@ -359,7 +549,8 @@ defmodule OrbitalDynamics.CandidateRefresh.ExecutionPolicy do
          fixed_sun,
          propagator_capability,
          access_capability,
-         eclipse_capability
+         eclipse_capability,
+         executable_beam_digests
        ) do
     provider_capabilities = %{
       "atmosphere" => atmosphere,
@@ -385,6 +576,7 @@ defmodule OrbitalDynamics.CandidateRefresh.ExecutionPolicy do
       "execution_mode" => @execution_mode,
       "network_access" => false,
       "module_allowlist" => @module_allowlist,
+      "executable_beam_digests" => executable_beam_digests,
       "spacecraft" => request.spacecraft,
       "ground_station" => request.ground_station,
       "initial_state" => request.initial_state,
@@ -409,8 +601,7 @@ defmodule OrbitalDynamics.CandidateRefresh.ExecutionPolicy do
         "mode" => "built_in_offline_fixed",
         "atmosphere_provider" => %{
           "module" => "OrbitalDynamics.Environment.ExponentialAtmosphereProvider",
-          "execution_backend_module" =>
-            "OrbitalDynamics.CandidateRefresh.Runner.CapturedAtmosphereBackend",
+          "evaluation_api" => "fetch_captured/3",
           "source_revision" => @atmosphere_revision,
           "capability" => atmosphere
         },
@@ -477,9 +668,11 @@ defmodule OrbitalDynamics.CandidateRefresh.ExecutionPolicy do
       has_alias?(raw, ["schema_contract"]) or has_alias?(raw, ["policy_fingerprint"])
 
     if full_policy? do
-      if raw == document,
-        do: :ok,
-        else: {:error, :captured_policy_drift}
+      with :ok <- verify_executable_modules(raw) do
+        if raw == document,
+          do: :ok,
+          else: {:error, :captured_policy_drift}
+      end
     else
       validate_partial_assertions(raw, document)
     end
@@ -491,6 +684,7 @@ defmodule OrbitalDynamics.CandidateRefresh.ExecutionPolicy do
       {"execution_mode", ["execution_mode"]},
       {"network_access", ["network_access"]},
       {"module_allowlist", ["module_allowlist"]},
+      {"executable_beam_digests", ["executable_beam_digests"]},
       {"central_body", ["central_body"]},
       {"propagation", ["propagation"]},
       {"environment", ["environment"]},
@@ -623,6 +817,12 @@ defmodule OrbitalDynamics.CandidateRefresh.ExecutionPolicy do
              Map.take(horizon, @coverage_keys),
              request.coverage,
              {:policy_refresh_identity_mismatch, :remaining_horizon}
+           ),
+         :ok <-
+           validate_refresh_identity_aliases(
+             refresh,
+             request.initial_state,
+             request.coverage
            ) do
       :ok
     else
@@ -1037,6 +1237,199 @@ defmodule OrbitalDynamics.CandidateRefresh.ExecutionPolicy do
   defp require_equal(value, value, _reason), do: :ok
   defp require_equal(_value, _expected, reason), do: {:error, reason}
 
+  defp validate_projection(field, values, expected, normalizer) do
+    normalized_expected = normalizer.(expected)
+
+    normalized =
+      values
+      |> Enum.reject(&is_nil/1)
+      |> Enum.map(normalizer)
+
+    cond do
+      is_nil(normalized_expected) ->
+        {:error, {:invalid_identity_projection, field}}
+
+      Enum.any?(normalized, &is_nil/1) ->
+        {:error, {:invalid_identity_projection, field}}
+
+      Enum.all?(normalized, &(&1 == normalized_expected)) ->
+        :ok
+
+      true ->
+        {:error, {:conflicting_identity_projection, field}}
+    end
+  end
+
+  defp validate_horizon_projections(refresh, accepted_state, mission_state, coverage) do
+    [
+      refresh["remaining_horizon"],
+      accepted_state["remaining_horizon"],
+      mission_state["remaining_horizon"]
+    ]
+    |> Enum.reject(&is_nil/1)
+    |> Enum.reduce_while(:ok, fn projection, :ok ->
+      case normalize_horizon_identity(projection) do
+        {:ok, ^coverage} -> {:cont, :ok}
+        {:ok, _other} -> {:halt, {:error, {:conflicting_identity_projection, :remaining_horizon}}}
+        {:error, reason} -> {:halt, {:error, reason}}
+      end
+    end)
+  end
+
+  defp normalize_horizon_identity(%{} = horizon) do
+    starts_at_s = Map.get(horizon, "starts_at_s")
+    ends_at_s = Map.get(horizon, "ends_at_s")
+    output_step_s = Map.get(horizon, "output_step_s")
+    stated_duration_s = Map.get(horizon, "duration_s")
+
+    with starts_at_s when not is_nil(starts_at_s) <- identity_number(starts_at_s),
+         ends_at_s when not is_nil(ends_at_s) <- identity_number(ends_at_s),
+         output_step_s when not is_nil(output_step_s) <- identity_number(output_step_s),
+         duration_s when not is_nil(duration_s) <-
+           identity_number(
+             if(is_nil(stated_duration_s),
+               do: ends_at_s - starts_at_s,
+               else: stated_duration_s
+             )
+           ),
+         true <- duration_s == ends_at_s - starts_at_s do
+      {:ok,
+       %{
+         "starts_at_s" => starts_at_s,
+         "ends_at_s" => ends_at_s,
+         "output_step_s" => output_step_s
+       }}
+    else
+      _value -> {:error, {:invalid_identity_projection, :remaining_horizon}}
+    end
+  rescue
+    ArithmeticError -> {:error, {:invalid_identity_projection, :remaining_horizon}}
+  end
+
+  defp normalize_horizon_identity(_horizon),
+    do: {:error, {:invalid_identity_projection, :remaining_horizon}}
+
+  defp identity_string(value) when is_binary(value) and value != "", do: value
+  defp identity_string(_value), do: nil
+
+  defp identity_token(value) when is_binary(value) do
+    case value |> String.trim() |> String.downcase() do
+      "" -> nil
+      normalized -> normalized
+    end
+  end
+
+  defp identity_token(_value), do: nil
+
+  defp identity_number(value) when is_number(value) and value >= -1.0e300 and value <= 1.0e300,
+    do: value * 1.0
+
+  defp identity_number(_value), do: nil
+
+  defp candidate_source_window_binding(
+         %{
+           "id" => source_window_id,
+           "type" => "ground_station_access",
+           "scenario_id" => scenario_id,
+           "ground_station_id" => ground_station_id,
+           "assumptions" => %{} = assumptions
+         } = window,
+         index
+       )
+       when is_binary(source_window_id) and is_binary(scenario_id) and
+              is_binary(ground_station_id) do
+    timing_fields =
+      CandidateActivityFields.event_timing_keys()
+      |> Enum.map(&Atom.to_string/1)
+
+    source_window =
+      window
+      |> Map.take(["id", "type", "max_elevation_deg", "minimum_elevation_deg"])
+      |> Map.merge(Map.take(assumptions, timing_fields))
+
+    {:ok,
+     %{
+       "candidate_activity_id" =>
+         CandidateActivityFields.activity_id(
+           scenario_id,
+           "downlink",
+           ground_station_id,
+           index
+         ),
+       "source_window_id" => source_window_id,
+       "source_window" => source_window
+     }}
+  end
+
+  defp candidate_source_window_binding(_window, index),
+    do: {:error, {:invalid_access_window_binding, index}}
+
+  defp current_executable_beam_digests do
+    executable_modules()
+    |> Enum.reduce_while({:ok, %{}}, fn {name, module}, {:ok, acc} ->
+      case executable_beam_digest(module) do
+        {:ok, digest} -> {:cont, {:ok, Map.put(acc, name, digest)}}
+        {:error, reason} -> {:halt, {:error, reason}}
+      end
+    end)
+  end
+
+  defp executable_modules do
+    [
+      {"OrbitalDynamics.Environment.ExponentialAtmosphereProvider",
+       ExponentialAtmosphereProvider},
+      {"OrbitalDynamics.Propagators.J2Drag", J2Drag},
+      {"OrbitalDynamics.EventDetectors.AccessWindows", AccessWindows},
+      {"OrbitalDynamics.EventDetectors.Eclipses", Eclipses}
+    ]
+  end
+
+  defp executable_beam_digest(ExponentialAtmosphereProvider),
+    do:
+      executable_beam_digest(ExponentialAtmosphereProvider, fn ->
+        encode_beam_md5(
+          ExponentialAtmosphereProvider,
+          ExponentialAtmosphereProvider.module_info(:md5)
+        )
+      end)
+
+  defp executable_beam_digest(J2Drag),
+    do:
+      executable_beam_digest(J2Drag, fn ->
+        encode_beam_md5(J2Drag, J2Drag.module_info(:md5))
+      end)
+
+  defp executable_beam_digest(AccessWindows),
+    do:
+      executable_beam_digest(AccessWindows, fn ->
+        encode_beam_md5(AccessWindows, AccessWindows.module_info(:md5))
+      end)
+
+  defp executable_beam_digest(Eclipses),
+    do:
+      executable_beam_digest(Eclipses, fn ->
+        encode_beam_md5(Eclipses, Eclipses.module_info(:md5))
+      end)
+
+  defp executable_beam_digest(module, digest_fun) do
+    try do
+      digest_fun.()
+    rescue
+      _error -> unavailable_executable_beam_digest(module)
+    catch
+      _kind, _reason -> unavailable_executable_beam_digest(module)
+    end
+  end
+
+  defp encode_beam_md5(_module, digest) when is_binary(digest) and byte_size(digest) == 16,
+    do: {:ok, Base.encode16(digest, case: :lower)}
+
+  defp encode_beam_md5(module, _digest),
+    do: unavailable_executable_beam_digest(module)
+
+  defp unavailable_executable_beam_digest(module),
+    do: {:error, {:execution_policy_drift, {:unavailable_executable_beam_digest, module}}}
+
   defp canonical_term(%{} = map) do
     {:map,
      map
@@ -1062,30 +1455,35 @@ defmodule OrbitalDynamics.CandidateRefresh.ExecutionPolicy do
   defp normalize_internal_value(value, path), do: normalize_root(value, path, :internal)
 
   defp normalize_root(value, path, mode) do
-    case normalize_value(value, path, mode, 0, 0) do
-      {:ok, normalized, _visited} -> {:ok, normalized}
+    budget = %{visited_terms: 0, total_byte_work: 0}
+
+    case normalize_value(value, path, mode, 0, budget) do
+      {:ok, normalized, _budget} -> {:ok, normalized}
       {:error, reason} -> {:error, reason}
     end
   end
 
-  defp normalize_value(_value, path, _mode, depth, _visited)
+  defp normalize_value(_value, path, _mode, depth, _budget)
        when depth > @max_normalization_depth,
        do: normalization_limit(path, :max_depth, @max_normalization_depth)
 
-  defp normalize_value(value, path, mode, depth, visited) do
-    with {:ok, visited} <- visit_term(path, visited) do
+  defp normalize_value(value, path, mode, depth, budget) do
+    with {:ok, budget} <- visit_term(path, budget) do
       cond do
         is_struct(value) ->
           unsupported_value(mode, path, :struct)
 
         is_map(value) ->
-          normalize_map(value, path, mode, depth, visited)
+          normalize_map(value, path, mode, depth, budget)
 
         list_shaped?(value) ->
-          normalize_list(value, path, mode, depth, visited, 0, [])
+          normalize_list(value, path, mode, depth, budget, 0, [])
 
         is_boolean(value) or is_nil(value) ->
-          {:ok, value, visited}
+          {:ok, value, budget}
+
+        value == :null and mode == :artifact ->
+          {:ok, value, budget}
 
         is_binary(value) and byte_size(value) > @max_binary_bytes ->
           normalization_limit(path, :max_binary_bytes, @max_binary_bytes)
@@ -1094,10 +1492,12 @@ defmodule OrbitalDynamics.CandidateRefresh.ExecutionPolicy do
           {:error, {:invalid_utf8_string, path}}
 
         is_binary(value) ->
-          {:ok, value, visited}
+          with {:ok, budget} <- consume_byte_work(path, budget, byte_size(value)) do
+            {:ok, value, budget}
+          end
 
         is_number(value) and finite_number?(value) ->
-          {:ok, value, visited}
+          {:ok, value, budget}
 
         is_number(value) ->
           {:error, {:non_finite_number, path}}
@@ -1109,7 +1509,11 @@ defmodule OrbitalDynamics.CandidateRefresh.ExecutionPolicy do
           unsupported_value(mode, path, :bitstring)
 
         is_atom(value) and mode == :internal ->
-          {:ok, Atom.to_string(value), visited}
+          normalized = Atom.to_string(value)
+
+          with {:ok, budget} <- consume_byte_work(path, budget, byte_size(normalized)) do
+            {:ok, normalized, budget}
+          end
 
         is_atom(value) ->
           unsupported_value(mode, path, :atom)
@@ -1129,29 +1533,31 @@ defmodule OrbitalDynamics.CandidateRefresh.ExecutionPolicy do
     end
   end
 
-  defp normalize_map(map, path, _mode, _depth, _visited)
+  defp normalize_map(map, path, _mode, _depth, _budget)
        when map_size(map) > @max_collection_size,
        do: normalization_limit(path, :max_map_size, @max_collection_size)
 
-  defp normalize_map(map, path, mode, depth, visited) do
+  defp normalize_map(map, path, mode, depth, budget) do
     map
     |> Enum.sort_by(fn {key, _value} -> encoded_public_key(key) end)
-    |> Enum.reduce_while({:ok, %{}, MapSet.new(), visited}, fn
-      {key, value}, {:ok, acc, seen, current_visited} ->
-        with {:ok, current_visited} <- visit_term(path, current_visited),
+    |> Enum.reduce_while({:ok, %{}, MapSet.new(), budget}, fn
+      {key, value}, {:ok, acc, seen, current_budget} ->
+        with {:ok, current_budget} <- visit_term(path, current_budget),
              {:ok, normalized_key} <- normalize_public_key(key, path),
+             {:ok, current_budget} <-
+               consume_byte_work(path, current_budget, byte_size(normalized_key)),
              false <- MapSet.member?(seen, normalized_key),
-             {:ok, normalized_value, current_visited} <-
+             {:ok, normalized_value, current_budget} <-
                normalize_value(
                  value,
                  path <> "." <> normalized_key,
                  mode,
                  depth + 1,
-                 current_visited
+                 current_budget
                ) do
           {:cont,
            {:ok, Map.put(acc, normalized_key, normalized_value), MapSet.put(seen, normalized_key),
-            current_visited}}
+            current_budget}}
         else
           true ->
             {:halt, {:error, {:duplicate_normalized_key, path, encoded_public_key(key)}}}
@@ -1161,27 +1567,27 @@ defmodule OrbitalDynamics.CandidateRefresh.ExecutionPolicy do
         end
     end)
     |> case do
-      {:ok, normalized, _seen, current_visited} -> {:ok, normalized, current_visited}
+      {:ok, normalized, _seen, current_budget} -> {:ok, normalized, current_budget}
       {:error, reason} -> {:error, reason}
     end
   end
 
-  defp normalize_list([], _path, _mode, _depth, visited, _index, acc),
-    do: {:ok, Enum.reverse(acc), visited}
+  defp normalize_list([], _path, _mode, _depth, budget, _index, acc),
+    do: {:ok, Enum.reverse(acc), budget}
 
-  defp normalize_list([_head | _tail], path, _mode, _depth, _visited, index, _acc)
+  defp normalize_list([_head | _tail], path, _mode, _depth, _budget, index, _acc)
        when index >= @max_collection_size,
        do: normalization_limit(path, :max_list_size, @max_collection_size)
 
-  defp normalize_list([head | tail], path, mode, depth, visited, index, acc) do
-    case normalize_value(head, "#{path}[#{index}]", mode, depth + 1, visited) do
-      {:ok, normalized, current_visited} ->
+  defp normalize_list([head | tail], path, mode, depth, budget, index, acc) do
+    case normalize_value(head, "#{path}[#{index}]", mode, depth + 1, budget) do
+      {:ok, normalized, current_budget} ->
         normalize_list(
           tail,
           path,
           mode,
           depth,
-          current_visited,
+          current_budget,
           index + 1,
           [normalized | acc]
         )
@@ -1191,13 +1597,21 @@ defmodule OrbitalDynamics.CandidateRefresh.ExecutionPolicy do
     end
   end
 
-  defp normalize_list(_improper, path, mode, _depth, _visited, _index, _acc),
+  defp normalize_list(_improper, path, mode, _depth, _budget, _index, _acc),
     do: unsupported_value(mode, path, :improper_list)
 
-  defp visit_term(path, visited) when visited >= @max_visited_terms,
+  defp visit_term(path, %{visited_terms: visited}) when visited >= @max_visited_terms,
     do: normalization_limit(path, :max_visited_terms, @max_visited_terms)
 
-  defp visit_term(_path, visited), do: {:ok, visited + 1}
+  defp visit_term(_path, budget),
+    do: {:ok, Map.update!(budget, :visited_terms, &(&1 + 1))}
+
+  defp consume_byte_work(path, %{total_byte_work: total}, bytes)
+       when total + bytes > @max_total_byte_work,
+       do: normalization_limit(path, :max_total_byte_work, @max_total_byte_work)
+
+  defp consume_byte_work(_path, budget, bytes),
+    do: {:ok, Map.update!(budget, :total_byte_work, &(&1 + bytes))}
 
   defp normalization_limit(path, limit, maximum),
     do: {:error, {:normalization_limit_exceeded, path, limit, maximum}}
@@ -1207,6 +1621,9 @@ defmodule OrbitalDynamics.CandidateRefresh.ExecutionPolicy do
 
   defp unsupported_value(:internal, path, type),
     do: {:error, {:unsupported_internal_value, path, type}}
+
+  defp unsupported_value(:artifact, path, type),
+    do: {:error, {:unsupported_json_value, path, type}}
 
   defp normalize_public_key(key, path) when is_atom(key) do
     key

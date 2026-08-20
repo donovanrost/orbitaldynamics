@@ -51,6 +51,7 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshExecutionContracts do
     trajectory_sample_count
     access_windows_sha256
     eclipse_intervals_sha256
+    candidate_source_windows_sha256
   )
 
   def validate_optional(issues, artifact) when is_map(artifact) do
@@ -292,6 +293,10 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshExecutionContracts do
         evidence["eclipse_intervals_sha256"],
         eclipse_intervals
       )
+      |> expect_candidate_source_windows_digest(
+        evidence["candidate_source_windows_sha256"],
+        access_windows
+      )
     else
       issues
     end
@@ -300,6 +305,18 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshExecutionContracts do
   defp expect_digest(issues, path, actual, value) do
     case ExecutionPolicy.canonical_sha256(value) do
       {:ok, expected} -> expect_exact(issues, path, actual, expected)
+      {:error, _reason} -> [error(path, "could not be recomputed") | issues]
+    end
+  end
+
+  defp expect_candidate_source_windows_digest(issues, actual, access_windows) do
+    path = "$.candidate_refresh_execution.evidence.candidate_source_windows_sha256"
+
+    with {:ok, bindings} <-
+           ExecutionPolicy.candidate_source_window_bindings(access_windows),
+         {:ok, expected} <- ExecutionPolicy.canonical_sha256(bindings) do
+      expect_exact(issues, path, actual, expected)
+    else
       {:error, _reason} -> [error(path, "could not be recomputed") | issues]
     end
   end
@@ -485,10 +502,7 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshExecutionContracts do
     target_windows = list_at(artifact, ["refreshed_windows", "target_visibility_windows"])
     candidates = list_at(artifact, ["candidate_activities"])
 
-    access_by_id =
-      access_windows
-      |> Enum.with_index(1)
-      |> Map.new(fn {window, index} -> {window["id"], {window, index}} end)
+    access_by_id = access_windows_by_id(access_windows)
 
     issues
     |> expect_exact(
@@ -510,6 +524,20 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshExecutionContracts do
       scenario_id,
       ground_station_id
     )
+  end
+
+  defp access_windows_by_id(access_windows) do
+    bindings =
+      case ExecutionPolicy.candidate_source_window_bindings(access_windows) do
+        {:ok, values} -> Map.new(values, &{&1["source_window_id"], &1})
+        {:error, _reason} -> %{}
+      end
+
+    access_windows
+    |> Enum.with_index(1)
+    |> Map.new(fn {window, index} ->
+      {window["id"], {window, index, Map.get(bindings, window["id"])}}
+    end)
   end
 
   defp validate_access_windows(issues, windows, scenario_id, ground_station_id, coverage) do
@@ -587,7 +615,7 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshExecutionContracts do
       path = "$.candidate_activities[#{candidate_index}]"
 
       case Map.get(access_by_id, candidate["source_window_id"]) do
-        {%{} = window, window_index} ->
+        {%{} = window, window_index, %{} = binding} ->
           expected_id =
             CandidateActivityFields.activity_id(
               scenario_id,
@@ -612,9 +640,9 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshExecutionContracts do
             window["ends_at_s"] - window["starts_at_s"]
           )
           |> expect_exact(
-            path <> ".source_window.type",
-            get_in(candidate, ["source_window", "type"]),
-            "ground_station_access"
+            path <> ".source_window",
+            candidate["source_window"],
+            binding["source_window"]
           )
 
         nil ->

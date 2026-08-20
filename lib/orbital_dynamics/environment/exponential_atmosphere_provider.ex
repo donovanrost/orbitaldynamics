@@ -83,26 +83,44 @@ defmodule OrbitalDynamics.Environment.ExponentialAtmosphereProvider do
 
   @impl OrbitalDynamics.Environment.Provider
   def fetch(:atmosphere_density, opts) do
+    with {:ok, capability} <- configured_capability(opts) do
+      fetch_captured(:atmosphere_density, capability, opts)
+    end
+  end
+
+  def fetch(kind, _opts), do: {:error, {:unsupported_environment_product, kind}}
+
+  @doc """
+  Evaluates density from one explicitly captured capability.
+
+  This is the canonical evaluator used by immutable execution paths. It does
+  not call `capabilities/0`, read configuration, or select another provider.
+  Callers must capture and validate the capability before repeated evaluation.
+  """
+  def fetch_captured(kind, capability, opts \\ [])
+
+  def fetch_captured(:atmosphere_density, %{"parameters" => parameters} = capability, opts)
+      when is_map(parameters) and is_list(opts) do
     altitude_km = Keyword.get(opts, :altitude_km)
-    reference_altitude_km = Keyword.get(opts, :reference_altitude_km, @reference_altitude_km)
+    reference_altitude_km = Map.get(parameters, "reference_altitude_km")
+    reference_density_kg_m3 = Map.get(parameters, "reference_density_kg_m3")
+    scale_height_km = Map.get(parameters, "scale_height_km")
 
-    reference_density_kg_m3 =
-      Keyword.get(opts, :reference_density_kg_m3, @reference_density_kg_m3)
-
-    scale_height_km = Keyword.get(opts, :scale_height_km, @scale_height_km)
-
-    with :ok <- validate_number(:altitude_km, altitude_km),
+    with true <- Keyword.keyword?(opts),
+         :ok <- validate_number(:altitude_km, altitude_km),
          :ok <- validate_number(:reference_altitude_km, reference_altitude_km),
          :ok <- validate_non_negative(:reference_density_kg_m3, reference_density_kg_m3),
-         :ok <- validate_positive(:scale_height_km, scale_height_km) do
+         :ok <- validate_positive(:scale_height_km, scale_height_km),
+         provider_id when is_binary(provider_id) <- Map.get(capability, "id"),
+         model when is_binary(model) <- Map.get(capability, "model") do
       density =
         reference_density_kg_m3 *
           :math.exp(-(altitude_km - reference_altitude_km) / scale_height_km)
 
       {:ok,
        %{
-         "provider_id" => capabilities()["id"],
-         "model" => "single_scale_height_exponential_atmosphere",
+         "provider_id" => provider_id,
+         "model" => model,
          "altitude_km" => altitude_km * 1.0,
          "density_kg_m3" => density,
          "reference_altitude_km" => reference_altitude_km * 1.0,
@@ -110,10 +128,20 @@ defmodule OrbitalDynamics.Environment.ExponentialAtmosphereProvider do
          "scale_height_km" => scale_height_km * 1.0,
          "force_model_status" => "consumed_by_opt_in_two_body_drag_and_j2_drag_propagators"
        }}
+    else
+      false -> {:error, {:invalid_option, :captured_atmosphere}}
+      {:error, reason} -> {:error, reason}
+      _value -> {:error, {:invalid_option, :captured_atmosphere}}
     end
+  rescue
+    ArithmeticError -> {:error, {:environment_provider_error, :atmosphere_density_arithmetic}}
   end
 
-  def fetch(kind, _opts), do: {:error, {:unsupported_environment_product, kind}}
+  def fetch_captured(:atmosphere_density, _capability, _opts),
+    do: {:error, {:invalid_option, :captured_atmosphere}}
+
+  def fetch_captured(kind, _capability, _opts),
+    do: {:error, {:unsupported_environment_product, kind}}
 
   defp validate_number(_field, value) when is_number(value), do: :ok
   defp validate_number(field, _value), do: {:error, {:invalid_option, field}}

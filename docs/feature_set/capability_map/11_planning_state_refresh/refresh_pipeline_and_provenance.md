@@ -43,6 +43,8 @@ JSON-safe policy document containing:
 - a fixed +X ECI Sun direction;
 - spherical access with bracketed bisection at `1.0e-6` seconds and at most 64
   iterations, plus cylindrical-eclipse linear interpolation;
+- the loaded BEAM module-version digests for the canonical atmosphere
+  evaluator, `J2Drag`, `AccessWindows`, and `Eclipses`;
 - an explicit module allowlist, offline execution mode, `network_access:
   false`, and the bundle's model limits.
 
@@ -55,28 +57,34 @@ or excessive values are rejected. Canonical SHA-256 fingerprinting runs only on
 that validated normalized form and never uses inspected runtime text as
 identity material. Normalization is also bounded before semantic validation to
 32 nested levels, 10,000 entries per collection, 512 bytes per key, 1 MiB per
-binary, and 100,000 visited terms; limit failures carry the offending path and
-limit rather than traversing an unbounded value.
+binary, 100,000 visited terms, and 4 MiB of cumulative binary/key byte work;
+limit failures carry the offending path and limit rather than traversing an
+unbounded value. The candidate-refresh artifact contract applies the same
+bounded traversal as a whole-artifact preflight before collection or arithmetic
+validation, including atom/string collision and improper-container rejection.
 
 After capture, the runner does not dynamically dispatch caller-selected
 modules or reread configuration, source, campaign, or network providers. It
-builds one ballistic `Scenario` and propagates with `J2Drag`, but satisfies the
-propagator's provider interface through the fixed captured-atmosphere backend.
-That backend receives the serialized capability, source revision, and analytic
-parameters explicitly and constructs every density product from those values;
-it never calls the provider module or rediscovers capability state after
-capture. The runner then regenerates access and eclipse events and assembles an
-in-memory `ResultSet`.
+builds one ballistic `Scenario` and calls `J2Drag.propagate_captured/3` with the
+serialized atmosphere and Earth-rotation capabilities and revisions. `J2Drag`
+calls the canonical `ExponentialAtmosphereProvider.fetch_captured/3` evaluator
+directly; that is the single exponential-density equation, and neither API
+rediscovers capabilities or configuration on the captured path. The runner
+checks all four captured BEAM digests immediately before and after every
+post-capture execution stage. A mismatch returns a typed
+`execution_policy_drift` failure and discards all stage output. The runner then
+regenerates access and eclipse events and assembles an in-memory `ResultSet`.
 
 Before calling the unchanged `Build.build/2`, the runner injects the serialized
 policy and detector evidence under the reserved
 `candidate_refresh_execution_policy` and `candidate_refresh_execution_evidence`
 model-assumption keys. The policy retains the exact normalized refresh-identity
 input, while the evidence binds scenario/station identity, trajectory sample
-count, and canonical access/eclipse digests. State, ballistics, station
-geometry, provider/detector revisions, fixed model settings, and generated
-window evidence therefore participate in the existing refresh ID. Equivalent
-input order and the same `generated_at` are deterministic.
+count, canonical access/eclipse digests, and the exact candidate source-window
+projection derived from access evidence. State, ballistics, station geometry,
+provider/detector revisions and BEAM digests, fixed model settings, and
+generated window evidence therefore participate in the existing refresh ID.
+Equivalent input order and the same `generated_at` are deterministic.
 
 Only regenerated ground-station access produces downlink candidates. Eclipse
 intervals are archived under refreshed windows and do not create candidates.
@@ -96,7 +104,10 @@ final artifact is executable-validated, including the captured policy,
 fingerprint, recomputed trajectory count and `BuildRefreshId`, four-way snapshot
 identity, scenario/station window identities, deterministic window IDs and
 boundaries, candidate/source-window causality, detector digests, policy-copy,
-exact-case, and model-limit bindings.
+exact-case, and model-limit bindings. Persisted policy validation applies the
+same body/frame/time-scale/epoch/horizon and identity-alias conflict rules as
+live input validation, so a contradictory policy remains invalid even if its
+fingerprint and refresh ID are recomputed.
 
 ## Candidate-set diff and matching
 

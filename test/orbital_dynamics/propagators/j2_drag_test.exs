@@ -210,7 +210,11 @@ defmodule OrbitalDynamics.Propagators.J2DragTest do
     end
   end
 
-  alias OrbitalDynamics.Environment.ExponentialAtmosphereProvider
+  alias OrbitalDynamics.Environment.{
+    ConstantEarthRotationProvider,
+    ExponentialAtmosphereProvider
+  }
+
   alias OrbitalDynamics.Maneuver.ImpulsiveBurn
   alias OrbitalDynamics.Propagators.{J2, J2Drag, TwoBody, TwoBodyDrag}
 
@@ -353,6 +357,41 @@ defmodule OrbitalDynamics.Propagators.J2DragTest do
     assert {:ok, combined_no_j2} = J2Drag.propagate(no_j2_scenario, max_step_s: 10.0)
     assert {:ok, drag_reference} = TwoBodyDrag.propagate(no_j2_scenario, max_step_s: 10.0)
     assert combined_no_j2.states == drag_reference.states
+  end
+
+  test "captured environment path consumes explicit canonical capabilities without rediscovery" do
+    scenario = scenario(duration_s: 600.0, output_step_s: 120.0)
+
+    atmosphere_capability =
+      ExponentialAtmosphereProvider.capabilities()
+      |> put_in(["parameters", "reference_density_kg_m3"], 0.0)
+
+    captured_environment = %{
+      "atmosphere_capability" => atmosphere_capability,
+      "atmosphere_source_revision" => "captured-exponential.v1",
+      "earth_rotation_capability" => ConstantEarthRotationProvider.capabilities(),
+      "earth_rotation_source_revision" => "captured-earth-rotation.v1"
+    }
+
+    assert {:ok, captured} =
+             J2Drag.propagate_captured(scenario, captured_environment, max_step_s: 10.0)
+
+    assert {:ok, j2_reference} = J2.propagate(scenario, max_step_s: 10.0)
+    assert captured.states == j2_reference.states
+
+    assert captured.assumptions.atmosphere_provider.parameters[
+             "reference_density_kg_m3"
+           ] == 0.0
+
+    assert captured.assumptions.atmosphere_provider.source_revision ==
+             "captured-exponential.v1"
+
+    assert {:error, {:missing_option, :earth_rotation_capability}} =
+             J2Drag.propagate_captured(
+               scenario,
+               Map.delete(captured_environment, "earth_rotation_capability"),
+               max_step_s: 10.0
+             )
   end
 
   test "inclined controlled limits exercise J2 out-of-plane acceleration and combined drag" do

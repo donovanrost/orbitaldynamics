@@ -1,9 +1,14 @@
 defmodule OrbitalDynamics.CandidateRefresh.RunnerTest do
-  use ExUnit.Case, async: true
+  use ExUnit.Case, async: false
 
   alias OrbitalDynamics.CandidateRefresh
-  alias OrbitalDynamics.CandidateRefresh.{Build, ExecutionPolicy, Runner}
-  alias OrbitalDynamics.{Environment, ResultSet, Schema}
+  alias OrbitalDynamics.CandidateRefresh.{Build, ExecutionPolicy}
+
+  alias OrbitalDynamics.Environment.ExponentialAtmosphereProvider
+
+  alias OrbitalDynamics.EventDetectors.{AccessWindows, Eclipses}
+  alias OrbitalDynamics.Propagators.J2Drag
+  alias OrbitalDynamics.{ResultSet, Schema}
 
   @generated_at ~U[2026-05-14 00:00:00Z]
 
@@ -285,12 +290,13 @@ defmodule OrbitalDynamics.CandidateRefresh.RunnerTest do
              })
   end
 
-  test "bounds public normalization depth, collections, bytes, and total visited terms" do
+  test "bounds public normalization depth, collections, bytes, byte work, and visited terms" do
     deeply_nested = Enum.reduce(1..34, "leaf", fn _index, acc -> %{"child" => acc} end)
     oversized_list = List.duplicate(0, 10_001)
     oversized_map = Map.new(1..10_001, &{"key_#{&1}", &1})
     oversized_key = String.duplicate("k", 513)
     oversized_binary = String.duplicate("v", 1_048_577)
+    excessive_byte_work = List.duplicate(String.duplicate("v", 1_000_000), 5)
 
     visited_terms =
       List.duplicate(
@@ -304,6 +310,7 @@ defmodule OrbitalDynamics.CandidateRefresh.RunnerTest do
       {oversized_map, :max_map_size},
       {%{oversized_key => "value"}, :max_key_bytes},
       {%{"value" => oversized_binary}, :max_binary_bytes},
+      {excessive_byte_work, :max_total_byte_work},
       {visited_terms, :max_visited_terms}
     ]
 
@@ -362,40 +369,139 @@ defmodule OrbitalDynamics.CandidateRefresh.RunnerTest do
     end
   end
 
-  test "captured atmosphere backend derives immutable products only from policy capability" do
+  test "canonical atmosphere evaluator derives products only from captured policy capability" do
     assert {:ok, artifact} = CandidateRefresh.run(refresh(), generated_at: @generated_at)
     policy = execution_policy(artifact)
     atmosphere = policy["environment"]["atmosphere_provider"]
     capability = atmosphere["capability"]
 
-    assert atmosphere["execution_backend_module"] ==
-             "OrbitalDynamics.CandidateRefresh.Runner.CapturedAtmosphereBackend"
+    assert atmosphere["evaluation_api"] == "fetch_captured/3"
 
-    assert atmosphere["execution_backend_module"] in policy["module_allowlist"]
-
-    opts = [
-      captured_capability: capability,
-      captured_source_revision: atmosphere["source_revision"]
-    ]
-
-    assert {:ok, ^capability} = Runner.CapturedAtmosphereBackend.configured_capability(opts)
-
-    assert {:ok, ^capability} =
-             Environment.configured_provider_capability(
-               Runner.CapturedAtmosphereBackend,
-               opts
-             )
+    assert atmosphere["module"] in policy["module_allowlist"]
 
     assert {:ok, product} =
-             Runner.CapturedAtmosphereBackend.fetch(
+             ExponentialAtmosphereProvider.fetch_captured(
                :atmosphere_density,
-               Keyword.put(opts, :altitude_km, 400.0)
+               capability,
+               altitude_km: 400.0
              )
 
     assert product["provider_id"] == capability["id"]
     assert product["model"] == capability["model"]
     assert product["density_kg_m3"] == capability["parameters"]["reference_density_kg_m3"]
-    assert product["source_revision"] == atmosphere["source_revision"]
+  end
+
+  test "captured policy binds executable BEAM identities and rejects restore-safe hot reload drift" do
+    assert {:ok, artifact} = CandidateRefresh.run(refresh(), generated_at: @generated_at)
+    policy = execution_policy(artifact)
+    fingerprint = policy["policy_fingerprint"]
+
+    captured_atmosphere =
+      policy["environment"]["atmosphere_provider"]["capability"]
+
+    changed_atmosphere = """
+    def capabilities, do: #{inspect(captured_atmosphere, limit: :infinity, printable_limit: :infinity)}
+    def configured_capability(_opts), do: {:ok, capabilities()}
+    def fetch_captured(:atmosphere_density, _capability, _opts),
+      do: {:ok, %{"density_kg_m3" => 1.0e-6}}
+    """
+
+    modules = [
+      {ExponentialAtmosphereProvider, changed_atmosphere},
+      {J2Drag, "def hot_reload_probe, do: :changed_integrator"},
+      {AccessWindows, "def hot_reload_probe, do: :changed_access_detector"},
+      {Eclipses, "def hot_reload_probe, do: :changed_eclipse_detector"}
+    ]
+
+    assert :ok = ExecutionPolicy.verify_executable_modules(policy)
+    assert map_size(policy["executable_beam_digests"]) == 4
+
+    for {module, changed_body} <- modules do
+      module_name = module |> Atom.to_string() |> String.trim_leading("Elixir.")
+
+      with_hot_reloaded_module(module, changed_body, fn ->
+        assert policy["policy_fingerprint"] == fingerprint
+
+        assert {:error, {:execution_policy_drift, {:executable_beam_digest, ^module_name}}} =
+                 ExecutionPolicy.verify_executable_modules(policy)
+
+        recapture_input =
+          Map.take(
+            policy,
+            ~w(spacecraft ground_station initial_state coverage refresh_identity_input)
+          )
+
+        assert {:ok, recaptured} = ExecutionPolicy.capture(recapture_input)
+        refute ExecutionPolicy.fingerprint(recaptured) == fingerprint
+        assert :ok = ExecutionPolicy.verify_executable_modules(recaptured)
+
+        if module == ExponentialAtmosphereProvider do
+          assert {:ok, %{"density_kg_m3" => 1.0e-6}} =
+                   ExponentialAtmosphereProvider.fetch_captured(
+                     :atmosphere_density,
+                     captured_atmosphere,
+                     altitude_km: 400.0
+                   )
+
+          fixed_policy_input =
+            refresh()
+            |> Map.drop(["spacecraft", "ground_station"])
+            |> Map.put("execution_policy", policy)
+
+          assert {:error,
+                  {:candidate_refresh_execution_failed, :capture_policy,
+                   {:execution_policy_drift, {:executable_beam_digest, ^module_name}}}} =
+                   CandidateRefresh.run(fixed_policy_input, generated_at: @generated_at)
+        end
+      end)
+
+      assert :ok = ExecutionPolicy.verify_executable_modules(policy)
+    end
+  end
+
+  test "post-stage BEAM verification atomically rejects drift introduced after capture" do
+    parent = self()
+    input = put_in(refresh(), ["remaining_horizon", "ends_at_s"], 86_400.0)
+
+    runner_pid =
+      spawn(fn ->
+        receive do
+          :run ->
+            send(
+              parent,
+              {:runner_result, CandidateRefresh.run(input, generated_at: @generated_at)}
+            )
+        end
+      end)
+
+    on_exit(fn ->
+      :erlang.trace_pattern({J2Drag, :propagate_captured, 3}, false, [:local])
+
+      if Process.alive?(runner_pid) do
+        :erlang.trace(runner_pid, false, [:all])
+        :erlang.resume_process(runner_pid)
+        Process.exit(runner_pid, :kill)
+      end
+    end)
+
+    assert :erlang.trace_pattern({J2Drag, :propagate_captured, 3}, true, [:local]) >= 1
+    assert 1 = :erlang.trace(runner_pid, true, [:call])
+    send(runner_pid, :run)
+
+    assert_receive {:trace, ^runner_pid, :call, {J2Drag, :propagate_captured, _arguments}}, 5_000
+    assert true = :erlang.suspend_process(runner_pid)
+
+    module_name = "OrbitalDynamics.EventDetectors.Eclipses"
+
+    with_hot_reloaded_module(Eclipses, "def hot_reload_probe, do: :post_capture_drift", fn ->
+      assert true = :erlang.resume_process(runner_pid)
+
+      assert_receive {:runner_result,
+                      {:error,
+                       {:candidate_refresh_execution_failed, :propagate,
+                        {:execution_policy_drift, {:executable_beam_digest, ^module_name}}}}},
+                     30_000
+    end)
   end
 
   test "legacy build facade remains exactly equal to the unchanged builder" do
@@ -520,5 +626,32 @@ defmodule OrbitalDynamics.CandidateRefresh.RunnerTest do
     result_set
     |> CandidateRefresh.build(candidate_refresh: refresh, generated_at: @generated_at)
     |> Map.fetch!("refresh_id")
+  end
+
+  defp with_hot_reloaded_module(module, changed_body, fun) do
+    assert {^module, original_beam, beam_path} = :code.get_object_code(module)
+    restore = fn -> restore_module!(module, original_beam, beam_path) end
+    on_exit(restore)
+    compiler_options = Code.compiler_options()
+
+    try do
+      Code.compiler_options(ignore_module_conflict: true)
+
+      Code.compile_string("""
+      defmodule #{inspect(module)} do
+        #{changed_body}
+      end
+      """)
+
+      fun.()
+    after
+      Code.compiler_options(compiler_options)
+      restore.()
+    end
+  end
+
+  defp restore_module!(module, original_beam, beam_path) do
+    :code.purge(module)
+    assert {:module, ^module} = :code.load_binary(module, beam_path, original_beam)
   end
 end

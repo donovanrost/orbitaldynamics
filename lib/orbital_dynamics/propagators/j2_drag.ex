@@ -70,6 +70,7 @@ defmodule OrbitalDynamics.Propagators.J2Drag do
     @moduledoc false
 
     @enforce_keys [
+      :atmosphere_evaluation,
       :atmosphere_provider,
       :atmosphere_provider_opts,
       :atmosphere_capability,
@@ -213,23 +214,44 @@ defmodule OrbitalDynamics.Propagators.J2Drag do
          max_step_s = Keyword.get(opts, :max_step_s, @default_max_step_s),
          :ok <- validate_max_step(max_step_s),
          :ok <- validate_scenario(scenario),
-         {:ok, policy} <- capture_environment_policy(scenario, opts),
-         {:ok, initial_components} <-
-           acceleration_with_policy(scenario.initial_state, scenario, policy),
-         {:ok, states} <- propagate_samples(scenario, max_step_s * 1.0, policy) do
-      {:ok,
-       trajectory(
-         scenario,
-         states,
-         max_step_s * 1.0,
-         policy,
-         initial_components
-       )}
+         {:ok, policy} <- capture_environment_policy(scenario, opts) do
+      propagate_with_policy(scenario, max_step_s * 1.0, policy)
     end
   end
 
   def propagate(%Scenario{}, _opts), do: {:error, {:invalid_option, :options}}
   def propagate(_scenario, _opts), do: {:error, {:invalid_input, :scenario}}
+
+  @doc """
+  Propagates with explicitly captured atmosphere and Earth-rotation inputs.
+
+  This immutable composition path never selects a provider, calls provider
+  capability functions, or reads ambient configuration. The caller supplies
+  the already captured capability documents and source revisions. Density is
+  evaluated by the canonical exponential-atmosphere implementation.
+  """
+  def propagate_captured(scenario, captured_environment, opts \\ [])
+
+  def propagate_captured(%Scenario{} = scenario, %{} = captured_environment, opts)
+      when is_list(opts) do
+    with :ok <- validate_options(opts, [:max_step_s]),
+         max_step_s = Keyword.get(opts, :max_step_s, @default_max_step_s),
+         :ok <- validate_max_step(max_step_s),
+         :ok <- validate_scenario(scenario),
+         {:ok, policy} <-
+           captured_environment_policy(scenario, captured_environment) do
+      propagate_with_policy(scenario, max_step_s * 1.0, policy)
+    end
+  end
+
+  def propagate_captured(%Scenario{}, %{}, _opts),
+    do: {:error, {:invalid_option, :options}}
+
+  def propagate_captured(%Scenario{}, _captured_environment, _opts),
+    do: {:error, {:invalid_option, :captured_environment}}
+
+  def propagate_captured(_scenario, _captured_environment, _opts),
+    do: {:error, {:invalid_input, :scenario}}
 
   @doc """
   Evaluates the instantaneous point-mass, J2, drag, and total acceleration.
@@ -292,6 +314,7 @@ defmodule OrbitalDynamics.Propagators.J2Drag do
          {:ok, mass_kg} <- spacecraft_mass(scenario.spacecraft) do
       {:ok,
        %EnvironmentPolicy{
+         atmosphere_evaluation: :legacy_provider,
          atmosphere_provider: provider_module,
          atmosphere_provider_opts: provider_opts,
          atmosphere_capability: atmosphere_capability,
@@ -306,6 +329,92 @@ defmodule OrbitalDynamics.Propagators.J2Drag do
        }}
     else
       {:error, reason} -> {:error, reason}
+    end
+  end
+
+  defp captured_environment_policy(%Scenario{} = scenario, captured) do
+    with {:ok, atmosphere_capability} <-
+           captured_field(captured, "atmosphere_capability", :atmosphere_capability),
+         {:ok, atmosphere_source_revision} <-
+           captured_field(
+             captured,
+             "atmosphere_source_revision",
+             :atmosphere_source_revision
+           ),
+         {:ok, earth_rotation_capability} <-
+           captured_field(captured, "earth_rotation_capability", :earth_rotation_capability),
+         {:ok, earth_rotation_source_revision} <-
+           captured_field(
+             captured,
+             "earth_rotation_source_revision",
+             :earth_rotation_source_revision
+           ),
+         :ok <- Environment.validate_provider_capability(atmosphere_capability),
+         :ok <- validate_offline_provider(atmosphere_capability),
+         :ok <- validate_provider_time_scale(atmosphere_capability),
+         :ok <- validate_atmosphere_capability_parameters(atmosphere_capability),
+         :ok <- validate_provider_request(atmosphere_capability, scenario),
+         :ok <- Environment.validate_provider_capability(earth_rotation_capability),
+         :ok <- validate_offline_provider(earth_rotation_capability),
+         :ok <- validate_provider_time_scale(earth_rotation_capability),
+         :ok <- validate_source_revision(atmosphere_source_revision, :atmosphere_source_revision),
+         :ok <-
+           validate_source_revision(
+             earth_rotation_source_revision,
+             :earth_rotation_source_revision
+           ),
+         {:ok, earth_rotation_rate_rad_s} <-
+           captured_earth_rotation_rate(earth_rotation_capability),
+         {:ok, mass_kg} <- spacecraft_mass(scenario.spacecraft) do
+      {:ok,
+       %EnvironmentPolicy{
+         atmosphere_evaluation: :captured_exponential,
+         atmosphere_provider: ExponentialAtmosphereProvider,
+         atmosphere_provider_opts: [],
+         atmosphere_capability: atmosphere_capability,
+         atmosphere_source_revision: atmosphere_source_revision,
+         earth_rotation_capability: earth_rotation_capability,
+         earth_rotation_source_revision: earth_rotation_source_revision,
+         earth_rotation_rate_rad_s: earth_rotation_rate_rad_s,
+         spacecraft_mass_kg: mass_kg,
+         drag_area_m2: scenario.spacecraft.area_m2 * 1.0,
+         drag_coefficient: scenario.spacecraft.drag_coefficient * 1.0
+       }}
+    else
+      {:error, reason} -> {:error, reason}
+    end
+  end
+
+  defp captured_field(captured, field, error_field) do
+    case Map.fetch(captured, field) do
+      {:ok, value} -> {:ok, value}
+      :error -> {:error, {:missing_option, error_field}}
+    end
+  end
+
+  defp validate_source_revision(value, field)
+       when is_binary(value) and byte_size(value) > 0,
+       do:
+         if(String.valid?(value) and String.trim(value) != "",
+           do: :ok,
+           else: {:error, {:invalid_option, field}}
+         )
+
+  defp validate_source_revision(_value, field), do: {:error, {:invalid_option, field}}
+
+  defp captured_earth_rotation_rate(capability) do
+    rate_rad_s = get_in(capability, ["parameters", "earth_rotation_rate_rad_s"])
+
+    if number_in_range?(rate_rad_s, 0.0, @maximum_earth_rotation_rate_rad_s),
+      do: {:ok, rate_rad_s * 1.0},
+      else: {:error, {:invalid_environment_product, :earth_rotation_rate_rad_s}}
+  end
+
+  defp propagate_with_policy(scenario, max_step_s, policy) do
+    with {:ok, initial_components} <-
+           acceleration_with_policy(scenario.initial_state, scenario, policy),
+         {:ok, states} <- propagate_samples(scenario, max_step_s, policy) do
+      {:ok, trajectory(scenario, states, max_step_s, policy, initial_components)}
     end
   end
 
@@ -623,7 +732,11 @@ defmodule OrbitalDynamics.Propagators.J2Drag do
     end
   end
 
-  defp fetch_density(policy, state, altitude_km) do
+  defp fetch_density(
+         %EnvironmentPolicy{atmosphere_evaluation: :legacy_provider} = policy,
+         state,
+         altitude_km
+       ) do
     opts =
       policy.atmosphere_provider_opts
       |> Keyword.put(:altitude_km, altitude_km)
@@ -639,6 +752,20 @@ defmodule OrbitalDynamics.Propagators.J2Drag do
       ArithmeticError ->
         {:error, {:environment_provider_error, :atmosphere_density_arithmetic}}
     end
+  end
+
+  defp fetch_density(
+         %EnvironmentPolicy{atmosphere_evaluation: :captured_exponential} = policy,
+         state,
+         altitude_km
+       ) do
+    ExponentialAtmosphereProvider.fetch_captured(
+      :atmosphere_density,
+      policy.atmosphere_capability,
+      altitude_km: altitude_km,
+      seconds_since_j2000: state.epoch.seconds_since_j2000,
+      source_revision: policy.atmosphere_source_revision
+    )
   end
 
   defp density(%{} = product, capability) do
