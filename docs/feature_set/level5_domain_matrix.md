@@ -13,8 +13,10 @@ executable [`capability_catalog/0`](../../lib/orbital_dynamics.ex), the
 domain status summaries, checked-in artifacts, and recent Git history. Planning
 prose was not treated as proof.
 
-The catalog task could not be rerun because this worktree has no `mix`/Elixir
-runtime, including through `mise`. The checked-in
+The catalog was not rerun during this audit because the Herdr worktree's runtime
+and shared dependency paths were not configured at the time. The host runtime
+was available; this was a worktree setup limitation, not evidence that Mix or
+Elixir was absent. The checked-in
 [`capability_catalog_v1.json`](../../study_results/capability_catalog_v1.json)
 is traceable to the public function, schema fixture, and
 [`capability task tests`](../../test/mix/tasks/orbital_dynamics.capabilities_test.exs),
