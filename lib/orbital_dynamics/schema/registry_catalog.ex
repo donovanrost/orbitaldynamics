@@ -40,6 +40,7 @@ defmodule OrbitalDynamics.Schema.RegistryCatalog do
              |> Map.merge(OrbitalDynamics.Schema.ResourceFilterRegistryContracts.contracts())
              |> Map.merge(OrbitalDynamics.Schema.ContactFilterRegistryContracts.contracts())
              |> Map.merge(OrbitalDynamics.Schema.ResourceSummaryRegistryContracts.contracts())
+             |> Map.merge(OrbitalDynamics.Schema.ResourceStateTraceRegistryContracts.contracts())
              |> Map.merge(OrbitalDynamics.Schema.ModelCapabilityRegistryContracts.contracts())
              |> Map.merge(OrbitalDynamics.Schema.QualityGateRegistryContracts.contracts())
              |> Map.merge(

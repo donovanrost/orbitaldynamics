@@ -169,6 +169,10 @@ defmodule OrbitalDynamics.Schema.ArtifactValidationRouter do
     ResourceValidation.validate_artifact([], "$", artifact, "resource_summary.v1")
   end
 
+  def validate("resource_state_trace.v1", _contract, artifact) do
+    OrbitalDynamics.Schema.ResourceStateTraceContracts.validate([], "$", artifact)
+  end
+
   def validate("resource_projection_report.v1", _contract, artifact) do
     ResourceValidation.validate_artifact([], "$", artifact, "resource_projection_report.v1")
   end

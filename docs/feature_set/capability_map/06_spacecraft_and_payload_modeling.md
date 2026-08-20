@@ -5,7 +5,7 @@
 - **implemented** — see "Implemented" below.
 - **partial** — see "Partial" below.
 - **near-term** — broaden subsystem-specific constraints when calibrated data exists.
-- **later** — resource state propagation, subsystem-specific constraints, payload pointing models, link availability, thermal constraints, and calibrated spacecraft-specific behavior.
+- **later** — continuous or calibrated subsystem dynamics, subsystem-specific constraints, payload pointing models, link availability, and thermal constraints.
 - **out of scope** — detailed spacecraft simulation unless needed to produce planning-grade resource constraints.
 
 ## Implemented
@@ -43,6 +43,38 @@ Status: **implemented**.
   flow roll-forward, with row semantics naming those storage/data-volume,
   downlink-throughput, and battery-energy alias groups for discovery.
 - Resource-summary facade constructors normalize canonical and alias spacecraft identities into stable string IDs and reject unstable IDs before emitting `resource_summary.v1` rows.
+
+### Tier 1 battery and recorder state trace
+
+- `ResourceStateTrace.trace/3` and the public
+  `OrbitalDynamics.resource_state_trace/3` facade emit an immutable,
+  schema-validated `resource_state_trace.v1` from one initial
+  `resource_summary.v1` battery/storage state and explicit selected-activity
+  `resource_effects`. Existing trace artifacts are accepted as idempotent
+  handoff inputs.
+- Trace rows order effects by activity end time, start time, and stable activity
+  ID. Every row carries stable trace/transition/activity identity, activity time,
+  declared and applied energy/data effects, battery and recorder state before
+  and after the effect, assumptions, and source provenance. Reversing source
+  activity order does not change the artifact or its content-derived trace ID.
+- The single Tier 1 approximation applies the complete declared effect
+  atomically at activity end (or start when no end is supplied). Battery energy
+  and recorder use saturate at zero and declared capacity while preserving the
+  unconstrained result and exact battery/recorder overflow or depletion amount
+  on the responsible activity row.
+- Explicitly ignored activities retain their declared effects and ignored reason
+  while applying zero effect. Malformed shapes, identity/time fields, duplicate
+  activity IDs, cross-spacecraft activities, and malformed/negative effect
+  quantities become deterministic operator-review rows and do not enter state
+  arithmetic.
+- `ResourceStateTrace.capabilities/0`, the operations capability catalog, the
+  executable artifact registry, and runtime JSON Schema export declare the
+  exact four effect fields, ordering, statuses, subsystem capability IDs, and
+  model limits. The checked-in generated schema integration seam must be
+  regenerated after lane integration. The trace does not infer undeclared
+  generation or data transfer, continuously integrate overlapping activities,
+  model thermal or fuel behavior, mutate schedules, claim mission calibration,
+  or represent digital-twin state.
 
 ### Ground-network contact filtering (`ContactFilter`)
 
@@ -379,7 +411,13 @@ data-volume evidence, and declared battery-energy roll-forward evidence.
 
 Status: **partial**.
 
-- Resource summaries are normalized artifact inputs with a thin availability/margin filter and deterministic status-aware arithmetic roll-forward over selected activities, **not propagated subsystem state**. Their capability metadata names `resource_summary.v1` plus selected-activity rows as inputs and `resource_projection_flow_summary.v1` as the schema-backed output contract.
+- Resource summaries remain normalized artifact inputs with the existing thin
+  availability/margin filter and status-aware `ResourceProjection` defaults.
+  The opt-in `resource_state_trace.v1` advances battery/recorder behavior to a
+  time-indexed discrete state sequence, but no campaign, repair, strategy, or
+  search path consumes that trace as hard pre-selection feasibility yet. That
+  planner-eligibility integration belongs to the separate constraints/search
+  lane.
 
 ### Map input normalization
 
@@ -427,6 +465,8 @@ Status: **near-term**.
 
 - Broaden subsystem-specific capability records and constraints when calibrated
   data exists.
+- Consume typed trace limit evidence at the owned constraint/search boundary
+  without changing the existing greedy planner or projection defaults.
 - Add `spacecraft_model.v1` once enough subsystem records exist to justify a
   composed spacecraft configuration artifact.
 
@@ -434,7 +474,9 @@ Status: **near-term**.
 
 Status: **later**.
 
-- Resource state propagation, subsystem-specific constraints, payload pointing models, link availability, thermal constraints, and calibrated spacecraft-specific behavior.
+- Continuous resource propagation, overlap/concurrency dynamics,
+  subsystem-specific constraints, payload pointing models, link availability,
+  thermal constraints, and calibrated spacecraft-specific behavior.
 
 ## Out of scope
 

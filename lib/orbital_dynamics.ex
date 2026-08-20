@@ -45,6 +45,7 @@ defmodule OrbitalDynamics do
   alias OrbitalDynamics.Policy
   alias OrbitalDynamics.ResourceFilter
   alias OrbitalDynamics.ResourceProjection
+  alias OrbitalDynamics.ResourceStateTrace
   alias OrbitalDynamics.ResourceSummary
   alias OrbitalDynamics.ResultSet.Report, as: ResultSetReport
   alias OrbitalDynamics.Schema
@@ -179,6 +180,7 @@ defmodule OrbitalDynamics do
         resource_summary: ResourceSummary.capabilities(),
         resource_filter: ResourceFilter.capabilities(),
         resource_projection: ResourceProjection.capabilities(),
+        resource_state_trace: ResourceStateTrace.capabilities(),
         policy: Policy.capabilities(),
         operator_review: OperatorReview.capabilities(),
         maneuver_review: ManeuverReview.capabilities(),
@@ -2173,6 +2175,13 @@ defmodule OrbitalDynamics do
   """
   def resource_projection_flow_summary(resource_projection_report) do
     ResourceProjection.flow_summary(resource_projection_report)
+  end
+
+  @doc """
+  Builds a deterministic Tier 1 battery and recorder state trace across selected activities.
+  """
+  def resource_state_trace(selected_activities, initial_resource_summary, opts \\ []) do
+    ResourceStateTrace.trace(selected_activities, initial_resource_summary, opts)
   end
 
   @doc """
