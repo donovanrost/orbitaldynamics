@@ -62,6 +62,27 @@ defmodule OrbitalDynamics.ScenarioRunnerTest do
            ] = ScenarioRunner.run(scenarios, propagator: propagator)
   end
 
+  test "preserves selected source-manifest indexes" do
+    scenarios = [%{id: :a}, %{id: :c}]
+    propagator = fn scenario -> {:ok, %{scenario_id: scenario.id}} end
+
+    results =
+      ScenarioRunner.run(scenarios,
+        propagator: propagator,
+        scenario_indexes: [0, 2]
+      )
+
+    assert Enum.map(results, & &1.scenario_id) == [:a, :c]
+    assert Enum.map(results, & &1.scenario_index) == [0, 2]
+
+    assert_raise ArgumentError, ~r/unique ascending/, fn ->
+      ScenarioRunner.run(scenarios,
+        propagator: propagator,
+        scenario_indexes: [2, 0]
+      )
+    end
+  end
+
   test "preserves scenario id when a default task exits" do
     scenarios = [%{id: :exiting}]
     propagator = fn _scenario -> exit(:propagator_exit) end

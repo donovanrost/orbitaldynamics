@@ -125,6 +125,11 @@ The `study_manifest.v1` JSON Schema export includes nested coverage for:
 ### Refresh and automation tasks
 
 - **`mix orbital_dynamics.study.run --run-id`** and **`mix orbital_dynamics.study.demo --run-id`** support repeatable artifact refreshes.
+- **`mix orbital_dynamics.study.run --retry-failed-from SOURCE --output NEW`**
+  validates the source result artifact against the current manifest, retries
+  only its failed scenario IDs/indexes in source-manifest order, records source
+  path/SHA/run provenance, and requires a separate output so failure evidence is
+  not overwritten. It is mutually exclusive with checked-artifact `--resume`.
 - **`mix orbital_dynamics.schema.export --all --directory`** supports checked-in per-contract schema refreshes.
 - **`mix orbital_dynamics.policy.export`** refreshes the complete checked-in built-in policy bundle fixture set.
 - **`mix orbital_dynamics.capabilities --format json`** exposes the same public capability catalog artifact for automation without hand-written `mix run -e` wrappers.

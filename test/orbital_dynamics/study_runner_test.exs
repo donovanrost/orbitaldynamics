@@ -9,7 +9,8 @@ defmodule OrbitalDynamics.StudyRunnerTest do
     Scenario,
     Spacecraft,
     StateVector,
-    Study
+    Study,
+    StudyRunner
   }
 
   alias OrbitalDynamics.Propagators.TwoBodyNxCompiled
@@ -393,6 +394,120 @@ defmodule OrbitalDynamics.StudyRunnerTest do
                error: {:invalid_scenario, :initial_state_radius_km}
              }
            ] = result_set.errors
+  end
+
+  test "retries failed scenarios in deterministic source-manifest order" do
+    earth = CentralBody.earth()
+
+    study =
+      Study.new!(
+        :retry_study,
+        [scenario(:a, earth), scenario(:b, earth), scenario(:c, earth)],
+        outputs: [:trajectories],
+        seed_manifest: %{"monte_carlo_seed" => 17},
+        metadata: %{"assumption_set" => "retry-test-v1"}
+      )
+
+    execution_report = %{
+      "schema_contract" => "execution_report.v1",
+      "study_id" => "retry_study",
+      "run_id" => "source-run",
+      "status" => "completed_with_errors",
+      "scenario_count" => 3,
+      "failed_scenarios" => [
+        %{"scenario_id" => "c", "scenario_index" => 2},
+        %{"scenario_id" => "a", "scenario_index" => 0}
+      ]
+    }
+
+    assert {:ok, retry_plan} =
+             StudyRunner.failed_scenario_retry_plan(study, execution_report)
+
+    assert retry_plan.scenario_indexes == [0, 2]
+    assert retry_plan.scenario_ids == ["a", "c"]
+    assert retry_plan.ordering == "source_manifest_scenario_order"
+    assert retry_plan.source_run_id == "source-run"
+
+    retry_source = %{
+      path: "study_results/source-run.json",
+      sha256: String.duplicate("a", 64),
+      run_id: "source-run"
+    }
+
+    assert {:ok, result_set} =
+             StudyRunner.retry_failed(study, execution_report,
+               central_body: earth,
+               run_id: "retry-run",
+               retry_source: retry_source
+             )
+
+    assert Enum.map(result_set.trajectory_results, & &1.scenario_id) == [:a, :c]
+    assert Enum.map(result_set.trajectory_results, & &1.scenario_index) == [0, 2]
+    assert result_set.errors == []
+    assert result_set.assumptions.seed_manifest == %{"monte_carlo_seed" => 17}
+    assert result_set.assumptions.study_metadata == %{"assumption_set" => "retry-test-v1"}
+    assert result_set.assumptions.retry.scenario_indexes == [0, 2]
+    assert result_set.assumptions.retry.source_artifact == retry_source
+
+    assert get_in(result_set.metadata.run, ["metadata", "execution_plan", "resumability"]) ==
+             "failed_scenario_retry"
+
+    assert get_in(result_set.metadata.run, ["metadata", "execution_plan", "scenario_count"]) ==
+             2
+
+    assert get_in(result_set.metadata.run, ["metadata", "retry", "scenario_indexes"]) == [0, 2]
+
+    artifact = OrbitalDynamics.ResultSet.Artifact.build(result_set)
+
+    assert artifact.execution_report.scenario_count == 2
+    assert artifact.execution_report.completed_scenario_count == 2
+    assert artifact.execution_report.failed_scenario_count == 0
+    assert artifact.execution_report.execution_plan["resumability"] == "failed_scenario_retry"
+
+    assert artifact.execution_report.execution_plan["retry"]["scenario_indexes"] == [0, 2]
+
+    assert {:ok, %{"schema_contract" => "result_artifact.v1"}} =
+             artifact
+             |> :json.encode()
+             |> IO.iodata_to_binary()
+             |> :json.decode()
+             |> OrbitalDynamics.Schema.validate_artifact(contract: "result_artifact.v1")
+  end
+
+  test "rejects invalid failed-scenario retry reports" do
+    earth = CentralBody.earth()
+    study = Study.new!(:retry_study, [scenario(:a, earth), scenario(:b, earth)])
+
+    base_report = %{
+      "schema_contract" => "execution_report.v1",
+      "study_id" => "retry_study",
+      "run_id" => "source-run",
+      "status" => "completed_with_errors",
+      "scenario_count" => 2
+    }
+
+    assert {:error, :no_failed_scenarios} =
+             StudyRunner.failed_scenario_retry_plan(
+               study,
+               Map.put(base_report, "failed_scenarios", [])
+             )
+
+    assert {:error, {:retry_scenario_id_mismatch, 1, "b", "a"}} =
+             StudyRunner.failed_scenario_retry_plan(
+               study,
+               Map.put(base_report, "failed_scenarios", [
+                 %{"scenario_index" => 1, "scenario_id" => "a"}
+               ])
+             )
+
+    assert {:error, {:duplicate_retry_scenario_index, 0}} =
+             StudyRunner.failed_scenario_retry_plan(
+               study,
+               Map.put(base_report, "failed_scenarios", [
+                 %{"scenario_index" => 0, "scenario_id" => "a"},
+                 %{"scenario_index" => 0, "scenario_id" => "a"}
+               ])
+             )
   end
 
   test "uses batch propagation for local batch-capable propagators" do
