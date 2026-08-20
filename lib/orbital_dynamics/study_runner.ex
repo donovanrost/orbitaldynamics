@@ -78,7 +78,8 @@ defmodule OrbitalDynamics.StudyRunner do
              study,
              ground_stations,
              targets,
-             ground_track_crossings
+             ground_track_crossings,
+             campaign_environment
            ),
          :ok <- validate_scenario_indexes(study, scenario_indexes),
          :ok <- validate_task_supervisor_config(task_supervisor, task_supervisors),
@@ -290,15 +291,32 @@ defmodule OrbitalDynamics.StudyRunner do
              declared_ground_track_crossings,
              campaign_environment
            ) do
-      validate_prepared_run_inputs(study, ground_stations, targets, ground_track_crossings)
+      validate_prepared_run_inputs(
+        study,
+        ground_stations,
+        targets,
+        ground_track_crossings,
+        campaign_environment
+      )
     end
   end
 
-  defp validate_prepared_run_inputs(study, ground_stations, targets, ground_track_crossings) do
+  defp validate_prepared_run_inputs(
+         study,
+         ground_stations,
+         targets,
+         ground_track_crossings,
+         campaign_environment
+       ) do
     with :ok <- validate_outputs(study.outputs),
          :ok <- validate_ground_stations(study.outputs, ground_stations),
          :ok <- validate_targets(study.outputs, targets),
-         :ok <- validate_ground_track_crossings(study, ground_track_crossings) do
+         :ok <-
+           validate_ground_track_crossings(
+             study,
+             ground_track_crossings,
+             campaign_environment
+           ) do
       :ok
     end
   end
@@ -326,23 +344,15 @@ defmodule OrbitalDynamics.StudyRunner do
   defp prepare_campaign_environment_provider(study, provider, provider_opts) do
     request = campaign_environment_request(study)
 
-    with true <- Keyword.keyword?(provider_opts),
-         true <- Code.ensure_loaded?(provider),
-         true <- function_exported?(provider, :load, 1),
-         true <- function_exported?(provider, :provenance, 1),
-         {:ok, dataset} <- provider.load(provider_opts),
-         {:ok, capability} <-
-           Environment.configured_provider_capability(provider, dataset: dataset),
-         :ok <- validate_campaign_environment_request(capability, request) do
+    with true <- provider == CampaignEnvironmentProvider,
+         {:ok, configuration} <- provider.trusted_configuration(provider_opts),
+         :ok <- validate_campaign_environment_request(configuration.capability, request) do
       {:ok,
        %{
          provider: provider,
-         provider_opts: [
-           dataset: dataset,
-           interpolation: capability["interpolation"]
-         ],
-         capability: capability,
-         provenance: provider.provenance(dataset)
+         provider_opts: configuration.provider_opts,
+         capability: configuration.capability,
+         provenance: configuration.provenance
        }}
     else
       false -> {:error, {:invalid_option, :campaign_environment}}
@@ -416,11 +426,13 @@ defmodule OrbitalDynamics.StudyRunner do
       :earth_rotation_provider,
       :rotation_rate_rad_s,
       :rotation_epoch_s,
-      :rotation_angle_offset_rad
+      :rotation_angle_offset_rad,
+      :campaign_environment
     ]
 
     cond do
-      Enum.any?(rotation_keys, &Map.has_key?(request, &1)) ->
+      Enum.any?(rotation_keys, &Map.has_key?(request, &1)) or
+          Map.has_key?(request, "campaign_environment") ->
         {:error, {:campaign_environment_conflict, :earth_rotation_provider}}
 
       Map.get(request, :frame, :inertial) in [:body_fixed, "body_fixed"] ->
@@ -599,7 +611,11 @@ defmodule OrbitalDynamics.StudyRunner do
     end
   end
 
-  defp validate_ground_track_crossings(%Study{outputs: outputs} = study, ground_track_crossings) do
+  defp validate_ground_track_crossings(
+         %Study{outputs: outputs} = study,
+         ground_track_crossings,
+         campaign_environment
+       ) do
     cond do
       :ground_track_crossings not in outputs ->
         :ok
@@ -607,29 +623,41 @@ defmodule OrbitalDynamics.StudyRunner do
       ground_track_crossings == [] ->
         {:error, {:missing_option, :ground_track_crossings}}
 
-      not is_list(ground_track_crossings) or
-          not Enum.all?(ground_track_crossings, &valid_ground_track_crossing?(&1, study)) ->
+      not is_list(ground_track_crossings) ->
         {:error, {:invalid_option, :ground_track_crossings}}
 
       true ->
-        :ok
+        Enum.reduce_while(ground_track_crossings, :ok, fn request, :ok ->
+          case validate_ground_track_crossing(request, study, campaign_environment) do
+            :ok -> {:cont, :ok}
+            {:error, reason} -> {:halt, {:error, reason}}
+          end
+        end)
     end
   end
 
-  defp valid_ground_track_crossing?(%{crossing: :latitude, latitude_deg: value} = request, study)
-       when is_number(value),
-       do: valid_ground_track_rotation_opts?(request, study)
-
-  defp valid_ground_track_crossing?(
-         %{crossing: :longitude, longitude_deg: value} = request,
-         study
+  defp validate_ground_track_crossing(
+         %{crossing: :latitude, latitude_deg: value} = request,
+         study,
+         campaign_environment
        )
-       when is_number(value),
-       do: valid_ground_track_rotation_opts?(request, study)
+       when is_number(value) do
+    validate_ground_track_rotation_opts(request, study, campaign_environment)
+  end
 
-  defp valid_ground_track_crossing?(_request, _study), do: false
+  defp validate_ground_track_crossing(
+         %{crossing: :longitude, longitude_deg: value} = request,
+         study,
+         campaign_environment
+       )
+       when is_number(value) do
+    validate_ground_track_rotation_opts(request, study, campaign_environment)
+  end
 
-  defp valid_ground_track_rotation_opts?(request, study) do
+  defp validate_ground_track_crossing(_request, _study, _campaign_environment),
+    do: {:error, {:invalid_option, :ground_track_crossings}}
+
+  defp validate_ground_track_rotation_opts(request, study, campaign_environment) do
     numeric_opts? =
       [:rotation_rate_rad_s, :rotation_epoch_s, :rotation_angle_offset_rad]
       |> Enum.all?(fn key ->
@@ -639,31 +667,63 @@ defmodule OrbitalDynamics.StudyRunner do
         end
       end)
 
-    numeric_opts? and
-      valid_earth_rotation_provider?(Map.get(request, :earth_rotation_provider), study)
+    with true <- numeric_opts?,
+         :ok <- validate_campaign_ground_track_evidence(request, campaign_environment),
+         :ok <-
+           validate_earth_rotation_provider(
+             Map.get(request, :earth_rotation_provider),
+             study
+           ) do
+      :ok
+    else
+      false -> {:error, {:invalid_option, :ground_track_crossings}}
+      {:error, reason} -> {:error, reason}
+    end
   end
 
-  defp valid_earth_rotation_provider?(nil, _study), do: true
-
-  defp valid_earth_rotation_provider?(provider, study) when is_atom(provider) do
-    valid_earth_rotation_provider?({provider, []}, study)
+  defp validate_campaign_ground_track_evidence(request, nil) do
+    if Map.has_key?(request, :campaign_environment) or
+         Map.has_key?(request, "campaign_environment") do
+      {:error, {:untrusted_campaign_environment_evidence, :ground_track_crossings}}
+    else
+      :ok
+    end
   end
 
-  defp valid_earth_rotation_provider?({provider, provider_opts}, study)
-       when is_atom(provider) and is_list(provider_opts) do
-    Keyword.keyword?(provider_opts) and provider_fetchable?(provider) and
-      Environment.configured_provider_supports_request?(
-        provider,
-        earth_rotation_provider_request(study),
-        provider_opts
-      )
+  defp validate_campaign_ground_track_evidence(request, campaign_environment) do
+    declared =
+      [:campaign_environment, "campaign_environment"]
+      |> Enum.filter(&Map.has_key?(request, &1))
+      |> Enum.map(&Map.fetch!(request, &1))
+
+    if declared == [] or Enum.all?(declared, &(&1 == campaign_environment.provenance)) do
+      :ok
+    else
+      {:error, {:campaign_environment_provenance_mismatch, :ground_track_crossings}}
+    end
   end
 
-  defp valid_earth_rotation_provider?(_provider, _study), do: false
+  defp validate_earth_rotation_provider(nil, _study), do: :ok
 
-  defp provider_fetchable?(provider) do
-    Code.ensure_loaded?(provider) and function_exported?(provider, :fetch, 2) and
-      function_exported?(provider, :capabilities, 0)
+  defp validate_earth_rotation_provider(provider, study) do
+    request = earth_rotation_provider_request(study)
+
+    case GroundTrackCrossings.validate_earth_rotation_provider(provider, request) do
+      :ok ->
+        :ok
+
+      {:error, {:untrusted_campaign_environment_provider, _provider} = reason} ->
+        {:error, reason}
+
+      {:error, {:untrusted_campaign_environment_evidence, _source} = reason} ->
+        {:error, reason}
+
+      {:error, {:invalid_campaign_environment_configuration, _detail} = reason} ->
+        {:error, reason}
+
+      {:error, _reason} ->
+        {:error, {:invalid_option, :ground_track_crossings}}
+    end
   end
 
   defp earth_rotation_provider_request(%Study{scenarios: scenarios}) do
@@ -1164,7 +1224,8 @@ defmodule OrbitalDynamics.StudyRunner do
       :rotation_rate_rad_s,
       :rotation_epoch_s,
       :rotation_angle_offset_rad,
-      :earth_rotation_provider
+      :earth_rotation_provider,
+      :campaign_environment
     ])
     |> Map.to_list()
   end

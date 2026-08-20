@@ -251,6 +251,53 @@ defmodule OrbitalDynamics.CampaignEnvironmentProviderTest do
              )
   end
 
+  test "rejects improper and malformed Dataset containers without raising" do
+    assert {:ok, dataset} = Provider.load(Provider.checked_in_options())
+
+    malformed_datasets = [
+      %{dataset | samples: [hd(dataset.samples) | :improper_tail]},
+      %{dataset | sources: [hd(dataset.sources) | :improper_tail]},
+      %{dataset | known_limits: [hd(dataset.known_limits) | :improper_tail]},
+      %{dataset | coverage: [starts_at_s: @coverage_start_s]},
+      %{
+        dataset
+        | content_verification: [
+            actual_sha256: dataset.content_verification["actual_sha256"]
+          ]
+      }
+    ]
+
+    for malformed <- malformed_datasets do
+      assert_invalid_dataset_error(Provider.configured_capability(dataset: malformed))
+
+      assert_invalid_dataset_error(
+        Provider.fetch(:sun_direction,
+          dataset: malformed,
+          seconds_since_j2000: @coverage_start_s
+        )
+      )
+
+      assert_invalid_dataset_error(Provider.provenance(malformed))
+    end
+
+    assert {:error, {:invalid_campaign_environment_dataset, :invalid_container}} =
+             Provider.provenance(%{})
+
+    assert {:error, {:invalid_campaign_environment_dataset, :invalid_container}} =
+             Provider.configured_capability(%{dataset: dataset})
+
+    assert {:error, {:invalid_campaign_environment_dataset, :invalid_container}} =
+             Provider.fetch(:earth_rotation, %{dataset: dataset})
+
+    improper_opts = [{:dataset, dataset} | :improper_tail]
+    assert_invalid_dataset_error(Provider.configured_capability(improper_opts))
+    assert_invalid_dataset_error(Provider.fetch(:sun_direction, improper_opts))
+
+    duplicate_dataset_opts = [dataset: dataset, dataset: hd(malformed_datasets)]
+    assert_invalid_dataset_error(Provider.configured_capability(duplicate_dataset_opts))
+    assert_invalid_dataset_error(Provider.fetch(:earth_rotation, duplicate_dataset_opts))
+  end
+
   test "rejects duplicate JSON keys at top-level, source, and sample nesting" do
     bytes = checked_in_bytes()
 
@@ -368,4 +415,10 @@ defmodule OrbitalDynamics.CampaignEnvironmentProviderTest do
   end
 
   defp vector_norm([x, y, z]), do: :math.sqrt(x * x + y * y + z * z)
+
+  defp assert_invalid_dataset_error({:error, reason}) do
+    assert is_tuple(reason)
+    assert tuple_size(reason) >= 2
+    assert elem(reason, 0) == :invalid_campaign_environment_dataset
+  end
 end

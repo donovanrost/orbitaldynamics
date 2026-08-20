@@ -11,10 +11,10 @@ defmodule OrbitalDynamics.EventDetectors.GroundTrackCrossings do
   """
 
   alias OrbitalDynamics.{Environment, EventTiming, StateVector, Trajectory}
+  alias OrbitalDynamics.Environment.CampaignEnvironmentProvider
 
   @behaviour OrbitalDynamics.EventDetector
   @earth_rotation_rate_rad_s 7.2921150e-5
-  @campaign_provider_id "environment.provider.campaign.jpl_de441_iers_finals2000a"
   @campaign_ground_track_known_limits [
     :sample_cadence_limited,
     :geocentric_spherical_coordinates,
@@ -62,6 +62,21 @@ defmodule OrbitalDynamics.EventDetectors.GroundTrackCrossings do
     }
   end
 
+  @doc false
+  def validate_earth_rotation_provider(provider, request) when is_map(request) do
+    with {:ok, rotation} <- provider_rotation_model(provider),
+         true <- Environment.provider_supports_request?(rotation.provider_capability, request),
+         :ok <- preflight_provider_products(rotation, request) do
+      :ok
+    else
+      false -> {:error, {:environment_provider_request_mismatch, request}}
+      {:error, reason} -> {:error, reason}
+    end
+  end
+
+  def validate_earth_rotation_provider(_provider, _request),
+    do: {:error, {:invalid_option, :earth_rotation_provider}}
+
   @impl OrbitalDynamics.EventDetector
   def detect(%Trajectory{} = trajectory, opts \\ []) do
     with {:ok, crossing} <- crossing_option(Keyword.get(opts, :crossing, :latitude)),
@@ -69,6 +84,7 @@ defmodule OrbitalDynamics.EventDetectors.GroundTrackCrossings do
          :ok <- validate_target(crossing, target_deg),
          {:ok, frame} <- reference_frame(opts),
          {:ok, rotation} <- rotation_model(frame, opts),
+         :ok <- validate_campaign_evidence_option(opts, rotation),
          {:ok, samples} <- samples(trajectory, crossing, target_deg, frame, rotation) do
       {:ok,
        samples
@@ -95,6 +111,7 @@ defmodule OrbitalDynamics.EventDetectors.GroundTrackCrossings do
          :ok <- validate_target(crossing, target_deg),
          {:ok, frame} <- reference_frame(opts),
          {:ok, rotation} <- rotation_model(frame, opts),
+         :ok <- validate_campaign_evidence_option(opts, rotation),
          {:ok, before} <-
            ground_track_sample(before_state, 0, crossing, target_deg, frame, rotation),
          {:ok, after_sample} <-
@@ -198,29 +215,122 @@ defmodule OrbitalDynamics.EventDetectors.GroundTrackCrossings do
     with true <- Code.ensure_loaded?(provider),
          true <- function_exported?(provider, :fetch, 2),
          true <- function_exported?(provider, :capabilities, 0),
-         true <- Keyword.keyword?(provider_opts),
-         {:ok, provider_capability} <-
-           Environment.configured_provider_capability(provider, provider_opts) do
-      {:ok,
-       %{
-         mode: :provider,
-         provider: provider,
-         provider_opts: provider_opts,
-         provider_capability: provider_capability,
-         configured?: true
-       }}
+         true <- Keyword.keyword?(provider_opts) do
+      configured_provider_rotation_model(provider, provider_opts)
     else
-      _error -> {:error, {:invalid_option, :earth_rotation_provider}}
+      false -> {:error, {:invalid_option, :earth_rotation_provider}}
+      {:error, reason} -> {:error, reason}
     end
   end
 
   defp provider_rotation_model(_provider),
     do: {:error, {:invalid_option, :earth_rotation_provider}}
 
+  defp configured_provider_rotation_model(CampaignEnvironmentProvider, provider_opts) do
+    with {:ok, configuration} <-
+           CampaignEnvironmentProvider.trusted_configuration(provider_opts) do
+      {:ok,
+       %{
+         mode: :provider,
+         provider: CampaignEnvironmentProvider,
+         provider_opts: configuration.provider_opts,
+         provider_capability: configuration.capability,
+         provider_provenance: configuration.provenance,
+         trusted_campaign?: true,
+         configured?: true
+       }}
+    end
+  end
+
+  defp configured_provider_rotation_model(provider, provider_opts) do
+    with false <- CampaignEnvironmentProvider.reserved_evidence?(provider_opts),
+         {:ok, provider_capability} <-
+           Environment.configured_provider_capability(provider, provider_opts),
+         false <- CampaignEnvironmentProvider.reserved_evidence?(provider_capability),
+         :ok <- validate_capability_module_binding(provider, provider_capability) do
+      {:ok,
+       %{
+         mode: :provider,
+         provider: provider,
+         provider_opts: provider_opts,
+         provider_capability: provider_capability,
+         trusted_campaign?: false,
+         configured?: true
+       }}
+    else
+      true -> {:error, {:untrusted_campaign_environment_provider, provider}}
+      {:error, reason} -> {:error, reason}
+    end
+  end
+
+  defp validate_capability_module_binding(provider, configured_capability) do
+    base_capability = provider.capabilities()
+
+    stable_keys = [
+      "id",
+      "schema_contract",
+      "category",
+      "model",
+      "validation_level",
+      "interpolation",
+      "supported_bodies",
+      "supported_frames",
+      "supported_time_scales",
+      "network_access",
+      "outputs",
+      "known_limits"
+    ]
+
+    case Enum.find(stable_keys, fn key ->
+           Map.get(configured_capability, key) != Map.get(base_capability, key)
+         end) do
+      nil -> :ok
+      key -> {:error, {:environment_provider_capability_mismatch, provider, key}}
+    end
+  rescue
+    _exception -> {:error, {:invalid_option, :earth_rotation_provider}}
+  end
+
+  defp preflight_provider_products(rotation, request) do
+    request
+    |> provider_request_epochs()
+    |> Enum.reduce_while(:ok, fn seconds_since_j2000, :ok ->
+      case provider_rotation_product(rotation, seconds_since_j2000) do
+        {:ok, _product} -> {:cont, :ok}
+        {:error, reason} -> {:halt, {:error, reason}}
+      end
+    end)
+  end
+
+  defp provider_request_epochs(request) do
+    [
+      Map.get(request, :starts_at_s) || Map.get(request, "starts_at_s"),
+      Map.get(request, :ends_at_s) || Map.get(request, "ends_at_s")
+    ]
+    |> Enum.filter(&is_number/1)
+    |> Enum.uniq()
+  end
+
   defp optional_number(opts, key, default) do
     case Keyword.get(opts, key, default) do
       value when is_integer(value) or is_float(value) -> {:ok, value * 1.0}
       _value -> {:error, {:invalid_option, key}}
+    end
+  end
+
+  defp validate_campaign_evidence_option(opts, %{trusted_campaign?: true} = rotation) do
+    case Keyword.fetch(opts, :campaign_environment) do
+      :error -> :ok
+      {:ok, evidence} when evidence == rotation.provider_provenance -> :ok
+      {:ok, _evidence} -> {:error, {:campaign_environment_provenance_mismatch, :ground_track}}
+    end
+  end
+
+  defp validate_campaign_evidence_option(opts, _rotation) do
+    if Keyword.has_key?(opts, :campaign_environment) do
+      {:error, {:untrusted_campaign_environment_evidence, :ground_track}}
+    else
+      :ok
     end
   end
 
@@ -301,11 +411,7 @@ defmodule OrbitalDynamics.EventDetectors.GroundTrackCrossings do
          %{mode: :provider} = rotation
        ) do
     with {:ok, angle_rad, metadata} <-
-           provider_rotation_angle(
-             rotation.provider,
-             Map.get(rotation, :provider_opts, []),
-             seconds_since_j2000
-           ) do
+           provider_rotation_angle(rotation, seconds_since_j2000) do
       {:ok, rotate_z(position_km, -angle_rad), metadata}
     end
   end
@@ -476,11 +582,7 @@ defmodule OrbitalDynamics.EventDetectors.GroundTrackCrossings do
       polar_motion_applied:
         Map.get(before_metadata, :polar_motion_applied) ||
           Map.get(after_metadata, :polar_motion_applied),
-      known_limits:
-        ground_track_known_limits(
-          Map.get(before_metadata, :earth_rotation_provider_id) ||
-            Map.get(after_metadata, :earth_rotation_provider_id)
-        ),
+      known_limits: ground_track_known_limits(rotation),
       earth_rotation_rate_rad_s:
         Map.get(before_metadata, :earth_rotation_rate_rad_s) ||
           Map.get(after_metadata, :earth_rotation_rate_rad_s),
@@ -494,10 +596,8 @@ defmodule OrbitalDynamics.EventDetectors.GroundTrackCrossings do
     |> Map.new()
   end
 
-  defp provider_rotation_angle(provider, provider_opts, seconds_since_j2000) do
-    opts = Keyword.put(provider_opts, :seconds_since_j2000, seconds_since_j2000)
-
-    case provider.fetch(:earth_rotation, opts) do
+  defp provider_rotation_angle(rotation, seconds_since_j2000) do
+    case provider_rotation_product(rotation, seconds_since_j2000) do
       {:ok, %{} = product} ->
         angle_rad = get_product_value(product, "earth_rotation_angle_rad")
 
@@ -530,10 +630,134 @@ defmodule OrbitalDynamics.EventDetectors.GroundTrackCrossings do
 
       {:error, reason} ->
         {:error, reason}
+    end
+  end
+
+  defp provider_rotation_product(rotation, seconds_since_j2000) do
+    opts = Keyword.put(rotation.provider_opts, :seconds_since_j2000, seconds_since_j2000)
+
+    case rotation.provider.fetch(:earth_rotation, opts) do
+      {:ok, %{} = product} ->
+        with :ok <- validate_provider_product(product, rotation) do
+          {:ok, product}
+        end
+
+      {:error, reason} ->
+        {:error, reason}
 
       _other ->
         {:error, {:invalid_environment_product, :earth_rotation}}
     end
+  end
+
+  defp validate_provider_product(
+         product,
+         %{trusted_campaign?: true, provider_capability: capability} = rotation
+       ) do
+    CampaignEnvironmentProvider.validate_product_binding(
+      product,
+      capability,
+      rotation.provider_provenance
+    )
+  end
+
+  defp validate_provider_product(product, rotation) do
+    capability = rotation.provider_capability
+
+    with false <- CampaignEnvironmentProvider.reserved_evidence?(product),
+         :ok <- matching_product_field(product, "provider_id", capability["id"]),
+         :ok <- matching_product_field(product, "model", capability["model"]),
+         :ok <- validate_declared_product_evidence(product, capability) do
+      :ok
+    else
+      true -> {:error, {:untrusted_campaign_environment_evidence, rotation.provider}}
+      {:error, reason} -> {:error, reason}
+    end
+  end
+
+  defp validate_declared_product_evidence(product, capability) do
+    evidence_bearing? = evidence_bearing_capability?(capability)
+
+    bindings = [
+      {"provider_revision", capability_value(capability, "provider_revision"), true},
+      {"dataset_revision", capability_value(capability, "dataset_revision"), true},
+      {"dataset_semantic_sha256", capability_value(capability, "dataset_semantic_sha256"), true},
+      {"content_sha256", capability_content_sha256(capability), true},
+      {"source_table_id", capability_source_table_id(capability), true},
+      {"provenance", capability["provenance"], true},
+      {"known_limits", capability["known_limits"], evidence_bearing?},
+      {"coverage_starts_at_s", get_in(capability, ["coverage", "starts_at_s"]), true},
+      {"coverage_ends_at_s", get_in(capability, ["coverage", "ends_at_s"]), true},
+      {"sample_count", get_in(capability, ["parameters", "sample_count"]), true}
+    ]
+
+    Enum.reduce_while(bindings, :ok, fn {field, expected, required_when_declared?}, :ok ->
+      case fetch_product_value(product, field) do
+        :error when is_nil(expected) or not required_when_declared? ->
+          {:cont, :ok}
+
+        :error ->
+          {:halt, {:error, {:invalid_environment_product, field}}}
+
+        {:ok, _actual} when is_nil(expected) ->
+          {:halt, {:error, {:unbound_environment_product_evidence, field}}}
+
+        {:ok, actual} when actual == expected ->
+          {:cont, :ok}
+
+        {:ok, actual} ->
+          {:halt, {:error, {:environment_provider_product_mismatch, field, expected, actual}}}
+      end
+    end)
+  end
+
+  defp evidence_bearing_capability?(capability) do
+    not is_nil(capability["provenance"]) or
+      Enum.any?(
+        [
+          "provider_revision",
+          "dataset_revision",
+          "dataset_semantic_sha256"
+        ],
+        &(not is_nil(capability_value(capability, &1)))
+      ) or
+      not is_nil(capability_content_sha256(capability))
+  end
+
+  defp matching_product_field(product, field, expected) do
+    case fetch_product_value(product, field) do
+      {:ok, ^expected} -> :ok
+      {:ok, actual} -> {:error, {:environment_provider_product_mismatch, field, expected, actual}}
+      :error -> {:error, {:invalid_environment_product, field}}
+    end
+  end
+
+  defp capability_value(capability, field) do
+    get_in(capability, ["parameters", field]) ||
+      get_in(capability, ["provenance", field]) ||
+      get_in(capability, ["source_identity", field])
+  end
+
+  defp capability_content_sha256(capability) do
+    get_in(capability, ["source_identity", "content_identity", "sha256"]) ||
+      get_in(capability, ["provenance", "content_sha256"])
+  end
+
+  defp capability_source_table_id(capability) do
+    get_in(capability, ["provenance", "source_table_id"])
+  end
+
+  defp fetch_product_value(%{} = product, key) do
+    case Map.fetch(product, key) do
+      {:ok, value} -> {:ok, value}
+      :error -> fetch_existing_atom_value(product, key)
+    end
+  end
+
+  defp fetch_existing_atom_value(product, key) do
+    Map.fetch(product, String.to_existing_atom(key))
+  rescue
+    ArgumentError -> :error
   end
 
   defp get_product_value(%{} = product, key) when is_binary(key) do
@@ -545,10 +769,10 @@ defmodule OrbitalDynamics.EventDetectors.GroundTrackCrossings do
     ArgumentError -> Map.get(product, key)
   end
 
-  defp ground_track_known_limits(@campaign_provider_id),
+  defp ground_track_known_limits(%{trusted_campaign?: true}),
     do: @campaign_ground_track_known_limits
 
-  defp ground_track_known_limits(_provider_id), do: nil
+  defp ground_track_known_limits(_rotation), do: nil
 
   defp crossing_type(:latitude), do: :latitude_crossing
   defp crossing_type(:longitude), do: :longitude_crossing

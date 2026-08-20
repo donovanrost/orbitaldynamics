@@ -101,17 +101,33 @@ Additional request-fit facades:
   nesting level before semantic decode. Loaded datasets are sealed by one
   hardcoded canonical digest of every semantic dataset field and normalized
   file-verification evidence; altered caller-constructed dataset structs fail
-  closed. Requests must fit wholly within the finite table coverage.
+  closed. Improper lists and malformed containers also return structured
+  dataset errors on every public reuse path rather than escaping validation.
+  Requests must fit wholly within the finite table coverage.
 - `StudyRunner` accepts only the built-in provider through the programmatic
   `campaign_environment: {CampaignEnvironmentProvider, options}` run option;
-  arbitrary caller modules fail before event generation. Consumed
+  the selectable file configuration must be the exact checked-in option set,
+  while the reused `Dataset` form is accepted only when its sealed semantic and
+  exact-file identities match the checked-in bytes. This is a built-in-module
+  and content-identity boundary, not caller authentication or a signature over
+  the upstream products. Arbitrary caller modules fail before event generation. The
+  generic ground-track provider extension remains available, but its configured
+  capability is bound to its module capability and every returned identity or
+  provenance field is checked against that configured capability. A generic
+  module cannot claim the reserved campaign ID, limits, digests, table identity,
+  or `campaign_environment` provenance; only the exact built-in provider with a
+  validated checked-in configuration may emit that evidence. Consumed
   eclipse and body-fixed ground-track results, result artifact assumptions,
   checkpoint identity, and exported environment-model rows archive the exact
   provider, provider revision, dataset revision, semantic dataset SHA-256,
   table ID/content SHA-256, honest approximation frame, finite coverage,
   interpolation, and source-product provenance. Campaign ground-track result
   limits describe ERA/UT1 consumption and the omitted frame transforms;
-  legacy runs retain the constant-rotation/no-EOP limits unchanged.
+  legacy runs retain the constant-rotation/no-EOP limits unchanged. Mixed
+  campaign runs also archive `environment.earth_rotation.constant_rate` when
+  access-window or target-visibility work consumes `AccessGeometry`; a
+  campaign-only body-fixed ground-track run archives only the ERA approximation
+  rotation model.
 - This is a source-binding and request-fit proof. It is not the Domain 18
   external numerical acceptance case: the checked-in derived table is small,
   no independent high-fidelity oracle comparison or error budget is claimed,

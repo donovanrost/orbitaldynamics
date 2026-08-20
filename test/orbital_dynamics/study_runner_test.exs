@@ -24,6 +24,31 @@ defmodule OrbitalDynamics.StudyRunnerTest do
     defdelegate fetch(kind, opts), to: CampaignEnvironmentProvider
   end
 
+  defmodule CounterfeitGroundTrackCapabilityProvider do
+    def capabilities, do: CampaignEnvironmentProvider.capabilities()
+    def fetch(_kind, _opts), do: raise("reserved capability must fail before fetch")
+  end
+
+  defmodule CounterfeitGroundTrackProductProvider do
+    alias OrbitalDynamics.Environment.ConstantEarthRotationProvider
+
+    def capabilities, do: ConstantEarthRotationProvider.capabilities()
+
+    def fetch(:earth_rotation, opts) do
+      with {:ok, product} <- ConstantEarthRotationProvider.fetch(:earth_rotation, opts) do
+        {:ok,
+         product
+         |> Map.put(
+           "provider_id",
+           "environment.provider.campaign.jpl_de441_iers_finals2000a"
+         )
+         |> Map.put("campaign_environment", %{
+           "trust_boundary" => "sha256_verified_checked_in_campaign_table"
+         })}
+      end
+    end
+  end
+
   test "runs trajectories and access windows for a study" do
     earth = CentralBody.earth()
 
@@ -336,6 +361,30 @@ defmodule OrbitalDynamics.StudyRunnerTest do
     assert crossing_provenance["coverage"] == provenance["coverage"]
   end
 
+  test "archives constant-rate Earth rotation when campaign and AccessGeometry are both consumed" do
+    earth = CentralBody.earth()
+
+    study =
+      Study.new!(:mixed_campaign_access, [campaign_scenario(:mixed, earth, 820_497_600.0)],
+        outputs: [:eclipses, :access_windows]
+      )
+
+    assert {:ok, result_set} =
+             StudyRunner.run(study,
+               campaign_environment:
+                 {CampaignEnvironmentProvider, CampaignEnvironmentProvider.checked_in_options()},
+               ground_stations: [GroundStation.new!(:equator, 0.0, 0.0)],
+               central_body: earth
+             )
+
+    artifact = OrbitalDynamics.ResultSet.Artifact.build(result_set)
+
+    assert Enum.map(artifact.assumptions["environment_models"], & &1["id"]) == [
+             "environment.solar.campaign_tabular_geocentric_direction",
+             "environment.earth_rotation.constant_rate"
+           ]
+  end
+
   test "rejects unknown campaign provider modules before event generation" do
     earth = CentralBody.earth()
 
@@ -352,6 +401,50 @@ defmodule OrbitalDynamics.StudyRunnerTest do
                  {UntrustedCampaignProvider, CampaignEnvironmentProvider.checked_in_options()},
                ground_track_crossings: [
                  %{id: :untrusted, crossing: :longitude, longitude_deg: 0.0, frame: :body_fixed}
+               ]
+             )
+  end
+
+  test "rejects reserved campaign claims through generic ground-track providers before execution" do
+    earth = CentralBody.earth()
+
+    study =
+      Study.new!(:counterfeit_ground_track, [scenario(:counterfeit, earth)],
+        outputs: [:ground_track_crossings]
+      )
+
+    request = fn provider ->
+      [
+        %{
+          id: :counterfeit,
+          crossing: :longitude,
+          longitude_deg: 0.0,
+          frame: :body_fixed,
+          earth_rotation_provider: provider
+        }
+      ]
+    end
+
+    assert {:error,
+            {:untrusted_campaign_environment_provider, CounterfeitGroundTrackCapabilityProvider}} =
+             StudyRunner.run(study,
+               ground_track_crossings: request.(CounterfeitGroundTrackCapabilityProvider)
+             )
+
+    assert {:error,
+            {:untrusted_campaign_environment_evidence, CounterfeitGroundTrackProductProvider}} =
+             StudyRunner.run(study,
+               ground_track_crossings: request.(CounterfeitGroundTrackProductProvider)
+             )
+
+    assert {:error, {:untrusted_campaign_environment_evidence, :ground_track_crossings}} =
+             StudyRunner.run(study,
+               ground_track_crossings: [
+                 request.(OrbitalDynamics.Environment.ConstantEarthRotationProvider)
+                 |> hd()
+                 |> Map.put(:campaign_environment, %{
+                   "provider_id" => "environment.provider.campaign.jpl_de441_iers_finals2000a"
+                 })
                ]
              )
   end
@@ -383,6 +476,26 @@ defmodule OrbitalDynamics.StudyRunnerTest do
              StudyRunner.run(wrong_scale_study, campaign_environment: provider)
 
     assert request.time_scales == [:tdb]
+  end
+
+  test "requires the exact checked-in campaign option boundary" do
+    earth = CentralBody.earth()
+
+    study =
+      Study.new!(
+        :campaign_option_boundary,
+        [campaign_scenario(:option_boundary, earth, 820_497_600.0)],
+        outputs: [:eclipses]
+      )
+
+    forged_options =
+      CampaignEnvironmentProvider.checked_in_options()
+      |> Keyword.put(:caller_provenance, %{"provider_id" => "forged"})
+
+    assert {:error, {:invalid_campaign_environment_configuration, :checked_in_options_required}} =
+             StudyRunner.run(study,
+               campaign_environment: {CampaignEnvironmentProvider, forged_options}
+             )
   end
 
   test "preserves fixed-Sun and constant-rotation defaults without campaign opt-in" do

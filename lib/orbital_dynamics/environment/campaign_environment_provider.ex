@@ -123,6 +123,73 @@ defmodule OrbitalDynamics.Environment.CampaignEnvironmentProvider do
     ]
   end
 
+  @doc false
+  def trusted_configuration(opts) when is_list(opts) do
+    with :ok <- validate_keyword(opts),
+         :ok <- validate_trusted_option_shape(opts),
+         {:ok, dataset} <- dataset_from_opts(opts),
+         {:ok, capability} <- configured_capability(dataset: dataset),
+         %{} = provenance <- provenance(dataset),
+         :ok <- validate_configured_binding(capability, provenance) do
+      {:ok,
+       %{
+         dataset: dataset,
+         provider_opts: trusted_runtime_options(dataset, opts),
+         capability: capability,
+         provenance: provenance
+       }}
+    else
+      {:error, reason} ->
+        {:error, reason}
+
+      _invalid ->
+        {:error, {:invalid_campaign_environment_configuration, :provenance}}
+    end
+  end
+
+  def trusted_configuration(_opts),
+    do: {:error, {:invalid_campaign_environment_configuration, :options}}
+
+  @doc false
+  def reserved_evidence?(value) do
+    reserved_evidence_value?(value)
+  end
+
+  @doc false
+  def validate_product_binding(%{} = product, %{} = capability, %{} = provenance) do
+    bindings = [
+      {"provider_id", product["provider_id"], capability["id"]},
+      {"model", product["model"], "earth_fixed_era_from_eci_j2000_approximation"},
+      {"provider_revision", product["provider_revision"], provenance["provider_revision"]},
+      {"dataset_revision", product["dataset_revision"], provenance["dataset_revision"]},
+      {"dataset_semantic_sha256", product["dataset_semantic_sha256"],
+       provenance["dataset_semantic_sha256"]},
+      {"content_sha256", product["content_sha256"], provenance["content_sha256"]},
+      {"source_table_id", product["source_table_id"], provenance["source_table_id"]},
+      {"known_limits", product["known_limits"], provenance["known_limits"]},
+      {"provenance", product["provenance"], provenance},
+      {"coverage_starts_at_s", product["coverage_starts_at_s"],
+       provenance["coverage"]["starts_at_s"]},
+      {"coverage_ends_at_s", product["coverage_ends_at_s"], provenance["coverage"]["ends_at_s"]},
+      {"coverage_time_scale", product["coverage_time_scale"],
+       provenance["coverage"]["time_scale"]},
+      {"sample_count", product["sample_count"], provenance["sample_count"]},
+      {"frame", product["frame"], provenance["earth_fixed_frame"]},
+      {"network_access", product["network_access"], false}
+    ]
+
+    case Enum.find(bindings, fn {_field, actual, expected} -> actual != expected end) do
+      nil ->
+        :ok
+
+      {field, actual, expected} ->
+        {:error, {:invalid_campaign_environment_product_binding, field, expected, actual}}
+    end
+  end
+
+  def validate_product_binding(_product, _capability, _provenance),
+    do: {:error, {:invalid_campaign_environment_product_binding, :invalid_container}}
+
   @impl OrbitalDynamics.Environment.Provider
   def capabilities do
     %{
@@ -211,7 +278,9 @@ defmodule OrbitalDynamics.Environment.CampaignEnvironmentProvider do
   @doc """
   Returns the finite capability record for a loaded or file-configured dataset.
   """
-  def configured_capability(opts \\ []) when is_list(opts) do
+  def configured_capability(opts \\ [])
+
+  def configured_capability(opts) when is_list(opts) do
     with {:ok, dataset} <- dataset_from_opts(opts) do
       {:ok,
        capabilities()
@@ -233,6 +302,9 @@ defmodule OrbitalDynamics.Environment.CampaignEnvironmentProvider do
        end)}
     end
   end
+
+  def configured_capability(_opts),
+    do: {:error, {:invalid_campaign_environment_dataset, :invalid_container}}
 
   def fetch(kind, opts \\ [])
 
@@ -289,6 +361,9 @@ defmodule OrbitalDynamics.Environment.CampaignEnvironmentProvider do
     end
   end
 
+  def fetch(kind, _opts) when kind in [:sun_direction, :earth_rotation],
+    do: {:error, {:invalid_campaign_environment_dataset, :invalid_container}}
+
   def fetch(kind, _opts), do: {:error, {:unsupported_environment_product, kind}}
 
   @doc """
@@ -300,6 +375,9 @@ defmodule OrbitalDynamics.Environment.CampaignEnvironmentProvider do
       {:error, reason} -> {:error, reason}
     end
   end
+
+  def provenance(_dataset),
+    do: {:error, {:invalid_campaign_environment_dataset, :invalid_container}}
 
   defp dataset_provenance(dataset) do
     %{
@@ -337,32 +415,59 @@ defmodule OrbitalDynamics.Environment.CampaignEnvironmentProvider do
   end
 
   defp dataset_from_opts(opts) do
-    case Keyword.get(opts, :dataset) do
-      %Dataset{} = dataset ->
-        case validate_dataset(dataset) do
-          :ok -> {:ok, dataset}
-          {:error, reason} -> {:error, reason}
+    try do
+      with :ok <- validate_dataset_reuse_opts(opts) do
+        case Keyword.get(opts, :dataset) do
+          %Dataset{} = dataset ->
+            case validate_dataset(dataset) do
+              :ok -> {:ok, dataset}
+              {:error, reason} -> {:error, reason}
+            end
+
+          nil ->
+            load(opts)
+
+          _dataset ->
+            {:error, {:invalid_campaign_environment_dataset, :invalid_container}}
         end
-
-      nil ->
-        load(opts)
-
-      _dataset ->
-        {:error, {:invalid_option, :dataset}}
+      end
+    rescue
+      _exception -> {:error, {:invalid_campaign_environment_dataset, :malformed_container}}
+    catch
+      _kind, _reason -> {:error, {:invalid_campaign_environment_dataset, :malformed_container}}
     end
   end
 
-  defp validate_dataset(%Dataset{} = dataset) do
-    with :ok <- validate_dataset_file_verification(dataset.content_verification) do
-      actual_sha256 = dataset_semantic_sha256(dataset)
+  defp validate_dataset_reuse_opts(opts) do
+    if proper_list?(opts) and Keyword.keyword?(opts) and
+         Enum.uniq(Keyword.keys(opts)) == Keyword.keys(opts) do
+      :ok
+    else
+      {:error, {:invalid_campaign_environment_dataset, :malformed_container}}
+    end
+  end
 
-      if actual_sha256 == @dataset_semantic_sha256 do
-        :ok
-      else
-        {:error,
-         {:invalid_campaign_environment_dataset, :semantic_digest_mismatch,
-          @dataset_semantic_sha256, actual_sha256}}
+  defp proper_list?([]), do: true
+  defp proper_list?([_head | tail]), do: proper_list?(tail)
+  defp proper_list?(_value), do: false
+
+  defp validate_dataset(%Dataset{} = dataset) do
+    try do
+      with :ok <- validate_dataset_file_verification(dataset.content_verification) do
+        actual_sha256 = dataset_semantic_sha256(dataset)
+
+        if actual_sha256 == @dataset_semantic_sha256 do
+          :ok
+        else
+          {:error,
+           {:invalid_campaign_environment_dataset, :semantic_digest_mismatch,
+            @dataset_semantic_sha256, actual_sha256}}
+        end
       end
+    rescue
+      _exception -> {:error, {:invalid_campaign_environment_dataset, :malformed_container}}
+    catch
+      _kind, _reason -> {:error, {:invalid_campaign_environment_dataset, :malformed_container}}
     end
   end
 
@@ -416,7 +521,111 @@ defmodule OrbitalDynamics.Environment.CampaignEnvironmentProvider do
   defp canonical_term(value), do: value
 
   defp validate_keyword(opts) do
-    if Keyword.keyword?(opts), do: :ok, else: {:error, {:invalid_option, :campaign_environment}}
+    if proper_list?(opts) and Keyword.keyword?(opts),
+      do: :ok,
+      else: {:error, {:invalid_option, :campaign_environment}}
+  end
+
+  defp validate_trusted_option_shape(opts) do
+    if Keyword.has_key?(opts, :dataset) do
+      allowed_keys = [:dataset, :interpolation, :body, :frame, :time_scale]
+      keys = Keyword.keys(opts)
+
+      if keys -- allowed_keys == [] and Enum.uniq(keys) == keys do
+        :ok
+      else
+        {:error, {:invalid_campaign_environment_configuration, :options}}
+      end
+    else
+      expected = Map.new(checked_in_options())
+
+      if Map.new(opts) == expected and length(opts) == map_size(expected) do
+        :ok
+      else
+        {:error, {:invalid_campaign_environment_configuration, :checked_in_options_required}}
+      end
+    end
+  end
+
+  defp trusted_runtime_options(dataset, opts) do
+    [dataset: dataset, interpolation: dataset.interpolation]
+    |> maybe_copy_option(opts, :body)
+    |> maybe_copy_option(opts, :frame)
+    |> maybe_copy_option(opts, :time_scale)
+  end
+
+  defp maybe_copy_option(runtime_opts, source_opts, key) do
+    case Keyword.fetch(source_opts, key) do
+      {:ok, value} -> Keyword.put(runtime_opts, key, value)
+      :error -> runtime_opts
+    end
+  end
+
+  defp validate_configured_binding(capability, provenance) do
+    source_identity = capability["source_identity"]
+    parameters = capability["parameters"]
+
+    bindings = [
+      {"provider_id", capability["id"], provenance["provider_id"]},
+      {"provider_revision", parameters["provider_revision"], provenance["provider_revision"]},
+      {"dataset_revision", parameters["dataset_revision"], provenance["dataset_revision"]},
+      {"dataset_semantic_sha256", parameters["dataset_semantic_sha256"],
+       provenance["dataset_semantic_sha256"]},
+      {"content_sha256", source_identity["content_identity"]["sha256"],
+       provenance["content_sha256"]},
+      {"source_table_id", capability["source"], provenance["source_table_id"]},
+      {"interpolation", capability["interpolation"], provenance["interpolation"]},
+      {"known_limits", capability["known_limits"], provenance["known_limits"]},
+      {"provenance", capability["provenance"], provenance},
+      {"coverage_starts_at_s", capability["coverage"]["starts_at_s"],
+       provenance["coverage"]["starts_at_s"]},
+      {"coverage_ends_at_s", capability["coverage"]["ends_at_s"],
+       provenance["coverage"]["ends_at_s"]},
+      {"sample_count", parameters["sample_count"], provenance["sample_count"]}
+    ]
+
+    case Enum.find(bindings, fn {_field, actual, expected} -> actual != expected end) do
+      nil ->
+        :ok
+
+      {field, actual, expected} ->
+        {:error, {:invalid_campaign_environment_configuration, field, expected, actual}}
+    end
+  rescue
+    _exception -> {:error, {:invalid_campaign_environment_configuration, :malformed_binding}}
+  end
+
+  defp reserved_evidence_value?(%{} = map) do
+    Map.has_key?(map, :campaign_environment) or
+      Map.has_key?(map, "campaign_environment") or
+      Enum.any?(map, fn {key, value} ->
+        reserved_evidence_value?(key) or reserved_evidence_value?(value)
+      end)
+  end
+
+  defp reserved_evidence_value?(list) when is_list(list) do
+    list == @known_limits or Enum.any?(list, &reserved_evidence_value?/1)
+  rescue
+    _exception -> true
+  end
+
+  defp reserved_evidence_value?(tuple) when is_tuple(tuple) do
+    tuple
+    |> Tuple.to_list()
+    |> Enum.any?(&reserved_evidence_value?/1)
+  end
+
+  defp reserved_evidence_value?(value) do
+    value in @known_limits or
+      value in [
+        @provider_id,
+        @table_id,
+        @provider_revision,
+        @dataset_revision,
+        @table_sha256,
+        @dataset_semantic_sha256,
+        "sha256_verified_checked_in_campaign_table"
+      ]
   end
 
   defp decode_table(bytes) do

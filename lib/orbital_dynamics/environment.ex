@@ -344,6 +344,7 @@ defmodule OrbitalDynamics.Environment do
     []
     |> maybe_add_campaign_sun(outputs, provenance)
     |> maybe_add_campaign_earth_rotation(outputs, assumptions, provenance)
+    |> maybe_add_campaign_constant_earth_rotation(outputs)
     |> Enum.reverse()
   end
 
@@ -358,6 +359,14 @@ defmodule OrbitalDynamics.Environment do
   defp maybe_add_campaign_earth_rotation(records, outputs, assumptions, provenance) do
     if body_fixed_ground_track?(outputs, assumptions) do
       [campaign_environment_model(:earth_rotation, provenance) | records]
+    else
+      records
+    end
+  end
+
+  defp maybe_add_campaign_constant_earth_rotation(records, outputs) do
+    if output?(outputs, :access_windows) or output?(outputs, :target_visibility) do
+      [constant_earth_rotation() | records]
     else
       records
     end
