@@ -318,7 +318,7 @@ defmodule OrbitalDynamics.Validation.ReferenceFixtures.Orbital do
         "convergence_classification" => "pass_internal_only",
         "atmosphere_provider_id" => "environment.provider.atmosphere.exponential_reference",
         "atmosphere_source_revision" => "exponential-reference.v1",
-        "model_limit_count" => 12
+        "model_limit_count" => 13
       },
       "tolerances" => %{
         "sample_count" => 0,

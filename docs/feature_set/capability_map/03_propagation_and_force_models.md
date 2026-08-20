@@ -32,8 +32,13 @@
   captures one offline atmosphere/rotation policy with source revision and
   full-horizon coverage before integration, accepts Earth/J2000/TDB LEO cases
   for at most 24 hours, defaults to a 10 s maximum step with a 30 s hard limit,
-  and records fixed ballistic and force-component assumptions. A 24-hour 10 s
-  versus 5 s fixture supplies internal step-convergence evidence only.
+  and records fixed ballistic and force-component assumptions. Its published
+  Earth-specific numeric envelope bounds `mu` to 350,000--450,000 km^3/s^2,
+  radius to 6,000--7,000 km, J2 to 0--0.002, total spacecraft mass to
+  0.1--10,000,000 kg, drag area to 0--1,000,000 m^2, drag coefficient to 0--5,
+  and density to 0--0.001 kg/m^3 before force arithmetic. Out-of-envelope
+  values return typed errors. A 24-hour 10 s versus 5 s fixture supplies
+  internal step-convergence evidence only.
 - `partial`: maneuver support is impulsive only; J2 and atmospheric drag are
   combined only in the bounded scalar `J2Drag` path, not in existing scalar
   defaults or accelerated backends;

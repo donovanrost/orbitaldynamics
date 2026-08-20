@@ -396,6 +396,42 @@ defmodule OrbitalDynamics.ValidationTest do
     assert error > tolerance
   end
 
+  test "counts malformed observations against the current source registry" do
+    expected_fixture_count = map_size(Validation.reference_fixtures())
+
+    invalid_observation_report =
+      Validation.reference_fixture_report(%{
+        "fixture.two_body.circular_leo_600s" => :not_an_observation_map
+      })
+
+    assert %{
+             "status" => "fail",
+             "fixture_count" => ^expected_fixture_count,
+             "status_counts" => %{"fail" => ^expected_fixture_count},
+             "reports" => invalid_observation_reports
+           } = invalid_observation_report
+
+    assert %{
+             "schema_contract" => "validation_reference_report.v1",
+             "fixture_id" => "fixture.two_body.circular_leo_600s",
+             "status" => "fail",
+             "checks" => [
+               %{
+                 "field" => "observations",
+                 "status" => "fail",
+                 "expected" => "valid observations map"
+               }
+             ]
+           } =
+             Enum.find(
+               invalid_observation_reports,
+               &(&1["fixture_id"] == "fixture.two_body.circular_leo_600s")
+             )
+
+    assert {:ok, %{"schema_contract" => "validation_reference_fixture_report.v1"}} =
+             OrbitalDynamics.Schema.validate_artifact(invalid_observation_report)
+  end
+
   test "builds deterministic reference fixture reports" do
     report =
       Validation.reference_fixture_report(%{
@@ -773,11 +809,13 @@ defmodule OrbitalDynamics.ValidationTest do
         "fixture.two_body.circular_leo_600s" => two_body_fixture_observations()
       })
 
+    expected_fixture_count = map_size(Validation.reference_fixtures())
+
     assert %{
              "schema_contract" => "validation_reference_fixture_report.v1",
              "status" => "pass",
-             "fixture_count" => 203,
-             "status_counts" => %{"pass" => 203},
+             "fixture_count" => ^expected_fixture_count,
+             "status_counts" => %{"pass" => ^expected_fixture_count},
              "reports" => reports
            } = report
 
@@ -999,37 +1037,6 @@ defmodule OrbitalDynamics.ValidationTest do
 
     assert {:ok, %{"schema_contract" => "validation_reference_fixture_report.v1"}} =
              OrbitalDynamics.Schema.validate_artifact(report)
-
-    invalid_observation_report =
-      Validation.reference_fixture_report(%{
-        "fixture.two_body.circular_leo_600s" => :not_an_observation_map
-      })
-
-    assert %{
-             "status" => "fail",
-             "status_counts" => %{"fail" => 202},
-             "reports" => invalid_observation_reports
-           } = invalid_observation_report
-
-    assert %{
-             "schema_contract" => "validation_reference_report.v1",
-             "fixture_id" => "fixture.two_body.circular_leo_600s",
-             "status" => "fail",
-             "checks" => [
-               %{
-                 "field" => "observations",
-                 "status" => "fail",
-                 "expected" => "valid observations map"
-               }
-             ]
-           } =
-             Enum.find(
-               invalid_observation_reports,
-               &(&1["fixture_id"] == "fixture.two_body.circular_leo_600s")
-             )
-
-    assert {:ok, %{"schema_contract" => "validation_reference_fixture_report.v1"}} =
-             OrbitalDynamics.Schema.validate_artifact(invalid_observation_report)
 
     invalid_fixture_count = Map.put(report, "fixture_count", 99)
 

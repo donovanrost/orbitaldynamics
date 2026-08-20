@@ -41,6 +41,25 @@ defmodule OrbitalDynamics.Propagators.J2Drag do
   @maximum_duration_s 86_400.0
   @minimum_initial_altitude_km 120.0
   @maximum_initial_altitude_km 2_000.0
+  @minimum_earth_mu_km3_s2 350_000.0
+  @maximum_earth_mu_km3_s2 450_000.0
+  @minimum_earth_equatorial_radius_km 6_000.0
+  @maximum_earth_equatorial_radius_km 7_000.0
+  @maximum_earth_j2 2.0e-3
+  @maximum_position_component_km 9_000.0
+  @maximum_velocity_component_km_s 15.0
+  @maximum_epoch_magnitude_s 1.0e12
+  @minimum_spacecraft_mass_kg 0.1
+  @maximum_spacecraft_mass_kg 10_000_000.0
+  @maximum_drag_area_m2 1_000_000.0
+  @maximum_drag_coefficient 5.0
+  @maximum_density_kg_m3 1.0e-3
+  @maximum_earth_rotation_rate_rad_s 1.0e-3
+  @minimum_reference_altitude_km 0.0
+  @maximum_reference_altitude_km 2_000.0
+  @minimum_scale_height_km 1.0
+  @maximum_scale_height_km 1_000.0
+  @maximum_positive_atmosphere_exponent 600.0
   @time_epsilon_s 1.0e-12
   @built_in_atmosphere_source_revision "exponential-reference.v1"
   @earth_rotation_source_revision "constant-earth-rotation.v1"
@@ -85,10 +104,50 @@ defmodule OrbitalDynamics.Propagators.J2Drag do
         maximum: @maximum_initial_altitude_km
       },
       duration_envelope_s: %{minimum: 0.0, maximum: @maximum_duration_s},
+      output_step_envelope_s: %{minimum_exclusive: 0.0, maximum: @maximum_duration_s},
       max_step_envelope_s: %{
         minimum_exclusive: 0.0,
         default: @default_max_step_s,
         maximum: @maximum_max_step_s
+      },
+      supported_numeric_envelope: %{
+        central_body: %{
+          mu_km3_s2: %{minimum: @minimum_earth_mu_km3_s2, maximum: @maximum_earth_mu_km3_s2},
+          equatorial_radius_km: %{
+            minimum: @minimum_earth_equatorial_radius_km,
+            maximum: @maximum_earth_equatorial_radius_km
+          },
+          j2: %{minimum: 0.0, maximum: @maximum_earth_j2}
+        },
+        state: %{
+          position_component_abs_max_km: @maximum_position_component_km,
+          velocity_component_abs_max_km_s: @maximum_velocity_component_km_s,
+          epoch_abs_max_s_since_j2000: @maximum_epoch_magnitude_s
+        },
+        spacecraft: %{
+          total_mass_kg: %{
+            minimum: @minimum_spacecraft_mass_kg,
+            maximum: @maximum_spacecraft_mass_kg
+          },
+          drag_area_m2: %{minimum: 0.0, maximum: @maximum_drag_area_m2},
+          drag_coefficient: %{minimum: 0.0, maximum: @maximum_drag_coefficient}
+        },
+        environment: %{
+          density_kg_m3: %{minimum: 0.0, maximum: @maximum_density_kg_m3},
+          earth_rotation_rate_rad_s: %{
+            minimum: 0.0,
+            maximum: @maximum_earth_rotation_rate_rad_s
+          },
+          reference_altitude_km: %{
+            minimum: @minimum_reference_altitude_km,
+            maximum: @maximum_reference_altitude_km
+          },
+          scale_height_km: %{
+            minimum: @minimum_scale_height_km,
+            maximum: @maximum_scale_height_km
+          },
+          positive_exponential_argument_max: @maximum_positive_atmosphere_exponent
+        }
       },
       environment_policy: :offline_immutable_captured_once_before_integration,
       atmosphere_provider: :built_in_default_or_explicit_programmatic_option,
@@ -111,6 +170,7 @@ defmodule OrbitalDynamics.Propagators.J2Drag do
         :no_winds_or_space_weather_calibration,
         :j2_only_gravity_perturbation,
         :fixed_step_rk4_only,
+        :explicit_earth_leo_numeric_envelope,
         :maximum_24_hour_duration,
         :offline_atmosphere_providers_only,
         :no_maneuvers_events_covariance_or_accelerated_backend,
@@ -138,6 +198,12 @@ defmodule OrbitalDynamics.Propagators.J2Drag do
     * `:atmosphere_provider` - provider module or `{module, provider_opts}`
     * `:atmosphere_source_revision` - required non-empty revision for custom
       providers; the built-in provider has a stable default revision label
+
+  The Earth-specific numeric envelope is published in `capabilities/0`. It
+  bounds body constants, state components, total mass, drag area/coefficient,
+  density, rotation rate, and configurable exponential-atmosphere parameters
+  before force arithmetic. Values outside that envelope return typed error
+  tuples; they are not delegated to floating-point overflow behavior.
   """
   @impl OrbitalDynamics.Propagator
   def propagate(scenario, opts \\ [])
@@ -170,7 +236,8 @@ defmodule OrbitalDynamics.Propagators.J2Drag do
 
   The returned total is the direct vector sum of the three declared component
   vectors. This evaluates one state; it does not propagate sequential force
-  models.
+  models. The same published numeric envelope as `propagate/2` applies, and
+  unsupported finite inputs return typed error tuples.
   """
   def acceleration_components(state, spacecraft, central_body, opts \\ [])
 
@@ -215,10 +282,11 @@ defmodule OrbitalDynamics.Propagators.J2Drag do
     with {:ok, provider_module, provider_opts} <- provider_parts(provider),
          {:ok, source_revision} <- atmosphere_source_revision(provider_module, opts),
          {:ok, atmosphere_capability} <-
-           Environment.configured_provider_capability(provider_module, provider_opts),
+           configured_atmosphere_capability(provider_module, provider_opts),
          :ok <- validate_provider_fetch(provider_module),
          :ok <- validate_offline_provider(atmosphere_capability),
          :ok <- validate_provider_time_scale(atmosphere_capability),
+         :ok <- validate_atmosphere_capability_parameters(atmosphere_capability),
          :ok <- validate_provider_request(atmosphere_capability, scenario),
          {:ok, earth_rotation_capability} <- earth_rotation_capability(),
          {:ok, mass_kg} <- spacecraft_mass(scenario.spacecraft) do
@@ -248,7 +316,7 @@ defmodule OrbitalDynamics.Propagators.J2Drag do
     with :ok <- Environment.validate_provider_capability(capability),
          :ok <- validate_offline_provider(capability),
          :ok <- validate_provider_time_scale(capability),
-         true <- is_number(rate_rad_s) and rate_rad_s >= 0.0 do
+         true <- number_in_range?(rate_rad_s, 0.0, @maximum_earth_rotation_rate_rad_s) do
       {:ok, capability}
     else
       false -> {:error, {:invalid_environment_product, :earth_rotation_rate_rad_s}}
@@ -289,6 +357,15 @@ defmodule OrbitalDynamics.Propagators.J2Drag do
 
   defp provider_parts(_provider), do: {:error, {:invalid_option, :atmosphere_provider}}
 
+  defp configured_atmosphere_capability(provider_module, provider_opts) do
+    try do
+      Environment.configured_provider_capability(provider_module, provider_opts)
+    rescue
+      ArithmeticError ->
+        {:error, {:environment_provider_error, :capability_arithmetic}}
+    end
+  end
+
   defp validate_provider_fetch(provider_module) do
     if Code.ensure_loaded?(provider_module) and function_exported?(provider_module, :fetch, 2),
       do: :ok,
@@ -307,6 +384,75 @@ defmodule OrbitalDynamics.Propagators.J2Drag do
 
   defp validate_provider_time_scale(_capability),
     do: {:error, {:unsupported_provider_time_scale, nil}}
+
+  defp validate_atmosphere_capability_parameters(%{"parameters" => parameters})
+       when is_map(parameters) do
+    with :ok <-
+           validate_provider_parameter(
+             parameters,
+             :reference_altitude_km,
+             "reference_altitude_km",
+             @minimum_reference_altitude_km,
+             @maximum_reference_altitude_km
+           ),
+         :ok <-
+           validate_provider_parameter(
+             parameters,
+             :reference_density_kg_m3,
+             "reference_density_kg_m3",
+             0.0,
+             @maximum_density_kg_m3
+           ),
+         :ok <-
+           validate_provider_parameter(
+             parameters,
+             :scale_height_km,
+             "scale_height_km",
+             @minimum_scale_height_km,
+             @maximum_scale_height_km
+           ),
+         :ok <- validate_exponential_provider_combination(parameters) do
+      :ok
+    end
+  end
+
+  defp validate_atmosphere_capability_parameters(%{"parameters" => _parameters}),
+    do: {:error, {:invalid_environment_provider_parameter, :parameters}}
+
+  defp validate_atmosphere_capability_parameters(_capability), do: :ok
+
+  defp validate_provider_parameter(parameters, field, string_field, minimum, maximum) do
+    value = Map.get(parameters, string_field, Map.get(parameters, field, :not_declared))
+
+    cond do
+      value == :not_declared ->
+        :ok
+
+      not number?(value) ->
+        {:error, {:invalid_environment_provider_parameter, field}}
+
+      not number_in_range?(value, minimum, maximum) ->
+        {:error, {:unsupported_environment_provider_parameter, field}}
+
+      true ->
+        :ok
+    end
+  end
+
+  defp validate_exponential_provider_combination(parameters) do
+    reference_altitude_km =
+      Map.get(parameters, "reference_altitude_km", Map.get(parameters, :reference_altitude_km))
+
+    scale_height_km =
+      Map.get(parameters, "scale_height_km", Map.get(parameters, :scale_height_km))
+
+    if number?(reference_altitude_km) and number?(scale_height_km) and
+         reference_altitude_km / scale_height_km > @maximum_positive_atmosphere_exponent do
+      {:error, {:unsupported_environment_provider_parameter, :exponential_argument}}
+    else
+      :ok
+    end
+  end
 
   defp validate_provider_request(capability, scenario) do
     start_s = scenario.initial_state.epoch.seconds_since_j2000 * 1.0
@@ -416,9 +562,18 @@ defmodule OrbitalDynamics.Propagators.J2Drag do
   end
 
   defp acceleration_with_policy(%StateVector{} = state, scenario, policy) do
-    altitude_km = Vector3.norm(state.position_km) - scenario.central_body.equatorial_radius_km
+    try do
+      do_acceleration_with_policy(state, scenario, policy)
+    rescue
+      ArithmeticError -> {:error, {:numerical_error, :j2_drag_acceleration}}
+    end
+  end
 
-    with :ok <- validate_non_negative_altitude(altitude_km),
+  defp do_acceleration_with_policy(%StateVector{} = state, scenario, policy) do
+    with :ok <- validate_dynamic_state_for_arithmetic(state),
+         altitude_km =
+           Vector3.norm(state.position_km) - scenario.central_body.equatorial_radius_km,
+         :ok <- validate_non_negative_altitude(altitude_km),
          {:ok, density_product} <- fetch_density(policy, state, altitude_km),
          {:ok, density_kg_m3} <- density(density_product, policy.atmosphere_capability) do
       gravity =
@@ -474,10 +629,15 @@ defmodule OrbitalDynamics.Propagators.J2Drag do
       |> Keyword.put(:altitude_km, altitude_km)
       |> Keyword.put(:seconds_since_j2000, state.epoch.seconds_since_j2000)
 
-    case policy.atmosphere_provider.fetch(:atmosphere_density, opts) do
-      {:ok, %{} = product} -> {:ok, product}
-      {:error, reason} -> {:error, reason}
-      _other -> {:error, {:invalid_environment_product, :atmosphere_density}}
+    try do
+      case policy.atmosphere_provider.fetch(:atmosphere_density, opts) do
+        {:ok, %{} = product} -> {:ok, product}
+        {:error, reason} -> {:error, reason}
+        _other -> {:error, {:invalid_environment_product, :atmosphere_density}}
+      end
+    rescue
+      ArithmeticError ->
+        {:error, {:environment_provider_error, :atmosphere_density_arithmetic}}
     end
   end
 
@@ -485,8 +645,14 @@ defmodule OrbitalDynamics.Propagators.J2Drag do
     with :ok <- matching_product_field(product, capability, "provider_id", "id"),
          :ok <- matching_product_field(product, capability, "model", "model") do
       case product["density_kg_m3"] || product[:density_kg_m3] do
-        value when is_number(value) and value >= 0.0 -> {:ok, value * 1.0}
-        _value -> {:error, {:invalid_environment_product, :density_kg_m3}}
+        value when is_number(value) and value >= 0.0 and value <= @maximum_density_kg_m3 ->
+          {:ok, value * 1.0}
+
+        value when is_number(value) and value >= 0.0 ->
+          {:error, {:unsupported_environment_product, :density_kg_m3}}
+
+        _value ->
+          {:error, {:invalid_environment_product, :density_kg_m3}}
       end
     end
   end
@@ -546,6 +712,7 @@ defmodule OrbitalDynamics.Propagators.J2Drag do
           maximum_allowed_max_step_s: @maximum_max_step_s,
           duration_s: scenario.duration_s * 1.0,
           maximum_duration_s: @maximum_duration_s,
+          supported_numeric_envelope: capabilities().supported_numeric_envelope,
           position_unit: :kilometer,
           velocity_unit: :kilometer_per_second,
           acceleration_unit: :kilometer_per_second_squared,
@@ -675,11 +842,28 @@ defmodule OrbitalDynamics.Propagators.J2Drag do
       not positive_number?(central_body.mu_km3_s2) ->
         {:error, {:invalid_scenario, :central_body_mu_km3_s2}}
 
+      not number_in_range?(
+        central_body.mu_km3_s2,
+        @minimum_earth_mu_km3_s2,
+        @maximum_earth_mu_km3_s2
+      ) ->
+        {:error, {:unsupported_scenario, :central_body_mu_km3_s2}}
+
       not positive_number?(central_body.equatorial_radius_km) ->
         {:error, {:invalid_scenario, :equatorial_radius_km}}
 
+      not number_in_range?(
+        central_body.equatorial_radius_km,
+        @minimum_earth_equatorial_radius_km,
+        @maximum_earth_equatorial_radius_km
+      ) ->
+        {:error, {:unsupported_scenario, :equatorial_radius_km}}
+
       not non_negative_number?(central_body.j2) ->
         {:error, {:invalid_scenario, :j2}}
+
+      central_body.j2 > @maximum_earth_j2 ->
+        {:error, {:unsupported_scenario, :j2}}
 
       true ->
         :ok
@@ -696,11 +880,23 @@ defmodule OrbitalDynamics.Propagators.J2Drag do
       not Vector3.valid?(state.velocity_km_s) ->
         {:error, {:invalid_scenario, :initial_state_velocity_km_s}}
 
+      not vector_components_within?(state.position_km, @maximum_position_component_km) ->
+        {:error, {:unsupported_state, :position_km}}
+
+      not vector_components_within?(state.velocity_km_s, @maximum_velocity_component_km_s) ->
+        {:error, {:unsupported_state, :velocity_km_s}}
+
       Vector3.norm(state.position_km) <= 0.0 ->
         {:error, {:invalid_scenario, :initial_state_radius_km}}
 
       not match?(%Epoch{}, state.epoch) ->
         {:error, {:invalid_scenario, :initial_state_epoch}}
+
+      not number?(state.epoch.seconds_since_j2000) ->
+        {:error, {:invalid_scenario, :initial_state_epoch}}
+
+      abs(state.epoch.seconds_since_j2000) > @maximum_epoch_magnitude_s ->
+        {:error, {:unsupported_time, :seconds_since_j2000}}
 
       state.epoch.scale != :tdb ->
         {:error, {:unsupported_time_scale, state.epoch.scale}}
@@ -720,11 +916,33 @@ defmodule OrbitalDynamics.Propagators.J2Drag do
   defp validate_state(_state, _central_body),
     do: {:error, {:invalid_scenario, :initial_state}}
 
+  defp validate_dynamic_state_for_arithmetic(%StateVector{} = state) do
+    cond do
+      not vector_components_within?(state.position_km, @maximum_position_component_km) ->
+        {:error, {:unsupported_state, :position_km}}
+
+      not vector_components_within?(state.velocity_km_s, @maximum_velocity_component_km_s) ->
+        {:error, {:unsupported_state, :velocity_km_s}}
+
+      true ->
+        :ok
+    end
+  end
+
   defp validate_spacecraft(%Spacecraft{} = spacecraft) do
     with {:ok, _mass_kg} <- spacecraft_mass(spacecraft),
-         :ok <- validate_non_negative_spacecraft(:drag_area_m2, spacecraft.area_m2),
          :ok <-
-           validate_non_negative_spacecraft(:drag_coefficient, spacecraft.drag_coefficient) do
+           validate_spacecraft_parameter(
+             :drag_area_m2,
+             spacecraft.area_m2,
+             @maximum_drag_area_m2
+           ),
+         :ok <-
+           validate_spacecraft_parameter(
+             :drag_coefficient,
+             spacecraft.drag_coefficient,
+             @maximum_drag_coefficient
+           ) do
       :ok
     end
   end
@@ -734,20 +952,33 @@ defmodule OrbitalDynamics.Propagators.J2Drag do
   defp spacecraft_mass(%Spacecraft{
          dry_mass_kg: dry_mass_kg,
          propellant_mass_kg: propellant_mass_kg
-       })
-       when is_number(dry_mass_kg) and dry_mass_kg >= 0.0 and is_number(propellant_mass_kg) and
-              propellant_mass_kg >= 0.0 and dry_mass_kg + propellant_mass_kg > 0.0,
-       do: {:ok, (dry_mass_kg + propellant_mass_kg) * 1.0}
+       }) do
+    cond do
+      not non_negative_number?(dry_mass_kg) or not non_negative_number?(propellant_mass_kg) ->
+        {:error, {:invalid_spacecraft, :spacecraft_mass_kg}}
 
-  defp spacecraft_mass(%Spacecraft{}),
-    do: {:error, {:invalid_spacecraft, :spacecraft_mass_kg}}
+      dry_mass_kg > @maximum_spacecraft_mass_kg or
+          propellant_mass_kg > @maximum_spacecraft_mass_kg ->
+        {:error, {:unsupported_spacecraft, :spacecraft_mass_kg}}
 
-  defp validate_non_negative_spacecraft(_field, value)
-       when is_number(value) and value >= 0.0,
-       do: :ok
+      dry_mass_kg + propellant_mass_kg < @minimum_spacecraft_mass_kg ->
+        {:error, {:invalid_spacecraft, :spacecraft_mass_kg}}
 
-  defp validate_non_negative_spacecraft(field, _value),
-    do: {:error, {:invalid_spacecraft, field}}
+      dry_mass_kg + propellant_mass_kg > @maximum_spacecraft_mass_kg ->
+        {:error, {:unsupported_spacecraft, :spacecraft_mass_kg}}
+
+      true ->
+        {:ok, (dry_mass_kg + propellant_mass_kg) * 1.0}
+    end
+  end
+
+  defp validate_spacecraft_parameter(field, value, maximum) do
+    cond do
+      not non_negative_number?(value) -> {:error, {:invalid_spacecraft, field}}
+      value > maximum -> {:error, {:unsupported_spacecraft, field}}
+      true -> :ok
+    end
+  end
 
   defp validate_initial_altitude(state, central_body) do
     altitude_km = Vector3.norm(state.position_km) - central_body.equatorial_radius_km
@@ -771,8 +1002,13 @@ defmodule OrbitalDynamics.Propagators.J2Drag do
     end
   end
 
-  defp validate_output_step(value),
-    do: if(positive_number?(value), do: :ok, else: {:error, {:invalid_scenario, :output_step_s}})
+  defp validate_output_step(value) do
+    cond do
+      not positive_number?(value) -> {:error, {:invalid_scenario, :output_step_s}}
+      value > @maximum_duration_s -> {:error, {:unsupported_scenario, :output_step_s}}
+      true -> :ok
+    end
+  end
 
   defp validate_metadata(value),
     do: if(is_map(value), do: :ok, else: {:error, {:invalid_scenario, :metadata}})
@@ -786,6 +1022,18 @@ defmodule OrbitalDynamics.Propagators.J2Drag do
     do: Map.put(assumptions, :scenario_metadata, metadata)
 
   defp close?(left, right), do: abs(left - right) <= @time_epsilon_s
+  defp number?(value), do: is_integer(value) or is_float(value)
   defp positive_number?(value), do: (is_integer(value) or is_float(value)) and value > 0
   defp non_negative_number?(value), do: (is_integer(value) or is_float(value)) and value >= 0
+
+  defp number_in_range?(value, minimum, maximum),
+    do: number?(value) and value >= minimum and value <= maximum
+
+  defp vector_components_within?({x, y, z}, maximum) do
+    number_in_range?(x, -maximum, maximum) and
+      number_in_range?(y, -maximum, maximum) and
+      number_in_range?(z, -maximum, maximum)
+  end
+
+  defp vector_components_within?(_vector, _maximum), do: false
 end
