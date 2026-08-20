@@ -2,8 +2,8 @@ defmodule OrbitalDynamics.CandidateRefresh.RunnerTest do
   use ExUnit.Case, async: true
 
   alias OrbitalDynamics.CandidateRefresh
-  alias OrbitalDynamics.CandidateRefresh.{Build, ExecutionPolicy}
-  alias OrbitalDynamics.{ResultSet, Schema}
+  alias OrbitalDynamics.CandidateRefresh.{Build, ExecutionPolicy, Runner}
+  alias OrbitalDynamics.{Environment, ResultSet, Schema}
 
   @generated_at ~U[2026-05-14 00:00:00Z]
 
@@ -205,6 +205,11 @@ defmodule OrbitalDynamics.CandidateRefresh.RunnerTest do
         ["model_assumptions", ExecutionPolicy.reserved_key()],
         %{"collision" => true}
       ),
+      put_in(
+        refresh(),
+        ["model_assumptions", ExecutionPolicy.evidence_key()],
+        %{"collision" => true}
+      ),
       Map.put(refresh(), "candidate_refresh_execution", %{}),
       Map.put(refresh(), "propagator", "Arbitrary.Propagator"),
       Map.put(refresh(), "campaign_environment", %{"provider" => "campaign"}),
@@ -278,6 +283,119 @@ defmodule OrbitalDynamics.CandidateRefresh.RunnerTest do
                "bundle" => ExecutionPolicy.bundle_id(),
                "bundle_id" => ExecutionPolicy.bundle_id()
              })
+  end
+
+  test "bounds public normalization depth, collections, bytes, and total visited terms" do
+    deeply_nested = Enum.reduce(1..34, "leaf", fn _index, acc -> %{"child" => acc} end)
+    oversized_list = List.duplicate(0, 10_001)
+    oversized_map = Map.new(1..10_001, &{"key_#{&1}", &1})
+    oversized_key = String.duplicate("k", 513)
+    oversized_binary = String.duplicate("v", 1_048_577)
+
+    visited_terms =
+      List.duplicate(
+        Map.new(1..10, &{"field_#{&1}", &1}),
+        5_000
+      )
+
+    bounded_cases = [
+      {deeply_nested, :max_depth},
+      {oversized_list, :max_list_size},
+      {oversized_map, :max_map_size},
+      {%{oversized_key => "value"}, :max_key_bytes},
+      {%{"value" => oversized_binary}, :max_binary_bytes},
+      {visited_terms, :max_visited_terms}
+    ]
+
+    for {value, limit} <- bounded_cases do
+      assert {:error, {:normalization_limit_exceeded, path, ^limit, maximum}} =
+               ExecutionPolicy.normalize_json_input(value)
+
+      assert is_binary(path)
+      assert is_integer(maximum) and maximum > 0
+    end
+
+    assert {:error, {:candidate_refresh_execution_failed, :validate_input, reason}} =
+             CandidateRefresh.run(Map.put(refresh(), "nested", deeply_nested),
+               generated_at: @generated_at
+             )
+
+    assert match?({:normalization_limit_exceeded, _, :max_depth, 32}, reason)
+  end
+
+  test "reports unsupported options deterministically independent of keyword order" do
+    expected =
+      {:error,
+       {:candidate_refresh_execution_failed, :validate_input,
+        {:unsupported_options, [:alpha, :zeta]}}}
+
+    assert CandidateRefresh.run(refresh(), zeta: 1, alpha: 2) == expected
+    assert CandidateRefresh.run(refresh(), alpha: 2, zeta: 1) == expected
+  end
+
+  test "rejects conflicting secondary snapshot, epoch, and horizon projections" do
+    conflicting_snapshot =
+      put_in(
+        refresh(),
+        ["accepted_planning_state", "spacecraft_states", Access.at(0), "metadata"],
+        %{"snapshot_id" => "snapshot_other"}
+      )
+
+    conflicting_horizon =
+      Map.put(refresh(), :mission_state, %{
+        current_epoch_s: 0.0,
+        remaining_horizon: %{
+          starts_at_s: 0.0,
+          ends_at_s: 610.0,
+          output_step_s: 10.0
+        }
+      })
+
+    conflicting_epoch =
+      put_in(refresh(), ["accepted_planning_state", "current_epoch_s"], 10.0)
+
+    for invalid <- [conflicting_snapshot, conflicting_horizon, conflicting_epoch] do
+      assert {:error,
+              {:candidate_refresh_execution_failed, :validate_input,
+               {:conflicting_identity_projection, _field}}} =
+               CandidateRefresh.run(invalid, generated_at: @generated_at)
+    end
+  end
+
+  test "captured atmosphere backend derives immutable products only from policy capability" do
+    assert {:ok, artifact} = CandidateRefresh.run(refresh(), generated_at: @generated_at)
+    policy = execution_policy(artifact)
+    atmosphere = policy["environment"]["atmosphere_provider"]
+    capability = atmosphere["capability"]
+
+    assert atmosphere["execution_backend_module"] ==
+             "OrbitalDynamics.CandidateRefresh.Runner.CapturedAtmosphereBackend"
+
+    assert atmosphere["execution_backend_module"] in policy["module_allowlist"]
+
+    opts = [
+      captured_capability: capability,
+      captured_source_revision: atmosphere["source_revision"]
+    ]
+
+    assert {:ok, ^capability} = Runner.CapturedAtmosphereBackend.configured_capability(opts)
+
+    assert {:ok, ^capability} =
+             Environment.configured_provider_capability(
+               Runner.CapturedAtmosphereBackend,
+               opts
+             )
+
+    assert {:ok, product} =
+             Runner.CapturedAtmosphereBackend.fetch(
+               :atmosphere_density,
+               Keyword.put(opts, :altitude_km, 400.0)
+             )
+
+    assert product["provider_id"] == capability["id"]
+    assert product["model"] == capability["model"]
+    assert product["density_kg_m3"] == capability["parameters"]["reference_density_kg_m3"]
+    assert product["source_revision"] == atmosphere["source_revision"]
   end
 
   test "legacy build facade remains exactly equal to the unchanged builder" do

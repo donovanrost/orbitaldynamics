@@ -28,6 +28,17 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshExecutionContractsTest do
     assert get_in(report, ["properties", "counts", "properties", "access_window_count"]) ==
              %{"type" => "integer", "minimum" => 0}
 
+    assert get_in(report, ["properties", "evidence", "additionalProperties"]) == false
+
+    assert get_in(report, [
+             "properties",
+             "evidence",
+             "properties",
+             "access_windows_sha256",
+             "pattern"
+           ]) ==
+             "^[0-9a-f]{64}$"
+
     assert get_in(report, ["properties", "external_validation", "properties", "case_id", "const"]) ==
              ExecutionPolicy.external_case_id()
   end
@@ -52,7 +63,9 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshExecutionContractsTest do
       artifact
       |> Map.delete("candidate_refresh_execution")
       |> update_in(["assumptions", "model_assumptions"], fn assumptions ->
-        Map.delete(assumptions, ExecutionPolicy.reserved_key())
+        assumptions
+        |> Map.delete(ExecutionPolicy.reserved_key())
+        |> Map.delete(ExecutionPolicy.evidence_key())
       end)
 
     assert {:ok, %{"status" => "pass"}} = Schema.validate_artifact(legacy_shape)
@@ -73,6 +86,16 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshExecutionContractsTest do
     assert_error_path(
       without_policy,
       "$.assumptions.model_assumptions.#{ExecutionPolicy.reserved_key()}"
+    )
+
+    without_evidence =
+      update_in(artifact, ["assumptions", "model_assumptions"], fn assumptions ->
+        Map.delete(assumptions, ExecutionPolicy.evidence_key())
+      end)
+
+    assert_error_path(
+      without_evidence,
+      "$.assumptions.model_assumptions.#{ExecutionPolicy.evidence_key()}"
     )
   end
 
@@ -137,6 +160,178 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshExecutionContractsTest do
     )
   end
 
+  test "rejects coherent count and identity substitutions across execution surfaces" do
+    artifact = run!()
+
+    forged_count =
+      artifact
+      |> put_in(["candidate_refresh_execution", "counts", "trajectory_sample_count"], 999)
+      |> put_in(["candidate_refresh_execution", "evidence", "trajectory_sample_count"], 999)
+      |> put_in(
+        [
+          "assumptions",
+          "model_assumptions",
+          ExecutionPolicy.evidence_key(),
+          "trajectory_sample_count"
+        ],
+        999
+      )
+
+    substituted_snapshot =
+      artifact
+      |> Map.put("snapshot_id", "snapshot_other")
+      |> put_in(["accepted_planning_state", "snapshot_id"], "snapshot_other")
+      |> put_in(["provenance", "accepted_planning_state", "snapshot_id"], "snapshot_other")
+      |> put_in(["candidate_refresh_execution", "snapshot_id"], "snapshot_other")
+
+    substituted_scenario =
+      artifact
+      |> put_in(["candidate_refresh_execution", "scenario_id"], "scenario_other")
+      |> put_in(["candidate_refresh_execution", "evidence", "scenario_id"], "scenario_other")
+      |> put_in(
+        ["assumptions", "model_assumptions", ExecutionPolicy.evidence_key(), "scenario_id"],
+        "scenario_other"
+      )
+
+    substituted_station =
+      artifact
+      |> put_in(["candidate_refresh_execution", "ground_station_id"], "station_other")
+      |> put_in(
+        ["candidate_refresh_execution", "evidence", "ground_station_id"],
+        "station_other"
+      )
+      |> put_in(
+        [
+          "assumptions",
+          "model_assumptions",
+          ExecutionPolicy.evidence_key(),
+          "ground_station_id"
+        ],
+        "station_other"
+      )
+
+    forged_refresh_id =
+      artifact
+      |> Map.put("refresh_id", "candidate_refresh:scenario_a:0000000000000000")
+      |> put_in(
+        ["candidate_refresh_execution", "refresh_id"],
+        "candidate_refresh:scenario_a:0000000000000000"
+      )
+
+    for invalid <- [
+          forged_count,
+          substituted_snapshot,
+          substituted_scenario,
+          substituted_station,
+          forged_refresh_id
+        ] do
+      assert {:error, report} = Schema.validate_artifact(invalid)
+      assert report["errors"] != []
+    end
+  end
+
+  test "rejects shifted or reidentified access even when dependent evidence is updated coherently" do
+    artifact = run!()
+    [window | _rest] = get_in(artifact, ["refreshed_windows", "access_windows"])
+    source_window_id = window["id"]
+
+    shifted =
+      artifact
+      |> update_in(["refreshed_windows", "access_windows"], fn [first | rest] ->
+        [
+          first
+          |> Map.update!("starts_at_s", &(&1 + 1.0))
+          |> Map.update!("sample_count", &max(&1 - 1, 0))
+          | rest
+        ]
+      end)
+      |> update_in(["candidate_activities"], fn candidates ->
+        Enum.map(candidates, fn candidate ->
+          if candidate["source_window_id"] == source_window_id do
+            candidate
+            |> Map.update!("starts_at_s", &(&1 + 1.0))
+            |> Map.update!("duration_s", &(&1 - 1.0))
+          else
+            candidate
+          end
+        end)
+      end)
+
+    shifted = put_in(shifted, ["source_window_lineage"], recomputed_lineage(shifted))
+
+    {:ok, shifted_digest} =
+      ExecutionPolicy.canonical_sha256(get_in(shifted, ["refreshed_windows", "access_windows"]))
+
+    shifted = put_evidence_value(shifted, "access_windows_sha256", shifted_digest)
+
+    assert_error_path(shifted, "$.refresh_id")
+
+    wrong_station =
+      artifact
+      |> update_in(["refreshed_windows", "access_windows"], fn windows ->
+        Enum.map(windows, &Map.put(&1, "ground_station_id", "station_other"))
+      end)
+      |> update_in(["candidate_activities"], fn candidates ->
+        Enum.map(candidates, &Map.put(&1, "ground_station_id", "station_other"))
+      end)
+
+    assert_error_path(
+      wrong_station,
+      "$.refreshed_windows.access_windows[0].ground_station_id"
+    )
+
+    tampered_window_id = source_window_id <> ":tampered"
+
+    reidentified =
+      artifact
+      |> update_in(["refreshed_windows", "access_windows"], fn [first | rest] ->
+        [Map.put(first, "id", tampered_window_id) | rest]
+      end)
+      |> update_in(["candidate_activities"], fn candidates ->
+        Enum.map(candidates, fn candidate ->
+          if candidate["source_window_id"] == source_window_id,
+            do: Map.put(candidate, "source_window_id", tampered_window_id),
+            else: candidate
+        end)
+      end)
+
+    reidentified =
+      put_in(reidentified, ["source_window_lineage"], recomputed_lineage(reidentified))
+
+    {:ok, reidentified_digest} =
+      ExecutionPolicy.canonical_sha256(
+        get_in(reidentified, ["refreshed_windows", "access_windows"])
+      )
+
+    reidentified =
+      put_evidence_value(reidentified, "access_windows_sha256", reidentified_digest)
+
+    assert_error_path(reidentified, "$.refreshed_windows.access_windows[0].id")
+  end
+
+  test "public validation returns errors rather than raising for hostile execution values" do
+    artifact = run!()
+
+    invalid_cases = [
+      put_in(artifact, ["candidate_refresh_execution", "evidence"], %{"value" => self()}),
+      put_in(
+        artifact,
+        ["assumptions", "model_assumptions", ExecutionPolicy.reserved_key()],
+        %{"policy_fingerprint" => fn -> :not_json end}
+      ),
+      put_in(
+        artifact,
+        ["candidate_refresh_execution", "policies", "access"],
+        Enum.reduce(1..34, "leaf", fn _index, acc -> %{"child" => acc} end)
+      )
+    ]
+
+    for invalid <- invalid_cases do
+      assert {:error, report} = Schema.validate_artifact(invalid)
+      assert is_list(report["errors"]) and report["errors"] != []
+    end
+  end
+
   defp run! do
     assert {:ok, artifact} = CandidateRefresh.run(refresh(), generated_at: @generated_at)
     artifact
@@ -149,6 +344,19 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshExecutionContractsTest do
 
   defp execution_policy(artifact) do
     get_in(artifact, ["assumptions", "model_assumptions", ExecutionPolicy.reserved_key()])
+  end
+
+  defp put_evidence_value(artifact, field, value) do
+    artifact
+    |> put_in(["candidate_refresh_execution", "evidence", field], value)
+    |> put_in(
+      ["assumptions", "model_assumptions", ExecutionPolicy.evidence_key(), field],
+      value
+    )
+  end
+
+  defp recomputed_lineage(artifact) do
+    OrbitalDynamics.CandidateRefresh.SourceWindowLineage.build(artifact["candidate_activities"])
   end
 
   defp refresh do

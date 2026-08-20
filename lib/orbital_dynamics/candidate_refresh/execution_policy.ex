@@ -24,11 +24,17 @@ defmodule OrbitalDynamics.CandidateRefresh.ExecutionPolicy do
   @schema_contract "candidate_refresh_execution_policy.v1"
   @execution_mode "offline_deterministic"
   @reserved_key "candidate_refresh_execution_policy"
+  @evidence_key "candidate_refresh_execution_evidence"
   @external_case_id "orekit_13_1_7_leo_j2_drag_access_eclipse"
   @output_step_s 10.0
   @max_step_s 10.0
   @root_tolerance_s 1.0e-6
   @root_max_iterations 64
+  @max_normalization_depth 32
+  @max_collection_size 10_000
+  @max_key_bytes 512
+  @max_binary_bytes 1_048_576
+  @max_visited_terms 100_000
 
   @atmosphere_revision "exponential-reference.v1"
   @earth_rotation_revision "constant-earth-rotation.v1"
@@ -55,6 +61,7 @@ defmodule OrbitalDynamics.CandidateRefresh.ExecutionPolicy do
 
   @module_allowlist [
     "OrbitalDynamics.Propagators.J2Drag",
+    "OrbitalDynamics.CandidateRefresh.Runner.CapturedAtmosphereBackend",
     "OrbitalDynamics.Environment.ExponentialAtmosphereProvider",
     "OrbitalDynamics.Environment.ConstantEarthRotationProvider",
     "OrbitalDynamics.EventDetectors.AccessWindows",
@@ -111,6 +118,7 @@ defmodule OrbitalDynamics.CandidateRefresh.ExecutionPolicy do
     provider_capabilities
     provider_coverage
     provider_revisions
+    refresh_identity_input
     schema_contract
     spacecraft
     sun_direction_provider
@@ -165,6 +173,9 @@ defmodule OrbitalDynamics.CandidateRefresh.ExecutionPolicy do
   @doc "Returns the reserved model-assumptions key used to bind refresh identity."
   def reserved_key, do: @reserved_key
 
+  @doc false
+  def evidence_key, do: @evidence_key
+
   @doc "Returns the fixed offline execution mode."
   def execution_mode, do: @execution_mode
 
@@ -188,6 +199,18 @@ defmodule OrbitalDynamics.CandidateRefresh.ExecutionPolicy do
     case normalize_json_input(value) do
       {:ok, normalized} -> normalized |> canonical_term() |> :erlang.term_to_binary()
       {:error, _reason} -> raise ArgumentError, "invalid canonical input"
+    end
+  end
+
+  @doc false
+  def canonical_sha256(value) do
+    with {:ok, normalized} <- normalize_json_input(value) do
+      {:ok,
+       normalized
+       |> canonical_term()
+       |> :erlang.term_to_binary()
+       |> then(&:crypto.hash(:sha256, &1))
+       |> Base.encode16(case: :lower)}
     end
   end
 
@@ -220,7 +243,11 @@ defmodule OrbitalDynamics.CandidateRefresh.ExecutionPolicy do
            alias_value(map, ["initial_state"], nil, :initial_state),
          {:ok, initial_state} <- normalize_optional_initial_state(initial_state_input),
          {:ok, coverage_input} <- alias_value(map, ["coverage"], nil, :coverage),
-         {:ok, coverage} <- normalize_optional_coverage(coverage_input) do
+         {:ok, coverage} <- normalize_optional_coverage(coverage_input),
+         {:ok, refresh_identity_input} <-
+           alias_value(map, ["refresh_identity_input"], nil, :refresh_identity_input),
+         {:ok, refresh_identity_input} <-
+           normalize_optional_refresh_identity(refresh_identity_input) do
       {:ok,
        %{
          bundle_id: bundle_id,
@@ -228,6 +255,7 @@ defmodule OrbitalDynamics.CandidateRefresh.ExecutionPolicy do
          ground_station: ground_station,
          initial_state: initial_state,
          coverage: coverage,
+         refresh_identity_input: refresh_identity_input,
          raw: map
        }}
     end
@@ -361,6 +389,7 @@ defmodule OrbitalDynamics.CandidateRefresh.ExecutionPolicy do
       "ground_station" => request.ground_station,
       "initial_state" => request.initial_state,
       "coverage" => request.coverage,
+      "refresh_identity_input" => request.refresh_identity_input,
       "central_body" => %{
         "name" => "earth",
         "mu_km3_s2" => @central_body.mu_km3_s2,
@@ -380,6 +409,8 @@ defmodule OrbitalDynamics.CandidateRefresh.ExecutionPolicy do
         "mode" => "built_in_offline_fixed",
         "atmosphere_provider" => %{
           "module" => "OrbitalDynamics.Environment.ExponentialAtmosphereProvider",
+          "execution_backend_module" =>
+            "OrbitalDynamics.CandidateRefresh.Runner.CapturedAtmosphereBackend",
           "source_revision" => @atmosphere_revision,
           "capability" => atmosphere
         },
@@ -502,6 +533,9 @@ defmodule OrbitalDynamics.CandidateRefresh.ExecutionPolicy do
       not is_map(request.coverage) ->
         {:error, {:missing_policy_input, :coverage}}
 
+      not is_map(request.refresh_identity_input) ->
+        {:error, {:missing_policy_input, :refresh_identity_input}}
+
       request.spacecraft["spacecraft_id"] != request.initial_state["spacecraft_id"] ->
         {:error, {:policy_state_mismatch, :spacecraft_id}}
 
@@ -512,9 +546,96 @@ defmodule OrbitalDynamics.CandidateRefresh.ExecutionPolicy do
         {:error, {:policy_state_mismatch, :epoch_s}}
 
       true ->
-        :ok
+        validate_refresh_identity_input(request)
     end
   end
+
+  defp validate_refresh_identity_input(request) do
+    refresh = request.refresh_identity_input
+    accepted_state = Map.get(refresh, "accepted_planning_state")
+    horizon = Map.get(refresh, "remaining_horizon")
+
+    state =
+      case accepted_state do
+        %{"spacecraft_states" => [%{} = state]} -> state
+        _value -> nil
+      end
+
+    with true <- is_map(accepted_state),
+         true <- is_map(state),
+         true <- is_map(horizon),
+         :ok <-
+           require_equal(
+             accepted_state["snapshot_id"],
+             request.initial_state["snapshot_id"],
+             {:policy_refresh_identity_mismatch, :snapshot_id}
+           ),
+         :ok <-
+           require_equal(
+             state["spacecraft_id"],
+             request.initial_state["spacecraft_id"],
+             {:policy_refresh_identity_mismatch, :spacecraft_id}
+           ),
+         :ok <-
+           require_equal(
+             state["scenario_id"],
+             request.initial_state["scenario_id"],
+             {:policy_refresh_identity_mismatch, :scenario_id}
+           ),
+         :ok <-
+           require_equal(
+             get_in(state, ["epoch", "seconds_since_j2000"]),
+             request.initial_state["epoch_s"],
+             {:policy_refresh_identity_mismatch, :state_epoch_s}
+           ),
+         :ok <-
+           require_equal(
+             get_in(state, ["epoch", "time_scale"]),
+             request.initial_state["time_scale"],
+             {:policy_refresh_identity_mismatch, :time_scale}
+           ),
+         :ok <-
+           require_equal(
+             state["frame"],
+             request.initial_state["frame"],
+             {:policy_refresh_identity_mismatch, :frame}
+           ),
+         :ok <-
+           require_equal(
+             get_in(state, ["state_vector", "position_km"]),
+             request.initial_state["position_km"],
+             {:policy_refresh_identity_mismatch, :position_km}
+           ),
+         :ok <-
+           require_equal(
+             get_in(state, ["state_vector", "velocity_km_s"]),
+             request.initial_state["velocity_km_s"],
+             {:policy_refresh_identity_mismatch, :velocity_km_s}
+           ),
+         :ok <-
+           require_equal(
+             refresh["current_epoch_s"],
+             request.initial_state["epoch_s"],
+             {:policy_refresh_identity_mismatch, :current_epoch_s}
+           ),
+         :ok <-
+           require_equal(
+             Map.take(horizon, @coverage_keys),
+             request.coverage,
+             {:policy_refresh_identity_mismatch, :remaining_horizon}
+           ) do
+      :ok
+    else
+      false -> {:error, {:invalid_policy_input, :refresh_identity_input}}
+      {:error, reason} -> {:error, reason}
+    end
+  end
+
+  defp normalize_optional_refresh_identity(nil), do: {:ok, nil}
+  defp normalize_optional_refresh_identity(%{} = refresh), do: {:ok, refresh}
+
+  defp normalize_optional_refresh_identity(_refresh),
+    do: {:error, {:invalid_policy_input, :refresh_identity_input}}
 
   defp normalize_optional_spacecraft(nil), do: {:ok, nil}
   defp normalize_optional_spacecraft(value), do: normalize_spacecraft(value)
@@ -937,101 +1058,149 @@ defmodule OrbitalDynamics.CandidateRefresh.ExecutionPolicy do
     |> Base.encode16(case: :lower)
   end
 
-  defp normalize_public_value(value, path), do: normalize_value(value, path, :public)
-  defp normalize_internal_value(value, path), do: normalize_value(value, path, :internal)
+  defp normalize_public_value(value, path), do: normalize_root(value, path, :public)
+  defp normalize_internal_value(value, path), do: normalize_root(value, path, :internal)
 
-  defp normalize_value(value, path, mode) do
-    cond do
-      is_struct(value) ->
-        unsupported_value(mode, path, :struct)
-
-      is_map(value) ->
-        normalize_map(value, path, mode)
-
-      list_shaped?(value) and proper_list?(value) ->
-        normalize_list(value, path, mode)
-
-      list_shaped?(value) ->
-        unsupported_value(mode, path, :improper_list)
-
-      is_boolean(value) or is_nil(value) ->
-        {:ok, value}
-
-      is_binary(value) and not String.valid?(value) ->
-        {:error, {:invalid_utf8_string, path}}
-
-      is_binary(value) ->
-        {:ok, value}
-
-      is_number(value) and finite_number?(value) ->
-        {:ok, value}
-
-      is_number(value) ->
-        {:error, {:non_finite_number, path}}
-
-      is_tuple(value) ->
-        unsupported_value(mode, path, :tuple)
-
-      is_bitstring(value) ->
-        unsupported_value(mode, path, :bitstring)
-
-      is_atom(value) and mode == :internal ->
-        {:ok, Atom.to_string(value)}
-
-      is_atom(value) ->
-        unsupported_value(mode, path, :atom)
-
-      is_pid(value) ->
-        unsupported_value(mode, path, :pid)
-
-      is_reference(value) ->
-        unsupported_value(mode, path, :reference)
-
-      is_function(value) ->
-        unsupported_value(mode, path, :function)
-
-      true ->
-        unsupported_value(mode, path, :port_or_unknown)
+  defp normalize_root(value, path, mode) do
+    case normalize_value(value, path, mode, 0, 0) do
+      {:ok, normalized, _visited} -> {:ok, normalized}
+      {:error, reason} -> {:error, reason}
     end
   end
 
-  defp normalize_map(map, path, mode) do
-    map
-    |> Enum.reduce_while({:ok, %{}, MapSet.new()}, fn {key, value}, {:ok, acc, seen} ->
-      with {:ok, normalized_key} <- normalize_public_key(key, path),
-           false <- MapSet.member?(seen, normalized_key),
-           {:ok, normalized_value} <-
-             normalize_value(value, path <> "." <> normalized_key, mode) do
-        {:cont,
-         {:ok, Map.put(acc, normalized_key, normalized_value), MapSet.put(seen, normalized_key)}}
-      else
+  defp normalize_value(_value, path, _mode, depth, _visited)
+       when depth > @max_normalization_depth,
+       do: normalization_limit(path, :max_depth, @max_normalization_depth)
+
+  defp normalize_value(value, path, mode, depth, visited) do
+    with {:ok, visited} <- visit_term(path, visited) do
+      cond do
+        is_struct(value) ->
+          unsupported_value(mode, path, :struct)
+
+        is_map(value) ->
+          normalize_map(value, path, mode, depth, visited)
+
+        list_shaped?(value) ->
+          normalize_list(value, path, mode, depth, visited, 0, [])
+
+        is_boolean(value) or is_nil(value) ->
+          {:ok, value, visited}
+
+        is_binary(value) and byte_size(value) > @max_binary_bytes ->
+          normalization_limit(path, :max_binary_bytes, @max_binary_bytes)
+
+        is_binary(value) and not String.valid?(value) ->
+          {:error, {:invalid_utf8_string, path}}
+
+        is_binary(value) ->
+          {:ok, value, visited}
+
+        is_number(value) and finite_number?(value) ->
+          {:ok, value, visited}
+
+        is_number(value) ->
+          {:error, {:non_finite_number, path}}
+
+        is_tuple(value) ->
+          unsupported_value(mode, path, :tuple)
+
+        is_bitstring(value) ->
+          unsupported_value(mode, path, :bitstring)
+
+        is_atom(value) and mode == :internal ->
+          {:ok, Atom.to_string(value), visited}
+
+        is_atom(value) ->
+          unsupported_value(mode, path, :atom)
+
+        is_pid(value) ->
+          unsupported_value(mode, path, :pid)
+
+        is_reference(value) ->
+          unsupported_value(mode, path, :reference)
+
+        is_function(value) ->
+          unsupported_value(mode, path, :function)
+
         true ->
-          {:halt, {:error, {:duplicate_normalized_key, path, encoded_public_key(key)}}}
-
-        {:error, reason} ->
-          {:halt, {:error, reason}}
+          unsupported_value(mode, path, :port_or_unknown)
       end
+    end
+  end
+
+  defp normalize_map(map, path, _mode, _depth, _visited)
+       when map_size(map) > @max_collection_size,
+       do: normalization_limit(path, :max_map_size, @max_collection_size)
+
+  defp normalize_map(map, path, mode, depth, visited) do
+    map
+    |> Enum.sort_by(fn {key, _value} -> encoded_public_key(key) end)
+    |> Enum.reduce_while({:ok, %{}, MapSet.new(), visited}, fn
+      {key, value}, {:ok, acc, seen, current_visited} ->
+        with {:ok, current_visited} <- visit_term(path, current_visited),
+             {:ok, normalized_key} <- normalize_public_key(key, path),
+             false <- MapSet.member?(seen, normalized_key),
+             {:ok, normalized_value, current_visited} <-
+               normalize_value(
+                 value,
+                 path <> "." <> normalized_key,
+                 mode,
+                 depth + 1,
+                 current_visited
+               ) do
+          {:cont,
+           {:ok, Map.put(acc, normalized_key, normalized_value), MapSet.put(seen, normalized_key),
+            current_visited}}
+        else
+          true ->
+            {:halt, {:error, {:duplicate_normalized_key, path, encoded_public_key(key)}}}
+
+          {:error, reason} ->
+            {:halt, {:error, reason}}
+        end
     end)
     |> case do
-      {:ok, normalized, _seen} -> {:ok, normalized}
+      {:ok, normalized, _seen, current_visited} -> {:ok, normalized, current_visited}
       {:error, reason} -> {:error, reason}
     end
   end
 
-  defp normalize_list(values, path, mode) do
-    values
-    |> Enum.with_index()
-    |> Enum.reduce_while({:ok, []}, fn {value, index}, {:ok, acc} ->
-      case normalize_value(value, "#{path}[#{index}]", mode) do
-        {:ok, normalized} -> {:cont, {:ok, [normalized | acc]}}
-        {:error, reason} -> {:halt, {:error, reason}}
-      end
-    end)
-    |> case do
-      {:ok, normalized} -> {:ok, Enum.reverse(normalized)}
-      {:error, reason} -> {:error, reason}
+  defp normalize_list([], _path, _mode, _depth, visited, _index, acc),
+    do: {:ok, Enum.reverse(acc), visited}
+
+  defp normalize_list([_head | _tail], path, _mode, _depth, _visited, index, _acc)
+       when index >= @max_collection_size,
+       do: normalization_limit(path, :max_list_size, @max_collection_size)
+
+  defp normalize_list([head | tail], path, mode, depth, visited, index, acc) do
+    case normalize_value(head, "#{path}[#{index}]", mode, depth + 1, visited) do
+      {:ok, normalized, current_visited} ->
+        normalize_list(
+          tail,
+          path,
+          mode,
+          depth,
+          current_visited,
+          index + 1,
+          [normalized | acc]
+        )
+
+      {:error, reason} ->
+        {:error, reason}
     end
   end
+
+  defp normalize_list(_improper, path, mode, _depth, _visited, _index, _acc),
+    do: unsupported_value(mode, path, :improper_list)
+
+  defp visit_term(path, visited) when visited >= @max_visited_terms,
+    do: normalization_limit(path, :max_visited_terms, @max_visited_terms)
+
+  defp visit_term(_path, visited), do: {:ok, visited + 1}
+
+  defp normalization_limit(path, limit, maximum),
+    do: {:error, {:normalization_limit_exceeded, path, limit, maximum}}
 
   defp unsupported_value(:public, path, type),
     do: {:error, {:unsupported_json_value, path, type}}
@@ -1046,9 +1215,16 @@ defmodule OrbitalDynamics.CandidateRefresh.ExecutionPolicy do
   end
 
   defp normalize_public_key(key, path) when is_binary(key) do
-    if String.valid?(key),
-      do: {:ok, key},
-      else: {:error, {:invalid_utf8_key, path}}
+    cond do
+      byte_size(key) > @max_key_bytes ->
+        normalization_limit(path, :max_key_bytes, @max_key_bytes)
+
+      not String.valid?(key) ->
+        {:error, {:invalid_utf8_key, path}}
+
+      true ->
+        {:ok, key}
+    end
   end
 
   defp normalize_public_key(_key, path),
@@ -1061,10 +1237,6 @@ defmodule OrbitalDynamics.CandidateRefresh.ExecutionPolicy do
   defp list_shaped?([]), do: true
   defp list_shaped?([_head | _tail]), do: true
   defp list_shaped?(_value), do: false
-
-  defp proper_list?([]), do: true
-  defp proper_list?([_head | tail]), do: proper_list?(tail)
-  defp proper_list?(_value), do: false
 
   defp finite_number?(value),
     do: is_number(value) and value >= -1.0e300 and value <= 1.0e300

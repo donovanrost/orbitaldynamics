@@ -53,24 +53,37 @@ semantic aliases, structs, PIDs, functions, references, non-byte-aligned
 bitstrings, improper lists, arbitrary tuples, unsupported keys, and non-finite
 or excessive values are rejected. Canonical SHA-256 fingerprinting runs only on
 that validated normalized form and never uses inspected runtime text as
-identity material.
+identity material. Normalization is also bounded before semantic validation to
+32 nested levels, 10,000 entries per collection, 512 bytes per key, 1 MiB per
+binary, and 100,000 visited terms; limit failures carry the offending path and
+limit rather than traversing an unbounded value.
 
 After capture, the runner does not dynamically dispatch caller-selected
 modules or reread configuration, source, campaign, or network providers. It
-builds one ballistic `Scenario`, propagates with `J2Drag`, regenerates access
-and eclipse events, assembles an in-memory `ResultSet`, and injects the
-serialized policy at the reserved
-`assumptions.model_assumptions.candidate_refresh_execution_policy` key before
-calling the unchanged `Build.build/2`. That makes state, ballistics, station
-geometry, provider/detector capability revisions, and fixed model settings part
-of the existing refresh identity. Equivalent input order and the same
-`generated_at` are deterministic.
+builds one ballistic `Scenario` and propagates with `J2Drag`, but satisfies the
+propagator's provider interface through the fixed captured-atmosphere backend.
+That backend receives the serialized capability, source revision, and analytic
+parameters explicitly and constructs every density product from those values;
+it never calls the provider module or rediscovers capability state after
+capture. The runner then regenerates access and eclipse events and assembles an
+in-memory `ResultSet`.
+
+Before calling the unchanged `Build.build/2`, the runner injects the serialized
+policy and detector evidence under the reserved
+`candidate_refresh_execution_policy` and `candidate_refresh_execution_evidence`
+model-assumption keys. The policy retains the exact normalized refresh-identity
+input, while the evidence binds scenario/station identity, trajectory sample
+count, and canonical access/eclipse digests. State, ballistics, station
+geometry, provider/detector revisions, fixed model settings, and generated
+window evidence therefore participate in the existing refresh ID. Equivalent
+input order and the same `generated_at` are deterministic.
 
 Only regenerated ground-station access produces downlink candidates. Eclipse
 intervals are archived under refreshed windows and do not create candidates.
 The nested `candidate_refresh_execution.v1` report binds bundle, execution
-mode, policy fingerprint, snapshot ID, generated counts, selected policies,
-model limits, and Domain 18 case
+mode, policy fingerprint, refresh/study/snapshot/spacecraft/scenario/station
+identity, detector evidence, generated counts, selected policies, model limits,
+and Domain 18 case
 `orekit_13_1_7_leo_j2_drag_access_eclipse` with validation scope
 `exact_case_only`. This branch references that case but does not claim or run
 the final exact external-truth integration; that gate remains pending the
@@ -80,7 +93,10 @@ Every execution stage returns a typed
 `candidate_refresh_execution_failed` error. Failures return no partial
 artifact, while zero-event and zero-candidate executions remain valid. The
 final artifact is executable-validated, including the captured policy,
-fingerprint, count, snapshot, policy-copy, exact-case, and model-limit bindings.
+fingerprint, recomputed trajectory count and `BuildRefreshId`, four-way snapshot
+identity, scenario/station window identities, deterministic window IDs and
+boundaries, candidate/source-window causality, detector digests, policy-copy,
+exact-case, and model-limit bindings.
 
 ## Candidate-set diff and matching
 

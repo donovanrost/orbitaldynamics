@@ -443,7 +443,13 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshReportJsonSchema do
         "bundle_id",
         "execution_mode",
         "policy_fingerprint",
+        "refresh_id",
+        "study_id",
         "snapshot_id",
+        "spacecraft_id",
+        "scenario_id",
+        "ground_station_id",
+        "evidence",
         "counts",
         "policies",
         "external_validation",
@@ -460,7 +466,13 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshReportJsonSchema do
         },
         "execution_mode" => %{"type" => "string", "const" => "offline_deterministic"},
         "policy_fingerprint" => %{"type" => "string", "pattern" => "^[0-9a-f]{64}$"},
+        "refresh_id" => %{"type" => "string", "pattern" => stable_id_pattern},
+        "study_id" => %{"type" => "string", "pattern" => stable_id_pattern},
         "snapshot_id" => %{"type" => "string", "pattern" => stable_id_pattern},
+        "spacecraft_id" => %{"type" => "string", "pattern" => stable_id_pattern},
+        "scenario_id" => %{"type" => "string", "pattern" => stable_id_pattern},
+        "ground_station_id" => %{"type" => "string", "pattern" => stable_id_pattern},
+        "evidence" => execution_evidence_schema(stable_id_pattern),
         "counts" => execution_counts_schema(),
         "policies" => execution_policies_schema(),
         "external_validation" => execution_external_validation_schema(),
@@ -555,6 +567,27 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshReportJsonSchema do
         Map.new(@execution_count_fields, fn field ->
           {field, %{"type" => "integer", "minimum" => 0}}
         end)
+    }
+  end
+
+  defp execution_evidence_schema(stable_id_pattern) do
+    %{
+      "type" => "object",
+      "additionalProperties" => false,
+      "required" => [
+        "scenario_id",
+        "ground_station_id",
+        "trajectory_sample_count",
+        "access_windows_sha256",
+        "eclipse_intervals_sha256"
+      ],
+      "properties" => %{
+        "scenario_id" => %{"type" => "string", "pattern" => stable_id_pattern},
+        "ground_station_id" => %{"type" => "string", "pattern" => stable_id_pattern},
+        "trajectory_sample_count" => %{"type" => "integer", "minimum" => 2},
+        "access_windows_sha256" => %{"type" => "string", "pattern" => "^[0-9a-f]{64}$"},
+        "eclipse_intervals_sha256" => %{"type" => "string", "pattern" => "^[0-9a-f]{64}$"}
+      }
     }
   end
 
