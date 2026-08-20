@@ -124,6 +124,16 @@ defmodule OrbitalDynamics.CandidateRefresh.Capabilities do
       planner: "OrbitalDynamics.CandidateRefresh.V1",
       model: :accepted_planning_state_to_sampled_windows_v1,
       validation_level: :artifact_contract,
+      executable_refresh: %{
+        opt_in: true,
+        bundle_id: "candidate_refresh.earth_j2_drag_access_eclipse.v1",
+        execution_mode: :offline_deterministic,
+        input_contract: "accepted_planning_state.v1",
+        report_contract: "candidate_refresh_execution.v1",
+        candidate_sources: [:ground_station_access],
+        archived_event_families: [:eclipse],
+        network_access: false
+      },
       inputs: [
         :accepted_planning_state,
         :mission_state,
@@ -208,6 +218,7 @@ defmodule OrbitalDynamics.CandidateRefresh.Capabilities do
         :validation_safety_case_summary
       ],
       outputs: [
+        :candidate_refresh_execution,
         :refreshed_windows,
         :candidate_activities,
         :contact_intents,

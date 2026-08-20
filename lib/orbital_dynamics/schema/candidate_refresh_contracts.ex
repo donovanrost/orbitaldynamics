@@ -4,6 +4,7 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshContracts do
   alias OrbitalDynamics.Schema.CandidateActivityContracts
   alias OrbitalDynamics.Schema.CandidateDiffContracts
   alias OrbitalDynamics.Schema.CandidateRefreshAcceptedPlanningStateContracts
+  alias OrbitalDynamics.Schema.CandidateRefreshExecutionContracts
   alias OrbitalDynamics.Schema.CandidateRefreshModelLimitContracts
   alias OrbitalDynamics.Schema.CandidateRefreshRegistryContracts
   alias OrbitalDynamics.Schema.CandidateRefreshReportContracts
@@ -143,6 +144,7 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshContracts do
       Map.get(artifact, "source_window_lineage", []),
       &CandidateDiffContracts.validate_source_window_lineage/3
     )
+    |> CandidateRefreshExecutionContracts.validate_optional(artifact)
   end
 
   defp validate_publication_lineage_fields(issues, artifact) do

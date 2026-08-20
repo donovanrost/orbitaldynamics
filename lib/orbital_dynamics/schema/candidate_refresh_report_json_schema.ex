@@ -78,6 +78,20 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshReportJsonSchema do
     "resource_filter_report" => "resource_filter_report.v1"
   }
 
+  @execution_count_fields ~w(
+    spacecraft_state_count
+    ground_station_count
+    trajectory_count
+    trajectory_sample_count
+    event_result_count
+    access_window_count
+    eclipse_interval_count
+    candidate_activity_count
+    downlink_candidate_count
+  )
+
+  @execution_policy_fields ~w(propagation environment access eclipse)
+
   @candidate_refresh_publication_lineage_id_array_fields [
     "source_report_timeline_publication_ids",
     "source_report_timeline_publication_source_artifact_ids",
@@ -141,6 +155,7 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshReportJsonSchema do
   def candidate_refresh_property_field?(field) do
     field in @candidate_refresh_array_item_fields or
       field in @candidate_refresh_embedded_report_fields or
+      field == "candidate_refresh_execution" or
       field == "model_limits" or
       field == "warnings" or
       field == "remaining_horizon" or
@@ -255,6 +270,10 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshReportJsonSchema do
   end
 
   def candidate_refresh_property_opts("accepted_planning_state", deps) do
+    [stable_id_pattern: fetch_dep!(deps, :stable_id_pattern)]
+  end
+
+  def candidate_refresh_property_opts("candidate_refresh_execution", deps) do
     [stable_id_pattern: fetch_dep!(deps, :stable_id_pattern)]
   end
 
@@ -413,6 +432,47 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshReportJsonSchema do
     accepted_planning_state_ref(Keyword.fetch!(opts, :stable_id_pattern))
   end
 
+  def candidate_refresh_property("candidate_refresh_execution", opts) do
+    stable_id_pattern = Keyword.fetch!(opts, :stable_id_pattern)
+
+    %{
+      "type" => "object",
+      "additionalProperties" => false,
+      "required" => [
+        "schema_contract",
+        "bundle_id",
+        "execution_mode",
+        "policy_fingerprint",
+        "snapshot_id",
+        "counts",
+        "policies",
+        "external_validation",
+        "model_limits"
+      ],
+      "properties" => %{
+        "schema_contract" => %{
+          "type" => "string",
+          "const" => "candidate_refresh_execution.v1"
+        },
+        "bundle_id" => %{
+          "type" => "string",
+          "const" => "candidate_refresh.earth_j2_drag_access_eclipse.v1"
+        },
+        "execution_mode" => %{"type" => "string", "const" => "offline_deterministic"},
+        "policy_fingerprint" => %{"type" => "string", "pattern" => "^[0-9a-f]{64}$"},
+        "snapshot_id" => %{"type" => "string", "pattern" => stable_id_pattern},
+        "counts" => execution_counts_schema(),
+        "policies" => execution_policies_schema(),
+        "external_validation" => execution_external_validation_schema(),
+        "model_limits" => %{
+          "type" => "array",
+          "const" => OrbitalDynamics.CandidateRefresh.ExecutionPolicy.model_limits(),
+          "items" => %{"type" => "string"}
+        }
+      }
+    }
+  end
+
   def candidate_refresh_property("warnings", _opts) do
     CommonJsonSchema.string_array()
   end
@@ -484,6 +544,49 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshReportJsonSchema do
   def candidate_refresh_property(field, _opts)
       when field in @candidate_refresh_resource_availability_string_array_fields do
     CommonJsonSchema.string_array()
+  end
+
+  defp execution_counts_schema do
+    %{
+      "type" => "object",
+      "additionalProperties" => false,
+      "required" => @execution_count_fields,
+      "properties" =>
+        Map.new(@execution_count_fields, fn field ->
+          {field, %{"type" => "integer", "minimum" => 0}}
+        end)
+    }
+  end
+
+  defp execution_policies_schema do
+    %{
+      "type" => "object",
+      "additionalProperties" => false,
+      "required" => @execution_policy_fields,
+      "properties" =>
+        Map.new(@execution_policy_fields, fn field ->
+          {field, %{"type" => "object"}}
+        end)
+    }
+  end
+
+  defp execution_external_validation_schema do
+    %{
+      "type" => "object",
+      "additionalProperties" => false,
+      "required" => ["case_id", "validation_scope", "status"],
+      "properties" => %{
+        "case_id" => %{
+          "type" => "string",
+          "const" => "orekit_13_1_7_leo_j2_drag_access_eclipse"
+        },
+        "validation_scope" => %{"type" => "string", "const" => "exact_case_only"},
+        "status" => %{
+          "type" => "string",
+          "const" => "referenced_not_evaluated_by_runner"
+        }
+      }
+    }
   end
 
   def source_report_summary(opts) do

@@ -159,7 +159,8 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshRegistryContracts do
           "contact_allocation_report.v1",
           "contact_filter_report.v1",
           "resource_filter_report.v1",
-          "refresh_budget_report.v1"
+          "refresh_budget_report.v1",
+          "candidate_refresh_execution.v1"
         ],
         "optional_fields" =>
           [
@@ -172,7 +173,8 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshRegistryContracts do
             "candidate_rejection_report",
             "source_candidate_rejection_report",
             "refresh_budget_report",
-            "operational_feedback"
+            "operational_feedback",
+            "candidate_refresh_execution"
           ] ++
             @publication_lineage_id_array_fields ++
             @publication_lineage_count_map_fields ++
@@ -180,6 +182,23 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshRegistryContracts do
             @resource_availability_count_fields ++
             @resource_availability_count_map_fields ++
             @resource_availability_string_array_fields
+      },
+      "candidate_refresh_execution.v1" => %{
+        "schema_contract" => "candidate_refresh_execution.v1",
+        "artifact_family" => "candidate_refresh_execution",
+        "schema_version" => 1,
+        "required_fields" => [
+          "schema_contract",
+          "bundle_id",
+          "execution_mode",
+          "policy_fingerprint",
+          "snapshot_id",
+          "counts",
+          "policies",
+          "external_validation",
+          "model_limits"
+        ],
+        "nested_contracts" => []
       },
       "candidate_activity.v1" => %{
         "schema_contract" => "candidate_activity.v1",

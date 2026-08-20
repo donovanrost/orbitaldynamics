@@ -13,6 +13,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
     Capabilities,
     ModelLimits,
     ReplaySummary,
+    Runner,
     SourceReportSummary
   }
 
@@ -30,6 +31,17 @@ defmodule OrbitalDynamics.CandidateRefresh do
   """
   def build(%ResultSet{} = result_set, opts \\ []) do
     Build.build(result_set, opts)
+  end
+
+  @doc """
+  Runs the opt-in, offline deterministic Earth J2/drag refresh bundle.
+
+  Returns `{:ok, artifact}` or a typed stage error. The legacy `build/2`
+  composition boundary is unchanged and remains available for callers that
+  already supply a result set.
+  """
+  def run(refresh, opts \\ []) do
+    Runner.run(refresh, opts)
   end
 
   @doc """

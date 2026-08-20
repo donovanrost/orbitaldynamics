@@ -21,6 +21,67 @@ From those inputs the pipeline:
 - Marks stale prior candidates.
 - Emits freshness metadata for accepted snapshot age and horizon alignment.
 
+### Opt-in executable Level 5 bundle
+
+`CandidateRefresh.run/2` is the executable entry point for the single fixed
+bundle `candidate_refresh.earth_j2_drag_access_eclipse.v1`. The existing
+`CandidateRefresh.build/2` result-set composition path is unchanged. The
+executable path accepts a direct, schema-valid `accepted_planning_state.v1`
+with exactly one matching spacecraft state and rejects indirect, missing,
+multiple, mismatched, maneuver-bearing, or non-Earth/ECI-J2000/TDB inputs. Its
+horizon must start at the current state epoch, be positive and no longer than
+24 hours, and declare a 10-second output cadence.
+
+Before any propagation, `ExecutionPolicy.capture/1` freezes a lossless,
+JSON-safe policy document containing:
+
+- explicit dry mass, propellant mass, drag area, and drag coefficient;
+- one explicit spherical ground-station geometry;
+- Earth central-body constants and the fixed J2/drag RK4 10-second model;
+- built-in exponential-atmosphere and constant-Earth-rotation capabilities,
+  revisions, and coverage;
+- a fixed +X ECI Sun direction;
+- spherical access with bracketed bisection at `1.0e-6` seconds and at most 64
+  iterations, plus cylindrical-eclipse linear interpolation;
+- an explicit module allowlist, offline execution mode, `network_access:
+  false`, and the bundle's model limits.
+
+Public policy and snapshot values are recursively checked before capture. Only
+finite JSON scalars, proper lists, and plain maps with UTF-8 binary or atom keys
+are accepted. Atom keys are normalized losslessly; duplicate atom/string keys,
+semantic aliases, structs, PIDs, functions, references, non-byte-aligned
+bitstrings, improper lists, arbitrary tuples, unsupported keys, and non-finite
+or excessive values are rejected. Canonical SHA-256 fingerprinting runs only on
+that validated normalized form and never uses inspected runtime text as
+identity material.
+
+After capture, the runner does not dynamically dispatch caller-selected
+modules or reread configuration, source, campaign, or network providers. It
+builds one ballistic `Scenario`, propagates with `J2Drag`, regenerates access
+and eclipse events, assembles an in-memory `ResultSet`, and injects the
+serialized policy at the reserved
+`assumptions.model_assumptions.candidate_refresh_execution_policy` key before
+calling the unchanged `Build.build/2`. That makes state, ballistics, station
+geometry, provider/detector capability revisions, and fixed model settings part
+of the existing refresh identity. Equivalent input order and the same
+`generated_at` are deterministic.
+
+Only regenerated ground-station access produces downlink candidates. Eclipse
+intervals are archived under refreshed windows and do not create candidates.
+The nested `candidate_refresh_execution.v1` report binds bundle, execution
+mode, policy fingerprint, snapshot ID, generated counts, selected policies,
+model limits, and Domain 18 case
+`orekit_13_1_7_leo_j2_drag_access_eclipse` with validation scope
+`exact_case_only`. This branch references that case but does not claim or run
+the final exact external-truth integration; that gate remains pending the
+Domain 18 merge.
+
+Every execution stage returns a typed
+`candidate_refresh_execution_failed` error. Failures return no partial
+artifact, while zero-event and zero-candidate executions remain valid. The
+final artifact is executable-validated, including the captured policy,
+fingerprint, count, snapshot, policy-copy, exact-case, and model-limit bindings.
+
 ## Candidate-set diff and matching
 
 - Emits **occurrence-aware** candidate-set diff explanations that do not collapse duplicate prior/refreshed candidate IDs.
