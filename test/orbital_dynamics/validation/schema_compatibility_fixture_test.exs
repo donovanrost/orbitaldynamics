@@ -180,13 +180,13 @@ defmodule OrbitalDynamics.Validation.SchemaCompatibilityFixtureTest do
              "deprecated_contract_count" => 1,
              "deprecated_contracts" => "campaign_plan.v1",
              "replacement_contracts" => "campaign_strategy.v3",
-             "status_counts" => %{"current" => 120, "deprecated" => 1},
-             "row_derived_status_counts" => %{"current" => 120, "deprecated" => 1}
+             "status_counts" => %{"current" => 126, "deprecated" => 1},
+             "row_derived_status_counts" => %{"current" => 126, "deprecated" => 1}
            } = schema_migration_report_fixture_observations()
 
     stale_status_counts =
       schema_migration_report_fixture_observations()
-      |> Map.put("row_derived_status_counts", %{"current" => 120})
+      |> Map.put("row_derived_status_counts", %{"current" => 126})
 
     assert {:ok, stale_status_counts_verification} =
              Validation.verify_reference_fixture(fixture_id, stale_status_counts)
@@ -262,14 +262,14 @@ defmodule OrbitalDynamics.Validation.SchemaCompatibilityFixtureTest do
              "status" => "review_required",
              "future_contract_count" => 1,
              "deprecated_contract_count" => 0,
-             "status_counts" => %{"current" => 121, "future" => 1},
-             "row_derived_status_counts" => %{"current" => 121, "future" => 1},
+             "status_counts" => %{"current" => 127, "future" => 1},
+             "row_derived_status_counts" => %{"current" => 127, "future" => 1},
              "migration_action_counts" => %{
-               "continue_current_contract" => 121,
+               "continue_current_contract" => 127,
                "prepare_future_contract" => 1
              },
              "row_derived_migration_action_counts" => %{
-               "continue_current_contract" => 121,
+               "continue_current_contract" => 127,
                "prepare_future_contract" => 1
              }
            } = observations
@@ -284,7 +284,7 @@ defmodule OrbitalDynamics.Validation.SchemaCompatibilityFixtureTest do
     stale_action_counts =
       observations
       |> Map.put("row_derived_migration_action_counts", %{
-        "continue_current_contract" => 121
+        "continue_current_contract" => 127
       })
 
     assert {:ok, stale_action_verification} =

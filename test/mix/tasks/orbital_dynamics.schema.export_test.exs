@@ -31,6 +31,8 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
       "blocked_by_policy"
     ]
 
+    strategy_approval_status_values = classification_values ++ ["not_applicable"]
+
     assert Map.has_key?(schemas, "candidate_refresh.v1")
     assert Map.has_key?(schemas, "station_calendar_provider.v1")
     assert Map.has_key?(schemas, "station_reservation_report.v1")
@@ -54,12 +56,19 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
     link_capacity_model_limits =
       Enum.map(link_capacity_capabilities.known_limits, &Atom.to_string/1)
 
-    assert get_in(schemas, [
-             "link_capacity_report.v1",
-             "properties",
-             "model_limits",
-             "const"
-           ]) == link_capacity_model_limits
+    link_capacity_budget_model_limits =
+      OrbitalDynamics.Communications.LinkCapacity.report_model_limits([:present])
+
+    link_capacity_report_model_limits =
+      get_in(schemas, ["link_capacity_report.v1", "properties", "model_limits"])
+
+    assert link_capacity_report_model_limits["oneOf"] == [
+             %{"const" => link_capacity_model_limits},
+             %{"const" => link_capacity_budget_model_limits}
+           ]
+
+    assert get_in(link_capacity_report_model_limits, ["items", "enum"]) ==
+             Enum.uniq(link_capacity_model_limits ++ link_capacity_budget_model_limits)
 
     assert get_in(schemas, [
              "link_capacity_summary.v1",
@@ -5976,7 +5985,7 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
              "properties",
              "approval_status",
              "enum"
-           ]) == classification_values
+           ]) == strategy_approval_status_values
 
     assert get_in(schemas, [
              "strategy_recommendation.v1",
@@ -6003,7 +6012,7 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
              "properties",
              "approval_status",
              "enum"
-           ]) == classification_values
+           ]) == strategy_approval_status_values
 
     assert get_in(schemas, [
              "campaign_strategy.v3",
