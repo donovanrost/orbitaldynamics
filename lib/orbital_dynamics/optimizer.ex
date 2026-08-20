@@ -42,6 +42,7 @@ defmodule OrbitalDynamics.Optimizer do
     "score_terms"
   ]
 
+  alias OrbitalDynamics.Optimizer.HardFeasibility
   alias OrbitalDynamics.Search.Local
 
   @doc """
@@ -62,6 +63,7 @@ defmodule OrbitalDynamics.Optimizer do
         :alternative_id_ascending
       ],
       local_search_model_limits: @local_search_model_limits,
+      local_search_hard_feasibility: HardFeasibility.capabilities(),
       public_facades: [:explainable_local_search],
       deterministic_ordering: [
         :score_descending,
@@ -151,8 +153,11 @@ defmodule OrbitalDynamics.Optimizer do
   `:bounds`, `:id_prefix`, and `:max_alternatives`, are passed to
   `OrbitalDynamics.Search.Local.neighborhood/2`.
 
-  This is one inspectable local step, not an iterative or constraint-aware
-  solver. Reproducibility requires a pure deterministic `score_terms_fun`.
+  Optional `:hard_feasibility` enables explicit typed feasibility evaluation
+  before ranking. Reproducibility requires a pure deterministic
+  `score_terms_fun` and identity-bound deterministic evidence.
+
+  This remains one inspectable local step, not an iterative solver.
   """
   def explainable_local_search(seed_parameters, score_terms_fun, opts \\ [])
 
@@ -182,6 +187,27 @@ defmodule OrbitalDynamics.Optimizer do
         |> Map.put("score", sum_score_terms(score_terms))
       end)
 
+    case HardFeasibility.prepare(opts, evaluated) do
+      :legacy ->
+        legacy_local_search_result(evaluated, neighborhood, objective, objective_direction)
+
+      {:hard, configuration} ->
+        hard_local_search_result(
+          evaluated,
+          neighborhood,
+          objective,
+          objective_direction,
+          configuration
+        )
+    end
+  end
+
+  def explainable_local_search(_seed_parameters, _score_terms_fun, _opts) do
+    raise ArgumentError,
+          "seed_parameters must be a map, score_terms_fun must have arity 1, and opts must be a keyword list"
+  end
+
+  defp legacy_local_search_result(evaluated, neighborhood, objective, objective_direction) do
     ranked =
       evaluated
       |> Enum.sort_by(&local_search_sort_key(&1, objective_direction))
@@ -232,9 +258,105 @@ defmodule OrbitalDynamics.Optimizer do
     }
   end
 
-  def explainable_local_search(_seed_parameters, _score_terms_fun, _opts) do
-    raise ArgumentError,
-          "seed_parameters must be a map, score_terms_fun must have arity 1, and opts must be a keyword list"
+  defp hard_local_search_result(
+         evaluated,
+         neighborhood,
+         objective,
+         objective_direction,
+         configuration
+       ) do
+    feasibility_evaluated =
+      Enum.map(evaluated, fn alternative ->
+        Map.put(
+          alternative,
+          "candidate_feasibility",
+          HardFeasibility.evaluate(alternative, configuration)
+        )
+      end)
+
+    {eligible, infeasible} =
+      Enum.split_with(
+        feasibility_evaluated,
+        &get_in(&1, ["candidate_feasibility", "eligible"])
+      )
+
+    ranked =
+      eligible
+      |> Enum.sort_by(&local_search_sort_key(&1, objective_direction))
+      |> Enum.with_index(1)
+      |> Enum.map(fn {alternative, rank} -> Map.put(alternative, "rank", rank) end)
+
+    infeasible =
+      infeasible
+      |> Enum.sort_by(&{&1["generation_index"], &1["id"]})
+      |> Enum.map(&Map.put(&1, "rank", nil))
+
+    selected = List.first(ranked)
+    alternatives = ranked ++ infeasible
+    seed = Enum.find(alternatives, &(&1["id"] == neighborhood["seed_id"]))
+
+    improvement_from_seed =
+      if selected,
+        do: improvement_from_seed(selected, seed, objective_direction),
+        else: nil
+
+    alternatives =
+      Enum.map(alternatives, fn alternative ->
+        alternative
+        |> Map.put("score_delta_from_seed", alternative["score"] - seed["score"])
+        |> Map.put("selected", not is_nil(selected) and alternative["id"] == selected["id"])
+        |> Map.put(
+          "selection_explanation",
+          hard_local_search_selection_explanation(
+            alternative,
+            selected,
+            objective_direction
+          )
+        )
+      end)
+
+    eligible_count = length(ranked)
+    infeasible_count = length(infeasible)
+
+    %{
+      "model" => @local_search_model,
+      "objective" => objective,
+      "objective_direction" => Atom.to_string(objective_direction),
+      "seed_id" => seed["id"],
+      "seed_score" => seed["score"],
+      "selected_id" => if(selected, do: selected["id"], else: nil),
+      "selected_score" => if(selected, do: selected["score"], else: nil),
+      "improved" => not is_nil(improvement_from_seed) and improvement_from_seed > 0,
+      "improvement_from_seed" => improvement_from_seed,
+      "evaluated_count" => length(alternatives),
+      "eligible_count" => eligible_count,
+      "infeasible_count" => infeasible_count,
+      "feasibility_mode" => "hard",
+      "parameter_revision" => configuration.parameter_revision,
+      "candidate_feasibility_evaluations" =>
+        Enum.map(feasibility_evaluated, & &1["candidate_feasibility"]),
+      "recommendation_outcome" =>
+        HardFeasibility.outcome(selected, eligible_count, infeasible_count),
+      "alternatives" => alternatives,
+      "rejected_moves" => neighborhood["rejected_moves"],
+      "neighborhood" => Map.drop(neighborhood, ["alternatives", "rejected_moves"]),
+      "deterministic_ordering" => [
+        "hard-feasibility eligible alternatives only",
+        objective_score_order(objective_direction),
+        "generation_index ascending",
+        "alternative id ascending",
+        "infeasible alternatives generation_index then id ascending"
+      ],
+      "model_limits" => HardFeasibility.search_model_limits(@local_search_model_limits),
+      "assumptions" => %{
+        "score_rule" => "sum_of_score_terms",
+        "score_terms_function" => "caller_supplied_and_expected_pure",
+        "hard_feasibility" => "caller_supplied_identity_bound_typed_evidence",
+        "feasibility_timing" => "before_ranking",
+        "external_solver" => false,
+        "iterations" => 1
+      }
+    }
   end
 
   @doc """
@@ -484,6 +606,19 @@ defmodule OrbitalDynamics.Optimizer do
 
       objective_direction == :minimize ->
         "higher_score"
+    end
+  end
+
+  defp hard_local_search_selection_explanation(alternative, selected, objective_direction) do
+    cond do
+      not get_in(alternative, ["candidate_feasibility", "eligible"]) ->
+        "ineligible_hard_feasibility"
+
+      alternative["id"] == selected["id"] ->
+        "selected_best_feasible_score_then_generation_order_then_id"
+
+      true ->
+        local_search_selection_explanation(alternative, selected, objective_direction)
     end
   end
 
