@@ -1,6 +1,8 @@
 defmodule OrbitalDynamics.Schema.JsonDocument do
   @moduledoc false
 
+  @closed_top_level_contracts ["candidate_refresh_execution.v1"]
+
   def options(attrs) do
     [
       json_schema_draft: Keyword.fetch!(attrs, :json_schema_draft),
@@ -54,7 +56,7 @@ defmodule OrbitalDynamics.Schema.JsonDocument do
       "$id" => "https://orbital-dynamics.local/schemas/#{name}.schema.json",
       "title" => "OrbitalDynamics #{name}",
       "type" => "object",
-      "additionalProperties" => true,
+      "additionalProperties" => additional_properties?(name),
       "required" => required_fields,
       "properties" =>
         property_fields
@@ -92,6 +94,8 @@ defmodule OrbitalDynamics.Schema.JsonDocument do
     |> Keyword.fetch!(:property_fun)
     |> then(& &1.(field, name, contract))
   end
+
+  defp additional_properties?(name), do: name not in @closed_top_level_contracts
 
   defp maybe_put_non_empty(map, _key, value) when value == %{}, do: map
   defp maybe_put_non_empty(map, key, value), do: Map.put(map, key, value)

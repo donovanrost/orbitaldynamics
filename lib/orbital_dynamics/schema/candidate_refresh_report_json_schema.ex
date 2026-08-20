@@ -433,56 +433,9 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshReportJsonSchema do
   end
 
   def candidate_refresh_property("candidate_refresh_execution", opts) do
-    stable_id_pattern = Keyword.fetch!(opts, :stable_id_pattern)
-
-    %{
-      "type" => "object",
-      "additionalProperties" => false,
-      "required" => [
-        "schema_contract",
-        "bundle_id",
-        "execution_mode",
-        "policy_fingerprint",
-        "refresh_id",
-        "study_id",
-        "snapshot_id",
-        "spacecraft_id",
-        "scenario_id",
-        "ground_station_id",
-        "evidence",
-        "counts",
-        "policies",
-        "external_validation",
-        "model_limits"
-      ],
-      "properties" => %{
-        "schema_contract" => %{
-          "type" => "string",
-          "const" => "candidate_refresh_execution.v1"
-        },
-        "bundle_id" => %{
-          "type" => "string",
-          "const" => "candidate_refresh.earth_j2_drag_access_eclipse.v1"
-        },
-        "execution_mode" => %{"type" => "string", "const" => "offline_deterministic"},
-        "policy_fingerprint" => %{"type" => "string", "pattern" => "^[0-9a-f]{64}$"},
-        "refresh_id" => %{"type" => "string", "pattern" => stable_id_pattern},
-        "study_id" => %{"type" => "string", "pattern" => stable_id_pattern},
-        "snapshot_id" => %{"type" => "string", "pattern" => stable_id_pattern},
-        "spacecraft_id" => %{"type" => "string", "pattern" => stable_id_pattern},
-        "scenario_id" => %{"type" => "string", "pattern" => stable_id_pattern},
-        "ground_station_id" => %{"type" => "string", "pattern" => stable_id_pattern},
-        "evidence" => execution_evidence_schema(stable_id_pattern),
-        "counts" => execution_counts_schema(),
-        "policies" => execution_policies_schema(),
-        "external_validation" => execution_external_validation_schema(),
-        "model_limits" => %{
-          "type" => "array",
-          "const" => OrbitalDynamics.CandidateRefresh.ExecutionPolicy.model_limits(),
-          "items" => %{"type" => "string"}
-        }
-      }
-    }
+    opts
+    |> Keyword.fetch!(:stable_id_pattern)
+    |> candidate_refresh_execution_schema()
   end
 
   def candidate_refresh_property("warnings", _opts) do
@@ -556,6 +509,60 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshReportJsonSchema do
   def candidate_refresh_property(field, _opts)
       when field in @candidate_refresh_resource_availability_string_array_fields do
     CommonJsonSchema.string_array()
+  end
+
+  def candidate_refresh_execution_schema(stable_id_pattern) when is_binary(stable_id_pattern) do
+    %{
+      "type" => "object",
+      "additionalProperties" => false,
+      "required" => [
+        "schema_contract",
+        "bundle_id",
+        "execution_mode",
+        "policy_fingerprint",
+        "refresh_id",
+        "study_id",
+        "snapshot_id",
+        "spacecraft_id",
+        "scenario_id",
+        "ground_station_id",
+        "evidence",
+        "counts",
+        "policies",
+        "external_validation",
+        "model_limits"
+      ],
+      "properties" => %{
+        "schema_contract" => %{
+          "type" => "string",
+          "const" => "candidate_refresh_execution.v1"
+        },
+        "bundle_id" => %{
+          "type" => "string",
+          "const" => OrbitalDynamics.CandidateRefresh.ExecutionPolicy.bundle_id()
+        },
+        "execution_mode" => %{
+          "type" => "string",
+          "const" => OrbitalDynamics.CandidateRefresh.ExecutionPolicy.execution_mode()
+        },
+        "policy_fingerprint" => %{"type" => "string", "pattern" => "^[0-9a-f]{64}$"},
+        "refresh_id" => %{"type" => "string", "pattern" => stable_id_pattern},
+        "study_id" => %{"type" => "string", "pattern" => stable_id_pattern},
+        "snapshot_id" => %{"type" => "string", "pattern" => stable_id_pattern},
+        "spacecraft_id" => %{"type" => "string", "pattern" => stable_id_pattern},
+        "scenario_id" => %{"type" => "string", "pattern" => stable_id_pattern},
+        "ground_station_id" => %{"type" => "string", "pattern" => stable_id_pattern},
+        "evidence" => execution_evidence_schema(stable_id_pattern),
+        "counts" => execution_counts_schema(),
+        "policies" => execution_policies_schema(),
+        "external_validation" => execution_external_validation_schema(),
+        "model_limits" => %{
+          "type" => "array",
+          "const" => OrbitalDynamics.CandidateRefresh.ExecutionPolicy.model_limits(),
+          "items" => %{"type" => "string"}
+        }
+      }
+    }
   end
 
   defp execution_counts_schema do

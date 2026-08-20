@@ -9,6 +9,7 @@ defmodule OrbitalDynamics.Schema.JsonSchemaExportContractsTest do
     assert schema["$schema"] == "https://json-schema.org/draft/2020-12/schema"
     assert schema["$id"] =~ "campaign_plan.v1.schema.json"
     assert schema["type"] == "object"
+    assert schema["additionalProperties"] == true
     assert "plan_id" in schema["required"]
     assert schema["properties"]["schema_version"]["type"] == "integer"
     assert schema["properties"]["schema_version"]["const"] == 1

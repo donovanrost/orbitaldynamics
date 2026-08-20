@@ -13,6 +13,23 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshExecutionContractsTest do
   alias OrbitalDynamics.Schema
 
   @generated_at ~U[2026-05-14 00:00:00Z]
+  @execution_report_fields ~w(
+    schema_contract
+    bundle_id
+    execution_mode
+    policy_fingerprint
+    refresh_id
+    study_id
+    snapshot_id
+    spacecraft_id
+    scenario_id
+    ground_station_id
+    evidence
+    counts
+    policies
+    external_validation
+    model_limits
+  )
 
   test "registers and exports the nested execution report contract with typed fields" do
     assert {:ok, contract} = Schema.contract("candidate_refresh_execution.v1")
@@ -56,6 +73,102 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshExecutionContractsTest do
 
     assert get_in(report, ["properties", "external_validation", "properties", "case_id", "const"]) ==
              ExecutionPolicy.external_case_id()
+
+    assert {:ok, standalone_schema} = Schema.json_schema("candidate_refresh_execution.v1")
+
+    assert Map.take(standalone_schema, [
+             "type",
+             "additionalProperties",
+             "required",
+             "properties"
+           ]) == report
+
+    assert standalone_schema["properties"]["bundle_id"]["type"] == "string"
+    assert standalone_schema["properties"]["policy_fingerprint"]["type"] == "string"
+  end
+
+  test "validates a real runner execution report as a standalone artifact" do
+    report = run!()["candidate_refresh_execution"]
+
+    assert {:ok,
+            %{
+              "schema_contract" => "candidate_refresh_execution.v1",
+              "artifact_family" => "candidate_refresh_execution",
+              "status" => "pass"
+            }} = Schema.validate_artifact(report)
+  end
+
+  test "standalone validation rejects the exact all-nil required-field probe" do
+    all_nil =
+      @execution_report_fields
+      |> Map.new(&{&1, nil})
+      |> Map.put("schema_contract", "candidate_refresh_execution.v1")
+
+    assert {:error, %{"status" => "fail", "errors" => [_first | _rest]}} =
+             Schema.validate_artifact(all_nil)
+  end
+
+  test "standalone validation rejects nil, wrong-type, unknown, and unsafe fields without raising" do
+    report = run!()["candidate_refresh_execution"]
+
+    for field <- @execution_report_fields do
+      report
+      |> Map.put(field, nil)
+      |> assert_standalone_error("$.#{field}")
+    end
+
+    invalid_cases = [
+      {Map.put(report, "bundle_id", %{}), "$.bundle_id"},
+      {Map.put(report, "unexpected", true), "$.unexpected"},
+      {Map.put(report, "policies", []), "$.policies"},
+      {put_in(report, ["evidence", "access_windows_sha256"], String.duplicate("A", 64)),
+       "$.evidence.access_windows_sha256"},
+      {put_in(report, ["counts", "access_window_count"], -1), "$.counts.access_window_count"},
+      {put_in(report, ["external_validation", "case_id"], []), "$.external_validation.case_id"},
+      {put_in(report, ["policies", "access", "capability"], []), "$.policies.access.capability"},
+      {Map.put(report, "policy_fingerprint", self()), "$.policy_fingerprint"}
+    ]
+
+    for {invalid, path} <- invalid_cases, do: assert_standalone_error(invalid, path)
+  end
+
+  test "standalone validation rejects static and report-internal nested contradictions" do
+    report = run!()["candidate_refresh_execution"]
+
+    invalid_cases = [
+      {Map.put(report, "schema_contract", "candidate_refresh_execution.v2"), "$.schema_contract"},
+      {Map.put(report, "bundle_id", "candidate_refresh.other.v1"), "$.bundle_id"},
+      {Map.put(report, "execution_mode", "online"), "$.execution_mode"},
+      {Map.put(report, "refresh_id", "not a stable id"), "$.refresh_id"},
+      {put_in(report, ["evidence", "scenario_id"], "scenario_other"), "$.evidence.scenario_id"},
+      {put_in(report, ["evidence", "trajectory_sample_count"], 1),
+       "$.evidence.trajectory_sample_count"},
+      {put_in(report, ["counts", "spacecraft_state_count"], 2),
+       "$.counts.spacecraft_state_count"},
+      {put_in(report, ["counts", "downlink_candidate_count"], 99),
+       "$.counts.downlink_candidate_count"},
+      {put_in(report, ["counts", "trajectory_sample_count"], 99),
+       "$.counts.trajectory_sample_count"},
+      {put_in(report, ["policies", "propagation", "max_step_s"], 20.0),
+       "$.policies.propagation.max_step_s"},
+      {put_in(report, ["policies", "access", "root_tolerance_s"], 1.0),
+       "$.policies.access.root_tolerance_s"},
+      {put_in(report, ["policies", "eclipse", "candidate_source"], true),
+       "$.policies.eclipse.candidate_source"},
+      {put_in(report, ["external_validation", "validation_scope"], "generalized"),
+       "$.external_validation.validation_scope"},
+      {Map.put(report, "model_limits", []), "$.model_limits"},
+      {update_in(report, ["evidence"], &Map.put(&1, "unexpected", true)),
+       "$.evidence.unexpected"},
+      {update_in(report, ["counts"], &Map.put(&1, "unexpected", 0)), "$.counts.unexpected"},
+      {update_in(report, ["policies"], &Map.put(&1, "unexpected", %{})), "$.policies.unexpected"},
+      {update_in(report, ["policies", "access"], &Map.put(&1, "unexpected", true)),
+       "$.policies.access.unexpected"},
+      {update_in(report, ["external_validation"], &Map.put(&1, "unexpected", true)),
+       "$.external_validation.unexpected"}
+    ]
+
+    for {invalid, path} <- invalid_cases, do: assert_standalone_error(invalid, path)
   end
 
   test "validates all execution report bindings on a runner artifact" do
@@ -597,6 +710,13 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshExecutionContractsTest do
   defp assert_error_path(artifact, path) do
     assert {:error, report} = Schema.validate_artifact(artifact)
     assert Enum.any?(report["errors"], &(&1["path"] == path))
+  end
+
+  defp assert_standalone_error(report, path) do
+    assert {:error, validation} =
+             Schema.validate_artifact(report, schema_contract: "candidate_refresh_execution.v1")
+
+    assert Enum.any?(validation["errors"], &(&1["path"] == path))
   end
 
   defp execution_policy(artifact) do
