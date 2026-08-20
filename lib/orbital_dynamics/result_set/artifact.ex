@@ -884,14 +884,23 @@ defmodule OrbitalDynamics.ResultSet.Artifact do
     do: "completed_with_errors"
 
   defp node_distribution(trajectory_results, errors, fallback_node) do
-    trajectory_nodes = Enum.map(trajectory_results, &Map.get(&1, :node))
-    error_nodes = Enum.map(errors, &(Map.get(&1, "node") || fallback_node || "unknown"))
-
-    (trajectory_nodes ++ error_nodes)
-    |> Enum.reject(&is_nil/1)
-    |> Enum.map(&encode_value/1)
+    (trajectory_results ++ errors)
+    |> Enum.map(&result_node(&1, fallback_node))
     |> Enum.frequencies()
   end
+
+  defp result_node(result, fallback_node) do
+    [Map.get(result, :node), Map.get(result, "node"), fallback_node, "unknown"]
+    |> Enum.find_value(&encode_node/1)
+  end
+
+  defp encode_node(value) when is_binary(value), do: value
+
+  defp encode_node(value)
+       when is_atom(value) and value not in [nil, true, false, :null],
+       do: Atom.to_string(value)
+
+  defp encode_node(_value), do: nil
 
   defp failed_scenarios(errors) do
     Enum.map(errors, fn error ->
