@@ -316,7 +316,7 @@ defmodule OrbitalDynamics.GoldenArtifactTest do
              "schema_version" => 2,
              "planner" => "OrbitalDynamics.CampaignPlanner.V2",
              "source_plan_id" => "campaign_plan:leo_constellation_campaign:2026-05-14T00:00:00Z",
-             "repair_id" => "2861de04a1feea9da43cee52e2ad6cdc7e6fcedf91dad323b67517b8cac87a0a",
+             "repair_id" => "2dfbce84968dc7f412706e96ad7616288728195d3ef1c20df4634338521b5107",
              "transition_selected_activity_count" => 0,
              "transition_application_review_required_count" => 1,
              "approval_status" => "operator_review_required",
@@ -494,7 +494,7 @@ defmodule OrbitalDynamics.GoldenArtifactTest do
              "schema_version" => 3,
              "planner" => "OrbitalDynamics.CampaignPlanner.V3",
              "source_plan_id" => "campaign_plan:leo_constellation_campaign:2026-05-14T00:00:00Z",
-             "strategy_id" => "5e57012affb26253372b03dd162ef0c8cbbad663c66d8b5e634be0259fb6f846",
+             "strategy_id" => "f1551dff11d98e6f008b7f4a2c75db9194cd24289ebea02117eab052bc194bf9",
              "recommended_branch_id" => "derived_urgent_target_target_hot",
              "approval_status" => "operator_review_required",
              "recommendation_status" => "pass"
