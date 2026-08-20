@@ -21,6 +21,9 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairRequestNormalization do
 
   alias OrbitalDynamics.{CandidateRefresh, Schema, StudyRunner}
 
+  @candidate_refresh_execution_path "candidate_refresh_run_v1"
+  @candidate_refresh_execution_path_key "execution_path"
+
   def from_map(request) do
     %ReplanRequest{
       prior_plan:
@@ -60,25 +63,19 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairRequestNormalization do
 
     generated_at = normalize_generated_at(request.generated_at || DateTime.utc_now())
 
-    candidate_refresh_request =
-      request.candidate_refresh_request
-      |> CandidateRefreshNormalization.request()
-      |> RepairCandidateRefreshInheritance.inherit(
+    candidate_refresh_request_selection =
+      select_candidate_refresh_request!(request.candidate_refresh_request)
+
+    {candidate_refresh, candidate_refresh_request} =
+      resolve_candidate_refresh(
+        candidate_refresh_request_selection,
+        request.candidate_refresh,
         request.approval_policy,
         mission_state,
-        prior_plan
+        prior_plan,
+        current_epoch_s,
+        generated_at
       )
-
-    prebuilt_candidate_refresh = CandidateRefreshNormalization.artifact(request.candidate_refresh)
-
-    candidate_refresh =
-      prebuilt_candidate_refresh ||
-        execute_candidate_refresh_request(
-          prior_plan,
-          current_epoch_s,
-          candidate_refresh_request,
-          generated_at
-        )
 
     scoring_policy =
       prior_plan
@@ -136,7 +133,68 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairRequestNormalization do
   defp normalize_mission_state(%{} = mission_state),
     do: MissionStateNormalization.normalize(mission_state)
 
-  defp execute_candidate_refresh_request(
+  defp resolve_candidate_refresh(
+         {:public, raw_refresh},
+         _prebuilt_candidate_refresh,
+         approval_policy,
+         mission_state,
+         prior_plan,
+         _current_epoch_s,
+         generated_at
+       ) do
+    candidate_refresh = execute_public_candidate_refresh_request(raw_refresh, generated_at)
+
+    candidate_refresh_request =
+      %{
+        @candidate_refresh_execution_path_key => @candidate_refresh_execution_path,
+        "candidate_refresh" => raw_refresh
+      }
+      |> normalize_candidate_refresh_request(approval_policy, mission_state, prior_plan)
+
+    {candidate_refresh, candidate_refresh_request}
+  end
+
+  defp resolve_candidate_refresh(
+         {:legacy, raw_candidate_refresh_request},
+         prebuilt_candidate_refresh,
+         approval_policy,
+         mission_state,
+         prior_plan,
+         current_epoch_s,
+         generated_at
+       ) do
+    candidate_refresh_request =
+      normalize_candidate_refresh_request(
+        raw_candidate_refresh_request,
+        approval_policy,
+        mission_state,
+        prior_plan
+      )
+
+    candidate_refresh =
+      CandidateRefreshNormalization.artifact(prebuilt_candidate_refresh) ||
+        execute_manifest_candidate_refresh_request(
+          prior_plan,
+          current_epoch_s,
+          candidate_refresh_request,
+          generated_at
+        )
+
+    {candidate_refresh, candidate_refresh_request}
+  end
+
+  defp normalize_candidate_refresh_request(
+         candidate_refresh_request,
+         approval_policy,
+         mission_state,
+         prior_plan
+       ) do
+    candidate_refresh_request
+    |> CandidateRefreshNormalization.request()
+    |> RepairCandidateRefreshInheritance.inherit(approval_policy, mission_state, prior_plan)
+  end
+
+  defp execute_manifest_candidate_refresh_request(
          _prior_plan,
          _current_epoch_s,
          nil,
@@ -144,7 +202,7 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairRequestNormalization do
        ),
        do: nil
 
-  defp execute_candidate_refresh_request(
+  defp execute_manifest_candidate_refresh_request(
          prior_plan,
          current_epoch_s,
          candidate_refresh_request,
@@ -179,6 +237,72 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairRequestNormalization do
         raise ArgumentError, "invalid repair candidate_refresh_request: #{inspect(reason)}"
     end
   end
+
+  defp execute_public_candidate_refresh_request(raw_refresh, generated_at) do
+    case CandidateRefresh.run(raw_refresh, generated_at: generated_at) do
+      {:ok, candidate_refresh} ->
+        candidate_refresh
+
+      {:error, reason} ->
+        raise ArgumentError, "invalid repair candidate_refresh_request: #{inspect(reason)}"
+    end
+  end
+
+  defp select_candidate_refresh_request!(%{} = candidate_refresh_request) do
+    execution_path =
+      fetch_top_level_alias!(
+        candidate_refresh_request,
+        :execution_path,
+        @candidate_refresh_execution_path_key
+      )
+
+    raw_refresh =
+      fetch_top_level_alias!(candidate_refresh_request, :candidate_refresh, "candidate_refresh")
+
+    case execution_path do
+      :missing ->
+        {:legacy, candidate_refresh_request}
+
+      {:present, execution_path} ->
+        case normalize_execution_path(execution_path) do
+          @candidate_refresh_execution_path ->
+            {:public, present_alias_value(raw_refresh)}
+
+          unsupported_execution_path ->
+            raise ArgumentError,
+                  "unsupported repair candidate_refresh_request execution_path: #{inspect(unsupported_execution_path)}"
+        end
+    end
+  end
+
+  defp select_candidate_refresh_request!(candidate_refresh_request),
+    do: {:legacy, candidate_refresh_request}
+
+  defp fetch_top_level_alias!(map, atom_key, string_key) do
+    case {Map.fetch(map, atom_key), Map.fetch(map, string_key)} do
+      {{:ok, _atom_value}, {:ok, _string_value}} ->
+        raise ArgumentError,
+              "invalid repair candidate_refresh_request: #{inspect({:duplicate_normalized_key, "$", string_key})}"
+
+      {{:ok, value}, :error} ->
+        {:present, value}
+
+      {:error, {:ok, value}} ->
+        {:present, value}
+
+      {:error, :error} ->
+        :missing
+    end
+  end
+
+  defp present_alias_value({:present, value}), do: value
+  defp present_alias_value(:missing), do: nil
+
+  defp normalize_execution_path(value)
+       when is_atom(value) and value not in [nil, true, false],
+       do: Atom.to_string(value)
+
+  defp normalize_execution_path(value), do: value
 
   defp normalize_ground_network(nil), do: nil
 
