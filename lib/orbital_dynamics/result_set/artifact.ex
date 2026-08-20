@@ -55,6 +55,8 @@ defmodule OrbitalDynamics.ResultSet.Artifact do
   """
   def build(%ResultSet{} = result_set, opts \\ []) do
     generated_at = Keyword.get_lazy(opts, :generated_at, &DateTime.utc_now/0)
+    run = encoded_run(result_set.metadata)
+    fallback_node = Map.get(run || %{}, "node")
 
     %{
       schema_version: @schema_version,
@@ -62,7 +64,8 @@ defmodule OrbitalDynamics.ResultSet.Artifact do
       study_id: encode_value(result_set.study_id),
       assumptions: encode_value(artifact_assumptions(result_set)),
       metadata: encode_value(result_metadata(result_set.metadata)),
-      trajectories: Enum.map(result_set.trajectory_results, &trajectory_summary/1),
+      trajectories:
+        Enum.map(result_set.trajectory_results, &trajectory_summary(&1, fallback_node)),
       maneuver_recommendations: maneuver_recommendations(result_set.trajectory_results),
       access_windows: access_windows(result_set.event_results),
       eclipse_intervals: eclipse_intervals(result_set.event_results),
@@ -73,7 +76,7 @@ defmodule OrbitalDynamics.ResultSet.Artifact do
     |> maybe_add_candidate_refresh(result_set, generated_at)
     |> maybe_add_campaign_plan(result_set, generated_at)
     |> maybe_add_run(result_set.metadata)
-    |> add_execution_report(result_set)
+    |> add_execution_report(result_set, run, fallback_node)
     |> maybe_add_monte_carlo_reproducibility_report()
     |> maybe_add_scenario_rankings()
     |> maybe_add_constraint_results()
@@ -211,7 +214,10 @@ defmodule OrbitalDynamics.ResultSet.Artifact do
   defp resume_identity(value) when is_binary(value), do: value
   defp resume_identity(value), do: to_string(value)
 
-  defp trajectory_summary(%{scenario_id: scenario_id, trajectory: trajectory} = result) do
+  defp trajectory_summary(
+         %{scenario_id: scenario_id, trajectory: trajectory} = result,
+         fallback_node
+       ) do
     states = trajectory.states
     first_state = List.first(states)
     last_state = List.last(states)
@@ -220,7 +226,7 @@ defmodule OrbitalDynamics.ResultSet.Artifact do
 
     %{
       scenario_id: encode_value(scenario_id),
-      node: encode_value(Map.get(result, :node)),
+      node: result_node(result, fallback_node),
       sample_count: length(states),
       starts_at_s: epoch_seconds(first_state),
       ends_at_s: epoch_seconds(last_state),
@@ -638,12 +644,10 @@ defmodule OrbitalDynamics.ResultSet.Artifact do
   defp maybe_add_run(artifact, %{"run" => run}), do: Map.put(artifact, :run, encode_value(run))
   defp maybe_add_run(artifact, _metadata), do: artifact
 
-  defp add_execution_report(artifact, %ResultSet{} = result_set) do
-    run = encoded_run(result_set.metadata)
+  defp add_execution_report(artifact, %ResultSet{} = result_set, run, fallback_node) do
     run_metadata = Map.get(run || %{}, "metadata", %{})
-    errors = Enum.map(result_set.errors, &encode_value/1)
     completed_scenario_count = length(result_set.trajectory_results)
-    failed_scenario_count = length(errors)
+    failed_scenario_count = length(result_set.errors)
     model_limits = execution_report_model_limits(run_metadata)
     assumptions = execution_report_assumptions(run_metadata)
 
@@ -669,8 +673,8 @@ defmodule OrbitalDynamics.ResultSet.Artifact do
       phase_timings_ms: Map.get(run_metadata, "phase_timings_ms", %{}),
       execution_plan: Map.get(run_metadata, "execution_plan", %{}),
       node_distribution:
-        node_distribution(result_set.trajectory_results, errors, Map.get(run || %{}, "node")),
-      failed_scenarios: failed_scenarios(errors),
+        node_distribution(result_set.trajectory_results, result_set.errors, fallback_node),
+      failed_scenarios: failed_scenarios(result_set.errors, fallback_node),
       assumptions: assumptions
     })
   end
@@ -902,14 +906,16 @@ defmodule OrbitalDynamics.ResultSet.Artifact do
 
   defp encode_node(_value), do: nil
 
-  defp failed_scenarios(errors) do
+  defp failed_scenarios(errors, fallback_node) do
     Enum.map(errors, fn error ->
+      encoded_error = encode_value(error)
+
       %{
-        scenario_id: Map.get(error, "scenario_id"),
-        scenario_index: Map.get(error, "scenario_index"),
-        stage: Map.get(error, "stage"),
-        error: Map.get(error, "error"),
-        node: Map.get(error, "node"),
+        scenario_id: Map.get(encoded_error, "scenario_id"),
+        scenario_index: Map.get(encoded_error, "scenario_index"),
+        stage: Map.get(encoded_error, "stage"),
+        error: Map.get(encoded_error, "error"),
+        node: result_node(error, fallback_node),
         resumability: "manual_rerun_only",
         retry_recommendation: "rerun_failed_scenario_from_source_manifest"
       }
