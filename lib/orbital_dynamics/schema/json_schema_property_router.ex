@@ -14,7 +14,7 @@ defmodule OrbitalDynamics.Schema.JsonSchemaPropertyRouter do
   }
 
   import OrbitalDynamics.Schema.JsonSchemaPropertySupport,
-    only: [fallback: 4, provider: 3]
+    only: [context_value: 2, fallback: 4, provider: 3]
 
   def property(field, "activity_template.v1" = contract_name, contract, context) do
     ReferencePolicyPropertyRouter.property(field, contract_name, contract, context)
@@ -152,6 +152,12 @@ defmodule OrbitalDynamics.Schema.JsonSchemaPropertyRouter do
       contract,
       context,
       fn embedded_contract_name -> embedded(embedded_contract_name, context) end
+    )
+  end
+
+  def property(field, "resource_state_trace.v1", _contract, context) do
+    OrbitalDynamics.Schema.ResourceStateTraceJsonSchema.property(field,
+      stable_id_pattern: context_value(context, :stable_id_pattern)
     )
   end
 
