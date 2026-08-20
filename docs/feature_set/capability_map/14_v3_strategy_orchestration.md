@@ -110,8 +110,11 @@ V3 accepts an optional `recommendation_eligibility` request object with
 `mode: "hard"`. It reuses the typed hard-feasibility configuration fields
 `evidence_registry` and `candidates`; each registry parameter identity is bound
 to the exact computed branch `score_terms` rather than to a caller-repinned
-duplicate. The default path does not emit the new surface and retains its
-existing recommendation behavior and artifact shape.
+duplicate. The emitted eligibility surface retains the complete normalized
+registry snapshot, so schema validation recomputes its content-derived identity
+from the canonical entries instead of trusting a copied summary ID. The default
+path does not emit the new surface and retains its existing recommendation
+behavior and 22-key artifact shape.
 
 Hard mode combines `candidate_feasibility.v1` results with each branch's
 already-derived `policy_decision.v1` before ordering. Only eligible branches are
@@ -124,6 +127,14 @@ When no branch is eligible, `recommended_branch_id` and
 selected recommendation review or import row is emitted. The highest-scoring
 rejected branch remains as a `review_only: true`, `importable: false`
 counterfactual with its hard-feasibility and policy/authority blocker evidence.
+Its direct branch and derived strategy-tradeoff Cadence rows are both explicitly
+review-only, carry `cadence_import_status: "not_applicable"`, and can never be
+`ready_for_import`.
+
+Malformed `CampaignPlanner.strategy/1` request options retain the public
+`ArgumentError` convention. The no-raise guarantee is specifically the
+`Schema.validate_artifact/2` boundary: malformed hard-mode maps, improper lists,
+and non-JSON-safe values return typed schema-validation errors.
 All outputs remain artifact-only and perform no Cadence writes.
 
 ## Score-term and tradeoff reports

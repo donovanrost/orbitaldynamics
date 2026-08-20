@@ -34,6 +34,7 @@ defmodule OrbitalDynamics.OperatorReview.BranchComparison do
     |> Enum.map(fn {row, index} ->
       branch_id = Map.get(row, "branch_id")
       delta = Map.get(row, "score_delta_from_recommended")
+      counterfactual? = row["recommendation_counterfactual"] == true
 
       %{
         "id" => review_id(["branch_comparison", branch_id, index]),
@@ -50,6 +51,10 @@ defmodule OrbitalDynamics.OperatorReview.BranchComparison do
         "recommendation_eligibility_rank" => row["recommendation_eligibility_rank"],
         "recommendation_blocker_reasons" => row["recommendation_blocker_reasons"],
         "recommendation_counterfactual" => row["recommendation_counterfactual"],
+        "review_only" => if(counterfactual?, do: true),
+        "importable" => if(counterfactual?, do: false),
+        "cadence_import_status" => if(counterfactual?, do: "not_applicable"),
+        "has_cadence_import" => if(counterfactual?, do: false),
         "eligibility_status" => row["eligibility_status"],
         "authority_context" => row["authority_context"],
         "authority_context_evaluation" => row["authority_context_evaluation"],

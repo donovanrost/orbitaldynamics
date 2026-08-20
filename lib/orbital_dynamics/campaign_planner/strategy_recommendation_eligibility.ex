@@ -69,7 +69,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationEligibility do
       "branch_count" => length(evaluations),
       "eligible_count" => length(eligible),
       "rejected_count" => length(rejected),
-      "source_evidence_registry" => HardFeasibility.registry_summary(configuration),
+      "source_evidence_registry" => configuration.registry,
       "evaluations" => evaluations,
       "counterfactual" => counterfactual,
       "deterministic_ordering" => @ordering,

@@ -3,13 +3,23 @@ defmodule OrbitalDynamics.CadenceImport.StrategyTradeoffManifestRow do
 
   def build(row, rank, callbacks) when is_list(callbacks) do
     approval_status = Map.get(row, "approval_status", "operator_review_required")
-    import_status = Map.get(row, "cadence_import_status", "present")
+    counterfactual? = row["recommendation_counterfactual"] == true
+
+    cadence_import_status =
+      if counterfactual?,
+        do: "not_applicable",
+        else: Map.get(row, "cadence_import_status", "present")
+
+    import_status =
+      if counterfactual?,
+        do: "not_applicable",
+        else: adapter_import_status(callbacks, cadence_import_status, approval_status)
 
     %{
       "id" => "cadence_import:strategy_tradeoff:#{row["id"] || rank}",
       "rank" => rank,
       "import_action" => strategy_tradeoff_import_action(row),
-      "import_status" => adapter_import_status(callbacks, import_status, approval_status),
+      "import_status" => import_status,
       "import_side" => "source",
       "source_review_row_id" => row["id"],
       "source_review_type" => row["review_type"],
@@ -18,6 +28,13 @@ defmodule OrbitalDynamics.CadenceImport.StrategyTradeoffManifestRow do
       "subject_id" => row["subject_id"],
       "branch_id" => row["branch_id"],
       "approval_status" => approval_status,
+      "recommendation_eligibility_status" => row["recommendation_eligibility_status"],
+      "recommendation_eligible" => row["recommendation_eligible"],
+      "recommendation_eligibility_rank" => row["recommendation_eligibility_rank"],
+      "recommendation_blocker_reasons" => row["recommendation_blocker_reasons"],
+      "recommendation_counterfactual" => row["recommendation_counterfactual"],
+      "review_only" => if(counterfactual?, do: true),
+      "importable" => if(counterfactual?, do: false),
       "eligibility_status" => row["eligibility_status"],
       "authority_context" => row["authority_context"],
       "authority_context_evaluation" => row["authority_context_evaluation"],
@@ -240,7 +257,7 @@ defmodule OrbitalDynamics.CadenceImport.StrategyTradeoffManifestRow do
       "repair_constraint_fail_count" => row["repair_constraint_fail_count"],
       "repair_constraint_failed_ids" => row["repair_constraint_failed_ids"],
       "repair_constraint_warning_ids" => row["repair_constraint_warning_ids"],
-      "cadence_import_status" => import_status,
+      "cadence_import_status" => cadence_import_status,
       "has_cadence_import" => false,
       "source_tradeoff" => row["source_tradeoff"],
       "source_branch_comparison" => row["source_branch_comparison"],

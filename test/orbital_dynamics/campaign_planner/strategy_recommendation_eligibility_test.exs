@@ -9,6 +9,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationEligibilityTest 
   alias OrbitalDynamics.CampaignPlanner.TestSupport, as: Support
   alias OrbitalDynamics.Optimizer.SourceEvidenceRegistry
   alias OrbitalDynamics.Schema
+  alias OrbitalDynamics.Schema.JsonSafety
 
   @legacy_digest "430fdc4f9045c83c32d7d5f153868b945f00b67ae66985d33ce290a8bfce326f"
 
@@ -137,14 +138,31 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationEligibilityTest 
     refute Enum.any?(manifest_rows, &(&1["import_action"] == "import_strategy_recommendation"))
     refute Enum.any?(manifest_rows, &(&1["source_review_type"] == "strategy_recommendation"))
 
-    counterfactual_import =
-      Enum.find(manifest_rows, fn row ->
-        get_in(row, ["source_branch_comparison", "recommendation_counterfactual"]) == true
-      end)
+    counterfactual_imports =
+      Enum.filter(manifest_rows, &(&1["recommendation_counterfactual"] == true))
 
-    assert counterfactual_import["import_status"] == "not_applicable"
-    assert counterfactual_import["recommendation_eligibility_status"] == "infeasible"
-    refute Map.has_key?(counterfactual_import, "eligibility_status")
+    assert Enum.sort(Enum.map(counterfactual_imports, & &1["source_review_type"])) == [
+             "strategy_branch_comparison",
+             "strategy_tradeoff"
+           ]
+
+    for counterfactual_import <- counterfactual_imports do
+      assert counterfactual_import["import_status"] == "not_applicable"
+      assert counterfactual_import["cadence_import_status"] == "not_applicable"
+      assert counterfactual_import["has_cadence_import"] == false
+      assert counterfactual_import["review_only"] == true
+      assert counterfactual_import["importable"] == false
+      assert counterfactual_import["recommendation_eligibility_status"] == "infeasible"
+      refute counterfactual_import["import_status"] == "ready_for_import"
+    end
+
+    branch_import =
+      Enum.find(
+        counterfactual_imports,
+        &(&1["source_review_type"] == "strategy_branch_comparison")
+      )
+
+    refute Map.has_key?(branch_import, "eligibility_status")
     assert {:ok, _report} = Schema.validate_artifact(artifact)
     assert_json_roundtrip(artifact)
   end
@@ -243,6 +261,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationEligibilityTest 
     refute Map.has_key?(artifact, "recommendation_eligibility")
     refute Map.has_key?(artifact["recommendation"], "counterfactual")
     assert artifact["recommendation"]["status"] == "pass"
+    assert map_size(artifact) == 22
     assert digest(artifact) == @legacy_digest
   end
 
@@ -356,6 +375,226 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationEligibilityTest 
     end
   end
 
+  test "Schema validation returns typed errors without raising for improper new lists" do
+    artifact =
+      hard_strategy(
+        [%{id: "baseline"}, %{id: "blocked:increase"}],
+        all_infeasible?: true
+      )
+
+    [first_evaluation | _rest] = artifact["recommendation_eligibility"]["evaluations"]
+    [first_blocker | _rest] = first_evaluation["hard_feasibility"]["blockers"]
+
+    malformed_artifacts = [
+      put_in(
+        artifact,
+        ["recommendation_eligibility", "evaluations"],
+        [first_evaluation | :improper_tail]
+      ),
+      put_in(
+        artifact,
+        [
+          "recommendation_eligibility",
+          "evaluations",
+          Access.at(0),
+          "hard_feasibility",
+          "blockers"
+        ],
+        [first_blocker | :improper_tail]
+      )
+    ]
+
+    for malformed <- malformed_artifacts do
+      assert_typed_schema_error(malformed)
+    end
+  end
+
+  test "procedural hard-eligibility validation is JSON-safe and closed at new boundaries" do
+    artifact =
+      hard_strategy(
+        [%{id: "baseline"}, %{id: "blocked:increase"}],
+        all_infeasible?: true
+      )
+
+    oversized = String.duplicate("x", JsonSafety.limits()["max_aggregate_bytes"] + 1)
+
+    first_branch_id =
+      artifact["recommendation_eligibility"]["evaluations"] |> hd() |> Map.fetch!("branch_id")
+
+    adversarial_artifacts = [
+      update_in(artifact, ["recommendation_eligibility"], &Map.put(&1, self(), "unsafe")),
+      update_in(artifact, ["recommendation_eligibility"], &Map.put(&1, :mode, "hard")),
+      update_in(
+        artifact,
+        ["recommendation_eligibility"],
+        &Map.put(&1, "oversized_unknown", oversized)
+      ),
+      put_in(
+        artifact,
+        ["recommendation_eligibility", "evaluations", Access.at(0), "unknown"],
+        true
+      ),
+      put_in(
+        artifact,
+        [
+          "recommendation_eligibility",
+          "evaluations",
+          Access.at(0),
+          "hard_feasibility",
+          "unknown"
+        ],
+        true
+      ),
+      put_in(
+        artifact,
+        ["recommendation_eligibility", "source_evidence_registry", "unknown"],
+        true
+      ),
+      put_in(
+        artifact,
+        [
+          "recommendation_eligibility",
+          "source_evidence_registry",
+          "entries",
+          first_branch_id,
+          "unknown"
+        ],
+        true
+      ),
+      put_in(
+        artifact,
+        [
+          "recommendation_eligibility",
+          "evaluations",
+          Access.at(0),
+          "branch_score_term_identity",
+          "unknown"
+        ],
+        true
+      ),
+      put_in(
+        artifact,
+        [
+          "recommendation_eligibility",
+          "evaluations",
+          Access.at(0),
+          "hard_feasibility",
+          "evidence_bindings",
+          "unknown"
+        ],
+        true
+      ),
+      put_in(
+        artifact,
+        [
+          "recommendation_eligibility",
+          "evaluations",
+          Access.at(0),
+          "hard_feasibility",
+          "evidence_bindings",
+          "resource_state_trace",
+          "unknown"
+        ],
+        true
+      ),
+      put_in(
+        artifact,
+        [
+          "recommendation_eligibility",
+          "evaluations",
+          Access.at(0),
+          "hard_feasibility",
+          "threshold_evaluations",
+          Access.at(0),
+          "unknown"
+        ],
+        true
+      ),
+      put_in(
+        artifact,
+        [
+          "recommendation_eligibility",
+          "evaluations",
+          Access.at(0),
+          "hard_feasibility",
+          "blockers",
+          Access.at(0),
+          "unknown"
+        ],
+        true
+      ),
+      put_in(
+        artifact,
+        ["recommendation_eligibility", "counterfactual", "unknown"],
+        true
+      ),
+      put_in(
+        artifact,
+        ["recommendation_eligibility", "counterfactual", "importable"],
+        true
+      ),
+      update_in(artifact, ["cadence_import_manifest", "rows"], fn rows ->
+        Enum.map(rows, fn row ->
+          if row["recommendation_counterfactual"] == true,
+            do: Map.put(row, "importable", true),
+            else: row
+        end)
+      end)
+    ]
+
+    for adversarial <- adversarial_artifacts do
+      assert_typed_schema_error(adversarial)
+    end
+  end
+
+  test "source evidence registry identity is recomputed from canonical bound entries" do
+    artifact =
+      hard_strategy(
+        [%{id: "baseline"}, %{id: "blocked:increase"}],
+        all_infeasible?: true
+      )
+
+    repinned_id = "local_search_source_evidence_registry:" <> String.duplicate("a", 64)
+    repinned = repin_registry_id_copies(artifact, repinned_id)
+
+    assert {:error, report} = Schema.validate_artifact(repinned)
+
+    assert Enum.any?(report["errors"], fn issue ->
+             issue["path"] == "$.recommendation_eligibility.source_evidence_registry.id" and
+               String.contains?(issue["message"], "recomputable")
+           end)
+
+    refute Enum.any?(report["errors"], fn issue ->
+             String.contains?(
+               issue["message"],
+               "must match the declared source evidence registry"
+             )
+           end)
+  end
+
+  test "exported hard-eligibility schema is deterministic and closes nested maps" do
+    assert {:ok, first_schema} = Schema.json_schema("campaign_strategy.v3")
+    assert {:ok, second_schema} = Schema.json_schema("campaign_strategy.v3")
+    assert first_schema == second_schema
+
+    eligibility = get_in(first_schema, ["properties", "recommendation_eligibility"])
+    evaluation = get_in(eligibility, ["properties", "evaluations", "items"])
+    hard = get_in(evaluation, ["properties", "hard_feasibility"])
+    registry = get_in(eligibility, ["properties", "source_evidence_registry"])
+    registry_entry = get_in(registry, ["properties", "entries", "additionalProperties"])
+
+    assert eligibility["additionalProperties"] == false
+    assert evaluation["additionalProperties"] == false
+    assert hard["additionalProperties"] == false
+    assert registry["additionalProperties"] == false
+    assert registry_entry["additionalProperties"] == false
+
+    assert first_schema
+           |> :json.encode()
+           |> IO.iodata_to_binary()
+           |> :json.decode() == first_schema
+  end
+
   defp hard_strategy(branches, hard_opts \\ []) do
     opts = [
       branches: branches,
@@ -417,6 +656,74 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationEligibilityTest 
       artifact["cadence_import_manifest"]["rows"],
       &(&1["import_action"] == "import_strategy_recommendation")
     )
+  end
+
+  defp assert_typed_schema_error(artifact) do
+    assert {:error, %{"status" => "fail", "errors" => [_first | _rest]}} =
+             Schema.validate_artifact(artifact)
+  end
+
+  defp repin_registry_id_copies(artifact, registry_id) do
+    artifact
+    |> update_in(["recommendation_eligibility"], fn eligibility ->
+      eligibility
+      |> put_in(["source_evidence_registry", "id"], registry_id)
+      |> update_in(
+        ["evaluations"],
+        &Enum.map(&1, fn row -> repin_evaluation(row, registry_id) end)
+      )
+      |> update_existing_map("counterfactual", &repin_evaluation(&1, registry_id))
+    end)
+    |> update_in(["recommendation"], &repin_recommendation(&1, registry_id))
+    |> update_in(["branch_comparison_report", "rows"], fn rows ->
+      Enum.map(rows, &repin_comparison(&1, registry_id))
+    end)
+    |> update_in(["operator_review_package", "rows"], fn rows ->
+      Enum.map(rows, &repin_review(&1, registry_id))
+    end)
+    |> update_in(["cadence_import_manifest", "rows"], fn rows ->
+      Enum.map(rows, &repin_manifest(&1, registry_id))
+    end)
+  end
+
+  defp repin_evaluation(%{} = evaluation, registry_id) do
+    update_existing_map(evaluation, "hard_feasibility", fn hard ->
+      Map.put(hard, "source_evidence_registry_id", registry_id)
+    end)
+  end
+
+  defp repin_evaluation(value, _registry_id), do: value
+
+  defp repin_recommendation(recommendation, registry_id),
+    do: update_existing_map(recommendation, "counterfactual", &repin_evaluation(&1, registry_id))
+
+  defp repin_comparison(row, registry_id),
+    do:
+      update_existing_map(
+        row,
+        "recommendation_hard_feasibility",
+        &Map.put(&1, "source_evidence_registry_id", registry_id)
+      )
+
+  defp repin_review(row, registry_id) do
+    row
+    |> update_existing_map("source_tradeoff", &repin_comparison(&1, registry_id))
+    |> update_existing_map("source_branch_comparison", &repin_comparison(&1, registry_id))
+  end
+
+  defp repin_manifest(row, registry_id) do
+    row
+    |> update_existing_map("source_tradeoff", &repin_comparison(&1, registry_id))
+    |> update_existing_map("source_branch_comparison", &repin_comparison(&1, registry_id))
+    |> update_existing_map("source_recommendation", &repin_recommendation(&1, registry_id))
+    |> update_existing_map("source_review_row", &repin_review(&1, registry_id))
+  end
+
+  defp update_existing_map(map, field, fun) do
+    case Map.get(map, field) do
+      %{} = value -> Map.put(map, field, fun.(value))
+      _value -> map
+    end
   end
 
   defp assert_json_roundtrip(artifact) do

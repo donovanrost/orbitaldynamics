@@ -5,6 +5,7 @@ defmodule OrbitalDynamics.CadenceImport.StrategyManifestRow do
       when is_list(callbacks) do
     branch_id = row["branch_id"]
     selected? = Map.get(row, "selected", false)
+    counterfactual? = row["recommendation_counterfactual"] == true
     approval_status = Map.get(row, "approval_status") || recommendation["approval_status"]
 
     %{
@@ -34,6 +35,8 @@ defmodule OrbitalDynamics.CadenceImport.StrategyManifestRow do
       "recommendation_eligibility_rank" => row["recommendation_eligibility_rank"],
       "recommendation_blocker_reasons" => row["recommendation_blocker_reasons"],
       "recommendation_counterfactual" => row["recommendation_counterfactual"],
+      "review_only" => if(counterfactual?, do: true),
+      "importable" => if(counterfactual?, do: false),
       "required_operator_action" =>
         if(selected?, do: "review_strategy_recommendation", else: "review_branch_comparison"),
       "cadence_import_status" => "not_applicable",
