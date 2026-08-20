@@ -26,6 +26,7 @@ defmodule OrbitalDynamics.Validation.ReferenceFixtures do
   alias OrbitalDynamics.Validation.ReferenceFixtures.DecisionSupportArtifacts
   alias OrbitalDynamics.Validation.ReferenceFixtures.EnvironmentCapabilities
   alias OrbitalDynamics.Validation.ReferenceFixtures.LinkCapacityArtifacts
+  alias OrbitalDynamics.Validation.ReferenceFixtures.Level5ContractArtifacts
   alias OrbitalDynamics.Validation.ReferenceFixtures.ManifestArtifacts
   alias OrbitalDynamics.Validation.ReferenceFixtures.ModelAcceptanceArtifacts
   alias OrbitalDynamics.Validation.ReferenceFixtures.ObjectiveScoringArtifacts
@@ -75,6 +76,7 @@ defmodule OrbitalDynamics.Validation.ReferenceFixtures do
                 |> Map.merge(DecisionSupportArtifacts.all())
                 |> Map.merge(EnvironmentCapabilities.all())
                 |> Map.merge(LinkCapacityArtifacts.all())
+                |> Map.merge(Level5ContractArtifacts.all())
                 |> Map.merge(ManifestArtifacts.all())
                 |> Map.merge(ModelAcceptanceArtifacts.all())
                 |> Map.merge(ObjectiveScoringArtifacts.all())
