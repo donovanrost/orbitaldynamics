@@ -32,6 +32,10 @@ as the reference map after a slice has been selected.
 - [level5_domain_matrix.md](level5_domain_matrix.md) — evidence-backed Level 5
   readiness audit across all 22 domains, including dependency-aware delivery
   waves and product decisions.
+- [level5_implementation_closeout.md](level5_implementation_closeout.md) —
+  integrated implementation closeout evidence for all 22 domains, including
+  the bounded D3 Orekit envelope and distinct pre-/post-D3 full-suite and
+  external-acceptance boundaries.
 
 ## Strategy and process
 
