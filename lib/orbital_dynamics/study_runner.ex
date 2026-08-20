@@ -116,7 +116,9 @@ defmodule OrbitalDynamics.StudyRunner do
                 task_supervisor: task_supervisor,
                 batch_propagation?: batch_propagation?
               ),
-            checkpoint_test_hook: Keyword.get(opts, :checkpoint_test_hook)
+            checkpoint_test_hook: Keyword.get(opts, :checkpoint_test_hook),
+            checkpoint_initial_publish_test_hook:
+              Keyword.get(opts, :checkpoint_initial_publish_test_hook)
           )
         end)
 
@@ -624,7 +626,8 @@ defmodule OrbitalDynamics.StudyRunner do
               scenario_indexes: scenario_indexes
             )
           end,
-          test_hook: Keyword.fetch!(opts, :checkpoint_test_hook)
+          test_hook: Keyword.fetch!(opts, :checkpoint_test_hook),
+          initial_publish_test_hook: Keyword.fetch!(opts, :checkpoint_initial_publish_test_hook)
         )
     end
   end

@@ -141,17 +141,21 @@ work, a **partial** executable-schema track, and **near-term** / **later** /
   `OrbitalDynamics.ResultSet.Artifact.resume_check/2`.
 - Opt-in local continuation uses `--checkpoint PATH` for a fresh versioned
   `study_checkpoint.v1` and `--resume-checkpoint PATH` for an interrupted run.
-  Each atomic same-directory replacement carries a checkpoint-level content
-  hash plus per-scenario payload hashes, original zero-based manifest indexes
-  and IDs, and exact manifest/study/model/run-option identities. Resume validates
-  all identities, the full scenario manifest, row uniqueness/order/shape, and
-  each payload before running only missing scenarios and combining propagation
-  outcomes in original manifest order.
+  Initial publication is atomically no-clobber and each atomic same-directory
+  replacement carries a checkpoint-level content hash plus per-scenario payload
+  hashes, original zero-based manifest indexes and IDs, and exact
+  manifest/study/model/run-option identities. File contents are synced before
+  publication or replacement; containing-directory metadata is not synced by
+  the portable implementation, so sudden power-loss durability is not claimed.
+  Resume validates all identities, the full scenario manifest, row
+  uniqueness/order/shape, and each payload before running only missing scenarios
+  and combining propagation outcomes in original manifest order.
 - Checkpoint provenance in `execution_report.v1` records the checkpoint path and
   SHA, create/resume mode, exact reused/run counts and indexes, chunk counts,
   identity hashes, and the local-only recovery boundary. Executable validation
   requires those counts to partition the source scenario indexes exactly.
-- Checkpoint execution rejects output-path aliases, distributed task
+- Checkpoint execution rejects output-path aliases, including conservatively
+  case-fold-equivalent unresolved paths, distributed task
   supervisors, batch propagation, failed-scenario retry composition, and
   identity-free API use. It provides no persistent queue, automatic retry,
   within-scenario checkpoint, distributed recovery, or planner behavior.

@@ -236,7 +236,7 @@ defmodule Mix.Tasks.OrbitalDynamics.Study.RunTest do
               run_id: "task-checkpoint-run",
               checkpoint: %{path: checkpoint_path, mode: :create},
               checkpoint_test_hook: fn event ->
-                send(parent, {:checkpoint_chunk_durable, event})
+                send(parent, {:checkpoint_chunk_published, event})
 
                 receive do
                   :interrupt_checkpoint -> {:error, :planned_after_first_chunk}
@@ -248,11 +248,11 @@ defmodule Mix.Tasks.OrbitalDynamics.Study.RunTest do
         )
       end)
 
-    assert_receive {:checkpoint_chunk_durable,
+    assert_receive {:checkpoint_chunk_published,
                     %{
                       chunk_number: 1,
                       completed_scenario_indexes: [0, 1],
-                      durable_completed_scenario_count: 2
+                      published_completed_scenario_count: 2
                     }},
                    5_000
 
@@ -380,6 +380,19 @@ defmodule Mix.Tasks.OrbitalDynamics.Study.RunTest do
         Path.join(real_parent, "result.json"),
         "--checkpoint",
         Path.join(symlink_parent, "result.json")
+      ])
+    end
+
+    Mix.Task.reenable("orbital_dynamics.study.run")
+
+    assert_raise Mix.Error, ~r/checkpoint path must differ from --output/, fn ->
+      Mix.Task.run("orbital_dynamics.study.run", [
+        "--manifest",
+        manifest_path,
+        "--output",
+        Path.join(real_parent, "CaseSensitiveResult.json"),
+        "--checkpoint",
+        Path.join(real_parent, "casesensitiveresult.json")
       ])
     end
   end

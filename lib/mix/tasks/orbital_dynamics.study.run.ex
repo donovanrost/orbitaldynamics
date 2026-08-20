@@ -486,7 +486,8 @@ defmodule Mix.Tasks.OrbitalDynamics.Study.Run do
     with {:ok, resolved_left} <- resolve_filesystem_path(left),
          {:ok, resolved_right} <- resolve_filesystem_path(right),
          {:ok, same_file?} <- same_existing_file?(left, right) do
-      {:ok, resolved_left == resolved_right or same_file?}
+      case_fold_alias? = String.downcase(resolved_left) == String.downcase(resolved_right)
+      {:ok, resolved_left == resolved_right or case_fold_alias? or same_file?}
     end
   end
 

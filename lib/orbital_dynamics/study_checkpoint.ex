@@ -4,9 +4,11 @@ defmodule OrbitalDynamics.StudyCheckpoint do
 
   A checkpoint contains completed per-scenario propagation outcomes. Each entry
   retains its original manifest index and ID, carries its own content hash, and
-  is covered by the checkpoint-level content hash. Writes replace the prior
-  checkpoint atomically so an interrupted write leaves the last durable version
-  available for an explicit resume.
+  is covered by the checkpoint-level content hash. Writes sync a same-directory
+  temporary file before atomic publication or replacement, so an interrupted
+  process leaves a complete published checkpoint available for explicit resume.
+  The portable implementation does not sync containing-directory metadata, so
+  it does not claim durability across sudden power loss.
 
   This module is intentionally limited to local, between-scenario recovery. It
   is not a persistent queue, a distributed recovery protocol, an automatic
@@ -27,9 +29,11 @@ defmodule OrbitalDynamics.StudyCheckpoint do
   Executes the missing scenarios for a new or existing local checkpoint.
 
   `execute_chunk` receives the chunk's scenarios and original manifest indexes.
-  The optional `:test_hook` runs only after a completed chunk has been written
-  durably. Returning `{:error, reason}` injects a deterministic interruption for
-  tests without exposing a CLI fault switch.
+  The optional `:test_hook` runs only after a completed chunk has been published.
+  Returning `{:error, reason}` injects a deterministic interruption for tests
+  without exposing a CLI fault switch. `:initial_publish_test_hook` is the
+  corresponding test-only barrier after the initial temporary file has been
+  synced and before its no-clobber publication.
   """
   def execute(
         %Study{} = study,
@@ -44,7 +48,12 @@ defmodule OrbitalDynamics.StudyCheckpoint do
     with {:ok, path, mode} <- checkpoint_path_and_mode(checkpoint_config),
          {:ok, expected_identity} <- build_identity(study, identity_inputs),
          {:ok, checkpoint, reused_results} <-
-           open_checkpoint(path, mode, expected_identity),
+           open_checkpoint(
+             path,
+             mode,
+             expected_identity,
+             Keyword.get(opts, :initial_publish_test_hook)
+           ),
          {:ok, completed_checkpoint, run_results, run_indexes, run_chunk_count} <-
            execute_missing_chunks(
              checkpoint,
@@ -194,28 +203,24 @@ defmodule OrbitalDynamics.StudyCheckpoint do
 
   defp require_identity_input(_field, _value), do: :ok
 
-  defp open_checkpoint(path, :create, expected_identity) do
-    if File.exists?(path) do
-      {:error, {:checkpoint_already_exists, path}}
-    else
-      checkpoint =
-        %{
-          "schema_contract" => @schema_contract,
-          "schema_version" => @schema_version,
-          "identity" => expected_identity,
-          "completed_scenario_count" => 0,
-          "completed_scenarios" => [],
-          "write_sequence" => 0
-        }
-        |> seal_checkpoint()
+  defp open_checkpoint(path, :create, expected_identity, initial_publish_test_hook) do
+    checkpoint =
+      %{
+        "schema_contract" => @schema_contract,
+        "schema_version" => @schema_version,
+        "identity" => expected_identity,
+        "completed_scenario_count" => 0,
+        "completed_scenarios" => [],
+        "write_sequence" => 0
+      }
+      |> seal_checkpoint()
 
-      with :ok <- atomic_write(path, checkpoint) do
-        {:ok, checkpoint, []}
-      end
+    with :ok <- atomic_write(path, checkpoint, :create, initial_publish_test_hook) do
+      {:ok, checkpoint, []}
     end
   end
 
-  defp open_checkpoint(path, :resume, expected_identity) do
+  defp open_checkpoint(path, :resume, expected_identity, _initial_publish_test_hook) do
     with {:ok, checkpoint} <- read_checkpoint(path),
          {:ok, results} <- validate_checkpoint(checkpoint, expected_identity) do
       {:ok, checkpoint, results}
@@ -260,7 +265,7 @@ defmodule OrbitalDynamics.StudyCheckpoint do
                    checkpoint_sha256: file_sha256!(path),
                    chunk_number: chunk_count + 1,
                    completed_scenario_indexes: chunk_indexes,
-                   durable_completed_scenario_count:
+                   published_completed_scenario_count:
                      Map.fetch!(updated, "completed_scenario_count")
                  }) do
             {:cont,
@@ -454,10 +459,14 @@ defmodule OrbitalDynamics.StudyCheckpoint do
   defp validate_checkpoint_entries(checkpoint, expected_identity) do
     entries = Map.fetch!(checkpoint, "completed_scenarios")
     declared_count = Map.fetch!(checkpoint, "completed_scenario_count")
+    invalid_entry_index = Enum.find_index(entries, &(not is_map(&1)))
 
     cond do
       declared_count != length(entries) ->
         {:error, {:checkpoint_completed_count_mismatch, declared_count, length(entries)}}
+
+      not is_nil(invalid_entry_index) ->
+        {:error, {:invalid_checkpoint_entry, invalid_entry_index}}
 
       Enum.map(entries, &Map.get(&1, "scenario_index")) !=
           Enum.sort(Enum.map(entries, &Map.get(&1, "scenario_index"))) ->
@@ -607,19 +616,32 @@ defmodule OrbitalDynamics.StudyCheckpoint do
     Map.put(body, "content_sha256", term_sha256(body))
   end
 
-  defp atomic_write(path, checkpoint) do
+  defp atomic_write(
+         path,
+         checkpoint,
+         publication_mode \\ :replace,
+         initial_publish_test_hook \\ nil
+       ) do
     directory = Path.dirname(path)
     :ok = File.mkdir_p(directory)
 
     temporary_path =
-      path <> ".tmp-" <> Integer.to_string(System.unique_integer([:positive, :monotonic]))
+      path <>
+        ".tmp-" <>
+        Base.url_encode64(:crypto.strong_rand_bytes(16), padding: false)
 
     json = checkpoint |> :json.encode() |> IO.iodata_to_binary()
 
     operation_result =
       try do
         with :ok <- write_and_sync_temporary(temporary_path, json <> "\n"),
-             :ok <- File.rename(temporary_path, path) do
+             :ok <-
+               invoke_initial_publish_test_hook(
+                 publication_mode,
+                 initial_publish_test_hook,
+                 path
+               ),
+             :ok <- publish_temporary(temporary_path, path, publication_mode) do
           :ok
         end
       rescue
@@ -628,28 +650,75 @@ defmodule OrbitalDynamics.StudyCheckpoint do
         kind, reason -> {:error, {kind, reason}}
       end
 
-    result =
+    publication_result =
       case operation_result do
         :ok ->
           :ok
+
+        {:error, {:checkpoint_already_exists, _path} = reason} ->
+          {:error, reason}
 
         {:error, reason} ->
           {:error, %{reason: :checkpoint_write_error, path: path, error: reason}}
       end
 
-    if result != :ok, do: File.rm(temporary_path)
-    result
+    cleanup_result = File.rm(temporary_path)
+
+    case {publication_result, cleanup_result} do
+      {result, :ok} ->
+        result
+
+      {result, {:error, :enoent}} ->
+        result
+
+      {{:error, _reason} = error, {:error, _cleanup_reason}} ->
+        error
+
+      {:ok, {:error, cleanup_reason}} ->
+        {:error,
+         %{
+           reason: :checkpoint_write_error,
+           path: path,
+           error: {:temporary_cleanup_failed, cleanup_reason}
+         }}
+    end
   end
 
   defp write_and_sync_temporary(path, contents) do
-    case File.open(path, [:write, :binary, :exclusive], fn file ->
-           with :ok <- IO.binwrite(file, contents),
-                :ok <- :file.sync(file) do
-             :ok
-           end
-         end) do
-      {:ok, :ok} -> :ok
-      {:ok, {:error, reason}} -> {:error, reason}
+    case File.open(path, [:write, :binary, :exclusive]) do
+      {:ok, file} ->
+        try do
+          with :ok <- IO.binwrite(file, contents),
+               :ok <- :file.sync(file) do
+            :ok
+          end
+        after
+          File.close(file)
+        end
+
+      {:error, reason} ->
+        {:error, reason}
+    end
+  end
+
+  defp invoke_initial_publish_test_hook(:replace, _test_hook, _path), do: :ok
+
+  defp invoke_initial_publish_test_hook(:create, test_hook, path) do
+    invoke_test_hook(test_hook, %{
+      schema_contract: @schema_contract,
+      checkpoint_path: path,
+      publication_mode: :create,
+      temporary_file_synced: true
+    })
+  end
+
+  defp publish_temporary(temporary_path, path, :replace),
+    do: File.rename(temporary_path, path)
+
+  defp publish_temporary(temporary_path, path, :create) do
+    case File.ln(temporary_path, path) do
+      :ok -> :ok
+      {:error, :eexist} -> {:error, {:checkpoint_already_exists, path}}
       {:error, reason} -> {:error, reason}
     end
   end

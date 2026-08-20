@@ -10,6 +10,7 @@ defmodule OrbitalDynamics.StudyCheckpointTest do
 
     variant_names = [
       "content",
+      "null",
       "payload",
       "invalid_term",
       "entry_hash",
@@ -44,6 +45,16 @@ defmodule OrbitalDynamics.StudyCheckpointTest do
 
     assert {:error, {:checkpoint_content_hash_mismatch, _expected, _actual}} =
              resume(study, opts, variant_paths["content"])
+
+    null_entry =
+      checkpoint
+      |> put_in(["completed_scenarios", Access.at(0)], :null)
+      |> seal_checkpoint()
+
+    write_checkpoint!(variant_paths["null"], null_entry)
+
+    assert {:error, {:invalid_checkpoint_entry, 0}} =
+             resume(study, opts, variant_paths["null"])
 
     payload_corruption =
       checkpoint
@@ -129,6 +140,83 @@ defmodule OrbitalDynamics.StudyCheckpointTest do
 
     assert {:error, {:checkpoint_identity_mismatch, "scenario_manifest", _expected, _actual}} =
              resume(study, opts, variant_paths["manifest"])
+  end
+
+  test "concurrent checkpoint creators publish once without replacing the winner" do
+    unique = System.unique_integer([:positive])
+    checkpoint_path = checkpoint_path(unique, "concurrent_create")
+
+    on_exit(fn ->
+      File.rm(checkpoint_path)
+
+      checkpoint_path
+      |> Path.dirname()
+      |> Path.join(Path.basename(checkpoint_path) <> ".tmp-*")
+      |> Path.wildcard()
+      |> Enum.each(&File.rm/1)
+    end)
+
+    parent = self()
+    study = checkpoint_study()
+    base_opts = run_opts(unique)
+
+    start_creator = fn label, run_id ->
+      Task.async(fn ->
+        OrbitalDynamics.StudyRunner.run(
+          study,
+          base_opts
+          |> Keyword.put(:run_id, run_id)
+          |> Keyword.put(:checkpoint, %{path: checkpoint_path, mode: :create})
+          |> Keyword.put(:checkpoint_initial_publish_test_hook, fn event ->
+            send(parent, {:initial_checkpoint_ready, label, self(), event})
+
+            receive do
+              {:publish_initial_checkpoint, ^label} -> :ok
+            after
+              5_000 -> {:error, :initial_publish_barrier_timeout}
+            end
+          end)
+        )
+      end)
+    end
+
+    winner = start_creator.(:winner, "checkpoint-winner-#{unique}")
+    loser = start_creator.(:loser, "checkpoint-loser-#{unique}")
+
+    assert_receive {:initial_checkpoint_ready, :winner, winner_pid,
+                    %{publication_mode: :create, temporary_file_synced: true}},
+                   5_000
+
+    assert_receive {:initial_checkpoint_ready, :loser, loser_pid,
+                    %{publication_mode: :create, temporary_file_synced: true}},
+                   5_000
+
+    send(winner_pid, {:publish_initial_checkpoint, :winner})
+    assert {:ok, _result_set} = Task.await(winner, 5_000)
+    winner_checkpoint = File.read!(checkpoint_path)
+
+    send(loser_pid, {:publish_initial_checkpoint, :loser})
+
+    assert {:error, {:checkpoint_already_exists, ^checkpoint_path}} =
+             Task.await(loser, 5_000)
+
+    assert File.read!(checkpoint_path) == winner_checkpoint
+
+    assert {:ok, _result_set} =
+             resume(
+               study,
+               Keyword.put(base_opts, :run_id, "checkpoint-winner-#{unique}"),
+               checkpoint_path
+             )
+
+    assert {:error, {:checkpoint_identity_mismatch, "run_options", _expected, _actual}} =
+             resume(
+               study,
+               Keyword.put(base_opts, :run_id, "checkpoint-loser-#{unique}"),
+               checkpoint_path
+             )
+
+    assert Path.wildcard(checkpoint_path <> ".tmp-*") == []
   end
 
   test "rejects stale manifest, model, and run-option identities before reuse" do

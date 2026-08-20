@@ -321,7 +321,10 @@ reused/run counts and provenance in the JSON summary and execution report.
 Checkpoint and output paths must not alias. This mode does not support batch or
 distributed execution, within-scenario recovery, persistent queues, or
 automatic retry, and remains separate from whole-artifact `--resume` and
-explicit `--retry-failed-from`.
+explicit `--retry-failed-from`. Checkpoint file contents are synced before
+atomic publication or replacement, but the portable implementation does not
+sync containing-directory metadata and therefore does not claim survival of a
+sudden power loss.
 
 Summarize or compare saved study artifacts:
 
