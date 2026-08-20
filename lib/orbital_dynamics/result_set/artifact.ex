@@ -49,6 +49,21 @@ defmodule OrbitalDynamics.ResultSet.Artifact do
     :max_sample_step_s,
     :confidence
   ]
+  @derived_numeric_trajectory_fields [
+    :final_radius_km,
+    :final_speed_km_s,
+    :min_radius_km,
+    :max_radius_km,
+    :min_altitude_km,
+    :max_altitude_km,
+    :semi_major_axis_km,
+    :eccentricity,
+    :perigee_radius_km,
+    :apogee_radius_km,
+    :perigee_altitude_km,
+    :apogee_altitude_km
+  ]
+  @maximum_finite_float 1.7976931348623157e308
 
   @doc """
   Builds a JSON-serializable artifact map.
@@ -224,14 +239,7 @@ defmodule OrbitalDynamics.ResultSet.Artifact do
     radius_stats = radius_stats(states)
     final_elements = final_orbital_elements(last_state, trajectory.assumptions)
 
-    %{
-      scenario_id: encode_value(scenario_id),
-      node: result_node(result, fallback_node),
-      sample_count: length(states),
-      starts_at_s: epoch_seconds(first_state),
-      ends_at_s: epoch_seconds(last_state),
-      final_position_km: encode_value(last_state.position_km),
-      final_velocity_km_s: encode_value(last_state.velocity_km_s),
+    derived_numbers = %{
       final_radius_km: vector_norm(last_state.position_km),
       final_speed_km_s: vector_norm(last_state.velocity_km_s),
       min_radius_km: radius_stats.min_radius_km,
@@ -243,11 +251,36 @@ defmodule OrbitalDynamics.ResultSet.Artifact do
       perigee_radius_km: final_elements.perigee_radius_km,
       apogee_radius_km: final_elements.apogee_radius_km,
       perigee_altitude_km: altitude(final_elements.perigee_radius_km, trajectory.assumptions),
-      apogee_altitude_km: altitude(final_elements.apogee_radius_km, trajectory.assumptions),
+      apogee_altitude_km: altitude(final_elements.apogee_radius_km, trajectory.assumptions)
+    }
+
+    %{
+      scenario_id: encode_value(scenario_id),
+      node: result_node(result, fallback_node),
+      sample_count: length(states),
+      starts_at_s: epoch_seconds(first_state),
+      ends_at_s: epoch_seconds(last_state),
+      final_position_km: encode_value(last_state.position_km),
+      final_velocity_km_s: encode_value(last_state.velocity_km_s),
       assumptions: encode_value(trajectory.assumptions)
     }
+    |> Map.merge(finite_derived_trajectory_numbers(derived_numbers))
     |> Map.merge(trajectory_capability_fields(trajectory.assumptions))
   end
+
+  defp finite_derived_trajectory_numbers(numbers) do
+    numbers
+    |> Map.take(@derived_numeric_trajectory_fields)
+    |> Enum.filter(fn {_field, value} -> finite_number?(value) end)
+    |> Map.new()
+  end
+
+  defp finite_number?(value) when is_integer(value), do: true
+
+  defp finite_number?(value) when is_float(value),
+    do: value == value and value <= @maximum_finite_float and value >= -@maximum_finite_float
+
+  defp finite_number?(_value), do: false
 
   defp trajectory_capability_fields(assumptions) do
     %{
