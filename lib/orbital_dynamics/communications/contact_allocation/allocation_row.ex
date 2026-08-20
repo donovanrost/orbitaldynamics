@@ -85,6 +85,7 @@ defmodule OrbitalDynamics.Communications.ContactAllocation.AllocationRow do
   def base(contact, config) do
     id = ContactIdentity.contact_id(contact)
     station_capacity_policy = Map.fetch!(config, :station_capacity_policy)
+    downlink_link_budget = DownlinkLinkBudget.evidence_for_contact(contact)
 
     %{
       "id" => "contact_allocation:#{id}",
@@ -99,9 +100,13 @@ defmodule OrbitalDynamics.Communications.ContactAllocation.AllocationRow do
       "starts_at_s" => contact["starts_at_s"],
       "ends_at_s" => contact["ends_at_s"],
       "source_window_id" => ContactIdentity.stable_id_or_nil(contact["source_window_id"]),
+      "source_window_revision" =>
+        downlink_link_budget &&
+          get_in(downlink_link_budget, ["contact_binding", "source_window_revision"]),
       "source_window_type" => contact["source_window_type"],
       "source_window" => contact["source_window"],
-      "downlink_link_budget" => DownlinkLinkBudget.evidence_for_contact(contact),
+      "downlink_link_budget" => downlink_link_budget,
+      "downlink_link_budget_id" => downlink_link_budget && downlink_link_budget["id"],
       "actual_throughput_mb" => ThroughputEvidence.actual_throughput(contact),
       "actual_data_rate_throughput_derivation" =>
         ThroughputEvidence.actual_data_rate_derivation(contact),

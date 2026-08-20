@@ -65,6 +65,10 @@ defmodule OrbitalDynamics.Communications.LinkCapacity do
     "healthcheck" => "health_check",
     "health_check_window" => "health_check"
   }
+  @link_budget_replaced_model_limits [
+    "no_link_budget_model",
+    "no_modulation_or_coding_model"
+  ]
   alias OrbitalDynamics.Policy
   alias OrbitalDynamics.Communications.LinkCapacity.ContactFeedback
   alias OrbitalDynamics.Communications.LinkCapacity.ContactIdentity
@@ -245,7 +249,7 @@ defmodule OrbitalDynamics.Communications.LinkCapacity do
       when is_list(candidates) and is_list(selected_contacts) do
     candidates = Enum.map(candidates, &normalize_contact/1)
     selected_contacts = Enum.map(selected_contacts, &normalize_contact/1)
-    downlink_link_budgets = link_budget_evidence(candidates ++ selected_contacts)
+    downlink_link_budgets = link_budget_evidence(candidates)
 
     {invalid_contact_inputs, contacts} =
       candidates
@@ -552,7 +556,7 @@ defmodule OrbitalDynamics.Communications.LinkCapacity do
           "ambiguous_selected_contact_id_count" => length(station_ambiguous_selected_contact_ids)
         }
         |> Map.merge(contact_feedback_context(station_contacts))
-        |> Map.merge(link_budget_station_context(station_contacts ++ station_selected_downlinks))
+        |> Map.merge(link_budget_station_context(station_contacts))
         |> compact_map()
         |> maybe_apply_approval_policy(approval_policy)
       end)
@@ -674,7 +678,7 @@ defmodule OrbitalDynamics.Communications.LinkCapacity do
         row_list_values(rows, "station_reservation_statuses", :string) || [],
       "station_reservation_match_status_counts" =>
         row_list_value_counts(rows, "station_reservation_match_statuses"),
-      "model_limits" => model_limits(),
+      "model_limits" => report_model_limits(downlink_link_budgets),
       "rows" => rows,
       "assumptions" =>
         %{
@@ -795,6 +799,13 @@ defmodule OrbitalDynamics.Communications.LinkCapacity do
     |> Enum.map(&Atom.to_string/1)
   end
 
+  @doc false
+  def report_model_limits([]), do: model_limits()
+
+  def report_model_limits(_budget_evidence) do
+    model_limits() -- @link_budget_replaced_model_limits
+  end
+
   defp link_budget_evidence(contacts) do
     budgets =
       contacts
@@ -835,7 +846,9 @@ defmodule OrbitalDynamics.Communications.LinkCapacity do
       budgets ->
         %{
           "downlink_link_budget_count" => length(budgets),
-          "downlink_link_budget_ids" => Enum.map(budgets, & &1["id"])
+          "downlink_link_budget_ids" => Enum.map(budgets, & &1["id"]),
+          "downlink_link_budget_contact_ids" =>
+            Enum.map(budgets, &get_in(&1, ["contact_binding", "contact_id"]))
         }
     end
   end

@@ -63,6 +63,8 @@ defmodule OrbitalDynamics.Schema.DownlinkLinkBudgetJsonSchema do
   end
 
   defp contact_binding(opts) do
+    time_bounds = envelope("time_s")
+
     object(
       ~w(contact_id spacecraft_id ground_station_id direction mode starts_at_s ends_at_s duration_s source_window_id source_window_revision),
       %{
@@ -71,9 +73,9 @@ defmodule OrbitalDynamics.Schema.DownlinkLinkBudgetJsonSchema do
         "ground_station_id" => stable_id(opts),
         "direction" => %{"type" => "string", "const" => "downlink"},
         "mode" => %{"type" => "string", "const" => DownlinkLinkBudget.supported_mode()},
-        "starts_at_s" => non_negative_number(),
-        "ends_at_s" => non_negative_number(),
-        "duration_s" => positive_number(),
+        "starts_at_s" => bounded_number(time_bounds),
+        "ends_at_s" => bounded_number(time_bounds),
+        "duration_s" => bounded_number(time_bounds, exclusive_minimum: true),
         "source_window_id" => stable_id(opts),
         "source_window_revision" => non_blank_string()
       }
@@ -81,6 +83,8 @@ defmodule OrbitalDynamics.Schema.DownlinkLinkBudgetJsonSchema do
   end
 
   defp access_window(opts) do
+    time_bounds = envelope("time_s")
+
     object(
       ~w(id revision spacecraft_id ground_station_id starts_at_s ends_at_s source source_revision),
       %{
@@ -88,8 +92,8 @@ defmodule OrbitalDynamics.Schema.DownlinkLinkBudgetJsonSchema do
         "revision" => non_blank_string(),
         "spacecraft_id" => stable_id(opts),
         "ground_station_id" => stable_id(opts),
-        "starts_at_s" => non_negative_number(),
-        "ends_at_s" => non_negative_number(),
+        "starts_at_s" => bounded_number(time_bounds),
+        "ends_at_s" => bounded_number(time_bounds),
         "source" => non_blank_string(),
         "source_revision" => non_blank_string()
       }
@@ -98,9 +102,9 @@ defmodule OrbitalDynamics.Schema.DownlinkLinkBudgetJsonSchema do
 
   defp geometry do
     object(~w(slant_range elevation sample_at), %{
-      "slant_range" => quantity("km", exclusive_minimum: 0.0),
-      "elevation" => quantity("deg", minimum: 0.0, maximum: 90.0),
-      "sample_at" => quantity("s", minimum: 0.0)
+      "slant_range" => quantity("km", envelope("slant_range_km")),
+      "elevation" => quantity("deg", envelope("elevation_deg")),
+      "sample_at" => quantity("s", envelope("time_s"))
     })
   end
 
@@ -114,9 +118,9 @@ defmodule OrbitalDynamics.Schema.DownlinkLinkBudgetJsonSchema do
         "revision" => non_blank_string(),
         "direction" => %{"type" => "string", "const" => "downlink"},
         "mode" => %{"type" => "string", "const" => DownlinkLinkBudget.supported_mode()},
-        "carrier_frequency" => quantity("Hz", exclusive_minimum: 0.0),
-        "transmit_power" => quantity("W", exclusive_minimum: 0.0),
-        "transmit_antenna_gain" => quantity("dBi", minimum: 0.0)
+        "carrier_frequency" => quantity("Hz", envelope("carrier_frequency_hz")),
+        "transmit_power" => quantity("W", envelope("transmit_power_w")),
+        "transmit_antenna_gain" => quantity("dBi", envelope("antenna_gain_dbi"))
       }
     )
   end
@@ -131,9 +135,9 @@ defmodule OrbitalDynamics.Schema.DownlinkLinkBudgetJsonSchema do
         "revision" => non_blank_string(),
         "direction" => %{"type" => "string", "const" => "downlink"},
         "mode" => %{"type" => "string", "const" => DownlinkLinkBudget.supported_mode()},
-        "carrier_frequency" => quantity("Hz", exclusive_minimum: 0.0),
-        "receive_antenna_gain" => quantity("dBi", minimum: 0.0),
-        "system_noise_temperature" => quantity("K", exclusive_minimum: 0.0)
+        "carrier_frequency" => quantity("Hz", envelope("carrier_frequency_hz")),
+        "receive_antenna_gain" => quantity("dBi", envelope("antenna_gain_dbi")),
+        "system_noise_temperature" => quantity("K", envelope("system_noise_temperature_k"))
       }
     )
   end
@@ -144,20 +148,21 @@ defmodule OrbitalDynamics.Schema.DownlinkLinkBudgetJsonSchema do
       %{
         "direction" => %{"type" => "string", "const" => "downlink"},
         "mode" => %{"type" => "string", "const" => DownlinkLinkBudget.supported_mode()},
-        "carrier_frequency" => quantity("Hz", exclusive_minimum: 0.0),
-        "occupied_bandwidth" => quantity("Hz", exclusive_minimum: 0.0),
-        "explicit_losses" => quantity("dB", minimum: 0.0),
-        "coding_efficiency" => quantity("ratio", exclusive_minimum: 0.0, maximum: 1.0),
-        "modulation_efficiency" => quantity("bit/s/Hz", exclusive_minimum: 0.0)
+        "carrier_frequency" => quantity("Hz", envelope("carrier_frequency_hz")),
+        "occupied_bandwidth" => quantity("Hz", envelope("occupied_bandwidth_hz")),
+        "explicit_losses" => quantity("dB", envelope("explicit_losses_db")),
+        "coding_efficiency" => quantity("ratio", envelope("coding_efficiency_ratio")),
+        "modulation_efficiency" =>
+          quantity("bit/s/Hz", envelope("modulation_efficiency_bit_s_hz"))
       }
     )
   end
 
   defp margin_policy do
     object(~w(minimum_elevation required_eb_n0 required_margin), %{
-      "minimum_elevation" => quantity("deg", minimum: 0.0, maximum: 90.0),
-      "required_eb_n0" => quantity("dB", minimum: 0.0),
-      "required_margin" => quantity("dB", minimum: 0.0)
+      "minimum_elevation" => quantity("deg", envelope("elevation_deg")),
+      "required_eb_n0" => quantity("dB", envelope("required_eb_n0_db")),
+      "required_margin" => quantity("dB", envelope("required_margin_db"))
     })
   end
 
@@ -201,12 +206,27 @@ defmodule OrbitalDynamics.Schema.DownlinkLinkBudgetJsonSchema do
         {:minimum, value}, schema -> Map.put(schema, "minimum", value)
         {:maximum, value}, schema -> Map.put(schema, "maximum", value)
         {:exclusive_minimum, value}, schema -> Map.put(schema, "exclusiveMinimum", value)
+        {"minimum", value}, schema -> Map.put(schema, "minimum", value)
+        {"maximum", value}, schema -> Map.put(schema, "maximum", value)
       end)
 
     object(["value", "unit"], %{
       "value" => value_schema,
       "unit" => %{"type" => "string", "const" => unit, "enum" => @quantity_units}
     })
+  end
+
+  defp envelope(field), do: Map.fetch!(DownlinkLinkBudget.input_envelopes(), field)
+
+  defp bounded_number(bounds, opts \\ []) do
+    minimum_key =
+      if Keyword.get(opts, :exclusive_minimum, false), do: "exclusiveMinimum", else: "minimum"
+
+    %{
+      "type" => "number",
+      minimum_key => bounds["minimum"],
+      "maximum" => bounds["maximum"]
+    }
   end
 
   defp object(required, properties) do
@@ -229,6 +249,5 @@ defmodule OrbitalDynamics.Schema.DownlinkLinkBudgetJsonSchema do
 
   defp number, do: %{"type" => "number"}
   defp non_negative_number, do: %{"type" => "number", "minimum" => 0.0}
-  defp positive_number, do: %{"type" => "number", "exclusiveMinimum" => 0.0}
   defp non_blank_string, do: %{"type" => "string", "minLength" => 1}
 end

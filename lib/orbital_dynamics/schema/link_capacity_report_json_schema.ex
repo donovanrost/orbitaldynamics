@@ -235,7 +235,8 @@ defmodule OrbitalDynamics.Schema.LinkCapacityReportJsonSchema do
           Keyword.fetch!(opts, :actual_data_rate_throughput_derivations_schema),
         "policy_decision" => Keyword.fetch!(opts, :policy_decision_schema),
         "downlink_link_budget_count" => integer_schema(),
-        "downlink_link_budget_ids" => stable_id_array_schema
+        "downlink_link_budget_ids" => stable_id_array_schema,
+        "downlink_link_budget_contact_ids" => stable_id_array_schema
       }
     }
   end
@@ -261,10 +262,16 @@ defmodule OrbitalDynamics.Schema.LinkCapacityReportJsonSchema do
   def property("model_limits", opts) do
     model_limits = Keyword.fetch!(opts, :model_limits)
 
+    budget_model_limits =
+      OrbitalDynamics.Communications.LinkCapacity.report_model_limits([:present])
+
     %{
       "type" => "array",
-      "const" => model_limits,
-      "items" => %{"type" => "string", "enum" => model_limits}
+      "oneOf" => [
+        %{"const" => model_limits},
+        %{"const" => budget_model_limits}
+      ],
+      "items" => %{"type" => "string", "enum" => Enum.uniq(model_limits ++ budget_model_limits)}
     }
   end
 

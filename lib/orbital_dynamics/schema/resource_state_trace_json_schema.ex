@@ -3,6 +3,16 @@ defmodule OrbitalDynamics.Schema.ResourceStateTraceJsonSchema do
 
   alias OrbitalDynamics.ResourceStateTrace
 
+  @link_budget_limit_evidence_fields ~w(
+    downlink_link_budget_id
+    requested_data_removed_mb
+    status_eligible_data_removed_mb
+    link_budget_supported_volume_mb
+    link_budget_applied_data_removed_mb
+    link_budget_limited_data_removed_mb
+    unused_link_budget_volume_mb
+  )
+
   @count_fields ~w(
     input_activity_count
     applied_activity_count
@@ -104,7 +114,18 @@ defmodule OrbitalDynamics.Schema.ResourceStateTraceJsonSchema do
         "provenance" => open_object(),
         "downlink_link_budget" =>
           OrbitalDynamics.Schema.DownlinkLinkBudgetJsonSchema.artifact_schema(opts)
-      }
+      },
+      "allOf" => [
+        %{
+          "if" => %{"required" => ["downlink_link_budget"]},
+          "then" => %{
+            "properties" => %{
+              "limit_evidence" => %{"required" => @link_budget_limit_evidence_fields},
+              "provenance" => %{"required" => ["downlink_link_budget_id"]}
+            }
+          }
+        }
+      ]
     }
   end
 

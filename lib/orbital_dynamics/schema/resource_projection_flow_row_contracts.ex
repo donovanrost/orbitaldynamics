@@ -16,6 +16,7 @@ defmodule OrbitalDynamics.Schema.ResourceProjectionFlowRowContracts do
 
   @stable_id_fields [
     "activity_id",
+    "downlink_link_budget_id",
     "source_window_id",
     "ground_station_id",
     "station_calendar_entry_id",
@@ -94,6 +95,10 @@ defmodule OrbitalDynamics.Schema.ResourceProjectionFlowRowContracts do
     |> validate_non_negative_numbers(path, row)
     |> validate_numbers(path, row)
     |> validate_optional_link_budget(path, row)
+    |> validate_link_budget_binding(path, row)
+    |> expect_optional_type(path, row, "source_window_revision", :binary)
+    |> expect_optional_type(path, row, "direction", :binary)
+    |> expect_optional_type(path, row, "contact_mode", :binary)
     |> expect_optional_one_of(path, row, "latency_basis", ["planned", "actual"])
     |> expect_optional_one_of(path, row, "latency_status", ["within_limit", "late"])
     |> expect_optional_one_of(
@@ -145,6 +150,97 @@ defmodule OrbitalDynamics.Schema.ResourceProjectionFlowRowContracts do
 
       _budget ->
         [error(path <> ".downlink_link_budget", "must be an object") | issues]
+    end
+  end
+
+  defp validate_link_budget_binding(issues, path, %{"downlink_link_budget" => %{} = budget} = row) do
+    binding = Map.get(budget, "contact_binding", %{})
+
+    issues
+    |> expect_budget_field(path, row, "downlink_link_budget_id", budget["id"])
+    |> expect_budget_field(path, row, "activity_id", binding["contact_id"])
+    |> expect_budget_field(path, row, "ground_station_id", binding["ground_station_id"])
+    |> expect_budget_field(path, row, "source_window_id", binding["source_window_id"])
+    |> expect_budget_field(
+      path,
+      row,
+      "source_window_revision",
+      binding["source_window_revision"]
+    )
+    |> expect_budget_field(path, row, "starts_at_s", binding["starts_at_s"])
+    |> expect_budget_field(path, row, "ends_at_s", binding["ends_at_s"])
+    |> expect_budget_field(path, row, "direction", binding["direction"])
+    |> expect_budget_field(path, row, "contact_mode", binding["mode"])
+    |> validate_budget_source_window(path, row, budget)
+    |> validate_budget_volume(path, row, budget)
+  end
+
+  defp validate_link_budget_binding(issues, _path, _row), do: issues
+
+  defp validate_budget_source_window(issues, path, %{"source_window" => %{} = window}, budget) do
+    expected = Map.get(budget, "access_window", %{})
+
+    Enum.reduce(
+      ~w(id revision spacecraft_id ground_station_id starts_at_s ends_at_s),
+      issues,
+      fn field, acc ->
+        if Map.has_key?(window, field) do
+          expect_budget_field(acc, path <> ".source_window", window, field, expected[field])
+        else
+          acc
+        end
+      end
+    )
+  end
+
+  defp validate_budget_source_window(issues, _path, _row, _budget), do: issues
+
+  defp validate_budget_volume(issues, path, row, budget) do
+    supported = get_in(budget, ["derived", "supported_volume_mb"])
+    capacity_fraction = Map.get(row, "capacity_fraction")
+
+    expected_planned =
+      if row["resource_effect_status"] == "projected" and is_number(supported) and
+           is_number(capacity_fraction),
+         do: supported * capacity_fraction,
+         else: 0.0
+
+    issues
+    |> expect_budget_number(path, row, "planned_downlink_mb", expected_planned)
+    |> validate_budget_downlinked_volume(path, row, expected_planned)
+  end
+
+  defp validate_budget_downlinked_volume(issues, path, row, expected_planned) do
+    downlinked = row["downlinked_mb"]
+
+    if is_number(downlinked) and downlinked <= expected_planned + 1.0e-9 do
+      issues
+    else
+      [
+        error(path <> ".downlinked_mb", "must not exceed the link-budget-bounded planned volume")
+        | issues
+      ]
+    end
+  end
+
+  defp expect_budget_number(issues, path, row, field, expected) do
+    case Map.get(row, field) do
+      actual when is_number(actual) and abs(actual - expected) <= 1.0e-9 ->
+        issues
+
+      _actual ->
+        [
+          error(path <> ".#{field}", "must match link-budget volume and capacity fraction")
+          | issues
+        ]
+    end
+  end
+
+  defp expect_budget_field(issues, path, row, field, expected) do
+    if Map.get(row, field) == expected do
+      issues
+    else
+      [error(path <> ".#{field}", "must match embedded downlink_link_budget evidence") | issues]
     end
   end
 

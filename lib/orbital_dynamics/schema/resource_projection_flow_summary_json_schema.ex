@@ -151,8 +151,11 @@ defmodule OrbitalDynamics.Schema.ResourceProjectionFlowSummaryJsonSchema do
       "additionalProperties" => true,
       "properties" => %{
         "activity_id" => %{"type" => "string", "pattern" => stable_id_pattern},
+        "downlink_link_budget_id" => %{"type" => "string", "pattern" => stable_id_pattern},
         "activity_type" => %{"type" => "string"},
         "mode" => %{"type" => "string"},
+        "contact_mode" => %{"type" => "string"},
+        "direction" => %{"type" => "string"},
         "incompatible_activity_types" => Keyword.fetch!(opts, :string_array_schema),
         "suppressed_activity_types" => Keyword.fetch!(opts, :string_array_schema),
         "ground_station_id" => %{"type" => "string", "pattern" => stable_id_pattern},
@@ -167,6 +170,7 @@ defmodule OrbitalDynamics.Schema.ResourceProjectionFlowSummaryJsonSchema do
         },
         "station_calendar_directions" => Keyword.fetch!(opts, :string_array_schema),
         "source_window_id" => %{"type" => "string", "pattern" => stable_id_pattern},
+        "source_window_revision" => %{"type" => "string", "minLength" => 1},
         "source_window_type" => %{"type" => "string"},
         "source_window" => Keyword.fetch!(opts, :source_window_schema),
         "downlink_link_budget" =>

@@ -4,7 +4,8 @@ defmodule OrbitalDynamics.Communications.DownlinkLinkBudget do
 
   The caller supplies the contact/access-window binding, one slant-range and
   elevation sample, both terminal definitions, RF/noise/loss inputs, bandwidth,
-  coding/modulation efficiency, and margin policy. The resulting artifact is
+  coding/modulation efficiency, and margin policy within the published finite
+  LEO ground-downlink engineering envelopes. The resulting artifact is
   evidence only: it does not recompute access geometry, select another mode,
   reserve a provider contact, calibrate hidden losses, or mutate a schedule.
   """
@@ -17,6 +18,22 @@ defmodule OrbitalDynamics.Communications.DownlinkLinkBudget do
   @megabyte_bits 8_000_000.0
   @stable_id_pattern ~r/^[A-Za-z0-9][A-Za-z0-9._:@-]*$/
   @maximum_finite_float 1.7976931348623157e308
+  @maximum_time_s 1.0e12
+  @input_envelopes %{
+    "time_s" => %{"minimum" => 0.0, "maximum" => @maximum_time_s},
+    "slant_range_km" => %{"minimum" => 100.0, "maximum" => 6_000.0},
+    "carrier_frequency_hz" => %{"minimum" => 100.0e6, "maximum" => 100.0e9},
+    "occupied_bandwidth_hz" => %{"minimum" => 1.0, "maximum" => 1.0e9},
+    "transmit_power_w" => %{"minimum" => 0.001, "maximum" => 10_000.0},
+    "antenna_gain_dbi" => %{"minimum" => 0.0, "maximum" => 100.0},
+    "system_noise_temperature_k" => %{"minimum" => 1.0, "maximum" => 10_000.0},
+    "explicit_losses_db" => %{"minimum" => 0.0, "maximum" => 300.0},
+    "coding_efficiency_ratio" => %{"minimum" => 0.01, "maximum" => 1.0},
+    "modulation_efficiency_bit_s_hz" => %{"minimum" => 0.01, "maximum" => 16.0},
+    "required_eb_n0_db" => %{"minimum" => 0.0, "maximum" => 100.0},
+    "required_margin_db" => %{"minimum" => 0.0, "maximum" => 100.0},
+    "elevation_deg" => %{"minimum" => 0.0, "maximum" => 90.0}
+  }
   @model_limits [
     "explicit_losses_only",
     "no_adaptive_coding_or_modulation",
@@ -40,6 +57,7 @@ defmodule OrbitalDynamics.Communications.DownlinkLinkBudget do
       supported_direction: :downlink,
       supported_mode: String.to_atom(@supported_mode),
       input_geometry: [:slant_range_km, :elevation_deg, :sample_at_s],
+      input_envelopes: @input_envelopes,
       output_metrics: [
         :received_power_dbw,
         :c_n0_db_hz,
@@ -65,12 +83,18 @@ defmodule OrbitalDynamics.Communications.DownlinkLinkBudget do
   def model_limits, do: @model_limits
 
   @doc false
+  def input_envelopes, do: @input_envelopes
+
+  @doc false
   def assumptions do
     %{
       "calibration" => "none",
       "speed_of_light_m_s" => @speed_of_light_m_s,
       "boltzmann_constant_w_hz_k" => @boltzmann_constant_w_hz_k,
       "megabyte_definition_bits" => @megabyte_bits,
+      "input_envelopes" => @input_envelopes,
+      "input_envelope_basis" =>
+        "bounded_leo_ground_downlink_engineering_screen_not_mission_certification",
       "free_space_path_loss_model" => "20_log10_4_pi_range_m_frequency_hz_over_c",
       "noise_density_model" => "10_log10_boltzmann_constant_times_system_noise_temperature_k",
       "configured_data_rate_model" =>
@@ -109,6 +133,7 @@ defmodule OrbitalDynamics.Communications.DownlinkLinkBudget do
       source_revision: required_text!(params, "source_revision")
     }
 
+    validate_declared_contact_window!(contact, normalized.access_window)
     validate_bindings!(normalized)
     derived = derive!(normalized)
 
@@ -157,6 +182,7 @@ defmodule OrbitalDynamics.Communications.DownlinkLinkBudget do
             binding = normalize_contact_binding!(contact)
 
             if evidence["contact_binding"] == binding do
+              validate_declared_contact_window!(contact, evidence["access_window"])
               evidence
             else
               raise ArgumentError,
@@ -272,8 +298,8 @@ defmodule OrbitalDynamics.Communications.DownlinkLinkBudget do
   end
 
   defp normalize_contact_binding!(contact) do
-    starts_at_s = non_negative_number!(required_value!(contact, "starts_at_s"), "starts_at_s")
-    ends_at_s = non_negative_number!(required_value!(contact, "ends_at_s"), "ends_at_s")
+    starts_at_s = time_s!(required_value!(contact, "starts_at_s"), "starts_at_s")
+    ends_at_s = time_s!(required_value!(contact, "ends_at_s"), "ends_at_s")
 
     if ends_at_s <= starts_at_s do
       raise ArgumentError, "contact ends_at_s must be greater than starts_at_s"
@@ -302,8 +328,8 @@ defmodule OrbitalDynamics.Communications.DownlinkLinkBudget do
   end
 
   defp normalize_access_window!(window) do
-    starts_at_s = non_negative_number!(required_value!(window, "starts_at_s"), "starts_at_s")
-    ends_at_s = non_negative_number!(required_value!(window, "ends_at_s"), "ends_at_s")
+    starts_at_s = time_s!(required_value!(window, "starts_at_s"), "starts_at_s")
+    ends_at_s = time_s!(required_value!(window, "ends_at_s"), "ends_at_s")
 
     if ends_at_s <= starts_at_s do
       raise ArgumentError, "access_window ends_at_s must be greater than starts_at_s"
@@ -324,9 +350,9 @@ defmodule OrbitalDynamics.Communications.DownlinkLinkBudget do
 
   defp normalize_geometry!(geometry) do
     %{
-      "slant_range" => quantity!(geometry, "slant_range", "km", :positive),
-      "elevation" => quantity!(geometry, "elevation", "deg", {:range, 0.0, 90.0}),
-      "sample_at" => quantity!(geometry, "sample_at", "s", :non_negative)
+      "slant_range" => quantity!(geometry, "slant_range", "km", envelope(:slant_range_km)),
+      "elevation" => quantity!(geometry, "elevation", "deg", envelope(:elevation_deg)),
+      "sample_at" => quantity!(geometry, "sample_at", "s", envelope(:time_s))
     }
   end
 
@@ -342,10 +368,11 @@ defmodule OrbitalDynamics.Communications.DownlinkLinkBudget do
       "revision" => required_text!(terminal, "revision"),
       "direction" => required_text!(terminal, "direction"),
       "mode" => required_text!(terminal, "mode"),
-      "carrier_frequency" => quantity!(terminal, "carrier_frequency", "Hz", :positive),
-      "transmit_power" => quantity!(terminal, "transmit_power", "W", :positive),
+      "carrier_frequency" =>
+        quantity!(terminal, "carrier_frequency", "Hz", envelope(:carrier_frequency_hz)),
+      "transmit_power" => quantity!(terminal, "transmit_power", "W", envelope(:transmit_power_w)),
       "transmit_antenna_gain" =>
-        quantity!(terminal, "transmit_antenna_gain", "dBi", :non_negative)
+        quantity!(terminal, "transmit_antenna_gain", "dBi", envelope(:antenna_gain_dbi))
     }
   end
 
@@ -361,16 +388,26 @@ defmodule OrbitalDynamics.Communications.DownlinkLinkBudget do
       "revision" => required_text!(terminal, "revision"),
       "direction" => required_text!(terminal, "direction"),
       "mode" => required_text!(terminal, "mode"),
-      "carrier_frequency" => quantity!(terminal, "carrier_frequency", "Hz", :positive),
-      "receive_antenna_gain" => quantity!(terminal, "receive_antenna_gain", "dBi", :non_negative),
+      "carrier_frequency" =>
+        quantity!(terminal, "carrier_frequency", "Hz", envelope(:carrier_frequency_hz)),
+      "receive_antenna_gain" =>
+        quantity!(terminal, "receive_antenna_gain", "dBi", envelope(:antenna_gain_dbi)),
       "system_noise_temperature" =>
-        quantity!(terminal, "system_noise_temperature", "K", :positive)
+        quantity!(
+          terminal,
+          "system_noise_temperature",
+          "K",
+          envelope(:system_noise_temperature_k)
+        )
     }
   end
 
   defp normalize_rf_link!(rf_link) do
-    carrier_frequency = quantity!(rf_link, "carrier_frequency", "Hz", :positive)
-    occupied_bandwidth = quantity!(rf_link, "occupied_bandwidth", "Hz", :positive)
+    carrier_frequency =
+      quantity!(rf_link, "carrier_frequency", "Hz", envelope(:carrier_frequency_hz))
+
+    occupied_bandwidth =
+      quantity!(rf_link, "occupied_bandwidth", "Hz", envelope(:occupied_bandwidth_hz))
 
     if occupied_bandwidth["value"] > carrier_frequency["value"] do
       raise ArgumentError, "occupied_bandwidth must not exceed carrier_frequency"
@@ -381,20 +418,28 @@ defmodule OrbitalDynamics.Communications.DownlinkLinkBudget do
       "mode" => required_text!(rf_link, "mode"),
       "carrier_frequency" => carrier_frequency,
       "occupied_bandwidth" => occupied_bandwidth,
-      "explicit_losses" => quantity!(rf_link, "explicit_losses", "dB", :non_negative),
+      "explicit_losses" =>
+        quantity!(rf_link, "explicit_losses", "dB", envelope(:explicit_losses_db)),
       "coding_efficiency" =>
-        quantity!(rf_link, "coding_efficiency", "ratio", {:range_exclusive_zero, 1.0}),
+        quantity!(rf_link, "coding_efficiency", "ratio", envelope(:coding_efficiency_ratio)),
       "modulation_efficiency" =>
-        quantity!(rf_link, "modulation_efficiency", "bit/s/Hz", :positive)
+        quantity!(
+          rf_link,
+          "modulation_efficiency",
+          "bit/s/Hz",
+          envelope(:modulation_efficiency_bit_s_hz)
+        )
     }
   end
 
   defp normalize_margin_policy!(margin_policy) do
     %{
       "minimum_elevation" =>
-        quantity!(margin_policy, "minimum_elevation", "deg", {:range, 0.0, 90.0}),
-      "required_eb_n0" => quantity!(margin_policy, "required_eb_n0", "dB", :non_negative),
-      "required_margin" => quantity!(margin_policy, "required_margin", "dB", :non_negative)
+        quantity!(margin_policy, "minimum_elevation", "deg", envelope(:elevation_deg)),
+      "required_eb_n0" =>
+        quantity!(margin_policy, "required_eb_n0", "dB", envelope(:required_eb_n0_db)),
+      "required_margin" =>
+        quantity!(margin_policy, "required_margin", "dB", envelope(:required_margin_db))
     }
   end
 
@@ -407,9 +452,9 @@ defmodule OrbitalDynamics.Communications.DownlinkLinkBudget do
       "contact_binding"
     )
 
-    starts_at_s = non_negative_number!(binding["starts_at_s"], "starts_at_s")
-    ends_at_s = non_negative_number!(binding["ends_at_s"], "ends_at_s")
-    duration_s = positive_number!(binding["duration_s"], "duration_s")
+    starts_at_s = time_s!(binding["starts_at_s"], "starts_at_s")
+    ends_at_s = time_s!(binding["ends_at_s"], "ends_at_s")
+    duration_s = bounded_number!(binding["duration_s"], "duration_s", 0.0, @maximum_time_s, false)
 
     require_equal!(duration_s, ends_at_s - starts_at_s, "duration_s")
 
@@ -514,6 +559,19 @@ defmodule OrbitalDynamics.Communications.DownlinkLinkBudget do
       "ground terminal carrier frequency"
     )
   end
+
+  defp validate_declared_contact_window!(%{"source_window" => %{} = declared}, expected) do
+    Enum.each(
+      ~w(id revision spacecraft_id ground_station_id starts_at_s ends_at_s),
+      fn field ->
+        if Map.has_key?(declared, field) do
+          require_equal!(declared[field], expected[field], "contact source_window.#{field}")
+        end
+      end
+    )
+  end
+
+  defp validate_declared_contact_window!(_contact, _expected), do: :ok
 
   defp derive!(normalized) do
     binding = normalized.contact_binding
@@ -624,17 +682,7 @@ defmodule OrbitalDynamics.Communications.DownlinkLinkBudget do
     %{"value" => value, "unit" => unit}
   end
 
-  defp validate_quantity_constraint!(value, field, :positive) do
-    if value > 0.0,
-      do: :ok,
-      else: raise(ArgumentError, "#{field}.value must be greater than zero")
-  end
-
-  defp validate_quantity_constraint!(value, field, :non_negative) do
-    if value >= 0.0, do: :ok, else: raise(ArgumentError, "#{field}.value must be non-negative")
-  end
-
-  defp validate_quantity_constraint!(value, field, {:range, minimum, maximum}) do
+  defp validate_quantity_constraint!(value, field, {:envelope, minimum, maximum}) do
     if value >= minimum and value <= maximum do
       :ok
     else
@@ -642,12 +690,9 @@ defmodule OrbitalDynamics.Communications.DownlinkLinkBudget do
     end
   end
 
-  defp validate_quantity_constraint!(value, field, {:range_exclusive_zero, maximum}) do
-    if value > 0.0 and value <= maximum do
-      :ok
-    else
-      raise ArgumentError, "#{field}.value must be in (0, #{maximum}]"
-    end
+  defp envelope(field) do
+    bounds = Map.fetch!(@input_envelopes, Atom.to_string(field))
+    {:envelope, bounds["minimum"], bounds["maximum"]}
   end
 
   defp require_fields!(map, fields, scope) do
@@ -735,14 +780,20 @@ defmodule OrbitalDynamics.Communications.DownlinkLinkBudget do
   defp finite_number!(_value, field),
     do: raise(ArgumentError, "#{field} must be numeric and finite")
 
-  defp non_negative_number!(value, field) do
-    value = finite_number!(value, field)
-    if value >= 0.0, do: value, else: raise(ArgumentError, "#{field} must be non-negative")
-  end
+  defp time_s!(value, field),
+    do: bounded_number!(value, field, 0.0, @maximum_time_s, true)
 
-  defp positive_number!(value, field) do
+  defp bounded_number!(value, field, minimum, maximum, inclusive_minimum?) do
     value = finite_number!(value, field)
-    if value > 0.0, do: value, else: raise(ArgumentError, "#{field} must be greater than zero")
+
+    minimum_valid? = if inclusive_minimum?, do: value >= minimum, else: value > minimum
+
+    if minimum_valid? and value <= maximum do
+      value
+    else
+      left_bracket = if inclusive_minimum?, do: "[", else: "("
+      raise ArgumentError, "#{field} must be in #{left_bracket}#{minimum}, #{maximum}]"
+    end
   end
 
   defp require_equal!(actual, expected, field) do
