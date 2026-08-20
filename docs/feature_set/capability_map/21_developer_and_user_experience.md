@@ -8,6 +8,12 @@
 - Examples in `README.md`.
 - Docs for mission-planning spec, LEO campaign planner, and canonical artifact examples.
 
+### Checked Level 5 workflow
+
+- [`level5_workflow.md`](../level5_workflow.md) is the supported V1/V2/V3 Level 5 workflow index. Its checked JSON block pins existing `study.run` and `campaign.run` tasks and argv, all direct and referenced inputs, output contracts and versions, capability discovery, schema policy versions, deterministic run/generated timestamps where supported, and actionable failure remediation.
+- The focused workflow test parses that JSON block, validates every link, task, input, live capability/schema version, and expected contract, then runs V1 study, V2 repair, and V3 strategy synchronously into one temporary output root without changing checked fixtures.
+- The same permanent proof builds an opt-in hard-eligibility V3 strategy and verifies identical full-artifact/direct-manifest `CadenceImport.dry_run/3` conformance, idempotency, source identity, and immutable authority evidence through an exact no-write test adapter. No new CLI or production executor is introduced.
+
 ### Campaign lint and run tasks
 
 - **`mix orbital_dynamics.campaign.lint --type repair|strategy`** — validates V2/V3 campaign request JSON files without running planning, including:
@@ -171,14 +177,12 @@ The `study_manifest.v1` JSON Schema export includes nested coverage for:
 
 - Canonical feature docs.
 - Broader schema validation/lint command coverage.
-- Example generation commands.
-- Better examples per maturity level.
+- More examples per maturity level beyond the checked V1/V2/V3 path.
 
 ## Status: **later**
 
 - Generated docs.
 - Cookbook examples.
-- Schema validation CLI.
 - Release compatibility guide.
 - Stable public API versioning.
 

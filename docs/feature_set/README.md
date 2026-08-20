@@ -18,6 +18,9 @@ as the reference map after a slice has been selected.
 - [completeness_levels/](completeness_levels/README.md) — six levels, from
   Level 0 (transparent astrodynamics baseline) through Level 6 (mature
   operational planning platform).
+- [level5_workflow.md](level5_workflow.md) — checked machine-readable V1/V2/V3
+  command, input, capability, schema-version, output-contract, and remediation
+  index for the Level 5 exit workflow.
 
 ## Capability map
 
