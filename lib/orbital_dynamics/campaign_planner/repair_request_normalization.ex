@@ -21,6 +21,9 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairRequestNormalization do
 
   alias OrbitalDynamics.{CandidateRefresh, Schema, StudyRunner}
 
+  @candidate_refresh_execution_path "candidate_refresh_run_v1"
+  @candidate_refresh_execution_path_key "execution_path"
+
   def from_map(request) do
     %ReplanRequest{
       prior_plan:
@@ -150,6 +153,30 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairRequestNormalization do
          candidate_refresh_request,
          generated_at
        ) do
+    case Map.get(candidate_refresh_request, @candidate_refresh_execution_path_key) do
+      nil ->
+        execute_manifest_candidate_refresh_request(
+          prior_plan,
+          current_epoch_s,
+          candidate_refresh_request,
+          generated_at
+        )
+
+      @candidate_refresh_execution_path ->
+        execute_public_candidate_refresh_request(candidate_refresh_request, generated_at)
+
+      execution_path ->
+        raise ArgumentError,
+              "unsupported repair candidate_refresh_request execution_path: #{inspect(execution_path)}"
+    end
+  end
+
+  defp execute_manifest_candidate_refresh_request(
+         prior_plan,
+         current_epoch_s,
+         candidate_refresh_request,
+         generated_at
+       ) do
     manifest_source =
       candidate_refresh_request
       |> CandidateRefreshRequest.manifest(
@@ -177,6 +204,23 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairRequestNormalization do
     else
       {:error, reason} ->
         raise ArgumentError, "invalid repair candidate_refresh_request: #{inspect(reason)}"
+    end
+  end
+
+  defp execute_public_candidate_refresh_request(candidate_refresh_request, generated_at) do
+    case Map.get(candidate_refresh_request, "candidate_refresh") do
+      %{} = refresh ->
+        case CandidateRefresh.run(refresh, generated_at: generated_at) do
+          {:ok, candidate_refresh} ->
+            candidate_refresh
+
+          {:error, reason} ->
+            raise ArgumentError, "invalid repair candidate_refresh_request: #{inspect(reason)}"
+        end
+
+      _missing_or_invalid_refresh ->
+        raise ArgumentError,
+              "candidate_refresh_request execution_path #{@candidate_refresh_execution_path} requires candidate_refresh"
     end
   end
 
