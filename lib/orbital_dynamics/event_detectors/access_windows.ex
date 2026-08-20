@@ -29,6 +29,32 @@ defmodule OrbitalDynamics.EventDetectors.AccessWindows do
   @default_root_tolerance_s 1.0e-3
   @default_root_max_iterations 64
   @maximum_root_iterations 100
+  @default_model_limits [
+    :sample_cadence_limited,
+    :refinement_not_root_solved,
+    :no_terrain_mask,
+    :no_refraction_model,
+    :constant_earth_rotation_access_geometry
+  ]
+  @root_refinement_model_limits [
+    :sample_cadence_limited,
+    :root_refinement_interpolated_state_only,
+    :root_refinement_not_externally_validated,
+    :multiple_crossings_within_sample_not_resolved,
+    :no_terrain_mask,
+    :no_refraction_model,
+    :constant_earth_rotation_access_geometry
+  ]
+  @capability_known_limits [
+    :sample_cadence_limited,
+    :refinement_not_root_solved,
+    :root_refinement_interpolated_state_only,
+    :root_refinement_not_externally_validated,
+    :multiple_crossings_within_sample_not_resolved,
+    :no_terrain_mask,
+    :no_refraction_model,
+    :constant_earth_rotation_access_geometry
+  ]
 
   @doc """
   Declares the detector model, timing policy, and known limits.
@@ -48,18 +74,13 @@ defmodule OrbitalDynamics.EventDetectors.AccessWindows do
         root_max_iterations: @default_root_max_iterations
       },
       coordinate_model: :spherical_earth_access_geometry,
-      known_limits: [
-        :sample_cadence_limited,
-        :refinement_not_root_solved,
-        :root_refinement_interpolated_state_only,
-        :root_refinement_not_externally_validated,
-        :multiple_crossings_within_sample_not_resolved,
-        :no_terrain_mask,
-        :no_refraction_model,
-        :constant_earth_rotation_access_geometry
-      ]
+      known_limits: @capability_known_limits
     }
   end
+
+  @doc "Returns the model limits for one explicit access-boundary mode."
+  def model_limits(:linear_sample_crossing), do: @default_model_limits
+  def model_limits(:bracketed_bisection), do: @root_refinement_model_limits
 
   @impl OrbitalDynamics.EventDetector
   def detect(%Trajectory{} = trajectory, opts \\ []) do

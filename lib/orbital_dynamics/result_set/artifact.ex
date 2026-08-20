@@ -303,8 +303,14 @@ defmodule OrbitalDynamics.ResultSet.Artifact do
 
   def event_detector_model_limits(detector) when is_binary(detector) do
     case Map.get(@event_detector_modules, detector) do
-      nil -> nil
-      module -> model_limits(module)
+      nil ->
+        nil
+
+      AccessWindows ->
+        AccessWindows.model_limits(:linear_sample_crossing) |> encode_model_limits()
+
+      module ->
+        model_limits(module)
     end
   end
 
@@ -323,7 +329,7 @@ defmodule OrbitalDynamics.ResultSet.Artifact do
           max_elevation_deg: event.metadata.max_elevation_deg,
           minimum_elevation_deg: event.metadata.minimum_elevation_deg,
           sample_count: event.metadata.sample_count,
-          model_limits: model_limits(AccessWindows),
+          model_limits: access_window_model_limits(event),
           assumptions:
             encode_value(
               Map.take(
@@ -336,9 +342,35 @@ defmodule OrbitalDynamics.ResultSet.Artifact do
               )
             )
         }
-        |> Map.merge(detector_capability_fields(AccessWindows))
+        |> Map.merge(access_window_capability_fields(event))
       end)
     end)
+  end
+
+  defp access_window_model_limits(event) do
+    event
+    |> access_window_refinement()
+    |> AccessWindows.model_limits()
+    |> Enum.map(&Atom.to_string/1)
+  end
+
+  defp access_window_capability_fields(event) do
+    event_metadata = event.metadata
+
+    detector_capability_fields(AccessWindows)
+    |> Map.merge(%{
+      interpolation: Map.get(event_metadata, :interpolation),
+      boundary_refinement: Map.get(event_metadata, :boundary_refinement),
+      timing_policy: Map.get(event_metadata, :event_timing_policy)
+    })
+    |> Enum.reject(fn {_key, value} -> is_nil(value) end)
+    |> Map.new(fn {key, value} -> {key, encode_value(value)} end)
+  end
+
+  defp access_window_refinement(event) do
+    if Map.get(event.metadata, :root_refinement_requested, false),
+      do: :bracketed_bisection,
+      else: :linear_sample_crossing
   end
 
   defp eclipse_intervals(event_results) do
@@ -456,8 +488,10 @@ defmodule OrbitalDynamics.ResultSet.Artifact do
   defp model_limits(module) do
     module.capabilities()
     |> Map.fetch!(:known_limits)
-    |> Enum.map(&Atom.to_string/1)
+    |> encode_model_limits()
   end
+
+  defp encode_model_limits(limits), do: Enum.map(limits, &Atom.to_string/1)
 
   defp detector_capability_fields(module) do
     capabilities = module.capabilities()

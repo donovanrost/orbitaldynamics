@@ -218,6 +218,42 @@ defmodule OrbitalDynamics.ResultSet.ArtifactTest do
     assert :json.encode(artifact) |> IO.iodata_to_binary() =~ ~s("eclipse_intervals")
   end
 
+  test "exports mode-specific access refinement evidence" do
+    result_set = result_set()
+
+    event_results =
+      Enum.map(result_set.event_results, fn
+        %{event_type: :ground_station_access, events: events} = result ->
+          refined_events =
+            Enum.map(events, fn event ->
+              metadata =
+                Map.merge(event.metadata, %{
+                  root_refinement_requested: true,
+                  interpolation: :cubic_hermite_state,
+                  boundary_refinement: :aos_los_bracketed_bisection,
+                  event_timing_policy: :sampled_state_bracketed_root_refinement
+                })
+
+              %{event | metadata: metadata}
+            end)
+
+          %{result | events: refined_events}
+
+        result ->
+          result
+      end)
+
+    artifact = Artifact.build(%{result_set | event_results: event_results})
+    [access] = artifact.access_windows
+
+    assert access.interpolation == "cubic_hermite_state"
+    assert access.boundary_refinement == "aos_los_bracketed_bisection"
+    assert access.timing_policy == "sampled_state_bracketed_root_refinement"
+    assert "root_refinement_interpolated_state_only" in access.model_limits
+    assert "root_refinement_not_externally_validated" in access.model_limits
+    refute "refinement_not_root_solved" in access.model_limits
+  end
+
   test "execution report isolates failed scenarios in result artifacts" do
     result_set = failed_result_set()
     artifact = Artifact.build(result_set, generated_at: DateTime.from_unix!(1_700_000_000))

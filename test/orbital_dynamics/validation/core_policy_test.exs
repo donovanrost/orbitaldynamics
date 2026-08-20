@@ -81,14 +81,13 @@ defmodule OrbitalDynamics.Validation.CorePolicyTest do
   test "keeps access root refinement at analysis level with interpolated-state limits" do
     assert {:ok,
             %{
-              "id" => "event.access_windows",
+              "id" => "event.access_windows.bracketed_bisection",
               "validation_level" => "analysis",
               "tolerances" => %{"event_time_s" => event_time_tolerance},
               "evidence" => evidence,
               "known_limits" => known_limits
-            } = record} = Validation.record("event.access_windows")
+            } = record} = Validation.record("event.access_windows.bracketed_bisection")
 
-    assert event_time_tolerance =~ "linear default bounded by output step"
     assert event_time_tolerance =~ "final cubic-Hermite interpolated-state root bracket"
     assert Enum.any?(evidence, &String.contains?(&1, "analytical spherical-geometry crossing"))
     assert Enum.any?(known_limits, &String.contains?(&1, "not dense propagator output"))
@@ -98,6 +97,21 @@ defmodule OrbitalDynamics.Validation.CorePolicyTest do
 
     assert {:ok, %{"schema_contract" => "validation_record.v1", "status" => "pass"}} =
              Schema.validate_artifact(artifact)
+  end
+
+  test "keeps the default sampled access validation identity compatible" do
+    assert {:ok,
+            %{
+              "id" => "event.access_windows",
+              "model" => "sampled_ground_station_access",
+              "tolerances" => %{
+                "event_time_s" => "bounded by output step with linear interpolation"
+              },
+              "known_limits" => [
+                "no terrain mask",
+                "no refraction model beyond assumption metadata"
+              ]
+            }} = Validation.record("event.access_windows")
   end
 
   test "public facades expose validation records policies and fixture verification" do
@@ -141,9 +155,9 @@ defmodule OrbitalDynamics.Validation.CorePolicyTest do
              "status" => "review_required",
              "deprecated_contract_count" => 1,
              "future_contract_count" => 1,
-             "status_counts" => %{"current" => 120, "deprecated" => 1, "future" => 1},
+             "status_counts" => %{"current" => 122, "deprecated" => 1, "future" => 1},
              "migration_action_counts" => %{
-               "continue_current_contract" => 120,
+               "continue_current_contract" => 122,
                "plan_replacement" => 1,
                "prepare_future_contract" => 1
              }

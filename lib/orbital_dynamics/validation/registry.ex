@@ -113,12 +113,21 @@ defmodule OrbitalDynamics.Validation.Registry do
       "implementation" => "OrbitalDynamics.EventDetectors.AccessWindows",
       "validation_level" => "analysis",
       "covered_regime" => "spherical Earth LEO visibility examples",
+      "tolerances" => %{"event_time_s" => "bounded by output step with linear interpolation"},
+      "evidence" => ["unit tests cover visibility grouping and boundary interpolation"],
+      "known_limits" => ["no terrain mask", "no refraction model beyond assumption metadata"]
+    },
+    "event.access_windows.bracketed_bisection" => %{
+      "id" => "event.access_windows.bracketed_bisection",
+      "model" => "cubic_hermite_bracketed_ground_station_access",
+      "implementation" => "OrbitalDynamics.EventDetectors.AccessWindows",
+      "validation_level" => "analysis",
+      "covered_regime" =>
+        "spherical Earth LEO visibility examples with one crossing per sampled bracket",
       "tolerances" => %{
-        "event_time_s" =>
-          "linear default bounded by output step; opt-in bisection bounded by the final cubic-Hermite interpolated-state root bracket"
+        "event_time_s" => "bounded by the final cubic-Hermite interpolated-state root bracket"
       },
       "evidence" => [
-        "unit tests cover visibility grouping and compatibility-default linear boundary interpolation",
         "unit tests compare opt-in bracketed bisection against an analytical spherical-geometry crossing and verify deterministic local bounds",
         "unit tests cover incompatible state metadata, invalid solver options, and bounded non-convergence"
       ],
