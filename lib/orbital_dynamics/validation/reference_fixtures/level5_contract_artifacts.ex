@@ -52,6 +52,10 @@ defmodule OrbitalDynamics.Validation.ReferenceFixtures.Level5ContractArtifacts d
       },
       "expected" => %{
         "schema_contract" => "campaign_plan_search_trace.v1",
+        "id" =>
+          "campaign_plan_search_trace:campaign_plan:campaign_local_search:2026-08-20T12:00:00Z",
+        "plan_id" => "campaign_plan:campaign_local_search:2026-08-20T12:00:00Z",
+        "identity_matches_plan_id" => true,
         "status" => "selected_plan",
         "selection_contract" => "v1_outer_local_search_inner_greedy",
         "selected_alternative_id" => "campaign_policy:seed",
@@ -81,6 +85,7 @@ defmodule OrbitalDynamics.Validation.ReferenceFixtures.Level5ContractArtifacts d
       },
       "evidence" => [
         "generated through OrbitalDynamics.campaign_plan_with_local_search/2",
+        "pins the exact trace identity, enclosing plan identity, and their required binding",
         "pins feasibility-aware selection and content-addressed source-evidence registry identity",
         "checked by OrbitalDynamics.Validation.verify_reference_fixture/2"
       ],

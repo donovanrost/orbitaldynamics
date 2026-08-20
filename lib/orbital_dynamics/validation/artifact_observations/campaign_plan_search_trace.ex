@@ -3,6 +3,8 @@ defmodule OrbitalDynamics.Validation.ArtifactObservations.CampaignPlanSearchTrac
 
   def build(%{} = artifact) do
     artifact = stringify_keys(artifact)
+    id = Map.get(artifact, "id")
+    plan_id = Map.get(artifact, "plan_id")
     search_result = map_value(artifact, "search_result")
     search_root = map_value(artifact, "search_root")
     alternatives = map_rows(search_result, "alternatives")
@@ -10,6 +12,9 @@ defmodule OrbitalDynamics.Validation.ArtifactObservations.CampaignPlanSearchTrac
 
     %{
       "schema_contract" => Map.get(artifact, "schema_contract"),
+      "id" => id,
+      "plan_id" => plan_id,
+      "identity_matches_plan_id" => identity_matches_plan_id?(id, plan_id),
       "status" => Map.get(artifact, "status"),
       "selection_contract" => Map.get(artifact, "selection_contract"),
       "selected_alternative_id" => Map.get(artifact, "selected_alternative_id"),
@@ -29,6 +34,12 @@ defmodule OrbitalDynamics.Validation.ArtifactObservations.CampaignPlanSearchTrac
       "source_candidate_evidence_count" => count(search_root, "source_candidate_evidence")
     }
   end
+
+  defp identity_matches_plan_id?(id, plan_id)
+       when is_binary(id) and is_binary(plan_id),
+       do: id == "campaign_plan_search_trace:#{plan_id}"
+
+  defp identity_matches_plan_id?(_id, _plan_id), do: false
 
   defp count(map, key), do: length(map_rows(map, key))
 

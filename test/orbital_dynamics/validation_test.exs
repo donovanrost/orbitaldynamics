@@ -4,6 +4,9 @@ defmodule OrbitalDynamics.ValidationTest do
   alias OrbitalDynamics.Validation
 
   alias OrbitalDynamics.Validation.DeterministicReferenceFixtureReport
+  alias OrbitalDynamics.Validation.Level5ContractFixtures
+
+  @campaign_search_fixture_id "fixture.artifact.campaign_plan_search_trace.v1"
 
   import OrbitalDynamics.Validation.OrbitalReferenceFixtures,
     only: [two_body_fixture_observations: 0]
@@ -23,6 +26,78 @@ defmodule OrbitalDynamics.ValidationTest do
              Enum.find(checks, &(&1["field"] == "final_position_km"))
 
     assert error > tolerance
+  end
+
+  test "campaign search fixture detects exact identity and plan binding counterfactuals" do
+    trace = Level5ContractFixtures.campaign_plan_search_trace_fixture()
+    expected_id = Map.fetch!(trace, "id")
+    expected_plan_id = Map.fetch!(trace, "plan_id")
+    counterfactual_plan_id = "campaign_plan:counterfactual:2026-08-20T12:00:00Z"
+    counterfactual_id = "campaign_plan_search_trace:#{counterfactual_plan_id}"
+
+    mismatched_id_observations =
+      trace
+      |> Map.put("id", counterfactual_id)
+      |> then(&Validation.artifact_observations("campaign_plan_search_trace.v1", &1))
+
+    assert {:ok, %{"status" => "fail", "checks" => mismatched_id_checks}} =
+             Validation.verify_reference_fixture(
+               @campaign_search_fixture_id,
+               mismatched_id_observations
+             )
+
+    assert mismatched_id_checks
+           |> Enum.filter(&(&1["status"] == "fail"))
+           |> Enum.map(& &1["field"]) == ["id", "identity_matches_plan_id"]
+
+    assert %{
+             "status" => "fail",
+             "expected" => ^expected_id,
+             "observed" => ^counterfactual_id
+           } = Enum.find(mismatched_id_checks, &(&1["field"] == "id"))
+
+    assert %{"status" => "pass", "observed" => ^expected_plan_id} =
+             Enum.find(mismatched_id_checks, &(&1["field"] == "plan_id"))
+
+    assert %{"status" => "fail", "expected" => true, "observed" => false} =
+             Enum.find(
+               mismatched_id_checks,
+               &(&1["field"] == "identity_matches_plan_id")
+             )
+
+    coherently_rebound_observations =
+      trace
+      |> Map.put("id", counterfactual_id)
+      |> Map.put("plan_id", counterfactual_plan_id)
+      |> then(&Validation.artifact_observations("campaign_plan_search_trace.v1", &1))
+
+    assert {:ok, %{"status" => "fail", "checks" => coherently_rebound_checks}} =
+             Validation.verify_reference_fixture(
+               @campaign_search_fixture_id,
+               coherently_rebound_observations
+             )
+
+    assert coherently_rebound_checks
+           |> Enum.filter(&(&1["status"] == "fail"))
+           |> Enum.map(& &1["field"]) == ["id", "plan_id"]
+
+    assert %{
+             "status" => "fail",
+             "expected" => ^expected_id,
+             "observed" => ^counterfactual_id
+           } = Enum.find(coherently_rebound_checks, &(&1["field"] == "id"))
+
+    assert %{
+             "status" => "fail",
+             "expected" => ^expected_plan_id,
+             "observed" => ^counterfactual_plan_id
+           } = Enum.find(coherently_rebound_checks, &(&1["field"] == "plan_id"))
+
+    assert %{"status" => "pass", "expected" => true, "observed" => true} =
+             Enum.find(
+               coherently_rebound_checks,
+               &(&1["field"] == "identity_matches_plan_id")
+             )
   end
 
   test "counts malformed observations against the current source registry" do
