@@ -49,6 +49,15 @@ defmodule OrbitalDynamics.Schema.ResourceStateTraceContracts do
     recorder_depletion_mb
     recorder_overflow_mb
   )
+  @link_budget_limit_evidence_fields ~w(
+    downlink_link_budget_id
+    requested_data_removed_mb
+    status_eligible_data_removed_mb
+    link_budget_supported_volume_mb
+    link_budget_applied_data_removed_mb
+    link_budget_limited_data_removed_mb
+    unused_link_budget_volume_mb
+  )
   @row_fields ~w(
     id
     activity_id
@@ -203,6 +212,8 @@ defmodule OrbitalDynamics.Schema.ResourceStateTraceContracts do
     |> validate_string_list_items(path, row, "violation_types")
     |> expect_type(path, row, "assumptions", :map)
     |> expect_type(path, row, "provenance", :map)
+    |> validate_optional_link_budget(path, row)
+    |> validate_link_budget_reconciliation(path, row)
     |> validate_row_semantics(path, row)
   end
 
@@ -242,10 +253,31 @@ defmodule OrbitalDynamics.Schema.ResourceStateTraceContracts do
     |> validate_non_negative_number(path, evidence, "battery_overflow_wh")
     |> validate_non_negative_number(path, evidence, "recorder_depletion_mb")
     |> validate_non_negative_number(path, evidence, "recorder_overflow_mb")
+    |> validate_optional_link_limit_numbers(path, evidence)
   end
 
   defp validate_limit_evidence(issues, path, _evidence),
     do: [error(path, "must be an object") | issues]
+
+  defp validate_optional_link_limit_numbers(issues, path, evidence) do
+    issues =
+      case Map.get(evidence, "downlink_link_budget_id") do
+        nil -> issues
+        _value -> validate_stable_ids(issues, path, evidence, ["downlink_link_budget_id"])
+      end
+
+    Enum.reduce(
+      @link_budget_limit_evidence_fields -- ["downlink_link_budget_id"],
+      issues,
+      fn field, acc ->
+        if Map.has_key?(evidence, field) do
+          validate_non_negative_number(acc, path, evidence, field)
+        else
+          acc
+        end
+      end
+    )
+  end
 
   defp validate_invalid_activities(issues, path, trace) do
     case Map.get(trace, "invalid_activities") do
@@ -408,6 +440,39 @@ defmodule OrbitalDynamics.Schema.ResourceStateTraceContracts do
   defp validate_applied_effects(
          issues,
          path,
+         %{"effect_status" => "applied", "downlink_link_budget" => budget},
+         declared,
+         applied
+       ) do
+    supported_volume_mb = get_in(budget, ["derived", "supported_volume_mb"])
+
+    if is_number(supported_volume_mb) and is_number(declared["data_removed_mb"]) and
+         is_number(declared["data_stored_mb"]) do
+      expected_applied =
+        declared
+        |> Map.put("data_removed_mb", min(declared["data_removed_mb"], supported_volume_mb))
+        |> then(fn effects ->
+          Map.put(
+            effects,
+            "recorder_delta_mb",
+            effects["data_stored_mb"] - effects["data_removed_mb"]
+          )
+        end)
+
+      expect_semantic(
+        issues,
+        path <> ".applied_effects.data_removed_mb",
+        applied == expected_applied,
+        "must not remove more recorder data than the attached link-budget volume"
+      )
+    else
+      issues
+    end
+  end
+
+  defp validate_applied_effects(
+         issues,
+         path,
          %{"effect_status" => "applied"},
          declared,
          applied
@@ -421,6 +486,130 @@ defmodule OrbitalDynamics.Schema.ResourceStateTraceContracts do
   end
 
   defp validate_applied_effects(issues, _path, _row, _declared, _applied), do: issues
+
+  defp validate_optional_link_budget(issues, path, row) do
+    case Map.get(row, "downlink_link_budget") do
+      nil ->
+        issues
+
+      %{} = budget ->
+        OrbitalDynamics.Schema.DownlinkLinkBudgetContracts.validate(
+          issues,
+          path <> ".downlink_link_budget",
+          budget
+        )
+
+      _budget ->
+        [error(path <> ".downlink_link_budget", "must be an object") | issues]
+    end
+  end
+
+  defp validate_link_budget_reconciliation(
+         issues,
+         path,
+         %{"downlink_link_budget" => %{} = budget} = row
+       ) do
+    binding = Map.get(budget, "contact_binding", %{})
+    evidence = Map.get(row, "limit_evidence", %{})
+    provenance = Map.get(row, "provenance", %{})
+    declared = Map.get(row, "declared_effects", %{})
+    applied = Map.get(row, "applied_effects", %{})
+    supported = get_in(budget, ["derived", "supported_volume_mb"])
+
+    status_eligible =
+      if row["effect_status"] == "applied", do: declared["data_removed_mb"], else: 0.0
+
+    budget_applied =
+      if is_number(status_eligible) and is_number(supported), do: min(status_eligible, supported)
+
+    expected = %{
+      "downlink_link_budget_id" => budget["id"],
+      "requested_data_removed_mb" => declared["data_removed_mb"],
+      "status_eligible_data_removed_mb" => status_eligible,
+      "link_budget_supported_volume_mb" => supported,
+      "link_budget_applied_data_removed_mb" => budget_applied,
+      "link_budget_limited_data_removed_mb" =>
+        if(is_number(status_eligible) and is_number(budget_applied),
+          do: max(status_eligible - budget_applied, 0.0)
+        ),
+      "unused_link_budget_volume_mb" =>
+        if(is_number(supported) and is_number(budget_applied),
+          do: max(supported - budget_applied, 0.0)
+        )
+    }
+
+    issues
+    |> expect_link_value(path <> ".activity_id", row["activity_id"], binding["contact_id"])
+    |> expect_link_value(
+      path <> ".spacecraft_id",
+      row["spacecraft_id"],
+      binding["spacecraft_id"]
+    )
+    |> expect_link_value(path <> ".starts_at_s", row["starts_at_s"], binding["starts_at_s"])
+    |> expect_link_value(path <> ".ends_at_s", row["ends_at_s"], binding["ends_at_s"])
+    |> expect_link_value(
+      path <> ".provenance.downlink_link_budget_id",
+      provenance["downlink_link_budget_id"],
+      budget["id"]
+    )
+    |> then(fn acc ->
+      Enum.reduce(@link_budget_limit_evidence_fields, acc, fn field, inner_acc ->
+        expect_link_value(
+          inner_acc,
+          path <> ".limit_evidence.#{field}",
+          evidence[field],
+          expected[field]
+        )
+      end)
+    end)
+    |> expect_link_value(
+      path <> ".applied_effects.data_removed_mb",
+      applied["data_removed_mb"],
+      budget_applied
+    )
+  end
+
+  defp validate_link_budget_reconciliation(issues, path, row) do
+    evidence = Map.get(row, "limit_evidence", %{})
+    provenance = Map.get(row, "provenance", %{})
+
+    issues =
+      Enum.reduce(@link_budget_limit_evidence_fields, issues, fn field, acc ->
+        if Map.has_key?(evidence, field) do
+          [
+            error(path <> ".limit_evidence.#{field}", "requires downlink_link_budget evidence")
+            | acc
+          ]
+        else
+          acc
+        end
+      end)
+
+    if Map.has_key?(provenance, "downlink_link_budget_id") do
+      [
+        error(
+          path <> ".provenance.downlink_link_budget_id",
+          "requires downlink_link_budget evidence"
+        )
+        | issues
+      ]
+    else
+      issues
+    end
+  end
+
+  defp expect_link_value(issues, path, actual, expected) do
+    equal? =
+      if is_number(actual) and is_number(expected),
+        do: numeric_equal?(actual, expected),
+        else: actual == expected
+
+    if equal? do
+      issues
+    else
+      [error(path, "must reconcile with embedded downlink_link_budget evidence") | issues]
+    end
+  end
 
   defp validate_transition_math(issues, path, row) do
     before = Map.get(row, "state_before", %{})

@@ -2202,8 +2202,10 @@ defmodule OrbitalDynamics.Communications.LinkCapacityTest do
 
     assert {:ok, link_capacity_report_schema} = Schema.json_schema("link_capacity_report.v1")
 
-    assert get_in(link_capacity_report_schema, ["properties", "model_limits", "const"]) ==
-             expected_model_limits
+    assert get_in(link_capacity_report_schema, ["properties", "model_limits", "oneOf"]) == [
+             %{"const" => expected_model_limits},
+             %{"const" => LinkCapacity.report_model_limits([:present])}
+           ]
 
     assert get_in(link_capacity_report_schema, [
              "properties",

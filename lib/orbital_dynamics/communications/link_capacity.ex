@@ -1,11 +1,12 @@
 defmodule OrbitalDynamics.Communications.LinkCapacity do
   @moduledoc """
-  Artifact-only fixed-rate downlink capacity summaries.
+  Artifact-only downlink capacity summaries with a fixed-rate default.
 
   The module groups downlink contact candidates by ground station, totals raw
   and station-capacity-adjusted throughput, and marks which contacts were
-  selected. It does not perform link-budget analysis, reserve station time, or
-  mutate schedules.
+  selected. A contact may opt into a separately schema-validated deterministic
+  point link budget; otherwise every fixed-rate lookup remains unchanged. The
+  module does not reserve station time or mutate schedules.
   """
 
   @schema_contract "link_capacity_report.v1"
@@ -64,6 +65,10 @@ defmodule OrbitalDynamics.Communications.LinkCapacity do
     "healthcheck" => "health_check",
     "health_check_window" => "health_check"
   }
+  @link_budget_replaced_model_limits [
+    "no_link_budget_model",
+    "no_modulation_or_coding_model"
+  ]
   alias OrbitalDynamics.Policy
   alias OrbitalDynamics.Communications.LinkCapacity.ContactFeedback
   alias OrbitalDynamics.Communications.LinkCapacity.ContactIdentity
@@ -75,6 +80,7 @@ defmodule OrbitalDynamics.Communications.LinkCapacity do
   alias OrbitalDynamics.Communications.LinkCapacity.StationReservationEvidence
   alias OrbitalDynamics.Communications.LinkCapacity.Summary
   alias OrbitalDynamics.Communications.LinkCapacity.ThroughputEvidence
+  alias OrbitalDynamics.Communications.DownlinkLinkBudget
 
   @doc """
   Declares the fixed-rate link-capacity summary model and known limits.
@@ -84,6 +90,8 @@ defmodule OrbitalDynamics.Communications.LinkCapacity do
       artifact_contract: @schema_contract,
       summary_artifact_contract: @summary_schema_contract,
       relay_data_path_summary_artifact_contract: RelayDataPath.schema_contract(),
+      downlink_link_budget_artifact_contract: DownlinkLinkBudget.schema_contract(),
+      opt_in_link_budget_model: :deterministic_point_one_way_downlink_budget,
       model: :fixed_rate_downlink_capacity_summary,
       validation_level: :artifact_contract,
       station_unavailable_aliases: station_unavailable_aliases(),
@@ -205,6 +213,7 @@ defmodule OrbitalDynamics.Communications.LinkCapacity do
         :no_schedule_mutation
       ],
       public_facades: [
+        :downlink_link_budget,
         :link_capacity_report,
         :link_capacity_summary,
         :relay_data_path_summary
@@ -240,6 +249,7 @@ defmodule OrbitalDynamics.Communications.LinkCapacity do
       when is_list(candidates) and is_list(selected_contacts) do
     candidates = Enum.map(candidates, &normalize_contact/1)
     selected_contacts = Enum.map(selected_contacts, &normalize_contact/1)
+    downlink_link_budgets = link_budget_evidence(candidates)
 
     {invalid_contact_inputs, contacts} =
       candidates
@@ -546,6 +556,7 @@ defmodule OrbitalDynamics.Communications.LinkCapacity do
           "ambiguous_selected_contact_id_count" => length(station_ambiguous_selected_contact_ids)
         }
         |> Map.merge(contact_feedback_context(station_contacts))
+        |> Map.merge(link_budget_station_context(station_contacts))
         |> compact_map()
         |> maybe_apply_approval_policy(approval_policy)
       end)
@@ -667,47 +678,50 @@ defmodule OrbitalDynamics.Communications.LinkCapacity do
         row_list_values(rows, "station_reservation_statuses", :string) || [],
       "station_reservation_match_status_counts" =>
         row_list_value_counts(rows, "station_reservation_match_statuses"),
-      "model_limits" => model_limits(),
+      "model_limits" => report_model_limits(downlink_link_budgets),
       "rows" => rows,
-      "assumptions" => %{
-        "downlink_rate_mb_s" => Map.get(policy, "downlink_rate_mb_s", 1.0),
-        "throughput_model" => "fixed_rate_from_campaign_policy",
-        "capacity_adjusted_throughput_model" =>
-          "estimated_throughput_mb_times_declared_station_capacity_fraction",
-        "station_unavailable_aliases" => station_unavailable_aliases(),
-        "station_availability_precedence" => station_availability_precedence(),
-        "station_capacity_value_paths" => capacity_value_path_assumptions(),
-        "source_station_capacity_value_paths" => capacity_value_path_assumptions(),
-        "provider_direction_aliases" => @provider_direction_aliases,
-        "capacity_fraction_source" => "station_calendar_or_default_one",
-        "downlink_requirement_model" =>
-          "explicit policy downlink requirement, station requirement, or per-contact required_downlink_mb compared to selected capacity-adjusted throughput",
-        "downlink_completion_source_model" =>
-          "explicit policy requirement sources or per-contact downlink completion source lineage are preserved for review",
-        "per_contact_downlink_requirement_model" =>
-          "effective downlink contacts with required_downlink_mb contribute declared demand when no explicit policy requirement overrides them",
-        "selected_contact_identity" =>
-          "selected contact IDs must match exactly one candidate row to count selected capacity",
-        "actual_throughput_model" =>
-          "actual_throughput_mb, actual_data_volume_mb, actual data-rate duration products, or actual-downlink/delivered/received aliases from selected realized downlink contacts are summed only when the selected contact ID matches exactly one effective candidate row",
-        "actual_completion_fraction_model" =>
-          "completed_fraction or completion aliases from selected realized downlink contacts are averaged only when the selected contact ID matches exactly one effective candidate row",
-        "actual_downlink_completion_ratio_model" =>
-          "matched selected realized throughput is divided by the declared downlink requirement to expose realized completion against the same requirement used for actual shortfall review",
-        "data_rate_throughput_model" =>
-          "when explicit MB throughput is absent, data_rate_mb_s or data_rate_mbps aliases multiplied by contact duration produce fixed-rate estimated throughput without link-budget modeling",
-        "unresolved_actual_throughput_model" =>
-          "selected realized downlink contacts with actual throughput evidence are preserved as unmatched or ambiguous evidence when they cannot be reconciled to exactly one effective candidate row",
-        "unresolved_actual_completion_fraction_model" =>
-          "selected realized downlink contacts with completion-fraction evidence are preserved as unmatched or ambiguous evidence when they cannot be reconciled to exactly one effective candidate row",
-        "invalid_contact_input" =>
-          "downlink-like candidate or selected inputs missing identity or station fields are preserved for operator review instead of being silently dropped or raising during capacity grouping",
-        "contact_status_model" =>
-          "terminal_or_approval_rejected_downlinks_are_audited_with_zero_available_or_selected_capacity_and_reason_counts",
-        "reservation_model" => "provider_reservation_identity_context_only",
-        "link_budget_model" => "none"
-      }
+      "assumptions" =>
+        %{
+          "downlink_rate_mb_s" => Map.get(policy, "downlink_rate_mb_s", 1.0),
+          "throughput_model" => "fixed_rate_from_campaign_policy",
+          "capacity_adjusted_throughput_model" =>
+            "estimated_throughput_mb_times_declared_station_capacity_fraction",
+          "station_unavailable_aliases" => station_unavailable_aliases(),
+          "station_availability_precedence" => station_availability_precedence(),
+          "station_capacity_value_paths" => capacity_value_path_assumptions(),
+          "source_station_capacity_value_paths" => capacity_value_path_assumptions(),
+          "provider_direction_aliases" => @provider_direction_aliases,
+          "capacity_fraction_source" => "station_calendar_or_default_one",
+          "downlink_requirement_model" =>
+            "explicit policy downlink requirement, station requirement, or per-contact required_downlink_mb compared to selected capacity-adjusted throughput",
+          "downlink_completion_source_model" =>
+            "explicit policy requirement sources or per-contact downlink completion source lineage are preserved for review",
+          "per_contact_downlink_requirement_model" =>
+            "effective downlink contacts with required_downlink_mb contribute declared demand when no explicit policy requirement overrides them",
+          "selected_contact_identity" =>
+            "selected contact IDs must match exactly one candidate row to count selected capacity",
+          "actual_throughput_model" =>
+            "actual_throughput_mb, actual_data_volume_mb, actual data-rate duration products, or actual-downlink/delivered/received aliases from selected realized downlink contacts are summed only when the selected contact ID matches exactly one effective candidate row",
+          "actual_completion_fraction_model" =>
+            "completed_fraction or completion aliases from selected realized downlink contacts are averaged only when the selected contact ID matches exactly one effective candidate row",
+          "actual_downlink_completion_ratio_model" =>
+            "matched selected realized throughput is divided by the declared downlink requirement to expose realized completion against the same requirement used for actual shortfall review",
+          "data_rate_throughput_model" =>
+            "when explicit MB throughput is absent, data_rate_mb_s or data_rate_mbps aliases multiplied by contact duration produce fixed-rate estimated throughput without link-budget modeling",
+          "unresolved_actual_throughput_model" =>
+            "selected realized downlink contacts with actual throughput evidence are preserved as unmatched or ambiguous evidence when they cannot be reconciled to exactly one effective candidate row",
+          "unresolved_actual_completion_fraction_model" =>
+            "selected realized downlink contacts with completion-fraction evidence are preserved as unmatched or ambiguous evidence when they cannot be reconciled to exactly one effective candidate row",
+          "invalid_contact_input" =>
+            "downlink-like candidate or selected inputs missing identity or station fields are preserved for operator review instead of being silently dropped or raising during capacity grouping",
+          "contact_status_model" =>
+            "terminal_or_approval_rejected_downlinks_are_audited_with_zero_available_or_selected_capacity_and_reason_counts",
+          "reservation_model" => "provider_reservation_identity_context_only",
+          "link_budget_model" => "none"
+        }
+        |> Map.merge(link_budget_assumptions(downlink_link_budgets))
     }
+    |> Map.merge(link_budget_report_context(downlink_link_budgets))
     |> compact_map()
   end
 
@@ -766,6 +780,9 @@ defmodule OrbitalDynamics.Communications.LinkCapacity do
 
   def relay_data_path_summary(routes, opts), do: RelayDataPath.summary(routes, opts)
 
+  @doc "Builds one opt-in deterministic point downlink budget."
+  def downlink_link_budget(contact, params), do: DownlinkLinkBudget.build(contact, params)
+
   defp link_capacity_summary(report) do
     Summary.build(report, %{
       model_limits: model_limits(),
@@ -780,6 +797,69 @@ defmodule OrbitalDynamics.Communications.LinkCapacity do
     capabilities()
     |> Map.fetch!(:known_limits)
     |> Enum.map(&Atom.to_string/1)
+  end
+
+  @doc false
+  def report_model_limits([]), do: model_limits()
+
+  def report_model_limits(_budget_evidence) do
+    model_limits() -- @link_budget_replaced_model_limits
+  end
+
+  defp link_budget_evidence(contacts) do
+    budgets =
+      contacts
+      |> Enum.map(&DownlinkLinkBudget.evidence_for_contact/1)
+      |> Enum.reject(&is_nil/1)
+      |> Enum.uniq_by(& &1["id"])
+      |> Enum.sort_by(&{&1["contact_binding"]["contact_id"], &1["id"]})
+
+    budgets
+    |> Enum.group_by(& &1["contact_binding"]["contact_id"])
+    |> Enum.each(fn {contact_id, contact_budgets} ->
+      if length(contact_budgets) > 1 do
+        raise ArgumentError,
+              "multiple downlink_link_budget revisions supplied for contact #{contact_id}"
+      end
+    end)
+
+    budgets
+  end
+
+  defp link_budget_report_context([]), do: %{}
+
+  defp link_budget_report_context(budgets) do
+    %{
+      "downlink_link_budget_count" => length(budgets),
+      "downlink_link_budget_ids" => Enum.map(budgets, & &1["id"]),
+      "downlink_link_budgets" => budgets
+    }
+  end
+
+  defp link_budget_station_context(contacts) do
+    budgets = link_budget_evidence(contacts)
+
+    case budgets do
+      [] ->
+        %{}
+
+      budgets ->
+        %{
+          "downlink_link_budget_count" => length(budgets),
+          "downlink_link_budget_ids" => Enum.map(budgets, & &1["id"]),
+          "downlink_link_budget_contact_ids" =>
+            Enum.map(budgets, &get_in(&1, ["contact_binding", "contact_id"]))
+        }
+    end
+  end
+
+  defp link_budget_assumptions([]), do: %{}
+
+  defp link_budget_assumptions(_budgets) do
+    %{
+      "link_budget_model" =>
+        "opt_in_downlink_link_budget.v1_supported_volume_overrides_fixed_rate_estimate_when_supplied"
+    }
   end
 
   defp contact_id_counts(contacts) do

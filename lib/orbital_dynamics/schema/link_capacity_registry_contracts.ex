@@ -71,7 +71,10 @@ defmodule OrbitalDynamics.Schema.LinkCapacityRegistryContracts do
           "station_reservation_statuses",
           "invalid_policy_required_downlink_station_count",
           "invalid_policy_required_downlink_station_ids",
-          "station_reservation_match_status_counts"
+          "station_reservation_match_status_counts",
+          "downlink_link_budget_count",
+          "downlink_link_budget_ids",
+          "downlink_link_budgets"
         ],
         "nested_contracts" => []
       },

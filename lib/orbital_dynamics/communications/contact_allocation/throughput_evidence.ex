@@ -1,19 +1,22 @@
 defmodule OrbitalDynamics.Communications.ContactAllocation.ThroughputEvidence do
   @moduledoc false
 
+  alias OrbitalDynamics.Communications.DownlinkLinkBudget
+
   def actual_throughput(contact) do
     explicit_actual_throughput(contact) || actual_data_rate_derived_throughput_mb(contact)
   end
 
   def estimated_throughput(contact) do
-    first_number([
-      contact["estimated_throughput_mb"],
-      contact["estimated_downlink_mb"],
-      contact["planned_throughput_mb"],
-      get_in(contact, ["throughput_model", "estimated_throughput_mb"]),
-      get_in(contact, ["throughput_model", "estimated_downlink_mb"]),
-      get_in(contact, ["throughput_model", "planned_throughput_mb"])
-    ])
+    DownlinkLinkBudget.supported_volume_mb(contact) ||
+      first_number([
+        contact["estimated_throughput_mb"],
+        contact["estimated_downlink_mb"],
+        contact["planned_throughput_mb"],
+        get_in(contact, ["throughput_model", "estimated_throughput_mb"]),
+        get_in(contact, ["throughput_model", "estimated_downlink_mb"]),
+        get_in(contact, ["throughput_model", "planned_throughput_mb"])
+      ])
   end
 
   def actual_data_rate_derivation(contact) do
@@ -54,13 +57,16 @@ defmodule OrbitalDynamics.Communications.ContactAllocation.ThroughputEvidence do
   end
 
   def downlink_completion_context(contact) do
-    %{
-      "required_downlink_mb" =>
-        first_number([
-          contact["required_downlink_mb"],
-          get_in(contact, ["throughput_model", "required_downlink_mb"]),
-          get_in(contact, ["activity_context", "required_downlink_mb"])
-        ]),
+    required_downlink_mb =
+      first_number([
+        contact["required_downlink_mb"],
+        get_in(contact, ["throughput_model", "required_downlink_mb"]),
+        get_in(contact, ["activity_context", "required_downlink_mb"])
+      ])
+
+    budget_volume_mb = DownlinkLinkBudget.supported_volume_mb(contact)
+
+    caller_context = %{
       "candidate_downlink_mb" =>
         first_number([
           contact["candidate_downlink_mb"],
@@ -98,7 +104,51 @@ defmodule OrbitalDynamics.Communications.ContactAllocation.ThroughputEvidence do
           get_in(contact, ["activity_context", "downlink_completion_sources"])
         ])
     }
+
+    completion_context =
+      if is_number(budget_volume_mb) do
+        coherent_budget_completion!(required_downlink_mb, budget_volume_mb, caller_context)
+      else
+        caller_context
+      end
+
+    Map.put(completion_context, "required_downlink_mb", required_downlink_mb)
   end
+
+  defp coherent_budget_completion!(required_downlink_mb, budget_volume_mb, caller_context)
+       when is_number(required_downlink_mb) and required_downlink_mb >= 0.0 do
+    completion_ratio =
+      if required_downlink_mb == 0.0,
+        do: 1.0,
+        else: min(budget_volume_mb / required_downlink_mb, 1.0)
+
+    caller_context
+    |> Map.put("candidate_downlink_mb", budget_volume_mb)
+    |> Map.put("downlink_completion_ratio", completion_ratio)
+    |> Map.put(
+      "selected_downlink_shortfall_mb",
+      max(required_downlink_mb - budget_volume_mb, 0.0)
+    )
+    |> Map.put(
+      "downlink_requirement_status",
+      if(budget_volume_mb >= required_downlink_mb, do: "satisfied", else: "shortfall")
+    )
+  end
+
+  defp coherent_budget_completion!(nil, budget_volume_mb, caller_context) do
+    dependent_fields =
+      ~w(downlink_completion_ratio selected_downlink_shortfall_mb downlink_requirement_status)
+
+    if Enum.any?(dependent_fields, &(not is_nil(caller_context[&1]))) do
+      raise ArgumentError,
+            "required_downlink_mb is required to reconcile link-budget completion evidence"
+    end
+
+    Map.put(caller_context, "candidate_downlink_mb", budget_volume_mb)
+  end
+
+  defp coherent_budget_completion!(_required_downlink_mb, _budget_volume_mb, _caller_context),
+    do: raise(ArgumentError, "required_downlink_mb must be a non-negative number")
 
   defp explicit_actual_throughput(contact) do
     first_number([

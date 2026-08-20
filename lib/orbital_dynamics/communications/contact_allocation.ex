@@ -9,7 +9,13 @@ defmodule OrbitalDynamics.Communications.ContactAllocation do
   """
 
   alias OrbitalDynamics.ResourceFilter
-  alias OrbitalDynamics.Communications.{ContactContention, ContactFilter, StationCalendar}
+
+  alias OrbitalDynamics.Communications.{
+    ContactContention,
+    ContactFilter,
+    DownlinkLinkBudget,
+    StationCalendar
+  }
 
   alias OrbitalDynamics.Communications.ContactAllocation.{
     AllocationRow,
@@ -472,9 +478,14 @@ defmodule OrbitalDynamics.Communications.ContactAllocation do
     approval_policy = Keyword.get(opts, :approval_policy)
     resource_summaries = Keyword.get(opts, :resource_summaries, [])
 
-    contact_inputs =
+    normalized_contacts =
       contacts
       |> Enum.map(&normalize_contact/1)
+
+    Enum.each(normalized_contacts, &DownlinkLinkBudget.evidence_for_contact/1)
+
+    contact_inputs =
+      normalized_contacts
       |> Enum.filter(&contact_like_input?/1)
 
     {invalid_contact_inputs, contacts} =

@@ -21,7 +21,7 @@ defmodule OrbitalDynamics.Schema.LinkCapacityReportContracts do
       expect_type: 5,
       require_fields: 4,
       validate_non_negative_integer_count_map: 3,
-      validate_optional_exact_model_limits: 5,
+      error: 2,
       validate_string_list_items: 4
     ]
 
@@ -252,14 +252,14 @@ defmodule OrbitalDynamics.Schema.LinkCapacityReportContracts do
       "station_reservation_match_status_counts",
       :map
     )
+    |> expect_optional_non_negative_integer(path, report, "downlink_link_budget_count")
+    |> expect_optional_type(path, report, "downlink_link_budget_ids", :list)
+    |> validate_optional_stable_id_list(path, report, "downlink_link_budget_ids")
+    |> expect_optional_type(path, report, "downlink_link_budgets", :list)
+    |> validate_optional_link_budgets(path, report)
     |> expect_optional_type(path, report, "model_limits", :list)
     |> validate_string_list_items(path, report, "model_limits")
-    |> validate_optional_exact_model_limits(
-      path,
-      report,
-      model_limits(),
-      "must match link capacity capability model limits"
-    )
+    |> validate_report_model_limits(path, report)
     |> expect_type(path, report, "rows", :list)
     |> expect_type(path, report, "assumptions", :map)
     |> validate_report_assumptions(path, report)
@@ -446,6 +446,11 @@ defmodule OrbitalDynamics.Schema.LinkCapacityReportContracts do
       row,
       "actual_data_rate_throughput_derivations"
     )
+    |> expect_optional_non_negative_integer(path, row, "downlink_link_budget_count")
+    |> expect_optional_type(path, row, "downlink_link_budget_ids", :list)
+    |> validate_optional_stable_id_list(path, row, "downlink_link_budget_ids")
+    |> expect_optional_type(path, row, "downlink_link_budget_contact_ids", :list)
+    |> validate_optional_stable_id_list(path, row, "downlink_link_budget_contact_ids")
     |> validate_row_counts(path, row)
   end
 
@@ -535,6 +540,20 @@ defmodule OrbitalDynamics.Schema.LinkCapacityReportContracts do
       "ambiguous_actual_completion_contact_ids",
       "must equal ambiguous_actual_completion_contact_ids count"
     )
+    |> expect_field_matches_list_count(
+      path,
+      row,
+      "downlink_link_budget_count",
+      "downlink_link_budget_ids",
+      "must equal downlink_link_budget_ids count"
+    )
+    |> expect_field_matches_list_count(
+      path,
+      row,
+      "downlink_link_budget_count",
+      "downlink_link_budget_contact_ids",
+      "must equal downlink_link_budget_contact_ids count"
+    )
   end
 
   defp validate_report_counts(issues, path, report) do
@@ -542,6 +561,9 @@ defmodule OrbitalDynamics.Schema.LinkCapacityReportContracts do
       report
       |> Map.get("rows", [])
       |> Enum.filter(&is_map/1)
+
+    budgets = list_value(report, "downlink_link_budgets")
+    budget_ids = budgets |> Enum.filter(&is_map/1) |> Enum.map(& &1["id"])
 
     issues
     |> expect_field_equals(
@@ -572,6 +594,21 @@ defmodule OrbitalDynamics.Schema.LinkCapacityReportContracts do
       sum_row_numbers(rows, "selected_estimated_throughput_mb"),
       "must equal row-derived selected_estimated_throughput_mb"
     )
+    |> expect_optional_field_equals(
+      path,
+      report,
+      "downlink_link_budget_count",
+      length(budgets),
+      "must equal downlink_link_budgets count"
+    )
+    |> expect_optional_field_equals(
+      path,
+      report,
+      "downlink_link_budget_ids",
+      budget_ids,
+      "must equal ordered downlink_link_budgets IDs"
+    )
+    |> validate_link_budget_membership(path, report, rows, budgets)
     |> expect_field_equals(
       path,
       report,
@@ -809,6 +846,186 @@ defmodule OrbitalDynamics.Schema.LinkCapacityReportContracts do
     end
   end
 
+  defp validate_optional_link_budgets(issues, path, report) do
+    case Map.get(report, "downlink_link_budgets") do
+      budgets when is_list(budgets) ->
+        budgets
+        |> Enum.with_index()
+        |> Enum.reduce(issues, fn {budget, index}, acc ->
+          OrbitalDynamics.Schema.DownlinkLinkBudgetContracts.validate(
+            acc,
+            "#{path}.downlink_link_budgets[#{index}]",
+            budget
+          )
+        end)
+
+      _budgets ->
+        issues
+    end
+  end
+
+  defp validate_report_model_limits(issues, path, report) do
+    expected =
+      OrbitalDynamics.Communications.LinkCapacity.report_model_limits(
+        list_value(report, "downlink_link_budgets")
+      )
+
+    if Map.get(report, "model_limits") == expected do
+      issues
+    else
+      [
+        error(path <> ".model_limits", "must match link capacity capability model limits")
+        | issues
+      ]
+    end
+  end
+
+  defp validate_link_budget_membership(issues, path, report, rows, budgets) do
+    budget_context_fields =
+      ~w(downlink_link_budget_count downlink_link_budget_ids downlink_link_budgets)
+
+    issues =
+      if budgets == [] do
+        if Enum.any?(budget_context_fields, &Map.has_key?(report, &1)) do
+          [
+            error(path <> ".downlink_link_budgets", "empty link-budget context must be omitted")
+            | issues
+          ]
+        else
+          issues
+        end
+      else
+        Enum.reduce(budget_context_fields, issues, fn field, acc ->
+          if Map.has_key?(report, field),
+            do: acc,
+            else: [
+              error(path <> ".#{field}", "is required for complete link-budget membership") | acc
+            ]
+        end)
+      end
+
+    budgets_by_id =
+      budgets
+      |> Enum.filter(&is_map/1)
+      |> Map.new(&{&1["id"], &1})
+
+    budget_ids =
+      Enum.map(budgets, fn budget -> if is_map(budget), do: budget["id"], else: nil end)
+
+    issues =
+      if length(Enum.uniq(budget_ids)) == length(budget_ids) do
+        issues
+      else
+        [error(path <> ".downlink_link_budgets", "budget IDs must be unique") | issues]
+      end
+
+    {issues, referenced_ids} =
+      rows
+      |> Enum.with_index()
+      |> Enum.reduce({issues, []}, fn {row, row_index}, {acc, referenced} ->
+        ids = list_value(row, "downlink_link_budget_ids")
+        contact_ids = list_value(row, "downlink_link_budget_contact_ids")
+
+        acc =
+          if ids == [] and Map.has_key?(row, "downlink_link_budget_count") do
+            [
+              error(
+                "#{path}.rows[#{row_index}].downlink_link_budget_count",
+                "empty station link-budget context must be omitted"
+              )
+              | acc
+            ]
+          else
+            acc
+          end
+
+        acc =
+          ids
+          |> Enum.with_index()
+          |> Enum.reduce(acc, fn {id, budget_index}, inner_acc ->
+            case Map.get(budgets_by_id, id) do
+              %{} = budget ->
+                binding = Map.get(budget, "contact_binding", %{})
+
+                inner_acc
+                |> expect_membership_value(
+                  "#{path}.rows[#{row_index}].downlink_link_budget_contact_ids[#{budget_index}]",
+                  Enum.at(contact_ids, budget_index),
+                  binding["contact_id"]
+                )
+                |> expect_membership_value(
+                  "#{path}.rows[#{row_index}].ground_station_id",
+                  row["ground_station_id"],
+                  binding["ground_station_id"]
+                )
+                |> expect_membership_in_list(
+                  "#{path}.rows[#{row_index}].contact_ids",
+                  binding["contact_id"],
+                  list_value(row, "contact_ids")
+                )
+                |> validate_station_budget_direction(path, row, row_index, binding)
+
+              nil ->
+                [
+                  error(
+                    "#{path}.rows[#{row_index}].downlink_link_budget_ids[#{budget_index}]",
+                    "must resolve to complete top-level downlink_link_budgets membership"
+                  )
+                  | inner_acc
+                ]
+            end
+          end)
+
+        {acc, referenced ++ ids}
+      end)
+
+    if Enum.sort(referenced_ids) == Enum.sort(budget_ids) do
+      issues
+    else
+      [
+        error(
+          path <> ".downlink_link_budgets",
+          "must equal the complete, single station-row link-budget membership"
+        )
+        | issues
+      ]
+    end
+  end
+
+  defp expect_membership_value(issues, path, actual, expected) do
+    if actual == expected,
+      do: issues,
+      else: [error(path, "must match top-level downlink_link_budget evidence") | issues]
+  end
+
+  defp expect_membership_in_list(issues, path, expected, values) do
+    if expected in values,
+      do: issues,
+      else: [error(path, "must contain each bound link-budget contact ID") | issues]
+  end
+
+  defp validate_station_budget_direction(issues, path, row, row_index, binding) do
+    case Map.get(row, "station_calendar_directions") do
+      directions when is_list(directions) and directions != [] ->
+        expect_membership_in_list(
+          issues,
+          "#{path}.rows[#{row_index}].station_calendar_directions",
+          binding["direction"],
+          directions
+        )
+
+      _directions ->
+        issues
+    end
+  end
+
+  defp list_value(map, field) do
+    case Map.get(map, field) do
+      values when is_list(values) -> values
+      _value -> []
+    end
+  end
+
   defp sum_row_numbers(rows, field) do
     Enum.reduce(rows, 0, fn row, total ->
       case Map.get(row, field) do
@@ -882,7 +1099,6 @@ defmodule OrbitalDynamics.Schema.LinkCapacityReportContracts do
   defp capability_value(key),
     do: OrbitalDynamics.Communications.LinkCapacity.capabilities() |> Map.fetch!(key)
 
-  defp model_limits, do: :known_limits |> capability_value() |> Enum.map(&Atom.to_string/1)
   defp station_unavailable_aliases, do: capability_value(:station_unavailable_aliases)
   defp station_availability_precedence, do: capability_value(:station_availability_precedence)
   defp provider_direction_aliases, do: capability_value(:provider_direction_aliases)

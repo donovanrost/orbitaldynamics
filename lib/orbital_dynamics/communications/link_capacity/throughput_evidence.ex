@@ -8,6 +8,8 @@ defmodule OrbitalDynamics.Communications.LinkCapacity.ThroughputEvidence do
     StationCapacity
   }
 
+  alias OrbitalDynamics.Communications.DownlinkLinkBudget
+
   def contact_capacity_fraction(contact) do
     if contact_station_availability(contact) == "unavailable" do
       0.0
@@ -150,14 +152,15 @@ defmodule OrbitalDynamics.Communications.LinkCapacity.ThroughputEvidence do
   end
 
   def estimated_throughput_value(contact) do
-    first_number(contact, [
-      "estimated_throughput_mb",
-      "estimated_downlink_mb",
-      "planned_throughput_mb",
-      "planned_data_volume_mb",
-      "estimated_data_volume_mb",
-      "data_volume_mb"
-    ]) ||
+    DownlinkLinkBudget.supported_volume_mb(contact) ||
+      first_number(contact, [
+        "estimated_throughput_mb",
+        "estimated_downlink_mb",
+        "planned_throughput_mb",
+        "planned_data_volume_mb",
+        "estimated_data_volume_mb",
+        "data_volume_mb"
+      ]) ||
       first_number(get_in(contact, ["throughput_model"]) || %{}, [
         "estimated_throughput_mb",
         "estimated_downlink_mb",
@@ -295,18 +298,24 @@ defmodule OrbitalDynamics.Communications.LinkCapacity.ThroughputEvidence do
   end
 
   def data_rate_mbps(contact) do
-    first_number(contact, [
-      "data_rate_mbps",
-      "downlink_rate_mbps",
-      "bitrate_mbps",
-      "estimated_bitrate_mbps"
-    ]) ||
-      first_number(get_in(contact, ["throughput_model"]) || %{}, [
-        "data_rate_mbps",
-        "downlink_rate_mbps",
-        "bitrate_mbps",
-        "estimated_bitrate_mbps"
-      ])
+    case DownlinkLinkBudget.supported_data_rate_bps(contact) do
+      value when is_number(value) ->
+        value / 1_000_000.0
+
+      _value ->
+        first_number(contact, [
+          "data_rate_mbps",
+          "downlink_rate_mbps",
+          "bitrate_mbps",
+          "estimated_bitrate_mbps"
+        ]) ||
+          first_number(get_in(contact, ["throughput_model"]) || %{}, [
+            "data_rate_mbps",
+            "downlink_rate_mbps",
+            "bitrate_mbps",
+            "estimated_bitrate_mbps"
+          ])
+    end
   end
 
   def actual_data_rate_mb_s(contact) do

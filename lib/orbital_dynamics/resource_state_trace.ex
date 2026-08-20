@@ -14,6 +14,7 @@ defmodule OrbitalDynamics.ResourceStateTrace do
   """
 
   alias OrbitalDynamics.ResourceSummary
+  alias OrbitalDynamics.Communications.DownlinkLinkBudget
 
   @schema_contract "resource_state_trace.v1"
   @model "tier_1_declared_activity_resource_state_trace"
@@ -278,6 +279,7 @@ defmodule OrbitalDynamics.ResourceStateTrace do
     effect_metadata = if is_map(effects), do: effects, else: %{}
     {declared_effects, effect_reasons} = normalize_effects(effects)
     activity_provenance = source_activity["provenance"] || %{}
+    downlink_link_budget = DownlinkLinkBudget.evidence_for_contact(source_activity)
 
     reasons =
       []
@@ -317,11 +319,14 @@ defmodule OrbitalDynamics.ResourceStateTrace do
          "effect_at_s" => ends_at_s,
          "declared_effects" => declared_effects,
          "assumptions" => json_safe(effect_metadata["assumptions"] || %{}),
-         "provenance" => %{
-           "effect_source" => "activity.resource_effects",
-           "source_activity_provenance" => json_safe(activity_provenance),
-           "source_effect_provenance" => json_safe(effect_metadata["provenance"] || %{})
-         },
+         "provenance" =>
+           %{
+             "effect_source" => "activity.resource_effects",
+             "source_activity_provenance" => json_safe(activity_provenance),
+             "source_effect_provenance" => json_safe(effect_metadata["provenance"] || %{})
+           }
+           |> maybe_put_link_budget_id(downlink_link_budget),
+         "downlink_link_budget" => downlink_link_budget,
          "source_activity" => source_activity
        }}
     else
@@ -459,10 +464,13 @@ defmodule OrbitalDynamics.ResourceStateTrace do
       declared = activity["declared_effects"]
       effect_status = declared["status"]
 
-      applied =
+      status_applied =
         if effect_status == "applied",
           do: declared,
           else: zero_effects(declared["ignored_reason"])
+
+      {applied, link_budget_limit_evidence} =
+        apply_link_budget_limit(declared, status_applied, activity["downlink_link_budget"])
 
       unconstrained_battery_energy_wh =
         state_before["battery_energy_remaining_wh"] + applied["battery_delta_wh"]
@@ -473,14 +481,18 @@ defmodule OrbitalDynamics.ResourceStateTrace do
       battery_capacity_wh = state_before["battery_capacity_wh"]
       recorder_capacity_mb = state_before["recorder_capacity_mb"]
 
-      limit_evidence = %{
-        "unconstrained_battery_energy_remaining_wh" => unconstrained_battery_energy_wh,
-        "unconstrained_recorder_used_mb" => unconstrained_recorder_used_mb,
-        "battery_depletion_wh" => max(-unconstrained_battery_energy_wh, 0.0),
-        "battery_overflow_wh" => max(unconstrained_battery_energy_wh - battery_capacity_wh, 0.0),
-        "recorder_depletion_mb" => max(-unconstrained_recorder_used_mb, 0.0),
-        "recorder_overflow_mb" => max(unconstrained_recorder_used_mb - recorder_capacity_mb, 0.0)
-      }
+      limit_evidence =
+        %{
+          "unconstrained_battery_energy_remaining_wh" => unconstrained_battery_energy_wh,
+          "unconstrained_recorder_used_mb" => unconstrained_recorder_used_mb,
+          "battery_depletion_wh" => max(-unconstrained_battery_energy_wh, 0.0),
+          "battery_overflow_wh" =>
+            max(unconstrained_battery_energy_wh - battery_capacity_wh, 0.0),
+          "recorder_depletion_mb" => max(-unconstrained_recorder_used_mb, 0.0),
+          "recorder_overflow_mb" =>
+            max(unconstrained_recorder_used_mb - recorder_capacity_mb, 0.0)
+        }
+        |> Map.merge(link_budget_limit_evidence)
 
       violation_types = violation_types(limit_evidence)
 
@@ -492,26 +504,28 @@ defmodule OrbitalDynamics.ResourceStateTrace do
           clamp(unconstrained_recorder_used_mb, 0.0, recorder_capacity_mb)
         )
 
-      row = %{
-        "id" => "resource_state_event:#{activity["spacecraft_id"]}:#{activity["id"]}",
-        "activity_id" => activity["id"],
-        "activity_type" => activity["type"],
-        "spacecraft_id" => activity["spacecraft_id"],
-        "starts_at_s" => activity["starts_at_s"],
-        "ends_at_s" => activity["ends_at_s"],
-        "effect_at_s" => activity["effect_at_s"],
-        "effect_status" => effect_status,
-        "ignored_reason" => declared["ignored_reason"],
-        "state_status" => state_status(effect_status, violation_types),
-        "declared_effects" => declared,
-        "applied_effects" => applied,
-        "state_before" => state_before,
-        "state_after" => state_after,
-        "limit_evidence" => limit_evidence,
-        "violation_types" => violation_types,
-        "assumptions" => activity["assumptions"],
-        "provenance" => activity["provenance"]
-      }
+      row =
+        %{
+          "id" => "resource_state_event:#{activity["spacecraft_id"]}:#{activity["id"]}",
+          "activity_id" => activity["id"],
+          "activity_type" => activity["type"],
+          "spacecraft_id" => activity["spacecraft_id"],
+          "starts_at_s" => activity["starts_at_s"],
+          "ends_at_s" => activity["ends_at_s"],
+          "effect_at_s" => activity["effect_at_s"],
+          "effect_status" => effect_status,
+          "ignored_reason" => declared["ignored_reason"],
+          "state_status" => state_status(effect_status, violation_types),
+          "declared_effects" => declared,
+          "applied_effects" => applied,
+          "state_before" => state_before,
+          "state_after" => state_after,
+          "limit_evidence" => limit_evidence,
+          "violation_types" => violation_types,
+          "assumptions" => activity["assumptions"],
+          "provenance" => activity["provenance"]
+        }
+        |> maybe_put("downlink_link_budget", activity["downlink_link_budget"])
 
       {row, state_after}
     end)
@@ -528,6 +542,33 @@ defmodule OrbitalDynamics.ResourceStateTrace do
       "battery_delta_wh" => 0.0,
       "recorder_delta_mb" => 0.0
     }
+  end
+
+  defp apply_link_budget_limit(_declared, applied, nil), do: {applied, %{}}
+
+  defp apply_link_budget_limit(declared, applied, %{} = budget) do
+    supported_volume_mb = get_in(budget, ["derived", "supported_volume_mb"])
+    requested_data_removed_mb = declared["data_removed_mb"]
+    status_eligible_data_removed_mb = applied["data_removed_mb"]
+    limited_data_removed_mb = min(status_eligible_data_removed_mb, supported_volume_mb)
+
+    applied =
+      applied
+      |> Map.put("data_removed_mb", limited_data_removed_mb)
+      |> Map.put("recorder_delta_mb", applied["data_stored_mb"] - limited_data_removed_mb)
+
+    evidence = %{
+      "downlink_link_budget_id" => budget["id"],
+      "requested_data_removed_mb" => requested_data_removed_mb,
+      "status_eligible_data_removed_mb" => status_eligible_data_removed_mb,
+      "link_budget_supported_volume_mb" => supported_volume_mb,
+      "link_budget_applied_data_removed_mb" => limited_data_removed_mb,
+      "link_budget_limited_data_removed_mb" =>
+        max(status_eligible_data_removed_mb - limited_data_removed_mb, 0.0),
+      "unused_link_budget_volume_mb" => max(supported_volume_mb - limited_data_removed_mb, 0.0)
+    }
+
+    {applied, evidence}
   end
 
   defp state(
@@ -724,6 +765,14 @@ defmodule OrbitalDynamics.ResourceStateTrace do
     |> Enum.reject(fn {_key, value} -> is_nil(value) end)
     |> Map.new()
   end
+
+  defp maybe_put(map, _key, nil), do: map
+  defp maybe_put(map, key, value), do: Map.put(map, key, value)
+
+  defp maybe_put_link_budget_id(provenance, nil), do: provenance
+
+  defp maybe_put_link_budget_id(provenance, budget),
+    do: Map.put(provenance, "downlink_link_budget_id", budget["id"])
 
   defp json_safe(nil), do: :null
   defp json_safe(:null), do: :null

@@ -353,6 +353,7 @@ defmodule OrbitalDynamics.Schema.ContactAllocationReportContracts do
       "ground_station_id",
       "spacecraft_id",
       "source_window_id",
+      "downlink_link_budget_id",
       "contention_group_id",
       "capacity_pack_group_id",
       "selected_contact_id",
@@ -378,6 +379,8 @@ defmodule OrbitalDynamics.Schema.ContactAllocationReportContracts do
     |> expect_optional_probability(path, row, "completed_fraction")
     |> expect_optional_non_negative_number(path, row, "required_downlink_mb")
     |> expect_optional_non_negative_number(path, row, "candidate_downlink_mb")
+    |> validate_optional_link_budget(path, row)
+    |> validate_link_budget_binding(path, row)
     |> expect_optional_probability(path, row, "downlink_completion_ratio")
     |> expect_optional_non_negative_number(path, row, "selected_downlink_shortfall_mb")
     |> expect_optional_type(path, row, "downlink_requirement_status", :binary)
@@ -446,6 +449,7 @@ defmodule OrbitalDynamics.Schema.ContactAllocationReportContracts do
     |> expect_optional_type(path, row, "suppressed_activity_types", :list)
     |> validate_string_list_items(path, row, "suppressed_activity_types")
     |> expect_optional_type(path, row, "source_station_calendar_contact", :map)
+    |> expect_optional_type(path, row, "source_window_revision", :binary)
     |> expect_optional_type(path, row, "source_station_calendar_entry", :map)
     |> expect_optional_type(path, row, "source_station_calendar_overlaps", :list)
     |> expect_optional_type(path, row, "station_availability", :binary)
@@ -1625,6 +1629,129 @@ defmodule OrbitalDynamics.Schema.ContactAllocationReportContracts do
         path,
         row
       ])
+
+  defp validate_optional_link_budget(issues, path, row) do
+    case Map.get(row, "downlink_link_budget") do
+      nil ->
+        issues
+
+      budget ->
+        OrbitalDynamics.Schema.DownlinkLinkBudgetContracts.validate(
+          issues,
+          path <> ".downlink_link_budget",
+          budget
+        )
+    end
+  end
+
+  defp validate_link_budget_binding(issues, path, %{"downlink_link_budget" => %{} = budget} = row) do
+    binding = Map.get(budget, "contact_binding", %{})
+
+    issues
+    |> expect_budget_field(path, row, "downlink_link_budget_id", budget["id"])
+    |> expect_budget_field(path, row, "contact_id", binding["contact_id"])
+    |> expect_budget_field(path, row, "spacecraft_id", binding["spacecraft_id"])
+    |> expect_budget_field(path, row, "ground_station_id", binding["ground_station_id"])
+    |> expect_budget_field(path, row, "source_window_id", binding["source_window_id"])
+    |> expect_budget_field(
+      path,
+      row,
+      "source_window_revision",
+      binding["source_window_revision"]
+    )
+    |> expect_budget_field(path, row, "starts_at_s", binding["starts_at_s"])
+    |> expect_budget_field(path, row, "ends_at_s", binding["ends_at_s"])
+    |> expect_budget_field(path, row, "direction", binding["direction"])
+    |> expect_budget_field(path, row, "mode", binding["mode"])
+    |> validate_budget_source_window(path, row, budget)
+    |> validate_budget_completion(path, row, budget)
+  end
+
+  defp validate_link_budget_binding(issues, _path, _row), do: issues
+
+  defp validate_budget_source_window(issues, path, %{"source_window" => %{} = window}, budget) do
+    expected = Map.get(budget, "access_window", %{})
+
+    Enum.reduce(
+      ~w(id revision spacecraft_id ground_station_id starts_at_s ends_at_s),
+      issues,
+      fn field, acc ->
+        if Map.has_key?(window, field) do
+          expect_budget_field(acc, path <> ".source_window", window, field, expected[field])
+        else
+          acc
+        end
+      end
+    )
+  end
+
+  defp validate_budget_source_window(issues, _path, _row, _budget), do: issues
+
+  defp validate_budget_completion(issues, path, row, budget) do
+    required = row["required_downlink_mb"]
+    candidate = get_in(budget, ["derived", "supported_volume_mb"])
+
+    cond do
+      is_number(required) and required >= 0.0 and is_number(candidate) ->
+        expected_ratio = if required == 0.0, do: 1.0, else: min(candidate / required, 1.0)
+        expected_shortfall = max(required - candidate, 0.0)
+        expected_status = if candidate >= required, do: "satisfied", else: "shortfall"
+
+        issues
+        |> expect_budget_field(path, row, "candidate_downlink_mb", candidate)
+        |> expect_budget_field(path, row, "downlink_completion_ratio", expected_ratio)
+        |> expect_budget_field(path, row, "selected_downlink_shortfall_mb", expected_shortfall)
+        |> expect_budget_field(path, row, "downlink_requirement_status", expected_status)
+
+      is_nil(required) ->
+        issues
+        |> expect_budget_field(path, row, "candidate_downlink_mb", candidate)
+        |> reject_unbound_completion_fields(path, row)
+
+      true ->
+        [
+          OrbitalDynamics.Schema.PrimitiveValidation.error(
+            path <> ".required_downlink_mb",
+            "must be a non-negative number when downlink_link_budget is present"
+          )
+          | issues
+        ]
+    end
+  end
+
+  defp reject_unbound_completion_fields(issues, path, row) do
+    Enum.reduce(
+      ~w(downlink_completion_ratio selected_downlink_shortfall_mb downlink_requirement_status),
+      issues,
+      fn field, acc ->
+        if Map.has_key?(row, field) do
+          [
+            OrbitalDynamics.Schema.PrimitiveValidation.error(
+              path <> ".#{field}",
+              "requires required_downlink_mb when downlink_link_budget is present"
+            )
+            | acc
+          ]
+        else
+          acc
+        end
+      end
+    )
+  end
+
+  defp expect_budget_field(issues, path, row, field, expected) do
+    if Map.get(row, field) == expected do
+      issues
+    else
+      [
+        OrbitalDynamics.Schema.PrimitiveValidation.error(
+          path <> ".#{field}",
+          "must match embedded downlink_link_budget evidence"
+        )
+        | issues
+      ]
+    end
+  end
 
   defp validate_contact_allocation_capacity_pack_group(callbacks, issues, path, group),
     do:

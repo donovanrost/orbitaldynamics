@@ -63,6 +63,7 @@ defmodule OrbitalDynamics.Schema.RegistryCatalog do
              |> Map.merge(OrbitalDynamics.Schema.ProposedContactRegistryContracts.contracts())
              |> Map.merge(OrbitalDynamics.Schema.ContactIntentRegistryContracts.contracts())
              |> Map.merge(OrbitalDynamics.Schema.CommandWindowRegistryContracts.contracts())
+             |> Map.merge(OrbitalDynamics.Schema.DownlinkLinkBudgetRegistryContracts.contracts())
              |> Map.merge(OrbitalDynamics.Schema.LinkCapacityRegistryContracts.contracts())
              |> Map.merge(OrbitalDynamics.Schema.RelayDataPathRegistryContracts.contracts())
              |> Map.merge(

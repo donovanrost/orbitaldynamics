@@ -228,6 +228,7 @@ defmodule OrbitalDynamics.Schema.ContactAllocationReportJsonSchema do
         "ground_station_id" => stable_id_schema(stable_id_pattern),
         "spacecraft_id" => stable_id_schema(stable_id_pattern),
         "source_window_id" => stable_id_schema(stable_id_pattern),
+        "source_window_revision" => %{"type" => "string", "minLength" => 1},
         "contention_group_id" => stable_id_schema(stable_id_pattern),
         "capacity_pack_group_id" => stable_id_schema(stable_id_pattern),
         "capacity_pack_status" => %{"type" => "string"},
@@ -242,6 +243,11 @@ defmodule OrbitalDynamics.Schema.ContactAllocationReportJsonSchema do
         "completed_fraction" => probability_schema(),
         "required_downlink_mb" => non_negative_number_schema(),
         "candidate_downlink_mb" => non_negative_number_schema(),
+        "downlink_link_budget" =>
+          OrbitalDynamics.Schema.DownlinkLinkBudgetJsonSchema.artifact_schema(
+            stable_id_pattern: stable_id_pattern
+          ),
+        "downlink_link_budget_id" => stable_id_schema(stable_id_pattern),
         "downlink_completion_ratio" => probability_schema(),
         "selected_downlink_shortfall_mb" => non_negative_number_schema(),
         "downlink_requirement_status" => %{"type" => "string"},

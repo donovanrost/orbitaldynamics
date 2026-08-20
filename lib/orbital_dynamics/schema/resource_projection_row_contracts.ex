@@ -186,7 +186,36 @@ defmodule OrbitalDynamics.Schema.ResourceProjectionRowContracts do
         flow_row_validator.(acc, row_path, flow_row)
       end
     )
+    |> validate_flow_budget_spacecraft_binding(path, row)
     |> validate_counts(path, row)
+  end
+
+  defp validate_flow_budget_spacecraft_binding(issues, path, row) do
+    flows =
+      case Map.get(row, "activity_resource_flow") do
+        values when is_list(values) -> values
+        _value -> []
+      end
+
+    flows
+    |> Enum.with_index()
+    |> Enum.reduce(issues, fn
+      {%{"downlink_link_budget" => %{} = budget}, index}, acc ->
+        if get_in(budget, ["contact_binding", "spacecraft_id"]) == row["spacecraft_id"] do
+          acc
+        else
+          [
+            PrimitiveValidation.error(
+              "#{path}.activity_resource_flow[#{index}].downlink_link_budget.contact_binding.spacecraft_id",
+              "must match enclosing projected resource spacecraft_id"
+            )
+            | acc
+          ]
+        end
+
+      {_flow, _index}, acc ->
+        acc
+    end)
   end
 
   defp validate_counts(issues, path, row) do
