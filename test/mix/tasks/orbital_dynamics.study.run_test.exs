@@ -402,11 +402,17 @@ defmodule Mix.Tasks.OrbitalDynamics.Study.RunTest do
     manifest_path = Path.join(System.tmp_dir!(), "orbital_dynamics_retry_#{unique}.json")
     source_path = Path.join(System.tmp_dir!(), "orbital_dynamics_failed_#{unique}.json")
     output_path = Path.join(System.tmp_dir!(), "orbital_dynamics_retried_#{unique}.json")
+    tampered_path = Path.join(System.tmp_dir!(), "orbital_dynamics_tampered_#{unique}.json")
+
+    tampered_output_path =
+      Path.join(System.tmp_dir!(), "orbital_dynamics_tampered_retry_#{unique}.json")
 
     on_exit(fn ->
       File.rm(manifest_path)
       File.rm(source_path)
       File.rm(output_path)
+      File.rm(tampered_path)
+      File.rm(tampered_output_path)
       Mix.Task.reenable("orbital_dynamics.study.run")
     end)
 
@@ -430,6 +436,41 @@ defmodule Mix.Tasks.OrbitalDynamics.Study.RunTest do
     source_artifact = :json.decode(source_json)
 
     assert source_artifact["execution_report"]["status"] == "completed_with_errors"
+
+    assert {:ok, %{"schema_contract" => "result_artifact.v1"}} =
+             OrbitalDynamics.Schema.validate_artifact(source_artifact,
+               contract: "result_artifact.v1"
+             )
+
+    assert [elliptic_trajectory, radial_trajectory] = source_artifact["trajectories"]
+
+    assert Enum.map(source_artifact["trajectories"], & &1["scenario_id"]) == [
+             "retry_1",
+             "retry_3"
+           ]
+
+    assert Enum.all?(
+             source_artifact["trajectories"],
+             &finite_derived_trajectory_numbers?/1
+           )
+
+    assert elliptic_trajectory
+           |> Map.take(derived_numeric_trajectory_fields())
+           |> Map.keys()
+           |> Enum.sort() == Enum.sort(derived_numeric_trajectory_fields())
+
+    assert radial_trajectory
+           |> Map.take(derived_numeric_trajectory_fields())
+           |> Map.keys()
+           |> Enum.sort() ==
+             Enum.sort(~w(
+               final_radius_km
+               final_speed_km_s
+               min_radius_km
+               max_radius_km
+               min_altitude_km
+               max_altitude_km
+             ))
 
     assert Enum.map(
              source_artifact["execution_report"]["failed_scenarios"],
@@ -521,6 +562,29 @@ defmodule Mix.Tasks.OrbitalDynamics.Study.RunTest do
              )
 
     assert File.read!(source_path) == source_json
+
+    tampered_artifact =
+      update_in(source_artifact, ["trajectories"], fn [trajectory | trajectories] ->
+        [Map.put(trajectory, "semi_major_axis_km", "tampered") | trajectories]
+      end)
+
+    File.write!(tampered_path, [:json.encode(tampered_artifact), "\n"])
+    Mix.Task.reenable("orbital_dynamics.study.run")
+
+    assert_raise Mix.Error,
+                 ~r/source artifact is invalid.*trajectories\[0\]\.semi_major_axis_km/s,
+                 fn ->
+                   Mix.Task.run("orbital_dynamics.study.run", [
+                     "--manifest",
+                     manifest_path,
+                     "--retry-failed-from",
+                     tampered_path,
+                     "--output",
+                     tampered_output_path
+                   ])
+                 end
+
+    refute File.exists?(tampered_output_path)
   end
 
   test "rejects conflicting resume and failed-scenario retry modes" do
@@ -698,5 +762,35 @@ defmodule Mix.Tasks.OrbitalDynamics.Study.RunTest do
   defp sha256(content) do
     :crypto.hash(:sha256, content)
     |> Base.encode16(case: :lower)
+  end
+
+  defp finite_derived_trajectory_numbers?(trajectory) do
+    Enum.all?(derived_numeric_trajectory_fields(), fn field ->
+      not Map.has_key?(trajectory, field) or finite_number?(Map.fetch!(trajectory, field))
+    end)
+  end
+
+  defp finite_number?(value) when is_integer(value), do: true
+
+  defp finite_number?(value) when is_float(value),
+    do: value == value and value <= 1.7976931348623157e308 and value >= -1.7976931348623157e308
+
+  defp finite_number?(_value), do: false
+
+  defp derived_numeric_trajectory_fields do
+    ~w(
+      final_radius_km
+      final_speed_km_s
+      min_radius_km
+      max_radius_km
+      min_altitude_km
+      max_altitude_km
+      semi_major_axis_km
+      eccentricity
+      perigee_radius_km
+      apogee_radius_km
+      perigee_altitude_km
+      apogee_altitude_km
+    )
   end
 end
