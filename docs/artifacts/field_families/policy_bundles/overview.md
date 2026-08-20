@@ -41,9 +41,16 @@ lower-bound inclusive and `valid_until` exclusive.
 
 When `Policy.decide/6` receives `authority_context_mode: :explicit`, valid
 context is copied into the decision and its campaign-strategy recommendation,
-operator-review package, and Cadence import manifest. Missing, malformed,
-not-yet-effective, or stale evidence becomes a deterministic `non_eligible` /
-`blocked_by_policy` evaluation carrying its reason and supplied provenance.
-Absent mode uses the unchanged `Policy.decide/5` behavior, including when a
-context value is present without explicit mode. This contract performs no
-authority lookup, approval, scheduling, Cadence write, or execution.
+operator-review package, and Cadence import manifest. Its evidence evaluation
+does not override substantive policy classification: an already blocked
+decision and every downstream eligibility/import-readiness field remain
+blocked or non-eligible. Missing, malformed, not-yet-effective, or stale
+explicit evidence becomes a deterministic `non_eligible` /
+`blocked_by_policy` evaluation carrying its reason and canonical typed caller
+evidence. Validators recompute that evaluation rather than trusting copied
+maps.
+
+Only absence of both mode and context uses the unchanged `Policy.decide/5`
+behavior. A context without mode or any supplied unsupported mode fails closed
+with typed evidence. This contract performs no authority lookup, approval,
+scheduling, Cadence write, or execution.

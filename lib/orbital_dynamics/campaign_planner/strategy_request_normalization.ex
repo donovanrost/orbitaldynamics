@@ -115,6 +115,13 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRequestNormalization do
 
     authority_context = ValueEncoding.get_key(request, :authority_context)
 
+    authority_context_mode_supplied? =
+      Map.has_key?(request, :authority_context_mode) or
+        Map.has_key?(request, "authority_context_mode")
+
+    authority_context_supplied? =
+      Map.has_key?(request, :authority_context) or Map.has_key?(request, "authority_context")
+
     repair_policy =
       request
       |> ValueEncoding.get_key(:repair_policy)
@@ -141,6 +148,8 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRequestNormalization do
       approval_policy_supplied?: approval_policy_supplied?,
       authority_context_mode: authority_context_mode,
       authority_context: authority_context,
+      authority_context_mode_supplied?: authority_context_mode_supplied?,
+      authority_context_supplied?: authority_context_supplied?,
       repair_policy: repair_policy,
       scoring_policy:
         ValueEncoding.stringify_keys(ValueEncoding.get_key(request, :scoring_policy) || %{}),

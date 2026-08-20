@@ -49,9 +49,12 @@ defmodule OrbitalDynamics.Schema.StrategyRecommendationContracts do
     )
     |> expect_optional_type(path, recommendation, "status", :binary)
     |> expect_optional_type(path, recommendation, "authority_context", :map)
-    |> validate_optional_authority_context(path, recommendation)
     |> expect_optional_type(path, recommendation, "authority_context_evaluation", :map)
     |> expect_optional_type(path, recommendation, "eligibility_status", :binary)
+    |> OrbitalDynamics.Schema.AuthorityContextContracts.validate_recommendation_boundary(
+      path,
+      recommendation
+    )
     |> expect_type(path, recommendation, "ranked_branch_ids", :list)
     |> expect_type(path, recommendation, "tradeoffs", :list)
     |> expect_type(path, recommendation, "requires_approval", :list)
@@ -219,15 +222,4 @@ defmodule OrbitalDynamics.Schema.StrategyRecommendationContracts do
     |> require_fields(path, risk, ["type", "severity", "reason"])
     |> scoped_downlink_context_validator.(path, risk)
   end
-
-  defp validate_optional_authority_context(issues, path, %{"authority_context" => context})
-       when is_map(context) do
-    OrbitalDynamics.Schema.AuthorityContextContracts.validate(
-      issues,
-      path <> ".authority_context",
-      context
-    )
-  end
-
-  defp validate_optional_authority_context(issues, _path, _recommendation), do: issues
 end

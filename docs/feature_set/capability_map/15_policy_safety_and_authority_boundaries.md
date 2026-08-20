@@ -42,17 +42,28 @@ Status: **implemented**.
   service. A changed source revision changes the authority-context identity and
   the identity of a V3 strategy produced from it.
 - `Policy.decide/6` adds an explicit authority-context mode while preserving the
-  existing `Policy.decide/5` path. In explicit mode, a missing, malformed,
-  not-yet-effective, or stale context produces a typed `non_eligible` /
-  `blocked_by_policy` evaluation with the reason and caller-supplied provenance
-  preserved; it never falls back to ambient configuration.
+  existing `Policy.decide/5` path only when both mode and context are absent.
+  Exact explicit mode validates the supplied context. A context without mode,
+  an unsupported mode, or a missing, malformed, not-yet-effective, or stale
+  explicit context produces typed fail-closed evidence with the reason and
+  caller-supplied input preserved; it never falls back to ambient configuration.
+- Authority evidence validity and substantive policy eligibility remain
+  independent. A valid authority context has an `eligible` evidence evaluation,
+  but cannot change an existing `blocked_by_policy` decision: the decision,
+  recommendation, review package, and import manifest remain `non_eligible`,
+  and the selected import row remains review-required.
+- Boundary validators recompute authority-context evaluations from canonical
+  typed caller evidence. They reject context/evaluation revision substitution
+  even when copied fields and enclosing strategy, review, and manifest identity
+  links are otherwise coherent. Rejected input maps retain structural evidence
+  for ambiguous atom/string keys and unsupported term types.
 - The bounded V3 representative path preserves valid context and every typed
   evaluation through `policy_decision.v1`, `strategy_recommendation.v1`,
   `campaign_strategy.v3`, its `operator_review_package.v1`, and the existing
   selected-strategy row and provenance in `cadence_import_manifest.v1`.
-- Authority evidence is optional outside explicit mode. With no mode, or with a
-  context but no explicit mode, legacy policy and campaign-strategy artifacts
-  retain their prior shape and behavior.
+- Authority evidence remains optional. Only callers supplying neither mode nor
+  context retain the prior policy and campaign-strategy artifact shape and
+  behavior.
 
 ### Approval requirements
 

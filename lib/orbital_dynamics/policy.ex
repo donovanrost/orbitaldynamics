@@ -1468,11 +1468,7 @@ defmodule OrbitalDynamics.Policy do
     result = decide(approval_requirements, risk_indicators, branch, candidate_plan, policy)
     opts = Map.new(opts)
 
-    apply_authority_context(
-      result,
-      authority_option(opts, :authority_context_mode),
-      authority_option(opts, :authority_context)
-    )
+    apply_authority_context(result, opts)
   end
 
   defp cadence_import_statuses do
@@ -1496,17 +1492,18 @@ defmodule OrbitalDynamics.Policy do
     )
   end
 
-  defp apply_authority_context(result, mode, context) do
-    case OrbitalDynamics.AuthorityContext.evaluate(mode, context) do
+  defp apply_authority_context(result, opts) do
+    case OrbitalDynamics.AuthorityContext.evaluate_options(opts) do
       :legacy ->
         result
 
       {:ok, authority_context, evaluation} ->
         {status, requirements, matches, decision} = result
+        eligibility_status = substantive_eligibility(status)
 
         {status, requirements, matches,
          decision
-         |> Map.put("eligibility_status", "eligible")
+         |> Map.put("eligibility_status", eligibility_status)
          |> Map.put("authority_context", authority_context)
          |> Map.put("authority_context_evaluation", evaluation)}
 
@@ -1521,12 +1518,8 @@ defmodule OrbitalDynamics.Policy do
     end
   end
 
-  defp authority_option(opts, key) do
-    case Map.fetch(opts, key) do
-      {:ok, value} -> value
-      :error -> Map.get(opts, Atom.to_string(key))
-    end
-  end
+  defp substantive_eligibility("blocked_by_policy"), do: "non_eligible"
+  defp substantive_eligibility(_classification), do: "eligible"
 
   defp maybe_put(map, _key, nil), do: map
   defp maybe_put(map, key, value), do: Map.put(map, key, value)

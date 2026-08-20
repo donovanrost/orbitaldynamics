@@ -127,14 +127,12 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyBranchEvaluation do
     approval_requirements = BranchApprovalRequirements.build(repair_result, candidate_plan)
 
     {approval_status, approval_requirements, approval_rule_matches, policy_decision} =
-      Policy.decide(
+      policy_decision(
         approval_requirements,
         risk_indicators,
         branch,
         candidate_plan,
-        StrategyPolicyNormalization.approval_to_map(request.approval_policy),
-        authority_context_mode: request.authority_context_mode,
-        authority_context: request.authority_context
+        request
       )
 
     score_terms =
@@ -174,6 +172,39 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyBranchEvaluation do
       tradeoffs: []
     }
   end
+
+  defp policy_decision(approval_requirements, risk_indicators, branch, candidate_plan, request) do
+    policy = StrategyPolicyNormalization.approval_to_map(request.approval_policy)
+
+    if request.authority_context_mode_supplied? or request.authority_context_supplied? do
+      opts =
+        []
+        |> maybe_put_authority_option(
+          :authority_context_mode,
+          request.authority_context_mode_supplied?,
+          request.authority_context_mode
+        )
+        |> maybe_put_authority_option(
+          :authority_context,
+          request.authority_context_supplied?,
+          request.authority_context
+        )
+
+      Policy.decide(
+        approval_requirements,
+        risk_indicators,
+        branch,
+        candidate_plan,
+        policy,
+        opts
+      )
+    else
+      Policy.decide(approval_requirements, risk_indicators, branch, candidate_plan, policy)
+    end
+  end
+
+  defp maybe_put_authority_option(opts, _key, false, _value), do: opts
+  defp maybe_put_authority_option(opts, key, true, value), do: Keyword.put(opts, key, value)
 
   defp warnings(repair_result, candidate_warnings, branch, resource_impacts) do
     (Map.get(repair_result, "warnings", []) ++

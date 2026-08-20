@@ -5,6 +5,7 @@ defmodule OrbitalDynamics.Schema.AuthorityContextContracts do
 
   @identity_pattern "^authority_context:[0-9a-f]{64}$"
   @propagation_fields ~w(eligibility_status authority_context authority_context_evaluation)
+  @evidence_propagation_fields ~w(authority_context authority_context_evaluation)
 
   def validate(issues, path, context) do
     case OrbitalDynamics.AuthorityContext.validate(context) do
@@ -25,16 +26,48 @@ defmodule OrbitalDynamics.Schema.AuthorityContextContracts do
   end
 
   def validate_optional(issues, path, artifact, field \\ "authority_context") do
-    case Map.get(artifact, field) do
-      nil ->
+    evaluation_field = "authority_context_evaluation"
+    context_present? = Map.has_key?(artifact, field)
+    evaluation_present? = Map.has_key?(artifact, evaluation_field)
+    context = Map.get(artifact, field)
+    evaluation = Map.get(artifact, evaluation_field)
+
+    cond do
+      not context_present? and not evaluation_present? ->
         issues
 
-      %{} = context ->
-        validate(issues, "#{path}.#{field}", context)
+      context_present? and not evaluation_present? ->
+        [
+          error(
+            "#{path}.#{evaluation_field}",
+            "is required whenever authority_context is present"
+          )
+          | validate_context_value(issues, "#{path}.#{field}", context)
+        ]
 
-      _context ->
-        [error("#{path}.#{field}", "must be an object") | issues]
+      true ->
+        validate_context_evaluation(issues, path, context, evaluation)
     end
+  end
+
+  def validate_policy_boundary(issues, path, artifact) do
+    issues
+    |> validate_optional(path, artifact)
+    |> validate_overall_eligibility(path, artifact, Map.get(artifact, "classification"))
+  end
+
+  def validate_recommendation_boundary(issues, path, artifact) do
+    issues
+    |> validate_optional(path, artifact)
+    |> validate_overall_eligibility(path, artifact, Map.get(artifact, "approval_status"))
+  end
+
+  def validate_campaign_boundary(issues, path, artifact) do
+    classification = get_in(artifact, ["recommendation", "approval_status"])
+
+    issues
+    |> validate_optional(path, artifact)
+    |> validate_overall_eligibility(path, artifact, classification)
   end
 
   def validate_strategy_propagation(issues, artifact) when is_map(artifact) do
@@ -44,12 +77,23 @@ defmodule OrbitalDynamics.Schema.AuthorityContextContracts do
           {"$.recommendation", Map.get(artifact, "recommendation")},
           {"$.operator_review_package", Map.get(artifact, "operator_review_package")},
           {"$.cadence_import_manifest", Map.get(artifact, "cadence_import_manifest")}
-        ] ++
-          branch_decision_targets(artifact) ++
-          review_targets(artifact) ++ manifest_targets(artifact)
+        ] ++ review_targets(artifact) ++ manifest_targets(artifact)
 
-      Enum.reduce(targets, issues, fn {target_path, target}, acc ->
-        validate_propagation_target(acc, artifact, target_path, target)
+      targets
+      |> Enum.reduce(issues, fn {target_path, target}, acc ->
+        validate_propagation_target(acc, artifact, target_path, target, @propagation_fields)
+      end)
+      |> then(fn acc ->
+        Enum.reduce(branch_decision_targets(artifact), acc, fn {target_path, target},
+                                                               nested_acc ->
+          validate_propagation_target(
+            nested_acc,
+            artifact,
+            target_path,
+            target,
+            @evidence_propagation_fields
+          )
+        end)
       end)
     else
       issues
@@ -88,7 +132,10 @@ defmodule OrbitalDynamics.Schema.AuthorityContextContracts do
         "provenance"
       ],
       "properties" => %{
-        "mode" => %{"const" => "explicit", "type" => "string"},
+        "mode" => %{
+          "type" => "string",
+          "enum" => ["explicit", "missing", "invalid"]
+        },
         "eligibility_status" => %{
           "type" => "string",
           "enum" => ["eligible", "non_eligible"]
@@ -101,6 +148,8 @@ defmodule OrbitalDynamics.Schema.AuthorityContextContracts do
           "type" => "string",
           "enum" => [
             "authority_context_valid",
+            "missing_authority_context_mode",
+            "invalid_authority_context_mode",
             "missing_authority_context",
             "malformed_authority_context",
             "authority_context_not_yet_effective",
@@ -115,14 +164,22 @@ defmodule OrbitalDynamics.Schema.AuthorityContextContracts do
         "provenance" => %{
           "type" => "object",
           "additionalProperties" => true,
-          "required" => ["input_source", "validation"],
+          "required" => [
+            "input_source",
+            "validation",
+            "authority_context_mode_supplied",
+            "authority_context_supplied"
+          ],
           "properties" => %{
             "input_source" => %{"const" => "caller_supplied", "type" => "string"},
             "validation" => %{
               "const" => "deterministic_no_wall_clock",
               "type" => "string"
             },
-            "provided_authority_context" => %{}
+            "authority_context_mode_supplied" => %{"type" => "boolean"},
+            "authority_context_supplied" => %{"type" => "boolean"},
+            "provided_authority_context_mode" => %{"type" => "object"},
+            "provided_authority_context" => %{"type" => "object"}
           }
         },
         "validation_errors" => %{"type" => "array", "items" => %{"type" => "object"}}
@@ -131,6 +188,69 @@ defmodule OrbitalDynamics.Schema.AuthorityContextContracts do
   end
 
   def property(field), do: json_schema() |> Map.fetch!("properties") |> Map.fetch!(field)
+
+  defp validate_context_evaluation(issues, path, context, evaluation) do
+    case OrbitalDynamics.AuthorityContext.validate_evaluation(context, evaluation) do
+      {:ok, _result} ->
+        issues
+
+      {:error, validation_errors} ->
+        Enum.reduce(validation_errors, issues, fn validation_error, acc ->
+          relative_path =
+            validation_error["path"]
+            |> to_string()
+            |> String.trim_leading("$")
+
+          [error(path <> relative_path, validation_error["reason"]) | acc]
+        end)
+    end
+  end
+
+  defp validate_context_value(issues, path, %{} = context), do: validate(issues, path, context)
+
+  defp validate_context_value(issues, path, _context),
+    do: [error(path, "must be an object") | issues]
+
+  defp validate_overall_eligibility(issues, path, artifact, classification) do
+    evaluation = Map.get(artifact, "authority_context_evaluation")
+    actual = Map.get(artifact, "eligibility_status")
+
+    cond do
+      not is_map(evaluation) ->
+        issues
+
+      evaluation["outcome"] == "blocked_by_policy" and actual != "non_eligible" ->
+        [
+          error(
+            path <> ".eligibility_status",
+            "must be non_eligible for failed authority evidence"
+          )
+          | issues
+        ]
+
+      classification == "blocked_by_policy" and actual != "non_eligible" ->
+        [
+          error(
+            path <> ".eligibility_status",
+            "must preserve substantive blocked_by_policy eligibility"
+          )
+          | issues
+        ]
+
+      classification in ["auto_approvable", "operator_review_required"] and
+        evaluation["outcome"] == "policy_evaluation_allowed" and actual != "eligible" ->
+        [
+          error(
+            path <> ".eligibility_status",
+            "must be eligible when policy and authority evidence are eligible"
+          )
+          | issues
+        ]
+
+      true ->
+        issues
+    end
+  end
 
   defp branch_decision_targets(%{"branches" => branches}) when is_list(branches) do
     branches
@@ -179,11 +299,12 @@ defmodule OrbitalDynamics.Schema.AuthorityContextContracts do
     end
   end
 
-  defp validate_propagation_target(issues, _source, _path, target) when not is_map(target),
-    do: issues
+  defp validate_propagation_target(issues, _source, _path, target, _fields)
+       when not is_map(target),
+       do: issues
 
-  defp validate_propagation_target(issues, source, path, target) do
-    Enum.reduce(@propagation_fields, issues, fn field, acc ->
+  defp validate_propagation_target(issues, source, path, target, fields) do
+    Enum.reduce(fields, issues, fn field, acc ->
       if Map.get(target, field) == Map.get(source, field) do
         acc
       else
