@@ -207,6 +207,7 @@ defmodule OrbitalDynamics.CadenceImport.Capability do
         supported_sources: ["campaign_strategy.v3", "cadence_import_manifest.v1"],
         result_type: "cadence_consumer_conformance.v1",
         idempotency: :deterministic_semantic_request_identity,
+        max_adapter_options: 2_048,
         outer_admission: OuterAdmission.limits(),
         known_limits: [
           :does_not_supply_a_cadence_consumer,

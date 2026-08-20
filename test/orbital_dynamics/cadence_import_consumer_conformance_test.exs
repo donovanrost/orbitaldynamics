@@ -105,6 +105,7 @@ defmodule OrbitalDynamics.CadenceImportConsumerConformanceTest do
              supported_sources: ["campaign_strategy.v3", "cadence_import_manifest.v1"],
              result_type: "cadence_consumer_conformance.v1",
              idempotency: :deterministic_semantic_request_identity,
+             max_adapter_options: 2_048,
              outer_admission: %{
                "max_external_size_bytes" => 67_108_864,
                "max_top_level_fields" => 64,
@@ -335,6 +336,50 @@ defmodule OrbitalDynamics.CadenceImportConsumerConformanceTest do
     assert {:error, ^size_error} = OuterAdmission.validate(over_limit)
   end
 
+  test "rejects structurally over-limit terms before outer-size admission" do
+    shared_payload = :binary.copy(<<0>>, 1_100_000)
+
+    oversized_top_level =
+      1..64
+      |> Map.new(fn index -> {"unknown_field_#{index}", shared_payload} end)
+      |> Map.put("schema_contract", "campaign_strategy.v3")
+
+    oversized_branches = %{
+      "schema_contract" => "campaign_strategy.v3",
+      "branches" => List.duplicate(%{"padding" => shared_payload}, 65)
+    }
+
+    max_external_size = OuterAdmission.limits()["max_external_size_bytes"]
+
+    assert map_size(oversized_top_level) == 65
+    assert :erlang.external_size(oversized_top_level) > max_external_size
+    assert :erlang.external_size(oversized_branches) > max_external_size
+
+    assert {:error,
+            %{
+              "type" => "cadence_consumer_conformance_error.v1",
+              "code" => "unsafe_outer_input",
+              "details" => %{
+                "actual_field_count" => 65,
+                "max_field_count" => 64,
+                "path" => "$"
+              }
+            }} = CadenceImport.dry_run(oversized_top_level, InMemoryFakeAdapter)
+
+    assert {:error,
+            %{
+              "type" => "cadence_consumer_conformance_error.v1",
+              "code" => "unsafe_outer_input",
+              "details" => %{
+                "actual_item_count_at_least" => 65,
+                "max_item_count" => 64,
+                "path" => "$.branches"
+              }
+            }} = CadenceImport.dry_run(oversized_branches, InMemoryFakeAdapter)
+
+    refute_receive {:cadence_consumer_dry_run, _request, _opts}
+  end
+
   test "contains malformed unsupported and malicious outer inputs as typed errors" do
     manifest = valid_manifest_with_authority()
 
@@ -365,8 +410,83 @@ defmodule OrbitalDynamics.CadenceImportConsumerConformanceTest do
                scenario: "right"
              )
 
+    assert {:error,
+            %{
+              "code" => "invalid_options",
+              "details" => %{"invalid_item_position" => 1}
+            }} = CadenceImport.dry_run(manifest, InMemoryFakeAdapter, [{"scenario", "nominal"}])
+
+    assert {:error,
+            %{
+              "code" => "invalid_options",
+              "details" => %{"validated_item_count" => 1}
+            }} =
+             CadenceImport.dry_run(
+               manifest,
+               InMemoryFakeAdapter,
+               [{:scenario, "nominal"} | :improper_tail]
+             )
+
     assert {:error, %{"code" => "invalid_adapter"}} =
              CadenceImport.dry_run(manifest, "Elixir.DynamicAdapter")
+
+    refute_receive {:cadence_consumer_dry_run, _request, _opts}
+  end
+
+  test "halts promptly on a duplicate near the head of a large proper option list" do
+    large_options =
+      [{:scenario, "first"} | List.duplicate({:scenario, "duplicate"}, 250_000)]
+
+    assert {:error,
+            %{
+              "type" => "cadence_consumer_conformance_error.v1",
+              "code" => "invalid_options",
+              "details" => %{
+                "duplicate_key" => "scenario",
+                "examined_item_count" => 2
+              }
+            }} =
+             CadenceImport.dry_run(
+               valid_manifest_with_authority(),
+               InMemoryFakeAdapter,
+               large_options
+             )
+
+    refute_receive {:cadence_consumer_dry_run, _request, _opts}
+  end
+
+  test "accepts exactly 2048 option entries and rejects item 2049" do
+    option_keys = existing_option_key_atoms()
+    assert length(option_keys) >= 2_049
+
+    at_limit =
+      option_keys
+      |> Enum.take(2_048)
+      |> Enum.with_index()
+      |> Enum.map(fn {key, index} -> {key, index} end)
+
+    assert {:ok, %{"status" => "conformant"}} =
+             CadenceImport.dry_run(valid_manifest_with_authority(), InMemoryFakeAdapter, at_limit)
+
+    assert_receive {:cadence_consumer_dry_run, _request, normalized_options}
+    assert map_size(normalized_options) == 2_048
+
+    over_limit = at_limit ++ [{Enum.at(option_keys, 2_048), 2_048}]
+
+    assert {:error,
+            %{
+              "type" => "cadence_consumer_conformance_error.v1",
+              "code" => "invalid_options",
+              "details" => %{
+                "actual_item_count_at_least" => 2_049,
+                "max_item_count" => 2_048
+              }
+            }} =
+             CadenceImport.dry_run(
+               valid_manifest_with_authority(),
+               InMemoryFakeAdapter,
+               over_limit
+             )
 
     refute_receive {:cadence_consumer_dry_run, _request, _opts}
   end
@@ -511,6 +631,24 @@ defmodule OrbitalDynamics.CadenceImportConsumerConformanceTest do
       end
 
     Map.put(base, "branches", branches)
+  end
+
+  defp existing_option_key_atoms do
+    # Module and export names are already-loaded atoms; this never synthesizes keys.
+    :code.all_loaded()
+    |> Enum.flat_map(fn {module, _path} ->
+      exported_names =
+        try do
+          module.module_info(:exports) |> Enum.map(&elem(&1, 0))
+        rescue
+          _exception -> []
+        end
+
+      [module | exported_names]
+    end)
+    |> Enum.uniq()
+    |> Enum.filter(&(Atom.to_string(&1) |> String.valid?()))
+    |> Enum.sort_by(&Atom.to_string/1)
   end
 
   defp read_json!(path) do

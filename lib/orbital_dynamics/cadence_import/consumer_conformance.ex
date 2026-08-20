@@ -16,6 +16,7 @@ defmodule OrbitalDynamics.CadenceImport.ConsumerConformance do
   @result_type "cadence_consumer_conformance.v1"
   @error_type "cadence_consumer_conformance_error.v1"
   @identity_algorithm "erlang_term_to_binary_deterministic_sha256.v1"
+  @max_adapter_options 2_048
   @authority_fields ~w(eligibility_status authority_context authority_context_evaluation)
   @acknowledgement_fields ~w(
     status
@@ -62,31 +63,54 @@ defmodule OrbitalDynamics.CadenceImport.ConsumerConformance do
     end
   end
 
-  defp normalize_options(opts) when is_list(opts) do
-    if Keyword.keyword?(opts) and unique_option_keys?(opts) do
-      opts
-      |> Map.new(fn {key, value} -> {Atom.to_string(key), value} end)
-      |> normalize_json(
+  defp normalize_options(opts) do
+    with {:ok, options} <- collect_options(opts, %{}, MapSet.new(), 0) do
+      normalize_json(
+        options,
         "Cadence consumer adapter options",
         "invalid_options",
         "adapter options must be bounded JSON-safe values"
       )
+    end
+  end
+
+  defp collect_options([], options, _seen, _count), do: {:ok, options}
+
+  defp collect_options([_entry | _tail], _options, _seen, @max_adapter_options) do
+    typed_error("invalid_options", "adapter options exceed their item limit", %{
+      "actual_item_count_at_least" => @max_adapter_options + 1,
+      "max_item_count" => @max_adapter_options
+    })
+  end
+
+  defp collect_options([{key, value} | tail], options, seen, count) when is_atom(key) do
+    item_count = count + 1
+
+    if MapSet.member?(seen, key) do
+      typed_error("invalid_options", "adapter options contain a duplicate key", %{
+        "duplicate_key" => Atom.to_string(key),
+        "examined_item_count" => item_count
+      })
     else
-      typed_error(
-        "invalid_options",
-        "adapter options must be a proper keyword list with unique keys",
-        %{}
+      collect_options(
+        tail,
+        Map.put(options, Atom.to_string(key), value),
+        MapSet.put(seen, key),
+        item_count
       )
     end
   end
 
-  defp normalize_options(_opts) do
-    typed_error("invalid_options", "adapter options must be a keyword list", %{})
+  defp collect_options([_entry | _tail], _options, _seen, count) do
+    typed_error("invalid_options", "adapter options must contain atom-key tuple entries", %{
+      "invalid_item_position" => count + 1
+    })
   end
 
-  defp unique_option_keys?(opts) do
-    keys = Keyword.keys(opts)
-    length(keys) == length(Enum.uniq(keys))
+  defp collect_options(_improper_tail, _options, _seen, count) do
+    typed_error("invalid_options", "adapter options must be a proper list", %{
+      "validated_item_count" => count
+    })
   end
 
   defp validate_input(%_module{} = _input) do

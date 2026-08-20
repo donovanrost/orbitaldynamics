@@ -59,7 +59,11 @@ Status: **implemented** (with a **partial** semantic-depth area, plus **near-ter
   map, and 16,384 total segment-validation work items. Known large V3
   collections are checked as bounded envelopes and per-entry segments;
   additive unknown fields retain the generic JSON-safety limits, including the
-  2,048-item collection limit.
+  2,048-item collection limit. Structural and segmented checks precede the
+  external-size calculation, while every admission check still precedes schema
+  inference and extraction. Adapter option lists are collected once with an
+  incremental duplicate/shape check and a fixed 2,048-entry cap before their
+  bounded string-key map is passed to JSON-safety validation.
 - Adapter callbacks execute synchronously in the caller process. This boundary
   contains returned errors, exceptions, throws, and exits, but deliberately
   provides no callback timeout or process isolation and therefore requires a

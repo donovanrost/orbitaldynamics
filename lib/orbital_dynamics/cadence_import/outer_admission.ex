@@ -10,10 +10,13 @@ defmodule OrbitalDynamics.CadenceImport.OuterAdmission do
   validated as ordinary values and retain the generic 2,048-item collection
   limit.
 
-  Work is finite: external term size, top-level fields, known collection
-  lengths, segment map sizes, and the total number of segments are all capped
-  before segment validation. List counting stops at the configured limit plus
-  one; this module does not introduce an unbounded recursive term walker.
+  Work is finite: top-level fields, known collection lengths, segment map
+  sizes, and the total number of segments are capped before segment validation,
+  and every segment uses the fixed JSON-safety budgets. List counting stops at
+  the configured limit plus one; this module does not introduce an unbounded
+  recursive term walker. Structural and segmented checks run before the fixed
+  external-size limit is calculated, so a structurally over-limit term is
+  rejected without an outer-size traversal.
   """
 
   alias OrbitalDynamics.Schema.JsonSafety
@@ -71,11 +74,11 @@ defmodule OrbitalDynamics.CadenceImport.OuterAdmission do
   end
 
   defp validate_input(%{} = input) do
-    with :ok <- validate_external_size(input),
-         :ok <- validate_map_shape(input, "$", @max_top_level_fields),
+    with :ok <- validate_map_shape(input, "$", @max_top_level_fields),
          {:ok, work_items} <- validation_work_items(input),
-         :ok <- validate_work_limit(work_items) do
-      validate_segments(input)
+         :ok <- validate_work_limit(work_items),
+         :ok <- validate_segments(input) do
+      validate_external_size(input)
     end
   end
 
