@@ -252,6 +252,11 @@ defmodule OrbitalDynamics.Schema.LinkCapacityReportContracts do
       "station_reservation_match_status_counts",
       :map
     )
+    |> expect_optional_non_negative_integer(path, report, "downlink_link_budget_count")
+    |> expect_optional_type(path, report, "downlink_link_budget_ids", :list)
+    |> validate_optional_stable_id_list(path, report, "downlink_link_budget_ids")
+    |> expect_optional_type(path, report, "downlink_link_budgets", :list)
+    |> validate_optional_link_budgets(path, report)
     |> expect_optional_type(path, report, "model_limits", :list)
     |> validate_string_list_items(path, report, "model_limits")
     |> validate_optional_exact_model_limits(
@@ -446,6 +451,9 @@ defmodule OrbitalDynamics.Schema.LinkCapacityReportContracts do
       row,
       "actual_data_rate_throughput_derivations"
     )
+    |> expect_optional_non_negative_integer(path, row, "downlink_link_budget_count")
+    |> expect_optional_type(path, row, "downlink_link_budget_ids", :list)
+    |> validate_optional_stable_id_list(path, row, "downlink_link_budget_ids")
     |> validate_row_counts(path, row)
   end
 
@@ -535,6 +543,13 @@ defmodule OrbitalDynamics.Schema.LinkCapacityReportContracts do
       "ambiguous_actual_completion_contact_ids",
       "must equal ambiguous_actual_completion_contact_ids count"
     )
+    |> expect_field_matches_list_count(
+      path,
+      row,
+      "downlink_link_budget_count",
+      "downlink_link_budget_ids",
+      "must equal downlink_link_budget_ids count"
+    )
   end
 
   defp validate_report_counts(issues, path, report) do
@@ -542,6 +557,9 @@ defmodule OrbitalDynamics.Schema.LinkCapacityReportContracts do
       report
       |> Map.get("rows", [])
       |> Enum.filter(&is_map/1)
+
+    budgets = list_value(report, "downlink_link_budgets")
+    budget_ids = budgets |> Enum.filter(&is_map/1) |> Enum.map(& &1["id"])
 
     issues
     |> expect_field_equals(
@@ -571,6 +589,20 @@ defmodule OrbitalDynamics.Schema.LinkCapacityReportContracts do
       "selected_estimated_throughput_mb",
       sum_row_numbers(rows, "selected_estimated_throughput_mb"),
       "must equal row-derived selected_estimated_throughput_mb"
+    )
+    |> expect_optional_field_equals(
+      path,
+      report,
+      "downlink_link_budget_count",
+      length(budgets),
+      "must equal downlink_link_budgets count"
+    )
+    |> expect_optional_field_equals(
+      path,
+      report,
+      "downlink_link_budget_ids",
+      budget_ids,
+      "must equal ordered downlink_link_budgets IDs"
     )
     |> expect_field_equals(
       path,
@@ -806,6 +838,31 @@ defmodule OrbitalDynamics.Schema.LinkCapacityReportContracts do
 
       _assumptions ->
         issues
+    end
+  end
+
+  defp validate_optional_link_budgets(issues, path, report) do
+    case Map.get(report, "downlink_link_budgets") do
+      budgets when is_list(budgets) ->
+        budgets
+        |> Enum.with_index()
+        |> Enum.reduce(issues, fn {budget, index}, acc ->
+          OrbitalDynamics.Schema.DownlinkLinkBudgetContracts.validate(
+            acc,
+            "#{path}.downlink_link_budgets[#{index}]",
+            budget
+          )
+        end)
+
+      _budgets ->
+        issues
+    end
+  end
+
+  defp list_value(map, field) do
+    case Map.get(map, field) do
+      values when is_list(values) -> values
+      _value -> []
     end
   end
 

@@ -1,19 +1,22 @@
 defmodule OrbitalDynamics.Communications.ContactAllocation.ThroughputEvidence do
   @moduledoc false
 
+  alias OrbitalDynamics.Communications.DownlinkLinkBudget
+
   def actual_throughput(contact) do
     explicit_actual_throughput(contact) || actual_data_rate_derived_throughput_mb(contact)
   end
 
   def estimated_throughput(contact) do
-    first_number([
-      contact["estimated_throughput_mb"],
-      contact["estimated_downlink_mb"],
-      contact["planned_throughput_mb"],
-      get_in(contact, ["throughput_model", "estimated_throughput_mb"]),
-      get_in(contact, ["throughput_model", "estimated_downlink_mb"]),
-      get_in(contact, ["throughput_model", "planned_throughput_mb"])
-    ])
+    DownlinkLinkBudget.supported_volume_mb(contact) ||
+      first_number([
+        contact["estimated_throughput_mb"],
+        contact["estimated_downlink_mb"],
+        contact["planned_throughput_mb"],
+        get_in(contact, ["throughput_model", "estimated_throughput_mb"]),
+        get_in(contact, ["throughput_model", "estimated_downlink_mb"]),
+        get_in(contact, ["throughput_model", "planned_throughput_mb"])
+      ])
   end
 
   def actual_data_rate_derivation(contact) do
@@ -62,11 +65,12 @@ defmodule OrbitalDynamics.Communications.ContactAllocation.ThroughputEvidence do
           get_in(contact, ["activity_context", "required_downlink_mb"])
         ]),
       "candidate_downlink_mb" =>
-        first_number([
-          contact["candidate_downlink_mb"],
-          get_in(contact, ["throughput_model", "candidate_downlink_mb"]),
-          get_in(contact, ["activity_context", "candidate_downlink_mb"])
-        ]),
+        DownlinkLinkBudget.supported_volume_mb(contact) ||
+          first_number([
+            contact["candidate_downlink_mb"],
+            get_in(contact, ["throughput_model", "candidate_downlink_mb"]),
+            get_in(contact, ["activity_context", "candidate_downlink_mb"])
+          ]),
       "downlink_completion_ratio" =>
         first_number([
           contact["downlink_completion_ratio"],

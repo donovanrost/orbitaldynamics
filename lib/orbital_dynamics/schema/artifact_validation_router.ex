@@ -61,6 +61,10 @@ defmodule OrbitalDynamics.Schema.ArtifactValidationRouter do
     OrbitalDynamics.Schema.CandidateDiffContracts.validate_optional_report([], "$", artifact)
   end
 
+  def validate("downlink_link_budget.v1", _contract, artifact) do
+    OrbitalDynamics.Schema.DownlinkLinkBudgetContracts.validate([], "$", artifact)
+  end
+
   def validate("link_capacity_report.v1", _contract, artifact) do
     LinkCapacityValidation.validate_report([], "$", artifact)
   end

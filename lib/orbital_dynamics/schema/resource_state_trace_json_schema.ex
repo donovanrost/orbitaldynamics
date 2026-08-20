@@ -101,7 +101,9 @@ defmodule OrbitalDynamics.Schema.ResourceStateTraceJsonSchema do
         "limit_evidence" => limit_evidence_schema(),
         "violation_types" => string_enum_array(ResourceStateTrace.violation_types()),
         "assumptions" => open_object(),
-        "provenance" => open_object()
+        "provenance" => open_object(),
+        "downlink_link_budget" =>
+          OrbitalDynamics.Schema.DownlinkLinkBudgetJsonSchema.artifact_schema(opts)
       }
     }
   end
@@ -210,7 +212,14 @@ defmodule OrbitalDynamics.Schema.ResourceStateTraceJsonSchema do
         "battery_depletion_wh" => non_negative_number(),
         "battery_overflow_wh" => non_negative_number(),
         "recorder_depletion_mb" => non_negative_number(),
-        "recorder_overflow_mb" => non_negative_number()
+        "recorder_overflow_mb" => non_negative_number(),
+        "downlink_link_budget_id" => %{"type" => "string"},
+        "requested_data_removed_mb" => non_negative_number(),
+        "status_eligible_data_removed_mb" => non_negative_number(),
+        "link_budget_supported_volume_mb" => non_negative_number(),
+        "link_budget_applied_data_removed_mb" => non_negative_number(),
+        "link_budget_limited_data_removed_mb" => non_negative_number(),
+        "unused_link_budget_volume_mb" => non_negative_number()
       }
     }
   end

@@ -20,7 +20,8 @@ defmodule OrbitalDynamics.Schema.LinkCapacityReportJsonSchema do
     "ambiguous_actual_completion_contact_count",
     "invalid_contact_input_count",
     "invalid_selected_contact_input_count",
-    "invalid_policy_required_downlink_station_count"
+    "invalid_policy_required_downlink_station_count",
+    "downlink_link_budget_count"
   ]
 
   @stable_id_array_fields [
@@ -36,7 +37,8 @@ defmodule OrbitalDynamics.Schema.LinkCapacityReportJsonSchema do
     "ambiguous_actual_completion_contact_ids",
     "invalid_contact_input_ids",
     "invalid_selected_contact_input_ids",
-    "station_reservation_ids"
+    "station_reservation_ids",
+    "downlink_link_budget_ids"
   ]
 
   @string_array_fields [
@@ -69,7 +71,8 @@ defmodule OrbitalDynamics.Schema.LinkCapacityReportJsonSchema do
              "assumptions",
              "actual_downlink_completion_ratio",
              "selected_capacity_utilization_fraction",
-             "actual_data_rate_throughput_derivations"
+             "actual_data_rate_throughput_derivations",
+             "downlink_link_budgets"
            ],
       do: true
 
@@ -92,6 +95,8 @@ defmodule OrbitalDynamics.Schema.LinkCapacityReportJsonSchema do
   def property_opts("assumptions", deps) do
     [assumptions_schema: fetch_dep!(deps, :assumptions_schema)]
   end
+
+  def property_opts("downlink_link_budgets", _deps), do: []
 
   def property_opts(field, deps) when field in @stable_id_array_fields do
     [stable_id_array_schema: fetch_dep!(deps, :stable_id_array_schema)]
@@ -228,7 +233,9 @@ defmodule OrbitalDynamics.Schema.LinkCapacityReportJsonSchema do
         "actual_downlink_completion_ratio" => property("actual_downlink_completion_ratio", []),
         "actual_data_rate_throughput_derivations" =>
           Keyword.fetch!(opts, :actual_data_rate_throughput_derivations_schema),
-        "policy_decision" => Keyword.fetch!(opts, :policy_decision_schema)
+        "policy_decision" => Keyword.fetch!(opts, :policy_decision_schema),
+        "downlink_link_budget_count" => integer_schema(),
+        "downlink_link_budget_ids" => stable_id_array_schema
       }
     }
   end
@@ -299,6 +306,13 @@ defmodule OrbitalDynamics.Schema.LinkCapacityReportJsonSchema do
 
   def property("actual_data_rate_throughput_derivations", opts) do
     Keyword.fetch!(opts, :actual_data_rate_throughput_derivations_schema)
+  end
+
+  def property("downlink_link_budgets", opts) do
+    %{
+      "type" => "array",
+      "items" => OrbitalDynamics.Schema.DownlinkLinkBudgetJsonSchema.artifact_schema(opts)
+    }
   end
 
   def assumptions_from_deps(deps, required_properties) do

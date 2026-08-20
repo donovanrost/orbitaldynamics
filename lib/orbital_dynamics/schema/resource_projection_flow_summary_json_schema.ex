@@ -169,6 +169,10 @@ defmodule OrbitalDynamics.Schema.ResourceProjectionFlowSummaryJsonSchema do
         "source_window_id" => %{"type" => "string", "pattern" => stable_id_pattern},
         "source_window_type" => %{"type" => "string"},
         "source_window" => Keyword.fetch!(opts, :source_window_schema),
+        "downlink_link_budget" =>
+          OrbitalDynamics.Schema.DownlinkLinkBudgetJsonSchema.artifact_schema(
+            stable_id_pattern: stable_id_pattern
+          ),
         "capacity_fraction" => %{"type" => "number", "minimum" => 0.0, "maximum" => 1.0},
         "planned_data_volume_mb" => %{"type" => "number", "minimum" => 0.0},
         "actual_data_volume_mb" => %{"type" => "number", "minimum" => 0.0},

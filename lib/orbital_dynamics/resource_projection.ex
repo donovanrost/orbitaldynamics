@@ -143,6 +143,7 @@ defmodule OrbitalDynamics.ResourceProjection do
   alias OrbitalDynamics.ResourceProjection.PressureClassification
   alias OrbitalDynamics.ResourceProjection.ResourceSummaryInput
   alias OrbitalDynamics.ResourceProjection.StationCapacityEvidence
+  alias OrbitalDynamics.Communications.DownlinkLinkBudget
 
   @doc """
   Declares the resource projection model and known limits.
@@ -321,6 +322,11 @@ defmodule OrbitalDynamics.ResourceProjection do
   def report(_activities, [], _opts), do: nil
 
   def report(activities, summaries, opts) when is_list(activities) and is_list(summaries) do
+    Enum.each(activities, fn
+      activity when is_map(activity) -> DownlinkLinkBudget.evidence_for_contact(activity)
+      _activity -> nil
+    end)
+
     {invalid_activities, activities} =
       activities
       |> Enum.with_index(1)
@@ -1157,12 +1163,18 @@ defmodule OrbitalDynamics.ResourceProjection do
   end
 
   defp resource_projection_downlink_mb(activity) do
-    first_number([
-      Map.get(activity, "capacity_adjusted_throughput_mb"),
-      get_in(activity, ["throughput_model", "capacity_adjusted_throughput_mb"])
-    ]) ||
-      estimated_downlink_throughput_mb(activity) *
-        StationCapacityEvidence.capacity_fraction(activity)
+    case DownlinkLinkBudget.supported_volume_mb(activity) do
+      supported_volume_mb when is_number(supported_volume_mb) ->
+        supported_volume_mb * StationCapacityEvidence.capacity_fraction(activity)
+
+      _value ->
+        first_number([
+          Map.get(activity, "capacity_adjusted_throughput_mb"),
+          get_in(activity, ["throughput_model", "capacity_adjusted_throughput_mb"])
+        ]) ||
+          estimated_downlink_throughput_mb(activity) *
+            StationCapacityEvidence.capacity_fraction(activity)
+    end
   end
 
   defp activity_resource_flow(
@@ -1248,6 +1260,7 @@ defmodule OrbitalDynamics.ResourceProjection do
               "source_window_id" => stable_id_or_nil(activity["source_window_id"]),
               "source_window_type" => activity["source_window_type"],
               "source_window" => activity["source_window"],
+              "downlink_link_budget" => DownlinkLinkBudget.evidence_for_contact(activity),
               "ground_station_id" => stable_id_or_nil(activity["ground_station_id"]),
               "target_id" => stable_id_or_nil(activity["target_id"]),
               "direction" => activity["direction"],

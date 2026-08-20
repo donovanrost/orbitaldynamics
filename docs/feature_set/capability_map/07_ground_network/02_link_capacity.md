@@ -49,6 +49,57 @@ declare a station capacity.
 The report supports provider-shaped nested throughput-model estimates and
 duration-times-data-rate estimates when explicit throughput MB is absent.
 
+### Opt-in bounded downlink budget
+
+`OrbitalDynamics.downlink_link_budget/2` and
+`LinkCapacity.downlink_link_budget/2` build a deterministic
+`downlink_link_budget.v1` artifact for one one-way
+`fixed_single_carrier` downlink mode. This is additive: contacts without a
+`downlink_link_budget` field continue through the existing fixed-rate lookup
+order and produce no new report fields.
+
+The budget requires and preserves:
+
+- Exact contact, spacecraft, ground-station, source access-window ID/revision,
+  interval, direction, and mode binding. The contact interval must be contained
+  by the supplied access window, and the single geometry sample must fall inside
+  the contact.
+- Supplied slant range in `km`, elevation in `deg`, and sample time in `s`.
+- Source-bound, revisioned spacecraft and ground terminal IDs with exact owner,
+  downlink mode, and carrier-frequency agreement, transmit power/gain, receive
+  gain, and system noise temperature.
+- Carrier frequency, occupied bandwidth, explicit aggregate loss, coding
+  efficiency, modulation efficiency, minimum elevation, required `Eb/N0`, and
+  required margin with explicit units.
+- Caller source/revision, access-window source/revision, constants, equations,
+  assumptions, deterministic content ID, and exact model limits.
+
+Free-space path loss plus the supplied aggregate loss produces received power.
+The declared receiver noise temperature produces `C/N0`; the fixed waveform
+rate produces `Eb/N0` and the pass/fail margin. The mode is supported only when
+both minimum elevation and required RF margin pass. A failed mode yields zero
+supported rate and volume; the implementation does not lower the rate, change
+coding/modulation, or select another mode.
+
+When valid evidence is attached to a contact, its supported volume takes
+precedence over explicit/fixed-rate estimates in `link_capacity_report.v1` and
+the allocation downlink-completion candidate volume. Reports preserve the
+complete budget artifacts in deterministic contact/ID order. Stale, mismatched,
+tampered, malformed-unit, nonfinite, negative, unsupported direction/mode, or
+terminal-frequency-mismatched evidence is rejected rather than falling back to
+a fixed-rate estimate.
+
+Resource projection applies any declared station-capacity fraction after the
+budget bound. `resource_state_trace.v1` retains a downlink activity's declared
+`data_removed_mb`, but its applied recorder removal is capped at the budget's
+supported volume with the budget ID, requested/applied/limited volume, and
+unused volume kept in transition limit evidence.
+
+This bounded model uses supplied point geometry and explicit losses only. It
+does not integrate atmosphere, rain, polarization, antenna patterns, adaptive
+coding/modulation, provider reservation/network truth, hidden calibration, or
+schedule mutation.
+
 Direct station-calendar outage evidence on contact rows is canonicalized into
 zero station-capacity throughput, with provider identity and policy context
 preserved.

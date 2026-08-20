@@ -161,6 +161,12 @@ defmodule OrbitalDynamics.Schema.JsonSchemaPropertyRouter do
     )
   end
 
+  def property(field, "downlink_link_budget.v1", _contract, context) do
+    OrbitalDynamics.Schema.DownlinkLinkBudgetJsonSchema.property(field,
+      stable_id_pattern: context_value(context, :stable_id_pattern)
+    )
+  end
+
   def property(field, "contact_intent.v1" = contract_name, contract, context) do
     ContactPlanningPropertyRouter.property(field, contract_name, contract, context)
   end

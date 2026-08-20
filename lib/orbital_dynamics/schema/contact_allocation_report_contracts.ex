@@ -378,6 +378,7 @@ defmodule OrbitalDynamics.Schema.ContactAllocationReportContracts do
     |> expect_optional_probability(path, row, "completed_fraction")
     |> expect_optional_non_negative_number(path, row, "required_downlink_mb")
     |> expect_optional_non_negative_number(path, row, "candidate_downlink_mb")
+    |> validate_optional_link_budget(path, row)
     |> expect_optional_probability(path, row, "downlink_completion_ratio")
     |> expect_optional_non_negative_number(path, row, "selected_downlink_shortfall_mb")
     |> expect_optional_type(path, row, "downlink_requirement_status", :binary)
@@ -1625,6 +1626,20 @@ defmodule OrbitalDynamics.Schema.ContactAllocationReportContracts do
         path,
         row
       ])
+
+  defp validate_optional_link_budget(issues, path, row) do
+    case Map.get(row, "downlink_link_budget") do
+      nil ->
+        issues
+
+      budget ->
+        OrbitalDynamics.Schema.DownlinkLinkBudgetContracts.validate(
+          issues,
+          path <> ".downlink_link_budget",
+          budget
+        )
+    end
+  end
 
   defp validate_contact_allocation_capacity_pack_group(callbacks, issues, path, group),
     do:

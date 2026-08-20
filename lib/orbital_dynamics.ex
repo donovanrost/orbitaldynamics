@@ -29,6 +29,7 @@ defmodule OrbitalDynamics do
   alias OrbitalDynamics.Communications.ContactContention
   alias OrbitalDynamics.Communications.ContactFilter
   alias OrbitalDynamics.Communications.ContactIntent
+  alias OrbitalDynamics.Communications.DownlinkLinkBudget
   alias OrbitalDynamics.Communications.LinkCapacity
   alias OrbitalDynamics.Communications.StationCalendar
   alias OrbitalDynamics.Constraints.{ArtifactMetric, CampaignLocal}
@@ -175,6 +176,7 @@ defmodule OrbitalDynamics do
         station_calendar: StationCalendar.capabilities(),
         contact_contention: ContactContention.capabilities(),
         contact_allocation: ContactAllocation.capabilities(),
+        downlink_link_budget: DownlinkLinkBudget.capabilities(),
         link_capacity: LinkCapacity.capabilities(),
         contact_filter: ContactFilter.capabilities(),
         resource_summary: ResourceSummary.capabilities(),
@@ -2024,6 +2026,13 @@ defmodule OrbitalDynamics do
 
   def contact_allocation_provider_reservation_request_summary(contacts, ground_network, opts) do
     ContactAllocation.provider_reservation_request_summary(contacts, ground_network, opts)
+  end
+
+  @doc """
+  Builds deterministic schema-backed evidence for one fixed one-way downlink mode.
+  """
+  def downlink_link_budget(contact, params) do
+    DownlinkLinkBudget.build(contact, params)
   end
 
   @doc """

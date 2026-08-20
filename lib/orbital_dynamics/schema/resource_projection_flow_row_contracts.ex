@@ -3,6 +3,7 @@ defmodule OrbitalDynamics.Schema.ResourceProjectionFlowRowContracts do
 
   import OrbitalDynamics.Schema.PrimitiveValidation,
     only: [
+      error: 2,
       expect_optional_non_negative_number: 4,
       expect_optional_number: 4,
       expect_optional_one_of: 5,
@@ -92,6 +93,7 @@ defmodule OrbitalDynamics.Schema.ResourceProjectionFlowRowContracts do
     |> validate_probabilities(path, row)
     |> validate_non_negative_numbers(path, row)
     |> validate_numbers(path, row)
+    |> validate_optional_link_budget(path, row)
     |> expect_optional_one_of(path, row, "latency_basis", ["planned", "actual"])
     |> expect_optional_one_of(path, row, "latency_status", ["within_limit", "late"])
     |> expect_optional_one_of(
@@ -127,6 +129,23 @@ defmodule OrbitalDynamics.Schema.ResourceProjectionFlowRowContracts do
     Enum.reduce(@number_fields, issues, fn field, acc ->
       expect_optional_number(acc, path, row, field)
     end)
+  end
+
+  defp validate_optional_link_budget(issues, path, row) do
+    case Map.get(row, "downlink_link_budget") do
+      nil ->
+        issues
+
+      %{} = budget ->
+        OrbitalDynamics.Schema.DownlinkLinkBudgetContracts.validate(
+          issues,
+          path <> ".downlink_link_budget",
+          budget
+        )
+
+      _budget ->
+        [error(path <> ".downlink_link_budget", "must be an object") | issues]
+    end
   end
 
   defp resource_effect_statuses do

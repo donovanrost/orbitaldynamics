@@ -9,6 +9,8 @@ defmodule OrbitalDynamics.Communications.ContactAllocation.AllocationRow do
     ThroughputEvidence
   }
 
+  alias OrbitalDynamics.Communications.DownlinkLinkBudget
+
   def build(contact, deferred_by_contact_id, selected_by_contact_id, config) do
     contact_id = ContactIdentity.contact_id(contact)
 
@@ -99,6 +101,7 @@ defmodule OrbitalDynamics.Communications.ContactAllocation.AllocationRow do
       "source_window_id" => ContactIdentity.stable_id_or_nil(contact["source_window_id"]),
       "source_window_type" => contact["source_window_type"],
       "source_window" => contact["source_window"],
+      "downlink_link_budget" => DownlinkLinkBudget.evidence_for_contact(contact),
       "actual_throughput_mb" => ThroughputEvidence.actual_throughput(contact),
       "actual_data_rate_throughput_derivation" =>
         ThroughputEvidence.actual_data_rate_derivation(contact),

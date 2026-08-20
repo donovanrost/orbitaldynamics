@@ -203,6 +203,7 @@ defmodule OrbitalDynamics.Schema.ResourceStateTraceContracts do
     |> validate_string_list_items(path, row, "violation_types")
     |> expect_type(path, row, "assumptions", :map)
     |> expect_type(path, row, "provenance", :map)
+    |> validate_optional_link_budget(path, row)
     |> validate_row_semantics(path, row)
   end
 
@@ -408,6 +409,39 @@ defmodule OrbitalDynamics.Schema.ResourceStateTraceContracts do
   defp validate_applied_effects(
          issues,
          path,
+         %{"effect_status" => "applied", "downlink_link_budget" => budget},
+         declared,
+         applied
+       ) do
+    supported_volume_mb = get_in(budget, ["derived", "supported_volume_mb"])
+
+    if is_number(supported_volume_mb) and is_number(declared["data_removed_mb"]) and
+         is_number(declared["data_stored_mb"]) do
+      expected_applied =
+        declared
+        |> Map.put("data_removed_mb", min(declared["data_removed_mb"], supported_volume_mb))
+        |> then(fn effects ->
+          Map.put(
+            effects,
+            "recorder_delta_mb",
+            effects["data_stored_mb"] - effects["data_removed_mb"]
+          )
+        end)
+
+      expect_semantic(
+        issues,
+        path <> ".applied_effects.data_removed_mb",
+        applied == expected_applied,
+        "must not remove more recorder data than the attached link-budget volume"
+      )
+    else
+      issues
+    end
+  end
+
+  defp validate_applied_effects(
+         issues,
+         path,
          %{"effect_status" => "applied"},
          declared,
          applied
@@ -421,6 +455,23 @@ defmodule OrbitalDynamics.Schema.ResourceStateTraceContracts do
   end
 
   defp validate_applied_effects(issues, _path, _row, _declared, _applied), do: issues
+
+  defp validate_optional_link_budget(issues, path, row) do
+    case Map.get(row, "downlink_link_budget") do
+      nil ->
+        issues
+
+      %{} = budget ->
+        OrbitalDynamics.Schema.DownlinkLinkBudgetContracts.validate(
+          issues,
+          path <> ".downlink_link_budget",
+          budget
+        )
+
+      _budget ->
+        [error(path <> ".downlink_link_budget", "must be an object") | issues]
+    end
+  end
 
   defp validate_transition_math(issues, path, row) do
     before = Map.get(row, "state_before", %{})
