@@ -58,7 +58,9 @@ defmodule OrbitalDynamics.CadenceImport do
 
   The input may be a complete `campaign_strategy.v3` artifact with an embedded
   Cadence import manifest or the bound `cadence_import_manifest.v1` itself.
-  Adapter options are normalized to a bounded string-key map before delegation.
+  A fixed whole-input admission pass runs before schema inference, manifest
+  extraction, or delegation. Adapter options are normalized to a bounded
+  string-key map before delegation.
 
   Returns a typed, deterministic conformance map or a typed error tuple. Adapter
   errors, exceptions, throws, exits, and malformed returns are contained and do

@@ -4,6 +4,7 @@ defmodule OrbitalDynamics.CadenceImportConsumerConformanceTest do
   alias OrbitalDynamics.AuthorityContext
   alias OrbitalDynamics.CadenceImport
   alias OrbitalDynamics.CadenceImport.Adapter
+  alias OrbitalDynamics.CadenceImport.OuterAdmission
   alias OrbitalDynamics.Schema
 
   defmodule InMemoryFakeAdapter do
@@ -103,7 +104,17 @@ defmodule OrbitalDynamics.CadenceImportConsumerConformanceTest do
              writes: false,
              supported_sources: ["campaign_strategy.v3", "cadence_import_manifest.v1"],
              result_type: "cadence_consumer_conformance.v1",
-             idempotency: :deterministic_semantic_request_identity
+             idempotency: :deterministic_semantic_request_identity,
+             outer_admission: %{
+               "max_external_size_bytes" => 67_108_864,
+               "max_top_level_fields" => 64,
+               "max_campaign_branches" => 64,
+               "max_manifest_rows" => 4_096,
+               "max_operator_review_rows" => 4_096,
+               "max_score_term_rows" => 4_096,
+               "max_segment_map_fields" => 2_048,
+               "max_validation_work_items" => 16_384
+             }
            } = CadenceImport.capabilities().consumer_conformance
   end
 
@@ -222,6 +233,108 @@ defmodule OrbitalDynamics.CadenceImportConsumerConformanceTest do
     refute_receive {:cadence_consumer_dry_run, _request, _opts}
   end
 
+  test "rejects every reproduced unsafe additive V3 field before delegation" do
+    strategy = read_json!("study_results/leo_constellation_campaign_strategy_v3.json")
+
+    unsafe_values = [
+      self(),
+      fn -> :not_json end,
+      make_ref(),
+      <<1::1>>,
+      <<255>>,
+      [1 | :improper_tail],
+      List.duplicate(0, 2_049)
+    ]
+
+    for unsafe <- unsafe_values do
+      assert {:error,
+              %{
+                "type" => "cadence_consumer_conformance_error.v1",
+                "code" => "unsafe_outer_input"
+              }} =
+               strategy
+               |> Map.put("unknown_outer_addition", unsafe)
+               |> CadenceImport.dry_run(InMemoryFakeAdapter)
+    end
+
+    refute_receive {:cadence_consumer_dry_run, _request, _opts}
+  end
+
+  test "admits the generic collection limit and rejects one item over before delegation" do
+    strategy = read_json!("study_results/leo_constellation_campaign_strategy_v3.json")
+
+    at_limit = Map.put(strategy, "unknown_outer_addition", List.duplicate(0, 2_048))
+
+    assert {:ok, %{"status" => "conformant"}} =
+             CadenceImport.dry_run(at_limit, InMemoryFakeAdapter)
+
+    assert_receive {:cadence_consumer_dry_run,
+                    %{"manifest" => %{"schema_contract" => "cadence_import_manifest.v1"}}, %{}}
+
+    over_limit = Map.put(strategy, "unknown_outer_addition", List.duplicate(0, 2_049))
+
+    assert {:error, over_error} = CadenceImport.dry_run(over_limit, InMemoryFakeAdapter)
+    assert over_error["code"] == "unsafe_outer_input"
+    assert over_error == elem(CadenceImport.dry_run(over_limit, InMemoryFakeAdapter), 1)
+
+    refute_receive {:cadence_consumer_dry_run, _request, _opts}
+  end
+
+  test "enforces deterministic top-level row and total-work admission boundaries" do
+    limits = OuterAdmission.limits()
+
+    at_top_level_limit =
+      Map.new(1..limits["max_top_level_fields"], fn index ->
+        {"field_#{index}", :null}
+      end)
+
+    assert :ok = OuterAdmission.validate(at_top_level_limit)
+
+    over_top_level_limit = Map.put(at_top_level_limit, "field_over_limit", :null)
+    assert {:error, top_error} = OuterAdmission.validate(over_top_level_limit)
+    assert top_error["details"]["max_field_count"] == limits["max_top_level_fields"]
+    assert {:error, ^top_error} = OuterAdmission.validate(over_top_level_limit)
+
+    at_row_limit = %{
+      "schema_contract" => "cadence_import_manifest.v1",
+      "rows" => List.duplicate(%{}, limits["max_manifest_rows"])
+    }
+
+    assert :ok = OuterAdmission.validate(at_row_limit)
+
+    over_row_limit =
+      Map.put(at_row_limit, "rows", List.duplicate(%{}, limits["max_manifest_rows"] + 1))
+
+    assert {:error, row_error} = OuterAdmission.validate(over_row_limit)
+    assert row_error["details"]["max_item_count"] == limits["max_manifest_rows"]
+    assert {:error, ^row_error} = OuterAdmission.validate(over_row_limit)
+
+    at_work_limit = validation_work_boundary_input(59)
+    assert :ok = OuterAdmission.validate(at_work_limit)
+
+    over_work_limit = validation_work_boundary_input(60)
+    assert {:error, work_error} = OuterAdmission.validate(over_work_limit)
+    assert work_error["details"]["actual_validation_work_items"] == 16_385
+    assert work_error["details"]["max_validation_work_items"] == 16_384
+    assert {:error, ^work_error} = OuterAdmission.validate(over_work_limit)
+  end
+
+  test "enforces the fixed external-size boundary exactly" do
+    max_external_size = OuterAdmission.limits()["max_external_size_bytes"]
+    at_limit = external_size_boundary_input(max_external_size)
+
+    assert :erlang.external_size(at_limit) == max_external_size
+    assert :ok = OuterAdmission.validate(at_limit)
+
+    over_limit = update_in(at_limit, ["branches", Access.at(0), "padding"], &(&1 <> <<0>>))
+
+    assert :erlang.external_size(over_limit) == max_external_size + 1
+    assert {:error, size_error} = OuterAdmission.validate(over_limit)
+    assert size_error["details"]["actual_external_size_bytes"] == max_external_size + 1
+    assert size_error["details"]["max_external_size_bytes"] == max_external_size
+    assert {:error, ^size_error} = OuterAdmission.validate(over_limit)
+  end
+
   test "contains malformed unsupported and malicious outer inputs as typed errors" do
     manifest = valid_manifest_with_authority()
 
@@ -240,7 +353,7 @@ defmodule OrbitalDynamics.CadenceImportConsumerConformanceTest do
 
     unsafe = Map.put(manifest, "ambient_process", self())
 
-    assert {:error, %{"code" => "unsafe_manifest"}} =
+    assert {:error, %{"code" => "unsafe_outer_input"}} =
              CadenceImport.dry_run(unsafe, InMemoryFakeAdapter)
 
     assert {:error, %{"code" => "invalid_options"}} =
@@ -363,6 +476,41 @@ defmodule OrbitalDynamics.CadenceImportConsumerConformanceTest do
              Schema.validate_artifact(manifest)
 
     manifest
+  end
+
+  defp validation_work_boundary_input(manifest_row_count) do
+    repair_result =
+      Map.new(1..253, fn index ->
+        {"field_#{index}", :null}
+      end)
+
+    %{
+      "schema_contract" => "campaign_strategy.v3",
+      "branches" => List.duplicate(%{"repair_result" => repair_result}, 64),
+      "cadence_import_manifest" => %{"rows" => List.duplicate(%{}, manifest_row_count)},
+      "padding" => :null
+    }
+  end
+
+  defp external_size_boundary_input(max_external_size) do
+    branch_count = 16
+
+    base = %{
+      "schema_contract" => "campaign_strategy.v3",
+      "branches" => List.duplicate(%{"padding" => <<>>}, branch_count)
+    }
+
+    payload_bytes = max_external_size - :erlang.external_size(base)
+    bytes_per_branch = div(payload_bytes, branch_count)
+    extra_bytes = rem(payload_bytes, branch_count)
+
+    branches =
+      for index <- 0..(branch_count - 1) do
+        byte_count = bytes_per_branch + if(index < extra_bytes, do: 1, else: 0)
+        %{"padding" => :binary.copy(<<0>>, byte_count)}
+      end
+
+    Map.put(base, "branches", branches)
   end
 
   defp read_json!(path) do

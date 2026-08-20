@@ -15,7 +15,9 @@ defmodule OrbitalDynamics.CadenceImport.Adapter do
   map. It must return an acknowledgement that copies the request's source
   identity, immutable authority evidence, manifest digest, and idempotency
   identity. There is deliberately no create, update, write, or mutation
-  callback.
+  callback. The callback runs synchronously in the caller process; this
+  conformance boundary does not provide adapter timeout or process isolation,
+  so callers must supply a trusted adapter implementation.
   """
 
   @type request :: %{required(String.t()) => term()}

@@ -52,7 +52,18 @@ Status: **implemented** (with a **partial** semantic-depth area, plus **near-ter
   capabilities, adapter errors, exceptions, exits/throws, and invalid adapter
   returns are contained as typed errors. Adapter controls and acknowledgements
   plus each delegated manifest row pass the existing bounded JSON-safety
-  checks.
+  checks. Before schema inference or extraction, the entire outer input also
+  passes a Domain 20 admission gate: at most 64 MiB external term size, 64
+  top-level fields, 64 campaign branches, 4,096 rows in each known manifest,
+  operator-review, or score-term collection, 2,048 fields in each segmented
+  map, and 16,384 total segment-validation work items. Known large V3
+  collections are checked as bounded envelopes and per-entry segments;
+  additive unknown fields retain the generic JSON-safety limits, including the
+  2,048-item collection limit.
+- Adapter callbacks execute synchronously in the caller process. This boundary
+  contains returned errors, exceptions, throws, and exits, but deliberately
+  provides no callback timeout or process isolation and therefore requires a
+  trusted adapter implementation.
 - This boundary defines conformance only. The repository supplies no live
   Cadence consumer, API client, database writer, or mutation implementation.
 

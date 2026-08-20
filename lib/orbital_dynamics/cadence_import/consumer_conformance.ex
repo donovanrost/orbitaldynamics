@@ -1,7 +1,7 @@
 defmodule OrbitalDynamics.CadenceImport.ConsumerConformance do
   @moduledoc false
 
-  alias OrbitalDynamics.CadenceImport.SourceIdentifierPolicy
+  alias OrbitalDynamics.CadenceImport.{OuterAdmission, SourceIdentifierPolicy}
   alias OrbitalDynamics.Schema
   alias OrbitalDynamics.Schema.JsonSafety
 
@@ -27,9 +27,9 @@ defmodule OrbitalDynamics.CadenceImport.ConsumerConformance do
 
   @spec run(term(), term(), term()) :: {:ok, map()} | {:error, map()}
   def run(artifact_or_manifest, adapter, opts) do
-    with {:ok, adapter_options} <- normalize_options(opts),
+    with :ok <- preflight_input(artifact_or_manifest),
+         {:ok, adapter_options} <- normalize_options(opts),
          {:ok, manifest} <- validate_input(artifact_or_manifest),
-         :ok <- validate_manifest_json_safety(manifest),
          {:ok, adapter_name, capabilities} <- validate_adapter(adapter),
          request <- build_request(manifest, adapter_name, capabilities, adapter_options),
          {:ok, acknowledgement} <- call_adapter(adapter, request, adapter_options),
@@ -50,6 +50,16 @@ defmodule OrbitalDynamics.CadenceImport.ConsumerConformance do
         "Cadence consumer conformance did not complete",
         %{}
       )
+  end
+
+  defp preflight_input(input) do
+    case OuterAdmission.validate(input) do
+      :ok ->
+        :ok
+
+      {:error, %{"code" => code, "message" => message, "details" => details}} ->
+        typed_error(code, message, details)
+    end
   end
 
   defp normalize_options(opts) when is_list(opts) do
@@ -266,40 +276,6 @@ defmodule OrbitalDynamics.CadenceImport.ConsumerConformance do
       "Cadence dry-run accepts only a V3 campaign artifact or its import manifest",
       %{"declared_contract" => json_scalar(input["schema_contract"])}
     )
-  end
-
-  defp validate_manifest_json_safety(manifest) do
-    envelope = Map.put(manifest, "rows", [])
-
-    with :ok <- json_safety_errors(envelope, "$"),
-         rows when is_list(rows) <- Map.get(manifest, "rows") do
-      rows
-      |> Enum.with_index()
-      |> Enum.reduce_while(:ok, fn {row, index}, :ok ->
-        case json_safety_errors(row, "$.rows[#{index}]") do
-          :ok -> {:cont, :ok}
-          {:error, _error} = failure -> {:halt, failure}
-        end
-      end)
-    else
-      {:error, _error} = failure ->
-        failure
-
-      _rows ->
-        typed_error("unsafe_manifest", "manifest rows must be a JSON array", %{})
-    end
-  end
-
-  defp json_safety_errors(value, path) do
-    case JsonSafety.errors(value, path) do
-      [] ->
-        :ok
-
-      [issue | _issues] ->
-        typed_error("unsafe_manifest", "manifest contains unsafe or unbounded JSON data", %{
-          "issue" => issue
-        })
-    end
   end
 
   defp validate_adapter(adapter) when is_atom(adapter) do

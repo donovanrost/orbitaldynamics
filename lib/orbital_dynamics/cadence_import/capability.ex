@@ -1,7 +1,7 @@
 defmodule OrbitalDynamics.CadenceImport.Capability do
   @moduledoc false
 
-  alias OrbitalDynamics.CadenceImport.ProviderResultNormalization
+  alias OrbitalDynamics.CadenceImport.{OuterAdmission, ProviderResultNormalization}
   alias OrbitalDynamics.OperatorReview
 
   @schema_contract "cadence_import_manifest.v1"
@@ -207,10 +207,12 @@ defmodule OrbitalDynamics.CadenceImport.Capability do
         supported_sources: ["campaign_strategy.v3", "cadence_import_manifest.v1"],
         result_type: "cadence_consumer_conformance.v1",
         idempotency: :deterministic_semantic_request_identity,
+        outer_admission: OuterAdmission.limits(),
         known_limits: [
           :does_not_supply_a_cadence_consumer,
           :does_not_create_update_write_or_mutate,
-          :does_not_replace_operator_authority
+          :does_not_replace_operator_authority,
+          :adapter_executes_in_caller_process_without_timeout_or_isolation
         ]
       },
       known_limits: [
