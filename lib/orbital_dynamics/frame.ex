@@ -2,9 +2,10 @@ defmodule OrbitalDynamics.Frame do
   @moduledoc """
   Reference frame metadata for state vectors.
 
-  The initial slice assumes inertial, central-body-centered frames. The frame is
-  still carried explicitly so later force models cannot accidentally combine
-  incompatible states.
+  Frames are carried explicitly so force models cannot accidentally combine
+  incompatible states. The built-in Earth labels identify J2000 inertial and
+  provider-defined Earth-fixed states; transforming between them remains an
+  explicit opt-in operation through `OrbitalDynamics.FrameTransform`.
   """
 
   @enforce_keys [:name, :center, :orientation]
@@ -40,6 +41,15 @@ defmodule OrbitalDynamics.Frame do
   """
   def earth_inertial_j2000 do
     new!(:eci_j2000, :earth, :j2000)
+  end
+
+  @doc """
+  Earth-centered, provider-defined body-fixed frame.
+
+  The label does not select an Earth-rotation provider or perform a transform.
+  """
+  def earth_fixed do
+    new!(:earth_body_fixed, :earth, :body_fixed)
   end
 
   @doc """

@@ -32,6 +32,7 @@ defmodule OrbitalDynamics.CapabilitiesTest do
     assert catalog.analysis.propagators.two_body_exla_cpu == TwoBodyExlaCpu.capabilities()
     assert catalog.analysis.propagators.j2_exla_cpu == J2ExlaCpu.capabilities()
     assert catalog.analysis.access_windows == AccessWindows.capabilities()
+    assert catalog.analysis.frame_transform == OrbitalDynamics.FrameTransform.capabilities()
     assert catalog.analysis.orbit_data == OrbitalDynamics.OrbitData.capabilities()
     assert catalog.planning.activity_templates.artifact_contract == "activity_template.v1"
     assert catalog.planning.activity_templates.template_count == 6

@@ -16,8 +16,13 @@ defmodule OrbitalDynamics.FrameTest do
 
     refute Frame.compatible?(
              Frame.earth_inertial_j2000(),
-             Frame.new!(:earth_body_fixed, :earth, :body_fixed)
+             Frame.earth_fixed()
            )
+  end
+
+  test "preserves the existing provider-defined Earth-fixed frame label" do
+    assert Frame.earth_fixed() == Frame.new!(:earth_body_fixed, :earth, :body_fixed)
+    assert Frame.earth_inertial_j2000() == Frame.new!(:eci_j2000, :earth, :j2000)
   end
 
   test "checks central-body center compatibility" do

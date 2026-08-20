@@ -19,15 +19,20 @@
   `OrbitalDynamics.Units` exposes an executable suffix-based units policy for
   public structs, manifests, and artifacts; `OrbitalDynamics.Frame` exposes
   explicit frame compatibility helpers and scenarios reject initial states whose
-  frame center does not match the central body.
+  frame center does not match the central body;
+  `OrbitalDynamics.FrameTransform` provides an opt-in Earth-only J2000 inertial
+  to provider-defined Earth-fixed state transform in both directions for `:tdb`
+  epochs. It consumes one explicit immutable offline Earth-rotation provider
+  policy, applies the rotating-frame velocity transport term, rejects unsupported
+  frames/body/time scale/provider coverage, and returns provider
+  source/revision/coverage plus realized round-trip tolerance evidence.
 - `partial`: units and validation are enforced in constructors but not through a
-  full units system; frames are carried as metadata but not transformed; time
-  scales are labels rather than conversion machinery.
+  full units system; only one Earth z-axis frame pair is transformed; time scales
+  remain labels rather than conversion machinery.
 - `near-term`: broaden accuracy labels to any remaining numerical products that
   do not yet expose capability metadata.
-- `later`: full frame transforms, Earth orientation models, time-system
-  conversions, covariance/state uncertainty primitives, and broader central-body
-  catalogs.
+- `later`: general frame transforms, authoritative Earth orientation models,
+  time-system conversions, covariance/state uncertainty primitives, and broader
+  central-body catalogs.
 - `out of scope`: flight-certified navigation, operational orbit determination,
   and authoritative Earth orientation distribution.
-

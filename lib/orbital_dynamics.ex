@@ -33,6 +33,7 @@ defmodule OrbitalDynamics do
   alias OrbitalDynamics.Communications.StationCalendar
   alias OrbitalDynamics.Constraints.{ArtifactMetric, CampaignLocal}
   alias OrbitalDynamics.Environment
+  alias OrbitalDynamics.FrameTransform
   alias OrbitalDynamics.ForceModels.AtmosphericDrag
   alias OrbitalDynamics.ManeuverReview
   alias OrbitalDynamics.MissionPlan
@@ -151,6 +152,7 @@ defmodule OrbitalDynamics do
         eclipses: Eclipses.capabilities(),
         ground_track_crossings: GroundTrackCrossings.capabilities(),
         target_visibility: TargetVisibility.capabilities(),
+        frame_transform: FrameTransform.capabilities(),
         orbit_elements: OrbitElements.capabilities(),
         orbit_data: OrbitData.capabilities()
       },
@@ -1132,6 +1134,20 @@ defmodule OrbitalDynamics do
   """
   def environment_provider_capabilities_for_request(request) do
     Environment.provider_capabilities_for_request(request)
+  end
+
+  @doc """
+  Captures an explicit provider policy for Earth inertial/body-fixed state transforms.
+  """
+  def frame_transform_provider_policy(provider, opts \\ []) do
+    FrameTransform.provider_policy(provider, opts)
+  end
+
+  @doc """
+  Transforms an Earth state between J2000 inertial and provider-defined Earth-fixed frames.
+  """
+  def transform_state_frame(state, target_frame, central_body, provider_policy) do
+    FrameTransform.transform(state, target_frame, central_body, provider_policy)
   end
 
   @doc """
