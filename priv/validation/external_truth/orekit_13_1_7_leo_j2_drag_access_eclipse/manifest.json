@@ -1,0 +1,166 @@
+{
+  "schema": "external_numerical_truth_bundle.v1",
+  "case_id": "orekit_13_1_7_earth_j2_drag_rk4_10s_access_eclipse_6h",
+  "validation_status": "validated_external_reference_for_exact_declared_case",
+  "generated_at_utc": "2026-08-20T09:10:00Z",
+  "source_identity": {
+    "algorithm": "sha256",
+    "manifest_path": "source-manifest.sha256",
+    "manifest_byte_count": 455,
+    "sha256": "4b6e875b2cbee2c20e83b268c5b07cedeb8c6ff96ce36a2de7dbf9741a217c93",
+    "total_source_byte_count": 27116,
+    "files": [
+      {"path": "case.properties", "byte_count": 1323, "sha256": "9f391cb0314f68dda8eaef851626b5ef3b2448e0623359bb5ebb5699b970106d"},
+      {"path": "pom.xml", "byte_count": 828, "sha256": "325f8acbb143b0861994ae2f62290e4dd1d24499e25690addb04150a268c2651"},
+      {"path": "dependencies.lock", "byte_count": 1536, "sha256": "90b0b2e85a0fae9d586567895c894f0d59ce835e84127ba088cd9a2ed84ce388"},
+      {"path": "generate.sh", "byte_count": 1925, "sha256": "04ebbd4172379cb064516bfe6efed9e4b1fc4595e932d6c84a81ebc6b2cfba45"},
+      {"path": "src/main/java/org/orbitaldynamics/validation/OrekitTruthGenerator.java", "byte_count": 21504, "sha256": "a420e8a12e149cc69ce879e0768f96028b974b6e0816ce8fd4decedb418aec74"}
+    ]
+  },
+  "result_identity": {
+    "algorithm": "sha256",
+    "path": "reference-output.json",
+    "byte_count": 549022,
+    "sha256": "88f0ab20bd24a78bda74cfa8091f9e0546e85eee0e2c4719bde988ad2c66649f"
+  },
+  "bundle_read_limits": {
+    "manifest_max_byte_count": 131072,
+    "result_max_byte_count": 8388608,
+    "source_manifest_max_byte_count": 65536,
+    "source_file_max_byte_count": 1048576,
+    "source_total_max_byte_count": 2097152
+  },
+  "reference_tool": {
+    "name": "Apache Orekit",
+    "version": "13.1.7",
+    "release_commit": "cc18cc1",
+    "license": "Apache-2.0",
+    "official_release_url": "https://github.com/CS-SI/Orekit/releases/tag/13.1.7",
+    "official_api_url": "https://www.orekit.org/static/apidocs/",
+    "container_image": "docker.io/library/maven:3.9.11-eclipse-temurin-21",
+    "container_digest": "sha256:6fdc855a6ed81d288ca7ca37ac6ff5e9308b612485c0801d70b25a858c83d237",
+    "container_image_id": "sha256:3ead0ff36a4b796440e451013a4ce803dbd02f07b6c5b634cc2ad67927dfcc10",
+    "container_platform": "linux/arm64",
+    "java_runtime": "21.0.9+10-LTS",
+    "maven_version": "3.9.11",
+    "curl_version": "8.5.0"
+  },
+  "dependencies": {
+    "lock_path": "dependencies.lock",
+    "orekit": "org.orekit:orekit:13.1.7",
+    "hipparchus_version": "4.0.3",
+    "artifact_count": 8,
+    "checksum_algorithm": "sha256",
+    "repository": "https://repo.maven.apache.org/maven2/"
+  },
+  "data_sources": {
+    "orekit_data_revision": "none",
+    "eop_source": "none",
+    "earth_orientation_model": "constant_z_axis_rotation_from_zero_angle_at_case_epoch",
+    "sun_source": "fixed_unit_direction_from_case.properties",
+    "sun_direction_eme2000": [1.0, 0.0, 0.0],
+    "sun_provider_distance_m": 100000000000.0,
+    "network_data_used_during_propagation": false
+  },
+  "reference_model": {
+    "frame": "EME2000",
+    "epoch": "2000-01-01T12:00:00_TDB",
+    "time_scale": "TDB_J2000_RELATIVE_SECONDS",
+    "horizon_starts_at_s": 0.0,
+    "horizon_ends_at_s": 21600.0,
+    "state_output_grid": {
+      "starts_at_s": 0.0,
+      "ends_at_s": 21600.0,
+      "step_s": 10.0,
+      "epoch_count": 2161,
+      "coverage_policy": "inclusive_full_horizon_exact_grid"
+    },
+    "position_unit": "meter",
+    "velocity_unit": "meter_per_second",
+    "mu_m3_s2": 398600441800000.0,
+    "equatorial_radius_m": 6378136.3,
+    "j2": 0.00108262668,
+    "initial_position_m": [7000000.0, 0.0, 0.0],
+    "initial_velocity_m_s": [0.0, 4687.21425101214, 5913.792592089408],
+    "force_models": ["NewtonianAttraction", "J2OnlyPerturbation", "DragForce", "SimpleExponentialAtmosphere", "IsotropicDrag"],
+    "excluded_force_models": ["third_body", "solid_tides", "solar_radiation_pressure", "maneuvers"],
+    "atmosphere_model": "SimpleExponentialAtmosphere",
+    "atmosphere_reference_altitude_m": 400000.0,
+    "atmosphere_reference_density_kg_m3": 0.00000000000389,
+    "atmosphere_scale_height_m": 60000.0,
+    "atmosphere_rotation": "rigid_constant_rate_body_frame",
+    "spacecraft_mass_kg": 120.0,
+    "spacecraft_drag_area_m2": 4.0,
+    "spacecraft_drag_coefficient": 2.2,
+    "orbit_type": "CARTESIAN",
+    "integrator": "ClassicalRungeKuttaIntegrator",
+    "integrator_step_s": 10.0
+  },
+  "access_model": {
+    "detector": "ElevationDetector",
+    "body_shape": "OneAxisEllipsoid_sphere",
+    "body_flattening": 0.0,
+    "earth_rotation_rate_rad_s": 0.00007292115,
+    "earth_rotation_angle_at_epoch_rad": 0.0,
+    "station_latitude_deg": 0.0,
+    "station_longitude_deg": -60.0,
+    "station_altitude_m": 0.0,
+    "minimum_elevation_deg": 5.0,
+    "atmospheric_refraction": "none",
+    "terrain_mask": "none",
+    "event_definition": "aos_is_increasing_zero_of_geometric_elevation_minus_5_deg;los_is_decreasing_zero",
+    "max_check_s": 60.0,
+    "root_threshold_s": 0.000000001,
+    "max_iterations": 100
+  },
+  "eclipse_model": {
+    "detector": "CylindricalShadowEclipseDetector",
+    "occulting_body": "spherical_earth",
+    "occulting_body_radius_m": 6378136.3,
+    "light_source": "infinitely_distant_fixed_positive_eme2000_x_direction",
+    "event_definition": "ingress_is_decreasing_zero_and_egress_is_increasing_zero_of_cylindrical_shadow_switching_function",
+    "penumbra": "none",
+    "max_check_s": 60.0,
+    "root_threshold_s": 0.000000001,
+    "max_iterations": 100
+  },
+  "orbital_dynamics_path": {
+    "propagator": "OrbitalDynamics.Propagators.J2Drag",
+    "frame": "earth_inertial_j2000",
+    "epoch_scale": "tdb",
+    "output_step_s": 10.0,
+    "max_step_s": 10.0,
+    "atmosphere_provider": "OrbitalDynamics.Environment.ExponentialAtmosphereProvider",
+    "atmosphere_source_revision": "exponential-reference.v1",
+    "earth_rotation_provider": "OrbitalDynamics.Environment.ConstantEarthRotationProvider",
+    "earth_rotation_source_revision": "constant-earth-rotation.v1",
+    "spacecraft_mass_kg": 120.0,
+    "spacecraft_drag_area_m2": 4.0,
+    "spacecraft_drag_coefficient": 2.2,
+    "access_detector": "OrbitalDynamics.EventDetectors.AccessWindows",
+    "access_boundary_refinement": "bracketed_bisection_cubic_hermite_state",
+    "access_root_tolerance_s": 0.000001,
+    "access_root_max_iterations": 64,
+    "eclipse_detector": "OrbitalDynamics.EventDetectors.Eclipses",
+    "eclipse_boundary_refinement": "linear_shadow_margin_between_10s_samples"
+  },
+  "tolerances": {
+    "position_max_component_error_m": 0.01,
+    "velocity_max_component_error_m_s": 0.00001,
+    "access_boundary_absolute_error_s": 0.001,
+    "eclipse_boundary_absolute_error_s": 0.05
+  },
+  "output": {
+    "format": "JSON",
+    "schema": "orekit_external_truth_raw.v1",
+    "float_format": "%.17e",
+    "state_epoch_count": 2161,
+    "access_boundary_count": 4,
+    "eclipse_boundary_count": 8
+  },
+  "claim_boundary": {
+    "validated_combination": "earth_j2_plus_simple_exponential_atmospheric_drag_rk4_10s_plus_spherical_constant_rotation_access_plus_fixed_sun_cylindrical_eclipse_over_0_to_21600_tdb_seconds",
+    "not_promoted": ["two_body", "j2_only", "two_body_drag", "accelerator_backends", "linear_access_boundary_mode", "time_varying_sun_provider", "campaign_environment_provider", "conical_eclipse", "other_atmosphere_providers", "other_ballistic_coefficients", "other_stations", "other_initial_states", "other_horizons"],
+    "not_claimed": ["flight_certification", "operational_acceptance", "full_physical_fidelity", "authoritative_earth_orientation", "space_weather_calibrated_atmosphere", "winds", "terrain_or_refraction_effects"]
+  }
+}
