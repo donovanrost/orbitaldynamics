@@ -20,6 +20,7 @@ defmodule OrbitalDynamics.OrbitDataTest do
              supported_opm_covariance_fields: opm_covariance_fields,
              supported_oem_metadata_fields: oem_metadata_fields,
              supported_oem_covariance_fields: oem_covariance_fields,
+             oem_interpolation: oem_interpolation,
              supported_covariance_component_order: covariance_component_order,
              supported_opm_maneuver_metadata_blocks: :multiple,
              exported_opm_maneuver_metadata_blocks: :multiple,
@@ -56,11 +57,42 @@ defmodule OrbitalDynamics.OrbitDataTest do
     assert "CREATION_DATE" in oem_metadata_fields
     assert "ORIGINATOR" in oem_metadata_fields
     assert "COV_REF_FRAME" in oem_metadata_fields
+    assert "START_TIME" in oem_metadata_fields
+    assert "STOP_TIME" in oem_metadata_fields
+    assert "USEABLE_START_TIME" in oem_metadata_fields
+    assert "USEABLE_STOP_TIME" in oem_metadata_fields
     assert "CX_X" in opm_covariance_fields
     assert "CZ_DOT_Z_DOT" in opm_covariance_fields
     assert "EPOCH" in oem_covariance_fields
     assert "CX_X" in oem_covariance_fields
     assert "CZ_DOT_Z_DOT" in oem_covariance_fields
+
+    assert oem_interpolation == %{
+             mode: :explicit_opt_in,
+             request_option: :interpolate,
+             strategy_epoch_option: :strategy_epoch,
+             source_revision_option: :source_revision,
+             optional_max_bracket_option: :max_bracket_s,
+             interpolation_method: "cubic_hermite_position_velocity",
+             interpolation_method_version: "1",
+             exact_epoch_policy: :exact_sample,
+             coverage_policy: :declared_oem_coverage_and_source_bracket,
+             extrapolation: :rejected,
+             covariance: :source_metadata_preserved_not_interpolated,
+             assumptions: [
+               "OEM samples are Cartesian kilometers and kilometers per second",
+               "endpoint velocities are position derivatives in the declared frame",
+               "the requested strategy epoch uses the OEM time scale without conversion"
+             ],
+             known_limits: [
+               "single object and single OEM metadata segment only",
+               "Earth-centered EME2000, J2000, or ICRF inertial states only",
+               "no extrapolation beyond the source sample bracket or declared coverage",
+               "no frame or time-scale conversion",
+               "source covariance is preserved as metadata and is not interpolated or propagated",
+               "SHA-256 content identity does not authenticate the source authority"
+             ]
+           }
 
     assert covariance_component_order == [
              "x_km",
@@ -95,6 +127,10 @@ defmodule OrbitalDynamics.OrbitDataTest do
     assert :single_object_opm_only in known_limits
     assert :single_object_oem_only in known_limits
     assert :oem_import_selects_one_sample_without_interpolation in known_limits
+    assert :oem_interpolation_is_explicit_opt_in in known_limits
+    assert :oem_interpolation_requires_declared_coverage_and_source_revision in known_limits
+    assert :oem_interpolation_rejects_extrapolation in known_limits
+    assert :oem_interpolation_covariance_is_preserved_not_interpolated in known_limits
     assert :oem_export_single_sample_no_interpolation in known_limits
     assert :opm_covariance_metadata_only_no_propagation in known_limits
     assert :oem_covariance_metadata_only_no_propagation in known_limits

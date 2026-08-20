@@ -1211,6 +1211,9 @@ defmodule OrbitalDynamics do
 
   @doc """
   Imports a single-object CCSDS OEM KVN message into `accepted_planning_state.v1`.
+
+  Bounded strategy-epoch interpolation is available only through the explicit
+  options documented by `OrbitalDynamics.OrbitData.import_ccsds_oem/2`.
   """
   def import_ccsds_oem(kvn, opts \\ []) do
     OrbitData.import_ccsds_oem(kvn, opts)
