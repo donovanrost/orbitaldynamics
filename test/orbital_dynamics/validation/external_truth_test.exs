@@ -15,6 +15,14 @@ defmodule OrbitalDynamics.Validation.ExternalTruthTest do
     assert [registration] = ExternalTruth.all()
     assert registration["id"] == @case_id
     assert registration["validation_level"] == "validated"
+    assert String.contains?(registration["covered_regime"], "all 2161 ten-second states")
+
+    assert registration["tolerances"] == %{
+             "position_max_component_error_m" => 0.01,
+             "velocity_max_component_error_m_s" => 1.0e-5,
+             "access_boundary_absolute_error_s" => 0.001,
+             "eclipse_boundary_absolute_error_s" => 0.05
+           }
 
     assert registration["model"] ==
              "earth_j2_drag_rk4_10s_spherical_access_fixed_sun_cylindrical_eclipse_6h"
@@ -38,6 +46,13 @@ defmodule OrbitalDynamics.Validation.ExternalTruthTest do
     assert report["status_counts"] == %{"pass" => length(report["checks"])}
     assert {:ok, _schema_report} = OrbitalDynamics.Schema.validate_artifact(report)
 
+    assert count_checks(report, "state.", ".epoch_s") == 2_161
+    assert count_checks(report, "state.", ".position_m") == 2_161
+    assert count_checks(report, "state.", ".velocity_m_s") == 2_161
+    assert check(report, "state.0.epoch_s")["status"] == "pass"
+    assert check(report, "state.12340.epoch_s")["status"] == "pass"
+    assert check(report, "state.21600.epoch_s")["status"] == "pass"
+
     assert max_residual(report, "state.", "max_abs_error", ".position_m") < 0.001
     assert max_residual(report, "state.", "max_abs_error", ".velocity_m_s") < 1.0e-6
     assert max_residual(report, "access.", "error", ".epoch_s") < 0.001
@@ -58,13 +73,13 @@ defmodule OrbitalDynamics.Validation.ExternalTruthTest do
   } do
     perturbed =
       observations
-      |> update_in([:states, Access.at(7), :position_m, Access.at(0)], &(&1 + 0.02))
+      |> update_in([:states, Access.at(1_234), :position_m, Access.at(0)], &(&1 + 0.02))
       |> update_in([:access, Access.at(0), :epoch_s], &(&1 + 0.002))
       |> update_in([:eclipse, Access.at(0), :epoch_s], &(&1 + 0.1))
 
     assert {:error, report} = OrekitLeoCase.compare_observations(perturbed)
     assert report["status"] == "fail"
-    assert check(report, "state.21600.position_m")["status"] == "fail"
+    assert check(report, "state.12340.position_m")["status"] == "fail"
     assert check(report, "access.1.epoch_s")["status"] == "fail"
     assert check(report, "eclipse.1.epoch_s")["status"] == "fail"
   end
@@ -84,7 +99,7 @@ defmodule OrbitalDynamics.Validation.ExternalTruthTest do
     assert check(report, "orbital_dynamics.horizon_coverage")["status"] == "fail"
   end
 
-  test "content binding rejects stale tool/config/data and perturbed result bytes" do
+  test "content and filesystem binding rejects stale identities, symlinks, and oversized files" do
     stale_source = copy_bundle("stale-source")
 
     File.write!(
@@ -120,6 +135,33 @@ defmodule OrbitalDynamics.Validation.ExternalTruthTest do
     )
 
     assert_bundle_integrity_failure(perturbed_result)
+
+    symlinked_root_target = copy_bundle("symlinked-root")
+    symlinked_root = Path.join(Path.dirname(symlinked_root_target), "bundle-link")
+    File.ln_s!(symlinked_root_target, symlinked_root)
+    assert_bundle_integrity_failure(symlinked_root, "symlink_bundle_root")
+
+    symlinked_parent = copy_bundle("symlinked-parent")
+    source_directory = Path.join(symlinked_parent, "src")
+    source_sibling = Path.join(Path.dirname(symlinked_parent), "source-sibling")
+    File.rename!(source_directory, source_sibling)
+    File.ln_s!(source_sibling, source_directory)
+    assert_bundle_integrity_failure(symlinked_parent, "symlink_path_component")
+
+    oversized_files = [
+      {"manifest", "manifest.json", 131_073},
+      {"result", "reference-output.json", 8_388_609},
+      {"source-manifest", "source-manifest.sha256", 65_537},
+      {"source", "src/main/java/org/orbitaldynamics/validation/OrekitTruthGenerator.java",
+       1_048_577},
+      {"dependency", "dependencies.lock", 1_048_577}
+    ]
+
+    for {label, relative_path, byte_count} <- oversized_files do
+      oversized_bundle = copy_bundle("oversized-#{label}")
+      write_sparse_file(Path.join(oversized_bundle, relative_path), byte_count)
+      assert_bundle_integrity_failure(oversized_bundle, "file_size_exceeds_limit")
+    end
   end
 
   test "strict readers reject malformed and duplicate keys" do
@@ -154,6 +196,12 @@ defmodule OrbitalDynamics.Validation.ExternalTruthTest do
     |> Enum.max()
   end
 
+  defp count_checks(report, prefix, suffix) do
+    Enum.count(report["checks"], fn row ->
+      String.starts_with?(row["field"], prefix) and String.ends_with?(row["field"], suffix)
+    end)
+  end
+
   defp check(report, field), do: Enum.find(report["checks"], &(&1["field"] == field))
 
   defp copy_bundle(label) do
@@ -170,9 +218,20 @@ defmodule OrbitalDynamics.Validation.ExternalTruthTest do
     destination
   end
 
-  defp assert_bundle_integrity_failure(bundle_path) do
+  defp write_sparse_file(path, byte_count) do
+    io = File.open!(path, [:write, :binary])
+    {:ok, _position} = :file.position(io, byte_count - 1)
+    :ok = IO.binwrite(io, <<0>>)
+    :ok = File.close(io)
+  end
+
+  defp assert_bundle_integrity_failure(bundle_path, reason_fragment \\ nil) do
     assert {:error, report} = OrekitLeoCase.verify(bundle_path: bundle_path)
     assert report["status"] == "fail"
     assert check(report, "bundle.verification")["status"] == "fail"
+
+    if reason_fragment do
+      assert inspect(check(report, "bundle.verification")["observed"]) =~ reason_fragment
+    end
   end
 end

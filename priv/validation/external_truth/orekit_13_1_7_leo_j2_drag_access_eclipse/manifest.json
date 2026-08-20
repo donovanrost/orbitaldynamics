@@ -2,18 +2,33 @@
   "schema": "external_numerical_truth_bundle.v1",
   "case_id": "orekit_13_1_7_earth_j2_drag_rk4_10s_access_eclipse_6h",
   "validation_status": "validated_external_reference_for_exact_declared_case",
-  "generated_at_utc": "2026-08-20T08:30:00Z",
+  "generated_at_utc": "2026-08-20T09:10:00Z",
   "source_identity": {
     "algorithm": "sha256",
     "manifest_path": "source-manifest.sha256",
     "manifest_byte_count": 455,
-    "sha256": "f0010176139936bd60aaf37b9569277cd30a22025ba3310216096c2d798b9d37"
+    "sha256": "4b6e875b2cbee2c20e83b268c5b07cedeb8c6ff96ce36a2de7dbf9741a217c93",
+    "total_source_byte_count": 27116,
+    "files": [
+      {"path": "case.properties", "byte_count": 1323, "sha256": "9f391cb0314f68dda8eaef851626b5ef3b2448e0623359bb5ebb5699b970106d"},
+      {"path": "pom.xml", "byte_count": 828, "sha256": "325f8acbb143b0861994ae2f62290e4dd1d24499e25690addb04150a268c2651"},
+      {"path": "dependencies.lock", "byte_count": 1536, "sha256": "90b0b2e85a0fae9d586567895c894f0d59ce835e84127ba088cd9a2ed84ce388"},
+      {"path": "generate.sh", "byte_count": 1925, "sha256": "04ebbd4172379cb064516bfe6efed9e4b1fc4595e932d6c84a81ebc6b2cfba45"},
+      {"path": "src/main/java/org/orbitaldynamics/validation/OrekitTruthGenerator.java", "byte_count": 21504, "sha256": "a420e8a12e149cc69ce879e0768f96028b974b6e0816ce8fd4decedb418aec74"}
+    ]
   },
   "result_identity": {
     "algorithm": "sha256",
     "path": "reference-output.json",
-    "byte_count": 4213,
-    "sha256": "fe7092587cd9eb8c4e2c51b84462cd795543c7b9ff149ff72c4efc2abe80bb43"
+    "byte_count": 549022,
+    "sha256": "88f0ab20bd24a78bda74cfa8091f9e0546e85eee0e2c4719bde988ad2c66649f"
+  },
+  "bundle_read_limits": {
+    "manifest_max_byte_count": 131072,
+    "result_max_byte_count": 8388608,
+    "source_manifest_max_byte_count": 65536,
+    "source_file_max_byte_count": 1048576,
+    "source_total_max_byte_count": 2097152
   },
   "reference_tool": {
     "name": "Apache Orekit",
@@ -53,7 +68,13 @@
     "time_scale": "TDB_J2000_RELATIVE_SECONDS",
     "horizon_starts_at_s": 0.0,
     "horizon_ends_at_s": 21600.0,
-    "state_output_epochs_s": [0.0, 1800.0, 3600.0, 7200.0, 10800.0, 14400.0, 18000.0, 21600.0],
+    "state_output_grid": {
+      "starts_at_s": 0.0,
+      "ends_at_s": 21600.0,
+      "step_s": 10.0,
+      "epoch_count": 2161,
+      "coverage_policy": "inclusive_full_horizon_exact_grid"
+    },
     "position_unit": "meter",
     "velocity_unit": "meter_per_second",
     "mu_m3_s2": 398600441800000.0,
@@ -133,7 +154,7 @@
     "format": "JSON",
     "schema": "orekit_external_truth_raw.v1",
     "float_format": "%.17e",
-    "state_epoch_count": 8,
+    "state_epoch_count": 2161,
     "access_boundary_count": 4,
     "eclipse_boundary_count": 8
   },

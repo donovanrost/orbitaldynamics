@@ -52,7 +52,8 @@ public final class OrekitTruthGenerator {
 
     private static final Set<String> REQUIRED_KEYS = Set.of(
         "case_id", "generated_at_utc", "orekit_version", "frame", "epoch", "time_scale",
-        "horizon_s", "state_output_epochs_s", "integrator", "integrator_step_s",
+        "horizon_s", "state_output_start_s", "state_output_end_s", "state_output_step_s",
+        "integrator", "integrator_step_s",
         "event_max_check_s", "event_threshold_s", "event_max_iterations", "mu_m3_s2",
         "equatorial_radius_m", "j2", "initial_position_m", "initial_velocity_m_s",
         "atmosphere_model", "atmosphere_reference_altitude_m",
@@ -151,11 +152,14 @@ public final class OrekitTruthGenerator {
         propagator.propagate(epoch.shiftedBy(horizon));
         final BoundedPropagator ephemeris = ephemerisGenerator.getGeneratedEphemeris();
 
-        final List<StateRow> states = new ArrayList<>();
-        for (final double offset : numberList(config, "state_output_epochs_s")) {
-            if (offset < 0.0 || offset > horizon) {
-                throw new IllegalArgumentException("state epoch outside declared horizon: " + offset);
-            }
+        final double outputStart = number(config, "state_output_start_s");
+        final double outputEnd = number(config, "state_output_end_s");
+        final double outputStep = number(config, "state_output_step_s");
+        final int stateCount = validateStateOutputGrid(
+            outputStart, outputEnd, outputStep, horizon, step);
+        final List<StateRow> states = new ArrayList<>(stateCount);
+        for (int index = 0; index < stateCount; index++) {
+            final double offset = outputStart + index * outputStep;
             final SpacecraftState state = ephemeris.propagate(epoch.shiftedBy(offset));
             states.add(new StateRow(offset, state.getPosition(), state.getVelocity()));
         }
@@ -311,6 +315,23 @@ public final class OrekitTruthGenerator {
         exact(config, "orekit_data_revision", "none");
         exact(config, "eop_source", "none");
         exact(config, "ephemeris_source", "fixed_sun_direction_input");
+    }
+
+    private static int validateStateOutputGrid(final double start, final double end,
+                                               final double outputStep, final double horizon,
+                                               final double integratorStep) {
+        if (start != 0.0 || end != horizon || outputStep != integratorStep || outputStep <= 0.0) {
+            throw new IllegalArgumentException(
+                "state output grid must cover the full horizon at the integrator step");
+        }
+
+        final double intervals = (end - start) / outputStep;
+        final long roundedIntervals = Math.round(intervals);
+        if (intervals != roundedIntervals || roundedIntervals < 0 || roundedIntervals > 100_000) {
+            throw new IllegalArgumentException("state output grid must be finite and integral");
+        }
+
+        return Math.toIntExact(roundedIntervals + 1);
     }
 
     private static void exact(final Map<String, String> config, final String key,

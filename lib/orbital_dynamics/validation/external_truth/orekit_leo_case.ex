@@ -27,25 +27,46 @@ defmodule OrbitalDynamics.Validation.ExternalTruth.OrekitLeoCase do
   @model_id "earth_j2_drag_rk4_10s_spherical_access_fixed_sun_cylindrical_eclipse_6h"
   @bundle_relative_path "priv/validation/external_truth/orekit_13_1_7_leo_j2_drag_access_eclipse"
 
-  @manifest_sha256 "23f973308f230daf9c40c9e9d4cd60757bf82b871a48764b5e6dbdd43c6cd131"
-  @manifest_byte_count 6_579
-  @source_manifest_sha256 "f0010176139936bd60aaf37b9569277cd30a22025ba3310216096c2d798b9d37"
+  @manifest_sha256 "f4dbcf59007ac1552bb447d13aa9166b7846d393e7fc23d1d60a04fa841e91cd"
+  @manifest_byte_count 7_694
+  @source_manifest_sha256 "4b6e875b2cbee2c20e83b268c5b07cedeb8c6ff96ce36a2de7dbf9741a217c93"
   @source_manifest_byte_count 455
-  @result_sha256 "fe7092587cd9eb8c4e2c51b84462cd795543c7b9ff149ff72c4efc2abe80bb43"
-  @result_byte_count 4_213
+  @result_sha256 "88f0ab20bd24a78bda74cfa8091f9e0546e85eee0e2c4719bde988ad2c66649f"
+  @result_byte_count 549_022
 
-  @source_paths [
-    "case.properties",
-    "dependencies.lock",
-    "generate.sh",
-    "pom.xml",
-    "src/main/java/org/orbitaldynamics/validation/OrekitTruthGenerator.java"
+  @source_files [
+    %{
+      path: "case.properties",
+      byte_count: 1_323,
+      sha256: "9f391cb0314f68dda8eaef851626b5ef3b2448e0623359bb5ebb5699b970106d"
+    },
+    %{
+      path: "pom.xml",
+      byte_count: 828,
+      sha256: "325f8acbb143b0861994ae2f62290e4dd1d24499e25690addb04150a268c2651"
+    },
+    %{
+      path: "dependencies.lock",
+      byte_count: 1_536,
+      sha256: "90b0b2e85a0fae9d586567895c894f0d59ce835e84127ba088cd9a2ed84ce388"
+    },
+    %{
+      path: "generate.sh",
+      byte_count: 1_925,
+      sha256: "04ebbd4172379cb064516bfe6efed9e4b1fc4595e932d6c84a81ebc6b2cfba45"
+    },
+    %{
+      path: "src/main/java/org/orbitaldynamics/validation/OrekitTruthGenerator.java",
+      byte_count: 21_504,
+      sha256: "a420e8a12e149cc69ce879e0768f96028b974b6e0816ce8fd4decedb418aec74"
+    }
   ]
+  @source_total_byte_count 27_116
 
-  @state_epochs_s [0.0, 1_800.0, 3_600.0, 7_200.0, 10_800.0, 14_400.0, 18_000.0, 21_600.0]
   @horizon_s 21_600.0
   @output_step_s 10.0
   @max_step_s 10.0
+  @state_epochs_s Enum.map(0..2_160, &(&1 * @output_step_s))
   @position_tolerance_m 0.01
   @velocity_tolerance_m_s 0.00001
   @access_tolerance_s 0.001
@@ -70,7 +91,7 @@ defmodule OrbitalDynamics.Validation.ExternalTruth.OrekitLeoCase do
     "event_max_iterations" => "100",
     "event_threshold_s" => "1.0e-9",
     "frame" => "EME2000",
-    "generated_at_utc" => "2026-08-20T08:30:00Z",
+    "generated_at_utc" => "2026-08-20T09:10:00Z",
     "horizon_s" => "21600.0",
     "initial_position_m" => "7000000.0,0.0,0.0",
     "initial_velocity_m_s" => "0.0,4687.21425101214,5913.792592089408",
@@ -84,7 +105,9 @@ defmodule OrbitalDynamics.Validation.ExternalTruth.OrekitLeoCase do
     "spacecraft_drag_area_m2" => "4.0",
     "spacecraft_drag_coefficient" => "2.2",
     "spacecraft_mass_kg" => "120.0",
-    "state_output_epochs_s" => "0.0,1800.0,3600.0,7200.0,10800.0,14400.0,18000.0,21600.0",
+    "state_output_end_s" => "21600.0",
+    "state_output_start_s" => "0.0",
+    "state_output_step_s" => "10.0",
     "station_altitude_m" => "0.0",
     "station_latitude_deg" => "0.0",
     "station_longitude_deg" => "-60.0",
@@ -153,7 +176,7 @@ defmodule OrbitalDynamics.Validation.ExternalTruth.OrekitLeoCase do
       "implementation" => __MODULE__ |> Atom.to_string() |> String.trim_leading("Elixir."),
       "validation_level" => "validated",
       "covered_regime" =>
-        "one Earth/EME2000/TDB J2-plus-simple-exponential-drag RK4 10 s LEO state, spherical constant-rate access, and fixed-Sun cylindrical eclipse case over 0..21600 s",
+        "all 2161 ten-second states for one Earth/EME2000/TDB J2-plus-simple-exponential-drag RK4 LEO case, spherical constant-rate access, and fixed-Sun cylindrical eclipse boundaries over 0..21600 s",
       "tolerances" => %{
         "position_max_component_error_m" => @position_tolerance_m,
         "velocity_max_component_error_m_s" => @velocity_tolerance_m_s,
@@ -260,7 +283,8 @@ defmodule OrbitalDynamics.Validation.ExternalTruth.OrekitLeoCase do
       source_manifest_byte_count: @source_manifest_byte_count,
       result_sha256: @result_sha256,
       result_byte_count: @result_byte_count,
-      source_paths: @source_paths
+      source_files: @source_files,
+      source_total_byte_count: @source_total_byte_count
     }
   end
 
@@ -325,7 +349,7 @@ defmodule OrbitalDynamics.Validation.ExternalTruth.OrekitLeoCase do
       "schema" => "external_numerical_truth_bundle.v1",
       "case_id" => "orekit_13_1_7_earth_j2_drag_rk4_10s_access_eclipse_6h",
       "validation_status" => "validated_external_reference_for_exact_declared_case",
-      "generated_at_utc" => "2026-08-20T08:30:00Z",
+      "generated_at_utc" => "2026-08-20T09:10:00Z",
       "tool_name" => "Apache Orekit",
       "tool_version" => "13.1.7",
       "tool_release_commit" => "cc18cc1",
@@ -353,7 +377,14 @@ defmodule OrbitalDynamics.Validation.ExternalTruth.OrekitLeoCase do
       "velocity_tolerance_m_s" => @velocity_tolerance_m_s,
       "access_tolerance_s" => @access_tolerance_s,
       "eclipse_tolerance_s" => @eclipse_tolerance_s,
-      "state_epoch_count" => 8,
+      "state_output_grid" => %{
+        "starts_at_s" => 0.0,
+        "ends_at_s" => @horizon_s,
+        "step_s" => @output_step_s,
+        "epoch_count" => 2_161,
+        "coverage_policy" => "inclusive_full_horizon_exact_grid"
+      },
+      "state_epoch_count" => 2_161,
       "access_boundary_count" => 4,
       "eclipse_boundary_count" => 8
     }
@@ -399,6 +430,7 @@ defmodule OrbitalDynamics.Validation.ExternalTruth.OrekitLeoCase do
         get_in(manifest, ["tolerances", "access_boundary_absolute_error_s"]),
       "eclipse_tolerance_s" =>
         get_in(manifest, ["tolerances", "eclipse_boundary_absolute_error_s"]),
+      "state_output_grid" => get_in(manifest, ["reference_model", "state_output_grid"]),
       "state_epoch_count" => get_in(manifest, ["output", "state_epoch_count"]),
       "access_boundary_count" => get_in(manifest, ["output", "access_boundary_count"]),
       "eclipse_boundary_count" => get_in(manifest, ["output", "eclipse_boundary_count"])
@@ -449,7 +481,7 @@ defmodule OrbitalDynamics.Validation.ExternalTruth.OrekitLeoCase do
       "schema" => "orekit_external_truth_raw.v1",
       "case_id" => "orekit_13_1_7_earth_j2_drag_rk4_10s_access_eclipse_6h",
       "source_identity_sha256" => @source_manifest_sha256,
-      "generated_at_utc" => "2026-08-20T08:30:00Z",
+      "generated_at_utc" => "2026-08-20T09:10:00Z",
       "tool" => %{
         "name" => "Apache Orekit",
         "version" => "13.1.7",

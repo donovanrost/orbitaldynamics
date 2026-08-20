@@ -134,20 +134,22 @@ equatorial site at -60 degrees longitude and 5 degrees minimum elevation.
 The eclipse model is a spherical cylindrical shadow with a fixed positive
 EME2000 X Sun direction.
 
-The raw result contains Cartesian states at 0, 1800, 3600, 7200, 10800,
-14400, 18000, and 21600 seconds; two complete access intervals; and four
-complete eclipse intervals. The executable verifier runs
+The raw result contains all 2,161 Cartesian states on the inclusive 10 s grid
+from 0 through 21,600 seconds, two complete access intervals, and four complete
+eclipse intervals. The executable verifier compares every state row, runs
 `OrbitalDynamics.Propagators.J2Drag` plus bracketed-bisection access and
 linear-shadow-margin eclipse detection, verifies exact source/config/tool/data
-identity and full 2,161-sample horizon coverage, then applies these tolerances:
+identity and full horizon count/order/exact-epoch coverage, then applies these
+tolerances:
 
 - Position maximum component error: 0.01 m.
 - Velocity maximum component error: 0.00001 m/s.
 - AOS/LOS absolute boundary error: 0.001 s.
 - Eclipse ingress/egress absolute boundary error: 0.05 s.
 
-The checked comparison's maximum residuals are 2.2584572434425354e-7 m,
-3.0831870390102267e-10 m/s, 1.6475805750815198e-6 s, and
+The checked all-sample comparison's maximum residuals are
+3.501772880554199e-7 m, 3.5220182326156646e-10 m/s,
+1.6475805750815198e-6 s, and
 0.025860116904368624 s respectively. The eclipse threshold is intentionally
 larger than the state and access thresholds because the current exact path
 linearly interpolates the shadow margin between 10 s samples; the observed
@@ -156,11 +158,11 @@ approximately 25.9 ms residual is reported rather than hidden.
 The top-level identities are:
 
 - Manifest SHA-256:
-  `23f973308f230daf9c40c9e9d4cd60757bf82b871a48764b5e6dbdd43c6cd131`.
+  `f4dbcf59007ac1552bb447d13aa9166b7846d393e7fc23d1d60a04fa841e91cd`.
 - Source-manifest SHA-256:
-  `f0010176139936bd60aaf37b9569277cd30a22025ba3310216096c2d798b9d37`.
+  `4b6e875b2cbee2c20e83b268c5b07cedeb8c6ff96ce36a2de7dbf9741a217c93`.
 - Raw-result SHA-256:
-  `fe7092587cd9eb8c4e2c51b84462cd795543c7b9ff149ff72c4efc2abe80bb43`.
+  `88f0ab20bd24a78bda74cfa8091f9e0546e85eee0e2c4719bde988ad2c66649f`.
 
 Docker reproduction is:
 
@@ -178,6 +180,13 @@ constant-rotation limitations are part of the registered claim. The evidence
 is independently source-bound and does not depend on the inherited Domain 4
 campaign table, public dataset injection, campaign revision comparisons, or a
 campaign-table SHA.
+
+The bundle loader preflights exact byte counts within immutable checked-in
+per-file and total limits before reading the manifest, result, source manifest,
+generator/config sources, or dependency lock. It rejects symlinks at the
+custom bundle root and at every traversed intermediate or final path component,
+so a byte-identical sibling reached through a symlinked `src` directory is not
+accepted.
 
 This promotes only the exact combined `J2Drag`/access/eclipse case above. It
 does not validate J2-only, two-body-drag, other atmosphere providers or
