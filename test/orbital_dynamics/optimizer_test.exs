@@ -2,6 +2,7 @@ defmodule OrbitalDynamics.OptimizerTest do
   use ExUnit.Case, async: true
 
   alias OrbitalDynamics.{Optimizer, Schema}
+  alias OrbitalDynamics.CampaignPlanner.LocalSearchSelection
 
   test "declares optimizer contract capabilities" do
     assert %{
@@ -12,6 +13,7 @@ defmodule OrbitalDynamics.OptimizerTest do
              local_search_generator: :deterministic_bounded_single_axis_step,
              local_search_deterministic_ordering: local_search_deterministic_ordering,
              local_search_model_limits: local_search_model_limits,
+             local_search_hard_feasibility: local_search_hard_feasibility,
              public_facades: [:explainable_local_search],
              comparison_models: comparison_models,
              deterministic_ordering: deterministic_ordering,
@@ -25,6 +27,32 @@ defmodule OrbitalDynamics.OptimizerTest do
     assert :generation_index_ascending in local_search_deterministic_ordering
     assert "one_neighborhood_generation" in local_search_model_limits
     assert "no_solver_execution" in local_search_model_limits
+
+    assert local_search_hard_feasibility.evidence_registry_contract ==
+             "local_search_source_evidence_registry.v1"
+
+    assert local_search_hard_feasibility.evidence_registry_trust_boundary ==
+             "caller_supplied_trusted_composition_snapshot"
+
+    assert "caller_supplied_trusted_composition_registry_not_authentication" in local_search_hard_feasibility.model_limits
+
+    assert "no_registry_signature_or_authentication" in local_search_hard_feasibility.model_limits
+
+    assert LocalSearchSelection.numeric_policy_keys() == [
+             "target_value_weight",
+             "contact_value_weight",
+             "eclipse_penalty_weight",
+             "downlink_rate_mb_s",
+             "activity_count_penalty",
+             "required_downlink_mb",
+             "downlink_completion_weight",
+             "timeline_precondition_weight",
+             "resource_projection_weight"
+           ]
+
+    assert LocalSearchSelection.selection_contract() ==
+             "v1_outer_local_search_inner_greedy"
+
     assert :score_descending in deterministic_ordering
     assert "source_window" in preserved_lineage_fields
     assert :no_milp_or_cp_sat_solver in known_limits

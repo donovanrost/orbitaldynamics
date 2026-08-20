@@ -19,6 +19,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
 
   alias OrbitalDynamics.CampaignPlanner.{
     BuildOrchestration,
+    LocalSearchSelection,
     ModelLimits,
     RequestIO,
     RepairOrchestration,
@@ -58,6 +59,47 @@ defmodule OrbitalDynamics.CampaignPlanner do
     generated_at = Keyword.get_lazy(opts, :generated_at, &DateTime.utc_now/0)
 
     BuildOrchestration.build(result_set, campaign, generated_at)
+  end
+
+  @doc """
+  Builds a V1 campaign plan through a separate bounded local-search path.
+
+  The `:campaign` and `:local_search` options are required. `:local_search`
+  must be a JSON-safe map containing `steps`, optional JSON-array `bounds`, an
+  optional `id_prefix` and `max_alternatives`, and required typed
+  `hard_feasibility` evidence. The seed and objective are always derived from
+  the campaign and cannot be supplied by the caller.
+
+  This function leaves `build/2` unchanged. It returns a selected campaign plan
+  or `{:no_selected_plan, trace}` when all alternatives are infeasible.
+  """
+  def build_with_local_search(%ResultSet{} = result_set, opts) when is_list(opts) do
+    unless Keyword.keyword?(opts) do
+      raise ArgumentError, "local-search campaign options must be a keyword list"
+    end
+
+    option_keys = Keyword.keys(opts)
+
+    if length(option_keys) != length(Enum.uniq(option_keys)) do
+      raise ArgumentError, "local-search campaign options contain duplicate keys"
+    end
+
+    allowed_keys = [:campaign, :generated_at, :local_search]
+
+    case Enum.find(option_keys, &(&1 not in allowed_keys)) do
+      nil -> :ok
+      key -> raise ArgumentError, "unsupported local-search campaign option #{inspect(key)}"
+    end
+
+    campaign = Keyword.fetch!(opts, :campaign)
+    local_search = Keyword.fetch!(opts, :local_search)
+    generated_at = Keyword.get_lazy(opts, :generated_at, &DateTime.utc_now/0)
+
+    LocalSearchSelection.build(result_set, campaign, generated_at, local_search)
+  end
+
+  def build_with_local_search(%ResultSet{}, _opts) do
+    raise ArgumentError, "local-search campaign options must be a keyword list"
   end
 
   @doc """

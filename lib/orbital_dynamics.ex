@@ -531,6 +531,17 @@ defmodule OrbitalDynamics do
   end
 
   @doc """
+  Builds a V1 campaign plan through the opt-in bounded local-search selector.
+
+  Every alternative is evaluated by the unchanged V1 greedy orchestration. The
+  returned plan carries an optimizer search trace, or the function returns
+  `{:no_selected_plan, trace}` when hard feasibility excludes every alternative.
+  """
+  def campaign_plan_with_local_search(result_set, opts) do
+    CampaignPlanner.build_with_local_search(result_set, opts)
+  end
+
+  @doc """
   Builds a V2 rolling campaign-repair artifact.
   """
   def campaign_repair(request) do

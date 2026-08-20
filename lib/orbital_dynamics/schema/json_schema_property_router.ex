@@ -81,6 +81,10 @@ defmodule OrbitalDynamics.Schema.JsonSchemaPropertyRouter do
     )
   end
 
+  def property(field, "campaign_plan_search_trace.v1", _contract, context) do
+    OrbitalDynamics.Schema.CampaignPlanSearchTraceJsonSchema.property_from_context(field, context)
+  end
+
   def property(field, "campaign_repair.v2" = contract_name, contract, context) do
     CampaignArtifactPropertyRouter.property(
       field,
