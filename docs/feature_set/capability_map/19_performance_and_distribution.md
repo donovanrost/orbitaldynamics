@@ -29,7 +29,11 @@ Status: **implemented** (with **partial**, **near-term**, **later**, and **out o
 - Retry execution plans that preserve source-manifest scenario order and indexes,
   source run identity, and source-artifact path/SHA provenance while carrying the
   original manifest seeds, assumptions, and study metadata into the retry run.
-- Top-level `model_limits` for the non-resumable artifact-summary boundary, with executable validation against `OrbitalDynamics.ResultSet.Artifact.execution_report_model_limits/0`.
+- Exact mode-specific top-level `model_limits`: ordinary reports retain the
+  original non-resumable/no-retry list, while explicit retry batches declare
+  failed-scenario retry, no checkpoint resume, no source-result merge, no
+  persistent queue, and no automatic retry. Executable validation requires the
+  list and assumptions to match the execution plan.
 - Explicit external-provider policy metadata declaring whether the run was offline-only or had configured provider boundaries.
 
 ### Standalone fixture

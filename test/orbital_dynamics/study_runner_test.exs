@@ -464,6 +464,19 @@ defmodule OrbitalDynamics.StudyRunnerTest do
     assert artifact.execution_report.failed_scenario_count == 0
     assert artifact.execution_report.execution_plan["resumability"] == "failed_scenario_retry"
 
+    assert artifact.execution_report.model_limits ==
+             OrbitalDynamics.ResultSet.Artifact.retry_execution_report_model_limits()
+
+    refute "not_resumable" in artifact.execution_report.model_limits
+    refute "failed_scenarios_are_reported_not_retried" in artifact.execution_report.model_limits
+
+    assert artifact.execution_report.assumptions.resumability == "failed_scenario_retry"
+    assert artifact.execution_report.assumptions.retry_scope == "failed_scenarios_only"
+    assert artifact.execution_report.assumptions.checkpoint_resume == false
+    assert artifact.execution_report.assumptions.source_results_merged == false
+    assert artifact.execution_report.assumptions.persistent_queue == false
+    assert artifact.execution_report.assumptions.automatic_retry == false
+
     assert artifact.execution_report.execution_plan["retry"]["scenario_indexes"] == [0, 2]
 
     assert {:ok, %{"schema_contract" => "result_artifact.v1"}} =

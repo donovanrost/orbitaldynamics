@@ -572,6 +572,8 @@ defmodule OrbitalDynamics.ResultSet.Artifact do
     errors = Enum.map(result_set.errors, &encode_value/1)
     completed_scenario_count = length(result_set.trajectory_results)
     failed_scenario_count = length(errors)
+    model_limits = execution_report_model_limits(run_metadata)
+    assumptions = execution_report_assumptions(run_metadata)
 
     Map.put(artifact, :execution_report, %{
       schema_contract: "execution_report.v1",
@@ -585,7 +587,7 @@ defmodule OrbitalDynamics.ResultSet.Artifact do
       completed_scenario_count: completed_scenario_count,
       failed_scenario_count: failed_scenario_count,
       event_result_count: length(result_set.event_results),
-      model_limits: execution_report_model_limits(),
+      model_limits: model_limits,
       batch_propagation: Map.get(run_metadata, "batch_propagation"),
       task_chunk_size: get_in(run || %{}, ["options", "task_chunk_size"]),
       timeout: get_in(run || %{}, ["options", "timeout"]),
@@ -597,13 +599,7 @@ defmodule OrbitalDynamics.ResultSet.Artifact do
       node_distribution:
         node_distribution(result_set.trajectory_results, errors, Map.get(run || %{}, "node")),
       failed_scenarios: failed_scenarios(errors),
-      assumptions: %{
-        backend_selection_policy: Map.get(run_metadata, "backend_selection_policy"),
-        external_provider_policy: Map.get(run_metadata, "external_provider_policy"),
-        source: "study_run_metadata",
-        purpose: "failure_isolation_and_long_running_execution_review",
-        resumability: "not_resumable"
-      }
+      assumptions: assumptions
     })
   end
 
@@ -617,6 +613,72 @@ defmodule OrbitalDynamics.ResultSet.Artifact do
       "no_persistent_queue",
       "failed_scenarios_are_reported_not_retried"
     ]
+  end
+
+  @doc """
+  Returns the declared model limits for an explicit failed-scenario retry batch.
+  """
+  def retry_execution_report_model_limits do
+    [
+      "artifact_level_execution_summary",
+      "failed_scenario_retry_batch",
+      "no_checkpoint_resume",
+      "no_persistent_queue",
+      "source_results_are_not_merged",
+      "failed_scenarios_are_not_automatically_retried"
+    ]
+  end
+
+  @doc """
+  Returns the exact execution-report model limits for a report or run metadata map.
+  """
+  def execution_report_model_limits(report_or_run_metadata) when is_map(report_or_run_metadata) do
+    if failed_scenario_retry?(report_or_run_metadata) do
+      retry_execution_report_model_limits()
+    else
+      execution_report_model_limits()
+    end
+  end
+
+  @doc """
+  Returns every execution-report model-limit value accepted by JSON Schema.
+  """
+  def execution_report_model_limit_values do
+    Enum.uniq(execution_report_model_limits() ++ retry_execution_report_model_limits())
+  end
+
+  defp execution_report_assumptions(run_metadata) do
+    assumptions = %{
+      backend_selection_policy: Map.get(run_metadata, "backend_selection_policy"),
+      external_provider_policy: Map.get(run_metadata, "external_provider_policy"),
+      source: "study_run_metadata",
+      purpose: "failure_isolation_and_long_running_execution_review",
+      resumability: "not_resumable"
+    }
+
+    if failed_scenario_retry?(run_metadata) do
+      Map.merge(assumptions, %{
+        resumability: "failed_scenario_retry",
+        retry_scope: "failed_scenarios_only",
+        checkpoint_resume: false,
+        source_results_merged: false,
+        persistent_queue: false,
+        automatic_retry: false
+      })
+    else
+      assumptions
+    end
+  end
+
+  defp failed_scenario_retry?(report_or_run_metadata) do
+    execution_plan =
+      Map.get(report_or_run_metadata, "execution_plan") ||
+        Map.get(report_or_run_metadata, :execution_plan) || %{}
+
+    resumability =
+      Map.get(execution_plan, "resumability") || Map.get(execution_plan, :resumability)
+
+    resumability == "failed_scenario_retry"
   end
 
   defp encoded_run(%{run: run}), do: encode_value(run)

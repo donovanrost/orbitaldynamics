@@ -106,6 +106,66 @@ defmodule OrbitalDynamics.Schema.ExecutionReproducibilityContractsTest do
            } = report
   end
 
+  test "validates explicit failed-scenario retry limits and assumptions" do
+    report = %{
+      "schema_contract" => "execution_report.v1",
+      "study_id" => "retry_study",
+      "run_id" => "retry-run",
+      "status" => "completed",
+      "execution_mode" => "local_tasks",
+      "scenario_count" => 2,
+      "completed_scenario_count" => 2,
+      "failed_scenario_count" => 0,
+      "event_result_count" => 0,
+      "model_limits" => OrbitalDynamics.ResultSet.Artifact.retry_execution_report_model_limits(),
+      "execution_plan" => %{
+        "scenario_count" => 2,
+        "resumability" => "failed_scenario_retry",
+        "retry" => %{
+          "mode" => "failed_scenario_retry",
+          "scenario_indexes" => [0, 2]
+        }
+      },
+      "failed_scenarios" => [],
+      "assumptions" => %{
+        "source" => "study_run_metadata",
+        "resumability" => "failed_scenario_retry",
+        "retry_scope" => "failed_scenarios_only",
+        "checkpoint_resume" => false,
+        "source_results_merged" => false,
+        "persistent_queue" => false,
+        "automatic_retry" => false
+      }
+    }
+
+    assert {:ok, %{"schema_contract" => "execution_report.v1"}} =
+             Schema.validate_artifact(report)
+
+    invalid_limits =
+      Map.put(
+        report,
+        "model_limits",
+        OrbitalDynamics.ResultSet.Artifact.execution_report_model_limits()
+      )
+
+    assert {:error, limits_report} = Schema.validate_artifact(invalid_limits)
+    assert Enum.any?(limits_report["errors"], &(&1["path"] == "$.model_limits"))
+
+    invalid_assumptions = put_in(report, ["assumptions", "resumability"], "not_resumable")
+
+    assert {:error, assumptions_report} = Schema.validate_artifact(invalid_assumptions)
+
+    assert Enum.any?(
+             assumptions_report["errors"],
+             &(&1["path"] == "$.assumptions.resumability")
+           )
+
+    invalid_plan = update_in(report, ["execution_plan"], &Map.delete(&1, "retry"))
+
+    assert {:error, plan_report} = Schema.validate_artifact(invalid_plan)
+    assert Enum.any?(plan_report["errors"], &(&1["path"] == "$.execution_plan.retry"))
+  end
+
   test "exports nested execution failure row schema" do
     assert {:ok, schema} = Schema.json_schema("execution_report.v1")
 
@@ -148,7 +208,12 @@ defmodule OrbitalDynamics.Schema.ExecutionReproducibilityContractsTest do
            ]
 
     assert get_in(schema, ["properties", "model_limits", "items", "enum"]) ==
-             OrbitalDynamics.ResultSet.Artifact.execution_report_model_limits()
+             OrbitalDynamics.ResultSet.Artifact.execution_report_model_limit_values()
+
+    assert Enum.all?(
+             OrbitalDynamics.ResultSet.Artifact.retry_execution_report_model_limits(),
+             &(&1 in get_in(schema, ["properties", "model_limits", "items", "enum"]))
+           )
 
     assert get_in(schema, ["properties", "execution_plan", "type"]) == "object"
   end

@@ -65,15 +65,21 @@ defmodule OrbitalDynamics.ResultSet.ArtifactTest do
     assert artifact.execution_report.completed_scenario_count == 1
     assert artifact.execution_report.failed_scenario_count == 0
     assert artifact.execution_report.event_result_count == 2
-    assert "artifact_level_execution_summary" in artifact.execution_report.model_limits
-    assert "not_resumable" in artifact.execution_report.model_limits
-    assert "no_persistent_queue" in artifact.execution_report.model_limits
-    assert "failed_scenarios_are_reported_not_retried" in artifact.execution_report.model_limits
+
+    assert artifact.execution_report.model_limits == [
+             "artifact_level_execution_summary",
+             "not_resumable",
+             "no_persistent_queue",
+             "failed_scenarios_are_reported_not_retried"
+           ]
+
+    assert artifact.execution_report.model_limits == Artifact.execution_report_model_limits()
     assert artifact.execution_report.execution_plan["scenario_count"] == 1
     assert artifact.execution_report.execution_plan["task_batch_count"] == 1
     assert artifact.execution_report.execution_plan["resumability"] == "not_resumable"
     assert artifact.execution_report.failed_scenarios == []
     assert artifact.execution_report.assumptions.resumability == "not_resumable"
+    refute Map.has_key?(artifact.execution_report.assumptions, :retry_scope)
 
     assert artifact.execution_report.assumptions.backend_selection_policy[
              "backend_acceptance_policy"

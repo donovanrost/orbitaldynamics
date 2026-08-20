@@ -19,7 +19,10 @@ propagation outputs plus run metadata:
   retry artifact preserves seeds and assumptions, records source path/SHA/run
   provenance, and contains only retry-batch results with their original source
   indexes. It does not merge completed source results or provide checkpoint
-  resume.
+  resume. Its execution-report assumptions and model limits identify it as an
+  explicit failed-scenario retry batch and state that source results are not
+  merged, no persistent queue exists, and failed rows are not retried
+  automatically; ordinary reports retain their existing non-resumable defaults.
 - `run`, `execution_report`, and `payload_metrics`
 - `assumptions`, including backend, provider, validation, and environment model
   declarations. `external_provider_policy` is semantically linted so offline

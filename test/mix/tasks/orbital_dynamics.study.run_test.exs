@@ -292,6 +292,26 @@ defmodule Mix.Tasks.OrbitalDynamics.Study.RunTest do
     assert retry_artifact["execution_report"]["scenario_count"] == 2
     assert retry_artifact["execution_report"]["failed_scenario_count"] == 2
 
+    assert retry_artifact["execution_report"]["model_limits"] ==
+             OrbitalDynamics.ResultSet.Artifact.retry_execution_report_model_limits()
+
+    assert retry_artifact["execution_report"]["assumptions"]
+           |> Map.take([
+             "resumability",
+             "retry_scope",
+             "checkpoint_resume",
+             "source_results_merged",
+             "persistent_queue",
+             "automatic_retry"
+           ]) == %{
+             "resumability" => "failed_scenario_retry",
+             "retry_scope" => "failed_scenarios_only",
+             "checkpoint_resume" => false,
+             "source_results_merged" => false,
+             "persistent_queue" => false,
+             "automatic_retry" => false
+           }
+
     assert Enum.map(
              retry_artifact["execution_report"]["failed_scenarios"],
              & &1["scenario_index"]
@@ -303,6 +323,11 @@ defmodule Mix.Tasks.OrbitalDynamics.Study.RunTest do
     assert retry_artifact["execution_report"]["execution_plan"]["retry"][
              "scenario_indexes"
            ] == [1, 3]
+
+    assert {:ok, %{"schema_contract" => "result_artifact.v1"}} =
+             OrbitalDynamics.Schema.validate_artifact(retry_artifact,
+               contract: "result_artifact.v1"
+             )
 
     assert File.read!(source_path) == source_json
   end
