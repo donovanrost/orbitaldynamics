@@ -166,6 +166,81 @@ defmodule OrbitalDynamics.Schema.ExecutionReproducibilityContractsTest do
     assert Enum.any?(plan_report["errors"], &(&1["path"] == "$.execution_plan.retry"))
   end
 
+  test "validates local checkpoint reuse limits, identities, and exact counts" do
+    checkpoint = %{
+      "schema_contract" => "study_checkpoint.v1",
+      "schema_version" => 1,
+      "checkpoint_path" => "/tmp/local-study.checkpoint.json",
+      "checkpoint_sha256" => String.duplicate("a", 64),
+      "checkpoint_mode" => "resume",
+      "ordering" => "source_manifest_scenario_order",
+      "scenario_count" => 4,
+      "reused_scenario_count" => 2,
+      "run_scenario_count" => 2,
+      "reused_scenario_indexes" => [0, 1],
+      "run_scenario_indexes" => [2, 3],
+      "completed_scenario_count" => 4,
+      "completed_chunk_count" => 2,
+      "run_completed_chunk_count" => 1,
+      "checkpoint_chunk_size" => 2,
+      "manifest_sha256" => String.duplicate("b", 64),
+      "study_sha256" => String.duplicate("c", 64),
+      "model_sha256" => String.duplicate("d", 64),
+      "run_options_sha256" => String.duplicate("e", 64)
+    }
+
+    report = %{
+      "schema_contract" => "execution_report.v1",
+      "study_id" => "checkpoint_study",
+      "run_id" => "checkpoint-run",
+      "status" => "completed",
+      "execution_mode" => "local_tasks",
+      "scenario_count" => 4,
+      "completed_scenario_count" => 4,
+      "failed_scenario_count" => 0,
+      "event_result_count" => 0,
+      "model_limits" =>
+        OrbitalDynamics.ResultSet.Artifact.checkpoint_execution_report_model_limits(),
+      "execution_plan" => %{
+        "scenario_count" => 4,
+        "resumability" => "local_checkpoint_resume",
+        "checkpoint" => checkpoint
+      },
+      "failed_scenarios" => [],
+      "assumptions" => %{
+        "source" => "study_run_metadata",
+        "resumability" => "local_checkpoint_resume",
+        "checkpoint_resume" => true,
+        "checkpoint_scope" => "completed_scenario_propagation_outcomes",
+        "checkpoint_results_reused" => true,
+        "within_scenario_checkpoint" => false,
+        "distributed_recovery" => false,
+        "batch_recovery" => false,
+        "persistent_queue" => false,
+        "automatic_retry" => false
+      }
+    }
+
+    assert {:ok, %{"schema_contract" => "execution_report.v1"}} =
+             Schema.validate_artifact(report)
+
+    invalid_counts = put_in(report, ["execution_plan", "checkpoint", "run_scenario_count"], 3)
+    assert {:error, counts_report} = Schema.validate_artifact(invalid_counts)
+
+    assert Enum.any?(
+             counts_report["errors"],
+             &(&1["path"] == "$.execution_plan.checkpoint")
+           )
+
+    invalid_boundary = put_in(report, ["assumptions", "automatic_retry"], true)
+    assert {:error, boundary_report} = Schema.validate_artifact(invalid_boundary)
+
+    assert Enum.any?(
+             boundary_report["errors"],
+             &(&1["path"] == "$.assumptions.automatic_retry")
+           )
+  end
+
   test "exports nested execution failure row schema" do
     assert {:ok, schema} = Schema.json_schema("execution_report.v1")
 
@@ -212,6 +287,11 @@ defmodule OrbitalDynamics.Schema.ExecutionReproducibilityContractsTest do
 
     assert Enum.all?(
              OrbitalDynamics.ResultSet.Artifact.retry_execution_report_model_limits(),
+             &(&1 in get_in(schema, ["properties", "model_limits", "items", "enum"]))
+           )
+
+    assert Enum.all?(
+             OrbitalDynamics.ResultSet.Artifact.checkpoint_execution_report_model_limits(),
              &(&1 in get_in(schema, ["properties", "model_limits", "items", "enum"]))
            )
 

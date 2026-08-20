@@ -11,6 +11,20 @@ propagation outputs plus run metadata:
   `result_artifact.v1`, matches the manifest SHA, and matches the requested
   run ID when one is supplied; the same reusable preflight is exposed as
   `OrbitalDynamics.ResultSet.Artifact.resume_check/2`
+- opt-in interrupted local execution through `--checkpoint PATH` followed by
+  `--resume-checkpoint PATH`. The separate `study_checkpoint.v1` stores the full
+  ordered manifest index/ID identity and completed per-scenario propagation
+  outcomes. Its deterministic manifest/study/model/run-option hashes,
+  checkpoint-level content hash, and per-entry payload hashes are all validated
+  before reuse. Writes use a synced same-directory temporary file plus atomic
+  rename, so a failed replacement leaves the prior durable checkpoint usable.
+  Resume runs only missing indexes and emits the exact reused/run partition and
+  checkpoint path/SHA provenance in the final run and execution report.
+  Checkpoint payload decoding uses the Erlang safe-term mode. Output/checkpoint
+  aliases, stale/corrupt/duplicate/missing/mismatched rows, distributed task
+  supervisors, and batch propagation are rejected. This is between-scenario
+  local recovery only: no automatic retry, persistent queue, within-scenario
+  checkpoint, distributed recovery, or planner mutation is implied.
 - explicit failed-scenario retry through
   `mix orbital_dynamics.study.run --retry-failed-from SOURCE --output NEW`; the
   source must pass the same result-artifact, study-ID, and manifest-SHA

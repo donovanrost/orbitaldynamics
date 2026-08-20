@@ -130,6 +130,11 @@ The `study_manifest.v1` JSON Schema export includes nested coverage for:
   only its failed scenario IDs/indexes in source-manifest order, records source
   path/SHA/run provenance, and requires a separate output so failure evidence is
   not overwritten. It is mutually exclusive with checked-artifact `--resume`.
+- **`mix orbital_dynamics.study.run --checkpoint PATH`** creates an opt-in local
+  between-scenario checkpoint; **`--resume-checkpoint PATH`** integrity-checks
+  and reuses completed outcomes, runs only missing manifest indexes, and reports
+  exact reuse/run counts. Both are separate from whole-artifact resume and
+  failed-scenario retry, and reject batch/distributed modes and output aliases.
 - **`mix orbital_dynamics.schema.export --all --directory`** supports checked-in per-contract schema refreshes.
 - **`mix orbital_dynamics.policy.export`** refreshes the complete checked-in built-in policy bundle fixture set.
 - **`mix orbital_dynamics.capabilities --format json`** exposes the same public capability catalog artifact for automation without hand-written `mix run -e` wrappers.

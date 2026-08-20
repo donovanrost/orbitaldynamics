@@ -104,6 +104,86 @@ defmodule OrbitalDynamics.Schema.ExecutionReportContracts do
     assumptions = Map.get(artifact, "assumptions")
 
     case {execution_plan, assumptions} do
+      {%{"resumability" => "local_checkpoint_resume"} = plan, %{} = checkpoint_assumptions} ->
+        issues
+        |> require_fields("#{path}.execution_plan", plan, ["checkpoint"])
+        |> expect_type("#{path}.execution_plan", plan, "checkpoint", :map)
+        |> validate_checkpoint_plan(path, plan)
+        |> require_fields("#{path}.assumptions", checkpoint_assumptions, [
+          "resumability",
+          "checkpoint_resume",
+          "checkpoint_scope",
+          "checkpoint_results_reused",
+          "within_scenario_checkpoint",
+          "distributed_recovery",
+          "batch_recovery",
+          "persistent_queue",
+          "automatic_retry"
+        ])
+        |> expect_field_equals(
+          "#{path}.assumptions",
+          checkpoint_assumptions,
+          "resumability",
+          "local_checkpoint_resume",
+          "must match execution_plan.resumability"
+        )
+        |> expect_field_equals(
+          "#{path}.assumptions",
+          checkpoint_assumptions,
+          "checkpoint_resume",
+          get_in(plan, ["checkpoint", "checkpoint_mode"]) == "resume",
+          "must match whether this invocation resumed a checkpoint"
+        )
+        |> expect_field_equals(
+          "#{path}.assumptions",
+          checkpoint_assumptions,
+          "checkpoint_scope",
+          "completed_scenario_propagation_outcomes",
+          "must describe the between-scenario checkpoint scope"
+        )
+        |> expect_field_equals(
+          "#{path}.assumptions",
+          checkpoint_assumptions,
+          "checkpoint_results_reused",
+          checkpoint_results_reused?(plan),
+          "must match the completed checkpoint reuse count"
+        )
+        |> expect_field_equals(
+          "#{path}.assumptions",
+          checkpoint_assumptions,
+          "within_scenario_checkpoint",
+          false,
+          "must remain false for the local checkpoint contract"
+        )
+        |> expect_field_equals(
+          "#{path}.assumptions",
+          checkpoint_assumptions,
+          "distributed_recovery",
+          false,
+          "must remain false for the local checkpoint contract"
+        )
+        |> expect_field_equals(
+          "#{path}.assumptions",
+          checkpoint_assumptions,
+          "batch_recovery",
+          false,
+          "must remain false for the local checkpoint contract"
+        )
+        |> expect_field_equals(
+          "#{path}.assumptions",
+          checkpoint_assumptions,
+          "persistent_queue",
+          false,
+          "must remain false for checkpoint recovery"
+        )
+        |> expect_field_equals(
+          "#{path}.assumptions",
+          checkpoint_assumptions,
+          "automatic_retry",
+          false,
+          "must remain false for checkpoint recovery"
+        )
+
       {%{"resumability" => "failed_scenario_retry"} = plan, %{} = retry_assumptions} ->
         issues
         |> require_fields("#{path}.execution_plan", plan, ["retry"])
@@ -173,6 +253,205 @@ defmodule OrbitalDynamics.Schema.ExecutionReportContracts do
         issues
     end
   end
+
+  defp validate_checkpoint_plan(issues, path, plan) do
+    checkpoint = Map.get(plan, "checkpoint")
+
+    case checkpoint do
+      %{} ->
+        issues
+        |> require_fields("#{path}.execution_plan.checkpoint", checkpoint, [
+          "schema_contract",
+          "schema_version",
+          "checkpoint_path",
+          "checkpoint_sha256",
+          "checkpoint_mode",
+          "ordering",
+          "scenario_count",
+          "reused_scenario_count",
+          "run_scenario_count",
+          "reused_scenario_indexes",
+          "run_scenario_indexes",
+          "completed_scenario_count",
+          "completed_chunk_count",
+          "run_completed_chunk_count",
+          "checkpoint_chunk_size",
+          "manifest_sha256",
+          "study_sha256",
+          "model_sha256",
+          "run_options_sha256"
+        ])
+        |> expect_field_equals(
+          "#{path}.execution_plan.checkpoint",
+          checkpoint,
+          "schema_contract",
+          "study_checkpoint.v1",
+          "must identify the local study checkpoint contract"
+        )
+        |> expect_field_equals(
+          "#{path}.execution_plan.checkpoint",
+          checkpoint,
+          "schema_version",
+          1,
+          "must use checkpoint schema version 1"
+        )
+        |> expect_one_of(
+          "#{path}.execution_plan.checkpoint",
+          checkpoint,
+          "checkpoint_mode",
+          ["create", "resume"]
+        )
+        |> expect_field_equals(
+          "#{path}.execution_plan.checkpoint",
+          checkpoint,
+          "ordering",
+          "source_manifest_scenario_order",
+          "must preserve source manifest scenario order"
+        )
+        |> expect_type(
+          "#{path}.execution_plan.checkpoint",
+          checkpoint,
+          "checkpoint_path",
+          :binary
+        )
+        |> expect_type(
+          "#{path}.execution_plan.checkpoint",
+          checkpoint,
+          "checkpoint_sha256",
+          :binary
+        )
+        |> expect_type(
+          "#{path}.execution_plan.checkpoint",
+          checkpoint,
+          "reused_scenario_indexes",
+          :list
+        )
+        |> expect_type(
+          "#{path}.execution_plan.checkpoint",
+          checkpoint,
+          "run_scenario_indexes",
+          :list
+        )
+        |> expect_non_negative_integer(
+          "#{path}.execution_plan.checkpoint",
+          checkpoint,
+          "scenario_count"
+        )
+        |> expect_non_negative_integer(
+          "#{path}.execution_plan.checkpoint",
+          checkpoint,
+          "reused_scenario_count"
+        )
+        |> expect_non_negative_integer(
+          "#{path}.execution_plan.checkpoint",
+          checkpoint,
+          "run_scenario_count"
+        )
+        |> expect_non_negative_integer(
+          "#{path}.execution_plan.checkpoint",
+          checkpoint,
+          "completed_scenario_count"
+        )
+        |> expect_non_negative_integer(
+          "#{path}.execution_plan.checkpoint",
+          checkpoint,
+          "completed_chunk_count"
+        )
+        |> expect_non_negative_integer(
+          "#{path}.execution_plan.checkpoint",
+          checkpoint,
+          "run_completed_chunk_count"
+        )
+        |> expect_non_negative_integer(
+          "#{path}.execution_plan.checkpoint",
+          checkpoint,
+          "checkpoint_chunk_size"
+        )
+        |> validate_checkpoint_hashes(path, checkpoint)
+        |> validate_checkpoint_plan_counts(path, plan, checkpoint)
+
+      _value ->
+        issues
+    end
+  end
+
+  defp checkpoint_results_reused?(plan) do
+    case get_in(plan, ["checkpoint", "reused_scenario_count"]) do
+      count when is_integer(count) -> count > 0
+      _value -> false
+    end
+  end
+
+  defp validate_checkpoint_hashes(issues, path, checkpoint) do
+    [
+      "checkpoint_sha256",
+      "manifest_sha256",
+      "study_sha256",
+      "model_sha256",
+      "run_options_sha256"
+    ]
+    |> Enum.reduce(issues, fn field, field_issues ->
+      case Map.get(checkpoint, field) do
+        <<value::binary-size(64)>> ->
+          if String.match?(value, ~r/^[0-9a-f]+$/) do
+            field_issues
+          else
+            [
+              error("#{path}.execution_plan.checkpoint.#{field}", "must be lowercase SHA-256")
+              | field_issues
+            ]
+          end
+
+        _value ->
+          [
+            error("#{path}.execution_plan.checkpoint.#{field}", "must be lowercase SHA-256")
+            | field_issues
+          ]
+      end
+    end)
+  end
+
+  defp validate_checkpoint_plan_counts(issues, path, plan, checkpoint) do
+    scenario_count = Map.get(checkpoint, "scenario_count")
+    reused_count = Map.get(checkpoint, "reused_scenario_count")
+    run_count = Map.get(checkpoint, "run_scenario_count")
+    completed_count = Map.get(checkpoint, "completed_scenario_count")
+    reused_indexes = Map.get(checkpoint, "reused_scenario_indexes")
+    run_indexes = Map.get(checkpoint, "run_scenario_indexes")
+    completed_chunk_count = Map.get(checkpoint, "completed_chunk_count")
+    run_completed_chunk_count = Map.get(checkpoint, "run_completed_chunk_count")
+    checkpoint_chunk_size = Map.get(checkpoint, "checkpoint_chunk_size")
+
+    valid_partition? =
+      is_integer(scenario_count) and scenario_count >= 0 and is_integer(reused_count) and
+        is_integer(run_count) and is_integer(completed_count) and is_list(reused_indexes) and
+        is_list(run_indexes) and length(reused_indexes) == reused_count and
+        length(run_indexes) == run_count and reused_count + run_count == scenario_count and
+        completed_count == scenario_count and Map.get(plan, "scenario_count") == scenario_count and
+        Enum.sort(reused_indexes ++ run_indexes) == scenario_indexes(scenario_count) and
+        is_integer(completed_chunk_count) and completed_chunk_count >= 0 and
+        is_integer(run_completed_chunk_count) and run_completed_chunk_count >= 0 and
+        run_completed_chunk_count <= completed_chunk_count and
+        ((run_count == 0 and run_completed_chunk_count == 0) or
+           (run_count > 0 and run_completed_chunk_count > 0)) and
+        is_integer(checkpoint_chunk_size) and
+        checkpoint_chunk_size > 0
+
+    if valid_partition? do
+      issues
+    else
+      [
+        error(
+          "#{path}.execution_plan.checkpoint",
+          "reuse and run rows must partition the execution plan scenarios exactly"
+        )
+        | issues
+      ]
+    end
+  end
+
+  defp scenario_indexes(0), do: []
+  defp scenario_indexes(count), do: Enum.to_list(0..(count - 1))
 
   defp validate_counts(issues, path, artifact) do
     issues
