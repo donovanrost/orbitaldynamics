@@ -48,7 +48,9 @@ defmodule OrbitalDynamics.Schema.AuthorityContextContracts do
         ]
 
       true ->
-        validate_context_evaluation(issues, path, context, evaluation)
+        issues
+        |> validate_failed_context_absence(path, field, context_present?, evaluation)
+        |> validate_context_evaluation(path, context, evaluation)
     end
   end
 
@@ -105,8 +107,10 @@ defmodule OrbitalDynamics.Schema.AuthorityContextContracts do
 
     issues
     |> validate_optional(path, row)
+    |> validate_retained_source_shapes(path, row)
     |> validate_nested_authority_root(path, row)
     |> validate_overall_eligibility(path, row, classification)
+    |> validate_required_cadence_strategy_sources(path, row)
     |> validate_retained_recommendation(path, row)
     |> validate_retained_branch_decision(path, row)
     |> validate_import_row_readiness(path, row)
@@ -118,8 +122,10 @@ defmodule OrbitalDynamics.Schema.AuthorityContextContracts do
 
     issues
     |> validate_optional(path, row)
+    |> validate_retained_source_shapes(path, row)
     |> validate_nested_authority_root(path, row)
     |> validate_overall_eligibility(path, row, classification)
+    |> validate_required_review_strategy_source(path, row)
     |> validate_retained_recommendation(path, row)
   end
 
@@ -205,6 +211,7 @@ defmodule OrbitalDynamics.Schema.AuthorityContextContracts do
           "enum" => [
             "authority_context_valid",
             "ambiguous_authority_context_options",
+            "invalid_authority_context_options",
             "missing_authority_context_mode",
             "invalid_authority_context_mode",
             "missing_authority_context",
@@ -241,7 +248,8 @@ defmodule OrbitalDynamics.Schema.AuthorityContextContracts do
             "authority_context_mode_supplied" => %{"type" => "boolean"},
             "authority_context_supplied" => %{"type" => "boolean"},
             "provided_authority_context_mode" => %{"type" => "object"},
-            "provided_authority_context" => %{"type" => "object"}
+            "provided_authority_context" => %{"type" => "object"},
+            "provided_options" => %{"type" => "object"}
           }
         },
         "validation_errors" => %{"type" => "array", "items" => %{"type" => "object"}}
@@ -276,6 +284,135 @@ defmodule OrbitalDynamics.Schema.AuthorityContextContracts do
 
   defp validate_context_value(issues, path, _context),
     do: [error(path, "must be an object") | issues]
+
+  defp validate_failed_context_absence(
+         issues,
+         path,
+         field,
+         true,
+         %{"outcome" => "blocked_by_policy"}
+       ) do
+    [error("#{path}.#{field}", "must be absent for a failed authority evaluation") | issues]
+  end
+
+  defp validate_failed_context_absence(
+         issues,
+         _path,
+         _field,
+         _context_present?,
+         _evaluation
+       ),
+       do: issues
+
+  defp validate_retained_source_shapes(issues, path, row) do
+    issues
+    |> validate_optional_retained_map(path, row, "source_branch_comparison")
+    |> validate_optional_retained_map(path, row, "source_recommendation")
+    |> validate_source_review_row_shape(path, row)
+  end
+
+  defp validate_optional_retained_map(issues, path, row, field) do
+    if Map.has_key?(row, field) and not is_map(row[field]) do
+      [error("#{path}.#{field}", "must be an object when present") | issues]
+    else
+      issues
+    end
+  end
+
+  defp validate_source_review_row_shape(issues, path, row) do
+    case Map.fetch(row, "source_review_row") do
+      :error ->
+        issues
+
+      {:ok, %{} = source_review_row} ->
+        validate_optional_retained_map(
+          issues,
+          path <> ".source_review_row",
+          source_review_row,
+          "source_recommendation"
+        )
+
+      {:ok, _source_review_row} ->
+        [error(path <> ".source_review_row", "must be an object when present") | issues]
+    end
+  end
+
+  defp validate_required_review_strategy_source(issues, path, row) do
+    if authority_bearing_strategy_row?(row) and
+         row["review_type"] == "strategy_recommendation" and
+         not authoritative_recommendation?(retained_recommendation(row)) do
+      [
+        error(
+          path <> ".source_recommendation",
+          "is required as authoritative retained evidence for an authority-bearing strategy row"
+        )
+        | issues
+      ]
+    else
+      issues
+    end
+  end
+
+  defp validate_required_cadence_strategy_sources(issues, path, row) do
+    if authority_bearing_strategy_row?(row) and cadence_strategy_row?(row) do
+      issues
+      |> require_authoritative_recommendation(path, row)
+      |> require_branch_comparison_source(path, row)
+    else
+      issues
+    end
+  end
+
+  defp require_authoritative_recommendation(issues, path, row) do
+    if authoritative_recommendation?(retained_recommendation(row)) do
+      issues
+    else
+      [
+        error(
+          path <> ".source_recommendation",
+          "is required as authoritative retained evidence for an authority-bearing strategy row"
+        )
+        | issues
+      ]
+    end
+  end
+
+  defp require_branch_comparison_source(issues, path, row) do
+    source = retained_branch_comparison(row)
+
+    if map_size(source) > 0 and is_binary(source["approval_status"]) do
+      issues
+    else
+      [
+        error(
+          path <> ".source_branch_comparison",
+          "is required as authoritative retained evidence for an authority-bearing strategy row"
+        )
+        | issues
+      ]
+    end
+  end
+
+  defp authoritative_recommendation?(recommendation) do
+    map_size(recommendation) > 0 and
+      is_binary(recommendation["approval_status"]) and
+      is_binary(recommendation["eligibility_status"]) and
+      is_map(recommendation["authority_context_evaluation"])
+  end
+
+  defp authority_bearing_strategy_row?(row) do
+    Map.has_key?(row, "eligibility_status") or
+      Map.has_key?(row, "authority_context") or
+      Map.has_key?(row, "authority_context_evaluation")
+  end
+
+  defp cadence_strategy_row?(row) do
+    row["source_review_type"] == "strategy_branch_comparison" or
+      row["import_action"] in [
+        "import_strategy_recommendation",
+        "review_strategy_branch_alternative"
+      ]
+  end
 
   defp validate_nested_authority_root(issues, path, artifact) do
     if contains_nested_authority_evidence?(artifact) do
@@ -514,7 +651,9 @@ defmodule OrbitalDynamics.Schema.AuthorityContextContracts do
   defp expected_retained_import_status(row) do
     source = retained_branch_comparison(row)
 
-    if row["source_review_type"] == "strategy_branch_comparison" and map_size(source) > 0 do
+    if authority_bearing_strategy_row?(row) and
+         row["source_review_type"] == "strategy_branch_comparison" and
+         map_size(source) > 0 do
       selected? = source["selected"] == true
       approval_status = retained_classification(row)
       eligibility_status = retained_eligibility(row)
@@ -797,8 +936,10 @@ defmodule OrbitalDynamics.Schema.AuthorityContextContracts do
       Enum.any?(value, fn {_key, nested} -> contains_authority_evidence?(nested) end)
   end
 
-  defp contains_authority_evidence?(values) when is_list(values),
-    do: Enum.any?(values, &contains_authority_evidence?/1)
+  defp contains_authority_evidence?([]), do: false
+
+  defp contains_authority_evidence?([head | tail]),
+    do: contains_authority_evidence?(head) or contains_authority_evidence?(tail)
 
   defp contains_authority_evidence?(_value), do: false
 
@@ -823,8 +964,10 @@ defmodule OrbitalDynamics.Schema.AuthorityContextContracts do
       Enum.any?(value, fn {_key, nested} -> authority_context_present?(nested) end)
   end
 
-  defp authority_context_present?(values) when is_list(values),
-    do: Enum.any?(values, &authority_context_present?/1)
+  defp authority_context_present?([]), do: false
+
+  defp authority_context_present?([head | tail]),
+    do: authority_context_present?(head) or authority_context_present?(tail)
 
   defp authority_context_present?(_value), do: false
 
@@ -833,8 +976,10 @@ defmodule OrbitalDynamics.Schema.AuthorityContextContracts do
       Enum.any?(value, fn {_key, nested} -> failed_authority_evidence?(nested) end)
   end
 
-  defp failed_authority_evidence?(values) when is_list(values),
-    do: Enum.any?(values, &failed_authority_evidence?/1)
+  defp failed_authority_evidence?([]), do: false
+
+  defp failed_authority_evidence?([head | tail]),
+    do: failed_authority_evidence?(head) or failed_authority_evidence?(tail)
 
   defp failed_authority_evidence?(_value), do: false
 
@@ -844,8 +989,10 @@ defmodule OrbitalDynamics.Schema.AuthorityContextContracts do
       Enum.any?(value, fn {_key, nested} -> nested_blocked_by_policy?(nested) end)
   end
 
-  defp nested_blocked_by_policy?(values) when is_list(values),
-    do: Enum.any?(values, &nested_blocked_by_policy?/1)
+  defp nested_blocked_by_policy?([]), do: false
+
+  defp nested_blocked_by_policy?([head | tail]),
+    do: nested_blocked_by_policy?(head) or nested_blocked_by_policy?(tail)
 
   defp nested_blocked_by_policy?(_value), do: false
 end

@@ -1018,6 +1018,190 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyAuthorityContextTest do
     assert {:ok, %{"status" => "pass"}} = Schema.validate_artifact(direct_alias_decision)
   end
 
+  @tag :otp29_final_review
+  test "standalone strategy rows require retained authority sources" do
+    context = AuthorityContext.new!(authority_attrs("retained-source-erasure"))
+
+    artifact =
+      strategy(
+        test_plan(),
+        strategy_request(authority_context_mode: "explicit", authority_context: context)
+      )
+
+    erased_review =
+      update_in(artifact, ["operator_review_package", "rows"], fn rows ->
+        Enum.map(rows, fn
+          %{"review_type" => "strategy_recommendation"} = row ->
+            Map.drop(row, ~w(source_branch_comparison source_recommendation source_review_row))
+
+          row ->
+            row
+        end)
+      end)["operator_review_package"]
+
+    erased_manifest =
+      artifact["cadence_import_manifest"]
+      |> update_in(["rows"], fn rows ->
+        Enum.map(rows, fn
+          %{"source_review_type" => "strategy_branch_comparison"} = row ->
+            row
+            |> Map.drop(~w(source_branch_comparison source_recommendation source_review_row))
+            |> Map.put("approval_status", "auto_approvable")
+            |> Map.put("eligibility_status", "eligible")
+            |> Map.put("import_status", "ready_for_import")
+
+          row ->
+            row
+        end)
+      end)
+      |> recompute_import_status_counts()
+
+    for {standalone, field} <- [
+          {erased_review, "source_recommendation"},
+          {erased_manifest, "source_branch_comparison"}
+        ] do
+      assert {:error, report} = Schema.validate_artifact(standalone)
+
+      assert Enum.any?(report["errors"], fn issue ->
+               String.ends_with?(issue["path"], ".#{field}") and
+                 String.contains?(issue["message"], "authoritative retained evidence")
+             end)
+    end
+
+    assert {:error, _report} =
+             artifact
+             |> Map.put("operator_review_package", erased_review)
+             |> Schema.validate_artifact()
+
+    assert {:error, _report} =
+             artifact
+             |> Map.put("cadence_import_manifest", erased_manifest)
+             |> Schema.validate_artifact()
+  end
+
+  @tag :otp29_final_review
+  test "legacy strategy review and import readiness validate without authority gates" do
+    legacy = strategy(test_plan(), strategy_request())
+    review = legacy["operator_review_package"]
+    manifest = legacy["cadence_import_manifest"]
+    selected = selected_strategy_manifest_row(manifest)
+
+    refute Map.has_key?(legacy, "eligibility_status")
+    refute Map.has_key?(review, "eligibility_status")
+    refute Map.has_key?(manifest, "eligibility_status")
+    refute Map.has_key?(selected, "eligibility_status")
+    assert selected["approval_status"] == "auto_approvable"
+    assert selected["import_status"] == "ready_for_import"
+
+    for produced <- [review, manifest, legacy] do
+      assert {:ok, %{"status" => "pass"}} = Schema.validate_artifact(produced)
+    end
+  end
+
+  @tag :otp29_final_review
+  test "improper retained strategy sources fail closed standalone and enclosing" do
+    context = AuthorityContext.new!(authority_attrs("improper-retained-source"))
+
+    artifact =
+      strategy(
+        test_plan(),
+        strategy_request(authority_context_mode: "explicit", authority_context: context)
+      )
+
+    improper_manifest =
+      update_in(artifact, ["cadence_import_manifest", "rows"], fn rows ->
+        Enum.map(rows, fn
+          %{"import_action" => "import_strategy_recommendation"} = row ->
+            Map.put(row, "source_branch_comparison", [%{} | :improper_tail])
+
+          row ->
+            row
+        end)
+      end)["cadence_import_manifest"]
+
+    improper_review =
+      update_in(artifact, ["operator_review_package", "rows"], fn rows ->
+        Enum.map(rows, fn
+          %{"review_type" => "strategy_recommendation"} = row ->
+            Map.put(row, "source_recommendation", [%{} | :improper_tail])
+
+          row ->
+            row
+        end)
+      end)["operator_review_package"]
+
+    for {standalone, field} <- [
+          {improper_manifest, "source_branch_comparison"},
+          {improper_review, "source_recommendation"}
+        ] do
+      assert {:error, report} = Schema.validate_artifact(standalone)
+
+      assert Enum.any?(report["errors"], fn issue ->
+               String.ends_with?(issue["path"], ".#{field}") and
+                 issue["message"] == "must be an object when present"
+             end)
+    end
+
+    assert {:error, _report} =
+             artifact
+             |> Map.put("cadence_import_manifest", improper_manifest)
+             |> Schema.validate_artifact()
+
+    assert {:error, _report} =
+             artifact
+             |> Map.put("operator_review_package", improper_review)
+             |> Schema.validate_artifact()
+  end
+
+  @tag :otp29_final_review
+  test "invalid policy option containers fail closed without exceptions" do
+    policy_args = {[], [], %{"id" => "baseline"}, %{"activities" => []}, %{}}
+    {requirements, risks, branch_input, candidate_plan, policy} = policy_args
+
+    for options <- [[123], [{:authority_context_mode, "explicit"} | :improper_tail]] do
+      assert {:error, evaluation} = AuthorityContext.evaluate_options(options)
+      assert evaluation["reason_code"] == "invalid_authority_context_options"
+      assert {:ok, nil, ^evaluation} = AuthorityContext.recompute_evaluation(evaluation)
+      assert {:ok, _result} = AuthorityContext.validate_evaluation(nil, evaluation)
+
+      {status, _requirements, _matches, decision} =
+        Policy.decide(
+          requirements,
+          risks,
+          branch_input,
+          candidate_plan,
+          policy,
+          options
+        )
+
+      assert status == "blocked_by_policy"
+      assert decision["classification"] == "blocked_by_policy"
+      assert decision["eligibility_status"] == "non_eligible"
+      assert decision["authority_context_evaluation"] == evaluation
+      assert {:ok, %{"status" => "pass"}} = Schema.validate_artifact(decision)
+    end
+  end
+
+  @tag :otp29_final_review
+  test "failed authority roots reject present null contexts" do
+    failed = strategy(test_plan(), strategy_request(authority_context_mode: "explicit"))
+
+    for context_value <- [nil, :null],
+        artifact <- [
+          failed,
+          failed["operator_review_package"],
+          failed["cadence_import_manifest"]
+        ] do
+      present_null = Map.put(artifact, "authority_context", context_value)
+      assert {:error, report} = Schema.validate_artifact(present_null)
+
+      assert Enum.any?(report["errors"], fn issue ->
+               String.ends_with?(issue["path"], ".authority_context") and
+                 issue["message"] == "must be absent for a failed authority evaluation"
+             end)
+    end
+  end
+
   defp authority_attrs(revision, overrides \\ []) do
     %{
       "schema_contract" => "authority_context.v1",

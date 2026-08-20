@@ -103,16 +103,27 @@ defmodule OrbitalDynamics.AuthorityContext do
   closed with caller evidence preserved in the returned evaluation.
   """
   def evaluate_options(opts) when is_list(opts) or is_map(opts) do
-    mode = option(opts, :authority_context_mode)
-    context = option(opts, :authority_context)
+    if valid_options_container?(opts) do
+      mode = option(opts, :authority_context_mode)
+      context = option(opts, :authority_context)
 
-    evaluate_input(%{
-      operation: "policy_boundary",
-      mode_supplied?: mode != :absent,
-      mode: option_value(mode),
-      context_supplied?: context != :absent,
-      context: option_value(context)
-    })
+      evaluate_input(%{
+        operation: "policy_boundary",
+        mode_supplied?: mode != :absent,
+        mode: option_value(mode),
+        context_supplied?: context != :absent,
+        context: option_value(context)
+      })
+    else
+      evaluate_input(%{
+        operation: "policy_boundary",
+        mode_supplied?: false,
+        mode: nil,
+        context_supplied?: false,
+        context: nil,
+        invalid_options: opts
+      })
+    end
   end
 
   @doc """
@@ -215,6 +226,20 @@ defmodule OrbitalDynamics.AuthorityContext do
     provenance = provenance_override || evaluation_provenance(input)
 
     cond do
+      Map.has_key?(input, :invalid_options) ->
+        {:error,
+         failure(
+           "invalid_authority_context_options",
+           "authority context options must be a proper list of key-value pairs or a map",
+           "invalid",
+           provenance,
+           %{
+             "validation_errors" => [
+               error("$", "must be a proper list of key-value pairs or a map")
+             ]
+           }
+         )}
+
       not input.mode_supplied? and not input.context_supplied? ->
         :legacy
 
@@ -497,6 +522,7 @@ defmodule OrbitalDynamics.AuthorityContext do
     }
     |> maybe_put_evidence("provided_authority_context_mode", input.mode_supplied?, input.mode)
     |> maybe_put_evidence("provided_authority_context", input.context_supplied?, input.context)
+    |> maybe_put_invalid_options_evidence(input)
   end
 
   defp input_from_provenance(provenance) do
@@ -508,15 +534,17 @@ defmodule OrbitalDynamics.AuthorityContext do
          {:ok, mode} <-
            provenance_value(provenance, "provided_authority_context_mode", mode_supplied?),
          {:ok, context} <-
-           provenance_value(provenance, "provided_authority_context", context_supplied?) do
-      {:ok,
-       %{
-         operation: operation,
-         mode_supplied?: mode_supplied?,
-         mode: mode,
-         context_supplied?: context_supplied?,
-         context: context
-       }}
+           provenance_value(provenance, "provided_authority_context", context_supplied?),
+         {:ok, invalid_options} <- optional_provenance_value(provenance, "provided_options") do
+      input = %{
+        operation: operation,
+        mode_supplied?: mode_supplied?,
+        mode: mode,
+        context_supplied?: context_supplied?,
+        context: context
+      }
+
+      {:ok, maybe_put(input, :invalid_options, invalid_options)}
     end
   end
 
@@ -569,6 +597,13 @@ defmodule OrbitalDynamics.AuthorityContext do
     if Map.has_key?(provenance, key),
       do: {:error, [error("$.provenance.#{key}", "must be absent when supplied is false")]},
       else: {:ok, nil}
+  end
+
+  defp optional_provenance_value(provenance, key) do
+    case Map.fetch(provenance, key) do
+      {:ok, evidence} -> decode_evidence(evidence)
+      :error -> {:ok, nil}
+    end
   end
 
   defp validate_evaluation_context(context, nil) do
@@ -658,6 +693,14 @@ defmodule OrbitalDynamics.AuthorityContext do
     do: Atom.to_string(value)
 
   defp normalize_option_alias(_key, value), do: value
+
+  defp valid_options_container?(opts) when is_map(opts), do: true
+  defp valid_options_container?([]), do: true
+
+  defp valid_options_container?([{_key, _value} | tail]),
+    do: valid_options_container?(tail)
+
+  defp valid_options_container?(_opts), do: false
 
   defp option_value(:absent), do: nil
   defp option_value({:present, value}), do: value
@@ -924,6 +967,11 @@ defmodule OrbitalDynamics.AuthorityContext do
 
   defp maybe_put_evidence(map, _key, false, _value), do: map
   defp maybe_put_evidence(map, key, true, value), do: Map.put(map, key, term_evidence(value))
+
+  defp maybe_put_invalid_options_evidence(map, %{invalid_options: options}),
+    do: Map.put(map, "provided_options", term_evidence(options))
+
+  defp maybe_put_invalid_options_evidence(map, _input), do: map
 
   defp error(path, reason, evidence \\ nil) do
     %{"path" => path, "reason" => reason}

@@ -1467,7 +1467,6 @@ defmodule OrbitalDynamics.Policy do
       when is_list(opts) or is_map(opts) do
     result = decide(approval_requirements, risk_indicators, branch, candidate_plan, policy)
     authority_evaluation = OrbitalDynamics.AuthorityContext.evaluate_options(opts)
-    _validated_options_shape = Map.new(opts)
 
     apply_authority_context(result, authority_evaluation)
   end
