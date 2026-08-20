@@ -3,6 +3,13 @@ defmodule OrbitalDynamics.Schema.ResultArtifactContractsTest do
 
   alias OrbitalDynamics.Schema
 
+  @optional_numeric_trajectory_fields [
+    {"final_radius_km", :final_radius_km},
+    {"final_speed_km_s", :final_speed_km_s},
+    {"semi_major_axis_km", :semi_major_axis_km},
+    {"eccentricity", :eccentricity}
+  ]
+
   test "exports and validates top-level result artifact contracts" do
     artifact = read_json!("study_results/ground_track_crossings.json")
 
@@ -92,6 +99,22 @@ defmodule OrbitalDynamics.Schema.ResultArtifactContractsTest do
     end
   end
 
+  test "rejects improper trajectory vectors without raising" do
+    artifact = result_artifact_fixture()
+
+    for field <- ["final_position_km", "final_velocity_km_s"] do
+      invalid_artifact =
+        update_trajectory(artifact, &Map.put(&1, field, [1.0, 2.0 | :improper_tail]))
+
+      assert {:error, report} = validate(invalid_artifact)
+
+      assert Enum.any?(report["errors"], fn issue ->
+               issue["path"] == "$.trajectories[0].#{field}" and
+                 issue["message"] == "must be a three-element number array"
+             end)
+    end
+  end
+
   test "rejects non-object trajectory rows" do
     artifact = result_artifact_fixture()
     invalid_artifact = Map.put(artifact, "trajectories", ["not-an-object"])
@@ -102,6 +125,85 @@ defmodule OrbitalDynamics.Schema.ResultArtifactContractsTest do
              issue["path"] == "$.trajectories[0]" and
                issue["message"] == "must be an object"
            end)
+  end
+
+  test "rejects an improper trajectories list without raising" do
+    %{"trajectories" => [trajectory]} = artifact = result_artifact_fixture()
+    invalid_artifact = Map.put(artifact, "trajectories", [trajectory | :improper_tail])
+
+    assert {:error, report} = validate(invalid_artifact)
+
+    assert Enum.any?(report["errors"], fn issue ->
+             issue["path"] == "$.trajectories" and issue["message"] == "must be a list"
+           end)
+  end
+
+  test "accepts a negative integer trajectory sample count" do
+    artifact = result_artifact_fixture()
+
+    assert {:ok, _report} =
+             artifact
+             |> update_trajectory(&Map.put(&1, "sample_count", -1))
+             |> validate()
+  end
+
+  test "validates present optional trajectory numbers and accepts them when absent" do
+    artifact = result_artifact_fixture()
+
+    for {field, _atom_field} <- @optional_numeric_trajectory_fields do
+      assert {:ok, _report} =
+               artifact
+               |> update_trajectory(&Map.delete(&1, field))
+               |> validate()
+
+      for value <- [nil, :null, "1.0", %{}, []] do
+        invalid_artifact = update_trajectory(artifact, &Map.put(&1, field, value))
+
+        assert {:error, report} = validate(invalid_artifact)
+
+        assert Enum.any?(report["errors"], fn issue ->
+                 issue["path"] == "$.trajectories[0].#{field}" and
+                   issue["message"] == "must be a number"
+               end)
+      end
+    end
+  end
+
+  test "rejects optional trajectory numeric atom aliases" do
+    artifact = result_artifact_fixture()
+
+    for {field, atom_field} <- @optional_numeric_trajectory_fields do
+      atom_only_artifact =
+        update_trajectory(artifact, fn trajectory ->
+          trajectory
+          |> Map.delete(field)
+          |> Map.put(atom_field, nil)
+        end)
+
+      assert {:error, atom_only_report} = validate(atom_only_artifact)
+      assert_atom_alias_error(atom_only_report, field)
+
+      duplicate_alias_artifact =
+        update_trajectory(artifact, &Map.put(&1, atom_field, nil))
+
+      assert {:error, duplicate_alias_report} = validate(duplicate_alias_artifact)
+      assert_atom_alias_error(duplicate_alias_report, field)
+
+      malformed_string_artifact =
+        update_trajectory(artifact, fn trajectory ->
+          trajectory
+          |> Map.put(field, "not-a-number")
+          |> Map.put(atom_field, 1.0)
+        end)
+
+      assert {:error, malformed_string_report} = validate(malformed_string_artifact)
+      assert_atom_alias_error(malformed_string_report, field)
+
+      assert Enum.any?(malformed_string_report["errors"], fn issue ->
+               issue["path"] == "$.trajectories[0].#{field}" and
+                 issue["message"] == "must be a number"
+             end)
+    end
   end
 
   test "accepts a string or absent trajectory node and rejects every present non-string" do
@@ -129,6 +231,30 @@ defmodule OrbitalDynamics.Schema.ResultArtifactContractsTest do
     end
   end
 
+  test "rejects trajectory node atom aliases with or without the string key" do
+    artifact = result_artifact_fixture()
+
+    atom_only_artifact =
+      update_trajectory(artifact, fn trajectory ->
+        trajectory
+        |> Map.delete("node")
+        |> Map.put(:node, nil)
+      end)
+
+    assert {:error, atom_only_report} = validate(atom_only_artifact)
+    assert_atom_alias_error(atom_only_report, "node")
+
+    duplicate_alias_artifact =
+      update_trajectory(artifact, fn trajectory ->
+        trajectory
+        |> Map.put("node", "worker@host")
+        |> Map.put(:node, nil)
+      end)
+
+    assert {:error, duplicate_alias_report} = validate(duplicate_alias_artifact)
+    assert_atom_alias_error(duplicate_alias_report, "node")
+  end
+
   defp result_artifact_fixture,
     do: read_json!("study_results/ground_track_crossings.json")
 
@@ -138,6 +264,13 @@ defmodule OrbitalDynamics.Schema.ResultArtifactContractsTest do
 
   defp validate(artifact),
     do: Schema.validate_artifact(artifact, schema_contract: "result_artifact.v1")
+
+  defp assert_atom_alias_error(report, field) do
+    assert Enum.any?(report["errors"], fn issue ->
+             issue["path"] == "$.trajectories[0].#{field}" and
+               issue["message"] == "atom-key alias is not allowed"
+           end)
+  end
 
   defp read_json!(path) do
     path
