@@ -16,6 +16,12 @@ defmodule OrbitalDynamics.Schema.JsonSchemaPropertyRouter do
   import OrbitalDynamics.Schema.JsonSchemaPropertySupport,
     only: [fallback: 4, provider: 3]
 
+  def property(field, "timeline_revision.v1", _contract, _context) do
+    OrbitalDynamics.Schema.TimelineRevisionContracts.json_schema()
+    |> Map.fetch!("properties")
+    |> Map.fetch!(field)
+  end
+
   def property(field, "activity_template.v1" = contract_name, contract, context) do
     ReferencePolicyPropertyRouter.property(field, contract_name, contract, context)
   end

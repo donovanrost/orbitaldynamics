@@ -159,6 +159,44 @@ without reopening source and replacement timelines.
   transition-application reports, so schema-only handoffs cannot accept stale
   model-limit lists.
 
+### Immutable revision identity and pure replay
+
+`Timeline.transition_application_report/3` and its top-level facade preserve
+their existing output unless `timeline_revision?: true` is explicitly supplied.
+With that option, the report and each application row carry the same optional
+`timeline_revision.v1` evidence:
+
+- `prior_revision_id` is derived from canonically ordered normalized source
+  activities;
+- `transition_batch_id` is derived from the canonical transition-application
+  rows; and
+- `replacement_revision_id` is derived from the canonically ordered selected
+  replacement activities.
+
+All three identities use canonical JSON plus SHA-256 and are independent of
+wall-clock time and source list order for equivalently identified activities.
+Transition-application summaries preserve the same evidence when present.
+Executable validation and JSON Schema source export type the identity scheme,
+canonicalization version, content-ID formats, and report/row copy consistency.
+
+`Timeline.replay_transition_application_report/4` and
+`OrbitalDynamics.timeline_replay_transition_application_report/4` are pure
+replay boundaries. Given the prior report plus source and replacement activity
+lists, they rebuild the transition report with revision evidence and return:
+
+- `{:ok, report}` when the named prior revision, transition batch, and
+  replacement revision reproduce;
+- `revision_conflict` evidence with `prior_revision` scope before applying a
+  batch to different prior content;
+- `batch_conflict` evidence when replacement/transition content no longer
+  matches the named batch; or
+- `invalid_replay_evidence` for missing or malformed identity evidence.
+
+This is artifact-local idempotence only. It does not persist revisions, acquire
+locks, coordinate concurrent writers, invoke planner defaults, mutate a
+schedule, start an approval/import workflow, or claim distributed concurrency
+safety.
+
 ### Duplicate timeline-identity preservation
 
 Timeline-transition application rows now also preserve duplicate

@@ -7,6 +7,8 @@ defmodule OrbitalDynamics.Timeline do
   without mutating schedules or executing operational work.
   """
 
+  alias OrbitalDynamics.Timeline.RevisionReplay
+
   @schema_contract "operational_timeline_report.v1"
   @diff_schema_contract "timeline_diff_report.v1"
   @diff_summary_schema_contract "timeline_diff_summary.v1"
@@ -775,6 +777,18 @@ defmodule OrbitalDynamics.Timeline do
       transition_application_artifact_contract: @transition_application_schema_contract,
       transition_application_summary_artifact_contract:
         @transition_application_summary_schema_contract,
+      timeline_revision_contract: RevisionReplay.schema_contract(),
+      timeline_revision_identity_scheme: RevisionReplay.identity_scheme(),
+      timeline_revision_canonicalization: RevisionReplay.canonicalization(),
+      timeline_revision_replay_limits: [
+        :pure_artifact_replay,
+        :no_revision_store,
+        :no_locking,
+        :no_external_workflow,
+        :no_planner_default_change,
+        :no_schedule_mutation,
+        :no_distributed_concurrency_guarantee
+      ],
       candidate_rejection_artifact_contract: @candidate_rejection_schema_contract,
       model: :selected_activity_operational_context_summary,
       validation_level: :artifact_contract,
@@ -858,6 +872,7 @@ defmodule OrbitalDynamics.Timeline do
         :transition_application,
         :transition_application_summary,
         :transition_application_report,
+        :replay_transition_application_report,
         :transition_selected_activities
       ],
       public_facades: [
@@ -894,6 +909,7 @@ defmodule OrbitalDynamics.Timeline do
         :timeline_transition_application,
         :timeline_transition_application_summary,
         :timeline_transition_application_report,
+        :timeline_replay_transition_application_report,
         :timeline_transition_selected_activities,
         :timeline_preservation_status
       ],
@@ -962,6 +978,10 @@ defmodule OrbitalDynamics.Timeline do
         :transition_application_timeline_id_sets,
         :transition_application_summary_row_derived_counts,
         :transition_application_report,
+        :timeline_revision_identity,
+        :idempotent_transition_application_replay,
+        :revision_conflict,
+        :transition_batch_conflict,
         :status_transition_counts,
         :approval_transition_counts,
         :status_transition_category_counts,
@@ -3241,10 +3261,42 @@ defmodule OrbitalDynamics.Timeline do
       }
     }
     |> compact_map()
+    |> RevisionReplay.put_revision_evidence(
+      source_activities,
+      opts,
+      &normalize_activities/2
+    )
   end
 
   def transition_application_report(_source_activities, _replacement_activities, _opts),
     do: raise(ArgumentError, "source and replacement activities must be lists")
+
+  @doc """
+  Purely reapplies a named transition batch to its named prior timeline revision.
+
+  The replay report must contain the opt-in `timeline_revision.v1` evidence
+  emitted by `transition_application_report/3` with `timeline_revision?: true`.
+  A matching replay returns the deterministically rebuilt report. A different
+  prior timeline returns inspectable `revision_conflict` evidence, while a
+  changed transition batch returns `batch_conflict` evidence. This helper owns
+  no store, lock, workflow, schedule mutation, or distributed concurrency
+  guarantee.
+  """
+  def replay_transition_application_report(
+        source_activities,
+        replacement_activities,
+        replay_report,
+        opts \\ []
+      ) do
+    RevisionReplay.replay(
+      source_activities,
+      replacement_activities,
+      replay_report,
+      opts,
+      &transition_application_report/3,
+      &normalize_activities/2
+    )
+  end
 
   @doc """
   Builds a compact artifact-only summary of a transition application report.
@@ -3284,6 +3336,7 @@ defmodule OrbitalDynamics.Timeline do
       "source_artifact_type" =>
         Map.get(report, "schema_contract", @transition_application_schema_contract),
       "source" => report["source"],
+      "timeline_revision" => report["timeline_revision"],
       "source_activity_count" => report["source_activity_count"],
       "replacement_activity_count" => report["replacement_activity_count"],
       "application_count" => length(applications),

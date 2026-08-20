@@ -512,6 +512,10 @@ defmodule OrbitalDynamics.Schema.ArtifactValidationRouter do
     )
   end
 
+  def validate("timeline_revision.v1", _contract, artifact) do
+    OrbitalDynamics.Schema.TimelineRevisionContracts.validate([], "$", artifact)
+  end
+
   def validate("timeline_transition_application_summary.v1", _contract, artifact) do
     TimelineArtifactValidation.validate(
       [],

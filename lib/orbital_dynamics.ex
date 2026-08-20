@@ -1700,6 +1700,23 @@ defmodule OrbitalDynamics do
   end
 
   @doc """
+  Purely reapplies a revision-bound transition batch and reports identity conflicts.
+  """
+  def timeline_replay_transition_application_report(
+        source_activities,
+        replacement_activities,
+        replay_report,
+        opts \\ []
+      ) do
+    Timeline.replay_transition_application_report(
+      source_activities,
+      replacement_activities,
+      replay_report,
+      opts
+    )
+  end
+
+  @doc """
   Returns the normalized activities selected as safe by a transition application report.
   """
   def timeline_transition_selected_activities(transition_application_report) do

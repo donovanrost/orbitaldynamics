@@ -62,7 +62,8 @@ defmodule OrbitalDynamics.Schema.TimelineTransitionApplicationJsonSchema do
              "applications",
              "selected_activities",
              "model_limits",
-             "selected_timeline_integrity_issue_types"
+             "selected_timeline_integrity_issue_types",
+             "timeline_revision"
            ],
       do: true
 
@@ -80,7 +81,8 @@ defmodule OrbitalDynamics.Schema.TimelineTransitionApplicationJsonSchema do
              "review_applications",
              "model_limits",
              "selected_timeline_integrity_issue_types",
-             "assumptions"
+             "assumptions",
+             "timeline_revision"
            ],
       do: true
 
@@ -395,6 +397,7 @@ defmodule OrbitalDynamics.Schema.TimelineTransitionApplicationJsonSchema do
         "selected_exclusivity_violation_activity_ids" => stable_id_array_schema,
         "selected_exclusivity_violation_timeline_ids" => stable_id_array_schema,
         "selected_exclusivity_violation_group" => %{"type" => "string"},
+        "timeline_revision" => OrbitalDynamics.Schema.TimelineRevisionContracts.json_schema(),
         "source_timeline_diff" => Keyword.fetch!(opts, :timeline_diff_row_schema)
       }
     }
@@ -550,6 +553,11 @@ defmodule OrbitalDynamics.Schema.TimelineTransitionApplicationJsonSchema do
 
   def property("selected_activities", @report, opts) do
     %{"type" => "array", "items" => Keyword.fetch!(opts, :selected_activity_schema)}
+  end
+
+  def property("timeline_revision", contract_name, _opts)
+      when contract_name in [@report, @summary] do
+    OrbitalDynamics.Schema.TimelineRevisionContracts.json_schema()
   end
 
   def property("review_applications", @summary, opts) do

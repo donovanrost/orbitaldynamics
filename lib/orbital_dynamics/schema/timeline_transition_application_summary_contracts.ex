@@ -58,6 +58,16 @@ defmodule OrbitalDynamics.Schema.TimelineTransitionApplicationSummaryContracts d
     |> expect_type(path, summary, "review_applications", :list)
     |> expect_type(path, summary, "assumptions", :map)
     |> expect_type(path, summary, "model_limits", :list)
+    |> OrbitalDynamics.Schema.PrimitiveValidation.expect_optional_type(
+      path,
+      summary,
+      "timeline_revision",
+      :map
+    )
+    |> OrbitalDynamics.Schema.TimelineRevisionContracts.validate_optional(
+      path <> ".timeline_revision",
+      Map.get(summary, "timeline_revision")
+    )
     |> validate_string_list_items(path, summary, "model_limits")
     |> validate_optional_exact_model_limits(
       path,
@@ -70,6 +80,11 @@ defmodule OrbitalDynamics.Schema.TimelineTransitionApplicationSummaryContracts d
       path <> ".review_applications",
       Map.get(summary, "review_applications", []),
       row_validator
+    )
+    |> OrbitalDynamics.Schema.TimelineRevisionContracts.validate_row_copies(
+      path,
+      summary,
+      "review_applications"
     )
   end
 

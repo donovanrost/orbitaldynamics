@@ -136,6 +136,10 @@ defmodule OrbitalDynamics.Schema.TimelineTransitionValidation do
       &validate_selected_timeline_integrity_fields/3,
       &OrbitalDynamics.Schema.TimelineDiffRowContracts.validate/3
     )
+    |> OrbitalDynamics.Schema.TimelineRevisionContracts.validate_optional(
+      path <> ".timeline_revision",
+      Map.get(row, "timeline_revision")
+    )
   end
 
   def validate_selected_timeline_integrity_fields(issues, path, row) do

@@ -84,6 +84,11 @@ defmodule OrbitalDynamics.Schema.TimelineTransitionApplicationReportContracts do
     |> expect_optional_type(path, report, "selected_activities", :list)
     |> expect_type(path, report, "applications", :list)
     |> expect_type(path, report, "assumptions", :map)
+    |> expect_optional_type(path, report, "timeline_revision", :map)
+    |> OrbitalDynamics.Schema.TimelineRevisionContracts.validate_optional(
+      path <> ".timeline_revision",
+      Map.get(report, "timeline_revision")
+    )
     |> validate_timeline_transition_application_report_counts(path, report, count_validator)
     |> validate_optional_rows(
       path <> ".selected_activities",
@@ -94,6 +99,11 @@ defmodule OrbitalDynamics.Schema.TimelineTransitionApplicationReportContracts do
       path <> ".applications",
       Map.get(report, "applications", []),
       application_row_validator
+    )
+    |> OrbitalDynamics.Schema.TimelineRevisionContracts.validate_row_copies(
+      path,
+      report,
+      "applications"
     )
   end
 
