@@ -78,6 +78,28 @@ defmodule OrbitalDynamics.Validation.CorePolicyTest do
              Schema.validate_artifact(drag_acceptance_report)
   end
 
+  test "keeps access root refinement at analysis level with interpolated-state limits" do
+    assert {:ok,
+            %{
+              "id" => "event.access_windows",
+              "validation_level" => "analysis",
+              "tolerances" => %{"event_time_s" => event_time_tolerance},
+              "evidence" => evidence,
+              "known_limits" => known_limits
+            } = record} = Validation.record("event.access_windows")
+
+    assert event_time_tolerance =~ "linear default bounded by output step"
+    assert event_time_tolerance =~ "final cubic-Hermite interpolated-state root bracket"
+    assert Enum.any?(evidence, &String.contains?(&1, "analytical spherical-geometry crossing"))
+    assert Enum.any?(known_limits, &String.contains?(&1, "not dense propagator output"))
+    assert Enum.any?(known_limits, &String.contains?(&1, "no external validation"))
+
+    artifact = Map.put(record, "schema_contract", "validation_record.v1")
+
+    assert {:ok, %{"schema_contract" => "validation_record.v1", "status" => "pass"}} =
+             Schema.validate_artifact(artifact)
+  end
+
   test "public facades expose validation records policies and fixture verification" do
     assert OrbitalDynamics.validation_registry() == Validation.registry()
 
@@ -357,8 +379,13 @@ defmodule OrbitalDynamics.Validation.CorePolicyTest do
     assert policy["schema_contract"] == "validation_tolerance_policy.v1"
     assert policy["comparison_model"]["numeric_vectors"] =~ "maximum component-wise"
 
-    assert policy["event_timing"]["event_time_tolerance_s"] ==
+    assert policy["event_timing"]["event_time_tolerance_s"] =~
              "maximum adjacent trajectory sample spacing"
+
+    assert policy["event_timing"]["event_time_tolerance_s"] =~
+             "final cubic-Hermite interpolated-state root bracket"
+
+    assert policy["event_timing"]["limit"] =~ "no external-validation or flight-fidelity claim"
 
     declared_levels =
       policy["validation_levels"]

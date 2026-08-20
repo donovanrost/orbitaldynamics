@@ -83,6 +83,7 @@ defmodule OrbitalDynamics.Validation.PolicyEvidenceFixtureTest do
     assert fixture["fixture_type"] == "curated_internal_artifact_regression"
 
     report = validation_tolerance_policy_fixture()
+    assert report == Validation.tolerance_policy()
 
     assert {:ok, verification} =
              Validation.verify_reference_fixture(

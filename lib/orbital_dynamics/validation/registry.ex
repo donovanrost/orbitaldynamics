@@ -113,9 +113,22 @@ defmodule OrbitalDynamics.Validation.Registry do
       "implementation" => "OrbitalDynamics.EventDetectors.AccessWindows",
       "validation_level" => "analysis",
       "covered_regime" => "spherical Earth LEO visibility examples",
-      "tolerances" => %{"event_time_s" => "bounded by output step with linear interpolation"},
-      "evidence" => ["unit tests cover visibility grouping and boundary interpolation"],
-      "known_limits" => ["no terrain mask", "no refraction model beyond assumption metadata"]
+      "tolerances" => %{
+        "event_time_s" =>
+          "linear default bounded by output step; opt-in bisection bounded by the final cubic-Hermite interpolated-state root bracket"
+      },
+      "evidence" => [
+        "unit tests cover visibility grouping and compatibility-default linear boundary interpolation",
+        "unit tests compare opt-in bracketed bisection against an analytical spherical-geometry crossing and verify deterministic local bounds",
+        "unit tests cover incompatible state metadata, invalid solver options, and bounded non-convergence"
+      ],
+      "known_limits" => [
+        "no terrain mask",
+        "no refraction model beyond assumption metadata",
+        "opt-in roots solve elevation on cubic-Hermite interpolation between samples, not dense propagator output",
+        "one sign-changing root is selected per bracket; multiple crossings inside one sample interval are not resolved",
+        "internal analytical comparison only; no external validation or flight-fidelity claim"
+      ]
     },
     "event.eclipses" => %{
       "id" => "event.eclipses",

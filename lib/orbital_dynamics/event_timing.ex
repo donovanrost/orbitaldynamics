@@ -2,10 +2,12 @@ defmodule OrbitalDynamics.EventTiming do
   @moduledoc """
   Detector-wide event timing tolerance metadata.
 
-  Current event detectors are sampled detectors with optional linear boundary
-  interpolation. This module makes that policy explicit so event artifacts can
-  describe timing confidence without claiming higher fidelity than the sample
-  cadence supports.
+  Current event detectors are sampled detectors with linear boundary
+  interpolation as the compatibility default. Access-window callers may opt
+  into detector-local root refinement on an interpolated state path. This
+  module retains the conservative default policy; the access detector adds its
+  tighter local root bracket and explicit interpolation limits without claiming
+  dense propagation or external validation.
   """
 
   alias OrbitalDynamics.Trajectory
