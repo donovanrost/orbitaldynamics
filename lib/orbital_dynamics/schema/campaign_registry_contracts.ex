@@ -351,6 +351,7 @@ defmodule OrbitalDynamics.Schema.CampaignRegistryContracts do
           "eligibility_status",
           "authority_context",
           "authority_context_evaluation",
+          "recommendation_eligibility",
           "cadence_import_manifest"
         ],
         "nested_contracts" => [

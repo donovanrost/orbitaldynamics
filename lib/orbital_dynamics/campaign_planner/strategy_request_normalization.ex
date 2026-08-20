@@ -19,6 +19,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRequestNormalization do
     StrategyBranchNormalization,
     StrategyPolicyNormalization,
     StrategyPriorPlanCandidates,
+    StrategyRecommendationEligibility,
     ValueEncoding
   }
 
@@ -114,6 +115,9 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRequestNormalization do
     {authority_context_supplied?, authority_context} =
       authority_option(request, :authority_context, & &1)
 
+    recommendation_eligibility =
+      StrategyRecommendationEligibility.normalize_request_option(request)
+
     repair_policy =
       request
       |> ValueEncoding.get_key(:repair_policy)
@@ -142,6 +146,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRequestNormalization do
       authority_context: authority_context,
       authority_context_mode_supplied?: authority_context_mode_supplied?,
       authority_context_supplied?: authority_context_supplied?,
+      recommendation_eligibility: recommendation_eligibility,
       repair_policy: repair_policy,
       scoring_policy:
         ValueEncoding.stringify_keys(ValueEncoding.get_key(request, :scoring_policy) || %{}),

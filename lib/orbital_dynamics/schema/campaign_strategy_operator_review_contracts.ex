@@ -79,7 +79,7 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyOperatorReviewContracts do
     |> validate_equal(
       "$.operator_review_package.source_artifact_id",
       package["source_artifact_id"],
-      get_in(artifact, ["strategy_metadata", "strategy_id"]),
+      map_get_in(artifact, ["strategy_metadata", "strategy_id"]),
       "must match the enclosing CampaignStrategy strategy ID"
     )
     |> validate_equal(
@@ -91,8 +91,17 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyOperatorReviewContracts do
   end
 
   defp validate_source_groups(issues, rows, artifact, specs) do
+    specs =
+      if map_get_in(artifact, ["recommendation", "status"]) == "no_recommendable_branch" do
+        Enum.reject(specs, fn {source, _source_path, _source_field} ->
+          source == "campaign_strategy.recommendation"
+        end)
+      else
+        specs
+      end
+
     Enum.reduce(specs, issues, fn {source, source_path, source_field}, acc ->
-      case get_in(artifact, source_path) do
+      case map_get_in(artifact, source_path) do
         nil ->
           acc
 
@@ -149,6 +158,13 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyOperatorReviewContracts do
 
   defp list_wrap(values) when is_list(values), do: values
   defp list_wrap(value), do: [value]
+
+  defp map_get_in(value, []), do: value
+
+  defp map_get_in(%{} = map, [key | rest]),
+    do: map_get_in(Map.get(map, key), rest)
+
+  defp map_get_in(_value, _path), do: nil
 
   defp validate_equal(issues, path, actual, expected, message) do
     if values_equal?(actual, expected) do

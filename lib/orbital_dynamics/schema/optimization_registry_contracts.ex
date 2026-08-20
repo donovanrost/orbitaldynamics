@@ -16,7 +16,12 @@ defmodule OrbitalDynamics.Schema.OptimizationRegistryContracts do
           "rows",
           "assumptions"
         ],
-        "optional_fields" => ["model_limits"],
+        "optional_fields" => [
+          "model_limits",
+          "recommendation_eligibility_mode",
+          "recommendation_status",
+          "eligible_ranked_branch_ids"
+        ],
         "nested_contracts" => []
       },
       "optimizer_contract.v1" => %{

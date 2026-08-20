@@ -19,7 +19,8 @@ defmodule OrbitalDynamics.Schema.StrategyRecommendationJsonSchema do
     "tradeoffs",
     "explanation",
     "risks_remaining",
-    "requires_approval"
+    "requires_approval",
+    "counterfactual"
   ]
 
   def property_field?(field) when field in @property_fields, do: true
@@ -83,7 +84,7 @@ defmodule OrbitalDynamics.Schema.StrategyRecommendationJsonSchema do
   end
 
   def property_field_opts(field, deps)
-      when field in ["ranked_branch_ids", "recommended_branch_id"] do
+      when field in ["ranked_branch_ids", "recommended_branch_id", "counterfactual"] do
     [stable_id_pattern: fetch_dep!(deps, :stable_id_pattern)]
   end
 
@@ -116,7 +117,7 @@ defmodule OrbitalDynamics.Schema.StrategyRecommendationJsonSchema do
   end
 
   def property("recommended_branch_id", opts) do
-    %{"type" => "string", "pattern" => Keyword.fetch!(opts, :stable_id_pattern)}
+    %{"type" => ["string", "null"], "pattern" => Keyword.fetch!(opts, :stable_id_pattern)}
   end
 
   def property("ranked_branch_ids", opts) do
@@ -126,7 +127,7 @@ defmodule OrbitalDynamics.Schema.StrategyRecommendationJsonSchema do
   end
 
   def property("approval_status", _opts) do
-    %{"type" => "string", "enum" => @approval_status_values}
+    %{"type" => "string", "enum" => @approval_status_values ++ ["not_applicable"]}
   end
 
   def property("status", _opts) do
@@ -151,6 +152,12 @@ defmodule OrbitalDynamics.Schema.StrategyRecommendationJsonSchema do
 
   def property("requires_approval", opts) do
     array(Keyword.fetch!(opts, :approval_requirement_schema))
+  end
+
+  def property("counterfactual", opts) do
+    OrbitalDynamics.Schema.StrategyRecommendationEligibilityContracts.counterfactual_json_schema(
+      Keyword.fetch!(opts, :stable_id_pattern)
+    )
   end
 
   def explanation(stable_id_pattern, branch_event_summary_properties) do

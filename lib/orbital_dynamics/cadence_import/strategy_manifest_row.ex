@@ -5,6 +5,7 @@ defmodule OrbitalDynamics.CadenceImport.StrategyManifestRow do
       when is_list(callbacks) do
     branch_id = row["branch_id"]
     selected? = Map.get(row, "selected", false)
+    counterfactual? = row["recommendation_counterfactual"] == true
     approval_status = Map.get(row, "approval_status") || recommendation["approval_status"]
 
     %{
@@ -25,9 +26,17 @@ defmodule OrbitalDynamics.CadenceImport.StrategyManifestRow do
       "branch_id" => branch_id,
       "recommended_branch_id" => recommendation["recommended_branch_id"],
       "approval_status" => approval_status,
-      "eligibility_status" => branch_eligibility(approval_status, recommendation),
-      "authority_context" => recommendation["authority_context"],
-      "authority_context_evaluation" => recommendation["authority_context_evaluation"],
+      "eligibility_status" => branch_eligibility(row, approval_status, recommendation),
+      "authority_context" => branch_authority_field(row, recommendation, "authority_context"),
+      "authority_context_evaluation" =>
+        branch_authority_field(row, recommendation, "authority_context_evaluation"),
+      "recommendation_eligibility_status" => row["recommendation_eligibility_status"],
+      "recommendation_eligible" => row["recommendation_eligible"],
+      "recommendation_eligibility_rank" => row["recommendation_eligibility_rank"],
+      "recommendation_blocker_reasons" => row["recommendation_blocker_reasons"],
+      "recommendation_counterfactual" => row["recommendation_counterfactual"],
+      "review_only" => if(counterfactual?, do: true),
+      "importable" => if(counterfactual?, do: false),
       "required_operator_action" =>
         if(selected?, do: "review_strategy_recommendation", else: "review_branch_comparison"),
       "cadence_import_status" => "not_applicable",
@@ -329,11 +338,20 @@ defmodule OrbitalDynamics.CadenceImport.StrategyManifestRow do
   defp strategy_import_status(true, "not_required"), do: "ready_for_import"
   defp strategy_import_status(true, _approval_status), do: "review_required_before_import"
 
-  defp branch_eligibility("blocked_by_policy", %{"eligibility_status" => _eligibility}),
+  defp branch_eligibility(_row, "blocked_by_policy", %{"eligibility_status" => _eligibility}),
     do: "non_eligible"
 
-  defp branch_eligibility(_approval_status, recommendation),
+  defp branch_eligibility(_row, _approval_status, recommendation),
     do: recommendation["eligibility_status"]
+
+  defp branch_authority_field(
+         %{"recommendation_policy_blocker" => %{} = decision},
+         _recommendation,
+         field
+       ),
+       do: decision[field]
+
+  defp branch_authority_field(_row, recommendation, field), do: recommendation[field]
 
   defp branch_timeline_evidence_fields(callbacks),
     do: invoke(callbacks, :branch_timeline_evidence_fields, [])

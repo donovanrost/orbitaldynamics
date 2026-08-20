@@ -41,6 +41,55 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationBuilder do
     }
   end
 
+  def build(branches, %{"mode" => "hard"} = eligibility) when is_list(branches) do
+    ranked_branch_ids = Map.fetch!(eligibility, "eligible_ranked_branch_ids")
+    recommended_branch_id = List.first(ranked_branch_ids)
+    recommended = Enum.find(branches, &(&1.id == recommended_branch_id))
+    baseline = Enum.find(branches, &(&1.id == "baseline")) || List.last(branches)
+    counterfactual = Map.get(eligibility, "counterfactual", :null)
+
+    case recommended do
+      nil ->
+        counterfactual_branch =
+          case counterfactual do
+            %{"branch_id" => branch_id} -> Enum.find(branches, &(&1.id == branch_id))
+            _counterfactual -> nil
+          end
+
+        decision = if counterfactual_branch, do: counterfactual_branch.policy_decision, else: %{}
+
+        %StrategyRecommendation{
+          recommended_branch_id: nil,
+          approval_status: "not_applicable",
+          status: "no_recommendable_branch",
+          reason: "all_branches_infeasible_or_policy_blocked",
+          eligibility_status: decision["eligibility_status"],
+          authority_context: decision["authority_context"],
+          authority_context_evaluation: decision["authority_context_evaluation"],
+          counterfactual: counterfactual,
+          ranked_branch_ids: []
+        }
+
+      %PlanBranch{} = recommended ->
+        %StrategyRecommendation{
+          recommended_branch_id: recommended.id,
+          approval_status: recommended.approval_status,
+          status: "recommendable",
+          reason: reason(recommended),
+          eligibility_status: recommended.policy_decision["eligibility_status"],
+          authority_context: recommended.policy_decision["authority_context"],
+          authority_context_evaluation:
+            recommended.policy_decision["authority_context_evaluation"],
+          counterfactual: counterfactual,
+          ranked_branch_ids: ranked_branch_ids,
+          tradeoffs: RecommendationTradeoff.dimensions(recommended, baseline),
+          explanation: explanation(recommended, baseline),
+          risks_remaining: recommended.risk_indicators,
+          requires_approval: recommended.approval_requirements
+        }
+    end
+  end
+
   defp reason(%PlanBranch{} = recommended) do
     case recommended.approval_status do
       "auto_approvable" -> "best_expected_score_within_auto_approval_policy"

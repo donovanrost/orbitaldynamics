@@ -536,7 +536,7 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts do
          %{
            "branches" => branches,
            "recommendation" => %{"ranked_branch_ids" => ranked_branch_ids}
-         }
+         } = artifact
        )
        when is_list(branches) and is_list(ranked_branch_ids) do
     if Enum.all?(branches, &valid_branch_rank_input?/1) and
@@ -549,7 +549,14 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts do
         |> Enum.map(&Map.fetch!(&1, "branch_id"))
 
       expected_branch_ids =
-        if selectable_branch_ids == [], do: branch_ids, else: selectable_branch_ids
+        case Map.get(artifact, "recommendation_eligibility") do
+          %{"mode" => "hard", "eligible_ranked_branch_ids" => eligible_ids}
+          when is_list(eligible_ids) ->
+            eligible_ids
+
+          _eligibility ->
+            if selectable_branch_ids == [], do: branch_ids, else: selectable_branch_ids
+        end
 
       if ranked_branch_ids == expected_branch_ids do
         issues
@@ -557,7 +564,7 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts do
         [
           error(
             "$.recommendation.ranked_branch_ids",
-            "must equal selectable branch IDs in enclosing branch order, falling back to all branch IDs when every branch is blocked"
+            "must equal the deterministic eligible branch IDs for the active recommendation mode"
           )
           | issues
         ]
@@ -698,6 +705,33 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts do
   end
 
   defp validate_branch_comparison_identity(issues, _artifact), do: issues
+
+  defp validate_branch_comparison_assumptions(
+         issues,
+         %{
+           "branch_comparison_report" => %{"assumptions" => assumptions},
+           "recommendation_eligibility" => %{"mode" => "hard"}
+         }
+       )
+       when is_map(assumptions) do
+    hard_assumptions =
+      @branch_comparison_assumptions
+      |> Map.put(
+        "score_delta_from_recommended",
+        "row_score_minus_recommended_branch_score_or_null_without_recommendation"
+      )
+
+    Enum.reduce(hard_assumptions, issues, fn {field, expected}, acc ->
+      validate_optional_copy(
+        acc,
+        "$.branch_comparison_report.assumptions.#{field}",
+        assumptions,
+        field,
+        expected,
+        "must match the deterministic branch comparison assumption"
+      )
+    end)
+  end
 
   defp validate_branch_comparison_assumptions(
          issues,

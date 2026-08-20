@@ -5,6 +5,7 @@ defmodule OrbitalDynamics.Schema.PolicyDecisionContracts do
 
   import OrbitalDynamics.Schema.PrimitiveValidation,
     only: [
+      error: 2,
       expect_equal: 5,
       expect_one_of: 5,
       expect_optional_list: 4,
@@ -24,7 +25,8 @@ defmodule OrbitalDynamics.Schema.PolicyDecisionContracts do
   ]
 
   def validate(issues, path, decision, policy_model_limits, rule_match_field_groups)
-      when is_list(policy_model_limits) and is_list(rule_match_field_groups) do
+      when is_map(decision) and is_list(policy_model_limits) and
+             is_list(rule_match_field_groups) do
     issues
     |> require_fields(path, decision, ["schema_contract", "classification"])
     |> validate_stable_ids(path, decision, ["policy_bundle_id"])
@@ -65,5 +67,10 @@ defmodule OrbitalDynamics.Schema.PolicyDecisionContracts do
       "must match policy model limits"
     )
     |> OrbitalDynamics.Schema.PolicyDecisionCountContracts.validate(path, decision)
+  end
+
+  def validate(issues, path, _decision, policy_model_limits, rule_match_field_groups)
+      when is_list(policy_model_limits) and is_list(rule_match_field_groups) do
+    [error(path, "must be an object") | issues]
   end
 end

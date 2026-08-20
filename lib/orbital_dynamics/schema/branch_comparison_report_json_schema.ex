@@ -1,7 +1,17 @@
 defmodule OrbitalDynamics.Schema.BranchComparisonReportJsonSchema do
   @moduledoc false
 
-  @property_fields ["rows", "model", "source", "branch_count", "model_limits"]
+  @property_fields [
+    "rows",
+    "model",
+    "source",
+    "branch_count",
+    "model_limits",
+    "recommended_branch_id",
+    "recommendation_eligibility_mode",
+    "recommendation_status",
+    "eligible_ranked_branch_ids"
+  ]
 
   def property_field?(field), do: field in @property_fields
 
@@ -11,6 +21,11 @@ defmodule OrbitalDynamics.Schema.BranchComparisonReportJsonSchema do
 
   def property_opts("model_limits", deps) do
     [model_limits: fetch_dep!(deps, :model_limits)]
+  end
+
+  def property_opts(field, deps)
+      when field in ["recommended_branch_id", "eligible_ranked_branch_ids"] do
+    [stable_id_pattern: fetch_dep!(deps, :stable_id_pattern)]
   end
 
   def property_opts(_field, _deps), do: []
@@ -45,6 +60,31 @@ defmodule OrbitalDynamics.Schema.BranchComparisonReportJsonSchema do
     %{
       "type" => "array",
       "items" => %{"type" => "string", "enum" => model_limits}
+    }
+  end
+
+  def property("recommended_branch_id", opts) do
+    %{"type" => ["string", "null"], "pattern" => Keyword.fetch!(opts, :stable_id_pattern)}
+  end
+
+  def property("recommendation_eligibility_mode", _opts) do
+    %{"type" => "string", "const" => "hard"}
+  end
+
+  def property("recommendation_status", _opts) do
+    %{
+      "type" => "string",
+      "enum" => ["recommendable", "no_recommendable_branch"]
+    }
+  end
+
+  def property("eligible_ranked_branch_ids", opts) do
+    %{
+      "type" => "array",
+      "items" => %{
+        "type" => "string",
+        "pattern" => Keyword.fetch!(opts, :stable_id_pattern)
+      }
     }
   end
 

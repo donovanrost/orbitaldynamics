@@ -5,6 +5,7 @@ defmodule OrbitalDynamics.CampaignPlanner.BranchComparisonReport do
     BranchComparisonContext,
     BranchComparisonResourceProjection,
     BranchComparisonRowFields,
+    StrategyRecommendationEligibility,
     StrategyRecommendation
   }
 
@@ -72,6 +73,80 @@ defmodule OrbitalDynamics.CampaignPlanner.BranchComparisonReport do
       }
     }
   end
+
+  def report(
+        branches,
+        %StrategyRecommendation{} = recommendation,
+        model_limits,
+        %{"mode" => "hard"} = eligibility
+      ) do
+    report = report(branches, recommendation, model_limits)
+    eligible_ids = Map.fetch!(eligibility, "eligible_ranked_branch_ids")
+    eligible_ranks = eligible_ids |> Enum.with_index(1) |> Map.new()
+
+    counterfactual_id =
+      case Map.get(eligibility, "counterfactual") do
+        %{} = counterfactual -> counterfactual["branch_id"]
+        _counterfactual -> nil
+      end
+
+    no_recommendable? = eligibility["status"] == "no_recommendable_branch"
+
+    rows =
+      Enum.map(report["rows"], fn row ->
+        evaluation =
+          StrategyRecommendationEligibility.evaluation_for(eligibility, row["branch_id"])
+
+        row
+        |> Map.put(
+          "score_delta_from_recommended",
+          if(no_recommendable?, do: :null, else: row["score_delta_from_recommended"])
+        )
+        |> Map.put("recommendation_eligibility_status", evaluation["status"])
+        |> Map.put("recommendation_eligible", evaluation["eligible"])
+        |> Map.put(
+          "recommendation_eligibility_rank",
+          Map.get(eligible_ranks, row["branch_id"], :null)
+        )
+        |> Map.put("recommendation_blocker_reasons", evaluation["blocker_reasons"])
+        |> Map.put("recommendation_hard_feasibility", evaluation["hard_feasibility"])
+        |> Map.put("recommendation_policy_blocker", evaluation["policy_blocker"])
+        |> Map.put("recommendation_counterfactual", row["branch_id"] == counterfactual_id)
+        |> put_authority_evidence(evaluation["policy_blocker"])
+      end)
+
+    report
+    |> Map.put("recommended_branch_id", recommendation.recommended_branch_id || :null)
+    |> Map.put("recommendation_eligibility_mode", "hard")
+    |> Map.put("recommendation_status", eligibility["status"])
+    |> Map.put("eligible_ranked_branch_ids", eligible_ids)
+    |> Map.put("rows", rows)
+    |> update_in(["assumptions"], fn assumptions ->
+      assumptions
+      |> Map.put("eligibility_timing", "hard_feasibility_and_policy_before_score_order")
+      |> Map.put("eligible_branch_order", "score_descending_then_branch_id")
+      |> Map.put(
+        "score_delta_from_recommended",
+        "row_score_minus_recommended_branch_score_or_null_without_recommendation"
+      )
+    end)
+  end
+
+  defp put_authority_evidence(row, %{} = policy_decision) do
+    row
+    |> maybe_put("eligibility_status", policy_decision["eligibility_status"])
+    |> maybe_put("authority_context", policy_decision["authority_context"])
+    |> maybe_put(
+      "authority_context_evaluation",
+      policy_decision["authority_context_evaluation"]
+    )
+  end
+
+  defp put_authority_evidence(row, _policy_decision), do: row
+
+  defp maybe_put(map, _key, nil), do: map
+  defp maybe_put(map, _key, :null), do: map
+  defp maybe_put(map, key, value), do: Map.put(map, key, value)
 
   def ranking_report(input_order_branches, score_ranked_branches) do
     Optimizer.ranking_comparison_report(

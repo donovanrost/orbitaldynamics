@@ -26,7 +26,11 @@ defmodule OrbitalDynamics.Schema.BranchComparisonReportContracts do
     ]
 
   import OrbitalDynamics.Schema.StableIdValidation,
-    only: [validate_optional_stable_id_list: 4, validate_stable_ids: 4]
+    only: [
+      validate_optional_stable_id_list: 4,
+      validate_optional_stable_ids: 4,
+      validate_stable_ids: 4
+    ]
 
   @pressure_handoff_string_list_fields [
     "operational_readiness_report_ids",
@@ -107,7 +111,11 @@ defmodule OrbitalDynamics.Schema.BranchComparisonReportContracts do
     )
     |> expect_equal(path, report, "source", "campaign_strategy.branches")
     |> expect_non_negative_integer(path, report, "branch_count")
-    |> validate_stable_ids(path, report, ["recommended_branch_id"])
+    |> validate_optional_stable_ids(path, report, ["recommended_branch_id"])
+    |> expect_optional_type(path, report, "recommendation_eligibility_mode", :binary)
+    |> expect_optional_type(path, report, "recommendation_status", :binary)
+    |> expect_optional_type(path, report, "eligible_ranked_branch_ids", :list)
+    |> validate_optional_stable_id_list(path, report, "eligible_ranked_branch_ids")
     |> expect_optional_type(path, report, "model_limits", :list)
     |> validate_string_list_items(path, report, "model_limits")
     |> validate_model_limits(path, report)
@@ -138,12 +146,20 @@ defmodule OrbitalDynamics.Schema.BranchComparisonReportContracts do
     |> validate_stable_ids(path, row, ["id", "branch_id"])
     |> expect_number(path, row, "rank")
     |> expect_number(path, row, "score")
-    |> expect_number(path, row, "score_delta_from_recommended")
+    |> expect_optional_number(path, row, "score_delta_from_recommended")
     |> expect_optional_number(path, row, "raw_score")
     |> expect_optional_number(path, row, "branch_probability")
     |> expect_probability_range(path, row, "branch_probability")
     |> expect_optional_number(path, row, "expected_score")
     |> expect_type(path, row, "selected", :boolean)
+    |> expect_optional_type(path, row, "recommendation_eligibility_status", :binary)
+    |> expect_optional_type(path, row, "recommendation_eligible", :boolean)
+    |> expect_optional_integer(path, row, "recommendation_eligibility_rank")
+    |> expect_optional_type(path, row, "recommendation_blocker_reasons", :list)
+    |> validate_string_list_items(path, row, "recommendation_blocker_reasons")
+    |> expect_optional_type(path, row, "recommendation_hard_feasibility", :map)
+    |> expect_optional_type(path, row, "recommendation_policy_blocker", :map)
+    |> expect_optional_type(path, row, "recommendation_counterfactual", :boolean)
     |> expect_one_of(path, row, "approval_status", [
       "auto_approvable",
       "operator_review_required",
@@ -403,21 +419,31 @@ defmodule OrbitalDynamics.Schema.BranchComparisonReportContracts do
     selected_branch_ids =
       Enum.map(selected_rows, &Map.get(&1, "branch_id"))
 
+    no_recommendable? =
+      recommended_branch_id in [nil, :null] and
+        report["recommendation_eligibility_mode"] == "hard" and
+        report["recommendation_status"] == "no_recommendable_branch"
+
+    expected_selected_branch_ids =
+      if no_recommendable?, do: [], else: [recommended_branch_id]
+
     issues
     |> expect_field_equals(path, report, "branch_count", length(rows))
     |> expect_recommended_branch_row(path, recommended_branch_id, rows)
-    |> expect_single_selected_branch(path, selected_rows)
+    |> expect_selected_branch_count(path, selected_rows, no_recommendable?)
     |> validate_score_deltas(path, rows, recommended_branch_id)
     |> expect_field_equals(
       path,
       %{"selected_branch_ids" => selected_branch_ids},
       "selected_branch_ids",
-      [recommended_branch_id],
+      expected_selected_branch_ids,
       "must select exactly the recommended_branch_id"
     )
   end
 
-  defp validate_score_deltas(issues, _path, _rows, nil), do: issues
+  defp validate_score_deltas(issues, _path, _rows, recommended_branch_id)
+       when recommended_branch_id in [nil, :null],
+       do: issues
 
   defp validate_score_deltas(issues, path, rows, recommended_branch_id) do
     recommended_score =
@@ -453,7 +479,8 @@ defmodule OrbitalDynamics.Schema.BranchComparisonReportContracts do
     end
   end
 
-  defp expect_recommended_branch_row(issues, _path, nil, _rows), do: issues
+  defp expect_recommended_branch_row(issues, _path, value, _rows) when value in [nil, :null],
+    do: issues
 
   defp expect_recommended_branch_row(issues, path, recommended_branch_id, rows) do
     if Enum.any?(rows, &(&1["branch_id"] == recommended_branch_id)) do
@@ -466,11 +493,19 @@ defmodule OrbitalDynamics.Schema.BranchComparisonReportContracts do
     end
   end
 
-  defp expect_single_selected_branch(issues, path, selected_rows) do
-    if length(selected_rows) == 1 do
+  defp expect_selected_branch_count(issues, path, selected_rows, no_recommendable?) do
+    expected_count = if no_recommendable?, do: 0, else: 1
+
+    if length(selected_rows) == expected_count do
       issues
     else
-      [error(path <> ".rows", "must contain exactly one selected branch row") | issues]
+      [
+        error(
+          path <> ".rows",
+          "must contain #{expected_count} selected branch rows for the recommendation status"
+        )
+        | issues
+      ]
     end
   end
 

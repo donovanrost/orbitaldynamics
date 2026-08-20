@@ -75,7 +75,7 @@ defmodule OrbitalDynamics.Schema.StrategyArtifactPropertyDispatch do
         contract_name,
         contract,
         default_property,
-        {row_schema, model_limits}
+        {row_schema, model_limits, stable_id_pattern}
       ) do
     dispatch(
       field,
@@ -84,7 +84,8 @@ defmodule OrbitalDynamics.Schema.StrategyArtifactPropertyDispatch do
       &BranchComparisonReportJsonSchema.property_field?/1,
       BranchComparisonReportJsonSchema.property_fun_from_context(
         row_schema: row_schema,
-        model_limits: model_limits
+        model_limits: model_limits,
+        stable_id_pattern: stable_id_pattern
       ),
       default_property
     )
