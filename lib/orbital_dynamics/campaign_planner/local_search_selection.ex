@@ -10,6 +10,11 @@ defmodule OrbitalDynamics.CampaignPlanner.LocalSearchSelection do
   @objective "maximize first ranked timeline aggregate score"
   @score_term "first_ranked_timeline_score"
   @default_id_prefix "campaign_v1"
+  @identity_algorithm "erlang_term_to_binary_deterministic_sha256.v1"
+  @derived_plan_fields ~w(
+    optimizer_search_trace operator_review_package cadence_import_manifest
+    operational_readiness_report quality_gate_report
+  )
   @search_fields ~w(steps bounds id_prefix max_alternatives hard_feasibility)
   @numeric_policy_keys ~w(
     target_value_weight
@@ -25,6 +30,21 @@ defmodule OrbitalDynamics.CampaignPlanner.LocalSearchSelection do
 
   def selection_contract, do: @selection_contract
   def numeric_policy_keys, do: @numeric_policy_keys
+
+  def content_identity(value) do
+    canonical = JsonSafety.normalize_input!(value, "campaign local-search identity content")
+
+    %{
+      "algorithm" => @identity_algorithm,
+      "sha256" => deterministic_digest(canonical)
+    }
+  end
+
+  def evaluated_plan_content_identity(plan) when is_map(plan) do
+    plan
+    |> Map.drop(@derived_plan_fields)
+    |> content_identity()
+  end
 
   def build(%ResultSet{} = result_set, campaign, generated_at, local_search) do
     campaign = normalize_campaign!(campaign)
@@ -78,7 +98,21 @@ defmodule OrbitalDynamics.CampaignPlanner.LocalSearchSelection do
 
     selected_id = search_result["selected_id"]
     selected = if selected_id, do: Map.fetch!(plans, selected_id)
-    trace = trace(plan_id, campaign, base_policy, selected, search_result)
+
+    search_root =
+      search_root(
+        plan_id,
+        campaign,
+        base_policy,
+        search["hard_feasibility"],
+        neighborhood["alternatives"],
+        plans
+      )
+
+    trace =
+      plan_id
+      |> trace(campaign, base_policy, selected, search_root, search_result)
+      |> JsonSafety.normalize_input!("campaign plan optimizer search trace")
 
     if selected do
       BuildArtifact.attach_optimizer_search_trace(selected.plan, trace)
@@ -244,7 +278,7 @@ defmodule OrbitalDynamics.CampaignPlanner.LocalSearchSelection do
     |> Map.get("score", 0.0)
   end
 
-  defp trace(plan_id, campaign, base_policy, selected, search_result) do
+  defp trace(plan_id, campaign, base_policy, selected, search_root, search_result) do
     selected_alternative =
       Enum.find(search_result["alternatives"], &(&1["id"] == search_result["selected_id"]))
 
@@ -271,7 +305,75 @@ defmodule OrbitalDynamics.CampaignPlanner.LocalSearchSelection do
       "selected_timeline_score" => selected_timeline && selected_timeline["score"],
       "selected_activity_ids" => selected_activity_ids,
       "selected_activity_count" => length(selected_activity_ids),
+      "search_root" => search_root,
       "search_result" => search_result
+    }
+  end
+
+  defp search_root(
+         plan_id,
+         campaign,
+         base_policy,
+         hard_feasibility,
+         alternatives,
+         plans
+       ) do
+    registry = Map.fetch!(hard_feasibility, "evidence_registry")
+
+    registry_entries =
+      registry
+      |> Map.fetch!("entries")
+      |> Enum.sort_by(&elem(&1, 0))
+      |> Enum.map(fn {alternative_id, entry} ->
+        Map.put(entry, "alternative_id", alternative_id)
+      end)
+
+    candidate_evidence =
+      hard_feasibility
+      |> Map.fetch!("candidates")
+      |> Enum.sort_by(& &1["alternative_id"])
+
+    plan_bindings =
+      Enum.map(alternatives, fn alternative ->
+        plan_info = Map.fetch!(plans, alternative["id"])
+        evaluated_plan_binding(alternative, plan_info)
+      end)
+
+    core =
+      %{
+        "binding_contract" => "campaign_plan_search_root.v1",
+        "plan_id" => plan_id,
+        "base_scoring_policy" => base_policy,
+        "fixed_constraints" => Map.get(campaign, "constraints", %{}),
+        "source_evidence_registry" => registry,
+        "source_evidence_registry_entries" => registry_entries,
+        "source_candidate_evidence" => candidate_evidence,
+        "alternative_plan_bindings" => plan_bindings
+      }
+      |> JsonSafety.normalize_input!("campaign plan immutable search root")
+
+    Map.put(core, "id", "campaign_plan_search_root:#{deterministic_digest(core)}")
+  end
+
+  defp evaluated_plan_binding(alternative, plan_info) do
+    plan = plan_info.plan
+    first_timeline = List.first(plan["ranked_timelines"])
+    activity_ids = selected_activity_ids(plan)
+
+    %{
+      "alternative_id" => alternative["id"],
+      "generation_index" => alternative["generation_index"],
+      "parameters" => alternative["parameters"],
+      "parameter_content_identity" => content_identity(alternative["parameters"]),
+      "effective_scoring_policy" => plan_info.policy,
+      "plan_id" => plan["plan_id"],
+      "plan_content_identity" => evaluated_plan_content_identity(plan),
+      "optimizer" => get_in(plan, ["optimizer_contract", "optimizer"]),
+      "fixed_constraints" => get_in(plan, ["optimizer_contract", "constraints"]),
+      "first_ranked_timeline_scenario_id" => first_timeline && first_timeline["scenario_id"],
+      "first_ranked_timeline_score" => first_ranked_timeline_score(plan),
+      "selected_activity_ids" => activity_ids,
+      "selected_activity_count" => length(activity_ids)
     }
   end
 
@@ -281,5 +383,12 @@ defmodule OrbitalDynamics.CampaignPlanner.LocalSearchSelection do
     plan
     |> Map.get("activities", [])
     |> Enum.map(& &1["id"])
+  end
+
+  defp deterministic_digest(value) do
+    value
+    |> :erlang.term_to_binary([:deterministic])
+    |> then(&:crypto.hash(:sha256, &1))
+    |> Base.encode16(case: :lower)
   end
 end

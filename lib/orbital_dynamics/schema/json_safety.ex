@@ -24,7 +24,14 @@ defmodule OrbitalDynamics.Schema.JsonSafety do
     |> Enum.reverse()
   end
 
-  defp normalize(value, _label) when is_boolean(value) or is_binary(value), do: value
+  defp normalize(value, _label) when is_boolean(value), do: value
+
+  defp normalize(value, label) when is_binary(value) do
+    if String.valid?(value),
+      do: value,
+      else: raise(ArgumentError, "#{label} contains invalid UTF-8 string content")
+  end
+
   defp normalize(nil, _label), do: :null
   defp normalize(:null, _label), do: :null
   defp normalize(value, _label) when is_integer(value), do: value
@@ -72,12 +79,24 @@ defmodule OrbitalDynamics.Schema.JsonSafety do
     do: raise(ArgumentError, "#{label} contains an improper list")
 
   defp normalize_key!(key, _label) when is_atom(key), do: Atom.to_string(key)
-  defp normalize_key!(key, _label) when is_binary(key), do: key
+
+  defp normalize_key!(key, label) when is_binary(key) do
+    if String.valid?(key),
+      do: key,
+      else: raise(ArgumentError, "#{label} contains an invalid UTF-8 object key")
+  end
 
   defp normalize_key!(_key, label),
     do: raise(ArgumentError, "#{label} contains a non-string object key")
 
-  defp validate(value, _path, issues) when is_boolean(value) or is_binary(value), do: issues
+  defp validate(value, _path, issues) when is_boolean(value), do: issues
+
+  defp validate(value, path, issues) when is_binary(value) do
+    if String.valid?(value),
+      do: issues,
+      else: [error(path, "must be a valid UTF-8 JSON string") | issues]
+  end
+
   defp validate(:null, _path, issues), do: issues
   defp validate(value, _path, issues) when is_integer(value), do: issues
 
@@ -107,7 +126,11 @@ defmodule OrbitalDynamics.Schema.JsonSafety do
 
     Enum.reduce(map, issues, fn
       {key, value}, acc when is_binary(key) ->
-        validate(value, "#{path}.#{key}", acc)
+        if String.valid?(key) do
+          validate(value, "#{path}.#{key}", acc)
+        else
+          [error("#{path}.<invalid_utf8_key>", "object keys must be valid UTF-8 strings") | acc]
+        end
 
       {key, value}, acc when is_atom(key) ->
         acc = [error(path, "object keys must be strings") | acc]

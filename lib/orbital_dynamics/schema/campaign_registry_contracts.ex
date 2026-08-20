@@ -100,6 +100,7 @@ defmodule OrbitalDynamics.Schema.CampaignRegistryContracts do
           "selected_timeline_score",
           "selected_activity_ids",
           "selected_activity_count",
+          "search_root",
           "search_result"
         ],
         "optional_fields" => [],

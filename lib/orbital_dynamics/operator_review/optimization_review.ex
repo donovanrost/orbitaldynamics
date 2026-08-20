@@ -3,6 +3,7 @@ defmodule OrbitalDynamics.OperatorReview.OptimizationReview do
 
   alias OrbitalDynamics.OperatorReview.Capabilities
   alias OrbitalDynamics.OperatorReview.PackageBuilder
+  alias OrbitalDynamics.Schema.JsonSafety
 
   @schema_contract "operator_review_package.v1"
 
@@ -35,7 +36,7 @@ defmodule OrbitalDynamics.OperatorReview.OptimizationReview do
   def local_search_rows(nil, _source), do: []
 
   def local_search_rows(%{} = trace, source) do
-    trace = stringify_keys(trace)
+    trace = JsonSafety.normalize_input!(trace, "campaign local-search review trace")
     plan_id = trace["plan_id"]
 
     [

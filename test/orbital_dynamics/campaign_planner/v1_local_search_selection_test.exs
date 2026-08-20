@@ -8,6 +8,7 @@ defmodule OrbitalDynamics.CampaignPlanner.V1LocalSearchSelectionTest do
   alias OrbitalDynamics.CampaignPlanner.LocalSearchSupport, as: Support
   alias OrbitalDynamics.Optimizer.SourceEvidenceRegistry
   alias OrbitalDynamics.Schema
+  alias OrbitalDynamics.Schema.JsonSafety
 
   test "selects the exact feasible V1 plan and excludes the higher-scoring infeasible plan" do
     plan = build()
@@ -18,7 +19,7 @@ defmodule OrbitalDynamics.CampaignPlanner.V1LocalSearchSelectionTest do
 
     assert increase["score"] > seed["score"]
     assert increase["candidate_feasibility"]["eligible"] == false
-    assert increase["rank"] == nil
+    assert increase["rank"] == :null
     assert "downlink_threshold_not_met" in increase["candidate_feasibility"]["blocker_reasons"]
 
     assert trace["selected_alternative_id"] == seed["id"]
@@ -30,6 +31,20 @@ defmodule OrbitalDynamics.CampaignPlanner.V1LocalSearchSelectionTest do
 
     assert trace["search_result"]["objective"] ==
              "maximize first ranked timeline aggregate score"
+
+    root = trace["search_root"]
+    entry_ids = Enum.map(root["source_evidence_registry_entries"], & &1["alternative_id"])
+    assert entry_ids == Enum.sort(entry_ids)
+
+    rebuilt_entries =
+      Map.new(root["source_evidence_registry_entries"], fn entry ->
+        {entry["alternative_id"], Map.delete(entry, "alternative_id")}
+      end)
+
+    assert SourceEvidenceRegistry.build(rebuilt_entries) == root["source_evidence_registry"]
+
+    assert Enum.map(root["source_candidate_evidence"], & &1["alternative_id"]) ==
+             Enum.sort(entry_ids)
 
     assert OrbitalDynamics.campaign_plan_with_local_search(
              Support.result_set(),
@@ -49,16 +64,16 @@ defmodule OrbitalDynamics.CampaignPlanner.V1LocalSearchSelectionTest do
     assert {:no_selected_plan, trace} = build(search)
     assert trace["schema_contract"] == "campaign_plan_search_trace.v1"
     assert trace["status"] == "no_selected_plan"
-    assert trace["selected_alternative_id"] == nil
-    assert trace["selected_alternative"] == nil
-    assert trace["selected_scoring_policy"] == nil
-    assert trace["selected_timeline_scenario_id"] == nil
-    assert trace["selected_timeline_score"] == nil
+    assert trace["selected_alternative_id"] == :null
+    assert trace["selected_alternative"] == :null
+    assert trace["selected_scoring_policy"] == :null
+    assert trace["selected_timeline_scenario_id"] == :null
+    assert trace["selected_timeline_score"] == :null
     assert trace["selected_activity_ids"] == []
     assert trace["selected_activity_count"] == 0
     assert trace["search_result"]["eligible_count"] == 0
     assert trace["search_result"]["infeasible_count"] == 3
-    assert Enum.all?(trace["search_result"]["alternatives"], &is_nil(&1["rank"]))
+    assert Enum.all?(trace["search_result"]["alternatives"], &(&1["rank"] == :null))
 
     refute Map.has_key?(trace, "operator_review_package")
     refute Map.has_key?(trace, "cadence_import_manifest")
@@ -67,6 +82,39 @@ defmodule OrbitalDynamics.CampaignPlanner.V1LocalSearchSelectionTest do
 
     assert {:ok, %{"schema_contract" => "campaign_plan_search_trace.v1"}} =
              Schema.validate_artifact(trace)
+  end
+
+  test "emits lossless canonical JSON traces for success and all-infeasible outcomes" do
+    success_trace = build()["optimizer_search_trace"]
+
+    {:no_selected_plan, no_plan_trace} =
+      build(
+        Support.local_search(%{
+          "hard_feasibility" => Support.hard_feasibility(all_infeasible?: true)
+        })
+      )
+
+    for trace <- [success_trace, no_plan_trace] do
+      assert JsonSafety.errors(trace) == []
+
+      encoded = trace |> :json.encode() |> IO.iodata_to_binary()
+      decoded = :json.decode(encoded)
+
+      assert decoded == trace
+
+      assert {:ok, %{"schema_contract" => "campaign_plan_search_trace.v1"}} =
+               Schema.validate_artifact(decoded)
+    end
+
+    assert Enum.any?(success_trace["search_result"]["alternatives"], fn alternative ->
+             alternative["rank"] == :null
+           end)
+
+    assert success_trace["search_result"]["feasibility_transition"] == :null
+    assert no_plan_trace["search_result"]["selected_id"] == :null
+    assert no_plan_trace["search_result"]["selected_score"] == :null
+    assert no_plan_trace["search_result"]["improvement_from_seed"] == :null
+    assert no_plan_trace["search_result"]["feasibility_transition"] == :null
   end
 
   test "binds a feasible improved alternative back to its exact unchanged V1 build" do
@@ -330,7 +378,7 @@ defmodule OrbitalDynamics.CampaignPlanner.V1LocalSearchSelectionTest do
     reasons = List.wrap(reason_or_reasons)
 
     assert increase["candidate_feasibility"]["eligible"] == false
-    assert increase["rank"] == nil
+    assert increase["rank"] == :null
     assert Enum.any?(reasons, &(&1 in increase["candidate_feasibility"]["blocker_reasons"]))
     assert result["selected_id"] == "campaign_policy:seed"
   end

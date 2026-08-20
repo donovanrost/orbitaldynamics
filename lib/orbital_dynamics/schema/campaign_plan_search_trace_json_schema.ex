@@ -5,7 +5,7 @@ defmodule OrbitalDynamics.Schema.CampaignPlanSearchTraceJsonSchema do
     schema_contract id plan_id status selection_contract objective objective_direction
     base_scoring_policy selected_scoring_policy searched_scoring_policy_keys fixed_constraints
     selected_alternative_id selected_alternative selected_timeline_scenario_id
-    selected_timeline_score selected_activity_ids selected_activity_count search_result
+    selected_timeline_score selected_activity_ids selected_activity_count search_root search_result
   )
 
   def property_field?(field) when field in @required_fields, do: true
@@ -91,7 +91,43 @@ defmodule OrbitalDynamics.Schema.CampaignPlanSearchTraceJsonSchema do
   end
 
   def property("selected_activity_count"), do: %{"type" => "integer", "minimum" => 0}
+  def property("search_root"), do: search_root_schema()
   def property("search_result"), do: search_result_schema()
+
+  defp search_root_schema do
+    %{
+      "type" => "object",
+      "additionalProperties" => false,
+      "required" => ~w(
+        binding_contract id plan_id base_scoring_policy fixed_constraints
+        source_evidence_registry source_evidence_registry_entries
+        source_candidate_evidence alternative_plan_bindings
+      ),
+      "properties" => %{
+        "binding_contract" => %{
+          "type" => "string",
+          "const" => "campaign_plan_search_root.v1"
+        },
+        "id" => stable_id_schema(),
+        "plan_id" => stable_id_schema(),
+        "base_scoring_policy" => scoring_policy_schema(),
+        "fixed_constraints" => %{"type" => "object"},
+        "source_evidence_registry" => %{"type" => "object"},
+        "source_evidence_registry_entries" => %{
+          "type" => "array",
+          "items" => %{"type" => "object"}
+        },
+        "source_candidate_evidence" => %{
+          "type" => "array",
+          "items" => %{"type" => "object"}
+        },
+        "alternative_plan_bindings" => %{
+          "type" => "array",
+          "items" => %{"type" => "object"}
+        }
+      }
+    }
+  end
 
   defp scoring_policy_schema do
     %{
