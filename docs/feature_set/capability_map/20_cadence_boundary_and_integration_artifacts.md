@@ -31,6 +31,46 @@ Status: **implemented** (with a **partial** semantic-depth area, plus **near-ter
   - resource-availability gate context
   - Cadence-import gate context
 
+### V3 Cadence consumer dry-run conformance
+
+- `OrbitalDynamics.CadenceImport.dry_run/3` accepts either a validated
+  `campaign_strategy.v3` artifact with its bound embedded manifest or that
+  validated `cadence_import_manifest.v1` directly. It does not rebuild the
+  strategy, choose a recommendation, or reread ambient configuration.
+- The handwritten `OrbitalDynamics.CadenceImport.Adapter` contract exposes
+  only `capabilities/0` and `dry_run/2`. Its exact capability surface permits
+  only `dry_run` and declares `writes: false`; it has no create, update, write,
+  mutation, approval, or execution callback.
+- Source artifact type, source artifact identity, manifest identity, and
+  presence-sensitive immutable authority context/evaluation evidence are
+  checked before delegation and must be echoed unchanged by the adapter.
+- Successful evaluations return a compact typed conformance record with a
+  deterministic semantic manifest digest, request idempotency identity, and
+  semantic-output digest. Repeating the same manifest, adapter, and normalized
+  options yields the same semantic result and identity.
+- Malformed or unsupported inputs, source/authority drift, unsupported adapter
+  capabilities, adapter errors, exceptions, exits/throws, and invalid adapter
+  returns are contained as typed errors. Adapter controls and acknowledgements
+  plus each delegated manifest row pass the existing bounded JSON-safety
+  checks. Before schema inference or extraction, the entire outer input also
+  passes a Domain 20 admission gate: at most 64 MiB external term size, 64
+  top-level fields, 64 campaign branches, 4,096 rows in each known manifest,
+  operator-review, or score-term collection, 2,048 fields in each segmented
+  map, and 16,384 total segment-validation work items. Known large V3
+  collections are checked as bounded envelopes and per-entry segments;
+  additive unknown fields retain the generic JSON-safety limits, including the
+  2,048-item collection limit. Structural and segmented checks precede the
+  external-size calculation, while every admission check still precedes schema
+  inference and extraction. Adapter option lists are collected once with an
+  incremental duplicate/shape check and a fixed 2,048-entry cap before their
+  bounded string-key map is passed to JSON-safety validation.
+- Adapter callbacks execute synchronously in the caller process. This boundary
+  contains returned errors, exceptions, throws, and exits, but deliberately
+  provides no callback timeout or process isolation and therefore requires a
+  trusted adapter implementation.
+- This boundary defines conformance only. The repository supplies no live
+  Cadence consumer, API client, database writer, or mutation implementation.
+
 ### Operational readiness classification
 
 - `operational_readiness_report.v1` classifies existing review/import handoff evidence as importable, review-only, analysis-only, or blocked without approving, writing, or executing anything.
@@ -526,7 +566,9 @@ Deepen calibrated policies behind the queue semantics, especially adapter- or mi
 
 ## Later
 
-Stable integration adapter package or service boundary after artifact schemas mature.
+An actual separately owned Cadence adapter package or service implementation
+after consumer requirements mature beyond the handwritten no-write dry-run
+contract.
 
 ## Out of scope
 
