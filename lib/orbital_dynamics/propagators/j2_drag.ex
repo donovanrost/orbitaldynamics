@@ -63,6 +63,10 @@ defmodule OrbitalDynamics.Propagators.J2Drag do
   @time_epsilon_s 1.0e-12
   @built_in_atmosphere_source_revision "exponential-reference.v1"
   @earth_rotation_source_revision "constant-earth-rotation.v1"
+  @captured_atmosphere_provider_id "environment.provider.atmosphere.exponential_reference"
+  @captured_atmosphere_model "single_scale_height_exponential_atmosphere"
+  @captured_earth_rotation_provider_id "environment.provider.earth_rotation.constant_rate"
+  @captured_earth_rotation_model "constant_earth_rotation"
   @convergence_position_tolerance_km 1.0e-3
   @convergence_velocity_tolerance_km_s 1.0e-6
 
@@ -349,12 +353,26 @@ defmodule OrbitalDynamics.Propagators.J2Drag do
              "earth_rotation_source_revision",
              :earth_rotation_source_revision
            ),
-         :ok <- Environment.validate_provider_capability(atmosphere_capability),
+         :ok <-
+           validate_captured_provider_identity(
+             atmosphere_capability,
+             @captured_atmosphere_provider_id,
+             @captured_atmosphere_model,
+             "atmosphere_density",
+             "density_kg_m3"
+           ),
          :ok <- validate_offline_provider(atmosphere_capability),
          :ok <- validate_provider_time_scale(atmosphere_capability),
          :ok <- validate_atmosphere_capability_parameters(atmosphere_capability),
-         :ok <- validate_provider_request(atmosphere_capability, scenario),
-         :ok <- Environment.validate_provider_capability(earth_rotation_capability),
+         :ok <- validate_captured_provider_request(atmosphere_capability, scenario),
+         :ok <-
+           validate_captured_provider_identity(
+             earth_rotation_capability,
+             @captured_earth_rotation_provider_id,
+             @captured_earth_rotation_model,
+             "body_rotation",
+             "earth_rotation_rate_rad_s"
+           ),
          :ok <- validate_offline_provider(earth_rotation_capability),
          :ok <- validate_provider_time_scale(earth_rotation_capability),
          :ok <- validate_source_revision(atmosphere_source_revision, :atmosphere_source_revision),
@@ -409,6 +427,53 @@ defmodule OrbitalDynamics.Propagators.J2Drag do
       do: {:ok, rate_rad_s * 1.0},
       else: {:error, {:invalid_environment_product, :earth_rotation_rate_rad_s}}
   end
+
+  defp validate_captured_provider_identity(
+         capability,
+         expected_id,
+         expected_model,
+         expected_category,
+         required_output
+       ) do
+    with %{} <- capability,
+         ^expected_id <- Map.get(capability, "id"),
+         "environment_provider_capability.v1" <- Map.get(capability, "schema_contract"),
+         ^expected_model <- Map.get(capability, "model"),
+         ^expected_category <- Map.get(capability, "category"),
+         supported_bodies when is_list(supported_bodies) <-
+           Map.get(capability, "supported_bodies"),
+         true <- "earth" in supported_bodies,
+         outputs when is_list(outputs) <- Map.get(capability, "outputs"),
+         true <- required_output in outputs do
+      :ok
+    else
+      _value -> {:error, {:invalid_option, :captured_environment}}
+    end
+  end
+
+  defp validate_captured_provider_request(capability, scenario) do
+    start_s = scenario.initial_state.epoch.seconds_since_j2000 * 1.0
+    end_s = start_s + scenario.duration_s
+    coverage = Map.get(capability, "coverage")
+
+    with %{} <- coverage,
+         true <- captured_coverage_bound?(Map.get(coverage, "starts_at_s"), start_s, :start),
+         true <- captured_coverage_bound?(Map.get(coverage, "ends_at_s"), end_s, :end) do
+      :ok
+    else
+      _value -> {:error, {:unsupported_provider_coverage, {start_s, end_s}}}
+    end
+  end
+
+  defp captured_coverage_bound?(value, _requested, _side) when value in [nil, :null], do: true
+
+  defp captured_coverage_bound?(value, requested, :start) when is_number(value),
+    do: requested >= value
+
+  defp captured_coverage_bound?(value, requested, :end) when is_number(value),
+    do: requested <= value
+
+  defp captured_coverage_bound?(_value, _requested, _side), do: false
 
   defp propagate_with_policy(scenario, max_step_s, policy) do
     with {:ok, initial_components} <-

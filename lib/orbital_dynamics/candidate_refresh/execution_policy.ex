@@ -13,13 +13,28 @@ defmodule OrbitalDynamics.CandidateRefresh.ExecutionPolicy do
 
   alias OrbitalDynamics.Environment.{
     ConstantEarthRotationProvider,
-    ExponentialAtmosphereProvider
+    ExponentialAtmosphereProvider,
+    FixedSunProvider,
+    Provider
   }
 
   alias OrbitalDynamics.EventDetectors.{AccessWindows, Eclipses}
-  alias OrbitalDynamics.Propagators.J2Drag
+  alias OrbitalDynamics.ForceModels.AtmosphericDrag
+  alias OrbitalDynamics.Propagators.{J2, J2Drag}
   alias OrbitalDynamics.CandidateRefresh.CandidateActivityFields
-  alias OrbitalDynamics.{AccessGeometry, CentralBody, Vector3}
+
+  alias OrbitalDynamics.{
+    AccessGeometry,
+    CentralBody,
+    Epoch,
+    EventTiming,
+    Frame,
+    GroundStation,
+    Scenario,
+    Spacecraft,
+    StateVector,
+    Vector3
+  }
 
   @bundle_id "candidate_refresh.earth_j2_drag_access_eclipse.v1"
   @schema_contract "candidate_refresh_execution_policy.v1"
@@ -61,12 +76,49 @@ defmodule OrbitalDynamics.CandidateRefresh.ExecutionPolicy do
   @duration_envelope @propagator_capability.duration_envelope_s
   @initial_altitude_envelope @propagator_capability.initial_altitude_envelope_km
 
-  @module_allowlist [
-    "OrbitalDynamics.Propagators.J2Drag",
-    "OrbitalDynamics.Environment.ExponentialAtmosphereProvider",
-    "OrbitalDynamics.Environment.ConstantEarthRotationProvider",
-    "OrbitalDynamics.EventDetectors.AccessWindows",
-    "OrbitalDynamics.EventDetectors.Eclipses"
+  @executable_modules [
+    {"OrbitalDynamics.Environment", Environment},
+    {"OrbitalDynamics.Environment.Provider", Provider},
+    {"OrbitalDynamics.Environment.ExponentialAtmosphereProvider", ExponentialAtmosphereProvider},
+    {"OrbitalDynamics.Environment.ConstantEarthRotationProvider", ConstantEarthRotationProvider},
+    {"OrbitalDynamics.Environment.FixedSunProvider", FixedSunProvider},
+    {"OrbitalDynamics.Propagators.J2Drag", J2Drag},
+    {"OrbitalDynamics.Propagators.J2", J2},
+    {"OrbitalDynamics.ForceModels.AtmosphericDrag", AtmosphericDrag},
+    {"OrbitalDynamics.EventDetectors.AccessWindows", AccessWindows},
+    {"OrbitalDynamics.EventDetectors.Eclipses", Eclipses},
+    {"OrbitalDynamics.AccessGeometry", AccessGeometry},
+    {"OrbitalDynamics.EventTiming", EventTiming},
+    {"OrbitalDynamics.Vector3", Vector3},
+    {"OrbitalDynamics.Epoch", Epoch},
+    {"OrbitalDynamics.Frame", Frame},
+    {"OrbitalDynamics.CentralBody", CentralBody},
+    {"OrbitalDynamics.GroundStation", GroundStation},
+    {"OrbitalDynamics.Scenario", Scenario},
+    {"OrbitalDynamics.Spacecraft", Spacecraft},
+    {"OrbitalDynamics.StateVector", StateVector}
+  ]
+  @module_allowlist Enum.map(@executable_modules, &elem(&1, 0))
+
+  @execution_module_aliases [
+    {"propagator", "OrbitalDynamics.Propagators.J2Drag"},
+    {"atmosphere_provider", "OrbitalDynamics.Environment.ExponentialAtmosphereProvider"},
+    {"earth_rotation_provider", "OrbitalDynamics.Environment.ConstantEarthRotationProvider"},
+    {"sun_direction_provider", "OrbitalDynamics.Environment.FixedSunProvider"},
+    {"access_detector", "OrbitalDynamics.EventDetectors.AccessWindows"},
+    {"eclipse_detector", "OrbitalDynamics.EventDetectors.Eclipses"}
+  ]
+  @structured_provider_aliases ~w(atmosphere_provider earth_rotation_provider)
+
+  @serialized_execution_identity_surfaces [
+    {~w(propagation module), "OrbitalDynamics.Propagators.J2Drag"},
+    {~w(environment atmosphere_provider module),
+     "OrbitalDynamics.Environment.ExponentialAtmosphereProvider"},
+    {~w(environment atmosphere_provider evaluation_api), "fetch_captured/3"},
+    {~w(environment earth_rotation_provider module),
+     "OrbitalDynamics.Environment.ConstantEarthRotationProvider"},
+    {~w(access module), "OrbitalDynamics.EventDetectors.AccessWindows"},
+    {~w(eclipse module), "OrbitalDynamics.EventDetectors.Eclipses"}
   ]
 
   @model_limits [
@@ -205,6 +257,14 @@ defmodule OrbitalDynamics.CandidateRefresh.ExecutionPolicy do
   end
 
   @doc false
+  def validate_serialized_json_term(value) do
+    case normalize_root(value, "$", :serialized) do
+      {:ok, _normalized} -> :ok
+      {:error, reason} -> {:error, reason}
+    end
+  end
+
+  @doc false
   def canonical_sort_key(value) do
     case normalize_json_input(value) do
       {:ok, normalized} -> normalized |> canonical_term() |> :erlang.term_to_binary()
@@ -278,9 +338,10 @@ defmodule OrbitalDynamics.CandidateRefresh.ExecutionPolicy do
   capture so input and selection errors are reported at the validation stage.
   """
   def validate_request(input) do
-    with {:ok, map} <- input_map(input),
+    with {:ok, map} <- input_map(input, policy_normalization_mode(input)),
          :ok <- reject_unknown_keys(map, @request_top_level_keys, :execution_policy),
-         :ok <- validate_fixed_module_assertions(map),
+         :ok <- validate_execution_identity_aliases(map, "$"),
+         :ok <- validate_serialized_execution_identity_surfaces(map),
          :ok <- validate_network_assertion(map),
          :ok <- reject_campaign_provider(map),
          {:ok, bundle_id} <-
@@ -304,7 +365,12 @@ defmodule OrbitalDynamics.CandidateRefresh.ExecutionPolicy do
          {:ok, refresh_identity_input} <-
            alias_value(map, ["refresh_identity_input"], nil, :refresh_identity_input),
          {:ok, refresh_identity_input} <-
-           normalize_optional_refresh_identity(refresh_identity_input) do
+           normalize_optional_refresh_identity(refresh_identity_input),
+         :ok <-
+           validate_refresh_execution_identity_surfaces(
+             refresh_identity_input,
+             "$.refresh_identity_input"
+           ) do
       {:ok,
        %{
          bundle_id: bundle_id,
@@ -353,7 +419,7 @@ defmodule OrbitalDynamics.CandidateRefresh.ExecutionPolicy do
 
   @doc "Revalidates a serialized policy against the fixed bundle and its fingerprint."
   def validate_serialized(%{} = document) do
-    with {:ok, normalized} <- normalize_json_input(document),
+    with {:ok, normalized} <- normalize_serialized_value(document, "$"),
          {:ok, policy} <- capture(normalized) do
       if serialize(policy) == normalized,
         do: :ok,
@@ -362,6 +428,38 @@ defmodule OrbitalDynamics.CandidateRefresh.ExecutionPolicy do
   end
 
   def validate_serialized(_document), do: {:error, :invalid_execution_policy}
+
+  @doc false
+  def validate_refresh_execution_identity_surfaces(value, path \\ "$")
+
+  def validate_refresh_execution_identity_surfaces(nil, _path), do: :ok
+  def validate_refresh_execution_identity_surfaces(:null, _path), do: :ok
+
+  def validate_refresh_execution_identity_surfaces(%{} = map, path) do
+    with :ok <- validate_execution_identity_aliases(map, path) do
+      map
+      |> Enum.sort_by(&elem(&1, 0))
+      |> Enum.reduce_while(:ok, fn {field, value}, :ok ->
+        case validate_refresh_execution_identity_surfaces(value, path <> "." <> field) do
+          :ok -> {:cont, :ok}
+          {:error, reason} -> {:halt, {:error, reason}}
+        end
+      end)
+    end
+  end
+
+  def validate_refresh_execution_identity_surfaces(values, path) when is_list(values) do
+    values
+    |> Enum.with_index()
+    |> Enum.reduce_while(:ok, fn {value, index}, :ok ->
+      case validate_refresh_execution_identity_surfaces(value, "#{path}[#{index}]") do
+        :ok -> {:cont, :ok}
+        {:error, reason} -> {:halt, {:error, reason}}
+      end
+    end)
+  end
+
+  def validate_refresh_execution_identity_surfaces(_value, _path), do: :ok
 
   @doc false
   def validate_refresh_identity_aliases(%{} = refresh, %{} = initial_state, %{} = coverage) do
@@ -1112,37 +1210,69 @@ defmodule OrbitalDynamics.CandidateRefresh.ExecutionPolicy do
        else: {:error, {:unsupported_state, :initial_altitude_km}}
   end
 
-  defp validate_fixed_module_assertions(map) do
-    assertions = [
-      {"propagator", J2Drag},
-      {"atmosphere_provider", ExponentialAtmosphereProvider},
-      {"earth_rotation_provider", ConstantEarthRotationProvider},
-      {"access_detector", AccessWindows},
-      {"eclipse_detector", Eclipses}
-    ]
+  defp validate_execution_identity_aliases(map, path) do
+    aliases =
+      if String.ends_with?(path, ".capability"),
+        do: [],
+        else: @execution_module_aliases ++ [{"evaluation_api", "fetch_captured/3"}]
 
-    Enum.reduce_while(assertions, :ok, fn {field, expected}, :ok ->
-      case optional_alias_value(map, [field]) do
-        :missing ->
+    Enum.reduce_while(aliases, :ok, fn {field, expected}, :ok ->
+      case Map.fetch(map, field) do
+        :error ->
+          {:cont, :ok}
+
+        {:ok, value} when field in @structured_provider_aliases and is_map(value) ->
           {:cont, :ok}
 
         {:ok, value} ->
-          if module_assertion_matches?(value, expected),
+          if execution_identity_matches?(value, expected),
             do: {:cont, :ok},
-            else: {:halt, {:error, {:unsupported_module, field}}}
-
-        {:error, reason} ->
-          {:halt, {:error, reason}}
+            else: {:halt, execution_identity_conflict(path <> "." <> field, expected, value)}
       end
     end)
   end
 
-  defp module_assertion_matches?(value, expected) when is_binary(value) do
-    expected_name = expected |> Atom.to_string() |> String.trim_leading("Elixir.")
-    value in [expected_name, "Elixir." <> expected_name]
+  defp validate_serialized_execution_identity_surfaces(map) do
+    if serialized_policy_request?(map) do
+      Enum.reduce_while(@serialized_execution_identity_surfaces, :ok, fn {fields, expected},
+                                                                         :ok ->
+        path = "$." <> Enum.join(fields, ".")
+
+        case fetch_path(map, fields) do
+          {:ok, ^expected} -> {:cont, :ok}
+          {:ok, actual} -> {:halt, execution_identity_conflict(path, expected, actual)}
+          :error -> {:halt, execution_identity_conflict(path, expected, :missing)}
+        end
+      end)
+    else
+      :ok
+    end
   end
 
-  defp module_assertion_matches?(_value, _expected), do: false
+  defp execution_identity_matches?(value, expected) when is_binary(value) do
+    value == expected or
+      (String.starts_with?(expected, "OrbitalDynamics.") and value == "Elixir." <> expected)
+  end
+
+  defp execution_identity_matches?(_value, _expected), do: false
+
+  defp execution_identity_conflict(path, expected, actual),
+    do: {:error, {:conflicting_execution_identity, path, expected, actual}}
+
+  defp fetch_path(map, fields) do
+    Enum.reduce_while(fields, {:ok, map}, fn field, {:ok, value} ->
+      case value do
+        %{} ->
+          case Map.fetch(value, field) do
+            {:ok, child} -> {:cont, {:ok, child}}
+            :error -> {:halt, :error}
+          end
+
+        _value ->
+          {:halt, :error}
+      end
+    end)
+  end
 
   defp validate_network_assertion(map) do
     case optional_alias_value(map, ["network_access"]) do
@@ -1162,9 +1292,25 @@ defmodule OrbitalDynamics.CandidateRefresh.ExecutionPolicy do
     end
   end
 
-  defp input_map(%_{}), do: {:error, {:unsupported_json_value, "$", :struct}}
-  defp input_map(%{} = map), do: normalize_public_value(map, "$")
-  defp input_map(_input), do: {:error, {:invalid_policy_input, :execution_policy}}
+  defp policy_normalization_mode(%{} = input) do
+    if serialized_policy_request?(input), do: :serialized, else: :public
+  end
+
+  defp policy_normalization_mode(_input), do: :public
+
+  defp serialized_policy_request?(map) do
+    Enum.any?(
+      ["schema_contract", :schema_contract, "policy_fingerprint", :policy_fingerprint],
+      &Map.has_key?(map, &1)
+    )
+  end
+
+  defp input_map(%_{} = value, _mode),
+    do: {:error, {:unsupported_json_value, "$", {:struct, value.__struct__}}}
+
+  defp input_map(%{} = map, :serialized), do: normalize_serialized_value(map, "$")
+  defp input_map(%{} = map, :public), do: normalize_public_value(map, "$")
+  defp input_map(_input, _mode), do: {:error, {:invalid_policy_input, :execution_policy}}
 
   defp reject_unknown_keys(map, allowed_keys, field) do
     allowed = MapSet.new(allowed_keys)
@@ -1374,42 +1520,15 @@ defmodule OrbitalDynamics.CandidateRefresh.ExecutionPolicy do
     end)
   end
 
-  defp executable_modules do
-    [
-      {"OrbitalDynamics.Environment.ExponentialAtmosphereProvider",
-       ExponentialAtmosphereProvider},
-      {"OrbitalDynamics.Propagators.J2Drag", J2Drag},
-      {"OrbitalDynamics.EventDetectors.AccessWindows", AccessWindows},
-      {"OrbitalDynamics.EventDetectors.Eclipses", Eclipses}
-    ]
+  defp executable_modules, do: @executable_modules
+
+  for {_name, module} <- @executable_modules do
+    defp executable_beam_digest(unquote(module)) do
+      executable_beam_digest(unquote(module), fn ->
+        encode_beam_md5(unquote(module), unquote(module).module_info(:md5))
+      end)
+    end
   end
-
-  defp executable_beam_digest(ExponentialAtmosphereProvider),
-    do:
-      executable_beam_digest(ExponentialAtmosphereProvider, fn ->
-        encode_beam_md5(
-          ExponentialAtmosphereProvider,
-          ExponentialAtmosphereProvider.module_info(:md5)
-        )
-      end)
-
-  defp executable_beam_digest(J2Drag),
-    do:
-      executable_beam_digest(J2Drag, fn ->
-        encode_beam_md5(J2Drag, J2Drag.module_info(:md5))
-      end)
-
-  defp executable_beam_digest(AccessWindows),
-    do:
-      executable_beam_digest(AccessWindows, fn ->
-        encode_beam_md5(AccessWindows, AccessWindows.module_info(:md5))
-      end)
-
-  defp executable_beam_digest(Eclipses),
-    do:
-      executable_beam_digest(Eclipses, fn ->
-        encode_beam_md5(Eclipses, Eclipses.module_info(:md5))
-      end)
 
   defp executable_beam_digest(module, digest_fun) do
     try do
@@ -1453,6 +1572,7 @@ defmodule OrbitalDynamics.CandidateRefresh.ExecutionPolicy do
 
   defp normalize_public_value(value, path), do: normalize_root(value, path, :public)
   defp normalize_internal_value(value, path), do: normalize_root(value, path, :internal)
+  defp normalize_serialized_value(value, path), do: normalize_root(value, path, :serialized)
 
   defp normalize_root(value, path, mode) do
     budget = %{visited_terms: 0, total_byte_work: 0}
@@ -1479,11 +1599,20 @@ defmodule OrbitalDynamics.CandidateRefresh.ExecutionPolicy do
         list_shaped?(value) ->
           normalize_list(value, path, mode, depth, budget, 0, [])
 
-        is_boolean(value) or is_nil(value) ->
+        is_boolean(value) ->
           {:ok, value, budget}
 
-        value == :null and mode == :artifact ->
+        value == :null ->
           {:ok, value, budget}
+
+        is_nil(value) and mode in [:public, :internal] ->
+          {:ok, :null, budget}
+
+        is_nil(value) and mode == :artifact ->
+          {:ok, nil, budget}
+
+        is_nil(value) ->
+          {:error, {:noncanonical_null, path}}
 
         is_binary(value) and byte_size(value) > @max_binary_bytes ->
           normalization_limit(path, :max_binary_bytes, @max_binary_bytes)
@@ -1623,6 +1752,9 @@ defmodule OrbitalDynamics.CandidateRefresh.ExecutionPolicy do
     do: {:error, {:unsupported_internal_value, path, type}}
 
   defp unsupported_value(:artifact, path, type),
+    do: {:error, {:unsupported_json_value, path, type}}
+
+  defp unsupported_value(:serialized, path, type),
     do: {:error, {:unsupported_json_value, path, type}}
 
   defp normalize_public_key(key, path) when is_atom(key) do

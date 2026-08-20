@@ -3,9 +3,12 @@ defmodule OrbitalDynamics.CandidateRefresh.Runner do
 
   alias OrbitalDynamics.CandidateRefresh.{
     Build,
+    BuildGroundNetwork,
+    BuildRefreshId,
     CandidateActivityFields,
     ExecutionPolicy,
-    RefreshedWindows
+    RefreshedWindows,
+    SourceObjectives
   }
 
   alias OrbitalDynamics.EventDetectors.{AccessWindows, Eclipses}
@@ -99,6 +102,7 @@ defmodule OrbitalDynamics.CandidateRefresh.Runner do
          {:ok, options} <- normalize_options(opts),
          :ok <- reject_reserved_collision(refresh),
          :ok <- reject_execution_output_collision(refresh),
+         :ok <- ExecutionPolicy.validate_refresh_execution_identity_surfaces(refresh),
          :ok <- reject_external_execution_providers(refresh),
          {:ok, accepted_state} <- direct_accepted_state(refresh),
          :ok <- validate_accepted_state_contract(accepted_state),
@@ -750,12 +754,6 @@ defmodule OrbitalDynamics.CandidateRefresh.Runner do
 
   defp reject_external_execution_providers(refresh) do
     forbidden_paths = [
-      ["atmosphere_provider"],
-      ["earth_rotation_provider"],
-      ["sun_direction_provider"],
-      ["propagator"],
-      ["access_detector"],
-      ["eclipse_detector"],
       ["campaign_environment"],
       ["station_calendar_provider"],
       ["accepted_planning_state", "campaign_environment"],
@@ -937,7 +935,11 @@ defmodule OrbitalDynamics.CandidateRefresh.Runner do
            Build.build(result_set,
              candidate_refresh: refresh,
              generated_at: context.generated_at
-           ) do
+           ),
+         artifact =
+           artifact
+           |> restore_captured_execution_inputs(serialized_policy, evidence)
+           |> Map.put("refresh_id", executable_refresh_id(refresh, context.study_id)) do
       {:ok,
        Map.put(
          artifact,
@@ -945,6 +947,23 @@ defmodule OrbitalDynamics.CandidateRefresh.Runner do
          execution_report(artifact, policy, trajectory, evidence)
        )}
     end
+  end
+
+  defp restore_captured_execution_inputs(artifact, serialized_policy, evidence) do
+    update_in(artifact, ["assumptions", "model_assumptions"], fn assumptions ->
+      assumptions
+      |> Map.put(ExecutionPolicy.reserved_key(), serialized_policy)
+      |> Map.put(ExecutionPolicy.evidence_key(), evidence)
+    end)
+  end
+
+  defp executable_refresh_id(refresh, study_id) do
+    BuildRefreshId.build(
+      refresh,
+      study_id,
+      &BuildGroundNetwork.build/1,
+      &SourceObjectives.objectives/1
+    )
   end
 
   defp execution_evidence(result_set, trajectory, policy) do

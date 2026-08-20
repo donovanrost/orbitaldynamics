@@ -1,6 +1,8 @@
 defmodule OrbitalDynamics.Schema.CandidateRefreshContracts do
   @moduledoc false
 
+  alias OrbitalDynamics.CandidateRefresh.ExecutionPolicy
+
   alias OrbitalDynamics.Schema.CandidateActivityContracts
   alias OrbitalDynamics.Schema.CandidateDiffContracts
   alias OrbitalDynamics.Schema.CandidateRefreshAcceptedPlanningStateContracts
@@ -50,7 +52,7 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshContracts do
       )
       when is_function(contact_allocation_report_validator, 2) and
              is_function(candidate_rejection_report_validator, 3) do
-    case OrbitalDynamics.CandidateRefresh.ExecutionPolicy.validate_json_term(artifact) do
+    case validate_json_term(artifact) do
       :ok ->
         validate_safe(
           issues,
@@ -67,6 +69,37 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshContracts do
         ]
     end
   end
+
+  defp validate_json_term(artifact) do
+    if executable_refresh_artifact?(artifact),
+      do: ExecutionPolicy.validate_serialized_json_term(artifact),
+      else: ExecutionPolicy.validate_json_term(artifact)
+  end
+
+  defp executable_refresh_artifact?(artifact) do
+    Map.has_key?(artifact, "candidate_refresh_execution") or
+      Map.has_key?(artifact, :candidate_refresh_execution) or
+      Enum.any?(
+        [Map.get(artifact, "assumptions"), Map.get(artifact, :assumptions)],
+        &execution_policy_assumptions?/1
+      )
+  end
+
+  defp execution_policy_assumptions?(%{} = assumptions) do
+    Enum.any?(
+      [Map.get(assumptions, "model_assumptions"), Map.get(assumptions, :model_assumptions)],
+      fn
+        %{} = model_assumptions ->
+          Map.has_key?(model_assumptions, "candidate_refresh_execution_policy") or
+            Map.has_key?(model_assumptions, :candidate_refresh_execution_policy)
+
+        _value ->
+          false
+      end
+    )
+  end
+
+  defp execution_policy_assumptions?(_assumptions), do: false
 
   defp validate_safe(
          issues,
@@ -179,6 +212,7 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshContracts do
   defp json_safety_path({:invalid_utf8_key, path}), do: path
   defp json_safety_path({:unsupported_map_key, path}), do: path
   defp json_safety_path({:non_finite_number, path}), do: path
+  defp json_safety_path({:noncanonical_null, path}), do: path
   defp json_safety_path(_reason), do: "$"
 
   defp validate_publication_lineage_fields(issues, artifact) do

@@ -7,8 +7,10 @@ defmodule OrbitalDynamics.CandidateRefresh.RunnerTest do
   alias OrbitalDynamics.Environment.ExponentialAtmosphereProvider
 
   alias OrbitalDynamics.EventDetectors.{AccessWindows, Eclipses}
+  alias OrbitalDynamics.ForceModels.AtmosphericDrag
+  alias OrbitalDynamics.Propagators.J2
   alias OrbitalDynamics.Propagators.J2Drag
-  alias OrbitalDynamics.{ResultSet, Schema}
+  alias OrbitalDynamics.{AccessGeometry, ResultSet, Schema}
 
   @generated_at ~U[2026-05-14 00:00:00Z]
 
@@ -409,12 +411,46 @@ defmodule OrbitalDynamics.CandidateRefresh.RunnerTest do
     modules = [
       {ExponentialAtmosphereProvider, changed_atmosphere},
       {J2Drag, "def hot_reload_probe, do: :changed_integrator"},
+      {J2, "def hot_reload_probe, do: :changed_j2_force"},
+      {AtmosphericDrag, "def hot_reload_probe, do: :changed_drag_force"},
       {AccessWindows, "def hot_reload_probe, do: :changed_access_detector"},
+      {AccessGeometry,
+       "def assumptions, do: %{geometry_model: :simplified_spherical_earth_rotation, " <>
+         "earth_rotation_rate_rad_s: 7.2921150e-5, interpolation: :sample_based, " <>
+         "refraction: :none, terrain_mask: :none}\n" <>
+         "def hot_reload_probe, do: :changed_access_geometry"},
       {Eclipses, "def hot_reload_probe, do: :changed_eclipse_detector"}
     ]
 
     assert :ok = ExecutionPolicy.verify_executable_modules(policy)
-    assert map_size(policy["executable_beam_digests"]) == 4
+
+    assert policy["executable_beam_digests"]
+           |> Map.keys()
+           |> Enum.sort() == Enum.sort(policy["module_allowlist"])
+
+    assert MapSet.new(policy["module_allowlist"]) ==
+             MapSet.new(~w(
+               OrbitalDynamics.AccessGeometry
+               OrbitalDynamics.CentralBody
+               OrbitalDynamics.Environment
+               OrbitalDynamics.Environment.ConstantEarthRotationProvider
+               OrbitalDynamics.Environment.ExponentialAtmosphereProvider
+               OrbitalDynamics.Environment.FixedSunProvider
+               OrbitalDynamics.Environment.Provider
+               OrbitalDynamics.Epoch
+               OrbitalDynamics.EventDetectors.AccessWindows
+               OrbitalDynamics.EventDetectors.Eclipses
+               OrbitalDynamics.EventTiming
+               OrbitalDynamics.ForceModels.AtmosphericDrag
+               OrbitalDynamics.Frame
+               OrbitalDynamics.GroundStation
+               OrbitalDynamics.Propagators.J2
+               OrbitalDynamics.Propagators.J2Drag
+               OrbitalDynamics.Scenario
+               OrbitalDynamics.Spacecraft
+               OrbitalDynamics.StateVector
+               OrbitalDynamics.Vector3
+             ))
 
     for {module, changed_body} <- modules do
       module_name = module |> Atom.to_string() |> String.trim_leading("Elixir.")
@@ -431,7 +467,12 @@ defmodule OrbitalDynamics.CandidateRefresh.RunnerTest do
             ~w(spacecraft ground_station initial_state coverage refresh_identity_input)
           )
 
-        assert {:ok, recaptured} = ExecutionPolicy.capture(recapture_input)
+        recaptured_result = ExecutionPolicy.capture(recapture_input)
+
+        assert match?({:ok, _policy}, recaptured_result),
+               "expected #{inspect(module)} recapture to succeed, got: #{inspect(recaptured_result)}"
+
+        {:ok, recaptured} = recaptured_result
         refute ExecutionPolicy.fingerprint(recaptured) == fingerprint
         assert :ok = ExecutionPolicy.verify_executable_modules(recaptured)
 
@@ -457,6 +498,50 @@ defmodule OrbitalDynamics.CandidateRefresh.RunnerTest do
 
       assert :ok = ExecutionPolicy.verify_executable_modules(policy)
     end
+  end
+
+  test "transitive access-geometry reload is rejected atomically under a captured policy" do
+    parent = self()
+
+    runner_pid =
+      spawn(fn ->
+        receive do
+          :run ->
+            send(
+              parent,
+              {:runner_result, CandidateRefresh.run(refresh(), generated_at: @generated_at)}
+            )
+        end
+      end)
+
+    on_exit(fn ->
+      :erlang.trace_pattern({AccessWindows, :detect, 2}, false, [:local])
+
+      if Process.alive?(runner_pid) do
+        :erlang.trace(runner_pid, false, [:all])
+        :erlang.resume_process(runner_pid)
+        Process.exit(runner_pid, :kill)
+      end
+    end)
+
+    assert :erlang.trace_pattern({AccessWindows, :detect, 2}, true, [:local]) >= 1
+    assert 1 = :erlang.trace(runner_pid, true, [:call])
+    send(runner_pid, :run)
+
+    assert_receive {:trace, ^runner_pid, :call, {AccessWindows, :detect, _arguments}}, 5_000
+    assert true = :erlang.suspend_process(runner_pid)
+
+    module_name = "OrbitalDynamics.AccessGeometry"
+
+    with_hot_reloaded_module(AccessGeometry, "def hot_reload_probe, do: :changed_geometry", fn ->
+      assert true = :erlang.resume_process(runner_pid)
+
+      assert_receive {:runner_result,
+                      {:error,
+                       {:candidate_refresh_execution_failed, :detect_ground_station_access,
+                        {:execution_policy_drift, {:executable_beam_digest, ^module_name}}}}},
+                     30_000
+    end)
   end
 
   test "post-stage BEAM verification atomically rejects drift introduced after capture" do

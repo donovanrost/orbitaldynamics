@@ -149,6 +149,9 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshExecutionContracts do
         :ok ->
           issues
 
+        {:error, {:conflicting_execution_identity, path, _expected, _actual}} ->
+          [error(embedded_policy_path(path), "conflicts with fixed execution identity") | issues]
+
         {:error, _reason} ->
           [error(policy_path(), "must be a valid captured execution policy") | issues]
       end
@@ -745,6 +748,9 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshExecutionContracts do
   defp policy_path do
     "$.assumptions.model_assumptions.#{ExecutionPolicy.reserved_key()}"
   end
+
+  defp embedded_policy_path("$" <> suffix), do: policy_path() <> suffix
+  defp embedded_policy_path(_path), do: policy_path()
 
   defp assumptions_evidence_path do
     "$.assumptions.model_assumptions.#{ExecutionPolicy.evidence_key()}"

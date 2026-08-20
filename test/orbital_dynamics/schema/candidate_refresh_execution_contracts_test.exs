@@ -424,6 +424,116 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshExecutionContractsTest do
     end
   end
 
+  test "rejects a fully repinned contradictory propagator identity at its exact persisted path" do
+    artifact = run!()
+
+    policy =
+      artifact
+      |> execution_policy()
+      |> put_in(
+        ["refresh_identity_input", "propagator"],
+        "Untrusted.Propagator"
+      )
+      |> repin_policy_document()
+
+    assert {:error,
+            {:conflicting_execution_identity, "$.refresh_identity_input.propagator",
+             "OrbitalDynamics.Propagators.J2Drag", "Untrusted.Propagator"}} =
+             ExecutionPolicy.validate_serialized(policy)
+
+    repinned = repin_policy(policy, artifact)
+
+    assert_error_path(
+      repinned,
+      "$.assumptions.model_assumptions.#{ExecutionPolicy.reserved_key()}.refresh_identity_input.propagator"
+    )
+  end
+
+  test "rejects every persisted module and evaluator contradiction including secondary aliases" do
+    policy = run!() |> execution_policy()
+
+    fixed_surface_mutators = [
+      {~w(propagation module), "Untrusted.Propagator"},
+      {~w(environment atmosphere_provider module), ""},
+      {~w(environment atmosphere_provider evaluation_api), false},
+      {~w(environment earth_rotation_provider module), true},
+      {~w(access module), :null},
+      {~w(eclipse module), "Untrusted.Detector"}
+    ]
+
+    for {path, value} <- fixed_surface_mutators do
+      expected_path = "$." <> Enum.join(path, ".")
+      invalid = put_in(policy, path, value)
+
+      assert {:error, {:conflicting_execution_identity, ^expected_path, _expected, ^value}} =
+               ExecutionPolicy.validate_serialized(invalid)
+    end
+
+    aliases = [
+      {"propagator", "OrbitalDynamics.Propagators.J2Drag"},
+      {"atmosphere_provider", "OrbitalDynamics.Environment.ExponentialAtmosphereProvider"},
+      {"earth_rotation_provider", "OrbitalDynamics.Environment.ConstantEarthRotationProvider"},
+      {"sun_direction_provider", "OrbitalDynamics.Environment.FixedSunProvider"},
+      {"access_detector", "OrbitalDynamics.EventDetectors.AccessWindows"},
+      {"eclipse_detector", "OrbitalDynamics.EventDetectors.Eclipses"}
+    ]
+
+    for {{field, _expected}, value} <-
+          Enum.zip(aliases, ["", :null, false, true, "Untrusted.Access", "Untrusted.Eclipse"]) do
+      invalid =
+        policy
+        |> update_in(["refresh_identity_input"], fn refresh_identity ->
+          Map.update(
+            refresh_identity,
+            "mission_state",
+            %{field => value},
+            &Map.put(&1, field, value)
+          )
+        end)
+        |> repin_policy_document()
+
+      expected_path = "$.refresh_identity_input.mission_state.#{field}"
+
+      assert {:error, {:conflicting_execution_identity, ^expected_path, _expected, ^value}} =
+               ExecutionPolicy.validate_serialized(invalid)
+    end
+
+    nil_policy = put_in(policy, ["refresh_identity_input", "propagator"], nil)
+
+    assert {:error, {:noncanonical_null, "$.refresh_identity_input.propagator"}} =
+             ExecutionPolicy.validate_serialized(nil_policy)
+
+    collision =
+      update_in(policy, ["refresh_identity_input"], fn refresh_identity ->
+        refresh_identity
+        |> Map.put("propagator", "OrbitalDynamics.Propagators.J2Drag")
+        |> Map.put(:propagator, "OrbitalDynamics.Propagators.J2Drag")
+      end)
+
+    assert {:error, {:duplicate_normalized_key, "$.refresh_identity_input", "propagator"}} =
+             ExecutionPolicy.validate_serialized(collision)
+  end
+
+  test "runner artifact is nil-free and survives the repository OTP JSON stack identically" do
+    artifact = run!()
+    policy = execution_policy(artifact)
+
+    assert nil_paths(artifact) == []
+    assert get_in(policy, ["provider_coverage", "atmosphere", "starts_at_s"]) == :null
+    assert get_in(policy, ["provider_coverage", "atmosphere", "ends_at_s"]) == :null
+    assert get_in(policy, ["network_access"]) == false
+
+    decoded = artifact |> :json.encode() |> IO.iodata_to_binary() |> :json.decode()
+
+    assert decoded == artifact
+    assert nil_paths(decoded) == []
+    assert execution_policy(decoded)["policy_fingerprint"] == policy["policy_fingerprint"]
+    assert decoded["refresh_id"] == artifact["refresh_id"]
+    assert decoded["candidate_refresh_execution"]["refresh_id"] == artifact["refresh_id"]
+    assert :ok = ExecutionPolicy.validate_serialized(execution_policy(decoded))
+    assert {:ok, %{"status" => "pass"}} = Schema.validate_artifact(decoded)
+  end
+
   test "whole candidate-refresh preflight rejects unsafe terms and improper containers without raises" do
     artifact = run!()
     policy = execution_policy(artifact)
@@ -438,6 +548,7 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshExecutionContractsTest do
       put_in(artifact, ["assumptions", "model_assumptions", "unsafe"], fn -> :unsafe end),
       put_in(artifact, ["assumptions", "model_assumptions", "unsafe"], {1, 2}),
       put_in(artifact, ["assumptions", "model_assumptions", "unsafe"], %URI{}),
+      put_in(artifact, ["assumptions", "model_assumptions", "unsafe"], nil),
       put_in(artifact, ["assumptions", "model_assumptions", "unsafe"], <<1::size(1)>>),
       put_in(artifact, ["assumptions", "model_assumptions", "unsafe"], <<255>>),
       update_in(artifact, ["assumptions", "model_assumptions"], &Map.put(&1, 1, "bad key")),
@@ -506,7 +617,7 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshExecutionContractsTest do
   end
 
   defp repin_policy(policy, artifact) do
-    policy = Map.put(policy, "policy_fingerprint", ExecutionPolicy.fingerprint(policy))
+    policy = repin_policy_document(policy)
     evidence = artifact["candidate_refresh_execution"]["evidence"]
 
     refresh =
@@ -534,6 +645,26 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshExecutionContractsTest do
     |> Map.put("refresh_id", refresh_id)
     |> put_in(["candidate_refresh_execution", "refresh_id"], refresh_id)
   end
+
+  defp repin_policy_document(policy) do
+    Map.put(policy, "policy_fingerprint", ExecutionPolicy.fingerprint(policy))
+  end
+
+  defp nil_paths(value, path \\ "$")
+
+  defp nil_paths(nil, path), do: [path]
+
+  defp nil_paths(%{} = map, path) do
+    Enum.flat_map(map, fn {key, value} -> nil_paths(value, path <> "." <> to_string(key)) end)
+  end
+
+  defp nil_paths(values, path) when is_list(values) do
+    values
+    |> Enum.with_index()
+    |> Enum.flat_map(fn {value, index} -> nil_paths(value, "#{path}[#{index}]") end)
+  end
+
+  defp nil_paths(_value, _path), do: []
 
   defp refresh do
     %{
