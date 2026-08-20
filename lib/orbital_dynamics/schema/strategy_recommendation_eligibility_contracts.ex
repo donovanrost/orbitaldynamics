@@ -1008,12 +1008,21 @@ defmodule OrbitalDynamics.Schema.StrategyRecommendationEligibilityContracts do
       |> validate_closed_map(blocker_path, blocker, @blocker_fields)
       |> require_fields(blocker_path, blocker, ["reason"])
       |> expect_type(blocker_path, blocker, "reason", :binary)
+      |> validate_optional_binary(blocker_path, blocker, "metric")
+      |> validate_optional_binary(blocker_path, blocker, "operator")
       |> validate_optional_number(blocker_path, blocker, "actual")
       |> validate_optional_number(blocker_path, blocker, "threshold")
     end)
   end
 
   defp validate_blockers(issues, _path, _blockers), do: issues
+
+  defp validate_optional_binary(issues, path, map, field) do
+    case Map.fetch(map, field) do
+      :error -> issues
+      {:ok, _value} -> expect_type(issues, path, map, field, :binary)
+    end
+  end
 
   defp validate_nullable_stable_id(issues, _path, value) when value in [nil, :null], do: issues
 

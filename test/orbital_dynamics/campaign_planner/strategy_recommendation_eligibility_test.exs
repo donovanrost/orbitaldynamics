@@ -572,6 +572,36 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationEligibilityTest 
            end)
   end
 
+  test "blocker metric and operator copies retain exported optional string types" do
+    artifact = hard_strategy_with_mixed_blockers()
+
+    for field <- ["metric", "operator"] do
+      mutated =
+        map_hard_feasibility_copies(artifact, fn hard ->
+          update_in(hard, ["blockers"], fn blockers ->
+            Enum.map(blockers, &Map.put(&1, field, 42))
+          end)
+        end)
+
+      assert json_occurrences(mutated, "\"schema_contract\":\"candidate_feasibility.v1\"") ==
+               22
+
+      assert json_occurrences(mutated, "\"#{field}\":42") == 22
+      assert {:error, report} = Schema.validate_artifact(mutated)
+
+      assert Enum.any?(report["errors"], fn issue ->
+               String.starts_with?(
+                 issue["path"],
+                 "$.recommendation_eligibility.evaluations["
+               ) and
+                 String.ends_with?(
+                   issue["path"],
+                   ".hard_feasibility.blockers[0].#{field}"
+                 ) and issue["message"] == "must be a binary"
+             end)
+    end
+  end
+
   test "exported hard-eligibility schema is deterministic and closes nested maps" do
     assert {:ok, first_schema} = Schema.json_schema("campaign_strategy.v3")
     assert {:ok, second_schema} = Schema.json_schema("campaign_strategy.v3")
@@ -607,6 +637,25 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationEligibilityTest 
 
   defp hard_strategy_from_plan(prior_plan, opts, hard_opts \\ []) do
     hard_feasibility = hard_setting(prior_plan, opts, hard_opts)
+
+    Support.strategy(prior_plan, Keyword.put(opts, :recommendation_eligibility, hard_feasibility))
+  end
+
+  defp hard_strategy_with_mixed_blockers do
+    prior_plan = Support.base_plan(%{})
+
+    opts = [
+      branches: [%{id: "baseline"}, %{id: "blocked:increase"}],
+      mission_state: Support.mission_state([]),
+      current_epoch_s: 0.0
+    ]
+
+    hard_feasibility =
+      prior_plan
+      |> hard_setting(opts, all_infeasible?: true)
+      |> update_in(["candidates"], fn candidates ->
+        Enum.reject(candidates, &(&1["alternative_id"] == "baseline"))
+      end)
 
     Support.strategy(prior_plan, Keyword.put(opts, :recommendation_eligibility, hard_feasibility))
   end
@@ -665,58 +714,69 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationEligibilityTest 
 
   defp repin_registry_id_copies(artifact, registry_id) do
     artifact
+    |> put_in(
+      ["recommendation_eligibility", "source_evidence_registry", "id"],
+      registry_id
+    )
+    |> map_hard_feasibility_copies(&Map.put(&1, "source_evidence_registry_id", registry_id))
+  end
+
+  defp map_hard_feasibility_copies(artifact, hard_fun) do
+    artifact
     |> update_in(["recommendation_eligibility"], fn eligibility ->
       eligibility
-      |> put_in(["source_evidence_registry", "id"], registry_id)
       |> update_in(
         ["evaluations"],
-        &Enum.map(&1, fn row -> repin_evaluation(row, registry_id) end)
+        &Enum.map(&1, fn row -> map_evaluation_hard(row, hard_fun) end)
       )
-      |> update_existing_map("counterfactual", &repin_evaluation(&1, registry_id))
+      |> update_existing_map("counterfactual", &map_evaluation_hard(&1, hard_fun))
     end)
-    |> update_in(["recommendation"], &repin_recommendation(&1, registry_id))
+    |> update_in(["recommendation"], &map_recommendation_hard(&1, hard_fun))
     |> update_in(["branch_comparison_report", "rows"], fn rows ->
-      Enum.map(rows, &repin_comparison(&1, registry_id))
+      Enum.map(rows, &map_comparison_hard(&1, hard_fun))
     end)
     |> update_in(["operator_review_package", "rows"], fn rows ->
-      Enum.map(rows, &repin_review(&1, registry_id))
+      Enum.map(rows, &map_review_hard(&1, hard_fun))
     end)
     |> update_in(["cadence_import_manifest", "rows"], fn rows ->
-      Enum.map(rows, &repin_manifest(&1, registry_id))
+      Enum.map(rows, &map_manifest_hard(&1, hard_fun))
     end)
   end
 
-  defp repin_evaluation(%{} = evaluation, registry_id) do
-    update_existing_map(evaluation, "hard_feasibility", fn hard ->
-      Map.put(hard, "source_evidence_registry_id", registry_id)
-    end)
+  defp map_evaluation_hard(%{} = evaluation, hard_fun) do
+    update_existing_map(evaluation, "hard_feasibility", hard_fun)
   end
 
-  defp repin_evaluation(value, _registry_id), do: value
+  defp map_evaluation_hard(value, _hard_fun), do: value
 
-  defp repin_recommendation(recommendation, registry_id),
-    do: update_existing_map(recommendation, "counterfactual", &repin_evaluation(&1, registry_id))
+  defp map_recommendation_hard(recommendation, hard_fun),
+    do:
+      update_existing_map(
+        recommendation,
+        "counterfactual",
+        &map_evaluation_hard(&1, hard_fun)
+      )
 
-  defp repin_comparison(row, registry_id),
+  defp map_comparison_hard(row, hard_fun),
     do:
       update_existing_map(
         row,
         "recommendation_hard_feasibility",
-        &Map.put(&1, "source_evidence_registry_id", registry_id)
+        hard_fun
       )
 
-  defp repin_review(row, registry_id) do
+  defp map_review_hard(row, hard_fun) do
     row
-    |> update_existing_map("source_tradeoff", &repin_comparison(&1, registry_id))
-    |> update_existing_map("source_branch_comparison", &repin_comparison(&1, registry_id))
+    |> update_existing_map("source_tradeoff", &map_comparison_hard(&1, hard_fun))
+    |> update_existing_map("source_branch_comparison", &map_comparison_hard(&1, hard_fun))
   end
 
-  defp repin_manifest(row, registry_id) do
+  defp map_manifest_hard(row, hard_fun) do
     row
-    |> update_existing_map("source_tradeoff", &repin_comparison(&1, registry_id))
-    |> update_existing_map("source_branch_comparison", &repin_comparison(&1, registry_id))
-    |> update_existing_map("source_recommendation", &repin_recommendation(&1, registry_id))
-    |> update_existing_map("source_review_row", &repin_review(&1, registry_id))
+    |> update_existing_map("source_tradeoff", &map_comparison_hard(&1, hard_fun))
+    |> update_existing_map("source_branch_comparison", &map_comparison_hard(&1, hard_fun))
+    |> update_existing_map("source_recommendation", &map_recommendation_hard(&1, hard_fun))
+    |> update_existing_map("source_review_row", &map_review_hard(&1, hard_fun))
   end
 
   defp update_existing_map(map, field, fun) do
@@ -724,6 +784,14 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationEligibilityTest 
       %{} = value -> Map.put(map, field, fun.(value))
       _value -> map
     end
+  end
+
+  defp json_occurrences(value, needle) do
+    value
+    |> :json.encode()
+    |> IO.iodata_to_binary()
+    |> :binary.matches(needle)
+    |> length()
   end
 
   defp assert_json_roundtrip(artifact) do
