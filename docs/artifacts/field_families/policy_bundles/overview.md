@@ -47,8 +47,13 @@ decision and every downstream eligibility/import-readiness field remain
 blocked or non-eligible. Missing, malformed, not-yet-effective, or stale
 explicit evidence becomes a deterministic `non_eligible` /
 `blocked_by_policy` evaluation carrying its reason and canonical typed caller
-evidence. Validators recompute that evaluation rather than trusting copied
-maps.
+evidence. Duplicate direct options and conflicting atom/string request aliases
+are rejected before normalization. Constructor failures preserve their
+operation and caller evidence so the same failure is recomputable. Validators
+recompute evaluations rather than trusting copied maps, require explicit roots
+when evidence survives downstream, and bind review/import eligibility and
+`ready_for_import` counts to the selected policy result. Non-selected manifest
+alternatives preserve their own substantive eligibility.
 
 Only absence of both mode and context uses the unchanged `Policy.decide/5`
 behavior. A context without mode or any supplied unsupported mode fails closed

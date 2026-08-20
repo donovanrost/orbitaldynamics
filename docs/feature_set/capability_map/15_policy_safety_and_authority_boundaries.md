@@ -479,7 +479,10 @@ Status: **partial**.
   campaign-policy path, not an authority registry or a repository-wide retrofit
   of every policy surface. Command/contact execution boundaries remain
   classification-only, and organization-specific policy adapters intentionally
-  remain artifact-only.
+  remain artifact-only. Within that bounded path, operator-review and Cadence
+  import validators recompute authority evaluations, reject missing propagation
+  roots, prevent non-eligible selected rows from becoming import-ready, and keep
+  blocked alternatives non-eligible independently of an eligible selection.
 
 ## Near-term
 

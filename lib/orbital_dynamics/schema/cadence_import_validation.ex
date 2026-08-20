@@ -29,7 +29,10 @@ defmodule OrbitalDynamics.Schema.CadenceImportValidation do
   def validate_manifest_artifact(issues, path, manifest) do
     issues
     |> PrimitiveValidation.require_fields(path, manifest, manifest_required_fields())
-    |> OrbitalDynamics.Schema.AuthorityContextContracts.validate_optional(path, manifest)
+    |> OrbitalDynamics.Schema.AuthorityContextContracts.validate_cadence_import_manifest_boundary(
+      path,
+      manifest
+    )
     |> validate_manifest(path, manifest)
   end
 
@@ -62,7 +65,10 @@ defmodule OrbitalDynamics.Schema.CadenceImportValidation do
     callbacks = row_callbacks()
 
     issues
-    |> OrbitalDynamics.Schema.AuthorityContextContracts.validate_optional(path, row)
+    |> OrbitalDynamics.Schema.AuthorityContextContracts.validate_cadence_import_row_boundary(
+      path,
+      row
+    )
     |> CadenceImportRowContracts.validate_import_station_and_target_fields(
       path,
       row,

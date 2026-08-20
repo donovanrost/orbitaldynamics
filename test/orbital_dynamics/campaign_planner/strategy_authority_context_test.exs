@@ -76,7 +76,27 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyAuthorityContextTest do
                failure["validation_errors"],
                &String.contains?(&1["reason"], expected_reason)
              )
+
+      if operation == :new do
+        assert {:ok, nil, ^failure} = AuthorityContext.recompute_evaluation(failure)
+        assert {:ok, _result} = AuthorityContext.validate_evaluation(nil, failure)
+      end
     end
+
+    assert {:error, caller_id_failure} = AuthorityContext.new(context)
+    assert caller_id_failure["reason_code"] == "malformed_authority_context"
+    assert caller_id_failure["provenance"]["operation"] == "constructor"
+
+    assert {:ok, nil, ^caller_id_failure} =
+             AuthorityContext.recompute_evaluation(caller_id_failure)
+
+    assert {:ok, _result} = AuthorityContext.validate_evaluation(nil, caller_id_failure)
+
+    assert {:error, _errors} =
+             AuthorityContext.validate_evaluation(
+               nil,
+               Map.put(caller_id_failure, "reason", "tampered constructor failure")
+             )
 
     {:ok, utc, 0} = DateTime.from_iso8601("2026-05-14T00:00:00Z")
     unsupported_zone = %{utc | time_zone: "Mars/Olympus", zone_abbr: "MST"}
@@ -174,6 +194,22 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyAuthorityContextTest do
              drift_report["errors"],
              &String.ends_with?(&1["path"], ".authority_context")
            )
+
+    for rootless <- [
+          Map.drop(left, propagation_fields()),
+          Map.drop(review, propagation_fields()),
+          Map.drop(manifest, propagation_fields())
+        ] do
+      assert {:error, rootless_report} = Schema.validate_artifact(rootless)
+
+      assert Enum.any?(
+               rootless_report["errors"],
+               &String.contains?(
+                 to_string(&1["message"] || &1["reason"]),
+                 "must match"
+               )
+             )
+    end
   end
 
   test "valid authority evidence never overrides a preexisting blocked policy decision" do
@@ -253,6 +289,54 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyAuthorityContextTest do
     for produced <- [decision, recommendation, review, manifest, artifact] do
       assert {:ok, %{"status" => "pass"}} = Schema.validate_artifact(produced)
     end
+
+    assert {:error, _report} =
+             review
+             |> Map.put("eligibility_status", "eligible")
+             |> Schema.validate_artifact()
+
+    assert {:error, _report} =
+             review
+             |> update_in(["rows"], fn rows ->
+               Enum.map(rows, fn
+                 %{"review_type" => "strategy_recommendation"} = row ->
+                   Map.put(row, "eligibility_status", "eligible")
+
+                 row ->
+                   row
+               end)
+             end)
+             |> Schema.validate_artifact()
+
+    assert {:error, _report} =
+             manifest
+             |> Map.put("eligibility_status", "eligible")
+             |> Schema.validate_artifact()
+
+    readiness_tamper =
+      manifest
+      |> update_in(["rows"], fn rows ->
+        Enum.map(rows, fn
+          %{"import_action" => "import_strategy_recommendation"} = row ->
+            Map.put(row, "import_status", "ready_for_import")
+
+          row ->
+            row
+        end)
+      end)
+      |> recompute_import_status_counts()
+
+    assert readiness_tamper["ready_count"] == 1
+    assert readiness_tamper["import_status_counts"]["ready_for_import"] == 1
+    assert {:error, readiness_report} = Schema.validate_artifact(readiness_tamper)
+
+    assert Enum.any?(
+             readiness_report["errors"],
+             &String.contains?(
+               to_string(&1["message"] || &1["reason"]),
+               "authority-eligible"
+             )
+           )
   end
 
   test "blocked alternatives retain non-eligibility without contaminating an eligible recommendation" do
@@ -311,6 +395,33 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyAuthorityContextTest do
     assert artifact["cadence_import_manifest"]
            |> selected_strategy_manifest_row()
            |> Map.fetch!("import_status") == "ready_for_import"
+
+    selected_row = selected_strategy_manifest_row(artifact["cadence_import_manifest"])
+
+    blocked_row =
+      Enum.find(artifact["cadence_import_manifest"]["rows"], fn row ->
+        row["source_review_type"] == "strategy_branch_comparison" and
+          row["branch_id"] == "blocked_maneuver"
+      end)
+
+    assert selected_row["eligibility_status"] == "eligible"
+    assert blocked_row["approval_status"] == "blocked_by_policy"
+    assert blocked_row["eligibility_status"] == "non_eligible"
+    assert blocked_row["import_status"] == "not_applicable"
+
+    mixed_tamper =
+      update_in(artifact, ["cadence_import_manifest", "rows"], fn rows ->
+        Enum.map(rows, fn
+          %{"branch_id" => "blocked_maneuver"} = row ->
+            Map.put(row, "eligibility_status", "eligible")
+
+          row ->
+            row
+        end)
+      end)
+
+    assert {:error, _report} = Schema.validate_artifact(mixed_tamper)
+    assert {:error, _report} = Schema.validate_artifact(mixed_tamper["cadence_import_manifest"])
 
     assert artifact["cadence_import_manifest"]["ready_count"] > 0
     assert {:ok, %{"status" => "pass"}} = Schema.validate_artifact(artifact)
@@ -475,6 +586,26 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyAuthorityContextTest do
       assert selected_manifest_row["import_status"] == "review_required_before_import"
       assert manifest["ready_count"] == 0
 
+      if reason_code == "missing_authority_context" do
+        failed_readiness_tamper =
+          manifest
+          |> Map.put("eligibility_status", "eligible")
+          |> update_in(["rows"], fn rows ->
+            Enum.map(rows, fn
+              %{"import_action" => "import_strategy_recommendation"} = row ->
+                row
+                |> Map.put("eligibility_status", "eligible")
+                |> Map.put("import_status", "ready_for_import")
+
+              row ->
+                row
+            end)
+          end)
+          |> recompute_import_status_counts()
+
+        assert {:error, _report} = Schema.validate_artifact(failed_readiness_tamper)
+      end
+
       assert {:ok, %{"schema_contract" => "campaign_strategy.v3", "status" => "pass"}} =
                Schema.validate_artifact(artifact)
     end
@@ -492,6 +623,12 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyAuthorityContextTest do
     context = AuthorityContext.new!(authority_attrs("requires-explicit-mode"))
     legacy = strategy(test_plan(), strategy_request())
     context_without_mode = strategy(test_plan(), strategy_request(authority_context: context))
+
+    assert legacy
+           |> :erlang.term_to_binary([:deterministic])
+           |> then(&:crypto.hash(:sha256, &1))
+           |> Base.encode16(case: :lower) ==
+             "a049ad75983465ae54101020a12aa6e6d18c4004cec00166f31ff4cb0c2a986f"
 
     refute Map.has_key?(legacy, "authority_context")
     refute Map.has_key?(legacy, "authority_context_evaluation")
@@ -518,6 +655,57 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyAuthorityContextTest do
       assert rejected["authority_context_evaluation"]["reason_code"] == reason_code
       assert {:ok, %{"status" => "pass"}} = Schema.validate_artifact(rejected)
     end
+
+    for opts <- [
+          [
+            authority_context_mode: "explicit",
+            authority_context_mode: "explict",
+            authority_context: context
+          ],
+          [
+            authority_context_mode: "explicit",
+            authority_context: context,
+            authority_context: AuthorityContext.new!(authority_attrs("conflicting-context"))
+          ]
+        ] do
+      {_status, _requirements, _matches, duplicate_decision} =
+        Policy.decide(requirements, risks, branch_input, candidate_plan, policy, opts)
+
+      assert duplicate_decision["authority_context_evaluation"]["reason_code"] ==
+               "ambiguous_authority_context_options"
+
+      duplicate_evaluation = duplicate_decision["authority_context_evaluation"]
+
+      assert {:ok, nil, ^duplicate_evaluation} =
+               AuthorityContext.recompute_evaluation(duplicate_evaluation)
+    end
+
+    conflicting_context = AuthorityContext.new!(authority_attrs("conflicting-context"))
+
+    for request <- [
+          strategy_request(authority_context_mode: "explicit", authority_context: context)
+          |> Map.put("authority_context_mode", "explict"),
+          strategy_request(authority_context_mode: "explicit", authority_context: context)
+          |> Map.put("authority_context", conflicting_context)
+        ] do
+      rejected = strategy(test_plan(), request)
+
+      assert rejected["authority_context_evaluation"]["reason_code"] ==
+               "ambiguous_authority_context_options"
+
+      assert {:ok, %{"status" => "pass"}} = Schema.validate_artifact(rejected)
+    end
+
+    equivalent_aliases =
+      strategy_request(authority_context_mode: :explicit, authority_context: context)
+      |> Map.put("authority_context_mode", "explicit")
+      |> Map.put("authority_context", context)
+      |> then(&strategy(test_plan(), &1))
+
+    assert equivalent_aliases["authority_context_evaluation"]["reason_code"] ==
+             "authority_context_valid"
+
+    assert {:ok, %{"status" => "pass"}} = Schema.validate_artifact(equivalent_aliases)
   end
 
   defp authority_attrs(revision, overrides \\ []) do
@@ -555,6 +743,32 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyAuthorityContextTest do
 
   defp selected_strategy_manifest_row(manifest) do
     Enum.find(manifest["rows"], &(&1["import_action"] == "import_strategy_recommendation"))
+  end
+
+  defp propagation_fields,
+    do: ~w(eligibility_status authority_context authority_context_evaluation)
+
+  defp recompute_import_status_counts(manifest) do
+    rows = manifest["rows"]
+
+    manifest
+    |> Map.put("ready_count", Enum.count(rows, &(&1["import_status"] == "ready_for_import")))
+    |> Map.put(
+      "review_required_count",
+      Enum.count(rows, &(&1["import_status"] == "review_required_before_import"))
+    )
+    |> Map.put(
+      "blocked_count",
+      Enum.count(rows, &(&1["import_status"] == "blocked_missing_cadence_import"))
+    )
+    |> Map.put("import_status_counts", frequency_map(rows, "import_status"))
+  end
+
+  defp frequency_map(rows, field) do
+    rows
+    |> Enum.map(&Map.get(&1, field))
+    |> Enum.reject(&is_nil/1)
+    |> Enum.frequencies()
   end
 
   defp deep_replace_key(value, key, replacement) when is_map(value) do

@@ -50,13 +50,10 @@ defmodule OrbitalDynamics.AuthorityContext do
   `validate/1` or an explicit evaluation function to classify its eligibility.
   """
   def new(attrs) when is_map(attrs) and not is_struct(attrs) do
-    input = explicit_input(attrs)
+    input = constructor_input(attrs)
 
-    with {:ok, attrs} <- normalize_input_map(attrs, @builder_fields),
-         :ok <- require_fields(attrs, @builder_fields),
-         {:ok, normalized} <- normalize_fields(attrs),
-         :ok <- validate_bounds(normalized) do
-      {:ok, Map.put(normalized, "authority_context_id", identity(normalized))}
+    with {:ok, context} <- build_context(attrs) do
+      {:ok, context}
     else
       {:error, errors} when is_list(errors) ->
         {:error, malformed_failure(input, errors)}
@@ -64,7 +61,7 @@ defmodule OrbitalDynamics.AuthorityContext do
   end
 
   def new(attrs),
-    do: {:error, malformed_failure(explicit_input(attrs), [error("$", "must be an object")])}
+    do: {:error, malformed_failure(constructor_input(attrs), [error("$", "must be an object")])}
 
   @doc "Builds a canonical authority context or raises `ArgumentError`."
   def new!(attrs) do
@@ -90,6 +87,7 @@ defmodule OrbitalDynamics.AuthorityContext do
   """
   def evaluate(mode, context) do
     evaluate_input(%{
+      operation: "policy_boundary",
       mode_supplied?: true,
       mode: mode,
       context_supplied?: true,
@@ -109,6 +107,7 @@ defmodule OrbitalDynamics.AuthorityContext do
     context = option(opts, :authority_context)
 
     evaluate_input(%{
+      operation: "policy_boundary",
       mode_supplied?: mode != :absent,
       mode: option_value(mode),
       context_supplied?: context != :absent,
@@ -201,12 +200,33 @@ defmodule OrbitalDynamics.AuthorityContext do
          provenance
        )}
 
+  defp build_context(attrs) when is_map(attrs) and not is_struct(attrs) do
+    with {:ok, attrs} <- normalize_input_map(attrs, @builder_fields),
+         :ok <- require_fields(attrs, @builder_fields),
+         {:ok, normalized} <- normalize_fields(attrs),
+         :ok <- validate_bounds(normalized) do
+      {:ok, Map.put(normalized, "authority_context_id", identity(normalized))}
+    end
+  end
+
+  defp build_context(_attrs), do: {:error, [error("$", "must be an object")]}
+
   defp evaluate_input(input, provenance_override \\ nil) do
     provenance = provenance_override || evaluation_provenance(input)
 
     cond do
       not input.mode_supplied? and not input.context_supplied? ->
         :legacy
+
+      ambiguous_option?(input.mode) or ambiguous_option?(input.context) ->
+        {:error,
+         failure(
+           "ambiguous_authority_context_options",
+           "authority context options contain conflicting or duplicate caller inputs",
+           "invalid",
+           provenance,
+           %{"validation_errors" => ambiguous_option_errors(input)}
+         )}
 
       not input.mode_supplied? ->
         {:error,
@@ -234,6 +254,12 @@ defmodule OrbitalDynamics.AuthorityContext do
            "explicit",
            provenance
          )}
+
+      input.operation == "constructor" ->
+        case build_context(input.context) do
+          {:ok, normalized} -> {:ok, normalized, valid_evaluation(normalized, provenance)}
+          {:error, errors} -> {:error, malformed_failure(input, errors, provenance)}
+        end
 
       true ->
         case validate_context(input.context, provenance) do
@@ -459,6 +485,7 @@ defmodule OrbitalDynamics.AuthorityContext do
     %{
       "input_source" => "caller_supplied",
       "validation" => "deterministic_no_wall_clock",
+      "operation" => input.operation,
       "authority_context_mode_supplied" => input.mode_supplied?,
       "authority_context_supplied" => input.context_supplied?
     }
@@ -468,6 +495,7 @@ defmodule OrbitalDynamics.AuthorityContext do
 
   defp input_from_provenance(provenance) do
     with :ok <- validate_provenance_keys(provenance),
+         {:ok, operation} <- provenance_operation(provenance),
          {:ok, mode_supplied?} <-
            provenance_boolean(provenance, "authority_context_mode_supplied"),
          {:ok, context_supplied?} <- provenance_boolean(provenance, "authority_context_supplied"),
@@ -477,6 +505,7 @@ defmodule OrbitalDynamics.AuthorityContext do
            provenance_value(provenance, "provided_authority_context", context_supplied?) do
       {:ok,
        %{
+         operation: operation,
          mode_supplied?: mode_supplied?,
          mode: mode,
          context_supplied?: context_supplied?,
@@ -489,6 +518,7 @@ defmodule OrbitalDynamics.AuthorityContext do
     required = [
       "input_source",
       "validation",
+      "operation",
       "authority_context_mode_supplied",
       "authority_context_supplied"
     ]
@@ -507,6 +537,13 @@ defmodule OrbitalDynamics.AuthorityContext do
         :ok
     end
   end
+
+  defp provenance_operation(%{"operation" => operation})
+       when operation in ["constructor", "policy_boundary"],
+       do: {:ok, operation}
+
+  defp provenance_operation(_provenance),
+    do: {:error, [error("$.provenance.operation", "must equal constructor or policy_boundary")]}
 
   defp provenance_boolean(provenance, key) do
     case Map.fetch(provenance, key) do
@@ -603,7 +640,37 @@ defmodule OrbitalDynamics.AuthorityContext do
   defp option_value({:present, value}), do: value
 
   defp explicit_input(context) do
-    %{mode_supplied?: true, mode: "explicit", context_supplied?: true, context: context}
+    %{
+      operation: "policy_boundary",
+      mode_supplied?: true,
+      mode: "explicit",
+      context_supplied?: true,
+      context: context
+    }
+  end
+
+  defp constructor_input(context),
+    do: %{explicit_input(context) | operation: "constructor"}
+
+  defp ambiguous_option?({:ambiguous_option, key, values})
+       when is_binary(key) and is_list(values),
+       do: true
+
+  defp ambiguous_option?(_value), do: false
+
+  defp ambiguous_option_errors(input) do
+    [input.mode, input.context]
+    |> Enum.flat_map(fn
+      {:ambiguous_option, key, values} ->
+        [
+          error("$.#{key}", "contains conflicting or duplicate caller inputs", %{
+            "provided_values" => Enum.map(values, &term_evidence/1)
+          })
+        ]
+
+      _value ->
+        []
+    end)
   end
 
   defp canonical_datetime(%DateTime{time_zone: time_zone} = datetime)

@@ -1466,9 +1466,10 @@ defmodule OrbitalDynamics.Policy do
   def decide(approval_requirements, risk_indicators, branch, candidate_plan, policy, opts)
       when is_list(opts) or is_map(opts) do
     result = decide(approval_requirements, risk_indicators, branch, candidate_plan, policy)
-    opts = Map.new(opts)
+    authority_evaluation = OrbitalDynamics.AuthorityContext.evaluate_options(opts)
+    _validated_options_shape = Map.new(opts)
 
-    apply_authority_context(result, opts)
+    apply_authority_context(result, authority_evaluation)
   end
 
   defp cadence_import_statuses do
@@ -1492,8 +1493,8 @@ defmodule OrbitalDynamics.Policy do
     )
   end
 
-  defp apply_authority_context(result, opts) do
-    case OrbitalDynamics.AuthorityContext.evaluate_options(opts) do
+  defp apply_authority_context(result, authority_evaluation) do
+    case authority_evaluation do
       :legacy ->
         result
 
