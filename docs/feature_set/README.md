@@ -26,6 +26,9 @@ as the reference map after a slice has been selected.
   modeling, ground network, activities, constraints, search, refresh, V1/V2/V3
   planning, policy, future V4+, reproducibility, validation, performance,
   Cadence boundary, developer UX, and security.
+- [level5_domain_matrix.md](level5_domain_matrix.md) — evidence-backed Level 5
+  readiness audit across all 22 domains, including dependency-aware delivery
+  waves and product decisions.
 
 ## Strategy and process
 
