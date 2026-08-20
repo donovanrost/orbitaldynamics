@@ -33,7 +33,7 @@ defmodule OrbitalDynamics.Validation.TolerancePolicy do
           "suitable for examples and internal demonstrations inside the stated covered regime",
         "analysis" => "suitable for early trade studies inside stated assumptions and tolerances",
         "validated" =>
-          "reserved for future external reference-tool or operational validation evidence"
+          "external reference-tool or operational evidence within the record's exact covered regime and declared tolerances"
       }
     }
   end

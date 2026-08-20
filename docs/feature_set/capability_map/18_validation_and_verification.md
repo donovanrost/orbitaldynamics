@@ -102,17 +102,18 @@ Curated fixtures that can be verified into `validation_reference_fixture_report.
   required-action maps from rows when stale top-level aggregates are present.
 - Sampled ground-track crossing fixtures.
 
-## External numerical truth: Orekit J2-drag LEO case
+## External numerical truth: Orekit J2-drag LEO evidence
 
-Status: **implemented for one exact finite model combination**.
+Status: **implemented for one exact event case and one bounded D3 state corpus**.
 
 `OrbitalDynamics.Validation.ExternalTruth` is a standalone external-truth
 registry, deliberately separate from the curated internal fixture rollup and
-its aggregate counts. It contains one registration:
+its aggregate counts. It contains two registrations:
 
 - `external_truth.orekit_13_1_7.earth_j2_drag_rk4_10s_access_eclipse_6h`
+- `external_truth.orekit_13_1_7.earth_j2_drag_bounded_envelope_v1`
 
-The content-bound reference bundle is under
+The content-bound exact event-case reference bundle is under
 `priv/validation/external_truth/orekit_13_1_7_leo_j2_drag_access_eclipse/`.
 It was produced by Apache Orekit 13.1.7 release commit `cc18cc1` with
 Hipparchus 4.0.3 in the digest-pinned Linux/arm64 container
@@ -205,14 +206,50 @@ the read, and compares root plus intermediate/final path identities before and
 after. It fails closed when the filesystem cannot provide a usable device/inode
 handle identity, which is required for custom writable bundle verification.
 
-This promotes only the exact combined `J2Drag`/access/eclipse case above. It
+This exact-case registration promotes only the combined
+`J2Drag`/access/eclipse case above. It
 does not validate J2-only, two-body-drag, other atmosphere providers or
 ballistic parameters, other initial states/horizons/stations, accelerated
 backends, a time-varying Sun, EOP-aware frames, conical eclipses, operational
-acceptance, or flight certification. In particular, it does not close the
-broader Domain 3 Level 5 state-error claim across the published J2-drag
-envelope; Domain 3 still needs independently sampled cases across that
-envelope even though this exact supported path now has external state evidence.
+acceptance, or flight certification.
+
+The separate D3 registration
+`external_truth.orekit_13_1_7.earth_j2_drag_bounded_envelope_v1` closes the
+declared bounded *sample-envelope* state claim without expanding that exact
+event case. Its content-bound bundle is under
+`priv/validation/external_truth/orekit_13_1_7_j2_drag_envelope/`. The same
+Orekit 13.1.7/Hipparchus 4.0.3 release and digest-pinned Linux/arm64 Maven image
+generate eight cases through upstream `NumericalPropagator`,
+`J2OnlyPerturbation`, `DragForce`, `SimpleExponentialAtmosphere`, and
+`IsotropicDrag`; no Elixir force equation produces expected states.
+
+The state corpus fixes Earth mu, radius, EME2000, TDB J2000-relative seconds,
+constant co-rotation, and the simple exponential atmosphere family. It samples
+initial altitude 250--800 km, inclination 0--98 degrees, eccentricity
+0--0.036084741, 1--24 hour durations, 5--30 s fixed RK4 steps, 100--500 kg
+mass, 1--8 m^2 area, drag coefficient 2.0--2.4, 0--2e-11 kg/m^3 reference
+density at 400 km, and 50--70 km scale height. Six cases enable both J2 and
+drag; one uses zero density to externally cover the J2 branch, and one uses
+zero J2 to externally cover the drag branch. Each supplies 25 full-horizon
+states, for 200 independently generated Cartesian samples.
+
+The executable verifier checks every sample through production `J2Drag` at
+0.01 m position and 0.00001 m/s velocity maximum-component tolerances. Current
+maximum residuals are 3.112945705652237e-6 m and
+3.1113813747651875e-9 m/s. Counterfactual tests inject 0.02 m and 0.00002 m/s
+errors into combined, zero-density, and zero-J2 observations and require the
+oracle to fail. Bundle/source/raw identities are respectively
+`cc086ad9429291abd257b9907cb84b9d71ac0e05accd7cd4dda5c4206e030400`,
+`d84b2c94435f61fe0bce7a0f32bd8dcec11c14337ffe02ccb72de4fa32e0cb66`,
+and `5398bf4f44ace3b9928d069b768690aa14fd75a91b7560d22b845689afcddc38`.
+Verification is deterministic and offline; regeneration requires Docker and
+checksum-pinned Maven downloads.
+
+This narrows the D3 Level 5 accuracy claim to the declared eight-case sample
+envelope. It does not promote every continuous parameter combination, the
+broader arithmetic-safety guard bounds, other atmosphere providers, other
+frames/time scales, adaptive or accelerated backends, operational acceptance,
+or flight certification.
 
 The `timeline_activity_precondition_summary.v1` fixture observes blocked and
 review-required precondition counts, precondition type routing, row-derived
@@ -1136,9 +1173,12 @@ campaign-plan and maneuver-report contracts remain outside this focused family.
 
 Status: **partial**.
 
-- Validation levels are centralized for current models. One exact Orekit
-  J2-drag/state/access/eclipse reference-tool comparison is executable and
-  content-bound; broader reference-tool coverage remains absent.
+- Validation levels are centralized for current models. Two Orekit 13.1.7
+  registrations are executable and content-bound: one exact J2-drag state/
+  access/eclipse event case and one eight-case, 200-state bounded D3 J2-drag
+  sample envelope spanning six combined-force cases plus zero-density J2 and
+  zero-J2 drag branches. Unsampled continuous combinations, other providers
+  and models, and operational acceptance remain outside both claims.
 - Internal fixtures now cover one two-body case, one J2 case, four event-detector cases, and checked-in product/result artifact contract cases. These include:
   - The candidate-refresh artifact surface.
   - The operator-review import surface.
@@ -1148,13 +1188,15 @@ Status: **partial**.
 - Executable contact-contention validation now derives conflicted, duplicate, invalid-contact, group, and recommendation counts from emitted rows.
 - Product-level V1 campaign plus candidate-refresh tests now cover generated same-scenario cross-station contact contention through embedded contact allocation, and validation now includes an internal cross-station contact-contention fixture baseline. External campaign reference baselines remain missing.
 - Most event timing tolerances remain artifact metadata rather than a refined
-  root-finding accuracy guarantee. The one exact external case above separately
-  verifies AOS/LOS and eclipse boundaries against Orekit.
+  root-finding accuracy guarantee. The exact event-case registration above
+  separately verifies AOS/LOS and eclipse boundaries against Orekit; the
+  bounded eight-case registration verifies propagated state only.
 
 ## Roadmap
 
 - **Near-term** — add deeper product-level scenario tests for V1/V2/V3, and keep extending golden artifact tests as new public report surfaces are promoted.
-- **Later** — broader SPICE/Orekit/GMAT/Tudat comparison suites beyond the one
-  exact Orekit case, continuous benchmark trend tracking, and backend
-  acceptance criteria.
+- **Later** — broader SPICE/Orekit/GMAT/Tudat comparison suites beyond the exact
+  event case and bounded eight-case J2-drag sample envelope, coverage of
+  additional continuous combinations/providers/models, continuous benchmark
+  trend tracking, and backend acceptance criteria.
 - **Out of scope** — flight certification.

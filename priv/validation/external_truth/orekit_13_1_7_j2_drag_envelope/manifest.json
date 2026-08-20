@@ -1,0 +1,136 @@
+{
+  "schema": "external_numerical_truth_corpus.v1",
+  "corpus_id": "orekit_13_1_7_earth_j2_drag_bounded_envelope_v1",
+  "validation_status": "validated_external_reference_for_declared_bounded_sample_envelope",
+  "generated_at_utc": "2026-08-20T15:30:00Z",
+  "source_identity": {
+    "algorithm": "sha256",
+    "manifest_path": "source-manifest.sha256",
+    "manifest_byte_count": 464,
+    "sha256": "d84b2c94435f61fe0bce7a0f32bd8dcec11c14337ffe02ccb72de4fa32e0cb66",
+    "total_source_byte_count": 33949,
+    "files": [
+      {"path": "case.properties", "byte_count": 6079, "sha256": "956dfd7a5194007b853bc5b41add2a215f351a00746b47be3d7073b2b424a4dd"},
+      {"path": "pom.xml", "byte_count": 830, "sha256": "eadb68a7ad2fe8ac558d5c4a8a7bce14e0feb660ff933b2f7d023cf4815f5f94"},
+      {"path": "dependencies.lock", "byte_count": 1536, "sha256": "90b0b2e85a0fae9d586567895c894f0d59ce835e84127ba088cd9a2ed84ce388"},
+      {"path": "generate.sh", "byte_count": 1945, "sha256": "c57a698f49c28ed9ffe18753e21ec155c51174d4efe7033ff0eb47b1dc6848a6"},
+      {"path": "src/main/java/org/orbitaldynamics/validation/OrekitJ2DragEnvelopeGenerator.java", "byte_count": 23559, "sha256": "2a106e4c4ac28a7c5c998d098b92ac3945a4ef01e7c796cd463c4ba62d0dd94a"}
+    ]
+  },
+  "result_identity": {
+    "algorithm": "sha256",
+    "path": "reference-output.json",
+    "byte_count": 64725,
+    "sha256": "5398bf4f44ace3b9928d069b768690aa14fd75a91b7560d22b845689afcddc38"
+  },
+  "bundle_read_limits": {
+    "manifest_max_byte_count": 131072,
+    "result_max_byte_count": 8388608,
+    "source_manifest_max_byte_count": 65536,
+    "source_file_max_byte_count": 1048576,
+    "source_total_max_byte_count": 2097152
+  },
+  "reference_tool": {
+    "name": "Apache Orekit",
+    "version": "13.1.7",
+    "release_commit": "cc18cc1",
+    "license": "Apache-2.0",
+    "official_release_url": "https://github.com/CS-SI/Orekit/releases/tag/13.1.7",
+    "official_api_url": "https://www.orekit.org/static/apidocs/",
+    "container_image": "docker.io/library/maven:3.9.11-eclipse-temurin-21",
+    "container_digest": "sha256:6fdc855a6ed81d288ca7ca37ac6ff5e9308b612485c0801d70b25a858c83d237",
+    "container_image_id": "sha256:3ead0ff36a4b796440e451013a4ce803dbd02f07b6c5b634cc2ad67927dfcc10",
+    "container_platform": "linux/arm64",
+    "java_runtime": "21.0.9+10-LTS",
+    "maven_version": "3.9.11",
+    "curl_version": "8.5.0"
+  },
+  "dependencies": {
+    "lock_path": "dependencies.lock",
+    "orekit": "org.orekit:orekit:13.1.7",
+    "hipparchus_version": "4.0.3",
+    "artifact_count": 8,
+    "checksum_algorithm": "sha256",
+    "repository": "https://repo.maven.apache.org/maven2/"
+  },
+  "data_sources": {
+    "orekit_data_revision": "none",
+    "eop_source": "none",
+    "earth_orientation_model": "constant_z_axis_rotation_from_zero_angle_at_case_epoch",
+    "network_data_used_during_propagation": false
+  },
+  "reference_model": {
+    "frame": "EME2000",
+    "epoch": "2000-01-01T12:00:00_TDB",
+    "time_scale": "TDB_J2000_RELATIVE_SECONDS",
+    "position_unit": "meter",
+    "velocity_unit": "meter_per_second",
+    "force_models": ["NewtonianAttraction", "J2OnlyPerturbation", "DragForce", "SimpleExponentialAtmosphere", "IsotropicDrag"],
+    "excluded_force_models": ["third_body", "solid_tides", "solar_radiation_pressure", "maneuvers"],
+    "atmosphere_model": "SimpleExponentialAtmosphere",
+    "atmosphere_rotation": "rigid_constant_rate_body_frame",
+    "orbit_type": "CARTESIAN",
+    "integrator": "ClassicalRungeKuttaIntegrator"
+  },
+  "validation_envelope": {
+    "central_body": "earth",
+    "mu_km3_s2": 398600.4418,
+    "equatorial_radius_km": 6378.1363,
+    "j2_values": [0.0, 0.00108262668],
+    "initial_altitude_km": {"minimum": 250.0, "maximum": 800.0, "sampled": [250.0, 300.0, 400.0, 500.0, 650.0, 800.0]},
+    "inclination_deg": {"minimum": 0.0, "maximum": 98.0, "sampled": [0.0, 28.5, 45.0, 51.6, 63.4, 75.0, 90.0, 98.0]},
+    "eccentricity": {"minimum": 0.0, "maximum": 0.036084741, "sampled": [0.0, 0.03608474042290421]},
+    "duration_s": {"minimum": 3600.0, "maximum": 86400.0, "sampled": [3600.0, 10800.0, 21600.0, 43200.0, 64800.0, 86400.0]},
+    "fixed_rk4_step_s": {"minimum": 5.0, "maximum": 30.0, "sampled": [5.0, 10.0, 15.0, 20.0, 30.0]},
+    "spacecraft_mass_kg": {"minimum": 100.0, "maximum": 500.0, "sampled": [100.0, 120.0, 150.0, 200.0, 250.0, 350.0, 500.0]},
+    "drag_area_m2": {"minimum": 1.0, "maximum": 8.0, "sampled": [1.0, 2.0, 4.0, 5.0, 6.0, 8.0]},
+    "drag_coefficient": {"minimum": 2.0, "maximum": 2.4, "sampled": [2.0, 2.1, 2.2, 2.3, 2.4]},
+    "atmosphere_reference_altitude_km": 400.0,
+    "atmosphere_reference_density_kg_m3": {"minimum": 0.0, "maximum": 2.0e-11, "positive_sampled": [1.0e-12, 2.0e-12, 3.89e-12, 5.0e-12, 1.0e-11, 2.0e-11]},
+    "atmosphere_scale_height_km": {"minimum": 50.0, "maximum": 70.0, "sampled": [50.0, 55.0, 60.0, 65.0, 70.0]},
+    "earth_rotation_rate_rad_s": 0.00007292115,
+    "force_branches": ["point_mass_j2_drag", "point_mass_j2_zero_density_drag", "point_mass_zero_j2_drag"],
+    "case_count": 8,
+    "state_sample_count_per_case": 25,
+    "total_state_sample_count": 200
+  },
+  "cases": [
+    {"id": "combined_low_250km_i28_5deg_1h_step5s", "force_branch": "point_mass_j2_drag", "duration_s": 3600.0, "output_step_s": 150.0, "integrator_step_s": 5.0, "initial_altitude_km": 250.0, "inclination_deg": 28.5, "spacecraft_mass_kg": 100.0, "spacecraft_drag_area_m2": 8.0, "spacecraft_drag_coefficient": 2.4, "atmosphere_reference_density_kg_m3": 2.0e-11, "atmosphere_scale_height_km": 50.0, "state_sample_count": 25},
+    {"id": "combined_equatorial_300km_3h_step10s", "force_branch": "point_mass_j2_drag", "duration_s": 10800.0, "output_step_s": 450.0, "integrator_step_s": 10.0, "initial_altitude_km": 300.0, "inclination_deg": 0.0, "spacecraft_mass_kg": 150.0, "spacecraft_drag_area_m2": 6.0, "spacecraft_drag_coefficient": 2.3, "atmosphere_reference_density_kg_m3": 1.0e-11, "atmosphere_scale_height_km": 55.0, "state_sample_count": 25},
+    {"id": "combined_nominal_400km_i51_6deg_6h_step10s", "force_branch": "point_mass_j2_drag", "duration_s": 21600.0, "output_step_s": 900.0, "integrator_step_s": 10.0, "initial_altitude_km": 400.0, "inclination_deg": 51.6, "spacecraft_mass_kg": 120.0, "spacecraft_drag_area_m2": 4.0, "spacecraft_drag_coefficient": 2.2, "atmosphere_reference_density_kg_m3": 3.89e-12, "atmosphere_scale_height_km": 60.0, "state_sample_count": 25},
+    {"id": "combined_eccentric_300x800km_i63_4deg_12h_step15s", "force_branch": "point_mass_j2_drag", "duration_s": 43200.0, "output_step_s": 1800.0, "integrator_step_s": 15.0, "initial_altitude_km": 300.0, "inclination_deg": 63.4, "spacecraft_mass_kg": 250.0, "spacecraft_drag_area_m2": 5.0, "spacecraft_drag_coefficient": 2.3, "atmosphere_reference_density_kg_m3": 5.0e-12, "atmosphere_scale_height_km": 60.0, "state_sample_count": 25},
+    {"id": "combined_mid_650km_i75deg_18h_step20s", "force_branch": "point_mass_j2_drag", "duration_s": 64800.0, "output_step_s": 2700.0, "integrator_step_s": 20.0, "initial_altitude_km": 650.0, "inclination_deg": 75.0, "spacecraft_mass_kg": 350.0, "spacecraft_drag_area_m2": 2.0, "spacecraft_drag_coefficient": 2.1, "atmosphere_reference_density_kg_m3": 2.0e-12, "atmosphere_scale_height_km": 65.0, "state_sample_count": 25},
+    {"id": "combined_high_800km_i98deg_24h_step30s", "force_branch": "point_mass_j2_drag", "duration_s": 86400.0, "output_step_s": 3600.0, "integrator_step_s": 30.0, "initial_altitude_km": 800.0, "inclination_deg": 98.0, "spacecraft_mass_kg": 500.0, "spacecraft_drag_area_m2": 1.0, "spacecraft_drag_coefficient": 2.0, "atmosphere_reference_density_kg_m3": 1.0e-12, "atmosphere_scale_height_km": 70.0, "state_sample_count": 25},
+    {"id": "j2_only_zero_density_500km_i45deg_6h_step10s", "force_branch": "point_mass_j2_zero_density_drag", "duration_s": 21600.0, "output_step_s": 900.0, "integrator_step_s": 10.0, "initial_altitude_km": 500.0, "inclination_deg": 45.0, "spacecraft_mass_kg": 200.0, "spacecraft_drag_area_m2": 5.0, "spacecraft_drag_coefficient": 2.2, "atmosphere_reference_density_kg_m3": 0.0, "atmosphere_scale_height_km": 60.0, "state_sample_count": 25},
+    {"id": "drag_only_zero_j2_300km_polar_6h_step10s", "force_branch": "point_mass_zero_j2_drag", "duration_s": 21600.0, "output_step_s": 900.0, "integrator_step_s": 10.0, "initial_altitude_km": 300.0, "inclination_deg": 90.0, "spacecraft_mass_kg": 100.0, "spacecraft_drag_area_m2": 8.0, "spacecraft_drag_coefficient": 2.4, "atmosphere_reference_density_kg_m3": 1.0e-11, "atmosphere_scale_height_km": 50.0, "state_sample_count": 25}
+  ],
+  "orbital_dynamics_path": {
+    "propagator": "OrbitalDynamics.Propagators.J2Drag",
+    "frame": "earth_inertial_j2000",
+    "epoch_scale": "tdb",
+    "atmosphere_provider": "OrbitalDynamics.Environment.ExponentialAtmosphereProvider",
+    "atmosphere_source_revision": "exponential-reference.v1",
+    "earth_rotation_provider": "OrbitalDynamics.Environment.ConstantEarthRotationProvider",
+    "earth_rotation_source_revision": "constant-earth-rotation.v1",
+    "force_composition": "single_acceleration_sum_per_rk4_stage",
+    "execution_mode": "offline_deterministic"
+  },
+  "tolerances": {
+    "position_max_component_error_m": 0.01,
+    "velocity_max_component_error_m_s": 0.00001
+  },
+  "output": {
+    "format": "JSON",
+    "schema": "orekit_j2_drag_envelope_raw.v1",
+    "float_format": "%.17e",
+    "case_count": 8,
+    "state_sample_count_per_case": 25,
+    "total_state_sample_count": 200
+  },
+  "claim_boundary": {
+    "validated_combination": "earth_eme2000_tdb_fixed_rk4_point_mass_j2_simple_exponential_drag_over_the_declared_eight_case_leo_sample_envelope",
+    "validated_state_error_claim": "every one of 200 full-horizon sampled Cartesian states is within the declared per-component position and velocity tolerances of independently generated Orekit output",
+    "not_promoted": ["public_numeric_guard_envelope_outside_the_declared_validation_envelope", "unsampled_continuous_parameter_combinations", "other_atmosphere_providers", "accelerator_backends", "adaptive_integration", "other_frames_or_time_scales", "durations_over_24_hours"],
+    "not_claimed": ["flight_certification", "operational_acceptance", "full_physical_fidelity", "authoritative_earth_orientation", "space_weather_calibrated_atmosphere", "winds", "third_body", "tides", "solar_radiation_pressure", "maneuvers"]
+  }
+}

@@ -6,11 +6,12 @@ defmodule OrbitalDynamics.Validation.ExternalTruth do
   rollup. A registration promotes only its exact declared model combination.
   """
 
-  alias OrbitalDynamics.Validation.ExternalTruth.OrekitLeoCase
+  alias OrbitalDynamics.Validation.ExternalTruth.{OrekitJ2DragEnvelope, OrekitLeoCase}
 
   @doc "Returns all exact external-truth registrations in stable ID order."
   def all do
-    [OrekitLeoCase.registration()]
+    [OrekitJ2DragEnvelope.registration(), OrekitLeoCase.registration()]
+    |> Enum.sort_by(& &1["id"])
   end
 
   @doc "Fetches one exact external-truth registration."
@@ -39,4 +40,10 @@ defmodule OrbitalDynamics.Validation.ExternalTruth do
          opts
        ),
        do: OrekitLeoCase.verify(opts)
+
+  defp verify_implementation(
+         "OrbitalDynamics.Validation.ExternalTruth.OrekitJ2DragEnvelope",
+         opts
+       ),
+       do: OrekitJ2DragEnvelope.verify(opts)
 end
