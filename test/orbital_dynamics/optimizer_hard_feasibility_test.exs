@@ -2,8 +2,8 @@ defmodule OrbitalDynamics.OptimizerHardFeasibilityTest do
   use ExUnit.Case, async: true
 
   alias OrbitalDynamics.Optimizer
-  alias OrbitalDynamics.Optimizer.CandidateBinding
   alias OrbitalDynamics.Optimizer.HardFeasibility
+  alias OrbitalDynamics.Optimizer.SourceEvidenceRegistry
   alias OrbitalDynamics.Search.Local
 
   test "an infeasible higher score cannot outrank a lower-score feasible candidate" do
@@ -173,20 +173,7 @@ defmodule OrbitalDynamics.OptimizerHardFeasibilityTest do
            ) == evaluation
   end
 
-  test "source artifacts bound to a stale parameter revision fail closed" do
-    result = hard_config() |> Map.put(:parameter_revision, "parameters-r2") |> run_search()
-
-    assert result["selected_id"] == nil
-
-    assert Enum.all?(result["candidate_feasibility_evaluations"], fn evaluation ->
-             evaluation["blocker_reasons"] == [
-               "resource_state_trace_candidate_binding_mismatch",
-               "downlink_link_budget_candidate_binding_mismatch"
-             ]
-           end)
-  end
-
-  test "cross-alternative and stale parameter-content evidence reuse fail closed" do
+  test "cross-alternative and stale source evidence reuse fail against the fixed registry" do
     base = hard_config()
     seed = candidate_config(base, "hard:seed")
 
@@ -201,26 +188,68 @@ defmodule OrbitalDynamics.OptimizerHardFeasibilityTest do
     assert cross_reused["selected_id"] == "hard:seed"
 
     assert feasibility(cross_reused, "hard:x:increase")["blocker_reasons"] == [
-             "resource_state_trace_candidate_binding_mismatch",
-             "downlink_link_budget_candidate_binding_mismatch"
+             "resource_state_trace_registry_identity_mismatch",
+             "downlink_link_budget_registry_identity_mismatch"
            ]
 
-    stale_binding = CandidateBinding.build("hard:x:increase", "parameters-r1", %{"x" => 0.5})
+    stale_alternative = %{
+      "id" => "hard:x:increase",
+      "generation_index" => 99,
+      "parameters" => %{"x" => 1.0}
+    }
 
     stale_content =
       hard_config()
-      |> update_candidate("hard:x:increase", &replace_sources(&1, stale_binding))
+      |> update_candidate("hard:x:increase", fn candidate ->
+        candidate
+        |> Map.put("resource_state_trace", resource_trace(stale_alternative))
+        |> Map.put("downlink_link_budget", downlink_budget(stale_alternative))
+      end)
       |> run_search()
 
     assert stale_content["selected_id"] == "hard:seed"
 
     assert feasibility(stale_content, "hard:x:increase")["blocker_reasons"] == [
-             "resource_state_trace_candidate_binding_mismatch",
-             "downlink_link_budget_candidate_binding_mismatch"
+             "resource_state_trace_registry_identity_mismatch",
+             "downlink_link_budget_registry_identity_mismatch"
            ]
   end
 
-  test "source artifacts carry typed candidate bindings accepted by their semantic paths" do
+  test "rebinding and rehashing a seed artifact fails against an unchanged registry" do
+    base = hard_config()
+    seed_trace = candidate_config(base, "hard:seed")["resource_state_trace"]
+
+    rebound_core =
+      seed_trace
+      |> put_in(
+        ["provenance", "caller", "claimed_alternative_id"],
+        "hard:x:increase"
+      )
+      |> Map.delete("id")
+
+    rebound =
+      Map.put(
+        rebound_core,
+        "id",
+        OrbitalDynamics.ResourceStateTrace.artifact_id(rebound_core)
+      )
+
+    assert rebound["id"] != seed_trace["id"]
+    assert {:ok, _report} = OrbitalDynamics.Schema.validate_artifact(rebound)
+
+    result =
+      base
+      |> update_candidate("hard:x:increase", &Map.put(&1, "resource_state_trace", rebound))
+      |> run_search()
+
+    assert result["selected_id"] == "hard:seed"
+
+    assert feasibility(result, "hard:x:increase")["blocker_reasons"] == [
+             "resource_state_trace_registry_identity_mismatch"
+           ]
+  end
+
+  test "trusted source registry independently routes exact typed evidence identities" do
     alternatives =
       Local.neighborhood(%{x: 0.0}, steps: %{x: 1.0}, id_prefix: "hard")["alternatives"]
 
@@ -230,6 +259,8 @@ defmodule OrbitalDynamics.OptimizerHardFeasibilityTest do
     evidence = prepared.candidates["hard:x:increase"]
     trace = evidence["resource_state_trace"]
     budget = evidence["downlink_link_budget"]
+    registry = prepared.registry
+    entry = registry["entries"]["hard:x:increase"]
 
     assert {:ok, _report} =
              OrbitalDynamics.Schema.validate_artifact(trace,
@@ -239,58 +270,80 @@ defmodule OrbitalDynamics.OptimizerHardFeasibilityTest do
     assert :ok =
              OrbitalDynamics.Communications.DownlinkLinkBudget.validate_artifact(budget)
 
-    assert get_in(trace, ["provenance", "caller", "candidate_binding"]) ==
-             budget["candidate_binding"]
+    assert registry["schema_contract"] == "local_search_source_evidence_registry.v1"
+    assert registry["trust_boundary"] == "caller_supplied_trusted_composition_snapshot"
+    assert entry["resource_state_trace_id"] == trace["id"]
+    assert entry["downlink_link_budget_id"] == budget["id"]
+    assert entry["parameter_revision"] == "parameters-r1"
 
-    assert budget["candidate_binding"] ==
-             CandidateBinding.build(
-               "hard:x:increase",
-               "parameters-r1",
-               %{"x" => 1.0}
-             )
+    assert entry["parameter_content_identity"] ==
+             SourceEvidenceRegistry.parameter_content_identity(%{"x" => 1.0})
+
+    refute Map.has_key?(get_in(trace, ["provenance", "caller"]), "candidate_binding")
+    refute Map.has_key?(budget, "candidate_binding")
   end
 
-  test "missing source candidate bindings fail closed after semantic validation" do
-    config =
+  test "registry tamper and omission fail closed" do
+    tampered =
       hard_config()
-      |> update_candidate("hard:x:increase", fn candidate ->
-        trace_core =
-          candidate["resource_state_trace"]
-          |> update_in(["provenance", "caller"], &Map.delete(&1, "candidate_binding"))
-          |> Map.delete("id")
-
-        trace =
-          Map.put(
-            trace_core,
-            "id",
-            OrbitalDynamics.ResourceStateTrace.artifact_id(trace_core)
-          )
-
-        budget_core =
-          candidate["downlink_link_budget"]
-          |> Map.delete("candidate_binding")
-          |> Map.delete("id")
-
-        budget =
-          Map.put(
-            budget_core,
-            "id",
-            OrbitalDynamics.Communications.DownlinkLinkBudget.artifact_id(budget_core)
-          )
-
-        candidate
-        |> Map.put("resource_state_trace", trace)
-        |> Map.put("downlink_link_budget", budget)
+      |> update_in([:evidence_registry, "entries", "hard:x:increase"], fn entry ->
+        Map.put(
+          entry,
+          "resource_state_trace_id",
+          candidate_config(hard_config(), "hard:seed")["resource_state_trace"]["id"]
+        )
       end)
 
-    result = run_search(config)
+    assert_raise ArgumentError, ~r/source evidence registry content identity mismatch/, fn ->
+      run_search(tampered)
+    end
 
-    assert result["selected_id"] == "hard:seed"
+    omitted =
+      hard_config()
+      |> rebuild_registry(&Map.delete(&1, "hard:x:increase"))
+      |> run_search()
 
-    assert feasibility(result, "hard:x:increase")["blocker_reasons"] == [
-             "resource_state_trace_candidate_binding_missing_or_malformed",
-             "downlink_link_budget_candidate_binding_missing_or_malformed"
+    assert omitted["selected_id"] == "hard:seed"
+
+    assert feasibility(omitted, "hard:x:increase")["blocker_reasons"] == [
+             "missing_source_evidence_registry_entry"
            ]
+
+    assert_raise ArgumentError, ~r/evidence_registry must be a map/, fn ->
+      hard_config() |> Map.delete(:evidence_registry) |> run_search()
+    end
+  end
+
+  test "stale registry parameter content and malformed revision fail closed" do
+    stale =
+      hard_config()
+      |> rebuild_registry(fn entries ->
+        update_in(entries, ["hard:x:increase"], fn entry ->
+          Map.put(
+            entry,
+            "parameter_content_identity",
+            SourceEvidenceRegistry.parameter_content_identity(%{"x" => 0.5})
+          )
+        end)
+      end)
+      |> run_search()
+
+    assert stale["selected_id"] == "hard:seed"
+
+    assert feasibility(stale, "hard:x:increase")["blocker_reasons"] == [
+             "parameter_content_identity_registry_mismatch"
+           ]
+
+    malformed_revision =
+      hard_config()
+      |> put_in(
+        [:evidence_registry, "entries", "hard:x:increase", "parameter_revision"],
+        "not a revision"
+      )
+
+    assert_raise ArgumentError, ~r/parameter_revision must be a stable identity/, fn ->
+      run_search(malformed_revision)
+    end
   end
 
   test "missing and malformed evidence cannot become eligible" do
@@ -330,7 +383,7 @@ defmodule OrbitalDynamics.OptimizerHardFeasibilityTest do
         put_in(candidate, ["resource_state_trace", "provenance", "caller", "unsafe"], self())
       end)
 
-    assert_raise ArgumentError, ~r/unsupported non-JSON-safe value/, fn ->
+    assert_raise ArgumentError, ~r/unsupported PID content/, fn ->
       run_search(unsafe)
     end
   end
@@ -452,11 +505,11 @@ defmodule OrbitalDynamics.OptimizerHardFeasibilityTest do
     duplicate_mode = %{
       :mode => :hard,
       "mode" => "hard",
-      parameter_revision: "parameters-r1",
+      evidence_registry: SourceEvidenceRegistry.build(%{}),
       candidates: []
     }
 
-    assert_raise ArgumentError, ~r/duplicate keys after key normalization/, fn ->
+    assert_raise ArgumentError, ~r/duplicate atom\/string keys after normalization/, fn ->
       run_search(duplicate_mode)
     end
 
@@ -528,26 +581,22 @@ defmodule OrbitalDynamics.OptimizerHardFeasibilityTest do
   end
 
   defp hard_config do
-    candidates =
+    {candidates, entries} =
       Local.neighborhood(%{x: 0.0}, steps: %{x: 1.0}, id_prefix: "hard")
       |> Map.fetch!("alternatives")
       |> Enum.map(fn alternative ->
-        binding =
-          CandidateBinding.build(
-            alternative["id"],
-            "parameters-r1",
-            alternative["parameters"]
-          )
+        trace = resource_trace(alternative)
+        budget = downlink_budget(alternative)
 
-        %{
+        candidate = %{
           "alternative_id" => alternative["id"],
-          "resource_state_trace" => resource_trace(binding),
+          "resource_state_trace" => trace,
           "resource_threshold" => %{
             "metric" => "minimum_battery_state_of_charge",
             "operator" => "greater_than_or_equal",
             "threshold" => 0.5
           },
-          "downlink_link_budget" => downlink_budget(binding),
+          "downlink_link_budget" => budget,
           "downlink_threshold" => %{
             "metric" => "completion_fraction",
             "operator" => "greater_than_or_equal",
@@ -555,9 +604,25 @@ defmodule OrbitalDynamics.OptimizerHardFeasibilityTest do
             "required_volume_mb" => 5.0
           }
         }
-      end)
 
-    %{mode: :hard, parameter_revision: "parameters-r1", candidates: candidates}
+        entry =
+          SourceEvidenceRegistry.entry(
+            alternative["id"],
+            "parameters-r1",
+            alternative["parameters"],
+            trace["id"],
+            budget["id"]
+          )
+
+        {candidate, entry}
+      end)
+      |> Enum.unzip()
+
+    %{
+      mode: :hard,
+      evidence_registry: entries |> Map.new() |> SourceEvidenceRegistry.build(),
+      candidates: candidates
+    }
   end
 
   defp update_candidate(config, id, update) do
@@ -574,20 +639,18 @@ defmodule OrbitalDynamics.OptimizerHardFeasibilityTest do
   defp candidate_config(config, id),
     do: Enum.find(config.candidates, &(&1["alternative_id"] == id))
 
-  defp replace_sources(candidate, binding) do
-    candidate
-    |> Map.put("resource_state_trace", resource_trace(binding))
-    |> Map.put("downlink_link_budget", downlink_budget(binding))
+  defp rebuild_registry(config, update_entries) do
+    entries = config.evidence_registry["entries"] |> update_entries.()
+    Map.put(config, :evidence_registry, SourceEvidenceRegistry.build(entries))
   end
 
   defp candidate(result, id), do: Enum.find(result["alternatives"], &(&1["id"] == id))
   defp feasibility(result, id), do: candidate(result, id)["candidate_feasibility"]
 
-  defp resource_trace(binding) do
+  defp resource_trace(alternative) do
     OrbitalDynamics.resource_state_trace([], initial_resource_summary(),
       provenance: %{
-        resource_state_trace_revision: "trace-r1",
-        candidate_binding: binding
+        resource_state_trace_revision: "trace-r1:#{alternative["generation_index"]}"
       }
     )
   end
@@ -607,10 +670,12 @@ defmodule OrbitalDynamics.OptimizerHardFeasibilityTest do
     }
   end
 
-  defp downlink_budget(binding) do
+  defp downlink_budget(alternative) do
+    index = alternative["generation_index"]
+
     OrbitalDynamics.downlink_link_budget(
       %{
-        id: "dl_1",
+        id: "dl_#{index}",
         type: "downlink",
         spacecraft_id: "sc_1",
         ground_station_id: "gs_1",
@@ -621,14 +686,14 @@ defmodule OrbitalDynamics.OptimizerHardFeasibilityTest do
         source_window_id: "access_1",
         source_window_revision: "window-r7"
       },
-      Map.put(downlink_parameters(), :candidate_binding, binding)
+      downlink_parameters("rf-config-r4:#{index}")
     )
   end
 
-  defp downlink_parameters do
+  defp downlink_parameters(source_revision) do
     %{
       source: "mission_rf_configuration",
-      source_revision: "rf-config-r4",
+      source_revision: source_revision,
       access_window: %{
         id: "access_1",
         revision: "window-r7",

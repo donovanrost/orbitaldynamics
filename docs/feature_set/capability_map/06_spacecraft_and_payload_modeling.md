@@ -415,10 +415,17 @@ Status: **partial**.
   availability/margin filter and status-aware `ResourceProjection` defaults.
   The opt-in `resource_state_trace.v1` advances battery/recorder behavior to a
   time-indexed discrete state sequence. Opt-in bounded local-search hard
-  feasibility can consume a semantically valid trace carrying an immutable
-  candidate binding before ranking. Campaign, repair, and strategy planners do
-  not consume it as planner eligibility or perform post-ranking repair; that
-  broader integration remains in the separate constraints/search lane.
+  feasibility can consume a semantically valid trace whose exact content ID is
+  routed by a separate trusted composition registry before ranking. The trace
+  does not self-declare its candidate binding. Campaign, repair, and strategy
+  planners do not consume it as planner eligibility or perform post-ranking
+  repair; that broader integration remains in the separate constraints/search
+  lane.
+- The official trace builder now rejects recursively non-JSON-safe or lossy
+  caller content, including unsafe BEAM terms, improper lists, structs,
+  non-binary bitstrings, non-finite numbers, and duplicate atom/string keys.
+  Executable `resource_state_trace.v1` validation applies the same recursive
+  boundary before semantic checks or deterministic identity calculation.
 
 ### Map input normalization
 

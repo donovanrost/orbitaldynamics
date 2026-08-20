@@ -333,7 +333,7 @@ defmodule OrbitalDynamics.Optimizer do
       "eligible_count" => eligible_count,
       "infeasible_count" => infeasible_count,
       "feasibility_mode" => "hard",
-      "parameter_revision" => configuration.parameter_revision,
+      "source_evidence_registry" => HardFeasibility.registry_summary(configuration),
       "candidate_feasibility_evaluations" =>
         Enum.map(feasibility_evaluated, & &1["candidate_feasibility"]),
       "recommendation_outcome" =>
@@ -353,7 +353,9 @@ defmodule OrbitalDynamics.Optimizer do
       "assumptions" => %{
         "score_rule" => "sum_of_score_terms",
         "score_terms_function" => "caller_supplied_and_expected_pure",
-        "hard_feasibility" => "caller_supplied_identity_bound_typed_evidence",
+        "hard_feasibility" =>
+          "caller_supplied_trusted_composition_registry_and_typed_candidate_evidence",
+        "registry_authentication" => "not_provided",
         "feasibility_timing" => "before_ranking",
         "external_solver" => false,
         "iterations" => 1

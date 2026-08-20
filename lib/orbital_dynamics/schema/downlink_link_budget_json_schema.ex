@@ -40,9 +40,6 @@ defmodule OrbitalDynamics.Schema.DownlinkLinkBudgetJsonSchema do
 
   def property("provenance", _opts), do: provenance()
 
-  def property("candidate_binding", _opts),
-    do: OrbitalDynamics.Optimizer.CandidateBinding.json_schema()
-
   def property("model_limits", _opts) do
     %{
       "type" => "array",
@@ -52,18 +49,16 @@ defmodule OrbitalDynamics.Schema.DownlinkLinkBudgetJsonSchema do
   end
 
   def artifact_schema(opts) do
-    contract =
+    required =
       OrbitalDynamics.Schema.DownlinkLinkBudgetRegistryContracts.contracts()
       |> Map.fetch!(DownlinkLinkBudget.schema_contract())
-
-    required = Map.fetch!(contract, "required_fields")
-    properties = required ++ Map.fetch!(contract, "optional_fields")
+      |> Map.fetch!("required_fields")
 
     %{
       "type" => "object",
       "additionalProperties" => false,
       "required" => required,
-      "properties" => Map.new(properties, &{&1, property(&1, opts)})
+      "properties" => Map.new(required, &{&1, property(&1, opts)})
     }
   end
 

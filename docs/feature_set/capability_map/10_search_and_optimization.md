@@ -91,9 +91,10 @@ V3 strategy artifacts emit `branch_comparison_report.v1` rows that flatten, for 
   score, then generation order, then alternative ID; the result retains seed
   delta, every parameter move, score contribution, rank, selection reason,
   rejected move, ordering rule, and model limit. An opt-in exact `hard` mode
-  first evaluates candidate-bound semantic resource-trace evidence and
-  link-budget completion/shortfall evidence; only eligible alternatives enter
-  that deterministic ranking.
+  first evaluates semantic resource-trace evidence and link-budget
+  completion/shortfall evidence against a separate trusted composition registry
+  of expected candidate parameter and source-artifact identities; only eligible
+  alternatives enter that deterministic ranking.
 - **Reproducibility boundary** — no RNG or external solver is used. Identical
   inputs produce identical generation and ranking when the caller-supplied
   score-term function is pure and deterministic.
@@ -104,7 +105,10 @@ V3 strategy artifacts emit `branch_comparison_report.v1` rows that flatten, for 
   mode it performs no feasibility evaluation beyond box bounds. Hard mode is
   limited to one semantically validated resource-state threshold and one
   validated downlink threshold per candidate; it is not wired into V1, V2, or
-  V3 planner execution and does not repair ranking results.
+  V3 planner execution and does not repair ranking results. Its caller-supplied
+  registry is an immutable routing snapshot, not authentication or signature
+  verification; coordinated malicious replacement of registry and artifacts is
+  outside Level 5 and Domain 22.
 
 ## Partial
 

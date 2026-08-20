@@ -10,8 +10,6 @@ defmodule OrbitalDynamics.Communications.DownlinkLinkBudget do
   reserve a provider contact, calibrate hidden losses, or mutate a schedule.
   """
 
-  alias OrbitalDynamics.Optimizer.CandidateBinding
-
   @schema_contract "downlink_link_budget.v1"
   @model "deterministic_point_one_way_downlink_budget"
   @supported_mode "fixed_single_carrier"
@@ -116,12 +114,9 @@ defmodule OrbitalDynamics.Communications.DownlinkLinkBudget do
   must contain `access_window`, `geometry`, `spacecraft_terminal`,
   `ground_terminal`, `rf_link`, `margin_policy`, `source`, and
   `source_revision` maps/values with the explicit quantity units documented by
-  the exported contract. An optional typed `candidate_binding` is included in
-  the artifact's content identity for consumers that must bind this evidence
-  to one generated alternative and its parameter revision/content.
+  the exported contract.
   """
   def build(contact, params) when is_map(contact) and is_map(params) do
-    candidate_binding = CandidateBinding.optional_from_container!(params)
     contact = stringify_keys(contact)
     params = stringify_keys(params)
 
@@ -135,33 +130,30 @@ defmodule OrbitalDynamics.Communications.DownlinkLinkBudget do
       rf_link: normalize_rf_link!(required_map!(params, "rf_link")),
       margin_policy: normalize_margin_policy!(required_map!(params, "margin_policy")),
       source: required_text!(params, "source"),
-      source_revision: required_text!(params, "source_revision"),
-      candidate_binding: candidate_binding
+      source_revision: required_text!(params, "source_revision")
     }
 
     validate_declared_contact_window!(contact, normalized.access_window)
     validate_bindings!(normalized)
     derived = derive!(normalized)
 
-    core =
-      %{
-        "schema_contract" => @schema_contract,
-        "model" => @model,
-        "status" => derived["status"],
-        "pass" => derived["pass"],
-        "contact_binding" => normalized.contact_binding,
-        "access_window" => normalized.access_window,
-        "geometry" => normalized.geometry,
-        "spacecraft_terminal" => normalized.spacecraft_terminal,
-        "ground_terminal" => normalized.ground_terminal,
-        "rf_link" => normalized.rf_link,
-        "margin_policy" => normalized.margin_policy,
-        "derived" => Map.drop(derived, ["status", "pass"]),
-        "assumptions" => assumptions(),
-        "provenance" => provenance(normalized),
-        "model_limits" => @model_limits
-      }
-      |> maybe_put("candidate_binding", candidate_binding)
+    core = %{
+      "schema_contract" => @schema_contract,
+      "model" => @model,
+      "status" => derived["status"],
+      "pass" => derived["pass"],
+      "contact_binding" => normalized.contact_binding,
+      "access_window" => normalized.access_window,
+      "geometry" => normalized.geometry,
+      "spacecraft_terminal" => normalized.spacecraft_terminal,
+      "ground_terminal" => normalized.ground_terminal,
+      "rf_link" => normalized.rf_link,
+      "margin_policy" => normalized.margin_policy,
+      "derived" => Map.drop(derived, ["status", "pass"]),
+      "assumptions" => assumptions(),
+      "provenance" => provenance(normalized),
+      "model_limits" => @model_limits
+    }
 
     Map.put(core, "id", artifact_id(core))
   end
@@ -251,13 +243,8 @@ defmodule OrbitalDynamics.Communications.DownlinkLinkBudget do
       provenance model_limits
     )
 
-    allowed_top_level =
-      if Map.has_key?(artifact, "candidate_binding"),
-        do: required_top_level ++ ["candidate_binding"],
-        else: required_top_level
-
     require_fields!(artifact, required_top_level, "artifact")
-    require_exact_fields!(artifact, allowed_top_level, "artifact")
+    require_exact_fields!(artifact, required_top_level, "artifact")
     require_equal!(artifact["schema_contract"], @schema_contract, "schema_contract")
     require_equal!(artifact["model"], @model, "model")
     require_equal!(artifact["model_limits"], @model_limits, "model_limits")
@@ -273,12 +260,7 @@ defmodule OrbitalDynamics.Communications.DownlinkLinkBudget do
       rf_link: validate_rf_link!(artifact["rf_link"]),
       margin_policy: validate_margin_policy!(artifact["margin_policy"]),
       source: required_text!(artifact["provenance"], "source"),
-      source_revision: required_text!(artifact["provenance"], "source_revision"),
-      candidate_binding:
-        case Map.get(artifact, "candidate_binding") do
-          nil -> nil
-          binding -> CandidateBinding.normalize!(binding)
-        end
+      source_revision: required_text!(artifact["provenance"], "source_revision")
     }
 
     validate_bindings!(normalized)
@@ -298,14 +280,6 @@ defmodule OrbitalDynamics.Communications.DownlinkLinkBudget do
     require_equal!(artifact["ground_terminal"], normalized.ground_terminal, "ground_terminal")
     require_equal!(artifact["rf_link"], normalized.rf_link, "rf_link")
     require_equal!(artifact["margin_policy"], normalized.margin_policy, "margin_policy")
-
-    if normalized.candidate_binding do
-      require_equal!(
-        artifact["candidate_binding"],
-        normalized.candidate_binding,
-        "candidate_binding"
-      )
-    end
 
     require_equal!(artifact["status"], expected_derived["status"], "status")
     require_equal!(artifact["pass"], expected_derived["pass"], "pass")
@@ -738,9 +712,6 @@ defmodule OrbitalDynamics.Communications.DownlinkLinkBudget do
         raise ArgumentError, "#{scope} has unexpected fields #{inspect(Enum.sort(unexpected))}"
     end
   end
-
-  defp maybe_put(map, _key, nil), do: map
-  defp maybe_put(map, key, value), do: Map.put(map, key, value)
 
   defp required_map!(map, field) do
     case Map.get(map, field) do

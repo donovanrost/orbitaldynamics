@@ -2,12 +2,13 @@ defmodule OrbitalDynamics.Optimizer.HardFeasibility do
   @moduledoc false
 
   alias OrbitalDynamics.Communications.DownlinkLinkBudget
-  alias OrbitalDynamics.Optimizer.CandidateBinding
+  alias OrbitalDynamics.Optimizer.SourceEvidenceRegistry
   alias OrbitalDynamics.Schema
+  alias OrbitalDynamics.Schema.JsonSafety
 
   @stable_id ~r/^[A-Za-z0-9][A-Za-z0-9._:@-]*$/
   @max_float 1.7976931348623157e308
-  @config_fields ~w(mode parameter_revision candidates)
+  @config_fields ~w(mode evidence_registry candidates)
   @candidate_fields ~w(
     alternative_id resource_state_trace resource_threshold
     downlink_link_budget downlink_threshold
@@ -19,9 +20,12 @@ defmodule OrbitalDynamics.Optimizer.HardFeasibility do
   }
   @model_limits [
     "caller_supplied_candidate_evidence_only",
+    "caller_supplied_trusted_composition_registry_not_authentication",
+    "no_registry_signature_or_authentication",
+    "coordinated_registry_and_artifact_replacement_out_of_scope",
     "one_resource_state_trace_per_candidate",
     "one_downlink_link_budget_per_candidate",
-    "source_artifacts_must_bind_current_candidate_parameters",
+    "registry_routes_candidate_parameters_to_exact_source_artifact_ids",
     "one_resource_state_threshold_per_candidate",
     "one_downlink_threshold_per_candidate",
     "resource_threshold_uses_semantically_validated_trace_states",
@@ -38,7 +42,8 @@ defmodule OrbitalDynamics.Optimizer.HardFeasibility do
       option: :hard_feasibility,
       evaluation_contract: "candidate_feasibility.v1",
       outcome_contract: "local_search_recommendation_outcome.v1",
-      candidate_binding_contract: CandidateBinding.schema_contract(),
+      evidence_registry_contract: SourceEvidenceRegistry.schema_contract(),
+      evidence_registry_trust_boundary: SourceEvidenceRegistry.trust_boundary(),
       resource_metrics: [@resource_metric],
       downlink_metrics: @downlink_metrics |> Map.keys() |> Enum.sort(),
       evidence_sources: ["resource_state_trace.v1", "downlink_link_budget.v1"],
@@ -48,6 +53,9 @@ defmodule OrbitalDynamics.Optimizer.HardFeasibility do
 
   def model_limits, do: @model_limits
 
+  def registry_summary(config),
+    do: Map.take(config.registry, ["schema_contract", "id", "trust_boundary"])
+
   def search_model_limits(legacy_limits) do
     legacy_limits
     |> Enum.reject(&(&1 == "no_constraint_or_feasibility_evaluation_beyond_bounds"))
@@ -56,11 +64,14 @@ defmodule OrbitalDynamics.Optimizer.HardFeasibility do
   end
 
   def parameter_content_identity(parameters),
-    do: CandidateBinding.parameter_content_identity(parameters)
+    do: SourceEvidenceRegistry.parameter_content_identity(parameters)
 
   def prepare(opts, alternatives) do
     if Keyword.has_key?(opts, :hard_feasibility) do
-      config = opts |> Keyword.fetch!(:hard_feasibility) |> stringify!("hard_feasibility")
+      config =
+        opts
+        |> Keyword.fetch!(:hard_feasibility)
+        |> JsonSafety.normalize_input!("hard_feasibility")
 
       unless is_map(config), do: raise(ArgumentError, "hard_feasibility must be a map")
       reject_unknown!(config, @config_fields, "hard_feasibility")
@@ -68,7 +79,7 @@ defmodule OrbitalDynamics.Optimizer.HardFeasibility do
       unless config["mode"] == "hard",
         do: raise(ArgumentError, "hard_feasibility.mode must be :hard or \"hard\"")
 
-      revision = stable_id!(config["parameter_revision"], "parameter_revision")
+      registry = SourceEvidenceRegistry.normalize!(config["evidence_registry"])
       rows = Map.get(config, "candidates", [])
 
       unless is_list(rows) and Enum.all?(rows, &is_map/1),
@@ -85,35 +96,51 @@ defmodule OrbitalDynamics.Optimizer.HardFeasibility do
         id -> raise ArgumentError, "hard_feasibility identifies unknown alternative #{id}"
       end
 
+      case Enum.find(Map.keys(registry["entries"]), &(not MapSet.member?(alternative_ids, &1))) do
+        nil -> :ok
+        id -> raise ArgumentError, "source evidence registry identifies unknown alternative #{id}"
+      end
+
       {:hard,
-       %{parameter_revision: revision, candidates: Map.new(rows, &{&1["alternative_id"], &1})}}
+       %{
+         registry: registry,
+         registry_id: registry["id"],
+         candidates: Map.new(rows, &{&1["alternative_id"], &1})
+       }}
     else
       :legacy
     end
   end
 
   def evaluate(alternative, config) do
-    expected_binding =
-      CandidateBinding.build(
-        alternative["id"],
-        config.parameter_revision,
-        alternative["parameters"]
-      )
+    registry_entry = config.registry["entries"][alternative["id"]]
+    candidate = config.candidates[alternative["id"]]
 
-    case config.candidates[alternative["id"]] do
-      nil ->
-        evaluation(alternative, config, expected_binding, nil, nil, nil, [], [
+    case {registry_entry, candidate} do
+      {nil, _candidate} ->
+        evaluation(alternative, config, nil, nil, nil, nil, [], [
+          block("missing_source_evidence_registry_entry")
+        ])
+
+      {registry_entry, nil} ->
+        evaluation(alternative, config, registry_entry, nil, nil, nil, [], [
           block("missing_candidate_evidence")
         ])
 
-      candidate ->
+      {registry_entry, candidate} ->
         reject_unknown!(candidate, @candidate_fields, "candidate evidence")
 
+        parameter_blockers =
+          if SourceEvidenceRegistry.parameter_content_identity(alternative["parameters"]) ==
+               registry_entry["parameter_content_identity"],
+             do: [],
+             else: [block("parameter_content_identity_registry_mismatch")]
+
         {resource_binding, resource_rows, resource_blockers, resource_spacecraft_id} =
-          resource(candidate, expected_binding)
+          resource(candidate, registry_entry)
 
         {link_binding, link_rows, link_blockers, link_spacecraft_id} =
-          downlink(candidate, expected_binding)
+          downlink(candidate, registry_entry)
 
         spacecraft_blockers =
           if resource_spacecraft_id && link_spacecraft_id &&
@@ -127,12 +154,12 @@ defmodule OrbitalDynamics.Optimizer.HardFeasibility do
         evaluation(
           alternative,
           config,
-          expected_binding,
+          registry_entry,
           spacecraft_id,
           resource_binding,
           link_binding,
           resource_rows ++ link_rows,
-          resource_blockers ++ link_blockers ++ spacecraft_blockers
+          parameter_blockers ++ resource_blockers ++ link_blockers ++ spacecraft_blockers
         )
     end
   end
@@ -155,20 +182,23 @@ defmodule OrbitalDynamics.Optimizer.HardFeasibility do
     }
   end
 
-  defp resource(candidate, expected_binding) do
+  defp resource(candidate, registry_entry) do
     trace = candidate["resource_state_trace"]
-    binding = trace_binding(trace)
+    expected_id = registry_entry["resource_state_trace_id"]
+    binding = trace_binding(trace, expected_id)
 
     case Schema.validate_artifact(trace, schema_contract: "resource_state_trace.v1") do
       {:error, _report} ->
         {binding, [], [block("malformed_resource_state_trace")], nil}
 
       {:ok, _report} ->
-        actual_binding = get_in(trace, ["provenance", "caller", "candidate_binding"])
         revision = get_in(trace, ["provenance", "caller", "resource_state_trace_revision"])
 
         blockers =
-          binding_blockers(actual_binding, expected_binding, "resource_state_trace") ++
+          if(trace["id"] == expected_id,
+            do: [],
+            else: [block("resource_state_trace_registry_identity_mismatch")]
+          ) ++
             if(valid_revision?(revision),
               do: [],
               else: [block("resource_state_trace_revision_missing_or_malformed")]
@@ -180,8 +210,8 @@ defmodule OrbitalDynamics.Optimizer.HardFeasibility do
 
         binding = %{
           "id" => trace["id"],
-          "revision" => revision,
-          "candidate_binding" => actual_binding
+          "expected_id" => expected_id,
+          "revision" => revision
         }
 
         if blockers == [] do
@@ -195,23 +225,27 @@ defmodule OrbitalDynamics.Optimizer.HardFeasibility do
     _error -> {nil, [], [block("malformed_resource_state_trace")], nil}
   end
 
-  defp downlink(candidate, expected_binding) do
+  defp downlink(candidate, registry_entry) do
     budget = candidate["downlink_link_budget"]
-    binding = link_binding(budget)
+    expected_id = registry_entry["downlink_link_budget_id"]
+    binding = link_binding(budget, expected_id)
 
     case DownlinkLinkBudget.validate_artifact(budget) do
       {:error, _detail} ->
         {binding, [], [block("malformed_downlink_link_budget")], nil}
 
       :ok ->
-        actual_binding = budget["candidate_binding"]
-        blockers = binding_blockers(actual_binding, expected_binding, "downlink_link_budget")
+        blockers =
+          if budget["id"] == expected_id,
+            do: [],
+            else: [block("downlink_link_budget_registry_identity_mismatch")]
+
         spacecraft_id = get_in(budget, ["contact_binding", "spacecraft_id"])
 
         binding = %{
           "id" => budget["id"],
-          "revision" => get_in(budget, ["provenance", "source_revision"]),
-          "candidate_binding" => actual_binding
+          "expected_id" => expected_id,
+          "revision" => get_in(budget, ["provenance", "source_revision"])
         }
 
         if blockers == [] do
@@ -223,20 +257,6 @@ defmodule OrbitalDynamics.Optimizer.HardFeasibility do
     end
   rescue
     _error -> {nil, [], [block("malformed_downlink_link_budget")], nil}
-  end
-
-  defp binding_blockers(actual, expected, source) do
-    case normalize_binding(actual) do
-      {:ok, ^expected} -> []
-      {:ok, _stale} -> [block("#{source}_candidate_binding_mismatch")]
-      :error -> [block("#{source}_candidate_binding_missing_or_malformed")]
-    end
-  end
-
-  defp normalize_binding(binding) do
-    {:ok, CandidateBinding.normalize!(binding)}
-  rescue
-    ArgumentError -> :error
   end
 
   defp resource_threshold(_trace, nil), do: {nil, [block("missing_resource_threshold")]}
@@ -359,7 +379,7 @@ defmodule OrbitalDynamics.Optimizer.HardFeasibility do
   defp evaluation(
          alternative,
          config,
-         expected_binding,
+         registry_entry,
          spacecraft_id,
          resource_binding,
          link_binding,
@@ -372,8 +392,10 @@ defmodule OrbitalDynamics.Optimizer.HardFeasibility do
       "schema_contract" => "candidate_feasibility.v1",
       "mode" => "hard",
       "alternative_id" => alternative["id"],
-      "parameter_revision" => config.parameter_revision,
-      "parameter_content_identity" => expected_binding["parameter_content_identity"],
+      "parameter_revision" => registry_value(registry_entry, "parameter_revision"),
+      "parameter_content_identity" =>
+        registry_value(registry_entry, "parameter_content_identity"),
+      "source_evidence_registry_id" => config.registry_id,
       "spacecraft_id" => spacecraft_id,
       "status" => if(eligible, do: "feasible", else: "infeasible"),
       "eligible" => eligible,
@@ -388,18 +410,26 @@ defmodule OrbitalDynamics.Optimizer.HardFeasibility do
     }
   end
 
-  defp trace_binding(trace) when is_map(trace),
+  defp trace_binding(trace, expected_id) when is_map(trace),
     do: %{
       "id" => trace["id"],
+      "expected_id" => expected_id,
       "revision" => get_in(trace, ["provenance", "caller", "resource_state_trace_revision"])
     }
 
-  defp trace_binding(_trace), do: nil
+  defp trace_binding(_trace, expected_id), do: %{"id" => nil, "expected_id" => expected_id}
 
-  defp link_binding(budget) when is_map(budget),
-    do: %{"id" => budget["id"], "revision" => get_in(budget, ["provenance", "source_revision"])}
+  defp link_binding(budget, expected_id) when is_map(budget),
+    do: %{
+      "id" => budget["id"],
+      "expected_id" => expected_id,
+      "revision" => get_in(budget, ["provenance", "source_revision"])
+    }
 
-  defp link_binding(_budget), do: nil
+  defp link_binding(_budget, expected_id), do: %{"id" => nil, "expected_id" => expected_id}
+
+  defp registry_value(nil, _field), do: nil
+  defp registry_value(registry_entry, field), do: registry_entry[field]
 
   defp valid_revision?(value),
     do: is_binary(value) and Regex.match?(@stable_id, value)
@@ -428,55 +458,9 @@ defmodule OrbitalDynamics.Optimizer.HardFeasibility do
     end
   end
 
-  defp stable_id!(value, label) do
-    if valid_revision?(value),
-      do: value,
-      else: raise(ArgumentError, "hard_feasibility.#{label} must be a stable identity")
-  end
-
   defp finite?(value) when is_number(value),
     do: value == value and value <= @max_float and value >= -@max_float
 
   defp finite?(_value), do: false
   defp duplicate?(values), do: length(values) != length(Enum.uniq(values))
-
-  defp stringify!(map, label) when is_map(map) and not is_struct(map) do
-    entries =
-      Enum.map(map, fn {key, value} ->
-        {string_key!(key, label), stringify!(value, label)}
-      end)
-
-    keys = Enum.map(entries, &elem(&1, 0))
-
-    if duplicate?(keys),
-      do: raise(ArgumentError, "#{label} contains duplicate keys after key normalization")
-
-    Map.new(entries)
-  end
-
-  defp stringify!(list, label) when is_list(list),
-    do: Enum.map(list, &stringify!(&1, label))
-
-  defp stringify!(:null, _label), do: nil
-
-  defp stringify!(value, _label)
-       when is_binary(value) or is_boolean(value) or is_nil(value),
-       do: value
-
-  defp stringify!(value, _label) when is_atom(value), do: Atom.to_string(value)
-
-  defp stringify!(value, label) when is_number(value) do
-    if finite?(value),
-      do: value,
-      else: raise(ArgumentError, "#{label} contains a non-finite number")
-  end
-
-  defp stringify!(_value, label),
-    do: raise(ArgumentError, "#{label} contains an unsupported non-JSON-safe value")
-
-  defp string_key!(key, _label) when is_atom(key), do: Atom.to_string(key)
-  defp string_key!(key, _label) when is_binary(key), do: key
-
-  defp string_key!(_key, label),
-    do: raise(ArgumentError, "#{label} keys must be atoms or strings")
 end

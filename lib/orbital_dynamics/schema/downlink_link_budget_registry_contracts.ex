@@ -25,7 +25,7 @@ defmodule OrbitalDynamics.Schema.DownlinkLinkBudgetRegistryContracts do
           "provenance",
           "model_limits"
         ],
-        "optional_fields" => ["candidate_binding"],
+        "optional_fields" => [],
         "nested_contracts" => []
       }
     }
