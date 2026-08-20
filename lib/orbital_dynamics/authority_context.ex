@@ -356,19 +356,25 @@ defmodule OrbitalDynamics.AuthorityContext do
 
   defp required_datetime(attrs, field) do
     case Map.get(attrs, field) do
-      %DateTime{} = value ->
+      %DateTime{utc_offset: 0, std_offset: 0} = value ->
         case canonical_datetime(value) do
           {:ok, canonical} -> {:ok, canonical}
           {:error, _reason} -> datetime_error(field)
         end
 
+      %DateTime{} ->
+        datetime_error(field)
+
       value when is_binary(value) ->
         case DateTime.from_iso8601(value) do
-          {:ok, datetime, _offset} ->
+          {:ok, datetime, 0} ->
             case canonical_datetime(datetime) do
               {:ok, canonical} -> {:ok, canonical}
               {:error, _reason} -> datetime_error(field)
             end
+
+          {:ok, _datetime, _nonzero_offset} ->
+            datetime_error(field)
 
           {:error, _reason} ->
             datetime_error(field)
@@ -380,7 +386,7 @@ defmodule OrbitalDynamics.AuthorityContext do
   end
 
   defp datetime_error(field),
-    do: {:error, [error("$.#{field}", "must be a supported ISO 8601 date-time with an offset")]}
+    do: {:error, [error("$.#{field}", "must be a supported UTC ISO 8601 date-time ending in Z")]}
 
   defp validate_schema_contract(@schema_contract), do: :ok
 
@@ -630,11 +636,28 @@ defmodule OrbitalDynamics.AuthorityContext do
       end)
 
     case values do
-      [] -> :absent
-      [value] -> {:present, value}
-      _values -> {:present, {:ambiguous_option, Atom.to_string(key), values}}
+      [] ->
+        :absent
+
+      [value] ->
+        {:present, value}
+
+      [left, right] ->
+        normalized_left = normalize_option_alias(key, left)
+        normalized_right = normalize_option_alias(key, right)
+
+        if normalized_left == normalized_right do
+          {:present, normalized_left}
+        else
+          {:present, {:ambiguous_option, Atom.to_string(key), values}}
+        end
     end
   end
+
+  defp normalize_option_alias(:authority_context_mode, value) when is_atom(value),
+    do: Atom.to_string(value)
+
+  defp normalize_option_alias(_key, value), do: value
 
   defp option_value(:absent), do: nil
   defp option_value({:present, value}), do: value
@@ -720,6 +743,8 @@ defmodule OrbitalDynamics.AuthorityContext do
       "term_type" => "datetime",
       "base64" => value |> :erlang.term_to_binary([:deterministic]) |> Base.encode64()
     }
+
+  defp term_evidence(%UnsupportedEvidence{evidence: evidence}), do: evidence
 
   defp term_evidence(%module{} = value),
     do: %{

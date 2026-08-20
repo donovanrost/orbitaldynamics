@@ -76,7 +76,7 @@ defmodule OrbitalDynamics.Schema.OperatorReviewValidation do
 
   def validate_row(issues, path, row, review_types, counteroffer_states, callbacks) do
     issues
-    |> OrbitalDynamics.Schema.AuthorityContextContracts.validate_recommendation_boundary(
+    |> OrbitalDynamics.Schema.AuthorityContextContracts.validate_operator_review_row_boundary(
       path,
       row
     )

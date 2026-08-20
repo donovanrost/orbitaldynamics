@@ -4,8 +4,10 @@ defmodule OrbitalDynamics.Schema.AuthorityContextContracts do
   import OrbitalDynamics.Schema.PrimitiveValidation, only: [error: 2]
 
   @identity_pattern "^authority_context:[0-9a-f]{64}$"
+  @utc_datetime_pattern "Z$"
   @propagation_fields ~w(eligibility_status authority_context authority_context_evaluation)
   @evidence_propagation_fields ~w(authority_context authority_context_evaluation)
+  @retained_recommendation_fields ~w(approval_status eligibility_status authority_context authority_context_evaluation)
 
   def validate(issues, path, context) do
     case OrbitalDynamics.AuthorityContext.validate(context) do
@@ -53,12 +55,14 @@ defmodule OrbitalDynamics.Schema.AuthorityContextContracts do
   def validate_policy_boundary(issues, path, artifact) do
     issues
     |> validate_optional(path, artifact)
+    |> validate_nested_authority_root(path, artifact)
     |> validate_overall_eligibility(path, artifact, Map.get(artifact, "classification"))
   end
 
   def validate_recommendation_boundary(issues, path, artifact) do
     issues
     |> validate_optional(path, artifact)
+    |> validate_nested_authority_root(path, artifact)
     |> validate_overall_eligibility(path, artifact, Map.get(artifact, "approval_status"))
   end
 
@@ -67,15 +71,17 @@ defmodule OrbitalDynamics.Schema.AuthorityContextContracts do
 
     issues
     |> validate_optional(path, artifact)
+    |> validate_nested_authority_root(path, artifact)
     |> validate_overall_eligibility(path, artifact, classification)
   end
 
   def validate_operator_review_boundary(issues, path, artifact) do
     strategy_rows = operator_review_strategy_targets(artifact, path)
-    classification = artifact["approval_status"] || first_approval_status(strategy_rows)
+    classification = first_retained_approval_status(strategy_rows) || artifact["approval_status"]
 
     issues
     |> validate_optional(path, artifact)
+    |> validate_nested_authority_root(path, artifact)
     |> validate_overall_eligibility(path, artifact, classification)
     |> validate_container_propagation(artifact, strategy_rows, @propagation_fields)
   end
@@ -87,6 +93,7 @@ defmodule OrbitalDynamics.Schema.AuthorityContextContracts do
 
     issues
     |> validate_optional(path, manifest)
+    |> validate_nested_authority_root(path, manifest)
     |> validate_overall_eligibility(path, manifest, classification)
     |> validate_container_propagation(manifest, other_targets, @propagation_fields)
     |> validate_branch_manifest_targets(manifest, branch_targets)
@@ -94,10 +101,26 @@ defmodule OrbitalDynamics.Schema.AuthorityContextContracts do
   end
 
   def validate_cadence_import_row_boundary(issues, path, row) do
+    classification = retained_classification(row) || Map.get(row, "approval_status")
+
     issues
     |> validate_optional(path, row)
-    |> validate_overall_eligibility(path, row, Map.get(row, "approval_status"))
+    |> validate_nested_authority_root(path, row)
+    |> validate_overall_eligibility(path, row, classification)
+    |> validate_retained_recommendation(path, row)
+    |> validate_retained_branch_decision(path, row)
     |> validate_import_row_readiness(path, row)
+    |> validate_retained_import_status(path, row)
+  end
+
+  def validate_operator_review_row_boundary(issues, path, row) do
+    classification = retained_classification(row) || Map.get(row, "approval_status")
+
+    issues
+    |> validate_optional(path, row)
+    |> validate_nested_authority_root(path, row)
+    |> validate_overall_eligibility(path, row, classification)
+    |> validate_retained_recommendation(path, row)
   end
 
   def validate_strategy_propagation(issues, artifact) when is_map(artifact) do
@@ -145,9 +168,9 @@ defmodule OrbitalDynamics.Schema.AuthorityContextContracts do
         "authority_context_id" => %{"type" => "string", "pattern" => @identity_pattern},
         "authority_source" => %{"type" => "string", "minLength" => 1},
         "source_revision" => %{"type" => "string", "minLength" => 1},
-        "effective_from" => %{"type" => "string", "format" => "date-time"},
-        "valid_until" => %{"type" => "string", "format" => "date-time"},
-        "evaluation_time" => %{"type" => "string", "format" => "date-time"}
+        "effective_from" => utc_datetime_schema(),
+        "valid_until" => utc_datetime_schema(),
+        "evaluation_time" => utc_datetime_schema()
       }
     }
   end
@@ -194,7 +217,7 @@ defmodule OrbitalDynamics.Schema.AuthorityContextContracts do
         "authority_context_id" => %{"type" => "string", "pattern" => @identity_pattern},
         "authority_source" => %{"type" => "string", "minLength" => 1},
         "source_revision" => %{"type" => "string", "minLength" => 1},
-        "evaluation_time" => %{"type" => "string", "format" => "date-time"},
+        "evaluation_time" => utc_datetime_schema(),
         "provenance" => %{
           "type" => "object",
           "additionalProperties" => true,
@@ -228,6 +251,10 @@ defmodule OrbitalDynamics.Schema.AuthorityContextContracts do
 
   def property(field), do: json_schema() |> Map.fetch!("properties") |> Map.fetch!(field)
 
+  defp utc_datetime_schema do
+    %{"type" => "string", "format" => "date-time", "pattern" => @utc_datetime_pattern}
+  end
+
   defp validate_context_evaluation(issues, path, context, evaluation) do
     case OrbitalDynamics.AuthorityContext.validate_evaluation(context, evaluation) do
       {:ok, _result} ->
@@ -250,28 +277,94 @@ defmodule OrbitalDynamics.Schema.AuthorityContextContracts do
   defp validate_context_value(issues, path, _context),
     do: [error(path, "must be an object") | issues]
 
+  defp validate_nested_authority_root(issues, path, artifact) do
+    if contains_nested_authority_evidence?(artifact) do
+      required_fields =
+        ["eligibility_status", "authority_context_evaluation"] ++
+          if nested_authority_context_present?(artifact), do: ["authority_context"], else: []
+
+      Enum.reduce(required_fields, issues, fn field, acc ->
+        if Map.has_key?(artifact, field) do
+          acc
+        else
+          [
+            error(
+              "#{path}.#{field}",
+              "must preserve recursively retained authority evidence at this boundary"
+            )
+            | acc
+          ]
+        end
+      end)
+    else
+      issues
+    end
+  end
+
   defp validate_overall_eligibility(issues, path, artifact, classification) do
     evaluation = Map.get(artifact, "authority_context_evaluation")
     actual = Map.get(artifact, "eligibility_status")
 
-    cond do
-      not is_map(evaluation) ->
-        issues
+    issues
+    |> validate_eligibility_evidence_correlation(path, artifact, evaluation)
+    |> validate_substantive_eligibility(path, artifact, classification, actual)
+    |> validate_authority_eligibility(path, evaluation, classification, actual)
+  end
 
+  defp validate_eligibility_evidence_correlation(issues, path, artifact, evaluation) do
+    if Map.has_key?(artifact, "eligibility_status") and not is_map(evaluation) do
+      [
+        error(
+          path <> ".eligibility_status",
+          "requires a correlated authority_context_evaluation"
+        )
+        | issues
+      ]
+    else
+      issues
+    end
+  end
+
+  defp validate_substantive_eligibility(
+         issues,
+         path,
+         artifact,
+         "blocked_by_policy",
+         actual
+       ) do
+    if Map.has_key?(artifact, "eligibility_status") and actual != "non_eligible" do
+      [
+        error(
+          path <> ".eligibility_status",
+          "must preserve substantive blocked_by_policy eligibility"
+        )
+        | issues
+      ]
+    else
+      issues
+    end
+  end
+
+  defp validate_substantive_eligibility(
+         issues,
+         _path,
+         _artifact,
+         _classification,
+         _actual
+       ),
+       do: issues
+
+  defp validate_authority_eligibility(issues, _path, evaluation, _classification, _actual)
+       when not is_map(evaluation),
+       do: issues
+
+  defp validate_authority_eligibility(issues, path, evaluation, classification, actual) do
+    cond do
       evaluation["outcome"] == "blocked_by_policy" and actual != "non_eligible" ->
         [
           error(
             path <> ".eligibility_status",
             "must be non_eligible for failed authority evidence"
-          )
-          | issues
-        ]
-
-      classification == "blocked_by_policy" and actual != "non_eligible" ->
-        [
-          error(
-            path <> ".eligibility_status",
-            "must preserve substantive blocked_by_policy eligibility"
           )
           | issues
         ]
@@ -314,7 +407,7 @@ defmodule OrbitalDynamics.Schema.AuthorityContextContracts do
           not authority_non_eligible?(row)
       end)
 
-    if contains_authority_evidence?(manifest) and manifest["ready_count"] != eligible_ready_count do
+    if manifest["ready_count"] != eligible_ready_count do
       [
         error(
           path <> ".ready_count",
@@ -328,13 +421,182 @@ defmodule OrbitalDynamics.Schema.AuthorityContextContracts do
   end
 
   defp authority_non_eligible?(artifact) do
-    evaluation = Map.get(artifact, "authority_context_evaluation")
+    recommendation = retained_recommendation(artifact)
 
-    is_map(evaluation) and
-      (evaluation["outcome"] == "blocked_by_policy" or
-         artifact["eligibility_status"] == "non_eligible" or
-         artifact["approval_status"] == "blocked_by_policy")
+    evaluation =
+      Map.get(recommendation, "authority_context_evaluation") ||
+        Map.get(artifact, "authority_context_evaluation")
+
+    eligibility = Map.get(recommendation, "eligibility_status") || artifact["eligibility_status"]
+    classification = retained_classification(artifact) || artifact["approval_status"]
+
+    (is_map(evaluation) and evaluation["outcome"] == "blocked_by_policy") or
+      eligibility == "non_eligible" or classification == "blocked_by_policy" or
+      retained_blocked_by_policy?(artifact) or retained_failed_authority?(artifact)
   end
+
+  defp validate_retained_recommendation(issues, path, row) do
+    recommendation = retained_recommendation(row)
+
+    if map_size(recommendation) > 0 do
+      fields =
+        if map_size(retained_branch_comparison(row)) > 0,
+          do: @evidence_propagation_fields,
+          else: @retained_recommendation_fields
+
+      issues
+      |> validate_retained_source_boundary(
+        path <> ".source_recommendation",
+        recommendation,
+        recommendation["approval_status"]
+      )
+      |> validate_required_source_fields(
+        path,
+        row,
+        recommendation,
+        fields,
+        "source_recommendation"
+      )
+    else
+      issues
+    end
+  end
+
+  defp validate_retained_branch_decision(issues, path, row) do
+    source = retained_branch_comparison(row)
+
+    if map_size(source) > 0 do
+      issues
+      |> validate_retained_source_boundary(
+        path <> ".source_branch_comparison",
+        source,
+        retained_source_classification(source)
+      )
+      |> validate_required_source_fields(
+        path,
+        row,
+        %{"approval_status" => retained_source_classification(source)},
+        ["approval_status"],
+        "source_branch_comparison"
+      )
+    else
+      issues
+    end
+  end
+
+  defp validate_retained_source_boundary(issues, path, source, classification) do
+    issues
+    |> validate_optional(path, source)
+    |> validate_nested_authority_root(path, source)
+    |> validate_overall_eligibility(path, source, classification)
+  end
+
+  defp validate_retained_import_status(issues, path, row) do
+    case expected_retained_import_status(row) do
+      nil ->
+        issues
+
+      expected ->
+        if row["import_status"] == expected do
+          issues
+        else
+          [
+            error(
+              path <> ".import_status",
+              "must equal #{expected} from retained strategy source evidence"
+            )
+            | issues
+          ]
+        end
+    end
+  end
+
+  defp expected_retained_import_status(row) do
+    source = retained_branch_comparison(row)
+
+    if row["source_review_type"] == "strategy_branch_comparison" and map_size(source) > 0 do
+      selected? = source["selected"] == true
+      approval_status = retained_classification(row)
+      eligibility_status = retained_eligibility(row)
+
+      cond do
+        not selected? ->
+          "not_applicable"
+
+        approval_status in ["auto_approvable", "not_required"] and
+            eligibility_status == "eligible" ->
+          "ready_for_import"
+
+        true ->
+          "review_required_before_import"
+      end
+    end
+  end
+
+  defp validate_required_source_fields(issues, path, target, source, fields, source_name) do
+    Enum.reduce(fields, issues, fn field, acc ->
+      if Map.has_key?(source, field) do
+        cond do
+          not Map.has_key?(target, field) ->
+            [error("#{path}.#{field}", "must preserve #{source_name}.#{field}") | acc]
+
+          target[field] != source[field] ->
+            [error("#{path}.#{field}", "must match #{source_name}.#{field}") | acc]
+
+          true ->
+            acc
+        end
+      else
+        acc
+      end
+    end)
+  end
+
+  defp retained_classification(row) do
+    case retained_branch_comparison(row) do
+      source when map_size(source) > 0 -> retained_source_classification(source)
+      _source -> retained_source_classification(retained_recommendation(row))
+    end
+  end
+
+  defp retained_source_classification(source) do
+    source["approval_status"] || source["classification"] ||
+      if(nested_blocked_by_policy?(source), do: "blocked_by_policy")
+  end
+
+  defp retained_eligibility(row) do
+    recommendation = retained_recommendation(row)
+
+    cond do
+      retained_classification(row) == "blocked_by_policy" -> "non_eligible"
+      retained_failed_authority?(row) -> "non_eligible"
+      is_binary(recommendation["eligibility_status"]) -> recommendation["eligibility_status"]
+      true -> nil
+    end
+  end
+
+  defp retained_blocked_by_policy?(row) do
+    nested_blocked_by_policy?(retained_branch_comparison(row)) or
+      nested_blocked_by_policy?(retained_recommendation(row))
+  end
+
+  defp retained_failed_authority?(row) do
+    failed_authority_evidence?(retained_branch_comparison(row)) or
+      failed_authority_evidence?(retained_recommendation(row))
+  end
+
+  defp retained_recommendation(%{"source_recommendation" => %{} = recommendation}),
+    do: recommendation
+
+  defp retained_recommendation(%{
+         "source_review_row" => %{"source_recommendation" => %{} = recommendation}
+       }),
+       do: recommendation
+
+  defp retained_recommendation(_row), do: %{}
+
+  defp retained_branch_comparison(%{"source_branch_comparison" => %{} = source}), do: source
+  defp retained_branch_comparison(_row), do: %{}
 
   defp branch_decision_targets(%{"branches" => branches}) when is_list(branches) do
     branches
@@ -444,9 +706,9 @@ defmodule OrbitalDynamics.Schema.AuthorityContextContracts do
 
   defp indexed_rows(_rows, _path, _field, _value), do: []
 
-  defp first_approval_status(targets) do
+  defp first_retained_approval_status(targets) do
     case targets do
-      [{_path, row} | _targets] -> row["approval_status"]
+      [{_path, row} | _targets] -> retained_classification(row) || row["approval_status"]
       [] -> nil
     end
   end
@@ -454,10 +716,11 @@ defmodule OrbitalDynamics.Schema.AuthorityContextContracts do
   defp first_selected_approval_status(targets) do
     targets
     |> Enum.find(fn {_path, row} ->
-      row["selected"] == true or row["import_action"] == "import_strategy_recommendation"
+      retained_branch_comparison(row)["selected"] == true or
+        row["import_action"] == "import_strategy_recommendation"
     end)
     |> case do
-      {_path, row} -> row["approval_status"]
+      {_path, row} -> retained_classification(row) || row["approval_status"]
       nil -> nil
     end
   end
@@ -498,10 +761,7 @@ defmodule OrbitalDynamics.Schema.AuthorityContextContracts do
     if contains_authority_evidence?(source) or
          Enum.any?(targets, fn {_path, target} -> contains_authority_evidence?(target) end) do
       Enum.reduce(targets, issues, fn {target_path, target}, acc ->
-        expected_eligibility =
-          if target["approval_status"] == "blocked_by_policy",
-            do: "non_eligible",
-            else: source["eligibility_status"]
+        expected_eligibility = retained_eligibility(target) || source["eligibility_status"]
 
         acc
         |> validate_propagation_target(
@@ -541,4 +801,51 @@ defmodule OrbitalDynamics.Schema.AuthorityContextContracts do
     do: Enum.any?(values, &contains_authority_evidence?/1)
 
   defp contains_authority_evidence?(_value), do: false
+
+  defp contains_nested_authority_evidence?(%{} = value) do
+    Enum.any?(value, fn
+      {key, _nested} when key in @evidence_propagation_fields -> false
+      {_key, nested} -> contains_authority_evidence?(nested)
+    end)
+  end
+
+  defp contains_nested_authority_evidence?(_value), do: false
+
+  defp nested_authority_context_present?(%{} = value) do
+    Enum.any?(value, fn
+      {key, _nested} when key in @evidence_propagation_fields -> false
+      {_key, nested} -> authority_context_present?(nested)
+    end)
+  end
+
+  defp authority_context_present?(%{} = value) do
+    Map.has_key?(value, "authority_context") or
+      Enum.any?(value, fn {_key, nested} -> authority_context_present?(nested) end)
+  end
+
+  defp authority_context_present?(values) when is_list(values),
+    do: Enum.any?(values, &authority_context_present?/1)
+
+  defp authority_context_present?(_value), do: false
+
+  defp failed_authority_evidence?(%{} = value) do
+    get_in(value, ["authority_context_evaluation", "outcome"]) == "blocked_by_policy" or
+      Enum.any?(value, fn {_key, nested} -> failed_authority_evidence?(nested) end)
+  end
+
+  defp failed_authority_evidence?(values) when is_list(values),
+    do: Enum.any?(values, &failed_authority_evidence?/1)
+
+  defp failed_authority_evidence?(_value), do: false
+
+  defp nested_blocked_by_policy?(%{} = value) do
+    value["classification"] == "blocked_by_policy" or
+      value["approval_status"] == "blocked_by_policy" or
+      Enum.any?(value, fn {_key, nested} -> nested_blocked_by_policy?(nested) end)
+  end
+
+  defp nested_blocked_by_policy?(values) when is_list(values),
+    do: Enum.any?(values, &nested_blocked_by_policy?/1)
+
+  defp nested_blocked_by_policy?(_value), do: false
 end
