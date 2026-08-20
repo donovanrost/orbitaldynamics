@@ -63,26 +63,19 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairRequestNormalization do
 
     generated_at = normalize_generated_at(request.generated_at || DateTime.utc_now())
 
-    candidate_refresh_request =
-      request.candidate_refresh_request
-      |> reject_candidate_refresh_request_key_collisions!()
-      |> CandidateRefreshNormalization.request()
-      |> RepairCandidateRefreshInheritance.inherit(
+    candidate_refresh_request_selection =
+      select_candidate_refresh_request!(request.candidate_refresh_request)
+
+    {candidate_refresh, candidate_refresh_request} =
+      resolve_candidate_refresh(
+        candidate_refresh_request_selection,
+        request.candidate_refresh,
         request.approval_policy,
         mission_state,
-        prior_plan
+        prior_plan,
+        current_epoch_s,
+        generated_at
       )
-
-    prebuilt_candidate_refresh = CandidateRefreshNormalization.artifact(request.candidate_refresh)
-
-    candidate_refresh =
-      prebuilt_candidate_refresh ||
-        execute_candidate_refresh_request(
-          prior_plan,
-          current_epoch_s,
-          candidate_refresh_request,
-          generated_at
-        )
 
     scoring_policy =
       prior_plan
@@ -140,22 +133,46 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairRequestNormalization do
   defp normalize_mission_state(%{} = mission_state),
     do: MissionStateNormalization.normalize(mission_state)
 
-  defp execute_candidate_refresh_request(
-         _prior_plan,
-         _current_epoch_s,
-         nil,
-         _generated_at
-       ),
-       do: nil
-
-  defp execute_candidate_refresh_request(
+  defp resolve_candidate_refresh(
+         {:public, raw_refresh},
+         _prebuilt_candidate_refresh,
+         approval_policy,
+         mission_state,
          prior_plan,
-         current_epoch_s,
-         candidate_refresh_request,
+         _current_epoch_s,
          generated_at
        ) do
-    case Map.get(candidate_refresh_request, @candidate_refresh_execution_path_key) do
-      nil ->
+    candidate_refresh = execute_public_candidate_refresh_request(raw_refresh, generated_at)
+
+    candidate_refresh_request =
+      %{
+        @candidate_refresh_execution_path_key => @candidate_refresh_execution_path,
+        "candidate_refresh" => raw_refresh
+      }
+      |> normalize_candidate_refresh_request(approval_policy, mission_state, prior_plan)
+
+    {candidate_refresh, candidate_refresh_request}
+  end
+
+  defp resolve_candidate_refresh(
+         {:legacy, raw_candidate_refresh_request},
+         prebuilt_candidate_refresh,
+         approval_policy,
+         mission_state,
+         prior_plan,
+         current_epoch_s,
+         generated_at
+       ) do
+    candidate_refresh_request =
+      normalize_candidate_refresh_request(
+        raw_candidate_refresh_request,
+        approval_policy,
+        mission_state,
+        prior_plan
+      )
+
+    candidate_refresh =
+      CandidateRefreshNormalization.artifact(prebuilt_candidate_refresh) ||
         execute_manifest_candidate_refresh_request(
           prior_plan,
           current_epoch_s,
@@ -163,14 +180,27 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairRequestNormalization do
           generated_at
         )
 
-      @candidate_refresh_execution_path ->
-        execute_public_candidate_refresh_request(candidate_refresh_request, generated_at)
-
-      execution_path ->
-        raise ArgumentError,
-              "unsupported repair candidate_refresh_request execution_path: #{inspect(execution_path)}"
-    end
+    {candidate_refresh, candidate_refresh_request}
   end
+
+  defp normalize_candidate_refresh_request(
+         candidate_refresh_request,
+         approval_policy,
+         mission_state,
+         prior_plan
+       ) do
+    candidate_refresh_request
+    |> CandidateRefreshNormalization.request()
+    |> RepairCandidateRefreshInheritance.inherit(approval_policy, mission_state, prior_plan)
+  end
+
+  defp execute_manifest_candidate_refresh_request(
+         _prior_plan,
+         _current_epoch_s,
+         nil,
+         _generated_at
+       ),
+       do: nil
 
   defp execute_manifest_candidate_refresh_request(
          prior_plan,
@@ -208,10 +238,8 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairRequestNormalization do
     end
   end
 
-  defp execute_public_candidate_refresh_request(candidate_refresh_request, generated_at) do
-    refresh = Map.get(candidate_refresh_request, "candidate_refresh")
-
-    case CandidateRefresh.run(refresh, generated_at: generated_at) do
+  defp execute_public_candidate_refresh_request(raw_refresh, generated_at) do
+    case CandidateRefresh.run(raw_refresh, generated_at: generated_at) do
       {:ok, candidate_refresh} ->
         candidate_refresh
 
@@ -220,61 +248,61 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairRequestNormalization do
     end
   end
 
-  defp reject_candidate_refresh_request_key_collisions!(candidate_refresh_request) do
-    case candidate_refresh_request_key_collisions(candidate_refresh_request, "$")
-         |> Enum.sort()
-         |> List.first() do
-      nil ->
-        candidate_refresh_request
+  defp select_candidate_refresh_request!(%{} = candidate_refresh_request) do
+    execution_path =
+      fetch_top_level_alias!(
+        candidate_refresh_request,
+        :execution_path,
+        @candidate_refresh_execution_path_key
+      )
 
-      {path, key} ->
-        raise ArgumentError,
-              "invalid repair candidate_refresh_request: #{inspect({:duplicate_normalized_key, path, key})}"
+    raw_refresh =
+      fetch_top_level_alias!(candidate_refresh_request, :candidate_refresh, "candidate_refresh")
+
+    case execution_path do
+      :missing ->
+        {:legacy, candidate_refresh_request}
+
+      {:present, execution_path} ->
+        case normalize_execution_path(execution_path) do
+          @candidate_refresh_execution_path ->
+            {:public, present_alias_value(raw_refresh)}
+
+          unsupported_execution_path ->
+            raise ArgumentError,
+                  "unsupported repair candidate_refresh_request execution_path: #{inspect(unsupported_execution_path)}"
+        end
     end
   end
 
-  defp candidate_refresh_request_key_collisions(%{} = map, path) do
-    collisions =
-      map
-      |> Map.keys()
-      |> Enum.flat_map(&collision_normalized_key/1)
-      |> Enum.frequencies()
-      |> Enum.flat_map(fn
-        {key, count} when count > 1 -> [{path, key}]
-        {_key, _count} -> []
-      end)
+  defp select_candidate_refresh_request!(candidate_refresh_request),
+    do: {:legacy, candidate_refresh_request}
 
-    nested_collisions =
-      Enum.flat_map(map, fn {key, value} ->
-        candidate_refresh_request_key_collisions(value, child_path(path, key))
-      end)
+  defp fetch_top_level_alias!(map, atom_key, string_key) do
+    case {Map.fetch(map, atom_key), Map.fetch(map, string_key)} do
+      {{:ok, _atom_value}, {:ok, _string_value}} ->
+        raise ArgumentError,
+              "invalid repair candidate_refresh_request: #{inspect({:duplicate_normalized_key, "$", string_key})}"
 
-    collisions ++ nested_collisions
+      {{:ok, value}, :error} ->
+        {:present, value}
+
+      {:error, {:ok, value}} ->
+        {:present, value}
+
+      {:error, :error} ->
+        :missing
+    end
   end
 
-  defp candidate_refresh_request_key_collisions(values, path) when is_list(values) do
-    values
-    |> Enum.with_index()
-    |> Enum.flat_map(fn {value, index} ->
-      candidate_refresh_request_key_collisions(value, "#{path}[#{index}]")
-    end)
-  end
+  defp present_alias_value({:present, value}), do: value
+  defp present_alias_value(:missing), do: nil
 
-  defp candidate_refresh_request_key_collisions(_value, _path), do: []
+  defp normalize_execution_path(value)
+       when is_atom(value) and value not in [nil, true, false],
+       do: Atom.to_string(value)
 
-  defp collision_normalized_key(key) when is_binary(key), do: [key]
-
-  defp collision_normalized_key(key) when is_atom(key) and key not in [nil, true, false],
-    do: [Atom.to_string(key)]
-
-  defp collision_normalized_key(_key), do: []
-
-  defp child_path(path, key) when is_binary(key), do: "#{path}.#{key}"
-
-  defp child_path(path, key) when is_atom(key) and key not in [nil, true, false],
-    do: "#{path}.#{Atom.to_string(key)}"
-
-  defp child_path(path, key), do: "#{path}[#{inspect(key)}]"
+  defp normalize_execution_path(value), do: value
 
   defp normalize_ground_network(nil), do: nil
 

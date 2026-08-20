@@ -57,9 +57,13 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairShiftedAccessTest do
 
     atom_selected_request =
       update_in(shifted_request, [:candidate_refresh_request], fn refresh_request ->
+        refresh = Map.fetch!(refresh_request, "candidate_refresh")
+
         refresh_request
         |> Map.delete("execution_path")
+        |> Map.delete("candidate_refresh")
         |> Map.put(:execution_path, "candidate_refresh_run_v1")
+        |> Map.put(:candidate_refresh, refresh)
       end)
 
     assert shifted == CampaignPlanner.repair(atom_selected_request)
@@ -195,6 +199,85 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairShiftedAccessTest do
     refute error.message =~ "campaign_repair.v2"
   end
 
+  test "rejects atom/string candidate-refresh collisions before either execution path" do
+    colliding_request =
+      "colliding_refresh_snapshot"
+      |> repair_request(@shifted_position, @shifted_velocity)
+      |> update_in([:candidate_refresh_request], fn refresh_request ->
+        refresh = Map.fetch!(refresh_request, "candidate_refresh")
+
+        refresh_request
+        |> Map.delete("execution_path")
+        |> Map.put(:candidate_refresh, refresh)
+      end)
+
+    error =
+      assert_raise ArgumentError, fn ->
+        CampaignPlanner.repair(colliding_request)
+      end
+
+    assert error.message ==
+             "invalid repair candidate_refresh_request: {:duplicate_normalized_key, \"$\", \"candidate_refresh\"}"
+
+    refute error.message =~ "campaign_repair.v2"
+  end
+
+  test "a present nil selector cannot disable opt-in into the legacy default" do
+    invalid_request =
+      "nil_selector_snapshot"
+      |> repair_request(@shifted_position, @shifted_velocity)
+      |> put_in([:candidate_refresh_request, "execution_path"], nil)
+
+    error =
+      assert_raise ArgumentError, fn ->
+        CampaignPlanner.repair(invalid_request)
+      end
+
+    assert error.message ==
+             "unsupported repair candidate_refresh_request execution_path: nil"
+
+    refute error.message =~ "campaign_repair.v2"
+  end
+
+  test "nested candidate payload collisions retain public validate-input typing" do
+    snapshot_collision_request =
+      "nested_collision_snapshot"
+      |> repair_request(@shifted_position, @shifted_velocity)
+      |> update_in(
+        [:candidate_refresh_request, "candidate_refresh", "accepted_planning_state"],
+        fn accepted_state ->
+          Map.put(accepted_state, :snapshot_id, Map.fetch!(accepted_state, "snapshot_id"))
+        end
+      )
+
+    nil_collision_request =
+      "nil_collision_snapshot"
+      |> repair_request(@shifted_position, @shifted_velocity)
+      |> update_in(
+        [:candidate_refresh_request, "candidate_refresh", "model_assumptions"],
+        &Map.merge(&1, %{nil => "atom key", "nil" => "string key"})
+      )
+
+    snapshot_error =
+      assert_raise ArgumentError, fn ->
+        CampaignPlanner.repair(snapshot_collision_request)
+      end
+
+    nil_error =
+      assert_raise ArgumentError, fn ->
+        CampaignPlanner.repair(nil_collision_request)
+      end
+
+    assert snapshot_error.message =~
+             "{:candidate_refresh_execution_failed, :validate_input, {:duplicate_normalized_key, \"$.accepted_planning_state\", \"snapshot_id\"}}"
+
+    assert nil_error.message =~
+             "{:candidate_refresh_execution_failed, :validate_input, {:duplicate_normalized_key, \"$.model_assumptions\", \"nil\"}}"
+
+    refute snapshot_error.message =~ "campaign_repair.v2"
+    refute nil_error.message =~ "campaign_repair.v2"
+  end
+
   test "a selected non-map refresh preserves public validate-input typing and returns no repair" do
     invalid_request =
       "invalid_shifted_snapshot"
@@ -210,6 +293,32 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairShiftedAccessTest do
              "{:candidate_refresh_execution_failed, :validate_input, {:invalid_input, :candidate_refresh}}"
 
     refute error.message =~ "campaign_repair.v2"
+  end
+
+  test "improper, deep, and oversized raw payloads return typed errors and no repair" do
+    deeply_nested = Enum.reduce(1..34, "leaf", fn _index, acc -> %{"child" => acc} end)
+    oversized = Map.new(1..10_001, &{"field_#{&1}", &1})
+
+    invalid_payloads = [
+      %{"improper" => ["valid" | "not-a-list"]},
+      deeply_nested,
+      oversized
+    ]
+
+    for invalid_payload <- invalid_payloads do
+      invalid_request =
+        "bounded_input_snapshot"
+        |> repair_request(@shifted_position, @shifted_velocity)
+        |> put_in([:candidate_refresh_request, "candidate_refresh"], invalid_payload)
+
+      error =
+        assert_raise ArgumentError, fn ->
+          CampaignPlanner.repair(invalid_request)
+        end
+
+      assert error.message =~ "{:candidate_refresh_execution_failed, :validate_input,"
+      refute error.message =~ "campaign_repair.v2"
+    end
   end
 
   defp repair_request(snapshot_id, position_km, velocity_km_s) do
