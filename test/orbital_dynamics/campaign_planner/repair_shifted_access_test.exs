@@ -55,6 +55,15 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairShiftedAccessTest do
 
     assert shifted == CampaignPlanner.repair(shifted_request)
 
+    atom_selected_request =
+      update_in(shifted_request, [:candidate_refresh_request], fn refresh_request ->
+        refresh_request
+        |> Map.delete("execution_path")
+        |> Map.put(:execution_path, "candidate_refresh_run_v1")
+      end)
+
+    assert shifted == CampaignPlanner.repair(atom_selected_request)
+
     before_policy = captured_policy(before)
     shifted_policy = captured_policy(shifted)
 
@@ -164,13 +173,33 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairShiftedAccessTest do
              Schema.validate_artifact(shifted)
   end
 
-  test "public refresh failures remain stage-typed and return no partial repair" do
+  test "rejects atom/string execution-path collisions before selection" do
+    colliding_request =
+      "colliding_selector_snapshot"
+      |> repair_request(@shifted_position, @shifted_velocity)
+      |> update_in([:candidate_refresh_request], fn refresh_request ->
+        refresh_request
+        |> Map.delete("execution_path")
+        |> Map.put(:execution_path, "candidate_refresh_run_v1")
+        |> Map.put("execution_path", nil)
+      end)
+
+    error =
+      assert_raise ArgumentError, fn ->
+        CampaignPlanner.repair(colliding_request)
+      end
+
+    assert error.message ==
+             "invalid repair candidate_refresh_request: {:duplicate_normalized_key, \"$\", \"execution_path\"}"
+
+    refute error.message =~ "campaign_repair.v2"
+  end
+
+  test "a selected non-map refresh preserves public validate-input typing and returns no repair" do
     invalid_request =
       "invalid_shifted_snapshot"
       |> repair_request(@shifted_position, @shifted_velocity)
-      |> update_in([:candidate_refresh_request, "candidate_refresh"], fn refresh ->
-        Map.delete(refresh, "accepted_planning_state")
-      end)
+      |> put_in([:candidate_refresh_request, "candidate_refresh"], "malformed_refresh")
 
     error =
       assert_raise ArgumentError, fn ->
@@ -178,7 +207,7 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairShiftedAccessTest do
       end
 
     assert error.message =~
-             "{:candidate_refresh_execution_failed, :validate_input, {:missing_input, \"accepted_planning_state\"}}"
+             "{:candidate_refresh_execution_failed, :validate_input, {:invalid_input, :candidate_refresh}}"
 
     refute error.message =~ "campaign_repair.v2"
   end

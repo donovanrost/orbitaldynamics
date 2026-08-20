@@ -65,6 +65,7 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairRequestNormalization do
 
     candidate_refresh_request =
       request.candidate_refresh_request
+      |> reject_candidate_refresh_request_key_collisions!()
       |> CandidateRefreshNormalization.request()
       |> RepairCandidateRefreshInheritance.inherit(
         request.approval_policy,
@@ -208,21 +209,72 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairRequestNormalization do
   end
 
   defp execute_public_candidate_refresh_request(candidate_refresh_request, generated_at) do
-    case Map.get(candidate_refresh_request, "candidate_refresh") do
-      %{} = refresh ->
-        case CandidateRefresh.run(refresh, generated_at: generated_at) do
-          {:ok, candidate_refresh} ->
-            candidate_refresh
+    refresh = Map.get(candidate_refresh_request, "candidate_refresh")
 
-          {:error, reason} ->
-            raise ArgumentError, "invalid repair candidate_refresh_request: #{inspect(reason)}"
-        end
+    case CandidateRefresh.run(refresh, generated_at: generated_at) do
+      {:ok, candidate_refresh} ->
+        candidate_refresh
 
-      _missing_or_invalid_refresh ->
-        raise ArgumentError,
-              "candidate_refresh_request execution_path #{@candidate_refresh_execution_path} requires candidate_refresh"
+      {:error, reason} ->
+        raise ArgumentError, "invalid repair candidate_refresh_request: #{inspect(reason)}"
     end
   end
+
+  defp reject_candidate_refresh_request_key_collisions!(candidate_refresh_request) do
+    case candidate_refresh_request_key_collisions(candidate_refresh_request, "$")
+         |> Enum.sort()
+         |> List.first() do
+      nil ->
+        candidate_refresh_request
+
+      {path, key} ->
+        raise ArgumentError,
+              "invalid repair candidate_refresh_request: #{inspect({:duplicate_normalized_key, path, key})}"
+    end
+  end
+
+  defp candidate_refresh_request_key_collisions(%{} = map, path) do
+    collisions =
+      map
+      |> Map.keys()
+      |> Enum.flat_map(&collision_normalized_key/1)
+      |> Enum.frequencies()
+      |> Enum.flat_map(fn
+        {key, count} when count > 1 -> [{path, key}]
+        {_key, _count} -> []
+      end)
+
+    nested_collisions =
+      Enum.flat_map(map, fn {key, value} ->
+        candidate_refresh_request_key_collisions(value, child_path(path, key))
+      end)
+
+    collisions ++ nested_collisions
+  end
+
+  defp candidate_refresh_request_key_collisions(values, path) when is_list(values) do
+    values
+    |> Enum.with_index()
+    |> Enum.flat_map(fn {value, index} ->
+      candidate_refresh_request_key_collisions(value, "#{path}[#{index}]")
+    end)
+  end
+
+  defp candidate_refresh_request_key_collisions(_value, _path), do: []
+
+  defp collision_normalized_key(key) when is_binary(key), do: [key]
+
+  defp collision_normalized_key(key) when is_atom(key) and key not in [nil, true, false],
+    do: [Atom.to_string(key)]
+
+  defp collision_normalized_key(_key), do: []
+
+  defp child_path(path, key) when is_binary(key), do: "#{path}.#{key}"
+
+  defp child_path(path, key) when is_atom(key) and key not in [nil, true, false],
+    do: "#{path}.#{Atom.to_string(key)}"
+
+  defp child_path(path, key), do: "#{path}[#{inspect(key)}]"
 
   defp normalize_ground_network(nil), do: nil
 
