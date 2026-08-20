@@ -64,6 +64,21 @@ defmodule OrbitalDynamics.Environment do
     do: {:error, {:invalid_option, :environment_provider}}
 
   @doc """
+  Verifies and consumes a file-backed tabular Earth-orientation provider input.
+
+  The caller must supply an explicit SHA-256 content identity. Verification is
+  opt-in and does not change the existing inline `samples` provider path.
+  """
+  def fetch_tabular_earth_orientation_from_file(path, content_identity, opts \\ []) do
+    TabularEarthOrientationProvider.fetch_from_file(
+      :earth_rotation,
+      path,
+      content_identity,
+      opts
+    )
+  end
+
+  @doc """
   Returns true when a configured provider adapter supports a request.
   """
   def configured_provider_supports_request?(provider, request, opts \\ [])

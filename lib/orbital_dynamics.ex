@@ -1100,6 +1100,13 @@ defmodule OrbitalDynamics do
   end
 
   @doc """
+  Verifies and consumes a file-backed tabular Earth-orientation provider input.
+  """
+  def fetch_tabular_earth_orientation_from_file(path, content_identity, opts \\ []) do
+    Environment.fetch_tabular_earth_orientation_from_file(path, content_identity, opts)
+  end
+
+  @doc """
   Validates an environment provider capability record.
   """
   def validate_environment_provider_capability(record) do
@@ -1168,6 +1175,13 @@ defmodule OrbitalDynamics do
   """
   def import_orbit_data(source, opts \\ []) do
     OrbitData.import_orbit_data(source, opts)
+  end
+
+  @doc """
+  Verifies and imports a file-backed simple JSON orbit-data input.
+  """
+  def import_orbit_data_from_file(path, content_identity, opts \\ []) do
+    OrbitData.import_orbit_data_from_file(path, content_identity, opts)
   end
 
   @doc """

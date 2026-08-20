@@ -20,6 +20,12 @@
   identifying the input format and state-estimate count, and inherit that import
   trust boundary onto state-estimate rows that do not declare their own
   provenance.
+- The opt-in `OrbitalDynamics.import_orbit_data_from_file/3` boundary requires a
+  caller-declared lowercase SHA-256 identity, verifies exact file bytes before
+  JSON decoding, consumes those returned bytes without reopening the path, and
+  preserves deterministic verification evidence in accepted-state provenance.
+  Existing map/binary import paths remain unchanged and do not require an
+  identity.
 
 ### CCSDS OPM KVN import/export
 
@@ -68,6 +74,7 @@ The following facades expose the wrapper-aware import and accepted-state export
 boundary:
 
 - `OrbitalDynamics.import_orbit_data/2`
+- `OrbitalDynamics.import_orbit_data_from_file/3`
 - `OrbitalDynamics.import_ccsds_opm/2`
 - `OrbitalDynamics.import_ccsds_oem/2`
 - `OrbitalDynamics.export_orbit_data_json/1`

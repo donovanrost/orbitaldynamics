@@ -49,6 +49,12 @@ Additional request-fit facades:
 - Configured tabular provider capabilities derive finite coverage and sample-count parameters from declared samples.
 - Public configured-provider request-fit helpers can reject out-of-table use before an adapter is selected.
 - Study-runner ground-track validation now uses that configured request-fit check against the full scenario horizon, so unsupported products or short declared sample tables fail as option validation instead of late event-detection errors.
+- The opt-in `OrbitalDynamics.fetch_tabular_earth_orientation_from_file/3`
+  boundary accepts a JSON sample table only after the reusable exact-byte
+  verifier matches an explicit lowercase SHA-256 identity. Returned provider
+  products preserve verification provenance, a declared or digest-derived
+  stable table ID, ordered assumptions, and known limits. Inline `samples`
+  configuration remains unchanged and does not require a digest.
 
 ## Status: **partial**
 

@@ -9,6 +9,9 @@ defmodule OrbitalDynamics.Environment.TabularEarthOrientationProvider do
 
   @behaviour OrbitalDynamics.Environment.Provider
 
+  alias OrbitalDynamics.InputIntegrity
+  alias OrbitalDynamics.Schema.StableIdValidation
+
   @impl OrbitalDynamics.Environment.Provider
   def capabilities do
     %{
@@ -28,6 +31,10 @@ defmodule OrbitalDynamics.Environment.TabularEarthOrientationProvider do
       "supported_bodies" => ["earth"],
       "network_access" => false,
       "outputs" => ["earth_rotation", "earth_rotation_angle_rad", "earth_rotation_rate_rad_s"],
+      "parameters" => %{
+        "input_modes" => ["inline_declared_samples", "verified_json_file"],
+        "file_input_integrity" => InputIntegrity.capabilities()
+      },
       "known_limits" => [
         "declared_sample_table_only",
         "linear_interpolation_between_declared_rotation_samples",
@@ -47,15 +54,17 @@ defmodule OrbitalDynamics.Environment.TabularEarthOrientationProvider do
   """
   def configured_capability(opts \\ []) when is_list(opts) do
     with {:ok, samples} <- normalized_samples(Keyword.get(opts, :samples, [])) do
+      configured_parameters = %{
+        "sample_count" => length(samples),
+        "coverage_source" => "declared_samples"
+      }
+
       {:ok,
        capabilities()
        |> put_in(["coverage", "starts_at_s"], List.first(samples).seconds_since_j2000)
        |> put_in(["coverage", "ends_at_s"], List.last(samples).seconds_since_j2000)
        |> Map.put("source", Keyword.get(opts, :source, "declared_earth_orientation_table"))
-       |> Map.put("parameters", %{
-         "sample_count" => length(samples),
-         "coverage_source" => "declared_samples"
-       })}
+       |> Map.update!("parameters", &Map.merge(&1, configured_parameters))}
     end
   end
 
@@ -74,6 +83,40 @@ defmodule OrbitalDynamics.Environment.TabularEarthOrientationProvider do
 
   def fetch(kind, _opts), do: {:error, {:unsupported_environment_product, kind}}
 
+  @doc """
+  Verifies and consumes a JSON Earth-orientation sample table from disk.
+
+  The table is an object with a `samples` array in the same shape accepted by
+  `fetch/2`; optional `source` and `table_id` strings are preserved. The
+  declared `%{"sha256" => digest}` is checked against the exact file bytes
+  before JSON decoding or sample normalization.
+  """
+  def fetch_from_file(kind, path, content_identity, opts \\ [])
+
+  def fetch_from_file(:earth_rotation, path, content_identity, opts) when is_list(opts) do
+    with {:ok, %{bytes: bytes, evidence: evidence}} <-
+           InputIntegrity.verify_file(path, content_identity,
+             consumer: "environment.tabular_earth_orientation_provider"
+           ),
+         {:ok, table} <- decode_table(bytes),
+         {:ok, samples} <- table_samples(table),
+         {:ok, table_id} <- table_id(table, evidence),
+         {:ok, source} <- table_source(table, opts) do
+      fetch(
+        :earth_rotation,
+        opts
+        |> Keyword.put(:samples, samples)
+        |> Keyword.put(:source, source)
+        |> Keyword.put(:source_table_id, table_id)
+        |> Keyword.put(:file_content_verification, evidence)
+        |> Keyword.put(:provenance, file_provenance(table_id, evidence))
+      )
+    end
+  end
+
+  def fetch_from_file(kind, _path, _content_identity, _opts),
+    do: {:error, {:unsupported_environment_product, kind}}
+
   defp product(sample, sample, seconds_since_j2000, samples, opts) do
     %{
       "provider_id" => Keyword.get(opts, :provider_id, capabilities()["id"]),
@@ -87,6 +130,7 @@ defmodule OrbitalDynamics.Environment.TabularEarthOrientationProvider do
       "sample_count" => length(samples),
       "source" => Keyword.get(opts, :source, "declared_earth_orientation_table")
     }
+    |> Map.merge(file_context(opts))
     |> compact_map()
   end
 
@@ -111,7 +155,72 @@ defmodule OrbitalDynamics.Environment.TabularEarthOrientationProvider do
       "sample_count" => length(samples),
       "source" => Keyword.get(opts, :source, "declared_earth_orientation_table")
     }
+    |> Map.merge(file_context(opts))
     |> compact_map()
+  end
+
+  defp decode_table(bytes) do
+    case :json.decode(bytes) do
+      %{} = table -> {:ok, table}
+      _value -> {:error, {:invalid_provider_table, :expected_json_object}}
+    end
+  rescue
+    _error -> {:error, {:invalid_provider_table, :invalid_json}}
+  end
+
+  defp table_samples(%{"samples" => samples}) when is_list(samples), do: {:ok, samples}
+  defp table_samples(_table), do: {:error, {:invalid_provider_table, :missing_samples}}
+
+  defp table_id(%{"table_id" => table_id}, _evidence) when is_binary(table_id) do
+    if StableIdValidation.valid?(table_id) do
+      {:ok, table_id}
+    else
+      {:error, {:invalid_provider_table, :invalid_table_id}}
+    end
+  end
+
+  defp table_id(%{"table_id" => _table_id}, _evidence),
+    do: {:error, {:invalid_provider_table, :invalid_table_id}}
+
+  defp table_id(_table, %{"actual_sha256" => sha256}) do
+    {:ok, "earth_orientation_table:sha256:#{sha256}"}
+  end
+
+  defp table_source(%{"source" => source}, _opts) when is_binary(source) and source != "",
+    do: {:ok, source}
+
+  defp table_source(%{"source" => _source}, _opts),
+    do: {:error, {:invalid_provider_table, :invalid_source}}
+
+  defp table_source(_table, opts),
+    do: {:ok, Keyword.get(opts, :source, "verified_earth_orientation_table")}
+
+  defp file_provenance(table_id, evidence) do
+    %{
+      "source_table_id" => table_id,
+      "input_format" => "json_earth_orientation_sample_table",
+      "import_adapter" =>
+        "OrbitalDynamics.Environment.TabularEarthOrientationProvider.fetch_from_file/4",
+      "trust_boundary" => "sha256_verified_file_input",
+      "network_access" => false,
+      "file_content_verification" => evidence
+    }
+  end
+
+  defp file_context(opts) do
+    case Keyword.get(opts, :file_content_verification) do
+      %{} ->
+        %{
+          "source_table_id" => Keyword.fetch!(opts, :source_table_id),
+          "provenance" => Keyword.fetch!(opts, :provenance),
+          "assumptions" => InputIntegrity.capabilities()["assumptions"],
+          "known_limits" =>
+            capabilities()["known_limits"] ++ InputIntegrity.capabilities()["known_limits"]
+        }
+
+      _verification ->
+        %{}
+    end
   end
 
   defp normalized_samples(samples) when is_list(samples) do
