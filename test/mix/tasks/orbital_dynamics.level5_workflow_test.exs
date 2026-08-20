@@ -15,6 +15,9 @@ defmodule Mix.Tasks.OrbitalDynamics.Level5WorkflowTest do
 
   @workflow_doc "docs/feature_set/level5_workflow.md"
   @output_root "${OUTPUT_ROOT}"
+  @tmp_prefix "orbital_dynamics_level5_workflow_"
+  @ownership_marker ".orbital_dynamics_level5_workflow_owner"
+  @tmp_creation_attempts 32
 
   defmodule ExactNoWriteAdapter do
     @behaviour OrbitalDynamics.CadenceImport.Adapter
@@ -43,6 +46,7 @@ defmodule Mix.Tasks.OrbitalDynamics.Level5WorkflowTest do
     end
   end
 
+  @tag timeout: 120_000
   test "checked JSON index links and executes the bounded V1 V2 V3 workflow" do
     index = workflow_index!()
 
@@ -56,24 +60,19 @@ defmodule Mix.Tasks.OrbitalDynamics.Level5WorkflowTest do
 
     validate_documentation_links!(index)
     validate_referenced_tasks!(index)
-    validate_capability_and_schema_versions!(index)
     validate_inputs!(index)
 
-    tmp_root =
-      Path.join(
-        System.tmp_dir!(),
-        "orbital_dynamics_level5_workflow_#{System.unique_integer([:positive])}"
-      )
-
-    File.mkdir_p!(tmp_root)
+    {tmp_root, ownership_token} = create_owned_tmp_root!()
 
     on_exit(fn ->
-      File.rm_rf!(tmp_root)
-
-      for workflow <- index["workflows"] do
-        Mix.Task.reenable(workflow["task"])
+      try do
+        reenable_referenced_tasks!(index)
+      after
+        cleanup_owned_tmp_root!(tmp_root, ownership_token)
       end
     end)
+
+    execute_indexed_support_commands!(index, tmp_root)
 
     outputs =
       for workflow <- index["workflows"] do
@@ -121,6 +120,37 @@ defmodule Mix.Tasks.OrbitalDynamics.Level5WorkflowTest do
     assert Enum.all?(outputs, &File.regular?/1)
 
     assert_broken_pinned_source_path!(index, tmp_root)
+  end
+
+  test "rejects a missing indexed Mix task" do
+    absent_task = "orbital_dynamics.level5_workflow.absent"
+    assert is_nil(Mix.Task.get(absent_task))
+
+    index =
+      workflow_index!()
+      |> put_in(["capability_discovery", "task"], absent_task)
+
+    assert_raise ExUnit.AssertionError, ~r/missing referenced Mix task/, fn ->
+      validate_referenced_tasks!(index)
+    end
+  end
+
+  test "does not accept or delete a pre-existing temp-root candidate" do
+    {preexisting_root, preexisting_token} = create_owned_tmp_root!()
+
+    on_exit(fn -> cleanup_owned_tmp_root!(preexisting_root, preexisting_token) end)
+
+    sentinel_path = Path.join(preexisting_root, "preexisting-sentinel")
+    File.write!(sentinel_path, "must survive collision retry")
+
+    {selected_root, selected_token} = create_owned_tmp_root!([preexisting_root])
+
+    on_exit(fn -> cleanup_owned_tmp_root!(selected_root, selected_token) end)
+
+    refute selected_root == preexisting_root
+    assert File.dir?(preexisting_root)
+    assert File.read!(sentinel_path) == "must survive collision retry"
+    assert File.read!(Path.join(preexisting_root, @ownership_marker)) == preexisting_token
   end
 
   test "opt-in hard-eligibility V3 dry-runs identically as artifact and manifest" do
@@ -263,65 +293,128 @@ defmodule Mix.Tasks.OrbitalDynamics.Level5WorkflowTest do
   end
 
   defp validate_referenced_tasks!(index) do
-    referenced_tasks =
-      [
-        index["capability_discovery"]["task"],
-        index["schema_registry"]["task"],
-        index["study_manifest_schema"]["task"]
-      ] ++ Enum.map(index["workflows"], & &1["task"])
-
-    for task <- referenced_tasks do
-      assert is_atom(Mix.Task.get(task)), "missing referenced Mix task #{task}"
+    for task <- referenced_tasks(index) do
+      task_module = Mix.Task.get(task)
+      refute is_nil(task_module), "missing referenced Mix task #{task}"
+      assert is_atom(task_module), "invalid referenced Mix task #{task}"
     end
   end
 
-  defp validate_capability_and_schema_versions!(index) do
-    expected_capability = index["capability_discovery"]["expected"]
-    catalog = OrbitalDynamics.capability_catalog_artifact()
-    schema_capability = catalog["validation"]["schema"]
+  defp referenced_tasks(index) do
+    [
+      index["capability_discovery"]["task"],
+      index["schema_registry"]["task"],
+      index["study_manifest_schema"]["task"]
+    ]
+    |> Kernel.++(Enum.map(index["workflows"], & &1["task"]))
+    |> Enum.uniq()
+  end
 
-    assert catalog["schema_contract"] == expected_capability["schema_contract"]
-    assert catalog["schema_version"] == expected_capability["schema_version"]
+  defp reenable_referenced_tasks!(index) do
+    Enum.each(referenced_tasks(index), &Mix.Task.reenable/1)
+  end
 
-    assert schema_capability["artifact_contract_count"] ==
-             expected_capability["artifact_contract_count"]
+  defp execute_indexed_support_commands!(index, tmp_root) do
+    capability = index["capability_discovery"]
+    Mix.Task.reenable(capability["task"])
 
-    assert schema_capability["compatibility_policy_version"] ==
-             expected_capability["compatibility_policy_version"]
+    capability_catalog =
+      capture_io(fn -> Mix.Task.run(capability["task"], capability["argv"]) end)
+      |> String.trim()
+      |> :json.decode()
 
-    assert schema_capability["identity_policy_version"] ==
-             expected_capability["identity_policy_version"]
-
-    for contract <- expected_capability["required_artifact_contracts"] do
-      assert contract in schema_capability["artifact_contracts"]
-    end
+    assert_capability_expectations!(capability_catalog, capability["expected"])
+    assert capability_catalog == json_roundtrip(OrbitalDynamics.capability_catalog_artifact())
 
     schema_registry = index["schema_registry"]
+    schema_argv = materialize_paths(schema_registry["argv"], tmp_root)
+    schema_output_path = output_path_from_argv!(schema_argv)
+    assert_direct_child!(schema_output_path, tmp_root)
+    refute File.exists?(schema_output_path)
 
-    assert schema_registry["compatibility_policy_version"] ==
-             Schema.compatibility_policy()["policy_version"]
+    Mix.Task.reenable(schema_registry["task"])
 
-    assert schema_registry["identity_policy_version"] ==
-             Schema.identity_policy()["policy_version"]
+    schema_output =
+      capture_io(fn -> Mix.Task.run(schema_registry["task"], schema_argv) end)
+
+    assert schema_output =~ "wrote: #{schema_output_path}"
+    assert File.regular?(schema_output_path)
+
+    schema_bundle = schema_output_path |> File.read!() |> :json.decode()
+    assert schema_bundle["schema_contract"] == schema_registry["output_contract"]
+    assert schema_bundle["schema_count"] == map_size(schema_bundle["schemas"])
+    assert schema_bundle["compatibility_policy"] == Schema.compatibility_policy()
+    assert schema_bundle["identity_policy"] == Schema.identity_policy()
+
+    assert schema_bundle["compatibility_policy"]["policy_version"] ==
+             schema_registry["compatibility_policy_version"]
+
+    assert schema_bundle["identity_policy"]["policy_version"] ==
+             schema_registry["identity_policy_version"]
 
     for expected <- schema_registry["artifact_contracts"] do
-      assert {:ok, contract} = Schema.contract(expected["contract"])
-      assert contract["schema_version"] == expected["schema_version"]
+      exported_schema = Map.fetch!(schema_bundle["schemas"], expected["contract"])
+      assert {:ok, live_contract} = Schema.contract(expected["contract"])
+      assert live_contract["schema_version"] == expected["schema_version"]
+      assert {:ok, live_schema} = Schema.json_schema(expected["contract"])
+      assert exported_schema == json_roundtrip(live_schema)
 
-      assert {:ok, json_schema} = Schema.json_schema(expected["contract"])
-
-      assert get_in(json_schema, ["properties", "schema_version", "const"]) ==
+      assert get_in(exported_schema, ["properties", "schema_version", "const"]) ==
                expected["schema_version"]
     end
 
     manifest_schema = index["study_manifest_schema"]
-    live_manifest_schema = Manifest.json_schema()
+    manifest_argv = materialize_paths(manifest_schema["argv"], tmp_root)
+    manifest_output_path = output_path_from_argv!(manifest_argv)
+    assert_direct_child!(manifest_output_path, tmp_root)
+    refute File.exists?(manifest_output_path)
 
-    assert get_in(live_manifest_schema, ["x-orbital-dynamics", "schema_contract"]) ==
+    Mix.Task.reenable(manifest_schema["task"])
+
+    manifest_output =
+      capture_io(fn -> Mix.Task.run(manifest_schema["task"], manifest_argv) end)
+
+    assert manifest_output =~ "wrote: #{manifest_output_path}"
+    assert File.regular?(manifest_output_path)
+
+    exported_manifest_schema = manifest_output_path |> File.read!() |> :json.decode()
+    assert exported_manifest_schema == json_roundtrip(Manifest.json_schema())
+
+    assert get_in(exported_manifest_schema, ["x-orbital-dynamics", "schema_contract"]) ==
              manifest_schema["contract"]
 
-    assert get_in(live_manifest_schema, ["properties", "schema_version", "const"]) ==
+    assert get_in(exported_manifest_schema, ["properties", "schema_version", "const"]) ==
              manifest_schema["schema_version"]
+
+    assert get_in(exported_manifest_schema, [
+             "x-orbital-dynamics",
+             "compatibility_policy",
+             "policy_version"
+           ]) == manifest_schema["compatibility_policy_version"]
+
+    assert get_in(exported_manifest_schema, [
+             "x-orbital-dynamics",
+             "identity_policy",
+             "policy_version"
+           ]) == manifest_schema["identity_policy_version"]
+  end
+
+  defp assert_capability_expectations!(catalog, expected) do
+    schema_capability = catalog["validation"]["schema"]
+
+    assert catalog["schema_contract"] == expected["schema_contract"]
+    assert catalog["schema_version"] == expected["schema_version"]
+    assert schema_capability["artifact_contract_count"] == expected["artifact_contract_count"]
+
+    assert schema_capability["compatibility_policy_version"] ==
+             expected["compatibility_policy_version"]
+
+    assert schema_capability["identity_policy_version"] ==
+             expected["identity_policy_version"]
+
+    for contract <- expected["required_artifact_contracts"] do
+      assert contract in schema_capability["artifact_contracts"]
+    end
   end
 
   defp validate_inputs!(index) do
@@ -422,6 +515,106 @@ defmodule Mix.Tasks.OrbitalDynamics.Level5WorkflowTest do
     for assertion <- assertions do
       assert get_in(value, assertion["path"]) == assertion["value"]
     end
+  end
+
+  defp create_owned_tmp_root!(preferred_candidates \\ []) do
+    do_create_owned_tmp_root!(preferred_candidates, @tmp_creation_attempts)
+  end
+
+  defp do_create_owned_tmp_root!(_preferred_candidates, 0) do
+    raise "unable to create an exclusive Level 5 workflow temp root"
+  end
+
+  defp do_create_owned_tmp_root!(preferred_candidates, attempts_remaining) do
+    {candidate, remaining_candidates} =
+      case preferred_candidates do
+        [candidate | rest] -> {candidate, rest}
+        [] -> {random_tmp_candidate(), []}
+      end
+
+    candidate = validate_tmp_candidate!(candidate)
+
+    case File.mkdir(candidate) do
+      :ok ->
+        ownership_token = random_token()
+        marker_path = Path.join(candidate, @ownership_marker)
+
+        case File.write(marker_path, ownership_token, [:exclusive]) do
+          :ok ->
+            {candidate, ownership_token}
+
+          {:error, reason} ->
+            File.rmdir(candidate)
+
+            raise File.Error,
+              reason: reason,
+              action: "write Level 5 workflow ownership marker",
+              path: marker_path
+        end
+
+      {:error, :eexist} ->
+        do_create_owned_tmp_root!(remaining_candidates, attempts_remaining - 1)
+
+      {:error, reason} ->
+        raise File.Error,
+          reason: reason,
+          action: "create Level 5 workflow temp root",
+          path: candidate
+    end
+  end
+
+  defp cleanup_owned_tmp_root!(tmp_root, ownership_token) do
+    expanded_root = validate_tmp_candidate!(tmp_root)
+    marker_path = Path.join(expanded_root, @ownership_marker)
+
+    unless File.regular?(marker_path) and File.read!(marker_path) == ownership_token do
+      raise "refusing to remove unowned Level 5 workflow temp root #{expanded_root}"
+    end
+
+    File.rm_rf!(expanded_root)
+    :ok
+  end
+
+  defp random_tmp_candidate do
+    Path.join(System.tmp_dir!(), @tmp_prefix <> random_token())
+  end
+
+  defp random_token do
+    24
+    |> :crypto.strong_rand_bytes()
+    |> Base.url_encode64(padding: false)
+  end
+
+  defp validate_tmp_candidate!(candidate) do
+    expanded_tmp_dir = Path.expand(System.tmp_dir!())
+    expanded_candidate = Path.expand(candidate)
+
+    unless Path.dirname(expanded_candidate) == expanded_tmp_dir and
+             String.starts_with?(Path.basename(expanded_candidate), @tmp_prefix) do
+      raise "unsafe Level 5 workflow temp-root candidate #{expanded_candidate}"
+    end
+
+    expanded_candidate
+  end
+
+  defp assert_direct_child!(file_path, tmp_root) do
+    assert Path.dirname(Path.expand(file_path)) == Path.expand(tmp_root)
+  end
+
+  defp output_path_from_argv!(argv) do
+    output_index = Enum.find_index(argv, &(&1 == "--output"))
+    assert is_integer(output_index), "indexed support command is missing --output"
+
+    output_path = Enum.at(argv, output_index + 1)
+    assert is_binary(output_path), "indexed support command is missing an output path"
+    output_path
+  end
+
+  defp json_roundtrip(value) do
+    value
+    |> :json.encode()
+    |> IO.iodata_to_binary()
+    |> :json.decode()
   end
 
   defp materialize_paths(paths, tmp_root),

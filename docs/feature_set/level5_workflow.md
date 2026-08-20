@@ -74,6 +74,7 @@ The fenced block is the source of truth consumed by the focused workflow test.
       "--output",
       "${OUTPUT_ROOT}/orbital_dynamics.schema_bundle.v1.json"
     ],
+    "output_contract": "orbital_dynamics.schema_bundle.v1",
     "compatibility_policy_version": 1,
     "identity_policy_version": 1,
     "artifact_contracts": [
@@ -106,7 +107,9 @@ The fenced block is the source of truth consumed by the focused workflow test.
       "${OUTPUT_ROOT}/study_manifest.v1.schema.json"
     ],
     "contract": "study_manifest.v1",
-    "schema_version": 1
+    "schema_version": 1,
+    "compatibility_policy_version": 1,
+    "identity_policy_version": 1
   },
   "workflows": [
     {
