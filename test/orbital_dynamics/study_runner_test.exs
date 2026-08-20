@@ -14,6 +14,7 @@ defmodule OrbitalDynamics.StudyRunnerTest do
   }
 
   alias OrbitalDynamics.Propagators.TwoBodyNxCompiled
+  alias OrbitalDynamics.Environment.CampaignEnvironmentProvider
 
   test "runs trajectories and access windows for a study" do
     earth = CentralBody.earth()
@@ -205,6 +206,141 @@ defmodule OrbitalDynamics.StudyRunnerTest do
 
     assert result_set.errors == []
     assert result_set.assumptions.sun_direction == {-1.0, 0.0, 0.0}
+  end
+
+  test "consumes one finite campaign environment and archives exact result provenance" do
+    earth = CentralBody.earth()
+
+    study =
+      Study.new!(:campaign_environment, [campaign_scenario(:campaign, earth, 820_497_600.0)],
+        outputs: [:eclipses, :ground_track_crossings]
+      )
+
+    opts = [
+      campaign_environment:
+        {CampaignEnvironmentProvider, CampaignEnvironmentProvider.checked_in_options()},
+      ground_track_crossings: [
+        %{
+          id: :campaign_meridian,
+          crossing: :longitude,
+          longitude_deg: 0.0,
+          frame: :body_fixed
+        }
+      ]
+    ]
+
+    assert :ok = StudyRunner.validate_run_inputs(study, opts)
+    assert {:ok, result_set} = StudyRunner.run(study, opts)
+    assert result_set.errors == []
+
+    provenance = result_set.assumptions.campaign_environment
+
+    assert provenance["provider_id"] ==
+             "environment.provider.campaign.jpl_de441_iers_finals2000a"
+
+    assert provenance["provider_revision"] == "campaign_environment_provider.v1"
+    assert provenance["dataset_revision"] == "jpl_de441__iers_finals2000a_2026-08-13"
+
+    assert provenance["content_sha256"] ==
+             "bce2201bc77cc17d029542c383462ea70d2cafd930a296baebc80399aed82bdb"
+
+    assert provenance["coverage"] == %{
+             "starts_at_s" => 820_497_600.0,
+             "ends_at_s" => 820_756_800.0,
+             "time_scale" => "utc"
+           }
+
+    eclipse_result = Enum.find(result_set.event_results, &(&1.event_type == :eclipse))
+
+    ground_track_result =
+      Enum.find(result_set.event_results, &(&1.event_type == :ground_track_crossing))
+
+    assert eclipse_result.source.campaign_environment == provenance
+    assert ground_track_result.source.campaign_environment == provenance
+
+    artifact =
+      OrbitalDynamics.ResultSet.Artifact.build(result_set,
+        generated_at: ~U[2026-08-20 00:00:00Z]
+      )
+
+    artifact_provenance = artifact.assumptions["campaign_environment"]
+    assert artifact_provenance["provider_id"] == provenance["provider_id"]
+    assert artifact_provenance["provider_revision"] == provenance["provider_revision"]
+    assert artifact_provenance["dataset_revision"] == provenance["dataset_revision"]
+    assert artifact_provenance["content_sha256"] == provenance["content_sha256"]
+    assert artifact_provenance["coverage"] == provenance["coverage"]
+
+    assert Enum.map(artifact.assumptions["environment_models"], & &1["id"]) == [
+             "environment.solar.campaign_tabular_geocentric_direction",
+             "environment.earth_rotation.campaign_iers_era"
+           ]
+
+    assert Enum.all?(artifact.assumptions["environment_models"], fn model ->
+             model["parameters"]["content_sha256"] == provenance["content_sha256"] and
+               model["parameters"]["coverage"] == provenance["coverage"]
+           end)
+  end
+
+  test "rejects campaign environment requests outside finite coverage or in the wrong time scale" do
+    earth = CentralBody.earth()
+    provider = {CampaignEnvironmentProvider, CampaignEnvironmentProvider.checked_in_options()}
+
+    outside_study =
+      Study.new!(
+        :campaign_outside,
+        [campaign_scenario(:outside, earth, 820_756_800.0)],
+        outputs: [:eclipses]
+      )
+
+    assert {:error,
+            {:campaign_environment_request_outside_coverage,
+             %{starts_at_s: 820_756_800.0, ends_at_s: 820_757_400.0}}} =
+             StudyRunner.run(outside_study, campaign_environment: provider)
+
+    wrong_scale_study =
+      Study.new!(
+        :campaign_wrong_scale,
+        [campaign_scenario(:wrong_scale, earth, 820_497_600.0, :tdb)],
+        outputs: [:eclipses]
+      )
+
+    assert {:error, {:campaign_environment_request_mismatch, request}} =
+             StudyRunner.run(wrong_scale_study, campaign_environment: provider)
+
+    assert request.time_scales == [:tdb]
+  end
+
+  test "preserves fixed-Sun and constant-rotation defaults without campaign opt-in" do
+    earth = CentralBody.earth()
+
+    study =
+      Study.new!(:legacy_environment, [scenario(:legacy, earth)],
+        outputs: [:eclipses, :ground_track_crossings]
+      )
+
+    assert {:ok, result_set} =
+             StudyRunner.run(study,
+               ground_track_crossings: [
+                 %{
+                   id: :legacy_meridian,
+                   crossing: :longitude,
+                   longitude_deg: 0.0,
+                   frame: :body_fixed
+                 }
+               ]
+             )
+
+    refute Map.has_key?(result_set.assumptions, :campaign_environment)
+    assert result_set.assumptions.sun_direction == {1.0, 0.0, 0.0}
+
+    assert Enum.map(OrbitalDynamics.Environment.records_for_result_set(result_set), & &1["id"]) ==
+             [
+               "environment.solar.fixed_inertial_direction",
+               "environment.earth_rotation.constant_rate"
+             ]
+
+    eclipse_result = Enum.find(result_set.event_results, &(&1.event_type == :eclipse))
+    assert eclipse_result.source == %{shadow_model: :cylindrical_central_body_shadow}
   end
 
   test "supports ground-track crossings as a study output" do
@@ -739,6 +875,24 @@ defmodule OrbitalDynamics.StudyRunnerTest do
 
   defp scenario(id, earth) do
     Scenario.new!(id, Spacecraft.new!(:"sat_#{id}", 250.0), state({7_000.0, 0.0, 0.0}, earth),
+      duration_s: 600.0,
+      output_step_s: 60.0,
+      central_body: earth
+    )
+  end
+
+  defp campaign_scenario(id, earth, seconds_since_j2000, scale \\ :utc) do
+    velocity_km_s = :math.sqrt(earth.mu_km3_s2 / 7_000.0)
+
+    initial_state =
+      StateVector.new!(
+        {7_000.0, 0.0, 0.0},
+        {0.0, velocity_km_s, 0.0},
+        Epoch.new!(seconds_since_j2000, scale),
+        Frame.earth_inertial_j2000()
+      )
+
+    Scenario.new!(id, Spacecraft.new!(:"sat_#{id}", 250.0), initial_state,
       duration_s: 600.0,
       output_step_s: 60.0,
       central_body: earth

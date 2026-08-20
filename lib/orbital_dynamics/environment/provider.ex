@@ -10,6 +10,8 @@ defmodule OrbitalDynamics.Environment.Provider do
 
   @type capability :: %{optional(String.t()) => term()}
 
+  @sha256_regex ~r/\A[0-9a-f]{64}\z/
+
   @callback capabilities() :: capability()
   @callback fetch(atom(), keyword()) :: {:ok, map()} | {:error, term()}
 
@@ -69,6 +71,18 @@ defmodule OrbitalDynamics.Environment.Provider do
       Map.has_key?(record, "parameters") and not is_map(record["parameters"]) ->
         {:error, {:invalid_field, "parameters"}}
 
+      Map.has_key?(record, "supported_frames") and
+          not string_list?(record["supported_frames"]) ->
+        {:error, {:invalid_field, "supported_frames"}}
+
+      Map.has_key?(record, "supported_time_scales") and
+          not string_list?(record["supported_time_scales"]) ->
+        {:error, {:invalid_field, "supported_time_scales"}}
+
+      Map.has_key?(record, "source_identity") and
+          not valid_source_identity?(record["source_identity"]) ->
+        {:error, {:invalid_field, "source_identity"}}
+
       not is_list(record["known_limits"]) ->
         {:error, {:invalid_field, "known_limits"}}
 
@@ -125,6 +139,8 @@ defmodule OrbitalDynamics.Environment.Provider do
       |> time_span_covered?(request_start, request_end)
       |> and?(bodies_supported?(record, request))
       |> and?(outputs_supported?(record, request))
+      |> and?(frames_supported?(record, request))
+      |> and?(time_scales_supported?(record, request))
     else
       _error -> false
     end
@@ -191,6 +207,27 @@ defmodule OrbitalDynamics.Environment.Provider do
     |> values_supported?(record["outputs"])
   end
 
+  defp frames_supported?(record, request) do
+    request
+    |> requested_values([
+      :frame,
+      "frame",
+      :frames,
+      "frames",
+      :inertial_frame,
+      "inertial_frame",
+      :earth_fixed_frame,
+      "earth_fixed_frame"
+    ])
+    |> values_supported?(record["supported_frames"])
+  end
+
+  defp time_scales_supported?(record, request) do
+    request
+    |> requested_values([:time_scale, "time_scale", :time_scales, "time_scales"])
+    |> values_supported?(record["supported_time_scales"])
+  end
+
   defp requested_values(request, keys) do
     keys
     |> Enum.find_value(fn key -> Map.get(request, key) end)
@@ -216,6 +253,22 @@ defmodule OrbitalDynamics.Environment.Provider do
   end
 
   defp values_supported?(_requested_values, _supported_values), do: false
+
+  defp valid_source_identity?(%{
+         "provider_revision" => provider_revision,
+         "source_revision" => source_revision,
+         "content_identity" => %{
+           "algorithm" => "sha256",
+           "sha256" => sha256
+         }
+       }) do
+    nonempty_string?(provider_revision) and nonempty_string?(source_revision) and
+      is_binary(sha256) and Regex.match?(@sha256_regex, sha256)
+  end
+
+  defp valid_source_identity?(_identity), do: false
+
+  defp nonempty_string?(value), do: is_binary(value) and String.trim(value) != ""
 
   defp and?(left, right), do: left and right
 end

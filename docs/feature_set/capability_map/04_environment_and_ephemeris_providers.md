@@ -61,6 +61,42 @@ Additional request-fit facades:
   stable table ID, ordered assumptions, and known limits. Inline `samples`
   configuration remains unchanged and does not require a digest.
 
+### Source-bound campaign environment
+
+- `CampaignEnvironmentProvider` is an opt-in, network-free combined provider
+  for a finite campaign horizon. It supplies a time-varying geocentric Sun
+  direction and Earth rotation/orientation from one exact-byte-verified table;
+  the fixed-Sun and constant-Earth-rotation defaults are unchanged when the
+  provider is absent.
+- The checked-in demonstration table covers 2026-01-01T00:00:00Z through
+  2026-01-04T00:00:00Z at one-day intervals. Its Sun positions are from the
+  JPL Horizons `DE441` geocentric-Sun vector response, and its polar motion and
+  UT1-UTC values are final Bulletin B columns from the IERS/USNO
+  `finals2000A.all` product. The table records the exact source URLs, product
+  and source revisions, query and epoch conventions, derivations, retrieval
+  timestamp, raw source rows, source-response SHA-256 values, and its own
+  SHA-256 identity.
+- The only supported interpolation is deterministic component-wise linear
+  interpolation inside the declared adjacent sample bracket. Sun Cartesian
+  positions are interpolated before normalization; Earth rotation angle uses
+  the IERS Earth Rotation Angle expression evaluated at each sample's UT1 and
+  then linearly interpolated without discarding whole turns. Polar motion and
+  UT1-UTC are interpolated component-wise.
+- Loading rejects an unverified table, an unexpected provider/table/source
+  revision, source digest mismatch, wrong body/frame/time scale, duplicate or
+  nonmonotonic epochs, nonuniform gaps, inconsistent coverage, and unsupported
+  interpolation. Requests must fit wholly within the finite table coverage.
+- `StudyRunner` accepts the provider only through the programmatic
+  `campaign_environment: {ProviderModule, options}` run option. Consumed
+  eclipse and body-fixed ground-track results, result artifact assumptions,
+  checkpoint identity, and exported environment-model rows archive the exact
+  provider, provider revision, dataset revision, table ID/content SHA-256,
+  finite coverage, interpolation, and source-product provenance.
+- This is a source-binding and request-fit proof. It is not the Domain 18
+  external numerical acceptance case: the checked-in derived table is small,
+  no independent high-fidelity oracle comparison or error budget is claimed,
+  and no general-purpose SPICE/EOP ingest or update service is provided.
+
 ## Status: **partial**
 
 There is now a provider behaviour and internal assumption-backed providers, including:
@@ -70,14 +106,18 @@ There is now a provider behaviour and internal assumption-backed providers, incl
 
 But the following are still missing:
 
-- no Sun/Moon/planet ephemeris data provider;
+- no general-purpose Sun/Moon/planet ephemeris data provider beyond the bounded
+  checked-in campaign table;
 - no live external-provider data source adapter;
 - no Nx or EXLA propagator consumes atmosphere density as drag; the only J2
   consumer is the bounded opt-in scalar `J2Drag` path.
 
 ## Status: **near-term**
 
-- Add external ephemeris or Earth-orientation provider adapters only behind the provider contract, with explicit source coverage, request-fit validation, interpolation method, supported bodies, declared outputs, and network policy.
+- Add general external ephemeris or Earth-orientation provider adapters only
+  behind the provider contract, with explicit source coverage, request-fit
+  validation, interpolation method, supported bodies, declared outputs, and
+  network policy.
 
 ## Status: **later**
 
@@ -87,4 +127,6 @@ But the following are still missing:
 
 ## Status: **out of scope**
 
-- Bundling or maintaining authoritative external ephemeris data as a core project obligation.
+- Bundling or maintaining a general authoritative external ephemeris archive as
+  a core project obligation; the small checked-in campaign proof is deliberately
+  finite and immutable.

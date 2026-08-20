@@ -178,8 +178,8 @@ defmodule OrbitalDynamics.EnvironmentTest do
 
   test "derives configured tabular Earth-orientation provider coverage from declared samples" do
     samples = [
-      %{seconds_since_j2000: 100.0, earth_rotation_angle_rad: 0.1},
       %{seconds_since_j2000: 0.0, earth_rotation_angle_rad: 0.0},
+      %{seconds_since_j2000: 100.0, earth_rotation_angle_rad: 0.1},
       %{seconds_since_j2000: 200.0, earth_rotation_angle_rad: 0.2}
     ]
 
@@ -271,6 +271,16 @@ defmodule OrbitalDynamics.EnvironmentTest do
                samples: [
                  %{seconds_since_j2000: 0.0, earth_rotation_angle_rad: 0.0},
                  %{seconds_since_j2000: 0.0, earth_rotation_angle_rad: 0.1}
+               ]
+             )
+
+    assert {:error, {:invalid_option, :samples}} =
+             Environment.configured_provider_capability(
+               OrbitalDynamics.Environment.TabularEarthOrientationProvider,
+               samples: [
+                 %{seconds_since_j2000: 100.0, earth_rotation_angle_rad: 0.1},
+                 %{seconds_since_j2000: 0.0, earth_rotation_angle_rad: 0.0},
+                 %{seconds_since_j2000: 200.0, earth_rotation_angle_rad: 0.2}
                ]
              )
   end

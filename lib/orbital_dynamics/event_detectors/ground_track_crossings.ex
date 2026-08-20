@@ -441,6 +441,21 @@ defmodule OrbitalDynamics.EventDetectors.GroundTrackCrossings do
       earth_rotation_provider_coverage_ends_at_s: provider_coverage["ends_at_s"],
       earth_rotation_provider_sample_count:
         get_in(provider_capability, ["parameters", "sample_count"]),
+      earth_rotation_provider_revision:
+        Map.get(before_metadata, :earth_rotation_provider_revision) ||
+          Map.get(after_metadata, :earth_rotation_provider_revision),
+      earth_rotation_dataset_revision:
+        Map.get(before_metadata, :earth_rotation_dataset_revision) ||
+          Map.get(after_metadata, :earth_rotation_dataset_revision),
+      earth_rotation_content_sha256:
+        Map.get(before_metadata, :earth_rotation_content_sha256) ||
+          Map.get(after_metadata, :earth_rotation_content_sha256),
+      earth_rotation_source_table_id:
+        Map.get(before_metadata, :earth_rotation_source_table_id) ||
+          Map.get(after_metadata, :earth_rotation_source_table_id),
+      earth_rotation_provider_provenance:
+        Map.get(before_metadata, :earth_rotation_provider_provenance) ||
+          Map.get(after_metadata, :earth_rotation_provider_provenance),
       earth_rotation_rate_rad_s:
         Map.get(before_metadata, :earth_rotation_rate_rad_s) ||
           Map.get(after_metadata, :earth_rotation_rate_rad_s),
@@ -473,6 +488,11 @@ defmodule OrbitalDynamics.EventDetectors.GroundTrackCrossings do
              earth_rotation_provider_coverage_ends_at_s:
                get_product_value(product, "coverage_ends_at_s"),
              earth_rotation_provider_sample_count: get_product_value(product, "sample_count"),
+             earth_rotation_provider_revision: get_product_value(product, "provider_revision"),
+             earth_rotation_dataset_revision: get_product_value(product, "dataset_revision"),
+             earth_rotation_content_sha256: get_product_value(product, "content_sha256"),
+             earth_rotation_source_table_id: get_product_value(product, "source_table_id"),
+             earth_rotation_provider_provenance: get_product_value(product, "provenance"),
              earth_rotation_angle_rad: angle_rad
            }}
         else

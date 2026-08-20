@@ -148,10 +148,18 @@ defmodule OrbitalDynamics.Environment do
   def records_for_assumptions(%{} = assumptions) do
     outputs = Map.get(assumptions, :outputs) || Map.get(assumptions, "outputs") || []
 
-    []
-    |> maybe_add_fixed_sun(outputs, assumptions)
-    |> maybe_add_constant_earth_rotation(outputs, assumptions)
-    |> Enum.reverse()
+    campaign_environment =
+      Map.get(assumptions, :campaign_environment) ||
+        Map.get(assumptions, "campaign_environment")
+
+    if is_map(campaign_environment) do
+      campaign_environment_records(outputs, assumptions, campaign_environment)
+    else
+      []
+      |> maybe_add_fixed_sun(outputs, assumptions)
+      |> maybe_add_constant_earth_rotation(outputs, assumptions)
+      |> Enum.reverse()
+    end
   end
 
   @doc """
@@ -330,6 +338,90 @@ defmodule OrbitalDynamics.Environment do
     else
       records
     end
+  end
+
+  defp campaign_environment_records(outputs, assumptions, provenance) do
+    []
+    |> maybe_add_campaign_sun(outputs, provenance)
+    |> maybe_add_campaign_earth_rotation(outputs, assumptions, provenance)
+    |> Enum.reverse()
+  end
+
+  defp maybe_add_campaign_sun(records, outputs, provenance) do
+    if output?(outputs, :eclipses) do
+      [campaign_environment_model(:solar_direction, provenance) | records]
+    else
+      records
+    end
+  end
+
+  defp maybe_add_campaign_earth_rotation(records, outputs, assumptions, provenance) do
+    if body_fixed_ground_track?(outputs, assumptions) do
+      [campaign_environment_model(:earth_rotation, provenance) | records]
+    else
+      records
+    end
+  end
+
+  defp campaign_environment_model(:solar_direction, provenance) do
+    %{
+      "id" => "environment.solar.campaign_tabular_geocentric_direction",
+      "schema_contract" => "environment_model_capability.v1",
+      "category" => "solar_direction",
+      "model" => "tabular_geocentric_geometric_sun_direction",
+      "source" => provenance_value(provenance, "source_table_id"),
+      "validation_level" => "analysis",
+      "coordinate_frame" => provenance_value(provenance, "provider_inertial_frame"),
+      "interpolation" => provenance_value(provenance, "interpolation"),
+      "time_span" => campaign_time_span(provenance),
+      "supported_bodies" => [provenance_value(provenance, "body")],
+      "network_access" => false,
+      "parameters" => campaign_environment_parameters(provenance),
+      "known_limits" => provenance_value(provenance, "known_limits")
+    }
+  end
+
+  defp campaign_environment_model(:earth_rotation, provenance) do
+    %{
+      "id" => "environment.earth_rotation.campaign_iers_era",
+      "schema_contract" => "environment_model_capability.v1",
+      "category" => "body_rotation",
+      "model" => "iers_era_with_tabular_earth_orientation",
+      "source" => provenance_value(provenance, "source_table_id"),
+      "validation_level" => "analysis",
+      "coordinate_frame" => provenance_value(provenance, "earth_fixed_frame"),
+      "interpolation" => provenance_value(provenance, "interpolation"),
+      "time_span" => campaign_time_span(provenance),
+      "supported_bodies" => [provenance_value(provenance, "body")],
+      "network_access" => false,
+      "parameters" =>
+        campaign_environment_parameters(provenance)
+        |> Map.put("polar_motion_applied", false),
+      "known_limits" => provenance_value(provenance, "known_limits")
+    }
+  end
+
+  defp campaign_environment_parameters(provenance) do
+    %{
+      "provider_id" => provenance_value(provenance, "provider_id"),
+      "provider_revision" => provenance_value(provenance, "provider_revision"),
+      "dataset_revision" => provenance_value(provenance, "dataset_revision"),
+      "content_sha256" => provenance_value(provenance, "content_sha256"),
+      "coverage" => provenance_value(provenance, "coverage"),
+      "sample_count" => provenance_value(provenance, "sample_count")
+    }
+  end
+
+  defp campaign_time_span(provenance) do
+    coverage = provenance_value(provenance, "coverage")
+
+    "#{provenance_value(coverage, "starts_at_s")}..#{provenance_value(coverage, "ends_at_s")} seconds_since_j2000"
+  end
+
+  defp provenance_value(map, key) do
+    Map.get(map, key) || Map.get(map, String.to_existing_atom(key))
+  rescue
+    ArgumentError -> Map.get(map, key)
   end
 
   defp maybe_add_constant_earth_rotation(records, outputs, assumptions) do

@@ -44,7 +44,7 @@ defmodule OrbitalDynamics.StudyRunner do
     central_body = Keyword.get(opts, :central_body, CentralBody.earth())
     ground_stations = Keyword.get(opts, :ground_stations, [])
     targets = Keyword.get(opts, :targets, [])
-    ground_track_crossings = Keyword.get(opts, :ground_track_crossings, [])
+    declared_ground_track_crossings = Keyword.get(opts, :ground_track_crossings, [])
     sun_direction = Keyword.get(opts, :sun_direction, {1.0, 0.0, 0.0})
     max_concurrency = Keyword.get(opts, :max_concurrency, System.schedulers_online())
     timeout = Keyword.get(opts, :timeout, :infinity)
@@ -65,7 +65,19 @@ defmodule OrbitalDynamics.StudyRunner do
     batch_propagation? = batch_propagation?(study.propagator, opts, explicit_task_distribution?)
     backend_selection_policy = backend_selection_policy(study.propagator, batch_propagation?)
 
-    with :ok <- validate_run_inputs(study, opts),
+    with {:ok, campaign_environment} <- prepare_campaign_environment(study, opts),
+         {:ok, ground_track_crossings} <-
+           effective_ground_track_crossings(
+             declared_ground_track_crossings,
+             campaign_environment
+           ),
+         :ok <-
+           validate_prepared_run_inputs(
+             study,
+             ground_stations,
+             targets,
+             ground_track_crossings
+           ),
          :ok <- validate_scenario_indexes(study, scenario_indexes),
          :ok <- validate_task_supervisor_config(task_supervisor, task_supervisors),
          :ok <-
@@ -107,8 +119,9 @@ defmodule OrbitalDynamics.StudyRunner do
                 central_body: central_body,
                 ground_stations: ground_stations,
                 targets: targets,
-                ground_track_crossings: ground_track_crossings,
+                ground_track_crossings: declared_ground_track_crossings,
                 sun_direction: sun_direction,
+                campaign_environment: campaign_environment_provenance(campaign_environment),
                 max_concurrency: max_concurrency,
                 timeout: timeout,
                 requested_task_chunk_size: requested_task_chunk_size,
@@ -138,7 +151,8 @@ defmodule OrbitalDynamics.StudyRunner do
               targets,
               ground_track_crossings,
               central_body,
-              sun_direction
+              sun_direction,
+              campaign_environment
             )
           end)
 
@@ -152,8 +166,9 @@ defmodule OrbitalDynamics.StudyRunner do
             central_body,
             ground_stations,
             targets,
-            ground_track_crossings,
+            declared_ground_track_crossings,
             sun_direction,
+            campaign_environment,
             external_provider_policy,
             backend_selection_policy,
             retry_plan,
@@ -265,8 +280,19 @@ defmodule OrbitalDynamics.StudyRunner do
   def validate_run_inputs(%Study{} = study, opts \\ []) do
     ground_stations = Keyword.get(opts, :ground_stations, [])
     targets = Keyword.get(opts, :targets, [])
-    ground_track_crossings = Keyword.get(opts, :ground_track_crossings, [])
+    declared_ground_track_crossings = Keyword.get(opts, :ground_track_crossings, [])
 
+    with {:ok, campaign_environment} <- prepare_campaign_environment(study, opts),
+         {:ok, ground_track_crossings} <-
+           effective_ground_track_crossings(
+             declared_ground_track_crossings,
+             campaign_environment
+           ) do
+      validate_prepared_run_inputs(study, ground_stations, targets, ground_track_crossings)
+    end
+  end
+
+  defp validate_prepared_run_inputs(study, ground_stations, targets, ground_track_crossings) do
     with :ok <- validate_outputs(study.outputs),
          :ok <- validate_ground_stations(study.outputs, ground_stations),
          :ok <- validate_targets(study.outputs, targets),
@@ -274,6 +300,143 @@ defmodule OrbitalDynamics.StudyRunner do
       :ok
     end
   end
+
+  defp prepare_campaign_environment(%Study{} = study, opts) do
+    case Keyword.get(opts, :campaign_environment) do
+      nil ->
+        {:ok, nil}
+
+      {provider, provider_opts} when is_atom(provider) and is_list(provider_opts) ->
+        prepare_campaign_environment_provider(study, provider, provider_opts)
+
+      _campaign_environment ->
+        {:error, {:invalid_option, :campaign_environment}}
+    end
+  end
+
+  defp prepare_campaign_environment_provider(study, provider, provider_opts) do
+    request = campaign_environment_request(study)
+
+    with true <- Keyword.keyword?(provider_opts),
+         true <- Code.ensure_loaded?(provider),
+         true <- function_exported?(provider, :load, 1),
+         true <- function_exported?(provider, :provenance, 1),
+         {:ok, dataset} <- provider.load(provider_opts),
+         {:ok, capability} <-
+           Environment.configured_provider_capability(provider, dataset: dataset),
+         :ok <- validate_campaign_environment_request(capability, request) do
+      {:ok,
+       %{
+         provider: provider,
+         provider_opts: [
+           dataset: dataset,
+           interpolation: capability["interpolation"]
+         ],
+         capability: capability,
+         provenance: provider.provenance(dataset)
+       }}
+    else
+      false -> {:error, {:invalid_option, :campaign_environment}}
+      {:error, reason} -> {:error, reason}
+    end
+  end
+
+  defp campaign_environment_request(%Study{scenarios: scenarios}) do
+    spans =
+      Enum.map(scenarios, fn scenario ->
+        starts_at_s = scenario.initial_state.epoch.seconds_since_j2000 * 1.0
+        {starts_at_s, starts_at_s + scenario.duration_s}
+      end)
+
+    {starts_at_s, ends_at_s} =
+      Enum.reduce(spans, fn {start_s, end_s}, {min_start_s, max_end_s} ->
+        {min(start_s, min_start_s), max(end_s, max_end_s)}
+      end)
+
+    %{
+      starts_at_s: starts_at_s,
+      ends_at_s: ends_at_s,
+      bodies: Enum.map(scenarios, & &1.central_body.name) |> Enum.uniq(),
+      outputs: [:sun_direction, :earth_rotation],
+      frames:
+        (Enum.map(scenarios, & &1.initial_state.frame.name) ++ [:iers_tirs])
+        |> Enum.uniq(),
+      time_scales: Enum.map(scenarios, & &1.initial_state.epoch.scale) |> Enum.uniq()
+    }
+  end
+
+  defp validate_campaign_environment_request(capability, request) do
+    cond do
+      Environment.provider_supports_request?(capability, request) ->
+        :ok
+
+      not Environment.provider_covers_time_span?(capability, request) ->
+        {:error,
+         {:campaign_environment_request_outside_coverage,
+          %{starts_at_s: request.starts_at_s, ends_at_s: request.ends_at_s}}}
+
+      true ->
+        {:error, {:campaign_environment_request_mismatch, request}}
+    end
+  end
+
+  defp effective_ground_track_crossings(ground_track_crossings, nil),
+    do: {:ok, ground_track_crossings}
+
+  defp effective_ground_track_crossings(ground_track_crossings, campaign_environment)
+       when is_list(ground_track_crossings) do
+    ground_track_crossings
+    |> Enum.reduce_while({:ok, []}, fn request, {:ok, acc} ->
+      case effective_ground_track_crossing(request, campaign_environment) do
+        {:ok, effective} -> {:cont, {:ok, [effective | acc]}}
+        {:error, reason} -> {:halt, {:error, reason}}
+      end
+    end)
+    |> case do
+      {:ok, effective} -> {:ok, Enum.reverse(effective)}
+      error -> error
+    end
+  end
+
+  defp effective_ground_track_crossings(_ground_track_crossings, _campaign_environment),
+    do: {:error, {:invalid_option, :ground_track_crossings}}
+
+  defp effective_ground_track_crossing(%{} = request, campaign_environment) do
+    rotation_keys = [
+      :earth_rotation_provider,
+      :rotation_rate_rad_s,
+      :rotation_epoch_s,
+      :rotation_angle_offset_rad
+    ]
+
+    cond do
+      Enum.any?(rotation_keys, &Map.has_key?(request, &1)) ->
+        {:error, {:campaign_environment_conflict, :earth_rotation_provider}}
+
+      Map.get(request, :frame, :inertial) in [:body_fixed, "body_fixed"] ->
+        provider_opts =
+          campaign_environment.provider_opts
+          |> Keyword.put(:body, :earth)
+          |> Keyword.put(:frame, :iers_tirs)
+          |> Keyword.put(:time_scale, :utc)
+
+        {:ok,
+         request
+         |> Map.put(
+           :earth_rotation_provider,
+           {campaign_environment.provider, provider_opts}
+         )
+         |> Map.put(:campaign_environment, campaign_environment.provenance)}
+
+      true ->
+        {:ok, request}
+    end
+  end
+
+  defp effective_ground_track_crossing(request, _campaign_environment), do: {:ok, request}
+
+  defp campaign_environment_provenance(nil), do: nil
+  defp campaign_environment_provenance(campaign_environment), do: campaign_environment.provenance
 
   defp validate_outputs(outputs) do
     unsupported = outputs -- @supported_outputs
@@ -740,11 +903,18 @@ defmodule OrbitalDynamics.StudyRunner do
          targets,
          ground_track_crossings,
          central_body,
-         sun_direction
+         sun_direction,
+         campaign_environment
        ) do
     []
     |> maybe_add_access_window_results(outputs, trajectory_results, ground_stations, central_body)
-    |> maybe_add_eclipse_results(outputs, trajectory_results, central_body, sun_direction)
+    |> maybe_add_eclipse_results(
+      outputs,
+      trajectory_results,
+      central_body,
+      sun_direction,
+      campaign_environment
+    )
     |> maybe_add_target_visibility_results(outputs, trajectory_results, targets, central_body)
     |> maybe_add_ground_track_crossing_results(
       outputs,
@@ -773,10 +943,17 @@ defmodule OrbitalDynamics.StudyRunner do
          outputs,
          trajectory_results,
          central_body,
-         sun_direction
+         sun_direction,
+         campaign_environment
        ) do
     if :eclipses in outputs do
-      results ++ eclipse_results(trajectory_results, central_body, sun_direction)
+      results ++
+        eclipse_results(
+          trajectory_results,
+          central_body,
+          sun_direction,
+          campaign_environment
+        )
     else
       results
     end
@@ -827,11 +1004,11 @@ defmodule OrbitalDynamics.StudyRunner do
     end)
   end
 
-  defp eclipse_results(trajectory_results, central_body, sun_direction) do
+  defp eclipse_results(trajectory_results, central_body, sun_direction, campaign_environment) do
     Enum.map(trajectory_results, fn trajectory_result ->
-      case Eclipses.detect(trajectory_result.trajectory,
-             central_body: central_body,
-             sun_direction: sun_direction
+      case Eclipses.detect(
+             trajectory_result.trajectory,
+             eclipse_detector_opts(central_body, sun_direction, campaign_environment)
            ) do
         {:ok, events} ->
           {:ok,
@@ -839,7 +1016,12 @@ defmodule OrbitalDynamics.StudyRunner do
              scenario_id: trajectory_result.scenario_id,
              event_type: :eclipse,
              events: events,
-             source: %{shadow_model: :cylindrical_central_body_shadow}
+             source:
+               %{shadow_model: :cylindrical_central_body_shadow}
+               |> maybe_put_map(
+                 :campaign_environment,
+                 campaign_environment_provenance(campaign_environment)
+               )
            }}
 
         {:error, reason} ->
@@ -849,10 +1031,26 @@ defmodule OrbitalDynamics.StudyRunner do
              scenario_index: trajectory_result.scenario_index,
              stage: :eclipses,
              error: reason,
-             source: %{shadow_model: :cylindrical_central_body_shadow}
+             source:
+               %{shadow_model: :cylindrical_central_body_shadow}
+               |> maybe_put_map(
+                 :campaign_environment,
+                 campaign_environment_provenance(campaign_environment)
+               )
            }}
       end
     end)
+  end
+
+  defp eclipse_detector_opts(central_body, sun_direction, nil) do
+    [central_body: central_body, sun_direction: sun_direction]
+  end
+
+  defp eclipse_detector_opts(central_body, _sun_direction, campaign_environment) do
+    [
+      central_body: central_body,
+      sun_direction_provider: {campaign_environment.provider, campaign_environment.provider_opts}
+    ]
   end
 
   defp target_visibility_results(trajectory_results, targets, central_body) do
@@ -970,6 +1168,7 @@ defmodule OrbitalDynamics.StudyRunner do
       rotation_epoch_s: Map.get(request, :rotation_epoch_s),
       rotation_angle_offset_rad: Map.get(request, :rotation_angle_offset_rad),
       earth_rotation_provider: Map.get(request, :earth_rotation_provider),
+      campaign_environment: Map.get(request, :campaign_environment),
       request_id: Map.get(request, :id)
     }
     |> Enum.reject(fn {_key, value} -> is_nil(value) end)
@@ -985,6 +1184,7 @@ defmodule OrbitalDynamics.StudyRunner do
       rotation_epoch_s: Map.get(request, :rotation_epoch_s),
       rotation_angle_offset_rad: Map.get(request, :rotation_angle_offset_rad),
       earth_rotation_provider: Map.get(request, :earth_rotation_provider),
+      campaign_environment: Map.get(request, :campaign_environment),
       request_id: Map.get(request, :id)
     }
     |> Enum.reject(fn {_key, value} -> is_nil(value) end)
@@ -1010,6 +1210,7 @@ defmodule OrbitalDynamics.StudyRunner do
          targets,
          ground_track_crossings,
          sun_direction,
+         campaign_environment,
          external_provider_policy,
          backend_selection_policy,
          retry_plan,
@@ -1029,6 +1230,7 @@ defmodule OrbitalDynamics.StudyRunner do
       external_provider_policy: external_provider_policy,
       backend_selection_policy: backend_selection_policy
     }
+    |> maybe_put_map(:campaign_environment, campaign_environment_provenance(campaign_environment))
     |> maybe_put_map(:retry, retry_plan)
     |> maybe_put_map(:checkpoint, checkpoint_provenance)
   end
@@ -1271,6 +1473,7 @@ defmodule OrbitalDynamics.StudyRunner do
         targets: Keyword.fetch!(run_data, :targets),
         ground_track_crossings: Keyword.fetch!(run_data, :ground_track_crossings),
         sun_direction: Keyword.fetch!(run_data, :sun_direction),
+        campaign_environment: Keyword.fetch!(run_data, :campaign_environment),
         external_providers: Keyword.get(opts, :external_providers, []),
         max_concurrency: Keyword.fetch!(run_data, :max_concurrency),
         timeout: Keyword.fetch!(run_data, :timeout),
