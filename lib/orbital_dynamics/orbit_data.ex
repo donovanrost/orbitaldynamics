@@ -8,6 +8,7 @@ defmodule OrbitalDynamics.OrbitData do
   executable `accepted_planning_state.v1` contract used by candidate refresh.
   """
 
+  alias OrbitalDynamics.InputIntegrity
   alias OrbitalDynamics.Schema
   alias OrbitalDynamics.OrbitData.AcceptedPlanningState
   alias OrbitalDynamics.OrbitData.OmmMetadata
@@ -66,9 +67,11 @@ defmodule OrbitalDynamics.OrbitData do
       validation_level: :artifact_contract,
       import_formats: [
         :simple_json_state_estimate_batch,
+        :verified_file_backed_simple_json_state_estimate_batch,
         :ccsds_opm_kvn_single_object_cartesian,
         :ccsds_oem_kvn_single_object_cartesian_ephemeris
       ],
+      file_input_integrity: InputIntegrity.capabilities(),
       metadata_formats: [
         :tle_two_line_element,
         :ccsds_omm_kvn_mean_elements
@@ -207,7 +210,11 @@ defmodule OrbitalDynamics.OrbitData do
 
   def import_simple_json(%{} = source, opts) do
     source = stringify_keys(source)
-    provenance = Keyword.get(opts, :provenance, Map.get(source, "provenance"))
+
+    provenance =
+      opts
+      |> Keyword.get(:provenance, Map.get(source, "provenance"))
+      |> file_verification_provenance(Keyword.get(opts, :file_content_verification))
 
     opts =
       opts
@@ -237,6 +244,20 @@ defmodule OrbitalDynamics.OrbitData do
 
   defp simple_json_provenance(_source, provenance), do: provenance
 
+  defp file_verification_provenance(%{} = provenance, %{} = evidence) do
+    provenance
+    |> stringify_keys()
+    |> Map.put("file_content_verification", evidence)
+    |> Map.put("import_adapter", "OrbitalDynamics.OrbitData.import_orbit_data_from_file/3")
+    |> Map.put_new("trust_boundary", "sha256_verified_file_input")
+    |> Map.put_new("network_access", false)
+  end
+
+  defp file_verification_provenance(nil, %{} = evidence),
+    do: file_verification_provenance(%{}, evidence)
+
+  defp file_verification_provenance(provenance, _evidence), do: provenance
+
   defp state_estimate_count(%{"state_estimates" => estimates}) when is_list(estimates),
     do: length(estimates)
 
@@ -249,6 +270,23 @@ defmodule OrbitalDynamics.OrbitData do
     case import_simple_json(source, opts) do
       {:ok, artifact} -> artifact
       {:error, reason} -> raise ArgumentError, "invalid orbit-data JSON: #{inspect(reason)}"
+    end
+  end
+
+  @doc """
+  Verifies and imports a file-backed simple JSON state-estimate batch.
+
+  `content_identity` must declare `%{"sha256" => lowercase_hex_digest}`. The
+  exact bytes returned by content verification are parsed, avoiding a separate
+  check-then-reopen step. Existing in-memory import functions do not require a
+  content identity.
+  """
+  def import_orbit_data_from_file(path, content_identity, opts \\ []) do
+    with {:ok, %{bytes: bytes, evidence: evidence}} <-
+           InputIntegrity.verify_file(path, content_identity,
+             consumer: "orbit_data.simple_json_state_estimate_batch"
+           ) do
+      import_simple_json(bytes, Keyword.put(opts, :file_content_verification, evidence))
     end
   end
 

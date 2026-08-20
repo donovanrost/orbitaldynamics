@@ -18,6 +18,26 @@ Status: **implemented** (with **partial**, **near-term**, **later**, and **out o
 - The exported `accepted_planning_state.v1` JSON Schema now exposes the same conditional import-provenance trust-boundary rule.
 - Standalone and nested `spacecraft_state_estimate.v1` and `maneuver_execution_delta.v1` rows now require direct or provenance-supplied trust boundaries in both executable validation and JSON Schema.
 
+### Opt-in file content identity
+
+- `OrbitalDynamics.import_orbit_data_from_file/3` verifies the exact bytes of a
+  file-backed simple JSON orbit-data batch against an explicitly declared,
+  lowercase SHA-256 digest before JSON decoding. The accepted planning-state
+  provenance preserves deterministic verification identity, path, expected and
+  actual digest, byte count, verification order, assumptions, and known limits.
+- `OrbitalDynamics.fetch_tabular_earth_orientation_from_file/3` applies the same
+  verifier before decoding or normalizing a JSON Earth-orientation sample
+  table. Provider products preserve the verification evidence and a declared or
+  digest-derived stable source-table ID.
+- Missing, malformed, conflicting, mismatched, and unreadable content identities
+  fail with actionable evidence. Consumers parse the bytes returned by the
+  verifier rather than reopening the path after checking it.
+- The boundaries are opt-in. Existing in-memory orbit-data imports and inline
+  provider sample tables do not require a digest and retain their prior output.
+- SHA-256 binds content but does not authenticate who declared the digest.
+  Signatures, signing authority, path sandboxing, network controls, and planner
+  defaults remain unchanged.
+
 ### No-network policy and result-artifact validation
 
 - Study run assumptions and metadata declare that planning runs make no hidden network calls unless external providers are explicitly configured.
@@ -88,8 +108,13 @@ Status: **implemented** (with **partial**, **near-term**, **later**, and **out o
 ## Partial
 
 - External inputs are not yet treated as a full first-class trust boundary.
-- There are now lint entry points for study manifests and campaign artifacts, and orbit-data import adapters stamp input format, adapter, trust-boundary, and no-network-access provenance.
-- However, broader provider provenance, backend trust, and unsafe/ambiguous input rejection policies remain incomplete.
+- There are now lint entry points for study manifests and campaign artifacts,
+  orbit-data import adapters stamp input format, adapter, trust-boundary, and
+  no-network-access provenance, and one orbit-data plus one provider-table file
+  boundary enforce exact-byte SHA-256 identity before consumption.
+- Broader mission-state, provider, policy, and Cadence file inputs; declaring
+  authority; backend trust; and unsafe/ambiguous input rejection policies remain
+  incomplete.
 - Result-artifact `external_provider_policy` rows now require direct or provenance-supplied trust boundaries when external providers are explicitly configured.
 
 ## Near-term
@@ -97,11 +122,13 @@ Status: **implemented** (with **partial**, **near-term**, **later**, and **out o
 - Deeper manifest field references.
 - Broader provenance conventions for all external inputs.
 - Stronger enforcement around future provider adapters.
+- Extend explicit content identity only at additional file-backed consumer
+  boundaries, without making in-memory compatibility paths implicit file inputs.
 
 ## Later
 
 - Signed artifacts.
-- Content-addressed inputs.
+- Broader content-addressed input bundles and signing-authority policy.
 - Dependency/backend trust policy.
 - External-provider sandboxing.
 - Reproducible offline planning bundles.
