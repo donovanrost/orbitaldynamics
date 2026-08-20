@@ -17,6 +17,7 @@ defmodule OrbitalDynamics.CadenceImport do
     CandidateEvaluationImport,
     ContactContentionImport,
     ContactPlanningImport,
+    ConsumerConformance,
     ConstraintObjectiveImport,
     ManeuverReviewImport,
     ManifestContractDiagnostics,
@@ -49,6 +50,23 @@ defmodule OrbitalDynamics.CadenceImport do
   """
   def manifest(artifact, opts \\ []) do
     ManifestRouter.route(artifact, opts, &dispatch_manifest/3, &manifest_diagnostic/2)
+  end
+
+  @doc """
+  Validates a V3 campaign strategy handoff and asks an explicit adapter to
+  evaluate it without writing or mutating Cadence state.
+
+  The input may be a complete `campaign_strategy.v3` artifact with an embedded
+  Cadence import manifest or the bound `cadence_import_manifest.v1` itself.
+  Adapter options are normalized to a bounded string-key map before delegation.
+
+  Returns a typed, deterministic conformance map or a typed error tuple. Adapter
+  errors, exceptions, throws, exits, and malformed returns are contained and do
+  not escape this boundary.
+  """
+  @spec dry_run(term(), module(), keyword()) :: {:ok, map()} | {:error, map()}
+  def dry_run(artifact_or_manifest, adapter, opts \\ []) do
+    ConsumerConformance.run(artifact_or_manifest, adapter, opts)
   end
 
   @doc """
