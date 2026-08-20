@@ -13,11 +13,12 @@ defmodule OrbitalDynamics.Validation.TolerancePolicy do
       },
       "event_timing" => %{
         "current_policy" => "sampled_state_linear_boundary",
-        "event_time_tolerance_s" => "maximum adjacent trajectory sample spacing",
+        "event_time_tolerance_s" =>
+          "default is maximum adjacent trajectory sample spacing; opt-in access bisection records the final cubic-Hermite interpolated-state root bracket",
         "confidence" =>
-          "bounded_by_sample_cadence unless the event occurs on a single exact sample",
+          "default is bounded_by_sample_cadence; opt-in access refinement is bounded_root_in_interpolated_state for each solved boundary",
         "limit" =>
-          "linear interpolation improves reported boundary placement but does not justify a tighter validation claim"
+          "linear interpolation does not justify a tighter claim; opt-in access roots narrow numerical placement only on the interpolated sample path and add no external-validation or flight-fidelity claim"
       },
       "artifact_regressions" => %{
         "scope" => "schema and public-surface stability checks for checked-in artifacts",

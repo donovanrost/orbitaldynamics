@@ -57,8 +57,9 @@ defmodule OrbitalDynamics.Validation do
   Returns the project-wide validation tolerance policy.
 
   The policy is intentionally conservative: numeric fixture tolerances are
-  absolute field-level bounds, sampled event detectors only claim sample-cadence
-  timing bounds, and artifact fixtures are contract regressions rather than
+  absolute field-level bounds, sampled event detectors default to sample-cadence
+  timing bounds, opt-in access roots are bounded only on their interpolated
+  state path, and artifact fixtures are contract regressions rather than
   physics reference truth.
   """
   def tolerance_policy do

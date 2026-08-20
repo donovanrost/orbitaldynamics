@@ -2866,6 +2866,10 @@ defmodule OrbitalDynamics do
 
   @doc """
   Detects ground-station access windows for a trajectory.
+
+  Linear boundary placement remains the default. Pass
+  `boundary_refinement: :bracketed_bisection` to opt into bounded AOS/LOS
+  refinement on the detector's cubic-Hermite state interpolant.
   """
   def access_windows(trajectory, ground_station, opts \\ []) do
     AccessWindows.detect(trajectory, Keyword.put(opts, :ground_station, ground_station))
@@ -2873,6 +2877,11 @@ defmodule OrbitalDynamics do
 
   @doc """
   Refines one bracketed AOS/LOS boundary between two trajectory samples.
+
+  The compatibility default is linear elevation-margin interpolation. Pass
+  `boundary_refinement: :bracketed_bisection` for bounded bisection over the
+  detector's cubic-Hermite state interpolant; that opt-in path is analysis-grade
+  interpolated-state geometry, not dense propagation or flight-fidelity timing.
   """
   def refine_access_boundary(before_state, after_state, ground_station, opts \\ []) do
     AccessWindows.refine_aos_los_boundary(before_state, after_state, ground_station, opts)
