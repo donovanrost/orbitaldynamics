@@ -6,6 +6,7 @@ defmodule OrbitalDynamics.Schema.ArtifactValidationRouter do
     CadenceImportValidation,
     CampaignArtifactValidation,
     CapabilityCatalogValidation,
+    CandidateRefreshExecutionContracts,
     CandidateRejectionValidation,
     CommandWindowValidation,
     ContactAllocationValidation,
@@ -571,6 +572,10 @@ defmodule OrbitalDynamics.Schema.ArtifactValidationRouter do
 
   def validate("candidate_refresh.v1", _contract, artifact) do
     StateRefreshArtifactValidation.validate([], "$", artifact, "candidate_refresh.v1")
+  end
+
+  def validate("candidate_refresh_execution.v1", _contract, artifact) do
+    CandidateRefreshExecutionContracts.validate_standalone([], artifact)
   end
 
   def validate("candidate_diff_row.v1", _contract, artifact) do

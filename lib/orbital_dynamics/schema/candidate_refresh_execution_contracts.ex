@@ -13,6 +13,8 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshExecutionContracts do
   import OrbitalDynamics.Schema.PrimitiveValidation,
     only: [error: 2, expect_non_negative_integer: 4, expect_type: 5, require_fields: 4]
 
+  import OrbitalDynamics.Schema.StableIdValidation, only: [validate_stable_ids: 4]
+
   @report_fields ~w(
     schema_contract
     bundle_id
@@ -54,6 +56,130 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshExecutionContracts do
     candidate_source_windows_sha256
   )
 
+  @stable_id_fields ~w(
+    refresh_id
+    study_id
+    snapshot_id
+    spacecraft_id
+    scenario_id
+    ground_station_id
+  )
+
+  @propagation_fields ~w(
+    module
+    source_revision
+    force_models
+    numerical_method
+    max_step_s
+    output_step_s
+    capability
+  )
+  @environment_fields ~w(mode atmosphere_provider earth_rotation_provider sun_direction)
+  @atmosphere_provider_fields ~w(module evaluation_api source_revision capability)
+  @earth_rotation_provider_fields ~w(module source_revision capability)
+  @sun_direction_fields ~w(source_revision vector_eci_j2000 capability)
+  @access_fields ~w(
+    module
+    source_revision
+    geometry
+    boundary_refinement
+    root_solver
+    root_tolerance_s
+    root_max_iterations
+    capability
+  )
+  @eclipse_fields ~w(
+    module
+    source_revision
+    shadow_model
+    interpolation
+    candidate_source
+    archive_only
+    capability
+  )
+
+  @policy_object_fields [
+    {~w(propagation), @propagation_fields},
+    {~w(environment), @environment_fields},
+    {~w(environment atmosphere_provider), @atmosphere_provider_fields},
+    {~w(environment earth_rotation_provider), @earth_rotation_provider_fields},
+    {~w(environment sun_direction), @sun_direction_fields},
+    {~w(access), @access_fields},
+    {~w(eclipse), @eclipse_fields}
+  ]
+
+  @policy_map_paths [
+    ~w(propagation capability),
+    ~w(environment atmosphere_provider capability),
+    ~w(environment earth_rotation_provider capability),
+    ~w(environment sun_direction capability),
+    ~w(access geometry),
+    ~w(access capability),
+    ~w(eclipse capability)
+  ]
+
+  @policy_exact_values [
+    {~w(propagation module), "OrbitalDynamics.Propagators.J2Drag"},
+    {~w(propagation source_revision), "j2-drag-rk4-10s.v1"},
+    {~w(propagation force_models), ["point_mass_two_body", "j2", "atmospheric_drag"]},
+    {~w(propagation numerical_method), "rk4_fixed_step"},
+    {~w(propagation max_step_s), 10.0},
+    {~w(propagation output_step_s), 10.0},
+    {~w(environment mode), "built_in_offline_fixed"},
+    {~w(environment atmosphere_provider module),
+     "OrbitalDynamics.Environment.ExponentialAtmosphereProvider"},
+    {~w(environment atmosphere_provider evaluation_api), "fetch_captured/3"},
+    {~w(environment atmosphere_provider source_revision), "exponential-reference.v1"},
+    {~w(environment earth_rotation_provider module),
+     "OrbitalDynamics.Environment.ConstantEarthRotationProvider"},
+    {~w(environment earth_rotation_provider source_revision), "constant-earth-rotation.v1"},
+    {~w(environment sun_direction source_revision), "fixed-sun-plus-x.v1"},
+    {~w(environment sun_direction vector_eci_j2000), [1.0, 0.0, 0.0]},
+    {~w(access module), "OrbitalDynamics.EventDetectors.AccessWindows"},
+    {~w(access source_revision), "access-windows-bracketed-bisection-1e-6-64.v1"},
+    {~w(access boundary_refinement), "bracketed_bisection"},
+    {~w(access root_solver), "bisection"},
+    {~w(access root_tolerance_s), 1.0e-6},
+    {~w(access root_max_iterations), 64},
+    {~w(eclipse module), "OrbitalDynamics.EventDetectors.Eclipses"},
+    {~w(eclipse source_revision), "eclipses-cylindrical-linear-interpolation.v1"},
+    {~w(eclipse shadow_model), "cylindrical_central_body_shadow"},
+    {~w(eclipse interpolation), "linear_sample_crossing"},
+    {~w(eclipse candidate_source), false},
+    {~w(eclipse archive_only), true}
+  ]
+
+  @sha256_evidence_fields ~w(
+    access_windows_sha256
+    eclipse_intervals_sha256
+    candidate_source_windows_sha256
+  )
+
+  def validate_standalone(issues, report) when is_map(report) do
+    try do
+      case ExecutionPolicy.validate_serialized_json_term(report) do
+        :ok ->
+          do_validate_standalone(issues, report)
+
+        {:error, reason} ->
+          [
+            error(
+              json_safety_path(reason),
+              "must be a bounded recursively JSON-safe execution report"
+            )
+            | issues
+          ]
+      end
+    rescue
+      _error -> [error("$", "could not be validated safely") | issues]
+    catch
+      _kind, _reason -> [error("$", "could not be validated safely") | issues]
+    end
+  end
+
+  def validate_standalone(issues, _report),
+    do: [error("$", "must be an object") | issues]
+
   def validate_optional(issues, artifact) when is_map(artifact) do
     try do
       do_validate_optional(issues, artifact)
@@ -66,6 +192,30 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshExecutionContracts do
   end
 
   def validate_optional(issues, _artifact), do: issues
+
+  defp do_validate_standalone(issues, report) do
+    issues
+    |> require_fields("$", report, @report_fields)
+    |> reject_unknown_fields("$", report, @report_fields)
+    |> expect_exact(
+      "$.schema_contract",
+      report["schema_contract"],
+      "candidate_refresh_execution.v1"
+    )
+    |> expect_exact("$.bundle_id", report["bundle_id"], ExecutionPolicy.bundle_id())
+    |> expect_exact(
+      "$.execution_mode",
+      report["execution_mode"],
+      ExecutionPolicy.execution_mode()
+    )
+    |> validate_fingerprint("$", report)
+    |> validate_stable_ids("$", report, @stable_id_fields)
+    |> validate_standalone_evidence(report)
+    |> validate_standalone_counts(report)
+    |> validate_standalone_policies(report)
+    |> validate_external_validation("$", report)
+    |> expect_exact("$.model_limits", report["model_limits"], ExecutionPolicy.model_limits())
+  end
 
   defp do_validate_optional(issues, artifact) do
     report = Map.get(artifact, "candidate_refresh_execution")
@@ -342,14 +492,148 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshExecutionContracts do
 
   defp expected_trajectory_sample_count(_coverage), do: nil
 
-  defp validate_fingerprint(issues, report) do
+  defp validate_standalone_evidence(issues, report) do
+    evidence = Map.get(report, "evidence")
+    issues = expect_type(issues, "$", report, "evidence", :map)
+
+    if is_map(evidence) do
+      issues
+      |> require_fields("$.evidence", evidence, @evidence_fields)
+      |> reject_unknown_fields("$.evidence", evidence, @evidence_fields)
+      |> validate_stable_ids("$.evidence", evidence, ~w(scenario_id ground_station_id))
+      |> expect_at_least(
+        "$.evidence.trajectory_sample_count",
+        evidence["trajectory_sample_count"],
+        2
+      )
+      |> validate_sha256_fields("$.evidence", evidence, @sha256_evidence_fields)
+      |> expect_exact("$.evidence.scenario_id", evidence["scenario_id"], report["scenario_id"])
+      |> expect_exact(
+        "$.evidence.ground_station_id",
+        evidence["ground_station_id"],
+        report["ground_station_id"]
+      )
+    else
+      issues
+    end
+  end
+
+  defp validate_standalone_counts(issues, report) do
+    counts = Map.get(report, "counts")
+    evidence = Map.get(report, "evidence")
+    issues = expect_type(issues, "$", report, "counts", :map)
+
+    if is_map(counts) do
+      issues
+      |> require_fields("$.counts", counts, @count_fields)
+      |> reject_unknown_fields("$.counts", counts, @count_fields)
+      |> validate_non_negative_counts("$.counts", counts)
+      |> expect_exact("$.counts.spacecraft_state_count", counts["spacecraft_state_count"], 1)
+      |> expect_exact("$.counts.ground_station_count", counts["ground_station_count"], 1)
+      |> expect_exact("$.counts.trajectory_count", counts["trajectory_count"], 1)
+      |> expect_exact("$.counts.event_result_count", counts["event_result_count"], 2)
+      |> expect_exact(
+        "$.counts.downlink_candidate_count",
+        counts["downlink_candidate_count"],
+        counts["candidate_activity_count"]
+      )
+      |> expect_exact(
+        "$.counts.trajectory_sample_count",
+        counts["trajectory_sample_count"],
+        value_at(evidence, ["trajectory_sample_count"])
+      )
+    else
+      issues
+    end
+  end
+
+  defp validate_standalone_policies(issues, report) do
+    policies = Map.get(report, "policies")
+    issues = expect_type(issues, "$", report, "policies", :map)
+
+    if is_map(policies) do
+      issues =
+        issues
+        |> require_fields("$.policies", policies, @policy_fields)
+        |> reject_unknown_fields("$.policies", policies, @policy_fields)
+
+      issues =
+        Enum.reduce(@policy_object_fields, issues, fn {fields, allowed_fields}, acc ->
+          validate_closed_object(
+            acc,
+            "$.policies." <> Enum.join(fields, "."),
+            value_at(policies, fields),
+            allowed_fields
+          )
+        end)
+
+      issues =
+        Enum.reduce(@policy_map_paths, issues, fn fields, acc ->
+          expect_map(
+            acc,
+            "$.policies." <> Enum.join(fields, "."),
+            value_at(policies, fields)
+          )
+        end)
+
+      Enum.reduce(@policy_exact_values, issues, fn {fields, expected}, acc ->
+        expect_exact(
+          acc,
+          "$.policies." <> Enum.join(fields, "."),
+          value_at(policies, fields),
+          expected
+        )
+      end)
+    else
+      issues
+    end
+  end
+
+  defp validate_closed_object(issues, path, value, allowed_fields) when is_map(value) do
+    issues
+    |> require_fields(path, value, allowed_fields)
+    |> reject_unknown_fields(path, value, allowed_fields)
+  end
+
+  defp validate_closed_object(issues, path, _value, _allowed_fields),
+    do: [error(path, "must be an object") | issues]
+
+  defp expect_map(issues, _path, value) when is_map(value), do: issues
+  defp expect_map(issues, path, _value), do: [error(path, "must be an object") | issues]
+
+  defp validate_sha256_fields(issues, path, map, fields) do
+    Enum.reduce(fields, issues, fn field, acc ->
+      validate_sha256(acc, "#{path}.#{field}", Map.get(map, field))
+    end)
+  end
+
+  defp validate_sha256(issues, path, value) when is_binary(value) do
+    if Regex.match?(~r/\A[0-9a-f]{64}\z/, value),
+      do: issues,
+      else: [error(path, "must be a lowercase SHA-256 fingerprint") | issues]
+  end
+
+  defp validate_sha256(issues, path, _value),
+    do: [error(path, "must be a lowercase SHA-256 fingerprint") | issues]
+
+  defp expect_at_least(issues, _path, value, minimum)
+       when is_integer(value) and value >= minimum,
+       do: issues
+
+  defp expect_at_least(issues, path, _value, minimum),
+    do: [error(path, "must be an integer greater than or equal to #{minimum}") | issues]
+
+  defp validate_fingerprint(issues, report),
+    do: validate_fingerprint(issues, "$.candidate_refresh_execution", report)
+
+  defp validate_fingerprint(issues, path, report) do
     fingerprint = report["policy_fingerprint"]
 
     if is_binary(fingerprint) and Regex.match?(~r/\A[0-9a-f]{64}\z/, fingerprint),
       do: issues,
       else: [
         error(
-          "$.candidate_refresh_execution.policy_fingerprint",
+          path <> ".policy_fingerprint",
           "must be a lowercase SHA-256 fingerprint"
         )
         | issues
@@ -394,8 +678,12 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshExecutionContracts do
   end
 
   defp validate_non_negative_counts(issues, counts) do
+    validate_non_negative_counts(issues, "$.candidate_refresh_execution.counts", counts)
+  end
+
+  defp validate_non_negative_counts(issues, path, counts) do
     Enum.reduce(@count_fields, issues, fn field, acc ->
-      expect_non_negative_integer(acc, "$.candidate_refresh_execution.counts", counts, field)
+      expect_non_negative_integer(acc, path, counts, field)
     end)
   end
 
@@ -430,13 +718,16 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshExecutionContracts do
     end
   end
 
-  defp validate_external_validation(issues, report) do
+  defp validate_external_validation(issues, report),
+    do: validate_external_validation(issues, "$.candidate_refresh_execution", report)
+
+  defp validate_external_validation(issues, path, report) do
     validation = Map.get(report, "external_validation")
 
     issues =
       expect_type(
         issues,
-        "$.candidate_refresh_execution",
+        path,
         report,
         "external_validation",
         :map
@@ -445,27 +736,27 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshExecutionContracts do
     if is_map(validation) do
       issues
       |> require_fields(
-        "$.candidate_refresh_execution.external_validation",
+        path <> ".external_validation",
         validation,
         @external_validation_fields
       )
       |> reject_unknown_fields(
-        "$.candidate_refresh_execution.external_validation",
+        path <> ".external_validation",
         validation,
         @external_validation_fields
       )
       |> expect_exact(
-        "$.candidate_refresh_execution.external_validation.case_id",
+        path <> ".external_validation.case_id",
         validation["case_id"],
         ExecutionPolicy.external_case_id()
       )
       |> expect_exact(
-        "$.candidate_refresh_execution.external_validation.validation_scope",
+        path <> ".external_validation.validation_scope",
         validation["validation_scope"],
         "exact_case_only"
       )
       |> expect_exact(
-        "$.candidate_refresh_execution.external_validation.status",
+        path <> ".external_validation.status",
         validation["status"],
         "referenced_not_evaluated_by_runner"
       )
@@ -724,6 +1015,23 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshExecutionContracts do
 
   defp expect_exact(issues, path, _actual, _expected),
     do: [error(path, "does not match captured execution") | issues]
+
+  defp value_at(value, []), do: value
+
+  defp value_at(%{} = map, [field | rest]),
+    do: value_at(Map.get(map, field), rest)
+
+  defp value_at(_value, _fields), do: nil
+
+  defp json_safety_path({:normalization_limit_exceeded, path, _limit, _maximum}), do: path
+  defp json_safety_path({:duplicate_normalized_key, path, _key}), do: path
+  defp json_safety_path({:unsupported_json_value, path, _type}), do: path
+  defp json_safety_path({:invalid_utf8_string, path}), do: path
+  defp json_safety_path({:invalid_utf8_key, path}), do: path
+  defp json_safety_path({:unsupported_map_key, path}), do: path
+  defp json_safety_path({:non_finite_number, path}), do: path
+  defp json_safety_path({:noncanonical_null, path}), do: path
+  defp json_safety_path(_reason), do: "$"
 
   defp execution_evidence(%{
          "assumptions" => %{

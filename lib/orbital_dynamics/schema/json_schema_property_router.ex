@@ -2,6 +2,7 @@ defmodule OrbitalDynamics.Schema.JsonSchemaPropertyRouter do
   @moduledoc false
   alias OrbitalDynamics.Schema.{
     CampaignArtifactPropertyRouter,
+    CandidateRefreshReportJsonSchema,
     CandidateRefreshPropertyRouter,
     ContactPlanningPropertyRouter,
     ExecutionArtifactPropertyRouter,
@@ -577,6 +578,14 @@ defmodule OrbitalDynamics.Schema.JsonSchemaPropertyRouter do
       context,
       fn embedded_contract_name -> embedded(embedded_contract_name, context) end
     )
+  end
+
+  def property(field, "candidate_refresh_execution.v1", _contract, context) do
+    context
+    |> context_value(:stable_id_pattern)
+    |> CandidateRefreshReportJsonSchema.candidate_refresh_execution_schema()
+    |> Map.fetch!("properties")
+    |> Map.fetch!(field)
   end
 
   def property(field, name, contract, context) do
