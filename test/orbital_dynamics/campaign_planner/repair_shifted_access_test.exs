@@ -80,8 +80,32 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairShiftedAccessTest do
 
     assert before_policy["initial_state"]["position_km"] == @before_position
     assert before_policy["initial_state"]["velocity_km_s"] == @before_velocity
+
+    assert before_policy["initial_state"]["snapshot_id"] ==
+             "accepted_snapshot_before_phase_shift"
+
     assert shifted_policy["initial_state"]["position_km"] == @shifted_position
     assert shifted_policy["initial_state"]["velocity_km_s"] == @shifted_velocity
+
+    assert shifted_policy["initial_state"]["snapshot_id"] ==
+             "accepted_snapshot_after_phase_shift"
+
+    assert before_policy["refresh_identity_input"] ==
+             refresh_identity_input(
+               "accepted_snapshot_before_phase_shift",
+               @before_position,
+               @before_velocity
+             )
+
+    assert shifted_policy["refresh_identity_input"] ==
+             refresh_identity_input(
+               "accepted_snapshot_after_phase_shift",
+               @shifted_position,
+               @shifted_velocity
+             )
+
+    refute before_policy["refresh_identity_input"] == shifted_policy["refresh_identity_input"]
+    refute before_policy["policy_fingerprint"] == shifted_policy["policy_fingerprint"]
 
     assert Enum.zip(
              before_policy["initial_state"]["position_km"],
@@ -132,6 +156,8 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairShiftedAccessTest do
              "provenance",
              "source_snapshot_id"
            ]) == "accepted_snapshot_after_phase_shift"
+
+    refute before["source_window_lineage"] == shifted["source_window_lineage"]
 
     assert [shifted_lineage] = shifted["source_window_lineage"]
     assert shifted_lineage["candidate_activity_id"] == shifted_replacement(shifted)["id"]
@@ -442,10 +468,16 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairShiftedAccessTest do
 
   defp stable_policy(policy) do
     policy
-    |> Map.drop(["policy_fingerprint"])
+    |> Map.drop(["policy_fingerprint", "refresh_identity_input"])
     |> update_in(["initial_state"], fn state ->
       Map.drop(state, ["position_km", "velocity_km_s", "snapshot_id"])
     end)
+  end
+
+  defp refresh_identity_input(snapshot_id, position_km, velocity_km_s) do
+    snapshot_id
+    |> refresh_input(position_km, velocity_km_s)
+    |> Map.drop(["ground_station", "spacecraft"])
   end
 
   defp access_windows(repair), do: repair["source_refreshed_windows"]["access_windows"]
