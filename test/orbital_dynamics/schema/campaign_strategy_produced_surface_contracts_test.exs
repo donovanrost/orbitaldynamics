@@ -1,6 +1,7 @@
 defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContractsTest do
   use ExUnit.Case, async: true
 
+  alias OrbitalDynamics.CadenceImport
   alias OrbitalDynamics.CampaignPlanner.BranchComparisonReport
   alias OrbitalDynamics.OperatorReview
   alias OrbitalDynamics.Schema
@@ -692,6 +693,68 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContractsTest do
 
       assert Enum.any?(validation_report["errors"], fn issue ->
                String.starts_with?(issue["path"], "$.operator_review_package.rows") and
+                 String.contains?(issue["message"], source)
+             end)
+    end
+  end
+
+  test "rejects CampaignStrategy Cadence import manifest source drift", %{
+    strategy: strategy
+  } do
+    shadow_strategies = [
+      {put_in(strategy, ["recommendation", "reason"], "schema_valid_drift"),
+       "CampaignStrategy recommendation"},
+      {update_in(
+         strategy,
+         ["branch_comparison_report", "rows", Access.at(0), "score"],
+         &(&1 + 1)
+       ), "CampaignStrategy branch comparison"},
+      {update_in(
+         strategy,
+         ["ranking_comparison_report", "rows", Access.at(0), "right_value"],
+         &(&1 + 1)
+       ), "CampaignStrategy operator-review"},
+      {update_in(
+         strategy,
+         ["pareto_frontier_report", "rows", Access.at(0), "objective_values", "score"],
+         &(&1 + 1)
+       ), "CampaignStrategy operator-review"},
+      {update_in(
+         strategy,
+         ["score_term_report", "rows", Access.at(0), "value"],
+         &(&1 + 1)
+       ), "CampaignStrategy operator-review"},
+      {update_in(
+         strategy,
+         ["objective_tradeoff_report", "tradeoffs", Access.at(0), "score"],
+         &(&1 + 1)
+       ), "CampaignStrategy operator-review"},
+      {update_in(
+         strategy,
+         ["branches", Access.at(0), "warnings"],
+         &(&1 ++ ["schema valid drift"])
+       ), "CampaignStrategy operator-review"}
+    ]
+
+    for {shadow, source} <- shadow_strategies do
+      shadow =
+        Map.put(
+          shadow,
+          "operator_review_package",
+          OperatorReview.from_strategy_artifact(shadow)
+        )
+
+      invalid =
+        Map.put(
+          strategy,
+          "cadence_import_manifest",
+          CadenceImport.from_strategy_artifact(shadow)
+        )
+
+      assert {:error, validation_report} = Schema.validate_artifact(invalid)
+
+      assert Enum.any?(validation_report["errors"], fn issue ->
+               issue["path"] == "$.cadence_import_manifest.rows" and
                  String.contains?(issue["message"], source)
              end)
     end
@@ -1911,6 +1974,7 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContractsTest do
         Map.merge(row, feedback_details)
       end)
       |> then(&Map.put(&1, "operator_review_package", OperatorReview.from_strategy_artifact(&1)))
+      |> then(&Map.put(&1, "cadence_import_manifest", CadenceImport.from_strategy_artifact(&1)))
 
     assert {:ok, %{"schema_contract" => "campaign_strategy.v3"}} =
              Schema.validate_artifact(artifact)
@@ -2293,6 +2357,13 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContractsTest do
         coherent,
         "operator_review_package",
         OperatorReview.from_strategy_artifact(coherent)
+      )
+
+    coherent =
+      Map.put(
+        coherent,
+        "cadence_import_manifest",
+        CadenceImport.from_strategy_artifact(coherent)
       )
 
     assert {:ok, _validation_report} = Schema.validate_artifact(coherent)
