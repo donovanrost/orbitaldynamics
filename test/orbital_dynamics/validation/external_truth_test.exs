@@ -204,6 +204,43 @@ defmodule OrbitalDynamics.Validation.ExternalTruthTest do
     end
   end
 
+  test "identity declarations reject unknown, missing, and altered fields after manifest re-pin" do
+    mutations = [
+      {"source-unknown", :source_identity_keys,
+       fn manifest ->
+         update_in(manifest, ["source_identity"], &Map.put(&1, "unknown_identity", "false"))
+       end},
+      {"source-missing", :source_identity_keys,
+       fn manifest ->
+         update_in(manifest, ["source_identity"], &Map.delete(&1, "algorithm"))
+       end},
+      {"source-altered", :source_manifest_path,
+       fn manifest ->
+         put_in(manifest, ["source_identity", "manifest_path"], "other-source-manifest.sha256")
+       end},
+      {"result-unknown", :result_identity_keys,
+       fn manifest ->
+         update_in(manifest, ["result_identity"], &Map.put(&1, "unknown_identity", "false"))
+       end},
+      {"result-missing", :result_identity_keys,
+       fn manifest ->
+         update_in(manifest, ["result_identity"], &Map.delete(&1, "algorithm"))
+       end},
+      {"result-altered", :result_path,
+       fn manifest ->
+         put_in(manifest, ["result_identity", "path"], "other-reference-output.json")
+       end}
+    ]
+
+    for {label, expected_field, mutation} <- mutations do
+      bundle_path = copy_bundle("identity-#{label}")
+      expectations = repin_identity_manifest!(bundle_path, mutation)
+
+      assert {:error, {:bundle_integrity_failed, ^expected_field, _expected, _observed}} =
+               StrictBundle.load(bundle_path, expectations)
+    end
+  end
+
   test "raw handle checks reject path swaps, intermediate swaps, and growth during reads" do
     swapped_file_bundle = copy_bundle("race-final-symlink")
     swapped_file_expectations = expectations_from_bundle(swapped_file_bundle)
@@ -332,6 +369,22 @@ defmodule OrbitalDynamics.Validation.ExternalTruthTest do
   end
 
   defp repin_manifest!(bundle_path, mutation) do
+    write_repinned_manifest!(bundle_path, mutation)
+    expectations_from_bundle(bundle_path)
+  end
+
+  defp repin_identity_manifest!(bundle_path, mutation) do
+    expectations = expectations_from_bundle(bundle_path)
+    updated_bytes = write_repinned_manifest!(bundle_path, mutation)
+
+    %{
+      expectations
+      | manifest_sha256: sha256(updated_bytes),
+        manifest_byte_count: byte_size(updated_bytes)
+    }
+  end
+
+  defp write_repinned_manifest!(bundle_path, mutation) do
     manifest_path = Path.join(bundle_path, "manifest.json")
     original_bytes = File.read!(manifest_path)
     {:ok, manifest} = StrictBundle.decode_json_strict(original_bytes)
@@ -347,7 +400,7 @@ defmodule OrbitalDynamics.Validation.ExternalTruthTest do
       |> String.replace(sha256(original_bytes), updated_sha256)
 
     File.write!(sums_path, sums)
-    expectations_from_bundle(bundle_path)
+    updated_bytes
   end
 
   defp expectations_from_bundle(bundle_path) do

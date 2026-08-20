@@ -7,6 +7,8 @@ defmodule OrbitalDynamics.Validation.ExternalTruth.StrictBundle do
 
   @sha256_regex ~r/\A[0-9a-f]{64}\z/
   @source_manifest_regex ~r/\A([0-9a-f]{64})  ([^\r\n]+)\z/
+  @source_identity_keys ~w(algorithm files manifest_byte_count manifest_path sha256 total_source_byte_count)
+  @result_identity_keys ~w(algorithm byte_count path sha256)
 
   @read_limits %{
     manifest_max_byte_count: 131_072,
@@ -184,35 +186,60 @@ defmodule OrbitalDynamics.Validation.ExternalTruth.StrictBundle do
   end
 
   defp validate_identity_declarations(manifest, expectations) when is_map(manifest) do
-    declarations = [
-      {get_in(manifest, ["source_identity", "algorithm"]), "sha256", :source_algorithm},
-      {get_in(manifest, ["source_identity", "manifest_path"]), "source-manifest.sha256",
-       :source_manifest_path},
-      {get_in(manifest, ["source_identity", "manifest_byte_count"]),
-       expectations.source_manifest_byte_count, :source_manifest_byte_count},
-      {get_in(manifest, ["source_identity", "sha256"]), expectations.source_manifest_sha256,
-       :source_manifest_sha256},
-      {get_in(manifest, ["source_identity", "total_source_byte_count"]),
-       expectations.source_total_byte_count, :source_total_byte_count},
-      {get_in(manifest, ["source_identity", "files"]),
-       json_source_files(expectations.source_files), :source_files},
-      {get_in(manifest, ["result_identity", "algorithm"]), "sha256", :result_algorithm},
-      {get_in(manifest, ["result_identity", "path"]), "reference-output.json", :result_path},
-      {get_in(manifest, ["result_identity", "byte_count"]), expectations.result_byte_count,
-       :result_byte_count},
-      {get_in(manifest, ["result_identity", "sha256"]), expectations.result_sha256,
-       :result_sha256},
-      {manifest["bundle_read_limits"], json_read_limits(), :bundle_read_limits}
-    ]
+    with :ok <-
+           validate_identity_keys(
+             manifest["source_identity"],
+             @source_identity_keys,
+             :source_identity_keys
+           ),
+         :ok <-
+           validate_identity_keys(
+             manifest["result_identity"],
+             @result_identity_keys,
+             :result_identity_keys
+           ) do
+      declarations = [
+        {get_in(manifest, ["source_identity", "algorithm"]), "sha256", :source_algorithm},
+        {get_in(manifest, ["source_identity", "manifest_path"]), "source-manifest.sha256",
+         :source_manifest_path},
+        {get_in(manifest, ["source_identity", "manifest_byte_count"]),
+         expectations.source_manifest_byte_count, :source_manifest_byte_count},
+        {get_in(manifest, ["source_identity", "sha256"]), expectations.source_manifest_sha256,
+         :source_manifest_sha256},
+        {get_in(manifest, ["source_identity", "total_source_byte_count"]),
+         expectations.source_total_byte_count, :source_total_byte_count},
+        {get_in(manifest, ["source_identity", "files"]),
+         json_source_files(expectations.source_files), :source_files},
+        {get_in(manifest, ["result_identity", "algorithm"]), "sha256", :result_algorithm},
+        {get_in(manifest, ["result_identity", "path"]), "reference-output.json", :result_path},
+        {get_in(manifest, ["result_identity", "byte_count"]), expectations.result_byte_count,
+         :result_byte_count},
+        {get_in(manifest, ["result_identity", "sha256"]), expectations.result_sha256,
+         :result_sha256},
+        {manifest["bundle_read_limits"], json_read_limits(), :bundle_read_limits}
+      ]
 
-    case Enum.find(declarations, fn {observed, expected, _field} -> observed != expected end) do
-      nil -> :ok
-      {observed, expected, field} -> integrity_error(field, expected, observed)
+      case Enum.find(declarations, fn {observed, expected, _field} -> observed != expected end) do
+        nil -> :ok
+        {observed, expected, field} -> integrity_error(field, expected, observed)
+      end
     end
   end
 
   defp validate_identity_declarations(_manifest, _expectations),
     do: {:error, {:invalid_bundle, :manifest_must_be_object}}
+
+  defp validate_identity_keys(identity, expected_keys, field) when is_map(identity) do
+    observed_keys = identity |> Map.keys() |> Enum.sort()
+    expected_keys = Enum.sort(expected_keys)
+
+    if observed_keys == expected_keys,
+      do: :ok,
+      else: integrity_error(field, expected_keys, observed_keys)
+  end
+
+  defp validate_identity_keys(identity, expected_keys, field),
+    do: integrity_error(field, Enum.sort(expected_keys), {:not_object, identity})
 
   defp read_verified_file(
          root,
