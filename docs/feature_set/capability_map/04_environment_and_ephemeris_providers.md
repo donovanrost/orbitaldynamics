@@ -46,6 +46,11 @@ Additional request-fit facades:
 
 - A network-free `TabularEarthOrientationProvider` can interpolate declared Earth-rotation angle samples for body-fixed ground-track analysis through the same provider contract.
 - Ground-track requests can pass provider configuration as `{ProviderModule, opts}` or manifest JSON `earth_rotation_provider` specs, while preserving provider ID, model, angle, rate, interpolation metadata, and the configured sample-table coverage on event rows and result artifacts.
+- The opt-in `FrameTransform` foundation can capture the same configured
+  offline provider as an explicit policy with caller-declared source revision,
+  then use its angle, rate, and finite coverage for Earth J2000
+  inertial/provider-defined Earth-fixed state transforms. This does not make the
+  declared samples authoritative Earth-orientation data.
 - Configured tabular provider capabilities derive finite coverage and sample-count parameters from declared samples.
 - Public configured-provider request-fit helpers can reject out-of-table use before an adapter is selected.
 - Study-runner ground-track validation now uses that configured request-fit check against the full scenario horizon, so unsupported products or short declared sample tables fail as option validation instead of late event-detection errors.
