@@ -12,6 +12,7 @@ defmodule OrbitalDynamics.OrbitData do
   alias OrbitalDynamics.Schema
   alias OrbitalDynamics.OrbitData.AcceptedPlanningState
   alias OrbitalDynamics.OrbitData.OmmMetadata
+  alias OrbitalDynamics.OrbitData.OemInterpolation
   alias OrbitalDynamics.OrbitData.TleMetadata
 
   @j2000 ~U[2000-01-01 12:00:00Z]
@@ -120,9 +121,14 @@ defmodule OrbitalDynamics.OrbitData do
         "TIME_SYSTEM",
         "INTERPOLATION",
         "INTERPOLATION_DEGREE",
+        "START_TIME",
+        "STOP_TIME",
+        "USEABLE_START_TIME",
+        "USEABLE_STOP_TIME",
         "EPOCH",
         "COV_REF_FRAME"
       ],
+      oem_interpolation: OemInterpolation.capabilities(),
       supported_oem_covariance_fields: ["EPOCH", "COV_REF_FRAME" | @opm_covariance_component_keys],
       supported_covariance_component_order: @opm_covariance_component_order,
       supported_tle_metadata_fields: TleMetadata.supported_metadata_fields(),
@@ -131,6 +137,10 @@ defmodule OrbitalDynamics.OrbitData do
       exported_opm_maneuver_metadata_blocks: :multiple,
       known_limits: [
         :oem_import_selects_one_sample_without_interpolation,
+        :oem_interpolation_is_explicit_opt_in,
+        :oem_interpolation_requires_declared_coverage_and_source_revision,
+        :oem_interpolation_rejects_extrapolation,
+        :oem_interpolation_covariance_is_preserved_not_interpolated,
         :oem_export_single_sample_no_interpolation,
         :no_tle_sgp4_import,
         :tle_metadata_only_no_sgp4_state_generation,
@@ -369,6 +379,11 @@ defmodule OrbitalDynamics.OrbitData do
     |> Keyword.put_new(:provenance, Map.get(source, "provenance"))
     |> Keyword.put_new(:sample, Map.get(source, "sample"))
     |> Keyword.put_new(:sample_index, Map.get(source, "sample_index"))
+    |> Keyword.put_new(:interpolate, Map.get(source, "interpolate"))
+    |> Keyword.put_new(:interpolation, Map.get(source, "interpolation"))
+    |> Keyword.put_new(:strategy_epoch, Map.get(source, "strategy_epoch"))
+    |> Keyword.put_new(:source_revision, Map.get(source, "source_revision"))
+    |> Keyword.put_new(:max_bracket_s, Map.get(source, "max_bracket_s"))
   end
 
   @doc """
@@ -441,25 +456,43 @@ defmodule OrbitalDynamics.OrbitData do
   @doc """
   Imports a single-object CCSDS OEM KVN ephemeris into `accepted_planning_state.v1`.
 
-  The adapter deliberately selects one Cartesian ephemeris sample and records the
-  sample-selection policy in provenance. It does not interpolate between samples.
-  A single OEM covariance block is preserved as metadata-only planning evidence;
-  it is not used for propagation.
+  By default the adapter deliberately selects one Cartesian ephemeris sample and
+  records the sample-selection policy in provenance. Legacy selection does not
+  interpolate between samples.
+
+  Callers may explicitly request bounded strategy-epoch interpolation with
+  `interpolate: true`, a scale-bearing `:strategy_epoch`, and a non-empty
+  `:source_revision`. That path uses exact-sample selection at exact epochs and
+  cubic Hermite position/velocity interpolation inside the declared OEM coverage
+  and source bracket. It never extrapolates or interpolates covariance.
   """
   def import_ccsds_oem(kvn, opts \\ [])
 
   def import_ccsds_oem(kvn, opts) when is_binary(kvn) do
     with :ok <- reject_duplicate_kvn_single_value_fields(kvn, "ccsds_oem"),
          {:ok, oem} <- parse_oem_kvn(kvn),
-         {:ok, sample, sample_index} <- oem_selected_sample(oem.samples, opts),
+         {:ok, selection} <- oem_selection(kvn, oem, opts),
          {:ok, estimate} <-
-           oem_state_estimate(oem.fields, sample, sample_index, oem.covariance_fields),
-         {:ok, accepted_at} <- oem_accepted_at(oem.fields, sample),
-         {:ok, source} <- oem_source(oem.fields),
+           oem_state_estimate(
+             oem.fields,
+             selection.sample,
+             selection.sample_index,
+             oem.covariance_fields,
+             selection.evidence
+           ),
+         {:ok, accepted_at} <- oem_accepted_at(oem.fields, selection.sample),
+         {:ok, source} <- oem_source(oem.fields, selection.evidence),
          {:ok, quality} <-
            quality_map(Keyword.get(opts, :quality, %{"level" => "accepted"}), "quality"),
          {:ok, provenance} <-
-           oem_provenance(oem.fields, sample, sample_index, oem.covariance_fields, opts) do
+           oem_provenance(
+             oem.fields,
+             selection.sample,
+             selection.sample_index,
+             oem.covariance_fields,
+             opts,
+             selection.evidence
+           ) do
       accepted_planning_state([estimate],
         snapshot_id: Keyword.get(opts, :snapshot_id) || oem_snapshot_id(oem.fields, estimate),
         accepted_at: Keyword.get(opts, :accepted_at) || accepted_at,
@@ -659,12 +692,12 @@ defmodule OrbitalDynamics.OrbitData do
   defp parse_oem_sample(line) do
     case String.split(line) do
       [epoch, x, y, z, x_dot, y_dot, z_dot] ->
-        with {x, ""} <- Float.parse(x),
-             {y, ""} <- Float.parse(y),
-             {z, ""} <- Float.parse(z),
-             {x_dot, ""} <- Float.parse(x_dot),
-             {y_dot, ""} <- Float.parse(y_dot),
-             {z_dot, ""} <- Float.parse(z_dot) do
+        with {:ok, x} <- parse_finite_float(x),
+             {:ok, y} <- parse_finite_float(y),
+             {:ok, z} <- parse_finite_float(z),
+             {:ok, x_dot} <- parse_finite_float(x_dot),
+             {:ok, y_dot} <- parse_finite_float(y_dot),
+             {:ok, z_dot} <- parse_finite_float(z_dot) do
           {:ok,
            %{
              "epoch" => epoch,
@@ -677,6 +710,26 @@ defmodule OrbitalDynamics.OrbitData do
 
       _tokens ->
         {:error, :invalid_sample}
+    end
+  end
+
+  defp parse_finite_float(value) do
+    case Float.parse(value) do
+      {number, ""} when number == number and abs(number) <= 1.7976931348623157e308 ->
+        {:ok, number}
+
+      _result ->
+        {:error, :invalid_number}
+    end
+  end
+
+  defp oem_selection(kvn, oem, opts) do
+    if OemInterpolation.requested?(opts) do
+      OemInterpolation.select(kvn, oem, opts)
+    else
+      with {:ok, sample, sample_index} <- oem_selected_sample(oem.samples, opts) do
+        {:ok, %{sample: sample, sample_index: sample_index, evidence: nil}}
+      end
     end
   end
 
@@ -704,14 +757,24 @@ defmodule OrbitalDynamics.OrbitData do
     end
   end
 
-  defp oem_state_estimate(fields, sample, sample_index, covariance_fields) do
+  defp oem_state_estimate(
+         fields,
+         sample,
+         sample_index,
+         covariance_fields,
+         interpolation_evidence
+       ) do
     with {:ok, object_name} <- opm_object_name(fields),
          {:ok, epoch_s} <- oem_epoch_seconds(sample),
          {:ok, time_scale} <- opm_time_scale(fields),
          {:ok, center_name} <- opm_center_name(fields),
          {:ok, frame} <- opm_frame(fields),
-         {:ok, source} <- oem_source(fields),
+         {:ok, source} <- oem_source(fields, interpolation_evidence),
          {:ok, covariance_matrix} <- opm_covariance_matrix(covariance_fields) do
+      covariance_status =
+        interpolation_covariance_status(interpolation_evidence) ||
+          oem_covariance_status(covariance_fields, covariance_matrix)
+
       quality =
         %{"level" => "accepted"}
         |> maybe_put(
@@ -725,7 +788,7 @@ defmodule OrbitalDynamics.OrbitData do
         )
         |> maybe_put(
           "covariance_status",
-          oem_covariance_status(covariance_fields, covariance_matrix)
+          covariance_status
         )
         |> maybe_put("covariance_epoch", opm_optional_value(covariance_fields, "EPOCH"))
 
@@ -740,10 +803,21 @@ defmodule OrbitalDynamics.OrbitData do
          "velocity_km_s" => Map.fetch!(sample, "velocity_km_s"),
          "source" => source,
          "quality" => quality,
-         "metadata" => oem_metadata(fields, center_name, sample, sample_index, covariance_fields)
+         "metadata" =>
+           oem_metadata(
+             fields,
+             center_name,
+             sample,
+             sample_index,
+             covariance_fields,
+             interpolation_evidence
+           )
        }}
     end
   end
+
+  defp oem_epoch_seconds(%{"seconds_since_j2000" => epoch_s}) when is_number(epoch_s),
+    do: {:ok, epoch_s * 1.0}
 
   defp oem_epoch_seconds(%{"epoch" => epoch}) do
     with {:ok, datetime} <- parse_opm_datetime(epoch) do
@@ -758,20 +832,41 @@ defmodule OrbitalDynamics.OrbitData do
     end
   end
 
-  defp oem_source(fields) do
-    {:ok,
-     %{
-       "format" => "ccsds_oem_kvn",
-       "object_name" => opm_value(Map.get(fields, "OBJECT_NAME", "")),
-       "object_id" => opm_value(Map.get(fields, "OBJECT_ID", "")),
-       "originator" => opm_value(Map.get(fields, "ORIGINATOR", "unknown")),
-       "center_name" => opm_value(Map.get(fields, "CENTER_NAME", "EARTH")),
-       "ref_frame" => opm_value(Map.get(fields, "REF_FRAME", "EME2000")),
-       "time_system" => opm_value(Map.get(fields, "TIME_SYSTEM", "UTC"))
-     }}
+  defp oem_source(fields, interpolation_evidence) do
+    source =
+      %{
+        "format" => "ccsds_oem_kvn",
+        "object_name" => opm_value(Map.get(fields, "OBJECT_NAME", "")),
+        "object_id" => opm_value(Map.get(fields, "OBJECT_ID", "")),
+        "originator" => opm_value(Map.get(fields, "ORIGINATOR", "unknown")),
+        "center_name" => opm_value(Map.get(fields, "CENTER_NAME", "EARTH")),
+        "ref_frame" => opm_value(Map.get(fields, "REF_FRAME", "EME2000")),
+        "time_system" => opm_value(Map.get(fields, "TIME_SYSTEM", "UTC"))
+      }
+
+    source =
+      case interpolation_evidence do
+        %{"source" => interpolation_source} ->
+          source
+          |> Map.put("source_id", Map.fetch!(interpolation_source, "source_id"))
+          |> Map.put("source_revision", Map.fetch!(interpolation_source, "source_revision"))
+          |> Map.put("content_identity", Map.fetch!(interpolation_source, "content_identity"))
+
+        _evidence ->
+          source
+      end
+
+    {:ok, source}
   end
 
-  defp oem_provenance(fields, sample, sample_index, covariance_fields, opts) do
+  defp oem_provenance(
+         fields,
+         sample,
+         sample_index,
+         covariance_fields,
+         opts,
+         interpolation_evidence
+       ) do
     optional_map(
       Keyword.get(opts, :provenance, %{
         "format" => "ccsds_oem_kvn",
@@ -782,35 +877,41 @@ defmodule OrbitalDynamics.OrbitData do
     )
     |> case do
       {:ok, provenance} ->
-        {:ok,
-         provenance
-         |> adapter_provenance(
-           "ccsds_oem_kvn",
-           "OrbitalDynamics.OrbitData.import_ccsds_oem/2"
-         )
-         |> maybe_put("object_name", opm_optional_value(fields, "OBJECT_NAME"))
-         |> maybe_put("object_id", opm_optional_value(fields, "OBJECT_ID"))
-         |> maybe_put("center_name", opm_optional_value(fields, "CENTER_NAME") || "EARTH")
-         |> maybe_put("ref_frame", opm_optional_value(fields, "REF_FRAME") || "EME2000")
-         |> maybe_put("time_system", opm_optional_value(fields, "TIME_SYSTEM") || "UTC")
-         |> maybe_put("sample_selection", "single_ephemeris_sample_no_interpolation")
-         |> maybe_put("sample_index", sample_index)
-         |> maybe_put("sample_epoch", Map.fetch!(sample, "epoch"))
-         |> maybe_put(
-           "covariance_reference_frame",
-           oem_covariance_reference_frame(covariance_fields)
-         )
-         |> maybe_put("covariance_epoch", opm_optional_value(covariance_fields, "EPOCH"))
-         |> maybe_put(
-           "covariance_component_order",
-           if(opm_covariance_matrix_present?(covariance_fields),
-             do: @opm_covariance_component_order
-           )
-         )
-         |> maybe_put(
-           "covariance_status",
-           oem_covariance_status(covariance_fields)
-         )}
+        provenance =
+          provenance
+          |> adapter_provenance(
+            "ccsds_oem_kvn",
+            "OrbitalDynamics.OrbitData.import_ccsds_oem/2"
+          )
+          |> maybe_put("object_name", opm_optional_value(fields, "OBJECT_NAME"))
+          |> maybe_put("object_id", opm_optional_value(fields, "OBJECT_ID"))
+          |> maybe_put("center_name", opm_optional_value(fields, "CENTER_NAME") || "EARTH")
+          |> maybe_put("ref_frame", opm_optional_value(fields, "REF_FRAME") || "EME2000")
+          |> maybe_put("time_system", opm_optional_value(fields, "TIME_SYSTEM") || "UTC")
+          |> maybe_put(
+            "sample_selection",
+            oem_sample_selection(interpolation_evidence)
+          )
+          |> maybe_put("sample_index", sample_index)
+          |> maybe_put("sample_epoch", Map.fetch!(sample, "epoch"))
+          |> maybe_put(
+            "covariance_reference_frame",
+            oem_covariance_reference_frame(covariance_fields)
+          )
+          |> maybe_put("covariance_epoch", opm_optional_value(covariance_fields, "EPOCH"))
+          |> maybe_put(
+            "covariance_component_order",
+            if(opm_covariance_matrix_present?(covariance_fields),
+              do: @opm_covariance_component_order
+            )
+          )
+          |> maybe_put(
+            "covariance_status",
+            interpolation_covariance_status(interpolation_evidence) ||
+              oem_covariance_status(covariance_fields)
+          )
+
+        {:ok, maybe_put(provenance, "oem_interpolation", interpolation_evidence)}
 
       {:error, reason} ->
         {:error, reason}
@@ -822,7 +923,14 @@ defmodule OrbitalDynamics.OrbitData do
     "ccsds_oem:#{opm_value(object_id)}:#{Map.fetch!(estimate, "seconds_since_j2000")}"
   end
 
-  defp oem_metadata(fields, center_name, sample, sample_index, covariance_fields) do
+  defp oem_metadata(
+         fields,
+         center_name,
+         sample,
+         sample_index,
+         covariance_fields,
+         interpolation_evidence
+       ) do
     %{
       "input_format" => "ccsds_oem_kvn",
       "ccsds_oem_version" => opm_optional_value(fields, "CCSDS_OEM_VERS") || "2.0",
@@ -839,11 +947,33 @@ defmodule OrbitalDynamics.OrbitData do
       "sample_epoch" => Map.fetch!(sample, "epoch"),
       "covariance_reference_frame" => oem_covariance_reference_frame(covariance_fields),
       "covariance_epoch" => opm_optional_value(covariance_fields, "EPOCH"),
-      "covariance_status" => oem_covariance_status(covariance_fields)
+      "covariance_status" =>
+        interpolation_covariance_status(interpolation_evidence) ||
+          oem_covariance_status(covariance_fields),
+      "oem_interpolation_evidence_id" =>
+        if(is_map(interpolation_evidence), do: interpolation_evidence["id"]),
+      "requested_epoch" =>
+        if(is_map(interpolation_evidence), do: interpolation_evidence["requested_epoch"]),
+      "interpolation_method" =>
+        if(is_map(interpolation_evidence),
+          do: get_in(interpolation_evidence, ["interpolation", "method"])
+        ),
+      "interpolation_version" =>
+        if(is_map(interpolation_evidence),
+          do: get_in(interpolation_evidence, ["interpolation", "version"])
+        )
     }
     |> Enum.reject(fn {_key, value} -> value in [nil, ""] end)
     |> Map.new()
   end
+
+  defp oem_sample_selection(nil), do: "single_ephemeris_sample_no_interpolation"
+
+  defp oem_sample_selection(%{"interpolation" => %{"selection" => selection}}),
+    do: selection
+
+  defp interpolation_covariance_status(%{"covariance" => %{"status" => status}}), do: status
+  defp interpolation_covariance_status(_evidence), do: nil
 
   defp oem_covariance_reference_frame(covariance_fields) do
     opm_optional_value(covariance_fields, "COV_REF_FRAME")

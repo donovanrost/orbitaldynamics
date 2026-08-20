@@ -56,7 +56,23 @@ onto metadata-derived maneuver deltas.
 - Imports a deliberately narrow single-object CCSDS OEM KVN Cartesian ephemeris
   by selecting one sample without interpolation, preserving CCSDS version,
   creation-date, and originator header metadata, and recording the
-  sample-selection policy.
+  sample-selection policy. This remains the default compatibility path.
+- Opt-in `interpolate: true` import accepts one multi-sample Earth-centered
+  `EME2000`/`J2000`/`ICRF` segment at an explicit scale-bearing
+  `strategy_epoch` and required `source_revision`. It selects an exact source
+  sample at an exact epoch; otherwise it uses cubic Hermite position/velocity
+  interpolation between the adjacent source samples.
+- The opt-in path requires declared `START_TIME`/`STOP_TIME` coverage, honors a
+  paired `USEABLE_START_TIME`/`USEABLE_STOP_TIME` interval when present, accepts
+  an optional positive `max_bracket_s`, and rejects extrapolation, nonmonotonic
+  or duplicate epochs, unsupported/mixed frame-time-object shapes, and
+  out-of-coverage requests.
+- Accepted-state provenance preserves the full source bracket, requested epoch,
+  method/version, declared/effective coverage, object/frame/time metadata,
+  caller source revision, exact-source-byte SHA-256 identity, deterministic
+  interpolation evidence identity, assumptions, and known limits. OEM
+  covariance remains source metadata with an explicit not-interpolated status;
+  it is never propagated or interpolated.
 - Exports a single accepted state as single-sample OEM KVN with explicit
   no-interpolation metadata.
 
@@ -65,6 +81,8 @@ onto metadata-derived maneuver deltas.
 - Rejects non-Earth centers.
 - Rejects duplicate single-value OPM/OEM KVN fields instead of silently
   overwriting them.
+- OEM strategy-epoch interpolation is explicit and offline; it performs no
+  provider fetch, frame transform, time conversion, or planner-default change.
 - Declares supported formats plus known unsupported interchange products through
   `OrbitData.capabilities/0`.
 
@@ -130,15 +148,17 @@ explicit no-network-access marker.
     metadata, and multiple maneuver metadata-block import/export preservation.
     It exports preserved creation-date and originator metadata when explicit
     export overrides are not supplied.
-  - A first OEM KVN adapter for single-sample Cartesian ephemeris handoff.
+  - An OEM KVN adapter with compatibility-preserving single-sample selection and
+    opt-in bounded single-object strategy-epoch interpolation in the supported
+    Earth inertial J2000/time-scale envelope.
   - TLE and CCSDS OMM metadata preflight boundaries that deliberately do not
     generate state vectors, derive mean-element altitude/regime triage, and keep
     SGP4/mean-element propagation separated from Cartesian state import.
 - **TLE preflight** rejects ambiguous multi-object drops.
 - **OPM/OEM imports** now reject duplicate single-value KVN fields.
-- The project does **not** yet cover broader spacecraft metadata, OEM
-  interpolation, executable SGP4/OMM propagation, or covariance-aware
-  propagation.
+- The project does **not** yet cover broader spacecraft metadata, multi-object or
+  multi-segment OEM interpolation, OEM covariance interpolation/propagation,
+  executable SGP4/OMM propagation, frame/time conversion, or extrapolation.
 
 ## Status: **near-term**
 
