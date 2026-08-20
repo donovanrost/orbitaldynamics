@@ -1,6 +1,7 @@
 defmodule OrbitalDynamics.OrbitDataOemInterpolationTest do
   use ExUnit.Case, async: true
 
+  alias OrbitalDynamics.CandidateRefresh.FreshnessReport
   alias OrbitalDynamics.{Epoch, OrbitData, Schema}
 
   @revision "linear-oem-fixture.v1"
@@ -176,6 +177,61 @@ defmodule OrbitalDynamics.OrbitDataOemInterpolationTest do
              )
   end
 
+  test "requires a valid creation date when interpolation has no explicit accepted time" do
+    assert {:error, {:missing_field, "CREATION_DATE"}} =
+             linear_oem(creation_date: nil)
+             |> interpolate(90.0)
+
+    assert {:error, {:invalid_field, "CREATION_DATE"}} =
+             linear_oem(creation_date: "not-a-date")
+             |> interpolate(90.0)
+  end
+
+  test "accepts an explicit valid accepted time and downstream freshness has a known age" do
+    assert {:ok, artifact} =
+             linear_oem(creation_date: nil)
+             |> interpolate(90.0, accepted_at: "2026-08-20T00:00:00Z")
+
+    assert artifact["accepted_at"] == "2026-08-20T00:00:00Z"
+    refute artifact["accepted_at"] == "90.0 seconds_since_j2000 UTC"
+
+    freshness =
+      FreshnessReport.build(%{
+        accepted_state: artifact,
+        current_epoch_s: 90.0,
+        generated_at: ~U[2026-08-20 00:01:00Z],
+        horizon: %{"starts_at_s" => 90.0},
+        model_limits: %{},
+        refresh: %{}
+      })
+
+    assert freshness["accepted_snapshot_age_s"] == 60.0
+    assert freshness["status"] == "current"
+    assert freshness["unknown_reasons"] == []
+
+    assert {:error, {:invalid_option, :accepted_at}} =
+             interpolate(linear_oem(), 90.0, accepted_at: "not-a-date")
+  end
+
+  test "uses endpoint velocities for nonlinear asymmetric Hermite motion" do
+    kvn =
+      linear_oem(
+        stop_time: "2000-01-01T12:01:00.000",
+        usable_start_time: nil,
+        usable_stop_time: nil,
+        sample_lines: [
+          "2000-01-01T12:00:00.000 0 0 0 0 0 0",
+          "2000-01-01T12:01:00.000 60 0 0 2 0 0"
+        ]
+      )
+
+    assert {:ok, artifact} = interpolate(kvn, 15.0)
+    assert [state] = artifact["spacecraft_states"]
+    assert state["state_vector"]["position_km"] == [3.75, 0.0, 0.0]
+    assert state["state_vector"]["velocity_km_s"] == [0.5, 0.0, 0.0]
+    assert artifact["provenance"]["oem_interpolation"]["interpolation"]["fraction"] == 0.25
+  end
+
   test "rejects duplicate and nonmonotonic epochs instead of reordering source samples" do
     assert {:error, {:invalid_field, "ephemeris_data.epochs_not_strictly_increasing"}} =
              linear_oem(sample_epochs: [0, 60, 60])
@@ -254,6 +310,19 @@ defmodule OrbitalDynamics.OrbitDataOemInterpolationTest do
     refute Map.has_key?(state["metadata"], "oem_interpolation_evidence_id")
   end
 
+  test "interpolate false preserves the legacy result without a creation date" do
+    kvn = linear_oem(creation_date: nil)
+
+    assert {:ok, default_artifact} = OrbitData.import_ccsds_oem(kvn, sample: :last)
+
+    assert {:ok, explicit_false_artifact} =
+             OrbitData.import_ccsds_oem(kvn, sample: :last, interpolate: false)
+
+    assert explicit_false_artifact == default_artifact
+    assert explicit_false_artifact["accepted_at"] == "2000-01-01T12:02:00.000"
+    refute Map.has_key?(explicit_false_artifact["provenance"], "oem_interpolation")
+  end
+
   test "wrapper JSON and schema validation preserve interpolation evidence" do
     source = %{
       "format" => "ccsds_oem_kvn",
@@ -311,6 +380,7 @@ defmodule OrbitalDynamics.OrbitDataOemInterpolationTest do
   end
 
   defp linear_oem(opts \\ []) do
+    creation_date = Keyword.get(opts, :creation_date, "2026-08-20T00:00:00Z")
     start_time = Keyword.get(opts, :start_time, "2000-01-01T12:00:00.000")
     stop_time = Keyword.get(opts, :stop_time, "2000-01-01T12:02:00.000")
     usable_start_time = Keyword.get(opts, :usable_start_time, "2000-01-01T12:00:10.000")
@@ -335,18 +405,31 @@ defmodule OrbitalDynamics.OrbitDataOemInterpolationTest do
       |> Enum.join("\n")
 
     samples =
-      sample_epochs
-      |> Enum.map(fn seconds ->
-        timestamp = DateTime.add(~U[2000-01-01 12:00:00Z], seconds, :second)
-        epoch = Calendar.strftime(timestamp, "%Y-%m-%dT%H:%M:%S.000")
-        "#{epoch} #{7000 + seconds} #{2 * seconds} #{3 * seconds} 1 2 3"
-      end)
+      case Keyword.get(opts, :sample_lines) do
+        nil ->
+          sample_epochs
+          |> Enum.map(fn seconds ->
+            timestamp = DateTime.add(~U[2000-01-01 12:00:00Z], seconds, :second)
+            epoch = Calendar.strftime(timestamp, "%Y-%m-%dT%H:%M:%S.000")
+            "#{epoch} #{7000 + seconds} #{2 * seconds} #{3 * seconds} 1 2 3"
+          end)
+
+        sample_lines ->
+          sample_lines
+      end
+      |> Enum.join("\n")
+
+    header =
+      [
+        "CCSDS_OEM_VERS = 2.0",
+        if(creation_date, do: "CREATION_DATE = #{creation_date}"),
+        "ORIGINATOR = OrbitalDynamicsInterpolationTest"
+      ]
+      |> Enum.reject(&is_nil/1)
       |> Enum.join("\n")
 
     """
-    CCSDS_OEM_VERS = 2.0
-    CREATION_DATE = 2026-08-20T00:00:00Z
-    ORIGINATOR = OrbitalDynamicsInterpolationTest
+    #{header}
     META_START
     #{metadata}
     META_STOP

@@ -462,9 +462,11 @@ defmodule OrbitalDynamics.OrbitData do
 
   Callers may explicitly request bounded strategy-epoch interpolation with
   `interpolate: true`, a scale-bearing `:strategy_epoch`, and a non-empty
-  `:source_revision`. That path uses exact-sample selection at exact epochs and
-  cubic Hermite position/velocity interpolation inside the declared OEM coverage
-  and source bracket. It never extrapolates or interpolates covariance.
+  `:source_revision`. The accepted time must be supplied as a timezone-bearing
+  ISO-8601 `:accepted_at` option or a valid timezone-bearing ISO-8601
+  `CREATION_DATE` header. That path uses exact-sample selection at exact epochs
+  and cubic Hermite position/velocity interpolation inside the declared OEM
+  coverage and source bracket. It never extrapolates or interpolates covariance.
   """
   def import_ccsds_oem(kvn, opts \\ [])
 
@@ -480,7 +482,8 @@ defmodule OrbitalDynamics.OrbitData do
              oem.covariance_fields,
              selection.evidence
            ),
-         {:ok, accepted_at} <- oem_accepted_at(oem.fields, selection.sample),
+         {:ok, accepted_at} <-
+           oem_accepted_at(oem.fields, selection.sample, opts, selection.evidence),
          {:ok, source} <- oem_source(oem.fields, selection.evidence),
          {:ok, quality} <-
            quality_map(Keyword.get(opts, :quality, %{"level" => "accepted"}), "quality"),
@@ -495,7 +498,7 @@ defmodule OrbitalDynamics.OrbitData do
            ) do
       accepted_planning_state([estimate],
         snapshot_id: Keyword.get(opts, :snapshot_id) || oem_snapshot_id(oem.fields, estimate),
-        accepted_at: Keyword.get(opts, :accepted_at) || accepted_at,
+        accepted_at: accepted_at,
         source: Keyword.get(opts, :source) || source,
         quality: quality,
         provenance: provenance
@@ -825,12 +828,44 @@ defmodule OrbitalDynamics.OrbitData do
     end
   end
 
-  defp oem_accepted_at(fields, sample) do
+  defp oem_accepted_at(fields, sample, opts, nil) do
+    with {:ok, accepted_at} <- legacy_oem_accepted_at(fields, sample) do
+      {:ok, Keyword.get(opts, :accepted_at) || accepted_at}
+    end
+  end
+
+  defp oem_accepted_at(fields, _sample, opts, %{} = _interpolation_evidence) do
+    case Keyword.get(opts, :accepted_at) do
+      nil -> oem_creation_accepted_at(fields)
+      accepted_at -> validate_oem_accepted_at(accepted_at, :option)
+    end
+  end
+
+  defp legacy_oem_accepted_at(fields, sample) do
     case Map.get(fields, "CREATION_DATE") do
       nil -> {:ok, Map.fetch!(sample, "epoch")}
       value -> {:ok, opm_value(value)}
     end
   end
+
+  defp oem_creation_accepted_at(fields) do
+    case Map.get(fields, "CREATION_DATE") do
+      nil -> {:error, {:missing_field, "CREATION_DATE"}}
+      value -> value |> opm_value() |> validate_oem_accepted_at(:field)
+    end
+  end
+
+  defp validate_oem_accepted_at(accepted_at, source) when is_binary(accepted_at) do
+    case DateTime.from_iso8601(accepted_at) do
+      {:ok, _datetime, _offset} -> {:ok, accepted_at}
+      {:error, _reason} -> invalid_oem_accepted_at(source)
+    end
+  end
+
+  defp validate_oem_accepted_at(_accepted_at, source), do: invalid_oem_accepted_at(source)
+
+  defp invalid_oem_accepted_at(:option), do: {:error, {:invalid_option, :accepted_at}}
+  defp invalid_oem_accepted_at(:field), do: {:error, {:invalid_field, "CREATION_DATE"}}
 
   defp oem_source(fields, interpolation_evidence) do
     source =

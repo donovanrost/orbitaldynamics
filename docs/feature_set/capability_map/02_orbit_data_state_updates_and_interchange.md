@@ -59,9 +59,12 @@ onto metadata-derived maneuver deltas.
   sample-selection policy. This remains the default compatibility path.
 - Opt-in `interpolate: true` import accepts one multi-sample Earth-centered
   `EME2000`/`J2000`/`ICRF` segment at an explicit scale-bearing
-  `strategy_epoch` and required `source_revision`. It selects an exact source
-  sample at an exact epoch; otherwise it uses cubic Hermite position/velocity
-  interpolation between the adjacent source samples.
+  `strategy_epoch` and required `source_revision`. It also requires a valid,
+  timezone-bearing ISO-8601 accepted time, supplied by the `accepted_at` option
+  or the OEM `CREATION_DATE`; the strategy epoch is never substituted as the
+  accepted time. It selects an exact source sample at an exact epoch; otherwise
+  it uses cubic Hermite position/velocity interpolation between the adjacent
+  source samples.
 - The opt-in path requires declared `START_TIME`/`STOP_TIME` coverage, honors a
   paired `USEABLE_START_TIME`/`USEABLE_STOP_TIME` interval when present, accepts
   an optional positive `max_bracket_s`, and rejects extrapolation, nonmonotonic
