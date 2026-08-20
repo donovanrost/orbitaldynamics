@@ -1,6 +1,10 @@
 defmodule OrbitalDynamics.Validation.ExternalTruth.StrictBundle do
   @moduledoc false
 
+  require Record
+
+  Record.defrecordp(:file_info, Record.extract(:file_info, from_lib: "kernel/include/file.hrl"))
+
   @sha256_regex ~r/\A[0-9a-f]{64}\z/
   @source_manifest_regex ~r/\A([0-9a-f]{64})  ([^\r\n]+)\z/
 
@@ -12,7 +16,12 @@ defmodule OrbitalDynamics.Validation.ExternalTruth.StrictBundle do
     source_total_max_byte_count: 2_097_152
   }
 
-  def load(root, expectations) when is_binary(root) and is_map(expectations) do
+  def load(root, expectations, opts \\ [])
+
+  def load(root, expectations, opts)
+      when is_binary(root) and is_map(expectations) and is_list(opts) do
+    read_seam = Keyword.get(opts, :read_seam)
+
     with {:ok, root} <- validate_root(root),
          {:ok, manifest_bytes} <-
            read_verified_file(
@@ -20,7 +29,8 @@ defmodule OrbitalDynamics.Validation.ExternalTruth.StrictBundle do
              "manifest.json",
              expectations.manifest_sha256,
              expectations.manifest_byte_count,
-             @read_limits.manifest_max_byte_count
+             @read_limits.manifest_max_byte_count,
+             read_seam
            ),
          {:ok, manifest} <- decode_json_strict(manifest_bytes),
          :ok <- validate_identity_declarations(manifest, expectations),
@@ -30,12 +40,13 @@ defmodule OrbitalDynamics.Validation.ExternalTruth.StrictBundle do
              "source-manifest.sha256",
              expectations.source_manifest_sha256,
              expectations.source_manifest_byte_count,
-             @read_limits.source_manifest_max_byte_count
+             @read_limits.source_manifest_max_byte_count,
+             read_seam
            ),
          {:ok, source_entries} <- parse_source_manifest(source_manifest_bytes),
          :ok <- validate_source_entries(source_entries, expectations.source_files),
          :ok <- validate_source_budget(expectations),
-         {:ok, source_bytes} <- read_source_files(root, expectations.source_files),
+         {:ok, source_bytes} <- read_source_files(root, expectations.source_files, read_seam),
          {:ok, config_bytes} <- Map.fetch(source_bytes, "case.properties"),
          {:ok, config} <- parse_properties_strict(config_bytes),
          {:ok, dependency_bytes} <- Map.fetch(source_bytes, "dependencies.lock"),
@@ -46,7 +57,8 @@ defmodule OrbitalDynamics.Validation.ExternalTruth.StrictBundle do
              "reference-output.json",
              expectations.result_sha256,
              expectations.result_byte_count,
-             @read_limits.result_max_byte_count
+             @read_limits.result_max_byte_count,
+             read_seam
            ),
          {:ok, reference} <- decode_json_strict(reference_bytes) do
       {:ok,
@@ -56,6 +68,7 @@ defmodule OrbitalDynamics.Validation.ExternalTruth.StrictBundle do
          manifest_bytes: manifest_bytes,
          source_manifest_entries: source_entries,
          source_manifest_bytes: source_manifest_bytes,
+         source_bytes: source_bytes,
          config: config,
          config_bytes: config_bytes,
          dependencies: dependencies,
@@ -66,7 +79,8 @@ defmodule OrbitalDynamics.Validation.ExternalTruth.StrictBundle do
     end
   end
 
-  def load(_root, _expectations), do: {:error, {:invalid_bundle, :invalid_load_arguments}}
+  def load(_root, _expectations, _opts),
+    do: {:error, {:invalid_bundle, :invalid_load_arguments}}
 
   @doc false
   def decode_json_strict(bytes) when is_binary(bytes) do
@@ -144,9 +158,16 @@ defmodule OrbitalDynamics.Validation.ExternalTruth.StrictBundle do
   end
 
   defp validate_root_directory(root) do
+    case root_directory_stat(root) do
+      {:ok, _stat} -> :ok
+      {:error, _reason} = error -> error
+    end
+  end
+
+  defp root_directory_stat(root) do
     case File.lstat(root) do
-      {:ok, %{type: :directory}} ->
-        :ok
+      {:ok, %{type: :directory} = stat} ->
+        {:ok, stat}
 
       {:ok, %{type: :symlink}} ->
         {:error, {:invalid_bundle, {:symlink_bundle_root, root}}}
@@ -193,38 +214,62 @@ defmodule OrbitalDynamics.Validation.ExternalTruth.StrictBundle do
   defp validate_identity_declarations(_manifest, _expectations),
     do: {:error, {:invalid_bundle, :manifest_must_be_object}}
 
-  defp read_verified_file(root, path, expected_sha256, expected_byte_count, maximum_byte_count) do
+  defp read_verified_file(
+         root,
+         path,
+         expected_sha256,
+         expected_byte_count,
+         maximum_byte_count,
+         read_seam
+       ) do
     with true <- valid_sha256?(expected_sha256),
-         {:ok, file_path, preflight_stat} <-
+         {:ok, file_path, preflight_stat, preflight_components} <-
            preflight_regular_file(
              root,
              path,
              expected_byte_count,
              maximum_byte_count
            ),
-         {:ok, bytes} <- File.read(file_path),
-         {:ok, _file_path, post_read_stat} <-
-           preflight_regular_file(
-             root,
-             path,
-             expected_byte_count,
-             maximum_byte_count
-           ) do
-      actual_sha256 = sha256(bytes)
-      actual_byte_count = byte_size(bytes)
-
-      cond do
-        actual_byte_count != expected_byte_count ->
-          integrity_error("#{path}.byte_count", expected_byte_count, actual_byte_count)
-
-        file_identity(preflight_stat) != file_identity(post_read_stat) ->
-          {:error, {:invalid_bundle, {:file_changed_during_read, path}}}
-
-        actual_sha256 != expected_sha256 ->
-          integrity_error("#{path}.sha256", expected_sha256, actual_sha256)
-
-        true ->
+         :ok <- invoke_read_seam(read_seam, :after_path_preflight, path),
+         {:ok, handle} <- open_raw_binary(file_path, path) do
+      try do
+        with {:ok, opened_stat} <- handle_stat(handle, path),
+             :ok <- validate_regular_file(path, opened_stat),
+             :ok <- validate_handle_identity(path, preflight_stat, opened_stat),
+             :ok <-
+               validate_preflight_size(
+                 path,
+                 opened_stat.size,
+                 expected_byte_count,
+                 maximum_byte_count
+               ),
+             :ok <- invoke_read_seam(read_seam, :after_handle_preflight, path),
+             {:ok, bytes} <- read_bounded(handle, path, maximum_byte_count),
+             {:ok, post_read_handle_stat} <- handle_stat(handle, path),
+             :ok <- validate_regular_file(path, post_read_handle_stat),
+             :ok <- validate_handle_identity(path, opened_stat, post_read_handle_stat),
+             :ok <-
+               validate_preflight_size(
+                 path,
+                 post_read_handle_stat.size,
+                 expected_byte_count,
+                 maximum_byte_count
+               ),
+             {:ok, _file_path, post_read_path_stat, post_read_components} <-
+               preflight_regular_file(
+                 root,
+                 path,
+                 expected_byte_count,
+                 maximum_byte_count
+               ),
+             :ok <- validate_handle_identity(path, post_read_path_stat, post_read_handle_stat),
+             :ok <-
+               validate_component_identities(path, preflight_components, post_read_components),
+             :ok <- validate_read_bytes(path, bytes, expected_sha256, expected_byte_count) do
           {:ok, bytes}
+        end
+      after
+        :ok = File.close(handle)
       end
     else
       false ->
@@ -240,12 +285,16 @@ defmodule OrbitalDynamics.Validation.ExternalTruth.StrictBundle do
 
   defp preflight_regular_file(root, relative_path, expected_size, maximum_size) do
     with :ok <- validate_expected_size(relative_path, expected_size, maximum_size),
-         :ok <- validate_root_directory(root),
+         {:ok, root_stat} <- root_directory_stat(root),
          {:ok, path} <- safe_bundle_path(root, relative_path),
-         {:ok, stat} <- lstat_path_without_symlinks(root, relative_path),
+         {:ok, stat, component_stats} <- lstat_path_without_symlinks(root, relative_path),
          :ok <- validate_regular_file(relative_path, stat),
          :ok <- validate_preflight_size(relative_path, stat.size, expected_size, maximum_size) do
-      {:ok, path, stat}
+      component_identities =
+        [root_stat | component_stats]
+        |> Enum.map(&file_identity/1)
+
+      {:ok, path, stat, component_identities}
     end
   end
 
@@ -276,7 +325,8 @@ defmodule OrbitalDynamics.Validation.ExternalTruth.StrictBundle do
 
     components
     |> Enum.with_index()
-    |> Enum.reduce_while({:ok, root, nil}, fn {component, index}, {:ok, parent, _stat} ->
+    |> Enum.reduce_while({:ok, root, nil, []}, fn {component, index},
+                                                  {:ok, parent, _stat, stats} ->
       path = Path.join(parent, component)
 
       case File.lstat(path) do
@@ -285,10 +335,10 @@ defmodule OrbitalDynamics.Validation.ExternalTruth.StrictBundle do
           {:halt, {:error, {:invalid_bundle, {:symlink_path_component, relative_component}}}}
 
         {:ok, %{type: :directory} = stat} when index < final_index ->
-          {:cont, {:ok, path, stat}}
+          {:cont, {:ok, path, stat, [stat | stats]}}
 
         {:ok, stat} when index == final_index ->
-          {:cont, {:ok, path, stat}}
+          {:cont, {:ok, path, stat, [stat | stats]}}
 
         {:ok, %{type: type}} ->
           relative_component = path |> Path.relative_to(root)
@@ -303,7 +353,7 @@ defmodule OrbitalDynamics.Validation.ExternalTruth.StrictBundle do
       end
     end)
     |> case do
-      {:ok, _path, stat} -> {:ok, stat}
+      {:ok, _path, stat, stats} -> {:ok, stat, Enum.reverse(stats)}
       {:error, _reason} = error -> error
     end
   end
@@ -345,7 +395,156 @@ defmodule OrbitalDynamics.Validation.ExternalTruth.StrictBundle do
     end
   end
 
-  defp file_identity(stat), do: Map.take(stat, [:inode, :mode, :mtime, :size, :type])
+  defp open_raw_binary(path, relative_path) do
+    case File.open(path, [:read, :binary, :raw]) do
+      {:ok, handle} -> {:ok, handle}
+      {:error, reason} -> {:error, {:invalid_bundle, {:file_open_error, relative_path, reason}}}
+    end
+  end
+
+  defp handle_stat(handle, relative_path) do
+    case :file.read_file_info(handle, [{:time, :posix}]) do
+      {:ok, info} ->
+        stat = %{
+          type: file_info(info, :type),
+          size: file_info(info, :size),
+          mode: file_info(info, :mode),
+          links: file_info(info, :links),
+          major_device: file_info(info, :major_device),
+          minor_device: file_info(info, :minor_device),
+          inode: file_info(info, :inode),
+          uid: file_info(info, :uid),
+          gid: file_info(info, :gid)
+        }
+
+        if portable_identity?(stat) do
+          {:ok, stat}
+        else
+          {:error, {:invalid_bundle, {:handle_identity_unavailable, relative_path}}}
+        end
+
+      {:error, reason} ->
+        {:error, {:invalid_bundle, {:handle_stat_error, relative_path, reason}}}
+    end
+  end
+
+  defp portable_identity?(stat) do
+    is_integer(stat.inode) and stat.inode > 0 and is_integer(stat.major_device) and
+      stat.type in [:regular, :directory]
+  end
+
+  defp validate_handle_identity(relative_path, left, right) do
+    left_identity = file_identity(left)
+    right_identity = file_identity(right)
+
+    if left_identity == right_identity do
+      :ok
+    else
+      {:error,
+       {:invalid_bundle,
+        {:handle_identity_mismatch, relative_path, left_identity, right_identity}}}
+    end
+  end
+
+  defp validate_component_identities(relative_path, before, current) do
+    if before == current do
+      :ok
+    else
+      {:error,
+       {:invalid_bundle, {:path_components_changed_during_read, relative_path, before, current}}}
+    end
+  end
+
+  defp read_bounded(handle, relative_path, maximum_byte_count) do
+    do_read_bounded(handle, relative_path, maximum_byte_count, [], 0)
+  end
+
+  defp do_read_bounded(handle, relative_path, 0, chunks, total) do
+    case :file.read(handle, 1) do
+      :eof ->
+        {:ok, chunks |> Enum.reverse() |> IO.iodata_to_binary()}
+
+      {:ok, _extra_byte} ->
+        {:error, {:invalid_bundle, {:file_size_exceeds_limit, relative_path, total + 1, total}}}
+
+      {:error, reason} ->
+        {:error, {:invalid_bundle, {:file_read_error, relative_path, reason}}}
+    end
+  end
+
+  defp do_read_bounded(handle, relative_path, remaining, chunks, total) do
+    read_size = min(65_536, remaining)
+
+    case :file.read(handle, read_size) do
+      :eof ->
+        {:ok, chunks |> Enum.reverse() |> IO.iodata_to_binary()}
+
+      {:ok, bytes} ->
+        byte_count = byte_size(bytes)
+
+        do_read_bounded(
+          handle,
+          relative_path,
+          remaining - byte_count,
+          [bytes | chunks],
+          total + byte_count
+        )
+
+      {:error, reason} ->
+        {:error, {:invalid_bundle, {:file_read_error, relative_path, reason}}}
+    end
+  end
+
+  defp validate_read_bytes(relative_path, bytes, expected_sha256, expected_byte_count) do
+    actual_byte_count = byte_size(bytes)
+    actual_sha256 = sha256(bytes)
+
+    cond do
+      actual_byte_count != expected_byte_count ->
+        integrity_error("#{relative_path}.byte_count", expected_byte_count, actual_byte_count)
+
+      actual_sha256 != expected_sha256 ->
+        integrity_error("#{relative_path}.sha256", expected_sha256, actual_sha256)
+
+      true ->
+        :ok
+    end
+  end
+
+  defp invoke_read_seam(nil, _stage, _relative_path), do: :ok
+
+  defp invoke_read_seam(read_seam, stage, relative_path) when is_function(read_seam, 2) do
+    try do
+      case read_seam.(stage, relative_path) do
+        :ok -> :ok
+        other -> {:error, {:invalid_bundle, {:read_seam_failed, stage, relative_path, other}}}
+      end
+    rescue
+      error ->
+        {:error,
+         {:invalid_bundle, {:read_seam_failed, stage, relative_path, Exception.message(error)}}}
+    catch
+      kind, reason ->
+        {:error, {:invalid_bundle, {:read_seam_failed, stage, relative_path, {kind, reason}}}}
+    end
+  end
+
+  defp invoke_read_seam(_read_seam, stage, relative_path),
+    do: {:error, {:invalid_bundle, {:invalid_read_seam, stage, relative_path}}}
+
+  defp file_identity(stat) do
+    Map.take(stat, [
+      :inode,
+      :major_device,
+      :minor_device,
+      :mode,
+      :links,
+      :size,
+      :type,
+      :uid,
+      :gid
+    ])
+  end
 
   defp parse_source_manifest_lines(lines) do
     reduce_lines(lines, fn line, line_number ->
@@ -492,14 +691,15 @@ defmodule OrbitalDynamics.Validation.ExternalTruth.StrictBundle do
     end
   end
 
-  defp read_source_files(root, files) do
+  defp read_source_files(root, files, read_seam) do
     Enum.reduce_while(files, {:ok, %{}}, fn file, {:ok, bytes_by_path} ->
       case read_verified_file(
              root,
              file.path,
              file.sha256,
              file.byte_count,
-             @read_limits.source_file_max_byte_count
+             @read_limits.source_file_max_byte_count,
+             read_seam
            ) do
         {:ok, bytes} -> {:cont, {:ok, Map.put(bytes_by_path, file.path, bytes)}}
         {:error, _reason} = error -> {:halt, error}

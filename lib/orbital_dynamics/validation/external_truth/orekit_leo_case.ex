@@ -66,6 +66,20 @@ defmodule OrbitalDynamics.Validation.ExternalTruth.OrekitLeoCase do
   @horizon_s 21_600.0
   @output_step_s 10.0
   @max_step_s 10.0
+  @initial_position_km {7_000.0, 0.0, 0.0}
+  @initial_velocity_km_s {0.0, 4.68721425101214, 5.913792592089408}
+  @spacecraft_dry_mass_kg 100.0
+  @spacecraft_propellant_mass_kg 20.0
+  @spacecraft_mass_kg @spacecraft_dry_mass_kg + @spacecraft_propellant_mass_kg
+  @spacecraft_drag_area_m2 4.0
+  @spacecraft_drag_coefficient 2.2
+  @station_latitude_deg 0.0
+  @station_longitude_deg -60.0
+  @station_altitude_km 0.0
+  @station_minimum_elevation_deg 5.0
+  @access_root_tolerance_s 1.0e-6
+  @access_root_max_iterations 64
+  @sun_direction {1.0, 0.0, 0.0}
   @state_epochs_s Enum.map(0..2_160, &(&1 * @output_step_s))
   @position_tolerance_m 0.01
   @velocity_tolerance_m_s 0.00001
@@ -168,6 +182,204 @@ defmodule OrbitalDynamics.Validation.ExternalTruth.OrekitLeoCase do
     }
   ]
 
+  @expected_reference_tool %{
+    "name" => "Apache Orekit",
+    "version" => "13.1.7",
+    "release_commit" => "cc18cc1",
+    "license" => "Apache-2.0",
+    "official_release_url" => "https://github.com/CS-SI/Orekit/releases/tag/13.1.7",
+    "official_api_url" => "https://www.orekit.org/static/apidocs/",
+    "container_image" => "docker.io/library/maven:3.9.11-eclipse-temurin-21",
+    "container_digest" =>
+      "sha256:6fdc855a6ed81d288ca7ca37ac6ff5e9308b612485c0801d70b25a858c83d237",
+    "container_image_id" =>
+      "sha256:3ead0ff36a4b796440e451013a4ce803dbd02f07b6c5b634cc2ad67927dfcc10",
+    "container_platform" => "linux/arm64",
+    "java_runtime" => "21.0.9+10-LTS",
+    "maven_version" => "3.9.11",
+    "curl_version" => "8.5.0"
+  }
+
+  @expected_dependency_declaration %{
+    "lock_path" => "dependencies.lock",
+    "orekit" => "org.orekit:orekit:13.1.7",
+    "hipparchus_version" => "4.0.3",
+    "artifact_count" => 8,
+    "checksum_algorithm" => "sha256",
+    "repository" => "https://repo.maven.apache.org/maven2/"
+  }
+
+  @expected_data_sources %{
+    "orekit_data_revision" => "none",
+    "eop_source" => "none",
+    "earth_orientation_model" => "constant_z_axis_rotation_from_zero_angle_at_case_epoch",
+    "sun_source" => "fixed_unit_direction_from_case.properties",
+    "sun_direction_eme2000" => [1.0, 0.0, 0.0],
+    "sun_provider_distance_m" => 100_000_000_000.0,
+    "network_data_used_during_propagation" => false
+  }
+
+  @expected_reference_model %{
+    "frame" => "EME2000",
+    "epoch" => "2000-01-01T12:00:00_TDB",
+    "time_scale" => "TDB_J2000_RELATIVE_SECONDS",
+    "horizon_starts_at_s" => 0.0,
+    "horizon_ends_at_s" => @horizon_s,
+    "state_output_grid" => %{
+      "starts_at_s" => 0.0,
+      "ends_at_s" => @horizon_s,
+      "step_s" => @output_step_s,
+      "epoch_count" => 2_161,
+      "coverage_policy" => "inclusive_full_horizon_exact_grid"
+    },
+    "position_unit" => "meter",
+    "velocity_unit" => "meter_per_second",
+    "mu_m3_s2" => 398_600_441_800_000.0,
+    "equatorial_radius_m" => 6_378_136.3,
+    "j2" => 1.08262668e-3,
+    "initial_position_m" => [7_000_000.0, 0.0, 0.0],
+    "initial_velocity_m_s" => [0.0, 4_687.21425101214, 5_913.792592089408],
+    "force_models" => [
+      "NewtonianAttraction",
+      "J2OnlyPerturbation",
+      "DragForce",
+      "SimpleExponentialAtmosphere",
+      "IsotropicDrag"
+    ],
+    "excluded_force_models" => [
+      "third_body",
+      "solid_tides",
+      "solar_radiation_pressure",
+      "maneuvers"
+    ],
+    "atmosphere_model" => "SimpleExponentialAtmosphere",
+    "atmosphere_reference_altitude_m" => 400_000.0,
+    "atmosphere_reference_density_kg_m3" => 3.89e-12,
+    "atmosphere_scale_height_m" => 60_000.0,
+    "atmosphere_rotation" => "rigid_constant_rate_body_frame",
+    "spacecraft_mass_kg" => @spacecraft_mass_kg,
+    "spacecraft_drag_area_m2" => @spacecraft_drag_area_m2,
+    "spacecraft_drag_coefficient" => @spacecraft_drag_coefficient,
+    "orbit_type" => "CARTESIAN",
+    "integrator" => "ClassicalRungeKuttaIntegrator",
+    "integrator_step_s" => @max_step_s
+  }
+
+  @expected_access_model %{
+    "detector" => "ElevationDetector",
+    "body_shape" => "OneAxisEllipsoid_sphere",
+    "body_flattening" => 0.0,
+    "earth_rotation_rate_rad_s" => 7.292115e-5,
+    "earth_rotation_angle_at_epoch_rad" => 0.0,
+    "station_latitude_deg" => @station_latitude_deg,
+    "station_longitude_deg" => @station_longitude_deg,
+    "station_altitude_m" => @station_altitude_km * 1_000.0,
+    "minimum_elevation_deg" => @station_minimum_elevation_deg,
+    "atmospheric_refraction" => "none",
+    "terrain_mask" => "none",
+    "event_definition" =>
+      "aos_is_increasing_zero_of_geometric_elevation_minus_5_deg;los_is_decreasing_zero",
+    "max_check_s" => 60.0,
+    "root_threshold_s" => 1.0e-9,
+    "max_iterations" => 100
+  }
+
+  @expected_eclipse_model %{
+    "detector" => "CylindricalShadowEclipseDetector",
+    "occulting_body" => "spherical_earth",
+    "occulting_body_radius_m" => 6_378_136.3,
+    "light_source" => "infinitely_distant_fixed_positive_eme2000_x_direction",
+    "event_definition" =>
+      "ingress_is_decreasing_zero_and_egress_is_increasing_zero_of_cylindrical_shadow_switching_function",
+    "penumbra" => "none",
+    "max_check_s" => 60.0,
+    "root_threshold_s" => 1.0e-9,
+    "max_iterations" => 100
+  }
+
+  @expected_orbital_dynamics_path %{
+    "propagator" => "OrbitalDynamics.Propagators.J2Drag",
+    "frame" => "earth_inertial_j2000",
+    "epoch_scale" => "tdb",
+    "output_step_s" => @output_step_s,
+    "max_step_s" => @max_step_s,
+    "atmosphere_provider" => "OrbitalDynamics.Environment.ExponentialAtmosphereProvider",
+    "atmosphere_source_revision" => "exponential-reference.v1",
+    "earth_rotation_provider" => "OrbitalDynamics.Environment.ConstantEarthRotationProvider",
+    "earth_rotation_source_revision" => "constant-earth-rotation.v1",
+    "spacecraft_mass_kg" => @spacecraft_mass_kg,
+    "spacecraft_drag_area_m2" => @spacecraft_drag_area_m2,
+    "spacecraft_drag_coefficient" => @spacecraft_drag_coefficient,
+    "access_detector" => "OrbitalDynamics.EventDetectors.AccessWindows",
+    "access_boundary_refinement" => "bracketed_bisection_cubic_hermite_state",
+    "access_root_tolerance_s" => @access_root_tolerance_s,
+    "access_root_max_iterations" => @access_root_max_iterations,
+    "eclipse_detector" => "OrbitalDynamics.EventDetectors.Eclipses",
+    "eclipse_boundary_refinement" => "linear_shadow_margin_between_10s_samples"
+  }
+
+  @expected_tolerances %{
+    "position_max_component_error_m" => @position_tolerance_m,
+    "velocity_max_component_error_m_s" => @velocity_tolerance_m_s,
+    "access_boundary_absolute_error_s" => @access_tolerance_s,
+    "eclipse_boundary_absolute_error_s" => @eclipse_tolerance_s
+  }
+
+  @expected_output %{
+    "format" => "JSON",
+    "schema" => "orekit_external_truth_raw.v1",
+    "float_format" => "%.17e",
+    "state_epoch_count" => 2_161,
+    "access_boundary_count" => 4,
+    "eclipse_boundary_count" => 8
+  }
+
+  @expected_claim_boundary %{
+    "validated_combination" =>
+      "earth_j2_plus_simple_exponential_atmospheric_drag_rk4_10s_plus_spherical_constant_rotation_access_plus_fixed_sun_cylindrical_eclipse_over_0_to_21600_tdb_seconds",
+    "not_promoted" => [
+      "two_body",
+      "j2_only",
+      "two_body_drag",
+      "accelerator_backends",
+      "linear_access_boundary_mode",
+      "time_varying_sun_provider",
+      "campaign_environment_provider",
+      "conical_eclipse",
+      "other_atmosphere_providers",
+      "other_ballistic_coefficients",
+      "other_stations",
+      "other_initial_states",
+      "other_horizons"
+    ],
+    "not_claimed" => [
+      "flight_certification",
+      "operational_acceptance",
+      "full_physical_fidelity",
+      "authoritative_earth_orientation",
+      "space_weather_calibrated_atmosphere",
+      "winds",
+      "terrain_or_refraction_effects"
+    ]
+  }
+
+  @expected_semantic_manifest %{
+    "schema" => "external_numerical_truth_bundle.v1",
+    "case_id" => "orekit_13_1_7_earth_j2_drag_rk4_10s_access_eclipse_6h",
+    "validation_status" => "validated_external_reference_for_exact_declared_case",
+    "generated_at_utc" => "2026-08-20T09:10:00Z",
+    "reference_tool" => @expected_reference_tool,
+    "dependencies" => @expected_dependency_declaration,
+    "data_sources" => @expected_data_sources,
+    "reference_model" => @expected_reference_model,
+    "access_model" => @expected_access_model,
+    "eclipse_model" => @expected_eclipse_model,
+    "orbital_dynamics_path" => @expected_orbital_dynamics_path,
+    "tolerances" => @expected_tolerances,
+    "output" => @expected_output,
+    "claim_boundary" => @expected_claim_boundary
+  }
+
   @doc "Returns the stable registration for this exact external truth case."
   def registration do
     %{
@@ -225,14 +437,14 @@ defmodule OrbitalDynamics.Validation.ExternalTruth.OrekitLeoCase do
       scenario =
         Scenario.new!(
           :orekit_external_truth_case,
-          Spacecraft.new!(:orekit_external_truth_satellite, 100.0,
-            propellant_mass_kg: 20.0,
-            area_m2: 4.0,
-            drag_coefficient: 2.2
+          Spacecraft.new!(:orekit_external_truth_satellite, @spacecraft_dry_mass_kg,
+            propellant_mass_kg: @spacecraft_propellant_mass_kg,
+            area_m2: @spacecraft_drag_area_m2,
+            drag_coefficient: @spacecraft_drag_coefficient
           ),
           StateVector.new!(
-            {7_000.0, 0.0, 0.0},
-            {0.0, 4.68721425101214, 5.913792592089408},
+            @initial_position_km,
+            @initial_velocity_km_s,
             Epoch.new!(0.0, :tdb),
             Frame.earth_inertial_j2000()
           ),
@@ -250,6 +462,8 @@ defmodule OrbitalDynamics.Validation.ExternalTruth.OrekitLeoCase do
            access: observed_access_boundaries(access_events),
            eclipse: observed_eclipse_boundaries(eclipse_events),
            path_identity: path_identity(trajectory, access_events, eclipse_events),
+           runtime_semantics:
+             runtime_semantics(scenario, body, trajectory, access_events, eclipse_events),
            horizon: observed_horizon(trajectory)
          }}
       end
@@ -301,7 +515,9 @@ defmodule OrbitalDynamics.Validation.ExternalTruth.OrekitLeoCase do
   defp compare_loaded_bundle(bundle, observations) do
     case validate_bundle_semantics(bundle) do
       {:ok, semantic_checks} ->
-        checks = semantic_checks ++ comparison_checks(bundle.reference, observations)
+        checks =
+          semantic_checks ++ comparison_checks(bundle.reference, bundle.manifest, observations)
+
         report_result(checks)
 
       {:error, report} ->
@@ -309,8 +525,22 @@ defmodule OrbitalDynamics.Validation.ExternalTruth.OrekitLeoCase do
     end
   end
 
+  @doc false
+  def validate_semantic_seal(bundle) when is_map(bundle) do
+    checks = manifest_checks(bundle)
+
+    if passing?(checks) do
+      {:ok, checks}
+    else
+      {:error, report(checks)}
+    end
+  end
+
+  def validate_semantic_seal(_bundle),
+    do: {:error, failure_report(:invalid_semantic_seal_input)}
+
   defp validate_bundle_semantics(bundle) do
-    checks = identity_checks(bundle) ++ manifest_checks(bundle.manifest)
+    checks = identity_checks(bundle) ++ manifest_checks(bundle)
 
     reference_shape_check =
       case validate_reference_shape(bundle.reference, bundle.manifest) do
@@ -344,99 +574,296 @@ defmodule OrbitalDynamics.Validation.ExternalTruth.OrekitLeoCase do
     ]
   end
 
-  defp manifest_checks(manifest) do
-    expected_identity = %{
-      "schema" => "external_numerical_truth_bundle.v1",
-      "case_id" => "orekit_13_1_7_earth_j2_drag_rk4_10s_access_eclipse_6h",
-      "validation_status" => "validated_external_reference_for_exact_declared_case",
-      "generated_at_utc" => "2026-08-20T09:10:00Z",
-      "tool_name" => "Apache Orekit",
-      "tool_version" => "13.1.7",
-      "tool_release_commit" => "cc18cc1",
-      "container_digest" =>
-        "sha256:6fdc855a6ed81d288ca7ca37ac6ff5e9308b612485c0801d70b25a858c83d237",
-      "container_platform" => "linux/arm64",
-      "orekit_data_revision" => "none",
-      "eop_source" => "none",
-      "network_data_used_during_propagation" => false,
-      "frame" => "EME2000",
-      "epoch" => "2000-01-01T12:00:00_TDB",
-      "time_scale" => "TDB_J2000_RELATIVE_SECONDS",
-      "horizon_starts_at_s" => 0.0,
-      "horizon_ends_at_s" => @horizon_s,
-      "integrator" => "ClassicalRungeKuttaIntegrator",
-      "integrator_step_s" => @max_step_s,
-      "atmosphere_model" => "SimpleExponentialAtmosphere",
-      "atmosphere_reference_altitude_m" => 400_000.0,
-      "atmosphere_reference_density_kg_m3" => 3.89e-12,
-      "atmosphere_scale_height_m" => 60_000.0,
-      "spacecraft_mass_kg" => 120.0,
-      "spacecraft_drag_area_m2" => 4.0,
-      "spacecraft_drag_coefficient" => 2.2,
-      "position_tolerance_m" => @position_tolerance_m,
-      "velocity_tolerance_m_s" => @velocity_tolerance_m_s,
-      "access_tolerance_s" => @access_tolerance_s,
-      "eclipse_tolerance_s" => @eclipse_tolerance_s,
-      "state_output_grid" => %{
-        "starts_at_s" => 0.0,
-        "ends_at_s" => @horizon_s,
-        "step_s" => @output_step_s,
-        "epoch_count" => 2_161,
-        "coverage_policy" => "inclusive_full_horizon_exact_grid"
+  defp manifest_checks(bundle) do
+    manifest = Map.get(bundle, :manifest, %{})
+
+    semantic_manifest =
+      Map.drop(manifest, ["source_identity", "result_identity", "bundle_read_limits"])
+
+    expected_keys =
+      @expected_semantic_manifest
+      |> Map.keys()
+      |> Kernel.++(["source_identity", "result_identity", "bundle_read_limits"])
+      |> Enum.sort()
+
+    [
+      exact_check("bundle.manifest.keys", expected_keys, manifest |> Map.keys() |> Enum.sort()),
+      exact_check(
+        "bundle.manifest.semantic_declarations",
+        @expected_semantic_manifest,
+        semantic_manifest
+      ),
+      exact_check(
+        "bundle.manifest.case_properties_semantics",
+        config_semantic_projection(Map.get(bundle, :config, %{})),
+        manifest_config_projection(manifest)
+      ),
+      exact_check(
+        "bundle.manifest.dependency_lock_semantics",
+        dependency_semantic_projection(Map.get(bundle, :dependencies, [])),
+        manifest["dependencies"]
+      ),
+      exact_check(
+        "bundle.manifest.generator_container_ref",
+        expected_generator_container_ref(manifest),
+        generator_container_ref(Map.get(bundle, :source_bytes, %{}))
+      ),
+      exact_check(
+        "bundle.manifest.toolchain_source_semantics",
+        expected_toolchain_source_semantics(manifest),
+        toolchain_source_semantics(Map.get(bundle, :source_bytes, %{}))
+      )
+    ]
+  end
+
+  defp config_semantic_projection(config) do
+    %{
+      "case_id" => config["case_id"],
+      "generated_at_utc" => config["generated_at_utc"],
+      "orekit_version" => config["orekit_version"],
+      "reference_model" => %{
+        "frame" => config["frame"],
+        "epoch" => config["epoch"],
+        "time_scale" => config["time_scale"],
+        "horizon_starts_at_s" => config_number(config, "state_output_start_s"),
+        "horizon_ends_at_s" => config_number(config, "horizon_s"),
+        "state_output_grid" => %{
+          "starts_at_s" => config_number(config, "state_output_start_s"),
+          "ends_at_s" => config_number(config, "state_output_end_s"),
+          "step_s" => config_number(config, "state_output_step_s")
+        },
+        "mu_m3_s2" => config_number(config, "mu_m3_s2"),
+        "equatorial_radius_m" => config_number(config, "equatorial_radius_m"),
+        "j2" => config_number(config, "j2"),
+        "initial_position_m" => config_vector(config, "initial_position_m"),
+        "initial_velocity_m_s" => config_vector(config, "initial_velocity_m_s"),
+        "atmosphere_model" => config["atmosphere_model"],
+        "atmosphere_reference_altitude_m" =>
+          config_number(config, "atmosphere_reference_altitude_m"),
+        "atmosphere_reference_density_kg_m3" =>
+          config_number(config, "atmosphere_reference_density_kg_m3"),
+        "atmosphere_scale_height_m" => config_number(config, "atmosphere_scale_height_m"),
+        "spacecraft_mass_kg" => config_number(config, "spacecraft_mass_kg"),
+        "spacecraft_drag_area_m2" => config_number(config, "spacecraft_drag_area_m2"),
+        "spacecraft_drag_coefficient" => config_number(config, "spacecraft_drag_coefficient"),
+        "integrator" => config["integrator"],
+        "integrator_step_s" => config_number(config, "integrator_step_s")
       },
-      "state_epoch_count" => 2_161,
-      "access_boundary_count" => 4,
-      "eclipse_boundary_count" => 8
+      "data_sources" => %{
+        "orekit_data_revision" => config["orekit_data_revision"],
+        "eop_source" => config["eop_source"],
+        "sun_direction_eme2000" => config_vector(config, "sun_direction_eme2000"),
+        "sun_provider_distance_m" => config_number(config, "sun_provider_distance_m")
+      },
+      "access_model" => %{
+        "body_flattening" => config_number(config, "body_flattening"),
+        "earth_rotation_rate_rad_s" => config_number(config, "earth_rotation_rate_rad_s"),
+        "earth_rotation_angle_at_epoch_rad" =>
+          config_number(config, "earth_rotation_angle_at_epoch_rad"),
+        "station_latitude_deg" => config_number(config, "station_latitude_deg"),
+        "station_longitude_deg" => config_number(config, "station_longitude_deg"),
+        "station_altitude_m" => config_number(config, "station_altitude_m"),
+        "minimum_elevation_deg" => config_number(config, "station_minimum_elevation_deg"),
+        "atmospheric_refraction" => config["atmospheric_refraction"],
+        "terrain_mask" => config["terrain_mask"],
+        "max_check_s" => config_number(config, "event_max_check_s"),
+        "root_threshold_s" => config_number(config, "event_threshold_s"),
+        "max_iterations" => config_number(config, "event_max_iterations")
+      },
+      "eclipse_model" => %{
+        "occulting_body_radius_m" => config_number(config, "equatorial_radius_m"),
+        "max_check_s" => config_number(config, "event_max_check_s"),
+        "root_threshold_s" => config_number(config, "event_threshold_s"),
+        "max_iterations" => config_number(config, "event_max_iterations")
+      },
+      "output" => %{"float_format" => config["output_float_format"]}
     }
+  end
 
-    observed_identity = %{
-      "schema" => manifest["schema"],
+  defp manifest_config_projection(manifest) do
+    %{
       "case_id" => manifest["case_id"],
-      "validation_status" => manifest["validation_status"],
       "generated_at_utc" => manifest["generated_at_utc"],
-      "tool_name" => get_in(manifest, ["reference_tool", "name"]),
-      "tool_version" => get_in(manifest, ["reference_tool", "version"]),
-      "tool_release_commit" => get_in(manifest, ["reference_tool", "release_commit"]),
-      "container_digest" => get_in(manifest, ["reference_tool", "container_digest"]),
-      "container_platform" => get_in(manifest, ["reference_tool", "container_platform"]),
-      "orekit_data_revision" => get_in(manifest, ["data_sources", "orekit_data_revision"]),
-      "eop_source" => get_in(manifest, ["data_sources", "eop_source"]),
-      "network_data_used_during_propagation" =>
-        get_in(manifest, ["data_sources", "network_data_used_during_propagation"]),
-      "frame" => get_in(manifest, ["reference_model", "frame"]),
-      "epoch" => get_in(manifest, ["reference_model", "epoch"]),
-      "time_scale" => get_in(manifest, ["reference_model", "time_scale"]),
-      "horizon_starts_at_s" => get_in(manifest, ["reference_model", "horizon_starts_at_s"]),
-      "horizon_ends_at_s" => get_in(manifest, ["reference_model", "horizon_ends_at_s"]),
-      "integrator" => get_in(manifest, ["reference_model", "integrator"]),
-      "integrator_step_s" => get_in(manifest, ["reference_model", "integrator_step_s"]),
-      "atmosphere_model" => get_in(manifest, ["reference_model", "atmosphere_model"]),
-      "atmosphere_reference_altitude_m" =>
-        get_in(manifest, ["reference_model", "atmosphere_reference_altitude_m"]),
-      "atmosphere_reference_density_kg_m3" =>
-        get_in(manifest, ["reference_model", "atmosphere_reference_density_kg_m3"]),
-      "atmosphere_scale_height_m" =>
-        get_in(manifest, ["reference_model", "atmosphere_scale_height_m"]),
-      "spacecraft_mass_kg" => get_in(manifest, ["reference_model", "spacecraft_mass_kg"]),
-      "spacecraft_drag_area_m2" =>
-        get_in(manifest, ["reference_model", "spacecraft_drag_area_m2"]),
-      "spacecraft_drag_coefficient" =>
-        get_in(manifest, ["reference_model", "spacecraft_drag_coefficient"]),
-      "position_tolerance_m" =>
-        get_in(manifest, ["tolerances", "position_max_component_error_m"]),
-      "velocity_tolerance_m_s" =>
-        get_in(manifest, ["tolerances", "velocity_max_component_error_m_s"]),
-      "access_tolerance_s" =>
-        get_in(manifest, ["tolerances", "access_boundary_absolute_error_s"]),
-      "eclipse_tolerance_s" =>
-        get_in(manifest, ["tolerances", "eclipse_boundary_absolute_error_s"]),
-      "state_output_grid" => get_in(manifest, ["reference_model", "state_output_grid"]),
-      "state_epoch_count" => get_in(manifest, ["output", "state_epoch_count"]),
-      "access_boundary_count" => get_in(manifest, ["output", "access_boundary_count"]),
-      "eclipse_boundary_count" => get_in(manifest, ["output", "eclipse_boundary_count"])
+      "orekit_version" => get_in(manifest, ["reference_tool", "version"]),
+      "reference_model" =>
+        manifest
+        |> Map.get("reference_model", %{})
+        |> Map.take([
+          "frame",
+          "epoch",
+          "time_scale",
+          "horizon_starts_at_s",
+          "horizon_ends_at_s",
+          "mu_m3_s2",
+          "equatorial_radius_m",
+          "j2",
+          "initial_position_m",
+          "initial_velocity_m_s",
+          "atmosphere_model",
+          "atmosphere_reference_altitude_m",
+          "atmosphere_reference_density_kg_m3",
+          "atmosphere_scale_height_m",
+          "spacecraft_mass_kg",
+          "spacecraft_drag_area_m2",
+          "spacecraft_drag_coefficient",
+          "integrator",
+          "integrator_step_s"
+        ])
+        |> Map.put(
+          "state_output_grid",
+          manifest
+          |> get_in(["reference_model", "state_output_grid"])
+          |> then(fn grid ->
+            if is_map(grid), do: Map.take(grid, ~w(starts_at_s ends_at_s step_s)), else: grid
+          end)
+        ),
+      "data_sources" =>
+        manifest
+        |> Map.get("data_sources", %{})
+        |> Map.take(
+          ~w(orekit_data_revision eop_source sun_direction_eme2000 sun_provider_distance_m)
+        ),
+      "access_model" =>
+        manifest
+        |> Map.get("access_model", %{})
+        |> Map.take([
+          "body_flattening",
+          "earth_rotation_rate_rad_s",
+          "earth_rotation_angle_at_epoch_rad",
+          "station_latitude_deg",
+          "station_longitude_deg",
+          "station_altitude_m",
+          "minimum_elevation_deg",
+          "atmospheric_refraction",
+          "terrain_mask",
+          "max_check_s",
+          "root_threshold_s",
+          "max_iterations"
+        ]),
+      "eclipse_model" =>
+        manifest
+        |> Map.get("eclipse_model", %{})
+        |> Map.take(~w(occulting_body_radius_m max_check_s root_threshold_s max_iterations)),
+      "output" => manifest |> Map.get("output", %{}) |> Map.take(["float_format"])
     }
+  end
 
-    [exact_check("bundle.manifest_identity", expected_identity, observed_identity)]
+  defp dependency_semantic_projection(dependencies) when is_list(dependencies) do
+    orekit_version =
+      dependencies
+      |> Enum.find_value(&version_from_filename(&1.filename, ~r/^orekit-(.+)\.jar$/))
+
+    hipparchus_versions =
+      dependencies
+      |> Enum.map(&version_from_filename(&1.filename, ~r/^hipparchus-[a-z]+-(.+)\.jar$/))
+      |> Enum.reject(&is_nil/1)
+      |> Enum.uniq()
+
+    repository = "https://repo.maven.apache.org/maven2/"
+
+    %{
+      "lock_path" => "dependencies.lock",
+      "orekit" => if(orekit_version, do: "org.orekit:orekit:#{orekit_version}"),
+      "hipparchus_version" => single_value(hipparchus_versions),
+      "artifact_count" => length(dependencies),
+      "checksum_algorithm" =>
+        if(Enum.all?(dependencies, &Regex.match?(~r/^[0-9a-f]{64}$/, &1.sha256)),
+          do: "sha256",
+          else: :invalid
+        ),
+      "repository" =>
+        if(Enum.all?(dependencies, &String.starts_with?(&1.url, repository)),
+          do: repository,
+          else: :invalid
+        )
+    }
+  end
+
+  defp dependency_semantic_projection(dependencies), do: {:invalid_dependencies, dependencies}
+
+  defp version_from_filename(filename, regex) do
+    case Regex.run(regex, filename, capture: :all_but_first) do
+      [version] -> version
+      _match -> nil
+    end
+  end
+
+  defp single_value([value]), do: value
+  defp single_value(values), do: values
+
+  defp expected_generator_container_ref(manifest) do
+    "docker.io/library/maven@#{get_in(manifest, ["reference_tool", "container_digest"])}"
+  end
+
+  defp generator_container_ref(source_bytes) do
+    source_bytes
+    |> Map.get("generate.sh", "")
+    |> extract_source_value(~r/container_image="([^"]+)"/)
+  end
+
+  defp expected_toolchain_source_semantics(manifest) do
+    java_runtime = get_in(manifest, ["reference_tool", "java_runtime"])
+
+    %{
+      "container_platform" => get_in(manifest, ["reference_tool", "container_platform"]),
+      "java_release" => java_runtime |> to_string() |> String.split(".") |> List.first(),
+      "orekit_pom_version" => get_in(manifest, ["reference_tool", "version"]),
+      "orekit_generator_version" => get_in(manifest, ["reference_tool", "version"])
+    }
+  end
+
+  defp toolchain_source_semantics(source_bytes) do
+    generate_script = Map.get(source_bytes, "generate.sh", "")
+    pom = Map.get(source_bytes, "pom.xml", "")
+
+    generator =
+      Map.get(
+        source_bytes,
+        "src/main/java/org/orbitaldynamics/validation/OrekitTruthGenerator.java",
+        ""
+      )
+
+    %{
+      "container_platform" => extract_source_value(generate_script, ~r/--platform=([^\s\\]+)/),
+      "java_release" => extract_source_value(generate_script, ~r/javac --release (\d+)/),
+      "orekit_pom_version" => extract_source_value(pom, ~r/<orekit.version>([^<]+)</),
+      "orekit_generator_version" =>
+        extract_source_value(
+          generator,
+          ~r/exact\(config, "orekit_version", "([^"]+)"\)/
+        )
+    }
+  end
+
+  defp extract_source_value(bytes, regex) do
+    case Regex.run(regex, bytes, capture: :all_but_first) do
+      [value] -> value
+      _match -> :missing
+    end
+  end
+
+  defp config_number(config, key) do
+    case Float.parse(Map.get(config, key, "")) do
+      {value, ""} -> value
+      _other -> {:invalid_number, key, Map.get(config, key)}
+    end
+  end
+
+  defp config_vector(config, key) do
+    values =
+      config
+      |> Map.get(key, "")
+      |> String.split(",", trim: false)
+      |> Enum.map(fn value ->
+        case Float.parse(value) do
+          {number, ""} -> number
+          _other -> {:invalid_number, value}
+        end
+      end)
+
+    if length(values) == 3 and Enum.all?(values, &is_number/1),
+      do: values,
+      else: {:invalid_vector, key, values}
   end
 
   defp validate_reference_shape(reference, manifest) when is_map(reference) do
@@ -585,8 +1012,13 @@ defmodule OrbitalDynamics.Validation.ExternalTruth.OrekitLeoCase do
 
   defp validate_event_rows(_rows, _opts), do: {:error, :events_must_be_arrays}
 
-  defp comparison_checks(reference, observations) do
+  defp comparison_checks(reference, manifest, observations) do
     [
+      exact_check(
+        "orbital_dynamics.manifest_runtime_semantics",
+        runtime_manifest_projection(manifest),
+        Map.get(observations, :runtime_semantics)
+      ),
       exact_check(
         "orbital_dynamics.path_identity",
         expected_path_identity(),
@@ -686,24 +1118,27 @@ defmodule OrbitalDynamics.Validation.ExternalTruth.OrekitLeoCase do
 
   defp detect_access(trajectory, body) do
     station =
-      GroundStation.new!(:orekit_external_truth_station, 0.0, -60.0,
-        altitude_km: 0.0,
-        minimum_elevation_deg: 5.0
+      GroundStation.new!(
+        :orekit_external_truth_station,
+        @station_latitude_deg,
+        @station_longitude_deg,
+        altitude_km: @station_altitude_km,
+        minimum_elevation_deg: @station_minimum_elevation_deg
       )
 
     AccessWindows.detect(trajectory,
       ground_station: station,
       central_body: body,
       boundary_refinement: :bracketed_bisection,
-      root_tolerance_s: 1.0e-6,
-      root_max_iterations: 64
+      root_tolerance_s: @access_root_tolerance_s,
+      root_max_iterations: @access_root_max_iterations
     )
   end
 
   defp detect_eclipses(trajectory, body) do
     Eclipses.detect(trajectory,
       central_body: body,
-      sun_direction: {1.0, 0.0, 0.0}
+      sun_direction: @sun_direction
     )
   end
 
@@ -758,16 +1193,20 @@ defmodule OrbitalDynamics.Validation.ExternalTruth.OrekitLeoCase do
       output_step_s: @output_step_s,
       max_step_s: assumptions.max_step_s,
       atmosphere_provider_id: assumptions.atmosphere_provider_id,
+      atmosphere_provider: "OrbitalDynamics.Environment.ExponentialAtmosphereProvider",
       atmosphere_provider_model: assumptions.atmosphere_provider_model,
       atmosphere_source_revision: assumptions.atmosphere_provider_source_revision,
       atmosphere_parameters: assumptions.atmosphere_provider.parameters,
       earth_rotation_provider_id: assumptions.earth_rotation_provider_id,
+      earth_rotation_provider: "OrbitalDynamics.Environment.ConstantEarthRotationProvider",
       earth_rotation_source_revision: assumptions.earth_rotation_source_revision,
       earth_rotation_rate_rad_s: assumptions.earth_rotation_rate_rad_s,
       spacecraft_mass_kg: assumptions.spacecraft_mass_kg,
       drag_area_m2: assumptions.drag_area_m2,
       drag_coefficient: assumptions.drag_coefficient,
       access_detector: "OrbitalDynamics.EventDetectors.AccessWindows",
+      access_root_tolerance_s: @access_root_tolerance_s,
+      access_root_max_iterations: @access_root_max_iterations,
       access_boundaries:
         boundary_metadata(access_events, :boundary_refinement, :aos_los_bracketed_bisection),
       eclipse_detector: "OrbitalDynamics.EventDetectors.Eclipses",
@@ -792,6 +1231,7 @@ defmodule OrbitalDynamics.Validation.ExternalTruth.OrekitLeoCase do
       output_step_s: @output_step_s,
       max_step_s: @max_step_s,
       atmosphere_provider_id: "environment.provider.atmosphere.exponential_reference",
+      atmosphere_provider: "OrbitalDynamics.Environment.ExponentialAtmosphereProvider",
       atmosphere_provider_model: "single_scale_height_exponential_atmosphere",
       atmosphere_source_revision: "exponential-reference.v1",
       atmosphere_parameters: %{
@@ -800,16 +1240,151 @@ defmodule OrbitalDynamics.Validation.ExternalTruth.OrekitLeoCase do
         "scale_height_km" => 60.0
       },
       earth_rotation_provider_id: "environment.provider.earth_rotation.constant_rate",
+      earth_rotation_provider: "OrbitalDynamics.Environment.ConstantEarthRotationProvider",
       earth_rotation_source_revision: "constant-earth-rotation.v1",
       earth_rotation_rate_rad_s: 7.292115e-5,
       spacecraft_mass_kg: 120.0,
       drag_area_m2: 4.0,
       drag_coefficient: 2.2,
       access_detector: "OrbitalDynamics.EventDetectors.AccessWindows",
+      access_root_tolerance_s: @access_root_tolerance_s,
+      access_root_max_iterations: @access_root_max_iterations,
       access_boundaries: :aos_los_bracketed_bisection,
       eclipse_detector: "OrbitalDynamics.EventDetectors.Eclipses",
       eclipse_boundaries: :eclipse_linear_shadow_margin_interpolation
     }
+  end
+
+  defp runtime_semantics(scenario, body, trajectory, access_events, eclipse_events) do
+    path = path_identity(trajectory, access_events, eclipse_events)
+    spacecraft = scenario.spacecraft
+    initial_state = scenario.initial_state
+
+    %{
+      "reference_model" => %{
+        "frame" => external_frame_name(initial_state.frame.name),
+        "epoch" => external_epoch_name(initial_state.epoch),
+        "time_scale" => external_time_scale(initial_state.epoch.scale),
+        "horizon_starts_at_s" => initial_state.epoch.seconds_since_j2000,
+        "horizon_ends_at_s" => scenario.duration_s,
+        "state_output_grid" => %{
+          "starts_at_s" => initial_state.epoch.seconds_since_j2000,
+          "ends_at_s" => scenario.duration_s,
+          "step_s" => scenario.output_step_s,
+          "epoch_count" => length(@state_epochs_s),
+          "coverage_policy" => "inclusive_full_horizon_exact_grid"
+        },
+        "mu_m3_s2" => body.mu_km3_s2 * 1.0e9,
+        "equatorial_radius_m" => body.equatorial_radius_km * 1_000.0,
+        "j2" => body.j2,
+        "initial_position_m" => tuple_scale_to_list(initial_state.position_km, 1_000.0),
+        "initial_velocity_m_s" => tuple_scale_to_list(initial_state.velocity_km_s, 1_000.0),
+        "spacecraft_mass_kg" => spacecraft.dry_mass_kg + spacecraft.propellant_mass_kg,
+        "spacecraft_drag_area_m2" => spacecraft.area_m2,
+        "spacecraft_drag_coefficient" => spacecraft.drag_coefficient,
+        "integrator_step_s" => path.max_step_s
+      },
+      "data_sources" => %{
+        "orekit_data_revision" => "none",
+        "eop_source" => "none",
+        "earth_orientation_model" => "constant_z_axis_rotation_from_zero_angle_at_case_epoch",
+        "sun_source" => "fixed_unit_direction_from_case.properties",
+        "sun_direction_eme2000" => Tuple.to_list(@sun_direction),
+        "sun_provider_distance_m" => 100_000_000_000.0,
+        "network_data_used_during_propagation" => false
+      },
+      "access_model" => @expected_access_model,
+      "eclipse_model" =>
+        Map.put(
+          @expected_eclipse_model,
+          "occulting_body_radius_m",
+          body.equatorial_radius_km * 1_000.0
+        ),
+      "orbital_dynamics_path" => runtime_path_declaration(path),
+      "tolerances" => @expected_tolerances
+    }
+  end
+
+  defp runtime_manifest_projection(manifest) do
+    reference_model = Map.get(manifest, "reference_model", %{})
+
+    %{
+      "reference_model" =>
+        Map.take(reference_model, [
+          "frame",
+          "epoch",
+          "time_scale",
+          "horizon_starts_at_s",
+          "horizon_ends_at_s",
+          "state_output_grid",
+          "mu_m3_s2",
+          "equatorial_radius_m",
+          "j2",
+          "initial_position_m",
+          "initial_velocity_m_s",
+          "spacecraft_mass_kg",
+          "spacecraft_drag_area_m2",
+          "spacecraft_drag_coefficient",
+          "integrator_step_s"
+        ]),
+      "data_sources" => Map.get(manifest, "data_sources"),
+      "access_model" => Map.get(manifest, "access_model"),
+      "eclipse_model" => Map.get(manifest, "eclipse_model"),
+      "orbital_dynamics_path" => Map.get(manifest, "orbital_dynamics_path"),
+      "tolerances" => Map.get(manifest, "tolerances")
+    }
+  end
+
+  defp runtime_path_declaration(path) do
+    %{
+      "propagator" => path.propagator,
+      "frame" => internal_frame_name(path.frame),
+      "epoch_scale" => Atom.to_string(path.epoch_scale),
+      "output_step_s" => path.output_step_s,
+      "max_step_s" => path.max_step_s,
+      "atmosphere_provider" => path.atmosphere_provider,
+      "atmosphere_source_revision" => path.atmosphere_source_revision,
+      "earth_rotation_provider" => path.earth_rotation_provider,
+      "earth_rotation_source_revision" => path.earth_rotation_source_revision,
+      "spacecraft_mass_kg" => path.spacecraft_mass_kg,
+      "spacecraft_drag_area_m2" => path.drag_area_m2,
+      "spacecraft_drag_coefficient" => path.drag_coefficient,
+      "access_detector" => path.access_detector,
+      "access_boundary_refinement" => access_refinement_name(path.access_boundaries),
+      "access_root_tolerance_s" => path.access_root_tolerance_s,
+      "access_root_max_iterations" => path.access_root_max_iterations,
+      "eclipse_detector" => path.eclipse_detector,
+      "eclipse_boundary_refinement" => eclipse_refinement_name(path.eclipse_boundaries)
+    }
+  end
+
+  defp external_frame_name(:eci_j2000), do: "EME2000"
+  defp external_frame_name(frame), do: {:unexpected_frame, frame}
+
+  defp internal_frame_name(:eci_j2000), do: "earth_inertial_j2000"
+  defp internal_frame_name(frame), do: {:unexpected_frame, frame}
+
+  defp external_epoch_name(%Epoch{seconds_since_j2000: seconds, scale: :tdb})
+       when seconds == 0.0,
+       do: "2000-01-01T12:00:00_TDB"
+
+  defp external_epoch_name(epoch), do: {:unexpected_epoch, epoch}
+
+  defp external_time_scale(:tdb), do: "TDB_J2000_RELATIVE_SECONDS"
+  defp external_time_scale(scale), do: {:unexpected_time_scale, scale}
+
+  defp access_refinement_name(:aos_los_bracketed_bisection),
+    do: "bracketed_bisection_cubic_hermite_state"
+
+  defp access_refinement_name(value), do: {:unexpected_access_refinement, value}
+
+  defp eclipse_refinement_name(:eclipse_linear_shadow_margin_interpolation),
+    do: "linear_shadow_margin_between_10s_samples"
+
+  defp eclipse_refinement_name(value), do: {:unexpected_eclipse_refinement, value}
+
+  defp tuple_scale_to_list(tuple, factor) do
+    tuple |> Tuple.to_list() |> Enum.map(&(&1 * factor))
   end
 
   defp boundary_metadata(events, key, expected) do

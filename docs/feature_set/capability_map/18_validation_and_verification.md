@@ -188,6 +188,23 @@ custom bundle root and at every traversed intermediate or final path component,
 so a byte-identical sibling reached through a symlinked `src` directory is not
 accepted.
 
+The manifest is also independently sealed as an executable semantic contract.
+All material tool/container, dependency, data-source, reference-model,
+access-model, eclipse-model, OrbitalDynamics-path, tolerance, output, and claim
+fields have exact expected values. Additional projections bind them to parsed
+`case.properties`, `dependencies.lock`, the exact generator/container source,
+and constants/provider identities from the executed project path. Consequently,
+recomputing the manifest digest does not authorize a contradictory container
+tag or image ID, Sun direction or provider distance, mu/radius/J2 or initial
+state, event declaration, or project-path declaration.
+
+File reads use raw binary handles rather than path-based whole-file reads. The
+loader compares handle `fstat` identity/type/size with the pre-open `lstat`,
+streams at most the declared maximum plus one byte, revalidates the handle after
+the read, and compares root plus intermediate/final path identities before and
+after. It fails closed when the filesystem cannot provide a usable device/inode
+handle identity, which is required for custom writable bundle verification.
+
 This promotes only the exact combined `J2Drag`/access/eclipse case above. It
 does not validate J2-only, two-body-drag, other atmosphere providers or
 ballistic parameters, other initial states/horizons/stations, accelerated

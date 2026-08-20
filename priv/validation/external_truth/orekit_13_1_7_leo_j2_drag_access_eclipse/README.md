@@ -24,6 +24,24 @@ per-file and total limits for the manifest, raw result, source manifest, every
 generator source/config file, and the dependency lock. It rejects a symlinked
 bundle root, final file, or intermediate component such as `src`.
 
+The verifier also treats the manifest as an executable semantic contract, not
+as a self-authenticating description. Every model, data-source, dependency,
+toolchain, event, project-path, tolerance, output, and claim declaration is
+sealed to independent expected values. Derived checks additionally bind those
+declarations to `case.properties`, `dependencies.lock`, the digest-pinned
+generator/container source, and the constants and provider identities observed
+from the exact OrbitalDynamics execution path. Re-pinning only a changed
+manifest digest cannot legitimize a contradictory container tag/image ID, Sun
+direction or distance, force-model constant, initial state, event definition,
+or project-path declaration.
+
+Each file is opened as a raw binary handle after the path preflight. The
+verifier requires a usable filesystem device/inode identity, compares handle
+`fstat` type, identity, and size to the pre-open `lstat`, reads incrementally
+with a `maximum + 1` bound, then rechecks the handle and every root/intermediate/
+final path component. It fails closed when a portable handle identity is not
+available; no custom writable bundle receives a weaker path-based trust claim.
+
 ## Reproduce
 
 Docker is the only host dependency. The script uses the digest-pinned

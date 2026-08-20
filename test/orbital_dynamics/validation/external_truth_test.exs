@@ -52,6 +52,14 @@ defmodule OrbitalDynamics.Validation.ExternalTruthTest do
     assert check(report, "state.0.epoch_s")["status"] == "pass"
     assert check(report, "state.12340.epoch_s")["status"] == "pass"
     assert check(report, "state.21600.epoch_s")["status"] == "pass"
+    assert check(report, "bundle.manifest.semantic_declarations")["status"] == "pass"
+    assert check(report, "bundle.manifest.case_properties_semantics")["status"] == "pass"
+    assert check(report, "bundle.manifest.dependency_lock_semantics")["status"] == "pass"
+    assert check(report, "bundle.manifest.generator_container_ref")["status"] == "pass"
+    assert check(report, "bundle.manifest.toolchain_source_semantics")["status"] == "pass"
+
+    assert check(report, "orbital_dynamics.manifest_runtime_semantics")["status"] ==
+             "pass"
 
     assert max_residual(report, "state.", "max_abs_error", ".position_m") < 0.001
     assert max_residual(report, "state.", "max_abs_error", ".velocity_m_s") < 1.0e-6
@@ -164,6 +172,104 @@ defmodule OrbitalDynamics.Validation.ExternalTruthTest do
     end
   end
 
+  test "semantic seal rejects contradictory declarations after a legitimate manifest re-pin" do
+    mutations = [
+      {"container-tag", ["reference_tool", "container_image"],
+       "docker.io/library/maven:3.9.10-eclipse-temurin-21"},
+      {"container-image-id", ["reference_tool", "container_image_id"],
+       "sha256:4ead0ff36a4b796440e451013a4ce803dbd02f07b6c5b634cc2ad67927dfcc10"},
+      {"sun-distance", ["data_sources", "sun_provider_distance_m"], 200_000_000_000.0},
+      {"sun-direction", ["data_sources", "sun_direction_eme2000"], [-1.0, 0.0, 0.0]},
+      {"earth-orientation", ["data_sources", "earth_orientation_model"],
+       "iers_eop_driven_rotation"},
+      {"mu", ["reference_model", "mu_m3_s2"], 398_600_441_700_000.0},
+      {"radius", ["reference_model", "equatorial_radius_m"], 6_378_137.0},
+      {"j2", ["reference_model", "j2"], 1.0827e-3},
+      {"initial-state", ["reference_model", "initial_position_m"], [7_000_001.0, 0.0, 0.0]},
+      {"dependency", ["dependencies", "hipparchus_version"], "4.0.4"},
+      {"access", ["access_model", "minimum_elevation_deg"], 6.0},
+      {"eclipse", ["eclipse_model", "light_source"],
+       "infinitely_distant_fixed_negative_eme2000_x_direction"},
+      {"orbital-path", ["orbital_dynamics_path", "access_root_tolerance_s"], 0.01}
+    ]
+
+    for {label, path, value} <- mutations do
+      bundle_path = copy_bundle("semantic-#{label}")
+      expectations = repin_manifest!(bundle_path, &put_in(&1, path, value))
+
+      assert {:ok, loaded_bundle} = StrictBundle.load(bundle_path, expectations)
+      assert {:error, report} = OrekitLeoCase.validate_semantic_seal(loaded_bundle)
+      assert report["status"] == "fail"
+      assert check(report, "bundle.manifest.semantic_declarations")["status"] == "fail"
+    end
+  end
+
+  test "raw handle checks reject path swaps, intermediate swaps, and growth during reads" do
+    swapped_file_bundle = copy_bundle("race-final-symlink")
+    swapped_file_expectations = expectations_from_bundle(swapped_file_bundle)
+    manifest_path = Path.join(swapped_file_bundle, "manifest.json")
+    manifest_sibling = Path.join(swapped_file_bundle, "manifest-sibling.json")
+    File.cp!(manifest_path, manifest_sibling)
+
+    final_swap = fn
+      :after_path_preflight, "manifest.json" ->
+        File.rename!(manifest_path, manifest_path <> ".original")
+        File.ln_s!(manifest_sibling, manifest_path)
+        :ok
+
+      _stage, _path ->
+        :ok
+    end
+
+    assert {:error, final_swap_reason} =
+             StrictBundle.load(swapped_file_bundle, swapped_file_expectations,
+               read_seam: final_swap
+             )
+
+    assert inspect(final_swap_reason) =~ "handle_identity_mismatch"
+
+    swapped_parent_bundle = copy_bundle("race-parent-symlink")
+    swapped_parent_expectations = expectations_from_bundle(swapped_parent_bundle)
+    source_directory = Path.join(swapped_parent_bundle, "src")
+    source_sibling = Path.join(Path.dirname(swapped_parent_bundle), "race-source-sibling")
+
+    parent_swap = fn
+      :after_handle_preflight,
+      "src/main/java/org/orbitaldynamics/validation/OrekitTruthGenerator.java" ->
+        File.rename!(source_directory, source_sibling)
+        File.ln_s!(source_sibling, source_directory)
+        :ok
+
+      _stage, _path ->
+        :ok
+    end
+
+    assert {:error, parent_swap_reason} =
+             StrictBundle.load(swapped_parent_bundle, swapped_parent_expectations,
+               read_seam: parent_swap
+             )
+
+    assert inspect(parent_swap_reason) =~ "symlink_path_component"
+
+    grown_bundle = copy_bundle("race-growth")
+    grown_expectations = expectations_from_bundle(grown_bundle)
+    grown_manifest_path = Path.join(grown_bundle, "manifest.json")
+
+    grow_after_open = fn
+      :after_handle_preflight, "manifest.json" ->
+        write_sparse_file(grown_manifest_path, 131_073)
+        :ok
+
+      _stage, _path ->
+        :ok
+    end
+
+    assert {:error, growth_reason} =
+             StrictBundle.load(grown_bundle, grown_expectations, read_seam: grow_after_open)
+
+    assert inspect(growth_reason) =~ "file_size_exceeds_limit"
+  end
+
   test "strict readers reject malformed and duplicate keys" do
     assert {:error, {:duplicate_json_key, "frame"}} =
              StrictBundle.decode_json_strict(~s({"frame":"EME2000","frame":"TEME"}))
@@ -224,6 +330,53 @@ defmodule OrbitalDynamics.Validation.ExternalTruthTest do
     :ok = IO.binwrite(io, <<0>>)
     :ok = File.close(io)
   end
+
+  defp repin_manifest!(bundle_path, mutation) do
+    manifest_path = Path.join(bundle_path, "manifest.json")
+    original_bytes = File.read!(manifest_path)
+    {:ok, manifest} = StrictBundle.decode_json_strict(original_bytes)
+    updated_bytes = manifest |> mutation.() |> :json.encode() |> IO.iodata_to_binary()
+    File.write!(manifest_path, updated_bytes)
+
+    sums_path = Path.join(bundle_path, "SHA256SUMS")
+    updated_sha256 = sha256(updated_bytes)
+
+    sums =
+      sums_path
+      |> File.read!()
+      |> String.replace(sha256(original_bytes), updated_sha256)
+
+    File.write!(sums_path, sums)
+    expectations_from_bundle(bundle_path)
+  end
+
+  defp expectations_from_bundle(bundle_path) do
+    manifest_bytes = bundle_path |> Path.join("manifest.json") |> File.read!()
+    {:ok, manifest} = StrictBundle.decode_json_strict(manifest_bytes)
+
+    source_files =
+      manifest["source_identity"]["files"]
+      |> Enum.map(fn file ->
+        %{
+          path: file["path"],
+          byte_count: file["byte_count"],
+          sha256: file["sha256"]
+        }
+      end)
+
+    %{
+      manifest_sha256: sha256(manifest_bytes),
+      manifest_byte_count: byte_size(manifest_bytes),
+      source_manifest_sha256: manifest["source_identity"]["sha256"],
+      source_manifest_byte_count: manifest["source_identity"]["manifest_byte_count"],
+      result_sha256: manifest["result_identity"]["sha256"],
+      result_byte_count: manifest["result_identity"]["byte_count"],
+      source_files: source_files,
+      source_total_byte_count: manifest["source_identity"]["total_source_byte_count"]
+    }
+  end
+
+  defp sha256(bytes), do: :crypto.hash(:sha256, bytes) |> Base.encode16(case: :lower)
 
   defp assert_bundle_integrity_failure(bundle_path, reason_fragment \\ nil) do
     assert {:error, report} = OrekitLeoCase.verify(bundle_path: bundle_path)
