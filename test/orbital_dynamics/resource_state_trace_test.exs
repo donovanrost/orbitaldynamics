@@ -313,6 +313,86 @@ defmodule OrbitalDynamics.ResourceStateTraceTest do
     end
   end
 
+  test "official builder rejects recursively unsafe or lossy JSON content before hashing" do
+    unsafe_values = [
+      self(),
+      {:tuple, 1},
+      [1 | 2],
+      fn -> :unsafe end,
+      make_ref(),
+      <<1::size(1)>>,
+      %URI{scheme: "https", host: "example.test"}
+    ]
+
+    Enum.each(unsafe_values, fn unsafe ->
+      assert_raise ArgumentError,
+                   ~r/(unsupported .* content|improper list|unsupported struct)/,
+                   fn ->
+                     OrbitalDynamics.resource_state_trace([], initial_summary(),
+                       provenance: %{unsafe: unsafe}
+                     )
+                   end
+    end)
+
+    duplicate_declaration = %{:revision => "left", "revision" => "right"}
+
+    assert_raise ArgumentError, ~r/duplicate atom\/string keys after normalization/, fn ->
+      OrbitalDynamics.resource_state_trace([], initial_summary(),
+        provenance: duplicate_declaration
+      )
+    end
+
+    trace = OrbitalDynamics.resource_state_trace([], initial_summary())
+
+    unsafe_core =
+      trace
+      |> Map.delete("id")
+      |> put_in(["provenance", "caller", "unsafe"], self())
+
+    assert_raise ArgumentError, ~r/not recursively JSON-safe.*PID is not a JSON value/, fn ->
+      ResourceStateTrace.artifact_id(unsafe_core)
+    end
+  end
+
+  test "executable trace schema rejects unsafe terms and normalized key collisions recursively" do
+    trace = OrbitalDynamics.resource_state_trace([], initial_summary())
+
+    unsafe_values = [
+      self(),
+      {:tuple, 1},
+      [1 | 2],
+      fn -> :unsafe end,
+      make_ref(),
+      <<1::size(1)>>,
+      %URI{scheme: "https", host: "example.test"}
+    ]
+
+    Enum.each(unsafe_values, fn unsafe ->
+      malformed = put_in(trace, ["provenance", "caller", "unsafe"], unsafe)
+      assert {:error, report} = Schema.validate_artifact(malformed)
+
+      assert Enum.any?(report["errors"], fn error ->
+               String.starts_with?(error["path"], "$.provenance.caller.unsafe") and
+                 (String.contains?(error["message"], "not a JSON") or
+                    String.contains?(error["message"], "not JSON"))
+             end)
+    end)
+
+    duplicate =
+      put_in(
+        trace,
+        ["provenance", "caller"],
+        %{:revision => "left", "revision" => "right"}
+      )
+
+    assert {:error, duplicate_report} = Schema.validate_artifact(duplicate)
+
+    assert Enum.any?(duplicate_report["errors"], fn error ->
+             error["path"] == "$.provenance.caller" and
+               error["message"] == "contains duplicate atom/string keys after normalization"
+           end)
+  end
+
   test "executable validation rejects ordering, chain, and identity drift" do
     trace =
       OrbitalDynamics.resource_state_trace(

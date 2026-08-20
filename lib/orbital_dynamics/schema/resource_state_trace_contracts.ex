@@ -21,6 +21,7 @@ defmodule OrbitalDynamics.Schema.ResourceStateTraceContracts do
     ]
 
   alias OrbitalDynamics.ResourceStateTrace
+  alias OrbitalDynamics.Schema.JsonSafety
 
   @state_fields ~w(
     battery_capacity_wh
@@ -87,6 +88,13 @@ defmodule OrbitalDynamics.Schema.ResourceStateTraceContracts do
   )
 
   def validate(issues, path, trace) do
+    case JsonSafety.errors(trace, path) do
+      [] -> validate_json_safe(issues, path, trace)
+      safety_issues -> safety_issues ++ issues
+    end
+  end
+
+  defp validate_json_safe(issues, path, trace) do
     required_fields =
       OrbitalDynamics.Schema.ResourceStateTraceRegistryContracts.contracts()
       |> Map.fetch!("resource_state_trace.v1")

@@ -124,6 +124,43 @@ Status: **implemented** (core), with **partial**, **near-term**, **later**, and 
   retains every term, parameter move, rank, and tie-break explanation. This
   does not validate whether the caller's term function is physically complete,
   calibrated, or pure.
+- Bounded local search also accepts an opt-in `hard_feasibility` map with exact
+  mode `hard`, candidate evidence, and a separately content-addressed
+  `local_search_source_evidence_registry.v1` composition snapshot keyed by
+  alternative ID. Each registry entry declares the exact expected resource
+  trace ID, downlink link-budget ID, parameter revision, and deterministic
+  BEAM-term parameter-content SHA-256. Candidate artifacts do not self-declare
+  or modify this routing. The declared content algorithm is deliberately
+  BEAM-specific and is not represented as portable JSON canonicalization.
+- The registry is a caller-supplied trusted composition snapshot: it supplies
+  immutable content-identity routing to the optimizer, not authentication.
+  Signatures, evidence-generating input authenticity, and malicious coordinated
+  replacement of both the registry and its artifacts remain outside this Level
+  5 slice and Domain 22. Artifact self-declarations are not treated as proof of
+  source authenticity.
+- The bounded hard model supports exactly one minimum-battery-state-of-charge
+  threshold and one downlink completion-fraction or shortfall threshold per
+  candidate. Resource values are read from the supplied trace states; downlink
+  completion and shortfall are derived from the supplied budget's supported
+  volume and an explicit positive required volume. State of charge and
+  completion thresholds must be finite values in `[0, 1]`; shortfall thresholds
+  must be finite and non-negative. Recursive JSON-safety and the full
+  `resource_state_trace.v1` semantic validator run before registry identity
+  comparison. It does not propagate another state, recompute geometry, infer
+  operational truth, allocate across candidates, or repair a result after
+  ranking.
+- Hard feasibility is evaluated before ranks are assigned. Only eligible
+  alternatives receive numeric ranks; every alternative carries an inline
+  `candidate_feasibility.v1`-style evaluation with stable blocker reasons and
+  source values. If all alternatives are blocked, the result carries a typed
+  `local_search_recommendation_outcome.v1`-style
+  `no_recommendable_alternative` outcome with null selected ID, score, rank,
+  and incumbent identity. Missing, malformed, stale, mismatched, ambiguous, or
+  unsupported evidence fails closed. Omitting `hard_feasibility` preserves the
+  legacy search result and its existing model-limit declaration unchanged.
+- When the seed is ineligible but another candidate is feasible, score
+  improvement against the seed is null rather than presented as comparable;
+  the result emits a typed feasibility transition to the selected candidate.
 
 ### Branch-comparison feedback
 
@@ -161,7 +198,7 @@ Status: **implemented** (core), with **partial**, **near-term**, **later**, and 
 ## Later
 
 - Constraint dependency graphs.
-- Soft/hard constraint composition.
+- Broader soft/hard constraint composition across planner workflows.
 - Multi-objective Pareto summaries.
 - Policy libraries.
 - Calibration from operational outcomes.

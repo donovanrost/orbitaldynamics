@@ -15,6 +15,7 @@ defmodule OrbitalDynamics.ResourceStateTrace do
 
   alias OrbitalDynamics.ResourceSummary
   alias OrbitalDynamics.Communications.DownlinkLinkBudget
+  alias OrbitalDynamics.Schema.JsonSafety
 
   @schema_contract "resource_state_trace.v1"
   @model "tier_1_declared_activity_resource_state_trace"
@@ -115,6 +116,9 @@ defmodule OrbitalDynamics.ResourceStateTrace do
 
   def trace(selected_activities, initial_resource_summary, opts)
       when is_list(selected_activities) and is_list(opts) do
+    selected_activities =
+      JsonSafety.normalize_input!(selected_activities, "selected activities")
+
     opts = normalize_opts!(opts)
     initial = normalize_initial_state!(initial_resource_summary, opts)
 
@@ -182,7 +186,8 @@ defmodule OrbitalDynamics.ResourceStateTrace do
 
   @doc false
   def artifact_id(core) when is_map(core) do
-    "resource_state_trace:" <> digest(json_safe(core))
+    core = JsonSafety.validate_artifact!(core, "resource_state_trace.v1 content")
+    "resource_state_trace:" <> digest(core)
   end
 
   defp normalize_opts!(opts) do
@@ -774,30 +779,8 @@ defmodule OrbitalDynamics.ResourceStateTrace do
   defp maybe_put_link_budget_id(provenance, budget),
     do: Map.put(provenance, "downlink_link_budget_id", budget["id"])
 
-  defp json_safe(nil), do: :null
-  defp json_safe(:null), do: :null
-  defp json_safe(value) when is_boolean(value) or is_binary(value), do: value
-  defp json_safe(value) when is_integer(value) or is_float(value), do: value
-  defp json_safe(value) when is_atom(value), do: Atom.to_string(value)
-
-  defp json_safe(value) when is_list(value), do: Enum.map(value, &json_safe/1)
-
-  defp json_safe(value) when is_tuple(value) do
-    %{"input_type" => "tuple", "value" => value |> Tuple.to_list() |> json_safe()}
-  end
-
-  defp json_safe(%{} = map) do
-    map
-    |> Enum.sort_by(fn {key, _value} -> {to_string(key), key_precedence(key)} end)
-    |> Enum.reduce(%{}, fn {key, value}, acc ->
-      Map.put(acc, to_string(key), json_safe(value))
-    end)
-  end
-
-  defp json_safe(value), do: %{"input_type" => input_type(value)}
-
-  defp key_precedence(key) when is_atom(key), do: 0
-  defp key_precedence(_key), do: 1
+  defp json_safe(value),
+    do: JsonSafety.normalize_input!(value, "resource state trace input")
 
   defp input_type(value) when is_boolean(value), do: "boolean"
   defp input_type(value) when is_atom(value), do: "atom"
