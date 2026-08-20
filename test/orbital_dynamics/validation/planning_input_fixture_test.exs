@@ -194,6 +194,14 @@ defmodule OrbitalDynamics.Validation.PlanningInputFixtureTest do
   end
 
   test "verifies curated environment capability reference fixtures" do
+    tabular_earth_orientation_fixture_id =
+      "fixture.artifact.environment_provider_capability.tabular_earth_orientation"
+
+    tabular_earth_orientation_capability =
+      environment_provider_capability_fixture(
+        "environment.provider.earth_orientation.tabular_rotation"
+      )
+
     fixtures = [
       {
         "fixture.artifact.environment_model_capability.fixed_sun",
@@ -220,11 +228,9 @@ defmodule OrbitalDynamics.Validation.PlanningInputFixtureTest do
         )
       },
       {
-        "fixture.artifact.environment_provider_capability.tabular_earth_orientation",
+        tabular_earth_orientation_fixture_id,
         "environment_provider_capability.v1",
-        environment_provider_capability_fixture(
-          "environment.provider.earth_orientation.tabular_rotation"
-        )
+        tabular_earth_orientation_capability
       },
       {
         "fixture.artifact.environment_provider_capability.exponential_atmosphere",
@@ -234,6 +240,16 @@ defmodule OrbitalDynamics.Validation.PlanningInputFixtureTest do
         )
       }
     ]
+
+    assert {:ok, tabular_earth_orientation_fixture} =
+             Validation.reference_fixture(tabular_earth_orientation_fixture_id)
+
+    assert tabular_earth_orientation_capability["parameters"]
+           |> Map.keys()
+           |> Enum.sort() == ["file_input_integrity", "input_modes"]
+
+    assert tabular_earth_orientation_fixture["expected"]["parameter_count"] ==
+             map_size(tabular_earth_orientation_capability["parameters"])
 
     for {fixture_id, contract, artifact} <- fixtures do
       assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
