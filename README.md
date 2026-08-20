@@ -216,6 +216,8 @@ Project docs live under [`docs/`](docs/README.md) as a navigable document base.
   [`docs/mission_planning/leo_campaign_planner/`](docs/mission_planning/leo_campaign_planner/README.md).
 - The broader feature-completeness map and phased maturity definition live in
   [`docs/feature_set/`](docs/feature_set/README.md).
+- The checked machine-readable V1/V2/V3 Level 5 command path lives in
+  [`docs/feature_set/level5_workflow.md`](docs/feature_set/level5_workflow.md).
 - Canonical artifact examples, public field families, and lint commands live
   in [`docs/artifacts/`](docs/artifacts/README.md).
 - The high-fidelity mission-planning feature set (longer, forward-looking)
