@@ -1,0 +1,126 @@
+{
+  "schema": "orekit_external_truth_raw.v1",
+  "case_id": "orekit_13_1_7_earth_j2_drag_rk4_10s_access_eclipse_6h",
+  "source_identity_sha256": "f0010176139936bd60aaf37b9569277cd30a22025ba3310216096c2d798b9d37",
+  "generated_at_utc": "2026-08-20T08:30:00Z",
+  "tool": {
+    "name": "Apache Orekit",
+    "version": "13.1.7",
+    "java_runtime": "21.0.9+10-LTS"
+  },
+  "model": {
+    "propagator": "NumericalPropagator",
+    "orbit_type": "CARTESIAN",
+    "integrator": "ClassicalRungeKuttaIntegrator",
+    "integrator_step_s": 1.00000000000000000e+01,
+    "gravity": "NewtonianAttraction_plus_J2OnlyPerturbation",
+    "drag": "DragForce_plus_SimpleExponentialAtmosphere_plus_IsotropicDrag",
+    "access_detector": "ElevationDetector",
+    "eclipse_detector": "CylindricalShadowEclipseDetector"
+  },
+  "identity": {
+    "frame": "EME2000",
+    "epoch": "2000-01-01T12:00:00_TDB",
+    "time_scale": "TDB_J2000_RELATIVE_SECONDS",
+    "orekit_data_revision": "none",
+    "eop_source": "none",
+    "ephemeris_source": "fixed_sun_direction_input"
+  },
+  "horizon_s": 2.16000000000000000e+04,
+  "states": [
+    {
+      "epoch_s": 0.00000000000000000e+00,
+      "position_m": [7.00000000000000000e+06, 0.00000000000000000e+00, 0.00000000000000000e+00],
+      "velocity_m_s": [0.00000000000000000e+00, 4.68721425101214000e+03, 5.91379259208940800e+03]
+    },
+    {
+      "epoch_s": 1.80000000000000000e+03,
+      "position_m": [-2.53388565324043000e+06, 4.05288349450587600e+06, 5.10136088711361000e+06],
+      "velocity_m_s": [-7.03564179399829300e+03, -1.69536527624361070e+03, -2.15348722614974200e+03]
+    },
+    {
+      "epoch_s": 3.60000000000000000e+03,
+      "position_m": [-5.13292975639986400e+06, -2.93886883998746900e+06, -3.72402140599541230e+06],
+      "velocity_m_s": [5.12604766553615900e+03, -3.45722924124313430e+03, -4.34081120164128600e+03]
+    },
+    {
+      "epoch_s": 7.20000000000000000e+03,
+      "position_m": [5.76973267288370600e+05, 4.33019024214592800e+06, 5.46060136565549100e+06],
+      "velocity_m_s": [-7.52211537523668900e+03, 4.13022581541266800e+02, 4.59179945952171200e+02]
+    },
+    {
+      "epoch_s": 1.08000000000000000e+04,
+      "position_m": [4.31751159694773300e+06, -3.44864916370217000e+06, -4.29177392542053400e+06],
+      "velocity_m_s": [5.94166374666996100e+03, 2.85344377687414400e+03, 3.67338735974629070e+03]
+    },
+    {
+      "epoch_s": 1.44000000000000000e+04,
+      "position_m": [-6.89664340180983300e+06, 7.57438450807647400e+05, 8.40860078011256600e+05],
+      "velocity_m_s": [-1.22101280942142150e+03, -4.62335709693609200e+03, -5.85284385359012600e+03]
+    },
+    {
+      "epoch_s": 1.80000000000000000e+04,
+      "position_m": [5.84567628482168100e+06, 2.33336340377376040e+06, 3.05977253385054900e+06],
+      "velocity_m_s": [-4.15215328726539250e+03, 3.95540234210875100e+03, 4.90435288071204500e+03]
+    },
+    {
+      "epoch_s": 2.16000000000000000e+04,
+      "position_m": [-1.67172445957125540e+06, -4.20049508230135700e+06, -5.33278710402278200e+06],
+      "velocity_m_s": [7.32849315686557300e+03, -1.21262895502800960e+03, -1.34862370442517520e+03]
+    }
+  ],
+  "events": {
+    "access": [
+      {
+        "type": "aos",
+        "epoch_s": 1.12269531930898540e+04
+      },
+      {
+        "type": "los",
+        "epoch_s": 1.18287552105120070e+04
+      },
+      {
+        "type": "aos",
+        "epoch_s": 1.73103750922846560e+04
+      },
+      {
+        "type": "los",
+        "epoch_s": 1.78649928149675940e+04
+      }
+    ],
+    "eclipse": [
+      {
+        "type": "ingress",
+        "epoch_s": 1.84701994120692670e+03
+      },
+      {
+        "type": "egress",
+        "epoch_s": 3.97302552613314100e+03
+      },
+      {
+        "type": "ingress",
+        "epoch_s": 7.66706964234432800e+03
+      },
+      {
+        "type": "egress",
+        "epoch_s": 9.79306140963490000e+03
+      },
+      {
+        "type": "ingress",
+        "epoch_s": 1.34871237846355730e+04
+      },
+      {
+        "type": "egress",
+        "epoch_s": 1.56130875930849070e+04
+      },
+      {
+        "type": "ingress",
+        "epoch_s": 1.93071824723637470e+04
+      },
+      {
+        "type": "egress",
+        "epoch_s": 2.14331041793473700e+04
+      }
+    ]
+  }
+}

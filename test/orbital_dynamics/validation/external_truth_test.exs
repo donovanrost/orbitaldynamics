@@ -1,0 +1,178 @@
+defmodule OrbitalDynamics.Validation.ExternalTruthTest do
+  use ExUnit.Case, async: true
+
+  alias OrbitalDynamics.Validation.ExternalTruth
+  alias OrbitalDynamics.Validation.ExternalTruth.{OrekitLeoCase, StrictBundle}
+
+  @case_id "external_truth.orekit_13_1_7.earth_j2_drag_rk4_10s_access_eclipse_6h"
+
+  setup_all do
+    assert {:ok, observations} = OrekitLeoCase.observations()
+    %{observations: observations}
+  end
+
+  test "registers only the exact externally validated model combination" do
+    assert [registration] = ExternalTruth.all()
+    assert registration["id"] == @case_id
+    assert registration["validation_level"] == "validated"
+
+    assert registration["model"] ==
+             "earth_j2_drag_rk4_10s_spherical_access_fixed_sun_cylindrical_eclipse_6h"
+
+    assert registration["intended_uses"] == [
+             "numerical_regression",
+             "bounded_analysis_evidence"
+           ]
+
+    assert Enum.any?(registration["known_limits"], &String.contains?(&1, "120 kg"))
+    assert "not flight certification or operational acceptance" in registration["known_limits"]
+
+    assert {:ok, ^registration} = ExternalTruth.fetch(@case_id)
+    assert :error = ExternalTruth.fetch("external_truth.not_registered")
+  end
+
+  test "verifies all pinned identities, full horizon, states, access, and eclipse boundaries" do
+    assert {:ok, report} = ExternalTruth.verify(@case_id)
+    assert report["status"] == "pass"
+    assert report["validation_level"] == "validated"
+    assert report["status_counts"] == %{"pass" => length(report["checks"])}
+    assert {:ok, _schema_report} = OrbitalDynamics.Schema.validate_artifact(report)
+
+    assert max_residual(report, "state.", "max_abs_error", ".position_m") < 0.001
+    assert max_residual(report, "state.", "max_abs_error", ".velocity_m_s") < 1.0e-6
+    assert max_residual(report, "access.", "error", ".epoch_s") < 0.001
+
+    eclipse_residual = max_residual(report, "eclipse.", "error", ".epoch_s")
+    assert eclipse_residual > 0.02
+    assert eclipse_residual < 0.05
+
+    assert check(report, "orbital_dynamics.horizon_coverage")["observed"] == %{
+             "starts_at_s" => 0.0,
+             "ends_at_s" => 21_600.0,
+             "sample_count" => 2_161
+           }
+  end
+
+  test "rejects perturbed propagated state and access and eclipse truth", %{
+    observations: observations
+  } do
+    perturbed =
+      observations
+      |> update_in([:states, Access.at(7), :position_m, Access.at(0)], &(&1 + 0.02))
+      |> update_in([:access, Access.at(0), :epoch_s], &(&1 + 0.002))
+      |> update_in([:eclipse, Access.at(0), :epoch_s], &(&1 + 0.1))
+
+    assert {:error, report} = OrekitLeoCase.compare_observations(perturbed)
+    assert report["status"] == "fail"
+    assert check(report, "state.21600.position_m")["status"] == "fail"
+    assert check(report, "access.1.epoch_s")["status"] == "fail"
+    assert check(report, "eclipse.1.epoch_s")["status"] == "fail"
+  end
+
+  test "rejects frame, time-scale, and horizon coverage mismatches", %{
+    observations: observations
+  } do
+    mismatched =
+      observations
+      |> put_in([:path_identity, :frame], :teme)
+      |> put_in([:path_identity, :epoch_scale], :utc)
+      |> put_in([:horizon, :ends_at_s], 21_590.0)
+      |> put_in([:horizon, :sample_count], 2_160)
+
+    assert {:error, report} = OrekitLeoCase.compare_observations(mismatched)
+    assert check(report, "orbital_dynamics.path_identity")["status"] == "fail"
+    assert check(report, "orbital_dynamics.horizon_coverage")["status"] == "fail"
+  end
+
+  test "content binding rejects stale tool/config/data and perturbed result bytes" do
+    stale_source = copy_bundle("stale-source")
+
+    File.write!(
+      Path.join(stale_source, "case.properties"),
+      OrekitLeoCase.bundle_path()
+      |> Path.join("case.properties")
+      |> File.read!()
+      |> String.replace("orekit_data_revision=none", "orekit_data_revision=stale")
+    )
+
+    assert_bundle_integrity_failure(stale_source)
+
+    stale_manifest = copy_bundle("stale-manifest")
+
+    File.write!(
+      Path.join(stale_manifest, "manifest.json"),
+      stale_manifest
+      |> Path.join("manifest.json")
+      |> File.read!()
+      |> String.replace(~s("version": "13.1.7"), ~s("version": "13.1.6"))
+    )
+
+    assert_bundle_integrity_failure(stale_manifest)
+
+    perturbed_result = copy_bundle("perturbed-result")
+
+    File.write!(
+      Path.join(perturbed_result, "reference-output.json"),
+      perturbed_result
+      |> Path.join("reference-output.json")
+      |> File.read!()
+      |> String.replace("7.00000000000000000e+06", "7.00000000000002000e+06", global: false)
+    )
+
+    assert_bundle_integrity_failure(perturbed_result)
+  end
+
+  test "strict readers reject malformed and duplicate keys" do
+    assert {:error, {:duplicate_json_key, "frame"}} =
+             StrictBundle.decode_json_strict(~s({"frame":"EME2000","frame":"TEME"}))
+
+    assert {:error, {:invalid_json, _reason}} = StrictBundle.decode_json_strict(~s({"frame":}))
+
+    assert {:error, {:invalid_bundle, {:duplicate_config_key, "frame"}}} =
+             StrictBundle.parse_properties_strict("frame=EME2000\nframe=TEME\n")
+
+    source_line = String.duplicate("a", 64) <> "  case.properties\n"
+
+    assert {:error, {:invalid_bundle, {:duplicate_source_path, "case.properties"}}} =
+             StrictBundle.parse_source_manifest(source_line <> source_line)
+
+    dependency_line =
+      String.duplicate("a", 64) <>
+        " https://repo.maven.apache.org/maven2/example.jar example.jar\n"
+
+    assert {:error, {:invalid_bundle, {:duplicate_dependency_filename, "example.jar"}}} =
+             StrictBundle.parse_dependency_lock(dependency_line <> dependency_line)
+  end
+
+  defp max_residual(report, prefix, residual_key, suffix) do
+    report["checks"]
+    |> Enum.filter(fn row ->
+      String.starts_with?(row["field"], prefix) and String.ends_with?(row["field"], suffix) and
+        is_number(row[residual_key])
+    end)
+    |> Enum.map(& &1[residual_key])
+    |> Enum.max()
+  end
+
+  defp check(report, field), do: Enum.find(report["checks"], &(&1["field"] == field))
+
+  defp copy_bundle(label) do
+    root =
+      Path.join(
+        System.tmp_dir!(),
+        "orbital-dynamics-external-truth-#{label}-#{System.unique_integer([:positive])}"
+      )
+
+    destination = Path.join(root, "bundle")
+    File.mkdir_p!(root)
+    File.cp_r!(OrekitLeoCase.bundle_path(), destination)
+    on_exit(fn -> File.rm_rf!(root) end)
+    destination
+  end
+
+  defp assert_bundle_integrity_failure(bundle_path) do
+    assert {:error, report} = OrekitLeoCase.verify(bundle_path: bundle_path)
+    assert report["status"] == "fail"
+    assert check(report, "bundle.verification")["status"] == "fail"
+  end
+end
