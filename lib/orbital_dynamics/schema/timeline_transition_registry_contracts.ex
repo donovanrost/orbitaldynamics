@@ -3,6 +3,21 @@ defmodule OrbitalDynamics.Schema.TimelineTransitionRegistryContracts do
 
   def contracts do
     %{
+      "timeline_revision.v1" => %{
+        "schema_contract" => "timeline_revision.v1",
+        "artifact_family" => "timeline_revision",
+        "schema_version" => 1,
+        "required_fields" => [
+          "schema_contract",
+          "identity_scheme",
+          "canonicalization",
+          "prior_revision_id",
+          "transition_batch_id",
+          "replacement_revision_id"
+        ],
+        "optional_fields" => [],
+        "nested_contracts" => []
+      },
       "timeline_transition_application_report.v1" => %{
         "schema_contract" => "timeline_transition_application_report.v1",
         "artifact_family" => "timeline_transition_application_report",
@@ -33,10 +48,11 @@ defmodule OrbitalDynamics.Schema.TimelineTransitionRegistryContracts do
           "selected_timeline_integrity_review_count",
           "status_transition_category_counts",
           "status_transition_counts",
+          "timeline_revision",
           "transition_decision_counts",
           "withheld_review_count"
         ],
-        "nested_contracts" => ["timeline_diff_report.v1"]
+        "nested_contracts" => ["timeline_diff_report.v1", "timeline_revision.v1"]
       },
       "timeline_transition_application_summary.v1" => %{
         "schema_contract" => "timeline_transition_application_summary.v1",
@@ -78,8 +94,11 @@ defmodule OrbitalDynamics.Schema.TimelineTransitionRegistryContracts do
           "assumptions",
           "model_limits"
         ],
-        "optional_fields" => [],
-        "nested_contracts" => ["timeline_transition_application_report.v1"]
+        "optional_fields" => ["timeline_revision"],
+        "nested_contracts" => [
+          "timeline_revision.v1",
+          "timeline_transition_application_report.v1"
+        ]
       }
     }
   end

@@ -411,6 +411,7 @@ defmodule OrbitalDynamics.Schema.TimelineSummaryContractsTest do
            ]) == Schema.identity_policy()["stable_id_pattern"]
 
     assert get_in(schema, ["x-orbital-dynamics", "nested_contracts"]) == [
+             "timeline_revision.v1",
              "timeline_transition_application_report.v1"
            ]
 

@@ -3026,7 +3026,23 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
     assert get_in(transition_application_summary_schema, [
              "x-orbital-dynamics",
              "nested_contracts"
-           ]) == ["timeline_transition_application_report.v1"]
+           ]) == [
+             "timeline_revision.v1",
+             "timeline_transition_application_report.v1"
+           ]
+
+    assert Map.has_key?(schemas, "timeline_revision.v1")
+
+    timeline_revision_schema = schemas["timeline_revision.v1"]
+
+    assert get_in(timeline_revision_schema, ["properties", "schema_contract", "const"]) ==
+             "timeline_revision.v1"
+
+    assert get_in(timeline_revision_schema, ["properties", "identity_scheme", "const"]) ==
+             "sha256_canonical_json"
+
+    assert get_in(timeline_revision_schema, ["properties", "transition_batch_id", "pattern"]) =~
+             "[0-9a-f]{64}"
 
     assert Map.has_key?(schemas, "timeline_transition_application_report.v1")
 
