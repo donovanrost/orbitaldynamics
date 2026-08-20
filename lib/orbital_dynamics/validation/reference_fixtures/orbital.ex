@@ -227,7 +227,7 @@ defmodule OrbitalDynamics.Validation.ReferenceFixtures.Orbital do
       "known_limits" => [
         "internal regression fixture, not an external truth model",
         "covers one 400 km equatorial LEO state only",
-        "acceleration is integrated only by the opt-in scalar two-body-drag propagator"
+        "acceleration is integrated only by the opt-in scalar two-body-drag and J2-drag propagators"
       ]
     },
     "fixture.propagator.two_body_drag.earth_400km_600s" => %{
@@ -282,6 +282,68 @@ defmodule OrbitalDynamics.Validation.ReferenceFixtures.Orbital do
         "internal regression fixture, not an external truth model",
         "covers one 400 km equatorial LEO state over 600 seconds",
         "uses the built-in reference atmosphere and constant Earth rotation"
+      ]
+    },
+    "fixture.propagator.j2_drag.earth_400km_24h_step_convergence" => %{
+      "id" => "fixture.propagator.j2_drag.earth_400km_24h_step_convergence",
+      "model_id" => "propagator.j2_drag",
+      "reference_case" =>
+        "24 hour 400 km circular Earth/J2000/TDB propagation with point-mass gravity, J2, reference atmospheric drag, and 10-second versus 5-second fixed-step comparison",
+      "validation_level" => "educational",
+      "fixture_type" => "curated_internal_convergence",
+      "inputs" => %{
+        "central_body" => "earth",
+        "altitude_km" => 400.0,
+        "duration_s" => 86_400.0,
+        "output_step_s" => 3_600.0,
+        "coarse_max_step_s" => 10.0,
+        "fine_max_step_s" => 5.0,
+        "dry_mass_kg" => 100.0,
+        "propellant_mass_kg" => 20.0,
+        "drag_area_m2" => 4.0,
+        "drag_coefficient" => 2.2,
+        "atmosphere_provider_id" => "environment.provider.atmosphere.exponential_reference",
+        "atmosphere_source_revision" => "exponential-reference.v1"
+      },
+      "expected" => %{
+        "sample_count" => 25,
+        "coarse_final_position_km" => [-5345.307780382329, -4136.077089159638, 0.0],
+        "coarse_final_velocity_km_s" => [4.701717395622806, -6.085095329287687, 0.0],
+        "fine_final_position_km" => [-5345.308146291314, -4136.076628981799, 0.0],
+        "fine_final_velocity_km_s" => [4.7017168631062605, -6.085095732989827, 0.0],
+        "coarse_fine_position_delta_km" => 5.879226380308366e-4,
+        "coarse_fine_velocity_delta_km_s" => 6.682434356056432e-7,
+        "declared_position_tolerance_km" => 1.0e-3,
+        "declared_velocity_tolerance_km_s" => 1.0e-6,
+        "convergence_classification" => "pass_internal_only",
+        "atmosphere_provider_id" => "environment.provider.atmosphere.exponential_reference",
+        "atmosphere_source_revision" => "exponential-reference.v1",
+        "model_limit_count" => 13
+      },
+      "tolerances" => %{
+        "sample_count" => 0,
+        "coarse_final_position_km" => 1.0e-8,
+        "coarse_final_velocity_km_s" => 1.0e-11,
+        "fine_final_position_km" => 1.0e-8,
+        "fine_final_velocity_km_s" => 1.0e-11,
+        "coarse_fine_position_delta_km" => 1.0e-8,
+        "coarse_fine_velocity_delta_km_s" => 1.0e-11,
+        "declared_position_tolerance_km" => 0,
+        "declared_velocity_tolerance_km_s" => 0,
+        "convergence_classification" => 0,
+        "atmosphere_provider_id" => 0,
+        "atmosphere_source_revision" => 0,
+        "model_limit_count" => 0
+      },
+      "evidence" => [
+        "generated through OrbitalDynamics.Propagators.J2Drag with one combined acceleration derivative",
+        "10-second and 5-second fixed-step outputs are compared over the full declared 24-hour envelope",
+        "checked by OrbitalDynamics.Validation.verify_reference_fixture/2"
+      ],
+      "known_limits" => [
+        "internal numerical step-convergence regression, not external truth or acceptance evidence",
+        "covers one 400 km equatorial LEO state and one built-in reference atmosphere only",
+        "tolerance bounds only the observed 10-second versus 5-second step difference"
       ]
     },
     "fixture.j2.circular_leo_600s" => %{

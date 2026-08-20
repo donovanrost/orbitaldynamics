@@ -4,9 +4,10 @@ defmodule OrbitalDynamics.ForceModels.AtmosphericDrag do
 
   The evaluator joins explicit spacecraft ballistic properties with a validated
   atmosphere-density provider and the built-in constant Earth-rotation
-  assumption. `OrbitalDynamics.Propagators.TwoBodyDrag` integrates this
-  acceleration through an explicit opt-in propagation path; other propagators
-  do not consume it.
+  assumption. `OrbitalDynamics.Propagators.TwoBodyDrag` and
+  `OrbitalDynamics.Propagators.J2Drag` integrate this acceleration through
+  explicit opt-in scalar propagation paths; default and accelerated
+  propagators do not consume it.
   """
 
   alias OrbitalDynamics.Environment
@@ -48,8 +49,8 @@ defmodule OrbitalDynamics.ForceModels.AtmosphericDrag do
         :density_provider_provenance
       ],
       known_limits: [
-        :standalone_evaluator_and_two_body_drag_propagator_only,
-        :not_integrated_by_j2_or_accelerated_propagators,
+        :standalone_evaluator_two_body_drag_and_j2_drag_propagators_only,
+        :not_integrated_by_accelerated_propagators,
         :constant_earth_rotation,
         :no_winds,
         :fixed_drag_area_and_coefficient,
@@ -113,7 +114,7 @@ defmodule OrbitalDynamics.ForceModels.AtmosphericDrag do
         Vector3.subtract(state.velocity_km_s, atmosphere_velocity_km_s)
 
       acceleration_km_s2 =
-        acceleration(
+        acceleration_from_density(
           relative_velocity_km_s,
           density_kg_m3,
           spacecraft.area_m2,
@@ -158,10 +159,17 @@ defmodule OrbitalDynamics.ForceModels.AtmosphericDrag do
   def evaluate(_state, _spacecraft, _central_body, _opts),
     do: {:error, {:invalid_input, :atmospheric_drag}}
 
+  @doc false
   # Velocity is kilometers per second and the returned acceleration is
   # kilometers per second squared. Density, area, and mass use SI units.
-  defp acceleration(relative_velocity_km_s, density_kg_m3, area_m2, drag_coefficient, mass_kg)
-       when is_tuple(relative_velocity_km_s) do
+  def acceleration_from_density(
+        relative_velocity_km_s,
+        density_kg_m3,
+        area_m2,
+        drag_coefficient,
+        mass_kg
+      )
+      when is_tuple(relative_velocity_km_s) do
     speed_km_s = Vector3.norm(relative_velocity_km_s)
 
     if speed_km_s == 0.0 or density_kg_m3 == 0.0 do

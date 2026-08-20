@@ -10,7 +10,7 @@ defmodule OrbitalDynamics.Validation.OrbitalReferenceFixtures do
     TargetVisibility
   }
 
-  alias OrbitalDynamics.Propagators.{J2, TwoBody, TwoBodyDrag}
+  alias OrbitalDynamics.Propagators.{J2, J2Drag, TwoBody, TwoBodyDrag}
 
   alias OrbitalDynamics.{
     CentralBody,
@@ -173,6 +173,75 @@ defmodule OrbitalDynamics.Validation.OrbitalReferenceFixtures do
       "atmosphere_provider_id" => trajectory.assumptions.atmosphere_provider_id,
       "earth_rotation_provider_id" => trajectory.assumptions.earth_rotation_provider_id,
       "model_limit_count" => length(trajectory.assumptions.model_limits)
+    }
+  end
+
+  def j2_drag_convergence_fixture_observations do
+    central_body = CentralBody.earth()
+    radius_km = central_body.equatorial_radius_km + 400.0
+    velocity_km_s = :math.sqrt(central_body.mu_km3_s2 / radius_km)
+
+    initial_state =
+      StateVector.new!(
+        {radius_km, 0.0, 0.0},
+        {0.0, velocity_km_s, 0.0},
+        Epoch.new!(0.0, :tdb),
+        Frame.earth_inertial_j2000()
+      )
+
+    spacecraft =
+      Spacecraft.new!(:j2_drag_convergence_fixture, 100.0,
+        propellant_mass_kg: 20.0,
+        area_m2: 4.0,
+        drag_coefficient: 2.2
+      )
+
+    scenario =
+      Scenario.new!(:j2_drag_convergence_fixture, spacecraft, initial_state,
+        duration_s: 86_400.0,
+        output_step_s: 3_600.0,
+        central_body: central_body
+      )
+
+    assert {:ok, coarse_trajectory} = J2Drag.propagate(scenario, max_step_s: 10.0)
+    assert {:ok, fine_trajectory} = J2Drag.propagate(scenario, max_step_s: 5.0)
+
+    coarse_final = List.last(coarse_trajectory.states)
+    fine_final = List.last(fine_trajectory.states)
+
+    position_delta_km =
+      coarse_final.position_km
+      |> Vector3.subtract(fine_final.position_km)
+      |> Vector3.norm()
+
+    velocity_delta_km_s =
+      coarse_final.velocity_km_s
+      |> Vector3.subtract(fine_final.velocity_km_s)
+      |> Vector3.norm()
+
+    convergence = J2Drag.capabilities().planning_horizon_step_convergence
+
+    classification =
+      if position_delta_km <= convergence.position_tolerance_km and
+           velocity_delta_km_s <= convergence.velocity_tolerance_km_s,
+         do: "pass_internal_only",
+         else: "fail_internal_only"
+
+    %{
+      "sample_count" => length(coarse_trajectory.states),
+      "coarse_final_position_km" => Tuple.to_list(coarse_final.position_km),
+      "coarse_final_velocity_km_s" => Tuple.to_list(coarse_final.velocity_km_s),
+      "fine_final_position_km" => Tuple.to_list(fine_final.position_km),
+      "fine_final_velocity_km_s" => Tuple.to_list(fine_final.velocity_km_s),
+      "coarse_fine_position_delta_km" => position_delta_km,
+      "coarse_fine_velocity_delta_km_s" => velocity_delta_km_s,
+      "declared_position_tolerance_km" => convergence.position_tolerance_km,
+      "declared_velocity_tolerance_km_s" => convergence.velocity_tolerance_km_s,
+      "convergence_classification" => classification,
+      "atmosphere_provider_id" => coarse_trajectory.assumptions.atmosphere_provider_id,
+      "atmosphere_source_revision" =>
+        coarse_trajectory.assumptions.atmosphere_provider_source_revision,
+      "model_limit_count" => length(coarse_trajectory.assumptions.model_limits)
     }
   end
 

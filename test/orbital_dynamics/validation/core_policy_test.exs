@@ -1,7 +1,7 @@
 defmodule OrbitalDynamics.Validation.CorePolicyTest do
   use ExUnit.Case, async: true
 
-  alias OrbitalDynamics.Propagators.{J2, TwoBody, TwoBodyDrag, TwoBodyNxCompiled}
+  alias OrbitalDynamics.Propagators.{J2, J2Drag, TwoBody, TwoBodyDrag, TwoBodyNxCompiled}
   alias OrbitalDynamics.ForceModels.AtmosphericDrag
   alias OrbitalDynamics.{ResultSet, Schema, Validation}
   alias OrbitalDynamics.ResultSet.Artifact
@@ -76,6 +76,36 @@ defmodule OrbitalDynamics.Validation.CorePolicyTest do
 
     assert {:ok, %{"schema_contract" => "model_acceptance_report.v1", "status" => "pass"}} =
              Schema.validate_artifact(drag_acceptance_report)
+
+    assert {:ok,
+            %{
+              "id" => "propagator.j2_drag",
+              "implementation" => "OrbitalDynamics.Propagators.J2Drag",
+              "known_limits" => combined_limits,
+              "tolerances" => %{
+                "planning_horizon_s" => 86_400.0,
+                "coarse_max_step_s" => 10.0,
+                "fine_max_step_s" => 5.0,
+                "coarse_fine_position_delta_km" => 1.0e-3,
+                "coarse_fine_velocity_delta_km_s" => 1.0e-6
+              }
+            }} = Validation.record(J2Drag)
+
+    assert combined_limits == J2Drag.model_limits()
+
+    assert {:ok, combined_record} = Validation.record(J2Drag)
+
+    assert {:ok, %{"schema_contract" => "validation_record.v1", "status" => "pass"}} =
+             combined_record
+             |> Map.put("schema_contract", "validation_record.v1")
+             |> Schema.validate_artifact()
+
+    combined_acceptance_report =
+      Validation.model_acceptance_report([J2Drag], intended_use: :analysis)
+
+    assert combined_acceptance_report["model_ids_by_status"] == %{
+             "review_required" => ["propagator.j2_drag"]
+           }
   end
 
   test "keeps access root refinement at analysis level with interpolated-state limits" do
@@ -357,6 +387,12 @@ defmodule OrbitalDynamics.Validation.CorePolicyTest do
 
     assert OrbitalDynamics.validation_records_for_result_set(result_set) ==
              Validation.records_for_result_set(result_set)
+
+    assert ["propagator.j2_drag"] ==
+             %{propagator: J2Drag, outputs: [:trajectories]}
+             |> result_set()
+             |> Validation.records_for_result_set()
+             |> Enum.map(& &1["id"])
   end
 
   test "archives model validation records in result artifacts" do

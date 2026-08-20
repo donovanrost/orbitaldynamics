@@ -14,7 +14,7 @@ Status: **implemented**.
 
 ### Spacecraft identity and `ResourceSummary` normalization
 
-- `Spacecraft` exposes identity, dry mass, propellant mass, area, and drag coefficient fields. `ForceModels.AtmosphericDrag`, the public `OrbitalDynamics.atmospheric_drag_acceleration/4` facade, and opt-in scalar `Propagators.TwoBodyDrag` consume the mass, area, and coefficient with validated atmosphere-density evidence. Generated `circular_leo` manifest scenarios preserve those ballistic fields for drag studies. Other propagators leave them as metadata.
+- `Spacecraft` exposes identity, dry mass, propellant mass, area, and drag coefficient fields. `ForceModels.AtmosphericDrag`, the public `OrbitalDynamics.atmospheric_drag_acceleration/4` facade, and opt-in scalar `Propagators.TwoBodyDrag` and `Propagators.J2Drag` consume the mass, area, and coefficient with validated atmosphere-density evidence. `J2Drag` captures those ballistic parameters once for its bounded run. Generated `circular_leo` manifest scenarios preserve those fields for `TwoBodyDrag`; `J2Drag` remains programmatic-only. Other propagators leave them as metadata.
 - `SubsystemModel` exposes `subsystem_model_capability.v1` records through
   `OrbitalDynamics.subsystem_model_capabilities/0`,
   `OrbitalDynamics.battery_energy_storage_model/1`, and
@@ -456,8 +456,8 @@ Status: **partial**.
 
 - Capability metadata labels the summary as **externally supplied and planning-grade**.
 - Drag and area fields are consumed by the atmospheric-drag evaluator and opt-in
-  scalar two-body-drag propagator; they are not used by J2/accelerated
-  propagators or resource simulation.
+  scalar two-body-drag and J2-drag propagators; they are not used by the
+  existing J2 default, accelerated propagators, or resource simulation.
 
 ## Near-term
 

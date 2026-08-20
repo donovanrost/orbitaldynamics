@@ -19,7 +19,10 @@ deterministic orbital scenarios while keeping astrodynamics assumptions explicit
 - `OrbitalDynamics.Propagators.TwoBody` and `OrbitalDynamics.Propagators.J2`
   propagate scenarios with fixed-step RK4 force models;
   `OrbitalDynamics.Propagators.TwoBodyDrag` is an opt-in programmatic path that
-  combines point-mass gravity with validated provider-backed atmospheric drag.
+  combines point-mass gravity with validated provider-backed atmospheric drag;
+  `OrbitalDynamics.Propagators.J2Drag` is a separate opt-in, programmatic-only
+  scalar LEO path that sums point-mass, J2, and drag acceleration in each RK4
+  stage under one captured offline environment policy.
 - `OrbitalDynamics.ScenarioRunner` evaluates batches concurrently through a
   supervised task boundary while preserving input order in the results.
 - `OrbitalDynamics.StudyRunner` composes propagation with sample-based
@@ -178,17 +181,28 @@ without approving or commanding maneuvers.
 
 ## Numerical Scope
 
-This is not a precision flight dynamics tool yet. The current propagator assumes:
+This is not a precision flight dynamics tool yet. The default propagator assumes:
 
 - one central point mass
 - inertial frame input
-- no drag, third-body gravity, SRP, finite burns, or adaptive event finding
+- no drag, J2, third-body gravity, SRP, finite burns, or adaptive event finding
 - deterministic fixed-step RK4 integration by default; scalar two-body can opt
   into educational adaptive step-doubling with explicit tolerances, but this is
   not a root-solved event finder
 
 These limits are deliberate so tests can pin down behavior before adding more
 force models or native numerical kernels.
+
+The opt-in `OrbitalDynamics.propagate_j2_drag/2` facade does not change that
+default. It accepts Earth/J2000/TDB LEO scenarios for at most 24 hours, uses a
+10 s fixed-step default with a 30 s hard maximum, rejects maneuvers, and records
+spacecraft ballistic inputs plus atmosphere/rotation source, revision, and
+coverage provenance. Its explicit arithmetic-safety envelope accepts Earth
+`mu` from 350,000 to 450,000 km^3/s^2, radius from 6,000 to 7,000 km, J2 from
+zero to 0.002, total mass from 0.1 to 10,000,000 kg, drag area up to 1,000,000
+m^2, drag coefficient up to 5, and density up to 0.001 kg/m^3; unsupported
+finite values return typed errors. Its 24-hour 10 s versus 5 s fixture is
+internal numerical step-convergence evidence, not external model acceptance.
 
 ## Roadmap
 

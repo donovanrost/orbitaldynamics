@@ -6,7 +6,7 @@ Implemented or partially implemented modules and artifacts include:
   `Scenario`, `Trajectory`, `GroundStation`, and `Target`.
 - Contracts: `Propagator`, `BatchPropagator`, `EventDetector`, and `Constraint`.
 - Propagators: `Propagators.TwoBody`, `Propagators.J2`,
-  `Propagators.TwoBodyDrag`,
+  `Propagators.TwoBodyDrag`, `Propagators.J2Drag`,
   `Propagators.TwoBodyNx`, `Propagators.TwoBodyNxCompiled`,
   `Propagators.TwoBodyExlaCpu`, and `Propagators.J2ExlaCpu`.
 - Execution: `ScenarioRunner`, `StudyRunner`, `Study`, `StudyRun`,
@@ -34,7 +34,10 @@ Implemented or partially implemented modules and artifacts include:
   JSON Schema exports.
 - Validation registry: `OrbitalDynamics.Validation` records validation levels,
   tolerance metadata, evidence, and known limits for current propagators and
-  event detectors, and result artifacts archive the relevant records.
+  event detectors, and result artifacts archive the relevant records. The
+  scalar `J2Drag` record includes a 24-hour 10 s versus 5 s internal
+  step-convergence fixture; it is educational convergence evidence rather than
+  external acceptance.
 - Environment registry: `OrbitalDynamics.Environment` records simplified fixed
   Sun and constant Earth-rotation capability records in result artifacts and
   exposes provider capability boundaries for fixed Sun, constant Earth rotation,

@@ -87,6 +87,19 @@ defmodule OrbitalDynamics.Propagators.J2 do
   end
 
   def acceleration(position_km, mu_km3_s2, equatorial_radius_km, j2) do
+    position_km
+    |> acceleration_components(mu_km3_s2, equatorial_radius_km, j2)
+    |> Map.fetch!(:total_acceleration_km_s2)
+  end
+
+  @doc """
+  Returns the point-mass, J2, and summed acceleration vectors.
+
+  This is the same component calculation used by J2 propagation. It exists so
+  combined force models can compose the declared vectors without reimplementing
+  or sequentially propagating the J2 path.
+  """
+  def acceleration_components(position_km, mu_km3_s2, equatorial_radius_km, j2) do
     radius_km = Vector3.norm(position_km)
 
     if radius_km <= 0.0 do
@@ -107,7 +120,11 @@ defmodule OrbitalDynamics.Propagators.J2 do
       factor * z * (5.0 * z_ratio_squared - 3.0)
     }
 
-    Vector3.add(point_mass, j2_acceleration)
+    %{
+      point_mass_acceleration_km_s2: point_mass,
+      j2_acceleration_km_s2: j2_acceleration,
+      total_acceleration_km_s2: Vector3.add(point_mass, j2_acceleration)
+    }
   end
 
   defp propagate_samples(

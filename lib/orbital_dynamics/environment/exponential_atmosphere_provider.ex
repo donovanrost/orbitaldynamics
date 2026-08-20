@@ -4,7 +4,7 @@ defmodule OrbitalDynamics.Environment.ExponentialAtmosphereProvider do
 
   This adapter is an interface and provenance boundary for drag work. It returns
   a deterministic reference density at a requested altitude. The atmospheric-
-  drag evaluator and opt-in scalar two-body-drag propagator consume it.
+  drag evaluator and opt-in scalar two-body-drag and J2-drag propagators consume it.
   """
 
   @behaviour OrbitalDynamics.Environment.Provider
@@ -40,9 +40,43 @@ defmodule OrbitalDynamics.Environment.ExponentialAtmosphereProvider do
       "known_limits" => [
         "reference atmosphere only",
         "not calibrated to space weather or epoch",
-        "consumed only by opt-in scalar two-body-drag propagation"
+        "consumed only by opt-in scalar two-body-drag and J2-drag propagation"
       ]
     }
+  end
+
+  @doc false
+  def configured_capability(opts) when is_list(opts) do
+    if Keyword.keyword?(opts) do
+      configured_capability_for_keyword(opts)
+    else
+      {:error, {:invalid_option, :atmosphere_provider}}
+    end
+  end
+
+  def configured_capability(_opts), do: {:error, {:invalid_option, :atmosphere_provider}}
+
+  defp configured_capability_for_keyword(opts) do
+    reference_altitude_km =
+      Keyword.get(opts, :reference_altitude_km, @reference_altitude_km)
+
+    reference_density_kg_m3 =
+      Keyword.get(opts, :reference_density_kg_m3, @reference_density_kg_m3)
+
+    scale_height_km = Keyword.get(opts, :scale_height_km, @scale_height_km)
+
+    with :ok <- validate_number(:reference_altitude_km, reference_altitude_km),
+         :ok <- validate_non_negative(:reference_density_kg_m3, reference_density_kg_m3),
+         :ok <- validate_positive(:scale_height_km, scale_height_km) do
+      {:ok,
+       put_in(capabilities(), ["parameters"], %{
+         "reference_altitude_km" => reference_altitude_km * 1.0,
+         "reference_density_kg_m3" => reference_density_kg_m3 * 1.0,
+         "scale_height_km" => scale_height_km * 1.0
+       })}
+    else
+      {:error, reason} -> {:error, reason}
+    end
   end
 
   def fetch(kind, opts \\ [])
@@ -74,7 +108,7 @@ defmodule OrbitalDynamics.Environment.ExponentialAtmosphereProvider do
          "reference_altitude_km" => reference_altitude_km * 1.0,
          "reference_density_kg_m3" => reference_density_kg_m3 * 1.0,
          "scale_height_km" => scale_height_km * 1.0,
-         "force_model_status" => "consumed_by_opt_in_two_body_drag_propagator"
+         "force_model_status" => "consumed_by_opt_in_two_body_drag_and_j2_drag_propagators"
        }}
     end
   end

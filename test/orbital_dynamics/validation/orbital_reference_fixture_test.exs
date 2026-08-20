@@ -8,6 +8,7 @@ defmodule OrbitalDynamics.Validation.OrbitalReferenceFixtureTest do
       eclipse_fixture_observations: 0,
       ground_track_crossing_fixture_observations: 0,
       j2_fixture_observations: 0,
+      j2_drag_convergence_fixture_observations: 0,
       target_visibility_fixture_observations: 0,
       two_body_drag_fixture_observations: 0,
       two_body_fixture_observations: 0
@@ -66,6 +67,31 @@ defmodule OrbitalDynamics.Validation.OrbitalReferenceFixtureTest do
              stale_report["checks"],
              &(&1["field"] == "specific_energy_change_km2_s2" and &1["status"] == "fail")
            )
+  end
+
+  test "verifies the declared 24-hour J2-drag internal step-convergence fixture" do
+    fixture_id = "fixture.propagator.j2_drag.earth_400km_24h_step_convergence"
+
+    assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+    assert fixture["model_id"] == "propagator.j2_drag"
+    assert fixture["fixture_type"] == "curated_internal_convergence"
+
+    observations = j2_drag_convergence_fixture_observations()
+    assert observations["convergence_classification"] == "pass_internal_only"
+
+    assert observations["coarse_fine_position_delta_km"] <=
+             observations["declared_position_tolerance_km"]
+
+    assert observations["coarse_fine_velocity_delta_km_s"] <=
+             observations["declared_velocity_tolerance_km_s"]
+
+    assert {:ok, report} = Validation.verify_reference_fixture(fixture_id, observations)
+    assert report["status"] == "pass"
+    assert Enum.all?(report["checks"], &(&1["status"] == "pass"))
+
+    assert "internal numerical step-convergence regression, not external truth or acceptance evidence" in fixture[
+             "known_limits"
+           ]
   end
 
   test "verifies curated two-body reference fixture observations" do
