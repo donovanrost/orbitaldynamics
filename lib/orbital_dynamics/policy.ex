@@ -1456,6 +1456,25 @@ defmodule OrbitalDynamics.Policy do
     )
   end
 
+  @doc """
+  Classifies a branch with an optional caller-supplied authority context.
+
+  `:authority_context_mode` must be `:explicit` or `"explicit"` to activate
+  fail-closed authority evaluation. The legacy `/5` function remains the exact
+  default and does not inspect application or process configuration.
+  """
+  def decide(approval_requirements, risk_indicators, branch, candidate_plan, policy, opts)
+      when is_list(opts) or is_map(opts) do
+    result = decide(approval_requirements, risk_indicators, branch, candidate_plan, policy)
+    opts = Map.new(opts)
+
+    apply_authority_context(
+      result,
+      authority_option(opts, :authority_context_mode),
+      authority_option(opts, :authority_context)
+    )
+  end
+
   defp cadence_import_statuses do
     OrbitalDynamics.CadenceImport.capability().cadence_import_statuses
   end
@@ -1475,6 +1494,38 @@ defmodule OrbitalDynamics.Policy do
       candidate_plan,
       @escalation_fields
     )
+  end
+
+  defp apply_authority_context(result, mode, context) do
+    case OrbitalDynamics.AuthorityContext.evaluate(mode, context) do
+      :legacy ->
+        result
+
+      {:ok, authority_context, evaluation} ->
+        {status, requirements, matches, decision} = result
+
+        {status, requirements, matches,
+         decision
+         |> Map.put("eligibility_status", "eligible")
+         |> Map.put("authority_context", authority_context)
+         |> Map.put("authority_context_evaluation", evaluation)}
+
+      {:error, evaluation} ->
+        {_status, requirements, matches, decision} = result
+
+        {"blocked_by_policy", requirements, matches,
+         decision
+         |> Map.put("classification", "blocked_by_policy")
+         |> Map.put("eligibility_status", "non_eligible")
+         |> Map.put("authority_context_evaluation", evaluation)}
+    end
+  end
+
+  defp authority_option(opts, key) do
+    case Map.fetch(opts, key) do
+      {:ok, value} -> value
+      :error -> Map.get(opts, Atom.to_string(key))
+    end
   end
 
   defp maybe_put(map, _key, nil), do: map

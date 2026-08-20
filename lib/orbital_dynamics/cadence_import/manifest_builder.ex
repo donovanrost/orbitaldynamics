@@ -22,6 +22,9 @@ defmodule OrbitalDynamics.CadenceImport.ManifestBuilder do
       "manifest_id" => SourceIdentifierPolicy.manifest(context["source_artifact_id"]),
       "source_artifact_type" => context["source_artifact_type"],
       "source_artifact_id" => context["source_artifact_id"],
+      "eligibility_status" => context["eligibility_status"],
+      "authority_context" => context["authority_context"],
+      "authority_context_evaluation" => context["authority_context_evaluation"],
       "row_count" => length(rows),
       "ready_count" => Enum.count(rows, &(&1["import_status"] == "ready_for_import")),
       "review_required_count" =>

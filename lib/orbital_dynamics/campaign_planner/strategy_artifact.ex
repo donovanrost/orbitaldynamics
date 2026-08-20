@@ -29,6 +29,9 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyArtifact do
       "provenance" => provenance(request.prior_plan, source_plan_id),
       "strategy_metadata" => metadata(request, branch_maps, source_plan_id)
     }
+    |> maybe_put("eligibility_status", recommendation.eligibility_status)
+    |> maybe_put("authority_context", recommendation.authority_context)
+    |> maybe_put("authority_context_evaluation", recommendation.authority_context_evaluation)
   end
 
   def branch_map(%PlanBranch{} = branch) do
@@ -76,6 +79,9 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyArtifact do
       "risks_remaining" => recommendation.risks_remaining,
       "requires_approval" => recommendation.requires_approval
     }
+    |> maybe_put("eligibility_status", recommendation.eligibility_status)
+    |> maybe_put("authority_context", recommendation.authority_context)
+    |> maybe_put("authority_context_evaluation", recommendation.authority_context_evaluation)
   end
 
   def assumptions(request) do
@@ -187,4 +193,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyArtifact do
   defp encode_value(value) when is_boolean(value), do: value
   defp encode_value(value) when is_atom(value), do: Atom.to_string(value)
   defp encode_value(value), do: value
+
+  defp maybe_put(map, _key, nil), do: map
+  defp maybe_put(map, key, value), do: Map.put(map, key, value)
 end

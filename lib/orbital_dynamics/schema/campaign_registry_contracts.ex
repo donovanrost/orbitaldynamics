@@ -318,6 +318,9 @@ defmodule OrbitalDynamics.Schema.CampaignRegistryContracts do
           "objective_tradeoff_report",
           "pareto_frontier_report",
           "operational_feedback_provenance",
+          "eligibility_status",
+          "authority_context",
+          "authority_context_evaluation",
           "cadence_import_manifest"
         ],
         "nested_contracts" => [
@@ -329,6 +332,7 @@ defmodule OrbitalDynamics.Schema.CampaignRegistryContracts do
           "objective_tradeoff_report.v1",
           "pareto_frontier_report.v1",
           "approval_requirement.v1",
+          "authority_context.v1",
           "operator_review_package.v1",
           "cadence_import_manifest.v1"
         ]

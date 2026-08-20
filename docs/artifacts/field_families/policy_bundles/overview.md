@@ -29,3 +29,21 @@ bundle classifies a decision. Built-in bundles currently include:
 - `operator_review_queue_authority_v1`
 - `resource_projection_authority_v1`
 
+## Authority Context
+
+`authority_context.v1` is optional caller-supplied evidence for the bounded V3
+strategy policy path. It requires `authority_context_id`, `authority_source`,
+`source_revision`, `effective_from`, `valid_until`, and `evaluation_time`; the
+identity is derived from the remaining canonical fields, so changing a revision
+or bound invalidates the prior identity. `evaluation_time` is supplied by the
+caller and validation performs no wall-clock read. The validity interval is
+lower-bound inclusive and `valid_until` exclusive.
+
+When `Policy.decide/6` receives `authority_context_mode: :explicit`, valid
+context is copied into the decision and its campaign-strategy recommendation,
+operator-review package, and Cadence import manifest. Missing, malformed,
+not-yet-effective, or stale evidence becomes a deterministic `non_eligible` /
+`blocked_by_policy` evaluation carrying its reason and supplied provenance.
+Absent mode uses the unchanged `Policy.decide/5` behavior, including when a
+context value is present without explicit mode. This contract performs no
+authority lookup, approval, scheduling, Cadence write, or execution.

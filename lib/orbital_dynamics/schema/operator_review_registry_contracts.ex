@@ -24,6 +24,9 @@ defmodule OrbitalDynamics.Schema.OperatorReviewRegistryContracts do
           "assumptions"
         ],
         "optional_fields" => [
+          "eligibility_status",
+          "authority_context",
+          "authority_context_evaluation",
           "plan_delta_count",
           "timeline_protection_count",
           "policy_escalation_count",
@@ -165,7 +168,11 @@ defmodule OrbitalDynamics.Schema.OperatorReviewRegistryContracts do
           "station_reservation_status_counts",
           "station_reserved_by_counts"
         ],
-        "nested_contracts" => ["approval_requirement.v1", "strategy_recommendation.v1"]
+        "nested_contracts" => [
+          "approval_requirement.v1",
+          "strategy_recommendation.v1",
+          "authority_context.v1"
+        ]
       }
     }
   end

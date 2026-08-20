@@ -39,6 +39,7 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyContracts do
     |> expect_type("$", artifact, "branches", :list)
     |> expect_type("$", artifact, "recommendation", :map)
     |> expect_type("$", artifact, "strategy_metadata", :map)
+    |> OrbitalDynamics.Schema.AuthorityContextContracts.validate_optional("$", artifact)
     |> operational_feedback_validator.(
       "$",
       Map.get(artifact, "operational_feedback")
@@ -66,5 +67,6 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyContracts do
       ["strategy_id", "baseline_branch_id"]
     )
     |> OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts.validate(artifact)
+    |> OrbitalDynamics.Schema.AuthorityContextContracts.validate_strategy_propagation(artifact)
   end
 end

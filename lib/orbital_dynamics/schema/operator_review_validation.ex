@@ -32,6 +32,7 @@ defmodule OrbitalDynamics.Schema.OperatorReviewValidation do
   def validate_package(issues, path, package) do
     issues
     |> require_fields(path, package, required_fields())
+    |> OrbitalDynamics.Schema.AuthorityContextContracts.validate_optional(path, package)
     |> validate_package(
       path,
       package,
@@ -71,8 +72,9 @@ defmodule OrbitalDynamics.Schema.OperatorReviewValidation do
   end
 
   def validate_row(issues, path, row, review_types, counteroffer_states, callbacks) do
-    OrbitalDynamics.Schema.OperatorReviewRowContracts.validate(
-      issues,
+    issues
+    |> OrbitalDynamics.Schema.AuthorityContextContracts.validate_optional(path, row)
+    |> OrbitalDynamics.Schema.OperatorReviewRowContracts.validate(
       path,
       row,
       review_types,

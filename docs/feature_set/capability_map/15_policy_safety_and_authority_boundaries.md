@@ -31,6 +31,29 @@ Status: **implemented**.
 - V2 repair artifacts now carry the same `policy_decision.v1` contract for repair
   approval requirements.
 
+### Versioned authority context
+
+- `OrbitalDynamics.AuthorityContext` builds and validates immutable
+  `authority_context.v1` evidence with a content-derived stable identity,
+  authority source, immutable source revision, effective-from and valid-until
+  bounds, and a caller-supplied evaluation time.
+- Authority-context validation is deterministic and does not read the wall
+  clock, process state, application configuration, or an external authority
+  service. A changed source revision changes the authority-context identity and
+  the identity of a V3 strategy produced from it.
+- `Policy.decide/6` adds an explicit authority-context mode while preserving the
+  existing `Policy.decide/5` path. In explicit mode, a missing, malformed,
+  not-yet-effective, or stale context produces a typed `non_eligible` /
+  `blocked_by_policy` evaluation with the reason and caller-supplied provenance
+  preserved; it never falls back to ambient configuration.
+- The bounded V3 representative path preserves valid context and every typed
+  evaluation through `policy_decision.v1`, `strategy_recommendation.v1`,
+  `campaign_strategy.v3`, its `operator_review_package.v1`, and the existing
+  selected-strategy row and provenance in `cadence_import_manifest.v1`.
+- Authority evidence is optional outside explicit mode. With no mode, or with a
+  context but no explicit mode, legacy policy and campaign-strategy artifacts
+  retain their prior shape and behavior.
+
 ### Approval requirements
 
 - `approval_requirement.v1` rows carry explicit `requirement_type` values for:
@@ -441,7 +464,9 @@ Status: **partial**.
 - Operator-review and Cadence import `source_policy_decision` and
   `source_policy_escalation` snapshots expose and validate their known
   policy-classification and escalation evidence.
-- **But** — authority boundaries for command/contact execution remain
+- **But** — `authority_context.v1` is caller-supplied evidence for one bounded
+  campaign-policy path, not an authority registry or a repository-wide retrofit
+  of every policy surface. Command/contact execution boundaries remain
   classification-only, and organization-specific policy adapters intentionally
   remain artifact-only.
 
@@ -450,6 +475,9 @@ Status: **partial**.
 Status: **near-term**.
 
 - Broaden policy coverage for richer command/contact authority boundaries.
+- Extend explicit authority-context propagation to additional policy producers
+  only when their callers can supply equally immutable revision and evaluation
+  evidence; no ambient-config fallback is planned.
 - Policy rule matches now lift organization/inline policy adapter provenance,
   including source, adapter, organization, policy source, and trust boundary,
   plus contention resource-scope, resolution, priority-source, and
@@ -468,3 +496,5 @@ Status: **later**.
 Status: **out of scope**.
 
 - Autonomous command execution or bypassing Cadence/operator authority.
+- External authority lookup, approval, scheduling, Cadence import writes, or a
+  claim that a recommendation was authorized or executed.

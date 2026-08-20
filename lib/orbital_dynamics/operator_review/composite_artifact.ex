@@ -73,6 +73,7 @@ defmodule OrbitalDynamics.OperatorReview.CompositeArtifact do
     {rows, source_artifact_id, provenance} = strategy_package_input(artifact)
 
     package(rows, "campaign_strategy.v3", source_artifact_id, provenance)
+    |> put_authority_context(artifact)
     |> ContactAllocationSummary.put_strategy(artifact)
   end
 
@@ -689,4 +690,17 @@ defmodule OrbitalDynamics.OperatorReview.CompositeArtifact do
       Capabilities.model_limits()
     )
   end
+
+  defp put_authority_context(package, artifact) do
+    package
+    |> maybe_put("eligibility_status", Map.get(artifact, "eligibility_status"))
+    |> maybe_put("authority_context", Map.get(artifact, "authority_context"))
+    |> maybe_put(
+      "authority_context_evaluation",
+      Map.get(artifact, "authority_context_evaluation")
+    )
+  end
+
+  defp maybe_put(map, _key, nil), do: map
+  defp maybe_put(map, key, value), do: Map.put(map, key, value)
 end

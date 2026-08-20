@@ -108,6 +108,13 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRequestNormalization do
     raw_approval_policy = ValueEncoding.get_key(request, :approval_policy)
     approval_policy_supplied? = not is_nil(raw_approval_policy)
 
+    authority_context_mode =
+      request
+      |> ValueEncoding.get_key(:authority_context_mode)
+      |> ValueEncoding.encode_value()
+
+    authority_context = ValueEncoding.get_key(request, :authority_context)
+
     repair_policy =
       request
       |> ValueEncoding.get_key(:repair_policy)
@@ -132,6 +139,8 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRequestNormalization do
       approval_policy: approval_policy,
       approval_policy_source: ValueEncoding.stringify_keys(raw_approval_policy || %{}),
       approval_policy_supplied?: approval_policy_supplied?,
+      authority_context_mode: authority_context_mode,
+      authority_context: authority_context,
       repair_policy: repair_policy,
       scoring_policy:
         ValueEncoding.stringify_keys(ValueEncoding.get_key(request, :scoring_policy) || %{}),

@@ -125,6 +125,9 @@ defmodule OrbitalDynamics.Schema.PolicyValidation do
   defp validate_registered_artifact(issues, path, artifact, "approval_requirement.v1"),
     do: validate_approval_requirement(issues, path, artifact)
 
+  defp validate_registered_artifact(issues, path, artifact, "authority_context.v1"),
+    do: OrbitalDynamics.Schema.AuthorityContextContracts.validate(issues, path, artifact)
+
   defp validate_registered_artifact(issues, path, artifact, "policy_decision.v1"),
     do: validate_decision(issues, path, artifact)
 

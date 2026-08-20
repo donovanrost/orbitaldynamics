@@ -132,7 +132,9 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyBranchEvaluation do
         risk_indicators,
         branch,
         candidate_plan,
-        StrategyPolicyNormalization.approval_to_map(request.approval_policy)
+        StrategyPolicyNormalization.approval_to_map(request.approval_policy),
+        authority_context_mode: request.authority_context_mode,
+        authority_context: request.authority_context
       )
 
     score_terms =

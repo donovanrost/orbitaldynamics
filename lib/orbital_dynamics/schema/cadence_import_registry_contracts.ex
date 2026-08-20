@@ -24,6 +24,9 @@ defmodule OrbitalDynamics.Schema.CadenceImportRegistryContracts do
           "assumptions"
         ],
         "optional_fields" => [
+          "eligibility_status",
+          "authority_context",
+          "authority_context_evaluation",
           "model_limits",
           "import_action_counts",
           "import_status_counts",
@@ -132,7 +135,7 @@ defmodule OrbitalDynamics.Schema.CadenceImportRegistryContracts do
           "station_reservation_status_counts",
           "station_reserved_by_counts"
         ],
-        "nested_contracts" => ["policy_decision.v1"]
+        "nested_contracts" => ["policy_decision.v1", "authority_context.v1"]
       }
     }
   end

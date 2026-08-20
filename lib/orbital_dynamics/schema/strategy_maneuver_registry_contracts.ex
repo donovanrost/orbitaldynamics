@@ -18,8 +18,13 @@ defmodule OrbitalDynamics.Schema.StrategyManeuverRegistryContracts do
           "risks_remaining",
           "requires_approval"
         ],
-        "optional_fields" => ["status"],
-        "nested_contracts" => ["approval_requirement.v1"]
+        "optional_fields" => [
+          "status",
+          "eligibility_status",
+          "authority_context",
+          "authority_context_evaluation"
+        ],
+        "nested_contracts" => ["approval_requirement.v1", "authority_context.v1"]
       },
       "maneuver_recommendation.v1" => %{
         "schema_contract" => "maneuver_recommendation.v1",

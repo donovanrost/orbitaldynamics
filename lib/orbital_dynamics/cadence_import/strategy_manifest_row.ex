@@ -25,6 +25,9 @@ defmodule OrbitalDynamics.CadenceImport.StrategyManifestRow do
       "branch_id" => branch_id,
       "recommended_branch_id" => recommendation["recommended_branch_id"],
       "approval_status" => approval_status,
+      "eligibility_status" => recommendation["eligibility_status"],
+      "authority_context" => recommendation["authority_context"],
+      "authority_context_evaluation" => recommendation["authority_context_evaluation"],
       "required_operator_action" =>
         if(selected?, do: "review_strategy_recommendation", else: "review_branch_comparison"),
       "cadence_import_status" => "not_applicable",

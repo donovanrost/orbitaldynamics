@@ -2,6 +2,10 @@ defmodule OrbitalDynamics.Schema.FieldTypeHints do
   @moduledoc false
 
   @field_type_hints %{
+    "authority_context" => "object",
+    "authority_context_evaluation" => "object",
+    "authority_context_id" => "string",
+    "authority_source" => "string",
     "accepted_at" => "string",
     "actual_ends_at_s" => "number",
     "actual_starts_at_s" => "number",
@@ -158,6 +162,9 @@ defmodule OrbitalDynamics.Schema.FieldTypeHints do
     "dependency_count" => "integer",
     "dependency_issue_count" => "integer",
     "effective_task_concurrency" => "integer",
+    "effective_from" => "string",
+    "eligibility_status" => "string",
+    "evaluation_time" => "string",
     "description" => "string",
     "adapter" => "string",
     "adapter_version" => "string",
@@ -742,6 +749,7 @@ defmodule OrbitalDynamics.Schema.FieldTypeHints do
     "station_reserved_by" => "string",
     "storage_margin" => "number",
     "status" => "string",
+    "source_revision" => "string",
     "status_counts" => "object",
     "contract_count" => "integer",
     "current_contract_count" => "integer",
@@ -859,6 +867,7 @@ defmodule OrbitalDynamics.Schema.FieldTypeHints do
     "validation_level" => "string",
     "violated_constraint" => "string",
     "validation_mode" => "string",
+    "valid_until" => "string",
     "valid_activity_count" => "integer",
     "valid_prior_candidate_count" => "integer",
     "valid_resource_summary_count" => "integer",
