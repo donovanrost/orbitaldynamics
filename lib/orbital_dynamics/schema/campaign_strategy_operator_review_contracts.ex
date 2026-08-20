@@ -170,6 +170,10 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyOperatorReviewContracts do
     Map.new(value, fn {key, nested} -> {key, normalize_nulls(nested)} end)
   end
 
-  defp normalize_nulls(value) when is_list(value), do: Enum.map(value, &normalize_nulls/1)
+  defp normalize_nulls([]), do: []
+
+  defp normalize_nulls([head | tail]),
+    do: [normalize_nulls(head) | normalize_nulls(tail)]
+
   defp normalize_nulls(value), do: value
 end

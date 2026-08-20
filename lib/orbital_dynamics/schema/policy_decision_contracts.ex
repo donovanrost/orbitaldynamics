@@ -52,6 +52,10 @@ defmodule OrbitalDynamics.Schema.PolicyDecisionContracts do
     |> expect_optional_non_negative_integer(path, decision, "approval_requirement_count")
     |> expect_optional_non_negative_integer(path, decision, "risk_count")
     |> expect_optional_type(path, decision, "assumptions", :map)
+    |> expect_optional_type(path, decision, "authority_context", :map)
+    |> expect_optional_type(path, decision, "authority_context_evaluation", :map)
+    |> expect_optional_type(path, decision, "eligibility_status", :binary)
+    |> OrbitalDynamics.Schema.AuthorityContextContracts.validate_policy_boundary(path, decision)
     |> expect_optional_type(path, decision, "model_limits", :list)
     |> validate_string_list_items(path, decision, "model_limits")
     |> validate_optional_exact_model_limits(

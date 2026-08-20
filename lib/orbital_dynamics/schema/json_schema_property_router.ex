@@ -22,6 +22,18 @@ defmodule OrbitalDynamics.Schema.JsonSchemaPropertyRouter do
     |> Map.fetch!(field)
   end
 
+  def property(field, "authority_context.v1", _contract, _context) do
+    OrbitalDynamics.Schema.AuthorityContextContracts.property(field)
+  end
+
+  def property("authority_context", _contract_name, _contract, _context) do
+    OrbitalDynamics.Schema.AuthorityContextContracts.json_schema()
+  end
+
+  def property("authority_context_evaluation", _contract_name, _contract, _context) do
+    OrbitalDynamics.Schema.AuthorityContextContracts.evaluation_json_schema()
+  end
+
   def property(field, "activity_template.v1" = contract_name, contract, context) do
     ReferencePolicyPropertyRouter.property(field, contract_name, contract, context)
   end

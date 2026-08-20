@@ -2,6 +2,7 @@ defmodule OrbitalDynamics.Schema.OperatorReviewValidation do
   @moduledoc false
 
   import OrbitalDynamics.Schema.PrimitiveValidation, only: [error: 2, require_fields: 4]
+  import OrbitalDynamics.Schema.CollectionValidation, only: [sanitize_list_field: 4]
 
   @operator_review_package "operator_review_package.v1"
 
@@ -30,8 +31,14 @@ defmodule OrbitalDynamics.Schema.OperatorReviewValidation do
     do: [error("$.operator_review_package", "must be an object") | issues]
 
   def validate_package(issues, path, package) do
+    {issues, package} = sanitize_list_field(issues, path, package, "rows")
+
     issues
     |> require_fields(path, package, required_fields())
+    |> OrbitalDynamics.Schema.AuthorityContextContracts.validate_operator_review_boundary(
+      path,
+      package
+    )
     |> validate_package(
       path,
       package,
@@ -71,8 +78,12 @@ defmodule OrbitalDynamics.Schema.OperatorReviewValidation do
   end
 
   def validate_row(issues, path, row, review_types, counteroffer_states, callbacks) do
-    OrbitalDynamics.Schema.OperatorReviewRowContracts.validate(
-      issues,
+    issues
+    |> OrbitalDynamics.Schema.AuthorityContextContracts.validate_operator_review_row_boundary(
+      path,
+      row
+    )
+    |> OrbitalDynamics.Schema.OperatorReviewRowContracts.validate(
       path,
       row,
       review_types,

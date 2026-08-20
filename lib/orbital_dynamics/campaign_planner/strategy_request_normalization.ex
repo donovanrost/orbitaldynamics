@@ -108,6 +108,12 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRequestNormalization do
     raw_approval_policy = ValueEncoding.get_key(request, :approval_policy)
     approval_policy_supplied? = not is_nil(raw_approval_policy)
 
+    {authority_context_mode_supplied?, authority_context_mode} =
+      authority_option(request, :authority_context_mode, &ValueEncoding.encode_value/1)
+
+    {authority_context_supplied?, authority_context} =
+      authority_option(request, :authority_context, & &1)
+
     repair_policy =
       request
       |> ValueEncoding.get_key(:repair_policy)
@@ -132,6 +138,10 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRequestNormalization do
       approval_policy: approval_policy,
       approval_policy_source: ValueEncoding.stringify_keys(raw_approval_policy || %{}),
       approval_policy_supplied?: approval_policy_supplied?,
+      authority_context_mode: authority_context_mode,
+      authority_context: authority_context,
+      authority_context_mode_supplied?: authority_context_mode_supplied?,
+      authority_context_supplied?: authority_context_supplied?,
       repair_policy: repair_policy,
       scoring_policy:
         ValueEncoding.stringify_keys(ValueEncoding.get_key(request, :scoring_policy) || %{}),
@@ -144,5 +154,33 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRequestNormalization do
         ),
       metadata: ValueEncoding.stringify_keys(ValueEncoding.get_key(request, :metadata) || %{})
     }
+  end
+
+  defp authority_option(request, key, normalize) do
+    atom_value = Map.fetch(request, key)
+    string_value = Map.fetch(request, Atom.to_string(key))
+
+    case {atom_value, string_value} do
+      {:error, :error} ->
+        {false, nil}
+
+      {{:ok, value}, :error} ->
+        {true, normalize.(value)}
+
+      {:error, {:ok, value}} ->
+        {true, normalize.(value)}
+
+      {{:ok, atom_alias}, {:ok, string_alias}} ->
+        normalized_atom_alias = normalize.(atom_alias)
+        normalized_string_alias = normalize.(string_alias)
+
+        if normalized_atom_alias == normalized_string_alias do
+          {true, normalized_atom_alias}
+        else
+          {true,
+           {:ambiguous_option, Atom.to_string(key),
+            [normalized_atom_alias, normalized_string_alias]}}
+        end
+    end
   end
 end

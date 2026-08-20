@@ -3,6 +3,14 @@ defmodule OrbitalDynamics.Schema.ApprovalPolicyRegistryContracts do
 
   def contracts do
     %{
+      "authority_context.v1" => %{
+        "schema_contract" => "authority_context.v1",
+        "artifact_family" => "authority_context",
+        "schema_version" => 1,
+        "required_fields" => OrbitalDynamics.AuthorityContext.required_fields(),
+        "optional_fields" => [],
+        "nested_contracts" => []
+      },
       "approval_requirement.v1" => %{
         "schema_contract" => "approval_requirement.v1",
         "artifact_family" => "approval_requirement",
@@ -38,10 +46,13 @@ defmodule OrbitalDynamics.Schema.ApprovalPolicyRegistryContracts do
           "approval_requirement_count",
           "risk_count",
           "fallback_policy",
+          "eligibility_status",
+          "authority_context",
+          "authority_context_evaluation",
           "assumptions",
           "model_limits"
         ],
-        "nested_contracts" => ["approval_requirement.v1"]
+        "nested_contracts" => ["approval_requirement.v1", "authority_context.v1"]
       },
       "policy_bundle.v1" => %{
         "schema_contract" => "policy_bundle.v1",

@@ -48,6 +48,13 @@ defmodule OrbitalDynamics.Schema.StrategyRecommendationContracts do
       "strategy_recommendation.v1"
     )
     |> expect_optional_type(path, recommendation, "status", :binary)
+    |> expect_optional_type(path, recommendation, "authority_context", :map)
+    |> expect_optional_type(path, recommendation, "authority_context_evaluation", :map)
+    |> expect_optional_type(path, recommendation, "eligibility_status", :binary)
+    |> OrbitalDynamics.Schema.AuthorityContextContracts.validate_recommendation_boundary(
+      path,
+      recommendation
+    )
     |> expect_type(path, recommendation, "ranked_branch_ids", :list)
     |> expect_type(path, recommendation, "tradeoffs", :list)
     |> expect_type(path, recommendation, "requires_approval", :list)

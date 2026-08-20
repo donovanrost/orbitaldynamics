@@ -31,6 +31,40 @@ Status: **implemented**.
 - V2 repair artifacts now carry the same `policy_decision.v1` contract for repair
   approval requirements.
 
+### Versioned authority context
+
+- `OrbitalDynamics.AuthorityContext` builds and validates immutable
+  `authority_context.v1` evidence with a content-derived stable identity,
+  authority source, immutable source revision, effective-from and valid-until
+  bounds, and a caller-supplied evaluation time.
+- Authority-context validation is deterministic and does not read the wall
+  clock, process state, application configuration, or an external authority
+  service. A changed source revision changes the authority-context identity and
+  the identity of a V3 strategy produced from it.
+- `Policy.decide/6` adds an explicit authority-context mode while preserving the
+  existing `Policy.decide/5` path only when both mode and context are absent.
+  Exact explicit mode validates the supplied context. A context without mode,
+  an unsupported mode, or a missing, malformed, not-yet-effective, or stale
+  explicit context produces typed fail-closed evidence with the reason and
+  caller-supplied input preserved; it never falls back to ambient configuration.
+- Authority evidence validity and substantive policy eligibility remain
+  independent. A valid authority context has an `eligible` evidence evaluation,
+  but cannot change an existing `blocked_by_policy` decision: the decision,
+  recommendation, review package, and import manifest remain `non_eligible`,
+  and the selected import row remains review-required.
+- Boundary validators recompute authority-context evaluations from canonical
+  typed caller evidence. They reject context/evaluation revision substitution
+  even when copied fields and enclosing strategy, review, and manifest identity
+  links are otherwise coherent. Rejected input maps retain structural evidence
+  for ambiguous atom/string keys and unsupported term types.
+- The bounded V3 representative path preserves valid context and every typed
+  evaluation through `policy_decision.v1`, `strategy_recommendation.v1`,
+  `campaign_strategy.v3`, its `operator_review_package.v1`, and the existing
+  selected-strategy row and provenance in `cadence_import_manifest.v1`.
+- Authority evidence remains optional. Only callers supplying neither mode nor
+  context retain the prior policy and campaign-strategy artifact shape and
+  behavior.
+
 ### Approval requirements
 
 - `approval_requirement.v1` rows carry explicit `requirement_type` values for:
@@ -441,15 +475,23 @@ Status: **partial**.
 - Operator-review and Cadence import `source_policy_decision` and
   `source_policy_escalation` snapshots expose and validate their known
   policy-classification and escalation evidence.
-- **But** — authority boundaries for command/contact execution remain
+- **But** — `authority_context.v1` is caller-supplied evidence for one bounded
+  campaign-policy path, not an authority registry or a repository-wide retrofit
+  of every policy surface. Command/contact execution boundaries remain
   classification-only, and organization-specific policy adapters intentionally
-  remain artifact-only.
+  remain artifact-only. Within that bounded path, operator-review and Cadence
+  import validators recompute authority evaluations, reject missing propagation
+  roots, prevent non-eligible selected rows from becoming import-ready, and keep
+  blocked alternatives non-eligible independently of an eligible selection.
 
 ## Near-term
 
 Status: **near-term**.
 
 - Broaden policy coverage for richer command/contact authority boundaries.
+- Extend explicit authority-context propagation to additional policy producers
+  only when their callers can supply equally immutable revision and evaluation
+  evidence; no ambient-config fallback is planned.
 - Policy rule matches now lift organization/inline policy adapter provenance,
   including source, adapter, organization, policy source, and trust boundary,
   plus contention resource-scope, resolution, priority-source, and
@@ -468,3 +510,5 @@ Status: **later**.
 Status: **out of scope**.
 
 - Autonomous command execution or bypassing Cadence/operator authority.
+- External authority lookup, approval, scheduling, Cadence import writes, or a
+  claim that a recommendation was authorized or executed.

@@ -221,6 +221,10 @@ defmodule OrbitalDynamics.Schema.ArtifactValidationRouter do
     PolicyValidation.validate_artifact([], "$", artifact, "approval_requirement.v1")
   end
 
+  def validate("authority_context.v1", _contract, artifact) do
+    PolicyValidation.validate_artifact([], "$", artifact, "authority_context.v1")
+  end
+
   def validate("policy_decision.v1", _contract, artifact) do
     PolicyValidation.validate_artifact([], "$", artifact, "policy_decision.v1")
   end

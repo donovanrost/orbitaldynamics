@@ -32,6 +32,9 @@ defmodule OrbitalDynamics.OperatorReview.StrategyRecommendation do
             "risk_count" => length(Map.get(recommendation, "risks_remaining", [])),
             "approval_requirement_count" =>
               length(Map.get(recommendation, "requires_approval", [])),
+            "eligibility_status" => recommendation["eligibility_status"],
+            "authority_context" => recommendation["authority_context"],
+            "authority_context_evaluation" => recommendation["authority_context_evaluation"],
             "source_recommendation" => recommendation
           }
           |> Map.merge(recommendation_branch_event_context(recommendation))

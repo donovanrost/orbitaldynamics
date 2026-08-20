@@ -25,6 +25,9 @@ defmodule OrbitalDynamics.CadenceImport.StrategyManifestRow do
       "branch_id" => branch_id,
       "recommended_branch_id" => recommendation["recommended_branch_id"],
       "approval_status" => approval_status,
+      "eligibility_status" => branch_eligibility(approval_status, recommendation),
+      "authority_context" => recommendation["authority_context"],
+      "authority_context_evaluation" => recommendation["authority_context_evaluation"],
       "required_operator_action" =>
         if(selected?, do: "review_strategy_recommendation", else: "review_branch_comparison"),
       "cadence_import_status" => "not_applicable",
@@ -325,6 +328,12 @@ defmodule OrbitalDynamics.CadenceImport.StrategyManifestRow do
   defp strategy_import_status(true, "auto_approvable"), do: "ready_for_import"
   defp strategy_import_status(true, "not_required"), do: "ready_for_import"
   defp strategy_import_status(true, _approval_status), do: "review_required_before_import"
+
+  defp branch_eligibility("blocked_by_policy", %{"eligibility_status" => _eligibility}),
+    do: "non_eligible"
+
+  defp branch_eligibility(_approval_status, recommendation),
+    do: recommendation["eligibility_status"]
 
   defp branch_timeline_evidence_fields(callbacks),
     do: invoke(callbacks, :branch_timeline_evidence_fields, [])

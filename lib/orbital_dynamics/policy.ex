@@ -1456,6 +1456,21 @@ defmodule OrbitalDynamics.Policy do
     )
   end
 
+  @doc """
+  Classifies a branch with an optional caller-supplied authority context.
+
+  `:authority_context_mode` must be `:explicit` or `"explicit"` to activate
+  fail-closed authority evaluation. The legacy `/5` function remains the exact
+  default and does not inspect application or process configuration.
+  """
+  def decide(approval_requirements, risk_indicators, branch, candidate_plan, policy, opts)
+      when is_list(opts) or is_map(opts) do
+    result = decide(approval_requirements, risk_indicators, branch, candidate_plan, policy)
+    authority_evaluation = OrbitalDynamics.AuthorityContext.evaluate_options(opts)
+
+    apply_authority_context(result, authority_evaluation)
+  end
+
   defp cadence_import_statuses do
     OrbitalDynamics.CadenceImport.capability().cadence_import_statuses
   end
@@ -1476,6 +1491,35 @@ defmodule OrbitalDynamics.Policy do
       @escalation_fields
     )
   end
+
+  defp apply_authority_context(result, authority_evaluation) do
+    case authority_evaluation do
+      :legacy ->
+        result
+
+      {:ok, authority_context, evaluation} ->
+        {status, requirements, matches, decision} = result
+        eligibility_status = substantive_eligibility(status)
+
+        {status, requirements, matches,
+         decision
+         |> Map.put("eligibility_status", eligibility_status)
+         |> Map.put("authority_context", authority_context)
+         |> Map.put("authority_context_evaluation", evaluation)}
+
+      {:error, evaluation} ->
+        {_status, requirements, matches, decision} = result
+
+        {"blocked_by_policy", requirements, matches,
+         decision
+         |> Map.put("classification", "blocked_by_policy")
+         |> Map.put("eligibility_status", "non_eligible")
+         |> Map.put("authority_context_evaluation", evaluation)}
+    end
+  end
+
+  defp substantive_eligibility("blocked_by_policy"), do: "non_eligible"
+  defp substantive_eligibility(_classification), do: "eligible"
 
   defp maybe_put(map, _key, nil), do: map
   defp maybe_put(map, key, value), do: Map.put(map, key, value)

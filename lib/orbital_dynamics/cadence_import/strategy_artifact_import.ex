@@ -53,6 +53,9 @@ defmodule OrbitalDynamics.CadenceImport.StrategyArtifactImport do
         "recommended_branch_id" => recommendation["recommended_branch_id"],
         "source_branch_count" => length(comparison_rows),
         "source_review_count" => StrategyReview.count(review_package),
+        "eligibility_status" => recommendation["eligibility_status"],
+        "authority_context" => recommendation["authority_context"],
+        "authority_context_evaluation" => recommendation["authority_context_evaluation"],
         "operator_review_package_source" =>
           if(Map.has_key?(artifact, "operator_review_package"), do: "embedded", else: "derived")
       }
@@ -60,6 +63,9 @@ defmodule OrbitalDynamics.CadenceImport.StrategyArtifactImport do
       %{
         "source_artifact_type" => "campaign_strategy.v3",
         "source_artifact_id" => source_id,
+        "eligibility_status" => recommendation["eligibility_status"],
+        "authority_context" => recommendation["authority_context"],
+        "authority_context_evaluation" => recommendation["authority_context_evaluation"],
         "row_source" =>
           "campaign_strategy.branch_comparison_report.rows_and_operator_review_package.rows",
         "deterministic_ordering" => "branch_comparison_rank_then_branch_id"
