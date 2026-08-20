@@ -42,6 +42,7 @@ defmodule OrbitalDynamics.Schema.ExecutionReportContracts do
     |> expect_optional_type(path, artifact, "model_limits", :list)
     |> validate_string_list_items(path, artifact, "model_limits")
     |> validate_model_limits(path, artifact)
+    |> validate_resumability(path, artifact)
     |> expect_optional_type(path, artifact, "batch_propagation", :boolean)
     |> expect_optional_integer(path, artifact, "task_chunk_size")
     |> validate_optional_timeout(path, artifact)
@@ -84,13 +85,91 @@ defmodule OrbitalDynamics.Schema.ExecutionReportContracts do
         issues
 
       limits when is_list(limits) ->
-        if limits == OrbitalDynamics.ResultSet.Artifact.execution_report_model_limits() do
+        expected_limits =
+          OrbitalDynamics.ResultSet.Artifact.execution_report_model_limits(artifact)
+
+        if limits == expected_limits do
           issues
         else
           [error("#{path}.model_limits", "must match execution report model limits") | issues]
         end
 
       _value ->
+        issues
+    end
+  end
+
+  defp validate_resumability(issues, path, artifact) do
+    execution_plan = Map.get(artifact, "execution_plan")
+    assumptions = Map.get(artifact, "assumptions")
+
+    case {execution_plan, assumptions} do
+      {%{"resumability" => "failed_scenario_retry"} = plan, %{} = retry_assumptions} ->
+        issues
+        |> require_fields("#{path}.execution_plan", plan, ["retry"])
+        |> expect_type("#{path}.execution_plan", plan, "retry", :map)
+        |> require_fields("#{path}.assumptions", retry_assumptions, [
+          "resumability",
+          "retry_scope",
+          "checkpoint_resume",
+          "source_results_merged",
+          "persistent_queue",
+          "automatic_retry"
+        ])
+        |> expect_field_equals(
+          "#{path}.assumptions",
+          retry_assumptions,
+          "resumability",
+          "failed_scenario_retry",
+          "must match execution_plan.resumability"
+        )
+        |> expect_field_equals(
+          "#{path}.assumptions",
+          retry_assumptions,
+          "retry_scope",
+          "failed_scenarios_only",
+          "must describe the failed-scenario-only retry scope"
+        )
+        |> expect_field_equals(
+          "#{path}.assumptions",
+          retry_assumptions,
+          "checkpoint_resume",
+          false,
+          "must remain false for retry batches"
+        )
+        |> expect_field_equals(
+          "#{path}.assumptions",
+          retry_assumptions,
+          "source_results_merged",
+          false,
+          "must remain false for retry batches"
+        )
+        |> expect_field_equals(
+          "#{path}.assumptions",
+          retry_assumptions,
+          "persistent_queue",
+          false,
+          "must remain false for retry batches"
+        )
+        |> expect_field_equals(
+          "#{path}.assumptions",
+          retry_assumptions,
+          "automatic_retry",
+          false,
+          "must remain false for explicit retry batches"
+        )
+
+      {%{"resumability" => "not_resumable"}, %{} = ordinary_assumptions} ->
+        expect_field_equals(
+          issues,
+          "#{path}.assumptions",
+          ordinary_assumptions,
+          "resumability",
+          "not_resumable",
+          "must match execution_plan.resumability"
+        )
+
+      _other ->
         issues
     end
   end

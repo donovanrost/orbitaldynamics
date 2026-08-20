@@ -17,7 +17,7 @@ defmodule OrbitalDynamics.Schema.ResultArtifactPropertyRouter do
       contract,
       fn arg1, arg2, arg3 -> fallback(arg1, arg2, arg3, context) end,
       {"execution_report.v1", context_value(context, :stable_id_pattern),
-       &OrbitalDynamics.ResultSet.Artifact.execution_report_model_limits/0}
+       &OrbitalDynamics.ResultSet.Artifact.execution_report_model_limit_values/0}
     )
   end
 

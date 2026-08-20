@@ -43,6 +43,7 @@ defmodule OrbitalDynamics.ScenarioRunner do
     * `:task_supervisors` - local and/or remote task supervisors for round-robin distribution
     * `:task_chunk_size` - scenarios per distributed task, default `1`
     * `:propagator_opts` - options forwarded to module propagators
+    * `:scenario_indexes` - optional source-manifest indexes for a selected retry batch
   """
   def run(scenarios, opts \\ []) when is_list(scenarios) do
     propagator = Keyword.get(opts, :propagator, TwoBody)
@@ -52,6 +53,7 @@ defmodule OrbitalDynamics.ScenarioRunner do
     task_supervisors = Keyword.get(opts, :task_supervisors)
     requested_task_chunk_size = Keyword.get(opts, :task_chunk_size, 1)
     propagator_opts = Keyword.get(opts, :propagator_opts, [])
+    indexed_scenarios = indexed_scenarios(scenarios, Keyword.get(opts, :scenario_indexes))
 
     validate_max_concurrency!(max_concurrency)
 
@@ -66,7 +68,7 @@ defmodule OrbitalDynamics.ScenarioRunner do
 
     if is_list(task_supervisors) and task_supervisors != [] do
       run_with_task_supervisors(
-        scenarios,
+        indexed_scenarios,
         task_supervisors,
         propagator,
         propagator_opts,
@@ -75,8 +77,6 @@ defmodule OrbitalDynamics.ScenarioRunner do
         task_chunk_size
       )
     else
-      indexed_scenarios = Enum.with_index(scenarios)
-
       indexed_scenarios
       |> async_stream(
         task_supervisor,
@@ -173,7 +173,7 @@ defmodule OrbitalDynamics.ScenarioRunner do
   end
 
   defp run_with_task_supervisors(
-         scenarios,
+         indexed_scenarios,
          task_supervisors,
          propagator,
          propagator_opts,
@@ -181,8 +181,7 @@ defmodule OrbitalDynamics.ScenarioRunner do
          timeout,
          task_chunk_size
        ) do
-    scenarios
-    |> Enum.with_index()
+    indexed_scenarios
     |> Enum.chunk_every(task_chunk_size)
     |> Enum.with_index()
     |> Enum.chunk_every(max_concurrency * length(task_supervisors))
@@ -266,6 +265,28 @@ defmodule OrbitalDynamics.ScenarioRunner do
 
   defp validate_task_chunk_size!(_task_chunk_size) do
     raise ArgumentError, "task_chunk_size must be a positive integer or :auto"
+  end
+
+  defp indexed_scenarios(scenarios, nil), do: Enum.with_index(scenarios)
+
+  defp indexed_scenarios(scenarios, scenario_indexes) when is_list(scenario_indexes) do
+    valid_indexes? =
+      length(scenarios) == length(scenario_indexes) and
+        Enum.all?(scenario_indexes, &(is_integer(&1) and &1 >= 0)) and
+        Enum.uniq(scenario_indexes) == scenario_indexes and
+        Enum.sort(scenario_indexes) == scenario_indexes
+
+    if valid_indexes? do
+      Enum.zip(scenarios, scenario_indexes)
+    else
+      raise ArgumentError,
+            "scenario_indexes must contain one unique ascending non-negative integer per scenario"
+    end
+  end
+
+  defp indexed_scenarios(_scenarios, _scenario_indexes) do
+    raise ArgumentError,
+          "scenario_indexes must contain one unique ascending non-negative integer per scenario"
   end
 
   defp scenario_count(scenarios) when is_list(scenarios), do: length(scenarios)

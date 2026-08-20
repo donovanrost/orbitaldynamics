@@ -11,6 +11,7 @@ Status: **implemented** (with **partial**, **near-term**, **later**, and **out o
 - Nx/EXLA backends.
 - Benchmark commands and artifacts.
 - Runtime telemetry in artifacts.
+- Explicit failed-scenario retry batches from validated manifest-run artifacts.
 
 ## Result payload metrics
 
@@ -25,7 +26,14 @@ Status: **implemented** (with **partial**, **near-term**, **later**, and **out o
 - Task settings.
 - Execution-plan metadata for scenario count, task batches, waves, chunking, adaptive chunk-size recommendation, supervisor concurrency, phase timings, and node distribution.
 - Failed scenario rows with zero-based source `scenario_index`, manual-rerun resumability, and retry recommendations.
-- Top-level `model_limits` for the non-resumable artifact-summary boundary, with executable validation against `OrbitalDynamics.ResultSet.Artifact.execution_report_model_limits/0`.
+- Retry execution plans that preserve source-manifest scenario order and indexes,
+  source run identity, and source-artifact path/SHA provenance while carrying the
+  original manifest seeds, assumptions, and study metadata into the retry run.
+- Exact mode-specific top-level `model_limits`: ordinary reports retain the
+  original non-resumable/no-retry list, while explicit retry batches declare
+  failed-scenario retry, no checkpoint resume, no source-result merge, no
+  persistent queue, and no automatic retry. Executable validation requires the
+  list and assumptions to match the execution plan.
 - Explicit external-provider policy metadata declaring whether the run was offline-only or had configured provider boundaries.
 
 ### Standalone fixture
@@ -77,7 +85,14 @@ A checked-in standalone `execution_report.v1` fixture now demonstrates a distrib
 
 ## Status: partial
 
-- No resumable long-running studies.
+- `mix orbital_dynamics.study.run --retry-failed-from SOURCE --output NEW` can
+  validate a prior result artifact against the current manifest SHA, reject
+  invalid or mismatched failure rows, and run only failed scenarios in original
+  manifest order. The new result retains original zero-based scenario indexes
+  and source provenance; it does not overwrite or merge the source artifact.
+- No checkpoint resume, completed-result merge, persistent queue, or transparent
+  recovery for long-running studies. Existing `--resume` remains checked
+  whole-artifact reuse rather than execution continuation.
 - Adaptive chunking is a deterministic V1 recommendation/execution policy for task-supervisor runs, not a feedback loop from historical benchmark telemetry.
 - Transfer overhead, payload costs, and failure-isolation rows are now visible in artifacts and can be compared against scale targets, but are not yet modeled by the planner.
 - Nx remains experimental evidence, not a default performance win.
@@ -89,7 +104,7 @@ A checked-in standalone `execution_report.v1` fixture now demonstrates a distrib
 
 ## Status: later
 
-- Resumable execution, persistent queues, adaptive distribution, native kernel pools, service backends, and hardware-aware scheduling.
+- Checkpoint/merge resume, persistent queues, adaptive distribution, native kernel pools, service backends, and hardware-aware scheduling.
 
 ## Status: out of scope
 

@@ -11,6 +11,18 @@ propagation outputs plus run metadata:
   `result_artifact.v1`, matches the manifest SHA, and matches the requested
   run ID when one is supplied; the same reusable preflight is exposed as
   `OrbitalDynamics.ResultSet.Artifact.resume_check/2`
+- explicit failed-scenario retry through
+  `mix orbital_dynamics.study.run --retry-failed-from SOURCE --output NEW`; the
+  source must pass the same result-artifact, study-ID, and manifest-SHA
+  preflight, failed rows must match the source manifest's scenario IDs and
+  zero-based indexes, and selection is canonicalized into manifest order. The
+  retry artifact preserves seeds and assumptions, records source path/SHA/run
+  provenance, and contains only retry-batch results with their original source
+  indexes. It does not merge completed source results or provide checkpoint
+  resume. Its execution-report assumptions and model limits identify it as an
+  explicit failed-scenario retry batch and state that source results are not
+  merged, no persistent queue exists, and failed rows are not retried
+  automatically; ordinary reports retain their existing non-resumable defaults.
 - `run`, `execution_report`, and `payload_metrics`
 - `assumptions`, including backend, provider, validation, and environment model
   declarations. `external_provider_policy` is semantically linted so offline
@@ -177,4 +189,3 @@ It also carries a compact
 invariants, and the campaign/candidate-refresh/contact-contention generated
 ID scopes so manifest preflight tooling can inspect public-identity rules
 without loading the full schema bundle.
-

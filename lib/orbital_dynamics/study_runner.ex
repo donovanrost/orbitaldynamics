@@ -49,6 +49,8 @@ defmodule OrbitalDynamics.StudyRunner do
     timeout = Keyword.get(opts, :timeout, :infinity)
     requested_task_chunk_size = Keyword.get(opts, :task_chunk_size, 1)
     task_supervisors = Keyword.get(opts, :task_supervisors)
+    scenario_indexes = Keyword.get(opts, :scenario_indexes)
+    retry_plan = Keyword.get(opts, :retry_plan)
     external_provider_policy = external_provider_policy(opts)
 
     explicit_task_distribution? =
@@ -62,6 +64,7 @@ defmodule OrbitalDynamics.StudyRunner do
     backend_selection_policy = backend_selection_policy(study.propagator, batch_propagation?)
 
     with :ok <- validate_run_inputs(study, opts),
+         :ok <- validate_scenario_indexes(study, scenario_indexes),
          :ok <- validate_task_supervisor_config(task_supervisor, task_supervisors) do
       execution_plan =
         execution_plan(study,
@@ -69,7 +72,8 @@ defmodule OrbitalDynamics.StudyRunner do
           requested_task_chunk_size: requested_task_chunk_size,
           task_supervisor: task_supervisor,
           task_supervisors: task_supervisors,
-          batch_propagation?: batch_propagation?
+          batch_propagation?: batch_propagation?,
+          retry_plan: retry_plan
         )
 
       task_chunk_size = execution_plan.resolved_task_chunk_size
@@ -82,7 +86,8 @@ defmodule OrbitalDynamics.StudyRunner do
             task_supervisor: task_supervisor,
             task_supervisors: task_supervisors,
             task_chunk_size: task_chunk_size,
-            batch_propagation?: batch_propagation?
+            batch_propagation?: batch_propagation?,
+            scenario_indexes: scenario_indexes
           )
         end)
 
@@ -115,7 +120,8 @@ defmodule OrbitalDynamics.StudyRunner do
           ground_track_crossings,
           sun_direction,
           external_provider_policy,
-          backend_selection_policy
+          backend_selection_policy,
+          retry_plan
         )
 
       {:ok,
@@ -145,12 +151,73 @@ defmodule OrbitalDynamics.StudyRunner do
              external_provider_policy: external_provider_policy,
              backend_selection_policy: backend_selection_policy,
              execution_plan: execution_plan,
+             retry_plan: retry_plan,
              phase_timings_ms: %{
                propagation: propagation_ms,
                event_detection: event_detection_ms
              }
            )
        })}
+    end
+  end
+
+  @doc """
+  Builds a deterministic retry plan from failed rows in an execution report.
+
+  Failed rows are validated against the study's scenario IDs and zero-based
+  indexes, deduplicated, and returned in source-manifest order regardless of the
+  report row order.
+  """
+  def failed_scenario_retry_plan(%Study{} = study, execution_report)
+      when is_map(execution_report) do
+    with :ok <- validate_retry_report_contract(execution_report),
+         :ok <- validate_retry_study(study, execution_report),
+         {:ok, failed_scenarios} <- retry_failed_scenarios(execution_report),
+         {:ok, rows} <- validate_retry_rows(study, failed_scenarios) do
+      ordered_rows = Enum.sort_by(rows, & &1.scenario_index)
+
+      {:ok,
+       %{
+         mode: "failed_scenario_retry",
+         selection_source: "execution_report.failed_scenarios",
+         ordering: "source_manifest_scenario_order",
+         source_study_id: retry_identity(study.id),
+         source_run_id: report_value(execution_report, :run_id),
+         source_execution_status: report_value(execution_report, :status),
+         source_scenario_count: length(study.scenarios),
+         scenario_count: length(ordered_rows),
+         scenario_indexes: Enum.map(ordered_rows, & &1.scenario_index),
+         scenario_ids: Enum.map(ordered_rows, & &1.scenario_id)
+       }}
+    end
+  end
+
+  def failed_scenario_retry_plan(%Study{}, _execution_report),
+    do: {:error, :invalid_execution_report}
+
+  @doc """
+  Retries only the failed scenarios selected by `failed_scenario_retry_plan/2`.
+
+  The returned results retain their original source-manifest scenario indexes.
+  This is an explicit retry batch, not a checkpoint merge or persistent queue.
+  """
+  def retry_failed(%Study{} = study, execution_report, opts \\ []) do
+    with {:ok, retry_plan} <- failed_scenario_retry_plan(study, execution_report) do
+      retry_plan =
+        maybe_put_map(retry_plan, :source_artifact, Keyword.get(opts, :retry_source))
+
+      retry_study = %{
+        study
+        | scenarios: Enum.map(retry_plan.scenario_indexes, &Enum.at(study.scenarios, &1))
+      }
+
+      retry_opts =
+        opts
+        |> Keyword.delete(:retry_source)
+        |> Keyword.put(:scenario_indexes, retry_plan.scenario_indexes)
+        |> Keyword.put(:retry_plan, retry_plan)
+
+      run(retry_study, retry_opts)
     end
   end
 
@@ -174,6 +241,119 @@ defmodule OrbitalDynamics.StudyRunner do
     unsupported = outputs -- @supported_outputs
     if unsupported == [], do: :ok, else: {:error, {:unsupported_outputs, unsupported}}
   end
+
+  defp validate_scenario_indexes(_study, nil), do: :ok
+
+  defp validate_scenario_indexes(%Study{} = study, scenario_indexes)
+       when is_list(scenario_indexes) do
+    valid? =
+      length(study.scenarios) == length(scenario_indexes) and
+        Enum.all?(scenario_indexes, &(is_integer(&1) and &1 >= 0)) and
+        Enum.uniq(scenario_indexes) == scenario_indexes and
+        Enum.sort(scenario_indexes) == scenario_indexes
+
+    if valid?, do: :ok, else: {:error, {:invalid_option, :scenario_indexes}}
+  end
+
+  defp validate_scenario_indexes(_study, _scenario_indexes),
+    do: {:error, {:invalid_option, :scenario_indexes}}
+
+  defp validate_retry_report_contract(execution_report) do
+    if report_value(execution_report, :schema_contract) == "execution_report.v1" do
+      :ok
+    else
+      {:error, :invalid_execution_report_contract}
+    end
+  end
+
+  defp validate_retry_study(%Study{} = study, execution_report) do
+    expected_study_id = retry_identity(study.id)
+    actual_study_id = retry_identity(report_value(execution_report, :study_id))
+    expected_scenario_count = length(study.scenarios)
+    actual_scenario_count = report_value(execution_report, :scenario_count)
+
+    cond do
+      actual_study_id != expected_study_id ->
+        {:error, {:retry_study_id_mismatch, expected_study_id, actual_study_id}}
+
+      actual_scenario_count != expected_scenario_count ->
+        {:error, {:retry_scenario_count_mismatch, expected_scenario_count, actual_scenario_count}}
+
+      true ->
+        :ok
+    end
+  end
+
+  defp retry_failed_scenarios(execution_report) do
+    case report_value(execution_report, :failed_scenarios) do
+      failed_scenarios when is_list(failed_scenarios) and failed_scenarios != [] ->
+        {:ok, failed_scenarios}
+
+      [] ->
+        {:error, :no_failed_scenarios}
+
+      _value ->
+        {:error, :invalid_failed_scenarios}
+    end
+  end
+
+  defp validate_retry_rows(%Study{} = study, failed_scenarios) do
+    failed_scenarios
+    |> Enum.with_index()
+    |> Enum.reduce_while({:ok, [], MapSet.new()}, fn {row, row_index},
+                                                     {:ok, rows, seen_indexes} ->
+      case validate_retry_row(study, row, row_index) do
+        {:ok, validated_row} ->
+          if MapSet.member?(seen_indexes, validated_row.scenario_index) do
+            {:halt, {:error, {:duplicate_retry_scenario_index, validated_row.scenario_index}}}
+          else
+            {:cont,
+             {:ok, [validated_row | rows], MapSet.put(seen_indexes, validated_row.scenario_index)}}
+          end
+
+        {:error, reason} ->
+          {:halt, {:error, reason}}
+      end
+    end)
+    |> case do
+      {:ok, rows, _seen_indexes} -> {:ok, Enum.reverse(rows)}
+      {:error, reason} -> {:error, reason}
+    end
+  end
+
+  defp validate_retry_row(%Study{} = study, row, row_index) when is_map(row) do
+    scenario_index = report_value(row, :scenario_index)
+    scenario_id = retry_identity(report_value(row, :scenario_id))
+
+    cond do
+      not (is_integer(scenario_index) and scenario_index >= 0 and
+               scenario_index < length(study.scenarios)) ->
+        {:error, {:invalid_retry_scenario_index, row_index, scenario_index}}
+
+      true ->
+        expected_scenario_id =
+          study.scenarios |> Enum.at(scenario_index) |> Map.fetch!(:id) |> retry_identity()
+
+        if scenario_id == expected_scenario_id do
+          {:ok, %{scenario_index: scenario_index, scenario_id: expected_scenario_id}}
+        else
+          {:error,
+           {:retry_scenario_id_mismatch, scenario_index, expected_scenario_id, scenario_id}}
+        end
+    end
+  end
+
+  defp validate_retry_row(_study, _row, row_index),
+    do: {:error, {:invalid_retry_scenario_row, row_index}}
+
+  defp report_value(map, key) do
+    Map.get(map, key, Map.get(map, Atom.to_string(key)))
+  end
+
+  defp retry_identity(nil), do: nil
+  defp retry_identity(value) when is_atom(value), do: Atom.to_string(value)
+  defp retry_identity(value) when is_binary(value), do: value
+  defp retry_identity(value), do: to_string(value)
 
   defp validate_ground_stations(outputs, ground_stations) do
     cond do
@@ -334,7 +514,7 @@ defmodule OrbitalDynamics.StudyRunner do
 
   defp propagate_scenarios(%Study{} = study, opts) do
     if Keyword.fetch!(opts, :batch_propagation?) do
-      propagate_batch(study)
+      propagate_batch(study, Keyword.fetch!(opts, :scenario_indexes))
     else
       ScenarioRunner.run(study.scenarios,
         propagator: study.propagator,
@@ -343,20 +523,23 @@ defmodule OrbitalDynamics.StudyRunner do
         timeout: Keyword.fetch!(opts, :timeout),
         task_supervisor: Keyword.fetch!(opts, :task_supervisor),
         task_supervisors: Keyword.fetch!(opts, :task_supervisors),
-        task_chunk_size: Keyword.fetch!(opts, :task_chunk_size)
+        task_chunk_size: Keyword.fetch!(opts, :task_chunk_size),
+        scenario_indexes: Keyword.fetch!(opts, :scenario_indexes)
       )
     end
   end
 
-  defp propagate_batch(%Study{} = study) do
+  defp propagate_batch(%Study{} = study, scenario_indexes) do
+    source_indexes = scenario_indexes || Enum.to_list(0..(length(study.scenarios) - 1))
+
     case study.propagator.propagate_many(study.scenarios, study.propagator_opts) do
       {:ok, trajectories} ->
         trajectories
-        |> Enum.with_index()
-        |> Enum.map(fn {trajectory, index} ->
+        |> Enum.zip(source_indexes)
+        |> Enum.map(fn {trajectory, source_index} ->
           %ScenarioRunner.Result{
             scenario_id: trajectory.scenario_id,
-            scenario_index: index,
+            scenario_index: source_index,
             status: :ok,
             value: trajectory,
             node: node()
@@ -365,11 +548,11 @@ defmodule OrbitalDynamics.StudyRunner do
 
       {:error, reason} ->
         study.scenarios
-        |> Enum.with_index()
-        |> Enum.map(fn {scenario, index} ->
+        |> Enum.zip(source_indexes)
+        |> Enum.map(fn {scenario, source_index} ->
           %ScenarioRunner.Result{
             scenario_id: scenario.id,
-            scenario_index: index,
+            scenario_index: source_index,
             status: :error,
             error: reason,
             node: node()
@@ -708,7 +891,8 @@ defmodule OrbitalDynamics.StudyRunner do
          ground_track_crossings,
          sun_direction,
          external_provider_policy,
-         backend_selection_policy
+         backend_selection_policy,
+         retry_plan
        ) do
     %{
       propagator: study.propagator,
@@ -724,6 +908,7 @@ defmodule OrbitalDynamics.StudyRunner do
       external_provider_policy: external_provider_policy,
       backend_selection_policy: backend_selection_policy
     }
+    |> maybe_put_map(:retry, retry_plan)
   end
 
   defp metadata(study, opts, run_data) do
@@ -798,6 +983,7 @@ defmodule OrbitalDynamics.StudyRunner do
       manifest: Keyword.get(opts, :manifest),
       git_revision: Keyword.get_lazy(opts, :git_revision, &git_revision/0)
     }
+    |> maybe_put_map(:retry, Keyword.fetch!(run_data, :retry_plan))
   end
 
   defp execution_plan(%Study{} = study, opts) do
@@ -806,6 +992,7 @@ defmodule OrbitalDynamics.StudyRunner do
     requested_task_chunk_size = Keyword.fetch!(opts, :requested_task_chunk_size)
     task_supervisors = Keyword.fetch!(opts, :task_supervisors)
     batch_propagation? = Keyword.fetch!(opts, :batch_propagation?)
+    retry_plan = Keyword.fetch!(opts, :retry_plan)
     supervisor_count = supervisor_count(Keyword.fetch!(opts, :task_supervisor), task_supervisors)
     effective_task_concurrency = effective_task_concurrency(max_concurrency, task_supervisors)
 
@@ -861,8 +1048,9 @@ defmodule OrbitalDynamics.StudyRunner do
       batches_per_wave: batches_per_wave,
       wave_count:
         if(task_batch_count == 0, do: 0, else: ceil_div(task_batch_count, batches_per_wave)),
-      resumability: "not_resumable"
+      resumability: if(retry_plan, do: "failed_scenario_retry", else: "not_resumable")
     }
+    |> maybe_put_map(:retry, retry_plan)
   end
 
   defp supervisor_count(_task_supervisor, task_supervisors) when is_list(task_supervisors),
@@ -1017,4 +1205,7 @@ defmodule OrbitalDynamics.StudyRunner do
 
   defp maybe_put(keyword, _key, nil), do: keyword
   defp maybe_put(keyword, key, value), do: Keyword.put(keyword, key, value)
+
+  defp maybe_put_map(map, _key, nil), do: map
+  defp maybe_put_map(map, key, value), do: Map.put(map, key, value)
 end
