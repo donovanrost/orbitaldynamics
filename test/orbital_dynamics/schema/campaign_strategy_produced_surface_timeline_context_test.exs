@@ -4,7 +4,9 @@ Code.require_file(
 )
 
 defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceTimelineContextTest do
-  use OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceCase, async: true
+  use OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceCase,
+    async: true,
+    group: :campaign_strategy_produced_surface
 
   alias OrbitalDynamics.Schema
 
