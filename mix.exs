@@ -18,6 +18,12 @@ defmodule OrbitalDynamics.MixProject do
     ]
   end
 
+  def cli do
+    [
+      preferred_envs: ["orbital_dynamics.test.shard": :test]
+    ]
+  end
+
   defp deps do
     [
       {:nx, "~> 0.11"},

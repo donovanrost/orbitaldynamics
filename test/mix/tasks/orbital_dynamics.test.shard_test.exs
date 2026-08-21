@@ -4,6 +4,10 @@ defmodule Mix.Tasks.OrbitalDynamics.Test.ShardTest do
   import ExUnit.CaptureIO
 
   test "writes a machine-readable manifest for an exactly covered suite" do
+    assert OrbitalDynamics.MixProject.cli()[:preferred_envs][
+             :"orbital_dynamics.test.shard"
+           ] == :test
+
     root =
       Path.join(
         System.tmp_dir!(),
@@ -57,5 +61,76 @@ defmodule Mix.Tasks.OrbitalDynamics.Test.ShardTest do
                %{"index" => 2, "files" => ["test/b_test.exs"]}
              ]
            } = manifest_path |> File.read!() |> :json.decode()
+
+    assert Path.wildcard(manifest_path <> ".tmp.*") == []
+
+    output =
+      File.cd!(root, fn ->
+        capture_io(fn ->
+          Mix.Task.reenable("orbital_dynamics.test.shard")
+
+          Mix.Task.run("orbital_dynamics.test.shard", [
+            "--profile",
+            profile_path,
+            "--shards",
+            "2",
+            "--shard",
+            "1",
+            "--list",
+            "--",
+            "--seed",
+            "0",
+            "--timeout",
+            "120000"
+          ])
+        end)
+      end)
+
+    assert output =~ "test/a_test.exs"
+
+    rejected_test_args = [
+      ["test/a_test.exs"],
+      ["--partitions", "2"],
+      ["--failed"],
+      ["--stale"],
+      ["--repeat-until-failure", "2"],
+      ["--exclude", "slow"],
+      ["--max-failures", "1"],
+      ["--formatter", "ExUnit.CLIFormatter"]
+    ]
+
+    Enum.each(rejected_test_args, fn rejected_args ->
+      Mix.Task.reenable("orbital_dynamics.test.shard")
+
+      assert_raise Mix.Error, ~r/only --seed and --timeout may follow --/, fn ->
+        File.cd!(root, fn ->
+          Mix.Task.run(
+            "orbital_dynamics.test.shard",
+            ["--profile", profile_path, "--shards", "2", "--shard", "1", "--"] ++
+              rejected_args
+          )
+        end)
+      end
+    end)
+
+    Mix.Task.reenable("orbital_dynamics.test.shard")
+
+    assert_raise Mix.Error, ~r/test options may be given only once/, fn ->
+      File.cd!(root, fn ->
+        Mix.Task.run("orbital_dynamics.test.shard", [
+          "--profile",
+          profile_path,
+          "--shards",
+          "2",
+          "--shard",
+          "1",
+          "--",
+          "--seed",
+          "0",
+          "--seed",
+          "1"
+        ])
+      end)
+    end
   end
 end

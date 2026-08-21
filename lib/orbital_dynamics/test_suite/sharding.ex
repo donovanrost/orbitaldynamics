@@ -25,6 +25,11 @@ defmodule OrbitalDynamics.TestSuite.Sharding do
     expected_files = normalize_test_files!(test_files)
     validate_exact_coverage!(entries, expected_files)
 
+    if shard_count > length(entries) do
+      raise ArgumentError,
+            "shard count #{shard_count} exceeds profiled test-file count #{length(entries)}"
+    end
+
     shards =
       entries
       |> Enum.sort_by(fn entry -> {-entry.duration_us, entry.path} end)
@@ -60,8 +65,10 @@ defmodule OrbitalDynamics.TestSuite.Sharding do
   def write_manifest!(path, manifest) do
     path = Path.expand(path)
     File.mkdir_p!(Path.dirname(path))
+    temporary_path = path <> ".tmp.#{System.unique_integer([:positive])}"
     json = manifest |> :json.encode() |> IO.iodata_to_binary()
-    File.write!(path, json <> "\n")
+    File.write!(temporary_path, json <> "\n")
+    File.rename!(temporary_path, path)
   end
 
   defp load_entries!(profile_paths) do

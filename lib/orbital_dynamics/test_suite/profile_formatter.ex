@@ -30,13 +30,11 @@ defmodule OrbitalDynamics.TestSuite.ProfileFormatter do
     file = Map.fetch!(test.tags, :file)
     path = relative_test_path(file)
     file_profile = Map.get(state.files, path, empty_file_profile(path))
-    outcome = outcome(test.state)
 
     file_profile =
       file_profile
       |> Map.update!(:duration_us, &(&1 + test.time))
       |> Map.update!(:tests, &(&1 + 1))
-      |> Map.update!(outcome, &(&1 + 1))
 
     {:noreply, put_in(state.files[path], file_profile)}
   end
@@ -91,32 +89,16 @@ defmodule OrbitalDynamics.TestSuite.ProfileFormatter do
     %{
       path: path,
       duration_us: 0,
-      tests: 0,
-      passed: 0,
-      failures: 0,
-      skipped: 0,
-      excluded: 0,
-      invalid: 0
+      tests: 0
     }
   end
 
   defp empty_totals do
     %{
       duration_us: 0,
-      tests: 0,
-      passed: 0,
-      failures: 0,
-      skipped: 0,
-      excluded: 0,
-      invalid: 0
+      tests: 0
     }
   end
-
-  defp outcome(nil), do: :passed
-  defp outcome({:failed, _failures}), do: :failures
-  defp outcome({:skipped, _reason}), do: :skipped
-  defp outcome({:excluded, _reason}), do: :excluded
-  defp outcome({:invalid, _module}), do: :invalid
 
   defp json_nullable(nil), do: :null
   defp json_nullable(value), do: value

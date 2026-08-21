@@ -3,7 +3,7 @@ defmodule OrbitalDynamics.TestSuite.ProfileFormatterTest do
 
   alias OrbitalDynamics.TestSuite.ProfileFormatter
 
-  test "writes sorted per-file runtime and outcome counts as JSON" do
+  test "writes sorted per-file runtime and test counts as JSON" do
     output_path =
       Path.join(
         System.tmp_dir!(),
@@ -42,8 +42,8 @@ defmodule OrbitalDynamics.TestSuite.ProfileFormatterTest do
     assert artifact["suite"] == %{"async_us" => 3_000, "load_us" => :null, "run_us" => 4_000}
     assert artifact["totals"]["duration_us"] == 4_000
     assert artifact["totals"]["tests"] == 2
-    assert artifact["totals"]["passed"] == 1
-    assert artifact["totals"]["failures"] == 1
+    refute Map.has_key?(artifact["totals"], "passed")
+    refute Map.has_key?(artifact["totals"], "failures")
 
     assert Enum.map(artifact["files"], & &1["path"]) == [
              "test/alpha_test.exs",

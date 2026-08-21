@@ -13,7 +13,9 @@ defmodule Mix.Tasks.OrbitalDynamics.Test.Shard do
         --profile tmp/test-suite-profile/partition-2.json \
         --shards 4 --shard 1 -- --seed 0 --timeout 120000
 
-  Arguments after `--` are forwarded to `mix test` when `--shard` is present.
+  Only one `--seed` and one `--timeout` may follow `--`. Test selectors,
+  partitions, formatters, repetition, early-stop options, and positional paths
+  are rejected so the manifest remains the sole owner of test-file selection.
   """
 
   use Mix.Task
@@ -30,8 +32,11 @@ defmodule Mix.Tasks.OrbitalDynamics.Test.Shard do
     list: :boolean
   ]
 
+  @test_switches [seed: :integer, timeout: :integer]
+
   @impl Mix.Task
   def run(args) do
+    ensure_test_env!()
     {task_args, test_args} = split_test_args(args)
     {opts, rest, invalid} = OptionParser.parse(task_args, strict: @switches)
 
@@ -39,6 +44,7 @@ defmodule Mix.Tasks.OrbitalDynamics.Test.Shard do
       Mix.raise("invalid test shard arguments: #{inspect(rest ++ invalid)}")
     end
 
+    test_args = parse_test_args!(test_args)
     profile_paths = Keyword.get_values(opts, :profile)
     shard_count = Keyword.get(opts, :shards, 4)
     manifest = Sharding.build!(profile_paths, shard_count)
@@ -57,6 +63,44 @@ defmodule Mix.Tasks.OrbitalDynamics.Test.Shard do
     case Enum.split_while(args, &(&1 != "--")) do
       {task_args, []} -> {task_args, []}
       {task_args, ["--" | test_args]} -> {task_args, test_args}
+    end
+  end
+
+  defp parse_test_args!(args) do
+    duplicate_options =
+      [{"--seed", :seed}, {"--timeout", :timeout}]
+      |> Enum.filter(fn {name, _key} ->
+        Enum.count(args, &(&1 == name or String.starts_with?(&1, name <> "="))) > 1
+      end)
+      |> Enum.map(&elem(&1, 1))
+
+    if duplicate_options != [] do
+      Mix.raise("test options may be given only once: #{inspect(duplicate_options)}")
+    end
+
+    {opts, rest, invalid} = OptionParser.parse(args, strict: @test_switches)
+
+    unless rest == [] and invalid == [] do
+      Mix.raise("only --seed and --timeout may follow --; rejected: #{inspect(rest ++ invalid)}")
+    end
+
+    seed = Keyword.get(opts, :seed)
+    timeout = Keyword.get(opts, :timeout)
+
+    if seed != nil and seed < 0, do: Mix.raise("--seed must be non-negative")
+    if timeout != nil and timeout <= 0, do: Mix.raise("--timeout must be positive")
+
+    []
+    |> maybe_put_test_option("--seed", seed)
+    |> maybe_put_test_option("--timeout", timeout)
+  end
+
+  defp maybe_put_test_option(args, _name, nil), do: args
+  defp maybe_put_test_option(args, name, value), do: args ++ [name, Integer.to_string(value)]
+
+  defp ensure_test_env! do
+    unless Mix.env() == :test do
+      Mix.raise("orbital_dynamics.test.shard must run in MIX_ENV=test")
     end
   end
 
@@ -89,6 +133,10 @@ defmodule Mix.Tasks.OrbitalDynamics.Test.Shard do
 
     unless shard do
       Mix.raise("--shard must be between 1 and #{manifest.shard_count}")
+    end
+
+    if shard.files == [] do
+      Mix.raise("refusing to run empty shard #{shard.index}")
     end
 
     if list? do

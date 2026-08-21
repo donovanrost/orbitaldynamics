@@ -71,6 +71,10 @@ defmodule OrbitalDynamics.TestSuite.ShardingTest do
              %{files: ["test/a_test.exs", "test/c_test.exs"]},
              %{files: ["test/b_test.exs", "test/d_test.exs"]}
            ] = Sharding.build!([profile_path], 2, Enum.map(files, & &1.path)).shards
+
+    assert_raise ArgumentError, ~r/shard count 5 exceeds profiled test-file count 4/, fn ->
+      Sharding.build!([profile_path], 5, Enum.map(files, & &1.path))
+    end
   end
 
   defp profile_file(path, duration_us, tests) do
