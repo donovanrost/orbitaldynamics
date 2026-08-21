@@ -4,9 +4,7 @@ Code.require_file(
 )
 
 defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContactContextTest do
-  use OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceCase,
-    async: true,
-    group: :campaign_strategy_produced_surface
+  use OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceCase, async: true
 
   alias OrbitalDynamics.Schema
 
@@ -348,6 +346,254 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContactContextTe
                &(&1["path"] ==
                    "$.branch_comparison_report.rows[#{pressure_branch_index}].#{field}")
              )
+    end
+  end
+
+  alias OrbitalDynamics.Schema
+
+  test "rejects CampaignStrategy branch comparison event quality context drift", %{
+    strategy: strategy
+  } do
+    drift_values = %{
+      "branch_image_quality_min_score" => 0.5,
+      "branch_image_quality_statuses" => ["marginal"],
+      "branch_image_quality_sources" => ["provider"],
+      "branch_cloud_cover_max_fraction" => 0.5,
+      "branch_blur_max_score" => 0.5
+    }
+
+    for {field, drift} <- drift_values do
+      invalid =
+        put_in(
+          strategy,
+          ["branch_comparison_report", "rows", Access.at(1), field],
+          drift
+        )
+
+      assert {:error, validation_report} = Schema.validate_artifact(invalid)
+
+      assert Enum.any?(
+               validation_report["errors"],
+               &(&1["path"] == "$.branch_comparison_report.rows[1].#{field}")
+             )
+    end
+  end
+
+  test "rejects CampaignStrategy branch comparison event latency and downlink context drift", %{
+    strategy: strategy
+  } do
+    drift_values = %{
+      "branch_max_latency_s" => 1.0,
+      "branch_planned_latency_s" => 1.0,
+      "branch_required_contacts" => 1,
+      "branch_planned_contacts" => 1,
+      "branch_required_downlink_mb" => 1.0,
+      "branch_planned_downlink_mb" => 1.0,
+      "branch_actual_downlink_completion_ratio" => 0.5
+    }
+
+    for {field, drift} <- drift_values do
+      invalid =
+        put_in(
+          strategy,
+          ["branch_comparison_report", "rows", Access.at(1), field],
+          drift
+        )
+
+      assert {:error, validation_report} = Schema.validate_artifact(invalid)
+
+      assert Enum.any?(
+               validation_report["errors"],
+               &(&1["path"] == "$.branch_comparison_report.rows[1].#{field}")
+             )
+    end
+  end
+
+  test "rejects CampaignStrategy branch comparison capacity-pack aggregate drift", %{
+    strategy: strategy
+  } do
+    drift_values = %{
+      "capacity_pack_group_ids" => ["invented_capacity_pack"],
+      "capacity_pack_statuses" => ["invented_capacity_pack_status"],
+      "capacity_pack_min_capacity_fraction" => 0.5,
+      "capacity_pack_max_used_fraction" => 0.5,
+      "capacity_pack_max_required_capacity_fraction" => 0.5,
+      "capacity_pack_total_required_capacity_fraction" => 0.5,
+      "capacity_pack_required_capacity_sources" => ["invented_capacity_source"]
+    }
+
+    for {field, drift} <- drift_values do
+      invalid =
+        put_in(
+          strategy,
+          ["branch_comparison_report", "rows", Access.at(1), field],
+          drift
+        )
+
+      assert {:error, validation_report} = Schema.validate_artifact(invalid)
+
+      assert Enum.any?(
+               validation_report["errors"],
+               &(&1["path"] == "$.branch_comparison_report.rows[1].#{field}")
+             )
+    end
+  end
+
+  test "rejects CampaignStrategy branch comparison capacity-pack direction-map drift", %{
+    strategy: strategy
+  } do
+    drift_values = %{
+      "capacity_pack_contact_ids_by_direction" => %{"invented" => ["invented_contact"]},
+      "capacity_pack_selected_contact_ids_by_direction" => %{
+        "invented" => ["invented_selected_contact"]
+      },
+      "capacity_pack_deferred_contact_ids_by_direction" => %{
+        "invented" => ["invented_deferred_contact"]
+      },
+      "capacity_pack_required_capacity_fraction_by_direction" => %{"invented" => 1.0},
+      "capacity_pack_selected_required_capacity_fraction_by_direction" => %{
+        "invented" => 1.0
+      },
+      "capacity_pack_deferred_required_capacity_fraction_by_direction" => %{
+        "invented" => 1.0
+      }
+    }
+
+    for {field, drift} <- drift_values do
+      invalid =
+        put_in(
+          strategy,
+          ["branch_comparison_report", "rows", Access.at(1), field],
+          drift
+        )
+
+      assert {:error, validation_report} = Schema.validate_artifact(invalid)
+
+      assert Enum.any?(
+               validation_report["errors"],
+               &(&1["path"] == "$.branch_comparison_report.rows[1].#{field}")
+             )
+    end
+  end
+
+  alias OrbitalDynamics.CadenceImport
+  alias OrbitalDynamics.OperatorReview
+  alias OrbitalDynamics.Schema
+
+  test "rejects CampaignStrategy operator-review package source drift", %{
+    strategy: strategy
+  } do
+    shadow_strategies = [
+      {put_in(strategy, ["recommendation", "reason"], "schema_valid_drift"),
+       "campaign_strategy.recommendation"},
+      {update_in(
+         strategy,
+         ["branch_comparison_report", "rows", Access.at(0), "score"],
+         &(&1 + 1)
+       ), "campaign_strategy.branch_comparison_report.rows"},
+      {update_in(
+         strategy,
+         ["ranking_comparison_report", "rows", Access.at(0), "right_value"],
+         &(&1 + 1)
+       ), "campaign_strategy.ranking_comparison_report.rows"},
+      {update_in(
+         strategy,
+         ["pareto_frontier_report", "rows", Access.at(0), "objective_values", "score"],
+         &(&1 + 1)
+       ), "campaign_strategy.pareto_frontier_report.rows"},
+      {update_in(
+         strategy,
+         ["score_term_report", "rows", Access.at(0), "value"],
+         &(&1 + 1)
+       ), "campaign_strategy.score_term_report.rows"},
+      {update_in(
+         strategy,
+         ["objective_tradeoff_report", "tradeoffs", Access.at(0), "score"],
+         &(&1 + 1)
+       ), "campaign_strategy.objective_tradeoff_report.tradeoffs"},
+      {update_in(
+         strategy,
+         ["branches", Access.at(0), "warnings"],
+         &(&1 ++ ["schema valid drift"])
+       ), "campaign_strategy.branches.warnings"}
+    ]
+
+    for {shadow, source} <- shadow_strategies do
+      invalid =
+        Map.put(
+          strategy,
+          "operator_review_package",
+          OperatorReview.from_strategy_artifact(shadow)
+        )
+
+      assert {:error, validation_report} = Schema.validate_artifact(invalid)
+
+      assert Enum.any?(validation_report["errors"], fn issue ->
+               String.starts_with?(issue["path"], "$.operator_review_package.rows") and
+                 String.contains?(issue["message"], source)
+             end)
+    end
+  end
+
+  test "rejects CampaignStrategy Cadence import manifest source drift", %{
+    strategy: strategy
+  } do
+    shadow_strategies = [
+      {put_in(strategy, ["recommendation", "reason"], "schema_valid_drift"),
+       "CampaignStrategy recommendation"},
+      {update_in(
+         strategy,
+         ["branch_comparison_report", "rows", Access.at(0), "score"],
+         &(&1 + 1)
+       ), "CampaignStrategy branch comparison"},
+      {update_in(
+         strategy,
+         ["ranking_comparison_report", "rows", Access.at(0), "right_value"],
+         &(&1 + 1)
+       ), "CampaignStrategy operator-review"},
+      {update_in(
+         strategy,
+         ["pareto_frontier_report", "rows", Access.at(0), "objective_values", "score"],
+         &(&1 + 1)
+       ), "CampaignStrategy operator-review"},
+      {update_in(
+         strategy,
+         ["score_term_report", "rows", Access.at(0), "value"],
+         &(&1 + 1)
+       ), "CampaignStrategy operator-review"},
+      {update_in(
+         strategy,
+         ["objective_tradeoff_report", "tradeoffs", Access.at(0), "score"],
+         &(&1 + 1)
+       ), "CampaignStrategy operator-review"},
+      {update_in(
+         strategy,
+         ["branches", Access.at(0), "warnings"],
+         &(&1 ++ ["schema valid drift"])
+       ), "CampaignStrategy operator-review"}
+    ]
+
+    for {shadow, source} <- shadow_strategies do
+      shadow =
+        Map.put(
+          shadow,
+          "operator_review_package",
+          OperatorReview.from_strategy_artifact(shadow)
+        )
+
+      invalid =
+        Map.put(
+          strategy,
+          "cadence_import_manifest",
+          CadenceImport.from_strategy_artifact(shadow)
+        )
+
+      assert {:error, validation_report} = Schema.validate_artifact(invalid)
+
+      assert Enum.any?(validation_report["errors"], fn issue ->
+               issue["path"] == "$.cadence_import_manifest.rows" and
+                 String.contains?(issue["message"], source)
+             end)
     end
   end
 end
