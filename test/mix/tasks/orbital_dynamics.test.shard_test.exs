@@ -39,6 +39,8 @@ defmodule Mix.Tasks.OrbitalDynamics.Test.ShardTest do
     output =
       File.cd!(root, fn ->
         capture_io(fn ->
+          Mix.Task.reenable("orbital_dynamics.test.shard")
+
           Mix.Task.run("orbital_dynamics.test.shard", [
             "--profile",
             profile_path,
