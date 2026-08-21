@@ -256,6 +256,46 @@ Run:
 mix test
 ```
 
+### Duration-weighted test shards
+
+Opt-in profiling records cumulative ExUnit runtime and test counts for every
+loaded test file without changing the default test configuration:
+
+```bash
+ORBITAL_DYNAMICS_TEST_PROFILE_PATH=tmp/test-suite-profile/partition-1.json \
+  MIX_TEST_PARTITION=1 mix test --partitions 4 --seed 0
+```
+
+Do not pass `--formatter` during an opt-in profile run: Mix command-line
+formatters replace the configured profiling formatter, so no profile would be
+written.
+
+After profiling every built-in partition, build a deterministic shard manifest
+or run one duration-weighted shard. Repeat `--profile` for every profile artifact:
+
+```bash
+mix orbital_dynamics.test.shard \
+  --profile tmp/test-suite-profile/partition-1.json \
+  --profile tmp/test-suite-profile/partition-2.json \
+  --profile tmp/test-suite-profile/partition-3.json \
+  --profile tmp/test-suite-profile/partition-4.json \
+  --shards 4 --manifest tmp/test-suite-profile/shards.json
+
+mix orbital_dynamics.test.shard \
+  --profile tmp/test-suite-profile/partition-1.json \
+  --profile tmp/test-suite-profile/partition-2.json \
+  --profile tmp/test-suite-profile/partition-3.json \
+  --profile tmp/test-suite-profile/partition-4.json \
+  --shards 4 --shard 1 -- --seed 0 --timeout 120000
+```
+
+The task rejects missing, unexpected, or multiply owned test files before
+running a shard. It accepts only `--seed` and `--timeout` after `--`; all test
+selection remains owned by the manifest. Files are assigned longest-runtime
+first with stable path and shard-index tie breakers, then listed lexically within
+each shard. Profiles capture measured runtime rather than source identity, so
+regenerate them when code or tests change materially.
+
 ## Benchmarks
 
 Run the scalar and BEAM-concurrent baseline benchmark:

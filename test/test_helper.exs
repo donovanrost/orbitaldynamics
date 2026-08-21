@@ -1,4 +1,13 @@
-ExUnit.start()
+profile_path = System.get_env("ORBITAL_DYNAMICS_TEST_PROFILE_PATH")
+
+if profile_path do
+  ExUnit.start(
+    formatters: [ExUnit.CLIFormatter, OrbitalDynamics.TestSuite.ProfileFormatter],
+    orbital_dynamics_test_profile_path: profile_path
+  )
+else
+  ExUnit.start()
+end
 
 Code.require_file("support/validation/orbital_reference_fixtures.ex", __DIR__)
 Code.require_file("support/validation/campaign_artifact_fixtures.ex", __DIR__)
