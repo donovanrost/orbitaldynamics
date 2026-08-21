@@ -24,8 +24,14 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContractsTest do
     assert {:ok, schema} = Schema.json_schema("campaign_strategy.v3")
     declared_fields = schema["properties"] |> Map.keys() |> MapSet.new()
 
-    assert {:ok, %{"schema_contract" => "campaign_strategy.v3"}} =
-             Schema.validate_artifact(strategy)
+    assert {:ok, inferred_report} = Schema.validate_artifact(strategy)
+
+    assert {:ok, explicit_report} =
+             Schema.validate_artifact(strategy, contract: "campaign_strategy.v3")
+
+    assert inferred_report == explicit_report
+    assert inferred_report["schema_contract"] == "campaign_strategy.v3"
+    assert inferred_report["status"] == "pass"
 
     assert strategy
            |> Map.keys()
@@ -58,8 +64,8 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContractsTest do
     ]
 
     for {expected_path, invalid} <- invalid_cases do
-      assert {:error, report} = Schema.validate_artifact(invalid)
-      assert Enum.any?(report["errors"], &(&1["path"] == expected_path))
+      produced_errors = assert_produced_errors(invalid)
+      assert Enum.any?(produced_errors, &(&1["path"] == expected_path))
     end
   end
 
@@ -86,10 +92,10 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContractsTest do
           invalid_ranked_branch_ids
         )
 
-      assert {:error, report} = Schema.validate_artifact(invalid)
+      produced_errors = assert_produced_errors(invalid)
 
       assert Enum.any?(
-               report["errors"],
+               produced_errors,
                &(&1["path"] == "$.recommendation.ranked_branch_ids")
              )
     end
@@ -128,8 +134,8 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContractsTest do
     ]
 
     for {expected_path, invalid} <- invalid_cases do
-      assert {:error, report} = Schema.validate_artifact(invalid)
-      assert Enum.any?(report["errors"], &(&1["path"] == expected_path))
+      produced_errors = assert_produced_errors(invalid)
+      assert Enum.any?(produced_errors, &(&1["path"] == expected_path))
     end
   end
 
@@ -211,8 +217,8 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContractsTest do
     ]
 
     for {expected_path, invalid} <- invalid_cases do
-      assert {:error, validation_report} = Schema.validate_artifact(invalid)
-      assert Enum.any?(validation_report["errors"], &(&1["path"] == expected_path))
+      produced_errors = assert_produced_errors(invalid)
+      assert Enum.any?(produced_errors, &(&1["path"] == expected_path))
     end
   end
 
@@ -229,10 +235,10 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContractsTest do
           drift
         )
 
-      assert {:error, validation_report} = Schema.validate_artifact(invalid)
+      produced_errors = assert_produced_errors(invalid)
 
       assert Enum.any?(
-               validation_report["errors"],
+               produced_errors,
                &(&1["path"] == "$.branch_comparison_report.assumptions.#{field}" and
                    &1["message"] ==
                      "must match the deterministic branch comparison assumption")
@@ -251,10 +257,10 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContractsTest do
           report[field] <> ".schema_valid_drift"
         )
 
-      assert {:error, validation_report} = Schema.validate_artifact(invalid)
+      produced_errors = assert_produced_errors(invalid)
 
       assert Enum.any?(
-               validation_report["errors"],
+               produced_errors,
                &(&1["path"] == "$.ranking_comparison_report.#{field}")
              )
     end
@@ -263,10 +269,10 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContractsTest do
       drift = if is_boolean(value), do: not value, else: value <> ".schema_valid_drift"
       invalid = put_in(strategy, ["ranking_comparison_report", "assumptions", field], drift)
 
-      assert {:error, validation_report} = Schema.validate_artifact(invalid)
+      produced_errors = assert_produced_errors(invalid)
 
       assert Enum.any?(
-               validation_report["errors"],
+               produced_errors,
                &(&1["path"] == "$.ranking_comparison_report.assumptions.#{field}")
              )
     end
@@ -348,8 +354,8 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContractsTest do
     ]
 
     for {expected_path, invalid} <- invalid_cases do
-      assert {:error, validation_report} = Schema.validate_artifact(invalid)
-      assert Enum.any?(validation_report["errors"], &(&1["path"] == expected_path))
+      produced_errors = assert_produced_errors(invalid)
+      assert Enum.any?(produced_errors, &(&1["path"] == expected_path))
     end
   end
 
@@ -414,8 +420,8 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContractsTest do
     ]
 
     for {expected_path, invalid} <- invalid_cases do
-      assert {:error, validation_report} = Schema.validate_artifact(invalid)
-      assert Enum.any?(validation_report["errors"], &(&1["path"] == expected_path))
+      produced_errors = assert_produced_errors(invalid)
+      assert Enum.any?(produced_errors, &(&1["path"] == expected_path))
     end
   end
 
@@ -499,8 +505,8 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContractsTest do
     assert row["selected"]
 
     for {expected_path, invalid} <- invalid_cases do
-      assert {:error, validation_report} = Schema.validate_artifact(invalid)
-      assert Enum.any?(validation_report["errors"], &(&1["path"] == expected_path))
+      produced_errors = assert_produced_errors(invalid)
+      assert Enum.any?(produced_errors, &(&1["path"] == expected_path))
     end
   end
 
@@ -638,8 +644,8 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContractsTest do
     assert row["selected"]
 
     for {expected_path, invalid} <- invalid_cases do
-      assert {:error, validation_report} = Schema.validate_artifact(invalid)
-      assert Enum.any?(validation_report["errors"], &(&1["path"] == expected_path))
+      produced_errors = assert_produced_errors(invalid)
+      assert Enum.any?(produced_errors, &(&1["path"] == expected_path))
     end
   end
 
@@ -689,9 +695,9 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContractsTest do
           OperatorReview.from_strategy_artifact(shadow)
         )
 
-      assert {:error, validation_report} = Schema.validate_artifact(invalid)
+      produced_errors = assert_produced_errors(invalid)
 
-      assert Enum.any?(validation_report["errors"], fn issue ->
+      assert Enum.any?(produced_errors, fn issue ->
                String.starts_with?(issue["path"], "$.operator_review_package.rows") and
                  String.contains?(issue["message"], source)
              end)
@@ -751,9 +757,9 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContractsTest do
           CadenceImport.from_strategy_artifact(shadow)
         )
 
-      assert {:error, validation_report} = Schema.validate_artifact(invalid)
+      produced_errors = assert_produced_errors(invalid)
 
-      assert Enum.any?(validation_report["errors"], fn issue ->
+      assert Enum.any?(produced_errors, fn issue ->
                issue["path"] == "$.cadence_import_manifest.rows" and
                  String.contains?(issue["message"], source)
              end)
@@ -771,10 +777,10 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContractsTest do
           "drift"
         )
 
-      assert {:error, validation_report} = Schema.validate_artifact(invalid)
+      produced_errors = assert_produced_errors(invalid)
 
       assert Enum.any?(
-               validation_report["errors"],
+               produced_errors,
                &(&1["path"] == "$.branch_comparison_report.rows[1].#{field}")
              )
     end
@@ -806,10 +812,10 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContractsTest do
     ]
 
     for {field, invalid} <- invalid_cases do
-      assert {:error, validation_report} = Schema.validate_artifact(invalid)
+      produced_errors = assert_produced_errors(invalid)
 
       assert Enum.any?(
-               validation_report["errors"],
+               produced_errors,
                &(&1["path"] == "$.branch_comparison_report.rows[1].#{field}")
              )
     end
@@ -836,10 +842,10 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContractsTest do
         &(&1 ++ ["stale_source_branch"])
       )
 
-    assert {:error, validation_report} = Schema.validate_artifact(invalid)
+    produced_errors = assert_produced_errors(invalid)
 
     assert Enum.any?(
-             validation_report["errors"],
+             produced_errors,
              &(&1["path"] ==
                  "$.branch_comparison_report.rows[#{row_index}].combined_source_branch_ids")
            )
@@ -865,10 +871,10 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContractsTest do
           drift
         )
 
-      assert {:error, validation_report} = Schema.validate_artifact(invalid)
+      produced_errors = assert_produced_errors(invalid)
 
       assert Enum.any?(
-               validation_report["errors"],
+               produced_errors,
                &(&1["path"] ==
                    "$.branch_comparison_report.rows[#{outage_index}].#{field}")
              )
@@ -893,10 +899,10 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContractsTest do
           drift
         )
 
-      assert {:error, validation_report} = Schema.validate_artifact(invalid)
+      produced_errors = assert_produced_errors(invalid)
 
       assert Enum.any?(
-               validation_report["errors"],
+               produced_errors,
                &(&1["path"] == "$.branch_comparison_report.rows[1].#{field}")
              )
     end
@@ -922,10 +928,10 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContractsTest do
           drift
         )
 
-      assert {:error, validation_report} = Schema.validate_artifact(invalid)
+      produced_errors = assert_produced_errors(invalid)
 
       assert Enum.any?(
-               validation_report["errors"],
+               produced_errors,
                &(&1["path"] == "$.branch_comparison_report.rows[1].#{field}")
              )
     end
@@ -961,10 +967,10 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContractsTest do
           drift
         )
 
-      assert {:error, validation_report} = Schema.validate_artifact(invalid)
+      produced_errors = assert_produced_errors(invalid)
 
       assert Enum.any?(
-               validation_report["errors"],
+               produced_errors,
                &(&1["path"] == "$.branch_comparison_report.rows[1].#{field}")
              )
     end
@@ -989,11 +995,10 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContractsTest do
         ["active"]
       )
 
-    assert {:error, pressure_override_report} =
-             Schema.validate_artifact(pressure_override_invalid)
+    pressure_override_errors = assert_produced_errors(pressure_override_invalid)
 
     assert Enum.any?(
-             pressure_override_report["errors"],
+             pressure_override_errors,
              &(&1["path"] ==
                  "$.branch_comparison_report.rows[1].branch_station_reservation_expiration_statuses")
            )
@@ -1045,12 +1050,11 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContractsTest do
         })
       )
 
-    assert {:error, event_fallback_report} =
-             Schema.validate_artifact(event_fallback_invalid)
+    event_fallback_errors = assert_produced_errors(event_fallback_invalid)
 
     for field <- conflict_fields do
       assert Enum.any?(
-               event_fallback_report["errors"],
+               event_fallback_errors,
                &(&1["path"] == "$.branch_comparison_report.rows[1].#{field}")
              )
     end
@@ -1090,11 +1094,11 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContractsTest do
         })
       )
 
-    assert {:error, risk_override_report} = Schema.validate_artifact(risk_override_invalid)
+    risk_override_errors = assert_produced_errors(risk_override_invalid)
 
     for field <- conflict_fields do
       assert Enum.any?(
-               risk_override_report["errors"],
+               risk_override_errors,
                &(&1["path"] ==
                    "$.branch_comparison_report.rows[#{pressure_branch_index}].#{field}")
              )
@@ -1120,10 +1124,10 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContractsTest do
           drift
         )
 
-      assert {:error, validation_report} = Schema.validate_artifact(invalid)
+      produced_errors = assert_produced_errors(invalid)
 
       assert Enum.any?(
-               validation_report["errors"],
+               produced_errors,
                &(&1["path"] == "$.branch_comparison_report.rows[1].#{field}")
              )
     end
@@ -1150,10 +1154,10 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContractsTest do
           drift
         )
 
-      assert {:error, validation_report} = Schema.validate_artifact(invalid)
+      produced_errors = assert_produced_errors(invalid)
 
       assert Enum.any?(
-               validation_report["errors"],
+               produced_errors,
                &(&1["path"] == "$.branch_comparison_report.rows[1].#{field}")
              )
     end
@@ -1180,10 +1184,10 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContractsTest do
           drift
         )
 
-      assert {:error, validation_report} = Schema.validate_artifact(invalid)
+      produced_errors = assert_produced_errors(invalid)
 
       assert Enum.any?(
-               validation_report["errors"],
+               produced_errors,
                &(&1["path"] == "$.branch_comparison_report.rows[1].#{field}")
              )
     end
@@ -1217,10 +1221,10 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContractsTest do
           drift
         )
 
-      assert {:error, validation_report} = Schema.validate_artifact(invalid)
+      produced_errors = assert_produced_errors(invalid)
 
       assert Enum.any?(
-               validation_report["errors"],
+               produced_errors,
                &(&1["path"] == "$.branch_comparison_report.rows[1].#{field}")
              )
     end
@@ -1251,10 +1255,10 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContractsTest do
           ["invented_timeline_integrity_value"]
         )
 
-      assert {:error, validation_report} = Schema.validate_artifact(invalid)
+      produced_errors = assert_produced_errors(invalid)
 
       assert Enum.any?(
-               validation_report["errors"],
+               produced_errors,
                &(&1["path"] == "$.branch_comparison_report.rows[1].#{field}")
              )
     end
@@ -1281,10 +1285,10 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContractsTest do
           ["invented_timeline_dependency_impact_value"]
         )
 
-      assert {:error, validation_report} = Schema.validate_artifact(invalid)
+      produced_errors = assert_produced_errors(invalid)
 
       assert Enum.any?(
-               validation_report["errors"],
+               produced_errors,
                &(&1["path"] == "$.branch_comparison_report.rows[1].#{field}")
              )
     end
@@ -1319,10 +1323,10 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContractsTest do
           ["invented_timeline_publication_value"]
         )
 
-      assert {:error, validation_report} = Schema.validate_artifact(invalid)
+      produced_errors = assert_produced_errors(invalid)
 
       assert Enum.any?(
-               validation_report["errors"],
+               produced_errors,
                &(&1["path"] == "$.branch_comparison_report.rows[1].#{field}")
              )
     end
@@ -1348,10 +1352,10 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContractsTest do
           ["invented_timeline_lifecycle_state_value"]
         )
 
-      assert {:error, validation_report} = Schema.validate_artifact(invalid)
+      produced_errors = assert_produced_errors(invalid)
 
       assert Enum.any?(
-               validation_report["errors"],
+               produced_errors,
                &(&1["path"] == "$.branch_comparison_report.rows[1].#{field}")
              )
     end
@@ -1378,10 +1382,10 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContractsTest do
           ["invented_timeline_activity_lifecycle_state_value"]
         )
 
-      assert {:error, validation_report} = Schema.validate_artifact(invalid)
+      produced_errors = assert_produced_errors(invalid)
 
       assert Enum.any?(
-               validation_report["errors"],
+               produced_errors,
                &(&1["path"] == "$.branch_comparison_report.rows[1].#{field}")
              )
     end
@@ -1414,10 +1418,10 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContractsTest do
           ["invented_timeline_activity_precondition_value"]
         )
 
-      assert {:error, validation_report} = Schema.validate_artifact(invalid)
+      produced_errors = assert_produced_errors(invalid)
 
       assert Enum.any?(
-               validation_report["errors"],
+               produced_errors,
                &(&1["path"] == "$.branch_comparison_report.rows[1].#{field}")
              )
     end
@@ -1448,10 +1452,10 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContractsTest do
           ["invented_timeline_preservation_value"]
         )
 
-      assert {:error, validation_report} = Schema.validate_artifact(invalid)
+      produced_errors = assert_produced_errors(invalid)
 
       assert Enum.any?(
-               validation_report["errors"],
+               produced_errors,
                &(&1["path"] == "$.branch_comparison_report.rows[1].#{field}")
              )
     end
@@ -1481,10 +1485,10 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContractsTest do
           ["invented_branch_mission_identity_value"]
         )
 
-      assert {:error, validation_report} = Schema.validate_artifact(invalid)
+      produced_errors = assert_produced_errors(invalid)
 
       assert Enum.any?(
-               validation_report["errors"],
+               produced_errors,
                &(&1["path"] == "$.branch_comparison_report.rows[1].#{field}")
              )
     end
@@ -1549,29 +1553,30 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContractsTest do
       "branch_source_window_timing_coverage_status" => "partial"
     }
 
-    reports =
-      for context <- [complete_context, partial_context] do
-        row =
-          strategy["branch_comparison_report"]["rows"]
-          |> Enum.at(1)
-          |> Map.drop(fields)
-          |> Map.merge(context)
+    contexts = [
+      {complete_context,
+       fields --
+         ["branch_untimed_source_window_ids", "branch_partially_timed_source_window_ids"]},
+      {partial_context, fields}
+    ]
 
-        invalid =
-          put_in(strategy, ["branch_comparison_report", "rows", Access.at(1)], row)
+    for {context, expected_fields} <- contexts do
+      row =
+        strategy["branch_comparison_report"]["rows"]
+        |> Enum.at(1)
+        |> Map.drop(fields)
+        |> Map.merge(context)
 
-        assert {:error, validation_report} = Schema.validate_artifact(invalid)
-        validation_report
-      end
+      invalid =
+        put_in(strategy, ["branch_comparison_report", "rows", Access.at(1)], row)
 
-    errors = Enum.flat_map(reports, & &1["errors"])
+      expected_errors =
+        Enum.map(expected_fields, fn field ->
+          {"$.branch_comparison_report.rows[1].#{field}",
+           "must match the enclosing branch source-window context"}
+        end)
 
-    for field <- fields do
-      assert Enum.any?(
-               errors,
-               &(&1["path"] == "$.branch_comparison_report.rows[1].#{field}" and
-                   &1["message"] == "must match the enclosing branch source-window context")
-             )
+      assert_produced_paths(invalid, expected_errors)
     end
   end
 
@@ -1640,10 +1645,10 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContractsTest do
             "must match the enclosing branch operational-event values"
         end
 
-      assert {:error, validation_report} = Schema.validate_artifact(invalid)
+      produced_errors = assert_produced_errors(invalid)
 
       assert Enum.any?(
-               validation_report["errors"],
+               produced_errors,
                &(&1["path"] == "$.branch_comparison_report.rows[1].#{field}" and
                    &1["message"] == expected_message)
              )
@@ -1687,10 +1692,10 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContractsTest do
           replacement
         )
 
-      assert {:error, validation_report} = Schema.validate_artifact(invalid)
+      produced_errors = assert_produced_errors(invalid)
 
       assert Enum.any?(
-               validation_report["errors"],
+               produced_errors,
                &(&1["path"] == "$.branch_comparison_report.rows[1].#{field}" and
                    &1["message"] == expected_message)
              )
@@ -1728,10 +1733,10 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContractsTest do
           "must match the enclosing branch operational-readiness values"
         end
 
-      assert {:error, validation_report} = Schema.validate_artifact(invalid)
+      produced_errors = assert_produced_errors(invalid)
 
       assert Enum.any?(
-               validation_report["errors"],
+               produced_errors,
                &(&1["path"] == "$.branch_comparison_report.rows[1].#{field}" and
                    &1["message"] == expected_message)
              )
@@ -1766,10 +1771,10 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContractsTest do
         ["event_readiness_value"]
       )
 
-    assert {:error, validation_report} = Schema.validate_artifact(invalid)
+    produced_errors = assert_produced_errors(invalid)
 
     assert Enum.any?(
-             validation_report["errors"],
+             produced_errors,
              &(&1["path"] ==
                  "$.branch_comparison_report.rows[1].branch_operational_readiness_levels" and
                  &1["message"] ==
@@ -1822,10 +1827,10 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContractsTest do
     ]
 
     for {field, invalid} <- invalid_cases do
-      assert {:error, validation_report} = Schema.validate_artifact(invalid)
+      produced_errors = assert_produced_errors(invalid)
 
       assert Enum.any?(
-               validation_report["errors"],
+               produced_errors,
                &(&1["path"] == "$.branch_comparison_report.rows[1].#{field}")
              )
     end
@@ -1870,10 +1875,10 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContractsTest do
     ]
 
     for {field, invalid} <- invalid_cases do
-      assert {:error, validation_report} = Schema.validate_artifact(invalid)
+      produced_errors = assert_produced_errors(invalid)
 
       assert Enum.any?(
-               validation_report["errors"],
+               produced_errors,
                &(&1["path"] == "$.branch_comparison_report.rows[1].#{field}")
              )
     end
@@ -1899,10 +1904,10 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContractsTest do
           ["schema_valid_drift" | tl(row[field])]
         )
 
-      assert {:error, validation_report} = Schema.validate_artifact(invalid)
+      produced_errors = assert_produced_errors(invalid)
 
       assert Enum.any?(
-               validation_report["errors"],
+               produced_errors,
                &(&1["path"] == "$.branch_comparison_report.rows[1].#{field}")
              )
     end
@@ -1937,10 +1942,10 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContractsTest do
           drift
         )
 
-      assert {:error, validation_report} = Schema.validate_artifact(invalid)
+      produced_errors = assert_produced_errors(invalid)
 
       assert Enum.any?(
-               validation_report["errors"],
+               produced_errors,
                &(&1["path"] == "$.branch_comparison_report.rows[1].#{field}")
              )
     end
@@ -1994,10 +1999,10 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContractsTest do
           drift
         )
 
-      assert {:error, validation_report} = Schema.validate_artifact(invalid)
+      produced_errors = assert_produced_errors(invalid)
 
       assert Enum.any?(
-               validation_report["errors"],
+               produced_errors,
                &(&1["path"] == "$.branch_comparison_report.rows[1].#{field}" and
                    &1["message"] ==
                      "must match the enclosing branch feedback_adjustments.#{field}")
@@ -2092,11 +2097,11 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContractsTest do
     ]
 
     for {expected_fields, invalid} <- invalid_cases do
-      assert {:error, validation_report} = Schema.validate_artifact(invalid)
+      produced_errors = assert_produced_errors(invalid)
 
       for field <- expected_fields do
         assert Enum.any?(
-                 validation_report["errors"],
+                 produced_errors,
                  &(&1["path"] == "$.branch_comparison_report.rows[1].#{field}")
                )
       end
@@ -2126,10 +2131,10 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContractsTest do
           drift
         )
 
-      assert {:error, validation_report} = Schema.validate_artifact(invalid)
+      produced_errors = assert_produced_errors(invalid)
 
       assert Enum.any?(
-               validation_report["errors"],
+               produced_errors,
                &(&1["path"] == "$.branch_comparison_report.rows[1].#{field}")
              )
     end
@@ -2148,10 +2153,10 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContractsTest do
           row[field] + 1
         )
 
-      assert {:error, validation_report} = Schema.validate_artifact(invalid)
+      produced_errors = assert_produced_errors(invalid)
 
       assert Enum.any?(
-               validation_report["errors"],
+               produced_errors,
                &(&1["path"] == "$.branch_comparison_report.rows[1].#{field}")
              )
     end
@@ -2181,10 +2186,10 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContractsTest do
           drift
         )
 
-      assert {:error, validation_report} = Schema.validate_artifact(invalid)
+      produced_errors = assert_produced_errors(invalid)
 
       assert Enum.any?(
-               validation_report["errors"],
+               produced_errors,
                &(&1["path"] == "$.branch_comparison_report.rows[1].#{field}")
              )
     end
@@ -2209,10 +2214,10 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContractsTest do
           drift
         )
 
-      assert {:error, validation_report} = Schema.validate_artifact(invalid)
+      produced_errors = assert_produced_errors(invalid)
 
       assert Enum.any?(
-               validation_report["errors"],
+               produced_errors,
                &(&1["path"] == "$.branch_comparison_report.rows[1].#{field}")
              )
     end
@@ -2242,10 +2247,10 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContractsTest do
           drift
         )
 
-      assert {:error, validation_report} = Schema.validate_artifact(invalid)
+      produced_errors = assert_produced_errors(invalid)
 
       assert Enum.any?(
-               validation_report["errors"],
+               produced_errors,
                &(&1["path"] == "$.branch_comparison_report.rows[1].#{field}")
              )
     end
@@ -2285,10 +2290,10 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContractsTest do
           drift
         )
 
-      assert {:error, validation_report} = Schema.validate_artifact(invalid)
+      produced_errors = assert_produced_errors(invalid)
 
       assert Enum.any?(
-               validation_report["errors"],
+               produced_errors,
                &(&1["path"] == "$.branch_comparison_report.rows[1].#{field}")
              )
     end
@@ -2312,10 +2317,10 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContractsTest do
           1.0
         )
 
-      assert {:error, validation_report} = Schema.validate_artifact(invalid)
+      produced_errors = assert_produced_errors(invalid)
 
       assert Enum.any?(
-               validation_report["errors"],
+               produced_errors,
                &(&1["path"] == "$.branch_comparison_report.rows[1].#{field}")
              )
     end
@@ -2393,10 +2398,10 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContractsTest do
           drift
         )
 
-      assert {:error, validation_report} = Schema.validate_artifact(invalid)
+      produced_errors = assert_produced_errors(invalid)
 
       assert Enum.any?(
-               validation_report["errors"],
+               produced_errors,
                &(&1["path"] == "$.branch_comparison_report.rows[1].#{field}")
              )
     end
@@ -2456,10 +2461,10 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContractsTest do
     ]
 
     for {field, invalid} <- invalid_cases do
-      assert {:error, validation_report} = Schema.validate_artifact(invalid)
+      produced_errors = assert_produced_errors(invalid)
 
       assert Enum.any?(
-               validation_report["errors"],
+               produced_errors,
                &(&1["path"] == "$.branch_comparison_report.rows[1].#{field}")
              )
     end
@@ -2485,10 +2490,10 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContractsTest do
           row[field] + 1
         )
 
-      assert {:error, validation_report} = Schema.validate_artifact(invalid)
+      produced_errors = assert_produced_errors(invalid)
 
       assert Enum.any?(
-               validation_report["errors"],
+               produced_errors,
                &(&1["path"] == "$.branch_comparison_report.rows[1].#{field}")
              )
     end
@@ -2568,10 +2573,10 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContractsTest do
           value
         )
 
-      assert {:error, validation_report} = Schema.validate_artifact(invalid)
+      produced_errors = assert_produced_errors(invalid)
 
       assert Enum.any?(
-               validation_report["errors"],
+               produced_errors,
                &(&1["path"] == "$.branch_comparison_report.rows[1].#{field}")
              )
     end
@@ -2633,8 +2638,12 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContractsTest do
     ]
 
     for {expected_path, invalid} <- invalid_cases do
-      assert {:error, report} = Schema.validate_artifact(invalid)
-      assert Enum.any?(report["errors"], &(&1["path"] == expected_path))
+      expected_message =
+        if expected_path == "$.cadence_import_manifest.provenance.source_plan_id" do
+          "must match enclosing CampaignStrategy source_plan_id"
+        end
+
+      assert_produced_error(invalid, expected_path, expected_message)
     end
   end
 
@@ -2651,7 +2660,7 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContractsTest do
       |> put_in(["operational_feedback_provenance", "source_count"], 2)
       |> put_in(["cadence_import_manifest", "schema_contract"], "cadence_import_manifest.v0")
 
-    assert {:error, validation_report} = Schema.validate_artifact(invalid)
+    assert {:error, public_validation_report} = Schema.validate_artifact(invalid)
 
     expected_paths = [
       "$.source_repair_id",
@@ -2662,8 +2671,13 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContractsTest do
       "$.cadence_import_manifest.schema_contract"
     ]
 
+    assert public_validation_report["schema_contract"] == "campaign_strategy.v3"
+    assert public_validation_report["status"] == "fail"
+    assert public_validation_report["warnings"] == []
+    assert length(public_validation_report["errors"]) >= length(expected_paths)
+
     for expected_path <- expected_paths do
-      assert Enum.any?(validation_report["errors"], &(&1["path"] == expected_path))
+      assert Enum.any?(public_validation_report["errors"], &(&1["path"] == expected_path))
     end
   end
 
@@ -2708,5 +2722,34 @@ defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContractsTest do
     path
     |> File.read!()
     |> :json.decode()
+  end
+
+  defp assert_produced_errors(artifact) do
+    errors = CampaignStrategyProducedSurfaceContracts.validate([], artifact)
+    assert errors != []
+    errors
+  end
+
+  defp assert_produced_error(artifact, expected_path, expected_message) do
+    errors = assert_produced_errors(artifact)
+
+    assert Enum.any?(errors, fn error ->
+             error["path"] == expected_path and
+               (is_nil(expected_message) or error["message"] == expected_message)
+           end)
+
+    errors
+  end
+
+  defp assert_produced_paths(artifact, expected_errors) do
+    errors = assert_produced_errors(artifact)
+
+    for {expected_path, expected_message} <- expected_errors do
+      assert Enum.any?(errors, fn error ->
+               error["path"] == expected_path and error["message"] == expected_message
+             end)
+    end
+
+    errors
   end
 end
