@@ -17,8 +17,22 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
   alias OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureExpectedHandoffFixture
   alias OrbitalDynamics.Schema
 
+  @artifact_context_key {__MODULE__, :artifacts}
+
+  setup_all do
+    {:ok,
+     artifact: StrategyRecommendationPressureEventsFixture.artifact(),
+     invalid_contact_intent_artifact:
+       StrategyRecommendationPressureEventsFixture.invalid_contact_intent_artifact()}
+  end
+
+  setup %{artifact: artifact, invalid_contact_intent_artifact: invalid_contact_intent_artifact} do
+    Process.put(@artifact_context_key, {artifact, invalid_contact_intent_artifact})
+    :ok
+  end
+
   test "strategy recommendation pressure fields propagate through review and import handoffs" do
-    artifact = StrategyRecommendationPressureEventsFixture.artifact()
+    artifact = artifact()
 
     expected_handoff = StrategyRecommendationPressureExpectedHandoffFixture.expected_handoff()
 
@@ -1485,7 +1499,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
         @approval_boundary_context_contracts do
     test "approval-boundary #{description} remains source exact across handoffs" do
       assert_risk_context_contract(
-        StrategyRecommendationPressureEventsFixture.artifact(),
+        artifact(),
         unquote(field),
         {"feedback_scope", "approval_boundary"},
         unquote(source_field),
@@ -1497,7 +1511,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "provider request expiration risk context remains source exact across handoffs" do
     assert_risk_expiration_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "provider_reservation_request_station_reservation_expiration_statuses",
       {"contact_id", "dl_provider_review"},
       "active"
@@ -1506,7 +1520,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "provider request contact identity remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "provider_reservation_request_contact_ids",
       {"contact_id", "dl_provider_review"},
       "contact_id",
@@ -1517,7 +1531,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "provider request source activity identity remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "provider_reservation_request_source_activity_ids",
       {"contact_id", "dl_provider_review"},
       ["source_activity_id", "source_activity_ids"],
@@ -1528,7 +1542,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "provider request ground-station identity remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "provider_reservation_request_ground_station_ids",
       {"contact_id", "dl_provider_review"},
       "ground_station_id",
@@ -1539,7 +1553,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "provider request direction remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "provider_reservation_request_directions",
       {"contact_id", "dl_provider_review"},
       "direction",
@@ -1550,7 +1564,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "provider request reservation identity remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "provider_reservation_request_station_reservation_ids",
       {"contact_id", "dl_provider_review"},
       "station_reservation_id",
@@ -1561,7 +1575,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "provider request reservation owner remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "provider_reservation_request_station_reserved_by",
       {"contact_id", "dl_provider_review"},
       "station_reserved_by",
@@ -1572,7 +1586,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "provider request reservation status remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "provider_reservation_request_station_reservation_statuses",
       {"contact_id", "dl_provider_review"},
       "station_reservation_status",
@@ -1583,7 +1597,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "provider request reservation match remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "provider_reservation_request_station_reservation_match_statuses",
       {"contact_id", "dl_provider_review"},
       "station_reservation_match_status",
@@ -1594,7 +1608,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "provider request status remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "provider_reservation_request_statuses",
       {"contact_id", "dl_provider_review"},
       "provider_reservation_request_status",
@@ -1605,7 +1619,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "provider request row scope remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "provider_reservation_request_row_scopes",
       {"contact_id", "dl_provider_review"},
       "provider_reservation_row_scope",
@@ -1616,7 +1630,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "provider request required action remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "provider_reservation_request_required_operator_actions",
       {"contact_id", "dl_provider_review"},
       "required_operator_action",
@@ -1627,7 +1641,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "provider request assumptions remain source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "provider_reservation_request_assumption_maps",
       {"contact_id", "dl_provider_review"},
       "assumptions",
@@ -1650,7 +1664,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "provider request feedback source remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "provider_reservation_request_feedback_sources",
       {"contact_id", "dl_provider_review"},
       "feedback_source",
@@ -1661,7 +1675,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "provider request feedback scope remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "provider_reservation_request_feedback_scopes",
       {"contact_id", "dl_provider_review"},
       "feedback_scope",
@@ -1672,7 +1686,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "provider request trust boundary remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "provider_reservation_request_trust_boundaries",
       {"contact_id", "dl_provider_review"},
       "trust_boundary",
@@ -1683,7 +1697,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "capacity-pack risk contact identity remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "capacity_pack_risk_contact_ids",
       {"contact_id", "dl_capacity_overflow"},
       "contact_id",
@@ -1694,7 +1708,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "capacity-pack risk source activity identity remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "capacity_pack_risk_source_activity_ids",
       {"contact_id", "dl_capacity_overflow"},
       ["source_activity_id", "source_activity_ids"],
@@ -1705,7 +1719,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "capacity-pack risk ground-station identity remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "capacity_pack_risk_ground_station_ids",
       {"contact_id", "dl_capacity_overflow"},
       "ground_station_id",
@@ -1716,7 +1730,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "capacity-pack risk group identity remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "capacity_pack_risk_group_ids",
       {"contact_id", "dl_capacity_overflow"},
       "capacity_pack_group_id",
@@ -1727,7 +1741,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "capacity-pack risk status remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "capacity_pack_risk_statuses",
       {"contact_id", "dl_capacity_overflow"},
       "capacity_pack_status",
@@ -1738,7 +1752,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "capacity-pack risk capacity fraction remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "capacity_pack_risk_capacity_fraction_values",
       {"contact_id", "dl_capacity_overflow"},
       "capacity_pack_capacity_fraction",
@@ -1749,7 +1763,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "capacity-pack risk used fraction remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "capacity_pack_risk_used_fraction_values",
       {"contact_id", "dl_capacity_overflow"},
       "capacity_pack_used_fraction",
@@ -1760,7 +1774,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "capacity-pack risk unused fraction remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "capacity_pack_risk_unused_fraction_values",
       {"contact_id", "dl_capacity_overflow"},
       "capacity_pack_unused_fraction",
@@ -1771,7 +1785,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "capacity-pack risk required fraction remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "capacity_pack_risk_required_capacity_fraction_values",
       {"contact_id", "dl_capacity_overflow"},
       "required_capacity_fraction",
@@ -1782,7 +1796,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "capacity-pack risk required-fraction source remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "capacity_pack_risk_required_capacity_fraction_sources",
       {"contact_id", "dl_capacity_overflow"},
       "required_capacity_fraction_source",
@@ -1793,7 +1807,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "capacity-pack risk derivation reasons remain source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "capacity_pack_risk_derivation_reasons",
       {"contact_id", "dl_capacity_overflow"},
       "derivation_reasons",
@@ -1804,7 +1818,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "capacity-pack risk feedback source remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "capacity_pack_risk_feedback_sources",
       {"contact_id", "dl_capacity_overflow"},
       "feedback_source",
@@ -1815,7 +1829,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "capacity-pack risk feedback scope remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "capacity_pack_risk_feedback_scopes",
       {"contact_id", "dl_capacity_overflow"},
       "feedback_scope",
@@ -1826,7 +1840,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "capacity-pack risk trust boundary remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "capacity_pack_risk_trust_boundaries",
       {"contact_id", "dl_capacity_overflow"},
       "trust_boundary",
@@ -1837,7 +1851,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contention-resolution risk type remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_contention_resolution_pressure_risk_types",
       {"contact_id", "dl_capacity_overflow"},
       ["type", "risk_type"],
@@ -1848,7 +1862,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contention-resolution contact identity remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_contention_resolution_pressure_contact_ids",
       {"contact_id", "dl_capacity_overflow"},
       "contact_id",
@@ -1859,7 +1873,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contention-resolution selected-contact identity remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_contention_resolution_pressure_selected_contact_ids",
       {"contact_id", "dl_capacity_overflow"},
       "selected_contact_id",
@@ -1870,7 +1884,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contention-resolution scenario identity remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_contention_resolution_pressure_scenario_ids",
       {"contact_id", "dl_capacity_overflow"},
       "scenario_id",
@@ -1881,7 +1895,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contention-resolution spacecraft identity remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_contention_resolution_pressure_spacecraft_ids",
       {"contact_id", "dl_capacity_overflow"},
       "spacecraft_id",
@@ -1892,7 +1906,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contention-resolution ground-station identity remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_contention_resolution_pressure_ground_station_ids",
       {"contact_id", "dl_capacity_overflow"},
       "ground_station_id",
@@ -1903,7 +1917,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contention-resolution source-activity identity remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_contention_resolution_pressure_source_activity_ids",
       {"contact_id", "dl_capacity_overflow"},
       ["source_activity_id", "source_activity_ids"],
@@ -1914,7 +1928,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contention-resolution source-window identity remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_contention_resolution_pressure_source_window_ids",
       {"contact_id", "dl_capacity_overflow"},
       "source_window_id",
@@ -1925,7 +1939,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contention-resolution required-contact demand remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_contention_resolution_pressure_required_contact_values",
       {"contact_id", "dl_capacity_overflow"},
       "required_contacts",
@@ -1936,7 +1950,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contention-resolution planned-contact demand remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_contention_resolution_pressure_planned_contact_values",
       {"contact_id", "dl_capacity_overflow"},
       "planned_contacts",
@@ -1947,7 +1961,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contention-resolution required-downlink demand remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_contention_resolution_pressure_required_downlink_values_mb",
       {"contact_id", "dl_capacity_overflow"},
       "required_downlink_mb",
@@ -1958,7 +1972,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contention-resolution planned-downlink demand remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_contention_resolution_pressure_planned_downlink_values_mb",
       {"contact_id", "dl_capacity_overflow"},
       "planned_downlink_mb",
@@ -1969,7 +1983,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contention-resolution start bound remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_contention_resolution_pressure_start_values_s",
       {"contact_id", "dl_capacity_overflow"},
       "starts_at_s",
@@ -1980,7 +1994,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contention-resolution end bound remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_contention_resolution_pressure_end_values_s",
       {"contact_id", "dl_capacity_overflow"},
       "ends_at_s",
@@ -1991,7 +2005,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contention-resolution selected priority source remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_contention_resolution_pressure_selected_priority_sources",
       {"contact_id", "dl_capacity_overflow"},
       "selected_priority_source",
@@ -2002,7 +2016,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contention-resolution selection reason remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_contention_resolution_pressure_selection_reasons",
       {"contact_id", "dl_capacity_overflow"},
       "selection_reason",
@@ -2013,7 +2027,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contention-resolution selection rule remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_contention_resolution_pressure_resolution_selection_rules",
       {"contact_id", "dl_capacity_overflow"},
       "resolution_selection_rule",
@@ -2024,7 +2038,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contention-resolution priority override count remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_contention_resolution_pressure_priority_override_count_values",
       {"contact_id", "dl_capacity_overflow"},
       "resolution_priority_override_count",
@@ -2035,7 +2049,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contention-resolution priority override contacts remain source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_contention_resolution_pressure_priority_override_contact_ids",
       {"contact_id", "dl_capacity_overflow"},
       "resolution_priority_override_contact_ids",
@@ -2046,7 +2060,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contention-resolution review status remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_contention_resolution_pressure_review_statuses",
       {"contact_id", "dl_capacity_overflow"},
       "review_status",
@@ -2057,7 +2071,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contention-resolution demand source remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_contention_resolution_pressure_downlink_demand_sources",
       {"contact_id", "dl_capacity_overflow"},
       "downlink_demand_sources",
@@ -2068,7 +2082,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contention-resolution completion source remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_contention_resolution_pressure_downlink_completion_sources",
       {"contact_id", "dl_capacity_overflow"},
       "downlink_completion_sources",
@@ -2079,7 +2093,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contention-resolution feedback source remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_contention_resolution_pressure_feedback_sources",
       {"contact_id", "dl_capacity_overflow"},
       "feedback_source",
@@ -2090,7 +2104,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contention-resolution feedback scope remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_contention_resolution_pressure_feedback_scopes",
       {"contact_id", "dl_capacity_overflow"},
       "feedback_scope",
@@ -2101,7 +2115,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contention-resolution trust boundary remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_contention_resolution_pressure_trust_boundaries",
       {"contact_id", "dl_capacity_overflow"},
       "trust_boundary",
@@ -2112,7 +2126,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contention-resolution derivation reasons remain source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_contention_resolution_pressure_derivation_reasons",
       {"contact_id", "dl_capacity_overflow"},
       "derivation_reasons",
@@ -2123,7 +2137,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contact-contention risk type remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_contention_pressure_risk_types",
       {"contact_id", "dl_contention_conflict"},
       ["type", "risk_type"],
@@ -2134,7 +2148,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contact-contention contact identity remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_contention_pressure_contact_ids",
       {"contact_id", "dl_contention_conflict"},
       "contact_id",
@@ -2145,7 +2159,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contact-contention scenario identity remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_contention_pressure_scenario_ids",
       {"contact_id", "dl_contention_conflict"},
       "scenario_id",
@@ -2156,7 +2170,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contact-contention spacecraft identity remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_contention_pressure_spacecraft_ids",
       {"contact_id", "dl_contention_conflict"},
       "spacecraft_id",
@@ -2167,7 +2181,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contact-contention ground-station identity remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_contention_pressure_ground_station_ids",
       {"contact_id", "dl_contention_conflict"},
       "ground_station_id",
@@ -2178,7 +2192,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contact-contention source-activity identity remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_contention_pressure_source_activity_ids",
       {"contact_id", "dl_contention_conflict"},
       ["source_activity_id", "source_activity_ids"],
@@ -2189,7 +2203,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contact-contention source-window identity remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_contention_pressure_source_window_ids",
       {"contact_id", "dl_contention_conflict"},
       ["source_window_id", "source_window_ids"],
@@ -2200,7 +2214,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contact-contention required-contact demand remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_contention_pressure_required_contact_values",
       {"contact_id", "dl_contention_conflict"},
       "required_contacts",
@@ -2211,7 +2225,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contact-contention planned-contact demand remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_contention_pressure_planned_contact_values",
       {"contact_id", "dl_contention_conflict"},
       "planned_contacts",
@@ -2222,7 +2236,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contact-contention required-downlink demand remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_contention_pressure_required_downlink_values_mb",
       {"contact_id", "dl_contention_conflict"},
       "required_downlink_mb",
@@ -2233,7 +2247,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contact-contention planned-downlink demand remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_contention_pressure_planned_downlink_values_mb",
       {"contact_id", "dl_contention_conflict"},
       "planned_downlink_mb",
@@ -2244,7 +2258,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contact-contention start bound remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_contention_pressure_start_values_s",
       {"contact_id", "dl_contention_conflict"},
       "starts_at_s",
@@ -2255,7 +2269,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contact-contention end bound remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_contention_pressure_end_values_s",
       {"contact_id", "dl_contention_conflict"},
       "ends_at_s",
@@ -2266,7 +2280,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contact-contention group identity remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_contention_pressure_group_ids",
       {"contact_id", "dl_contention_conflict"},
       "contention_group_id",
@@ -2277,7 +2291,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contact-contention resource scope remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_contention_pressure_resource_scopes",
       {"contact_id", "dl_contention_conflict"},
       "contention_resource_scope",
@@ -2288,7 +2302,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contact-contention contact set remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_contention_pressure_contention_contact_ids",
       {"contact_id", "dl_contention_conflict"},
       ["contention_contact_ids"],
@@ -2299,7 +2313,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contact-contention required operator action remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_contention_pressure_required_operator_actions",
       {"contact_id", "dl_contention_conflict"},
       "required_operator_action",
@@ -2310,7 +2324,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contact-contention approval status remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_contention_pressure_approval_statuses",
       {"contact_id", "dl_contention_conflict"},
       "approval_status",
@@ -2321,7 +2335,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contact-contention operator-action reason remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_contention_pressure_operator_action_reasons",
       {"contact_id", "dl_contention_conflict"},
       "operator_action_reason",
@@ -2332,7 +2346,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contact-contention downlink-demand source remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_contention_pressure_downlink_demand_sources",
       {"contact_id", "dl_contention_conflict"},
       ["downlink_demand_sources"],
@@ -2343,7 +2357,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contact-contention completion source remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_contention_pressure_downlink_completion_sources",
       {"contact_id", "dl_contention_conflict"},
       ["downlink_completion_sources"],
@@ -2354,7 +2368,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contact-contention feedback source remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_contention_pressure_feedback_sources",
       {"contact_id", "dl_contention_conflict"},
       "feedback_source",
@@ -2365,7 +2379,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contact-contention feedback scope remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_contention_pressure_feedback_scopes",
       {"contact_id", "dl_contention_conflict"},
       "feedback_scope",
@@ -2376,7 +2390,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contact-contention trust boundary remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_contention_pressure_trust_boundaries",
       {"contact_id", "dl_contention_conflict"},
       "trust_boundary",
@@ -2387,7 +2401,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contact-contention derivation reasons remain source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_contention_pressure_derivation_reasons",
       {"contact_id", "dl_contention_conflict"},
       ["derivation_reasons"],
@@ -2403,7 +2417,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contact-filter risk type remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_filter_pressure_risk_types",
       {"contact_id", "dl_contact_filter_suppressed"},
       ["type", "risk_type"],
@@ -2414,7 +2428,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contact-filter contact identity remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_filter_pressure_contact_ids",
       {"contact_id", "dl_contact_filter_suppressed"},
       "contact_id",
@@ -2425,7 +2439,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contact-filter scenario identity remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_filter_pressure_scenario_ids",
       {"contact_id", "dl_contact_filter_suppressed"},
       "scenario_id",
@@ -2436,7 +2450,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contact-filter spacecraft identity remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_filter_pressure_spacecraft_ids",
       {"contact_id", "dl_contact_filter_suppressed"},
       "spacecraft_id",
@@ -2447,7 +2461,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contact-filter ground-station identity remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_filter_pressure_ground_station_ids",
       {"contact_id", "dl_contact_filter_suppressed"},
       "ground_station_id",
@@ -2458,7 +2472,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contact-filter source-activity identity remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_filter_pressure_source_activity_ids",
       {"contact_id", "dl_contact_filter_suppressed"},
       ["source_activity_id", "source_activity_ids"],
@@ -2469,7 +2483,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contact-filter source-window identity remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_filter_pressure_source_window_ids",
       {"contact_id", "dl_contact_filter_suppressed"},
       "source_window_id",
@@ -2480,7 +2494,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contact-filter required-contact demand remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_filter_pressure_required_contact_values",
       {"contact_id", "dl_contact_filter_suppressed"},
       "required_contacts",
@@ -2491,7 +2505,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contact-filter planned-contact demand remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_filter_pressure_planned_contact_values",
       {"contact_id", "dl_contact_filter_suppressed"},
       "planned_contacts",
@@ -2502,7 +2516,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contact-filter required-downlink demand remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_filter_pressure_required_downlink_values_mb",
       {"contact_id", "dl_contact_filter_suppressed"},
       "required_downlink_mb",
@@ -2513,7 +2527,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contact-filter planned-downlink demand remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_filter_pressure_planned_downlink_values_mb",
       {"contact_id", "dl_contact_filter_suppressed"},
       "planned_downlink_mb",
@@ -2524,7 +2538,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contact-filter start bound remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_filter_pressure_start_values_s",
       {"contact_id", "dl_contact_filter_suppressed"},
       "starts_at_s",
@@ -2535,7 +2549,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contact-filter end bound remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_filter_pressure_end_values_s",
       {"contact_id", "dl_contact_filter_suppressed"},
       "ends_at_s",
@@ -2546,7 +2560,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contact-filter suppression reason remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_filter_pressure_suppressed_reasons",
       {"contact_id", "dl_contact_filter_suppressed"},
       "suppressed_reason",
@@ -2557,7 +2571,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contact-filter review status remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_filter_pressure_review_statuses",
       {"contact_id", "dl_contact_filter_suppressed"},
       "review_status",
@@ -2568,7 +2582,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contact-filter reservation identity remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_filter_pressure_station_reservation_ids",
       {"contact_id", "dl_contact_filter_suppressed"},
       "station_reservation_id",
@@ -2579,7 +2593,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contact-filter reservation owner remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_filter_pressure_station_reserved_by",
       {"contact_id", "dl_contact_filter_suppressed"},
       "station_reserved_by",
@@ -2590,7 +2604,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contact-filter reservation status remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_filter_pressure_station_reservation_statuses",
       {"contact_id", "dl_contact_filter_suppressed"},
       "station_reservation_status",
@@ -2601,7 +2615,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contact-filter reservation match remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_filter_pressure_station_reservation_match_statuses",
       {"contact_id", "dl_contact_filter_suppressed"},
       "station_reservation_match_status",
@@ -2612,7 +2626,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contact-filter calendar-entry identity remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_filter_pressure_station_calendar_entry_ids",
       {"contact_id", "dl_contact_filter_suppressed"},
       "station_calendar_entry_id",
@@ -2623,7 +2637,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contact-filter calendar-entry status remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_filter_pressure_station_calendar_entry_statuses",
       {"contact_id", "dl_contact_filter_suppressed"},
       "station_calendar_entry_status",
@@ -2634,7 +2648,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contact-filter downlink-demand source remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_filter_pressure_downlink_demand_sources",
       {"contact_id", "dl_contact_filter_suppressed"},
       ["downlink_demand_sources"],
@@ -2645,7 +2659,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contact-filter completion source remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_filter_pressure_downlink_completion_sources",
       {"contact_id", "dl_contact_filter_suppressed"},
       ["downlink_completion_sources"],
@@ -2656,7 +2670,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contact-filter feedback source remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_filter_pressure_feedback_sources",
       {"contact_id", "dl_contact_filter_suppressed"},
       "feedback_source",
@@ -2667,7 +2681,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contact-filter feedback scope remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_filter_pressure_feedback_scopes",
       {"contact_id", "dl_contact_filter_suppressed"},
       "feedback_scope",
@@ -2678,7 +2692,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contact-filter trust boundary remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_filter_pressure_trust_boundaries",
       {"contact_id", "dl_contact_filter_suppressed"},
       "trust_boundary",
@@ -2689,7 +2703,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contact-filter derivation reasons remain source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_filter_pressure_derivation_reasons",
       {"contact_id", "dl_contact_filter_suppressed"},
       ["derivation_reasons"],
@@ -2791,7 +2805,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
         @relay_data_path_context_contracts do
     test "relay-data-path #{description} remains source exact across handoffs" do
       assert_risk_context_contract(
-        StrategyRecommendationPressureEventsFixture.artifact(),
+        artifact(),
         unquote(field),
         {"type", "relay_data_path_pressure"},
         unquote(Macro.escape(source_field)),
@@ -2877,7 +2891,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
         @maneuver_execution_uncertainty_context_contracts do
     test "maneuver-execution uncertainty #{description} remains source exact across handoffs" do
       assert_risk_context_contract(
-        StrategyRecommendationPressureEventsFixture.artifact(),
+        artifact(),
         unquote(field),
         {"feedback_scope", "maneuver_execution_uncertainty"},
         unquote(Macro.escape(source_field)),
@@ -3016,7 +3030,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
         @execution_success_feedback_context_contracts do
     test "execution-success feedback #{description} remains source exact across handoffs" do
       assert_risk_context_contract(
-        StrategyRecommendationPressureEventsFixture.artifact(),
+        artifact(),
         unquote(field),
         {"type", ["command_success_rate_low", "maneuver_success_rate_low"]},
         unquote(Macro.escape(source_field)),
@@ -3083,7 +3097,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
         @timeline_dependency_impact_context_contracts do
     test "timeline-dependency impact #{description} remains source exact across handoffs" do
       assert_risk_context_contract(
-        StrategyRecommendationPressureEventsFixture.artifact(),
+        artifact(),
         unquote(field),
         {"feedback_scope", "timeline_dependency_impact"},
         unquote(Macro.escape(source_field)),
@@ -3198,7 +3212,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
         @timeline_publication_context_contracts do
     test "timeline-publication #{description} remains source exact across handoffs" do
       assert_risk_context_contract(
-        StrategyRecommendationPressureEventsFixture.artifact(),
+        artifact(),
         unquote(field),
         {"feedback_scope", "timeline_publication"},
         unquote(Macro.escape(source_field)),
@@ -3380,7 +3394,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
         @timeline_lifecycle_state_context_contracts do
     test "timeline-lifecycle-state #{description} remains source exact across handoffs" do
       assert_risk_context_contract(
-        StrategyRecommendationPressureEventsFixture.artifact(),
+        artifact(),
         unquote(field),
         {"feedback_scope", "timeline_lifecycle_state"},
         unquote(Macro.escape(source_field)),
@@ -3400,7 +3414,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   for {field, source_fields} <- @timeline_activity_lifecycle_state_context_contracts do
     test "activity-lifecycle-state #{field} remains source exact across handoffs" do
-      artifact = StrategyRecommendationPressureEventsFixture.artifact()
+      artifact = artifact()
 
       expected_value =
         artifact["operator_review_package"]["rows"]
@@ -3428,7 +3442,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   for {field, source_fields} <- @timeline_preservation_context_contracts do
     test "timeline-preservation #{field} remains source exact across handoffs" do
-      artifact = StrategyRecommendationPressureEventsFixture.artifact()
+      artifact = artifact()
 
       expected_value =
         artifact["operator_review_package"]["rows"]
@@ -3456,7 +3470,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   for {field, source_fields} <- @timeline_activity_precondition_context_contracts do
     test "activity-precondition #{field} remains source exact across handoffs" do
-      artifact = StrategyRecommendationPressureEventsFixture.artifact()
+      artifact = artifact()
 
       expected_value =
         artifact["operator_review_package"]["rows"]
@@ -3488,7 +3502,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   for {field, source_fields} <- @timeline_integrity_context_contracts do
     test "timeline-integrity #{field} remains source exact across handoffs" do
-      artifact = StrategyRecommendationPressureEventsFixture.artifact()
+      artifact = artifact()
 
       expected_value =
         artifact["operator_review_package"]["rows"]
@@ -3516,7 +3530,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   for {field, source_fields, feedback_scope} <- @validation_refresh_context_contracts do
     test "validation-refresh #{field} remains source exact across handoffs" do
-      artifact = StrategyRecommendationPressureEventsFixture.artifact()
+      artifact = artifact()
 
       expected_value =
         artifact["operator_review_package"]["rows"]
@@ -3554,7 +3568,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   for {field, source_fields, legacy_mode} <- @operational_feedback_context_contracts do
     test "operational-feedback #{field} remains source exact across handoffs" do
-      artifact = StrategyRecommendationPressureEventsFixture.artifact()
+      artifact = artifact()
 
       expected_value =
         artifact["operator_review_package"]["rows"]
@@ -3575,7 +3589,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "link-capacity risk type remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "link_capacity_pressure_risk_types",
       {"ground_station_id", "equator_prime"},
       ["type", "risk_type"],
@@ -3586,7 +3600,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "link-capacity ground-station identity remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "link_capacity_pressure_ground_station_ids",
       {"ground_station_id", "equator_prime"},
       "ground_station_id",
@@ -3597,7 +3611,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "link-capacity required-contact demand remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "link_capacity_pressure_required_contact_values",
       {"ground_station_id", "equator_prime"},
       "required_contacts",
@@ -3608,7 +3622,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "link-capacity planned-contact demand remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "link_capacity_pressure_planned_contact_values",
       {"ground_station_id", "equator_prime"},
       "planned_contacts",
@@ -3619,7 +3633,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "link-capacity required-downlink demand remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "link_capacity_pressure_required_downlink_values_mb",
       {"ground_station_id", "equator_prime"},
       "required_downlink_mb",
@@ -3630,7 +3644,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "link-capacity planned-downlink demand remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "link_capacity_pressure_planned_downlink_values_mb",
       {"ground_station_id", "equator_prime"},
       "planned_downlink_mb",
@@ -3641,7 +3655,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "link-capacity start bound remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "link_capacity_pressure_start_values_s",
       {"ground_station_id", "equator_prime"},
       "starts_at_s",
@@ -3652,7 +3666,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "link-capacity end bound remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "link_capacity_pressure_end_values_s",
       {"ground_station_id", "equator_prime"},
       "ends_at_s",
@@ -3663,7 +3677,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "link-capacity source-activity identity remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "link_capacity_pressure_source_activity_ids",
       {"ground_station_id", "equator_prime"},
       ["source_activity_ids"],
@@ -3674,7 +3688,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "link-capacity source-window identity remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "link_capacity_pressure_source_window_ids",
       {"ground_station_id", "equator_prime"},
       ["source_window_id", "source_window_ids"],
@@ -3685,7 +3699,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "link-capacity selected adjusted throughput remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "link_capacity_pressure_selected_capacity_adjusted_throughput_values_mb",
       {"ground_station_id", "equator_prime"},
       "selected_capacity_adjusted_throughput_mb",
@@ -3696,7 +3710,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "link-capacity selected shortfall remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "link_capacity_pressure_selected_downlink_shortfall_values_mb",
       {"ground_station_id", "equator_prime"},
       "selected_downlink_shortfall_mb",
@@ -3707,7 +3721,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "link-capacity actual throughput remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "link_capacity_pressure_actual_throughput_values_mb",
       {"ground_station_id", "equator_prime"},
       "actual_throughput_mb",
@@ -3718,7 +3732,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "link-capacity actual completion ratio remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "link_capacity_pressure_actual_downlink_completion_ratio_values",
       {"ground_station_id", "equator_prime"},
       "actual_downlink_completion_ratio",
@@ -3729,7 +3743,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "link-capacity actual shortfall remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "link_capacity_pressure_actual_downlink_shortfall_values_mb",
       {"ground_station_id", "equator_prime"},
       "actual_downlink_shortfall_mb",
@@ -3740,7 +3754,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "link-capacity requirement status remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "link_capacity_pressure_downlink_requirement_statuses",
       {"ground_station_id", "equator_prime"},
       "downlink_requirement_status",
@@ -3751,7 +3765,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "link-capacity actual requirement status remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "link_capacity_pressure_actual_downlink_requirement_statuses",
       {"ground_station_id", "equator_prime"},
       "actual_downlink_requirement_status",
@@ -3762,7 +3776,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "link-capacity downlink-demand source remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "link_capacity_pressure_downlink_demand_sources",
       {"ground_station_id", "equator_prime"},
       ["downlink_demand_sources"],
@@ -3773,7 +3787,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "link-capacity completion source remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "link_capacity_pressure_downlink_completion_sources",
       {"ground_station_id", "equator_prime"},
       ["downlink_completion_sources"],
@@ -3784,7 +3798,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "link-capacity feedback source remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "link_capacity_pressure_feedback_sources",
       {"ground_station_id", "equator_prime"},
       "feedback_source",
@@ -3795,7 +3809,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "link-capacity feedback scope remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "link_capacity_pressure_feedback_scopes",
       {"ground_station_id", "equator_prime"},
       "feedback_scope",
@@ -3806,7 +3820,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "link-capacity trust boundary remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "link_capacity_pressure_trust_boundaries",
       {"ground_station_id", "equator_prime"},
       "trust_boundary",
@@ -3817,7 +3831,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "link-capacity derivation reasons remain source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "link_capacity_pressure_derivation_reasons",
       {"ground_station_id", "equator_prime"},
       ["derivation_reasons"],
@@ -3828,7 +3842,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "score-term risk type remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "score_term_pressure_risk_types",
       {"feedback_scope", "score_term"},
       ["type", "risk_type"],
@@ -3839,7 +3853,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "score-term objective identity remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "score_term_pressure_objective_ids",
       {"feedback_scope", "score_term"},
       "objective_id",
@@ -3850,7 +3864,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "score-term objective type remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "score_term_pressure_objective_types",
       {"feedback_scope", "score_term"},
       "objective_type",
@@ -3861,7 +3875,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "score-term latency-objective flag remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "score_term_pressure_latency_objective_values",
       {"feedback_scope", "score_term"},
       "latency_objective",
@@ -3872,7 +3886,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "score-term target identity remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "score_term_pressure_target_ids",
       {"feedback_scope", "score_term"},
       "target_id",
@@ -3883,7 +3897,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "score-term scenario identity remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "score_term_pressure_scenario_ids",
       {"feedback_scope", "score_term"},
       "scenario_id",
@@ -3894,7 +3908,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "score-term branch identity remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "score_term_pressure_branch_ids",
       {"feedback_scope", "score_term"},
       "branch_id",
@@ -3905,7 +3919,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "score-term station identity remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "score_term_pressure_ground_station_ids",
       {"feedback_scope", "score_term"},
       "ground_station_id",
@@ -3916,7 +3930,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "score-term collection identity remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "score_term_pressure_collection_ids",
       {"feedback_scope", "score_term"},
       ["collection_id", "collection_ids"],
@@ -3927,7 +3941,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "score-term product identity remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "score_term_pressure_product_ids",
       {"feedback_scope", "score_term"},
       ["product_id", "product_ids"],
@@ -3938,7 +3952,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "score-term payload identity remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "score_term_pressure_payload_ids",
       {"feedback_scope", "score_term"},
       ["payload_id", "payload_ids"],
@@ -3949,7 +3963,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "score-term instrument identity remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "score_term_pressure_instrument_ids",
       {"feedback_scope", "score_term"},
       ["instrument_id", "instrument_ids"],
@@ -3960,7 +3974,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "score-term start bound remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "score_term_pressure_start_values_s",
       {"feedback_scope", "score_term"},
       "starts_at_s",
@@ -3971,7 +3985,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "score-term end bound remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "score_term_pressure_end_values_s",
       {"feedback_scope", "score_term"},
       "ends_at_s",
@@ -3982,7 +3996,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "score-term required contact demand remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "score_term_pressure_required_contact_values",
       {"feedback_scope", "score_term"},
       "required_contacts",
@@ -3993,7 +4007,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "score-term planned contact demand remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "score_term_pressure_planned_contact_values",
       {"feedback_scope", "score_term"},
       "planned_contacts",
@@ -4004,7 +4018,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "score-term required downlink demand remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "score_term_pressure_required_downlink_values_mb",
       {"feedback_scope", "score_term"},
       "required_downlink_mb",
@@ -4015,7 +4029,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "score-term planned downlink demand remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "score_term_pressure_planned_downlink_values_mb",
       {"feedback_scope", "score_term"},
       "planned_downlink_mb",
@@ -4026,7 +4040,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "score-term maximum latency remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "score_term_pressure_max_latency_values_s",
       {"feedback_scope", "score_term"},
       "max_latency_s",
@@ -4037,7 +4051,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "score-term planned latency remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "score_term_pressure_planned_latency_values_s",
       {"feedback_scope", "score_term"},
       "planned_latency_s",
@@ -4048,7 +4062,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "score-term required observation demand remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "score_term_pressure_required_observation_values",
       {"feedback_scope", "score_term"},
       "required_observations",
@@ -4059,7 +4073,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "score-term planned observation demand remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "score_term_pressure_planned_observation_values",
       {"feedback_scope", "score_term"},
       "planned_observations",
@@ -4070,7 +4084,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "score-term priority remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "score_term_pressure_priorities",
       {"feedback_scope", "score_term"},
       "priority",
@@ -4081,7 +4095,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "score-term latitude remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "score_term_pressure_latitude_values_deg",
       {"feedback_scope", "score_term"},
       "latitude_deg",
@@ -4092,7 +4106,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "score-term longitude remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "score_term_pressure_longitude_values_deg",
       {"feedback_scope", "score_term"},
       "longitude_deg",
@@ -4103,7 +4117,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "score-term minimum elevation remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "score_term_pressure_minimum_elevation_values_deg",
       {"feedback_scope", "score_term"},
       "minimum_elevation_deg",
@@ -4114,7 +4128,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "score-term source activity remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "score_term_pressure_source_activity_ids",
       {"feedback_scope", "score_term"},
       ["source_activity_id", "source_activity_ids"],
@@ -4125,7 +4139,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "score-term key remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "score_term_pressure_keys",
       {"feedback_scope", "score_term"},
       "score_term_key",
@@ -4136,7 +4150,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "score-term value remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "score_term_pressure_values",
       {"feedback_scope", "score_term"},
       "score_term_value",
@@ -4147,7 +4161,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "score-term timeline score remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "score_term_pressure_timeline_score_values",
       {"feedback_scope", "score_term"},
       "timeline_score",
@@ -4158,7 +4172,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "score-term map remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "score_term_pressure_score_term_maps",
       {"feedback_scope", "score_term"},
       "score_terms",
@@ -4174,7 +4188,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "score-term downlink-demand source remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "score_term_pressure_downlink_demand_sources",
       {"feedback_scope", "score_term"},
       ["downlink_demand_sources"],
@@ -4185,7 +4199,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "score-term completion source remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "score_term_pressure_downlink_completion_sources",
       {"feedback_scope", "score_term"},
       ["downlink_completion_sources"],
@@ -4196,7 +4210,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "score-term feedback source remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "score_term_pressure_feedback_sources",
       {"feedback_scope", "score_term"},
       "feedback_source",
@@ -4207,7 +4221,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "score-term feedback scope remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "score_term_pressure_feedback_scopes",
       {"feedback_scope", "score_term"},
       "feedback_scope",
@@ -4218,7 +4232,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "score-term trust boundary remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "score_term_pressure_trust_boundaries",
       {"feedback_scope", "score_term"},
       "trust_boundary",
@@ -4229,7 +4243,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "score-term derivation reasons remain source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "score_term_pressure_derivation_reasons",
       {"feedback_scope", "score_term"},
       ["derivation_reasons"],
@@ -4244,7 +4258,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "objective-satisfaction risk type remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "objective_satisfaction_pressure_risk_types",
       {"feedback_scope", "objective_satisfaction"},
       ["type", "risk_type"],
@@ -4255,7 +4269,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "objective-satisfaction objective identity remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "objective_satisfaction_pressure_objective_ids",
       {"feedback_scope", "objective_satisfaction"},
       "objective_id",
@@ -4266,7 +4280,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "objective-satisfaction objective type remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "objective_satisfaction_pressure_objective_types",
       {"feedback_scope", "objective_satisfaction"},
       "objective_type",
@@ -4277,7 +4291,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "objective-satisfaction objective status remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "objective_satisfaction_pressure_objective_statuses",
       {"feedback_scope", "objective_satisfaction"},
       "objective_status",
@@ -4288,7 +4302,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "objective-satisfaction source objective status remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "objective_satisfaction_pressure_source_objective_statuses",
       {"feedback_scope", "objective_satisfaction"},
       "source_objective_status",
@@ -4299,7 +4313,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "objective-satisfaction target identity remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "objective_satisfaction_pressure_target_ids",
       {"feedback_scope", "objective_satisfaction"},
       "target_id",
@@ -4310,7 +4324,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "objective-satisfaction scenario identity remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "objective_satisfaction_pressure_scenario_ids",
       {"feedback_scope", "objective_satisfaction"},
       "scenario_id",
@@ -4321,7 +4335,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "objective-satisfaction spacecraft identity remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "objective_satisfaction_pressure_spacecraft_ids",
       {"feedback_scope", "objective_satisfaction"},
       "spacecraft_id",
@@ -4332,7 +4346,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "objective-satisfaction branch identity remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "objective_satisfaction_pressure_branch_ids",
       {"feedback_scope", "objective_satisfaction"},
       "branch_id",
@@ -4343,7 +4357,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "objective-satisfaction collection identities remain source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "objective_satisfaction_pressure_collection_ids",
       {"feedback_scope", "objective_satisfaction"},
       ["collection_id", "collection_ids"],
@@ -4354,7 +4368,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "objective-satisfaction product identities remain source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "objective_satisfaction_pressure_product_ids",
       {"feedback_scope", "objective_satisfaction"},
       ["product_id", "product_ids"],
@@ -4365,7 +4379,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "objective-satisfaction payload identities remain source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "objective_satisfaction_pressure_payload_ids",
       {"feedback_scope", "objective_satisfaction"},
       ["payload_id", "payload_ids"],
@@ -4376,7 +4390,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "objective-satisfaction instrument identities remain source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "objective_satisfaction_pressure_instrument_ids",
       {"feedback_scope", "objective_satisfaction"},
       ["instrument_id", "instrument_ids"],
@@ -4387,7 +4401,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "objective-satisfaction start timing remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "objective_satisfaction_pressure_start_values_s",
       {"feedback_scope", "objective_satisfaction"},
       "starts_at_s",
@@ -4398,7 +4412,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "objective-satisfaction end timing remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "objective_satisfaction_pressure_end_values_s",
       {"feedback_scope", "objective_satisfaction"},
       "ends_at_s",
@@ -4409,7 +4423,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "objective-satisfaction latency objective remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "objective_satisfaction_pressure_latency_objective_values",
       {"feedback_scope", "objective_satisfaction"},
       "latency_objective",
@@ -4420,7 +4434,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "objective-satisfaction ground station remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "objective_satisfaction_pressure_ground_station_ids",
       {"feedback_scope", "objective_satisfaction"},
       "ground_station_id",
@@ -4431,7 +4445,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "objective-satisfaction required contacts remain source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "objective_satisfaction_pressure_required_contact_values",
       {"feedback_scope", "objective_satisfaction"},
       "required_contacts",
@@ -4442,7 +4456,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "objective-satisfaction planned contacts remain source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "objective_satisfaction_pressure_planned_contact_values",
       {"feedback_scope", "objective_satisfaction"},
       "planned_contacts",
@@ -4453,7 +4467,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "objective-satisfaction required downlink remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "objective_satisfaction_pressure_required_downlink_values_mb",
       {"feedback_scope", "objective_satisfaction"},
       "required_downlink_mb",
@@ -4464,7 +4478,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "objective-satisfaction planned downlink remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "objective_satisfaction_pressure_planned_downlink_values_mb",
       {"feedback_scope", "objective_satisfaction"},
       "planned_downlink_mb",
@@ -4475,7 +4489,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "objective-satisfaction maximum latency remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "objective_satisfaction_pressure_max_latency_values_s",
       {"feedback_scope", "objective_satisfaction"},
       "max_latency_s",
@@ -4486,7 +4500,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "objective-satisfaction planned latency remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "objective_satisfaction_pressure_planned_latency_values_s",
       {"feedback_scope", "objective_satisfaction"},
       "planned_latency_s",
@@ -4497,7 +4511,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "objective-satisfaction required observations remain source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "objective_satisfaction_pressure_required_observation_values",
       {"feedback_scope", "objective_satisfaction"},
       "required_observations",
@@ -4508,7 +4522,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "objective-satisfaction planned observations remain source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "objective_satisfaction_pressure_planned_observation_values",
       {"feedback_scope", "objective_satisfaction"},
       "planned_observations",
@@ -4519,7 +4533,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "objective-satisfaction priority remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "objective_satisfaction_pressure_priorities",
       {"feedback_scope", "objective_satisfaction"},
       "priority",
@@ -4530,7 +4544,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "objective-satisfaction latitude remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "objective_satisfaction_pressure_latitude_values_deg",
       {"feedback_scope", "objective_satisfaction"},
       "latitude_deg",
@@ -4541,7 +4555,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "objective-satisfaction longitude remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "objective_satisfaction_pressure_longitude_values_deg",
       {"feedback_scope", "objective_satisfaction"},
       "longitude_deg",
@@ -4552,7 +4566,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "objective-satisfaction minimum elevation remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "objective_satisfaction_pressure_minimum_elevation_values_deg",
       {"feedback_scope", "objective_satisfaction"},
       "minimum_elevation_deg",
@@ -4563,7 +4577,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "objective-satisfaction observation success remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "objective_satisfaction_pressure_observation_success_factor_values",
       {"feedback_scope", "objective_satisfaction"},
       "observation_success_factor",
@@ -4574,7 +4588,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "objective-satisfaction image quality score remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "objective_satisfaction_pressure_image_quality_score_values",
       {"feedback_scope", "objective_satisfaction"},
       "image_quality_score",
@@ -4585,7 +4599,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "objective-satisfaction image quality status remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "objective_satisfaction_pressure_image_quality_statuses",
       {"feedback_scope", "objective_satisfaction"},
       "image_quality_status",
@@ -4596,7 +4610,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "objective-satisfaction image quality source remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "objective_satisfaction_pressure_image_quality_sources",
       {"feedback_scope", "objective_satisfaction"},
       "image_quality_source",
@@ -4607,7 +4621,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "objective-satisfaction cloud cover remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "objective_satisfaction_pressure_cloud_cover_fraction_values",
       {"feedback_scope", "objective_satisfaction"},
       "cloud_cover_fraction",
@@ -4618,7 +4632,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "objective-satisfaction blur score remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "objective_satisfaction_pressure_blur_score_values",
       {"feedback_scope", "objective_satisfaction"},
       "blur_score",
@@ -4629,7 +4643,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "objective-satisfaction quality feedback source remains exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "objective_satisfaction_pressure_quality_feedback_sources",
       {"feedback_scope", "objective_satisfaction"},
       "quality_feedback_source",
@@ -4640,7 +4654,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "objective-satisfaction source activity remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "objective_satisfaction_pressure_source_activity_ids",
       {"feedback_scope", "objective_satisfaction"},
       ["source_activity_id", "source_activity_ids"],
@@ -4651,7 +4665,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "objective-satisfaction feedback source remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "objective_satisfaction_pressure_feedback_sources",
       {"feedback_scope", "objective_satisfaction"},
       "feedback_source",
@@ -4662,7 +4676,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "objective-satisfaction feedback scope remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "objective_satisfaction_pressure_feedback_scopes",
       {"feedback_scope", "objective_satisfaction"},
       "feedback_scope",
@@ -4673,7 +4687,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "objective-satisfaction trust boundary remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "objective_satisfaction_pressure_trust_boundaries",
       {"feedback_scope", "objective_satisfaction"},
       "trust_boundary",
@@ -4684,7 +4698,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "objective-satisfaction derivation reasons remain source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "objective_satisfaction_pressure_derivation_reasons",
       {"feedback_scope", "objective_satisfaction"},
       ["derivation_reasons"],
@@ -4698,7 +4712,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "objective-satisfaction missed downlink activity remains exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "objective_satisfaction_pressure_missed_downlink_activity_ids",
       {"feedback_scope", "objective_satisfaction"},
       ["missed_downlink_activity_id", "missed_downlink_activity_ids"],
@@ -4709,7 +4723,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "objective-satisfaction realized status remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "objective_satisfaction_pressure_realized_statuses",
       {"feedback_scope", "objective_satisfaction"},
       "realized_status",
@@ -4720,7 +4734,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "objective-satisfaction contact result remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "objective_satisfaction_pressure_contact_results",
       {"feedback_scope", "objective_satisfaction"},
       "contact_result",
@@ -4731,7 +4745,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "objective-satisfaction candidate windows remain source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "objective_satisfaction_pressure_candidate_window_maps",
       {"feedback_scope", "objective_satisfaction"},
       ["candidate_windows"],
@@ -4749,7 +4763,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "objective-satisfaction allowed scenarios remain source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "objective_satisfaction_pressure_allowed_scenario_ids",
       {"feedback_scope", "objective_satisfaction"},
       ["allowed_scenario_ids"],
@@ -4760,7 +4774,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "objective-satisfaction spacecraft constraints remain exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "objective_satisfaction_pressure_spacecraft_constraint_maps",
       {"feedback_scope", "objective_satisfaction"},
       ["spacecraft_constraints"],
@@ -4771,7 +4785,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "objective-satisfaction coverage objective remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "objective_satisfaction_pressure_coverage_objective_ids",
       {"feedback_scope", "objective_satisfaction"},
       "coverage_objective_id",
@@ -4782,7 +4796,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "objective-satisfaction downlink demand source remains exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "objective_satisfaction_pressure_downlink_demand_sources",
       {"feedback_scope", "objective_satisfaction"},
       ["downlink_demand_sources"],
@@ -4793,7 +4807,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "objective-satisfaction downlink completion source remains exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "objective_satisfaction_pressure_downlink_completion_sources",
       {"feedback_scope", "objective_satisfaction"},
       ["downlink_completion_sources"],
@@ -4804,7 +4818,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "objective-tradeoff risk type remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "objective_tradeoff_pressure_risk_types",
       {"feedback_scope", "objective_tradeoff"},
       ["type", "risk_type"],
@@ -4815,7 +4829,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "objective-tradeoff objective identity remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "objective_tradeoff_pressure_objective_ids",
       {"feedback_scope", "objective_tradeoff"},
       "objective_id",
@@ -4826,7 +4840,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "objective-tradeoff objective type remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "objective_tradeoff_pressure_objective_types",
       {"feedback_scope", "objective_tradeoff"},
       "objective_type",
@@ -4837,7 +4851,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "objective-tradeoff latency-objective flag remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "objective_tradeoff_pressure_latency_objective_values",
       {"feedback_scope", "objective_tradeoff"},
       "latency_objective",
@@ -4848,7 +4862,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "objective-tradeoff target identity remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "objective_tradeoff_pressure_target_ids",
       {"feedback_scope", "objective_tradeoff"},
       "target_id",
@@ -4859,7 +4873,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "objective-tradeoff scenario identity remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "objective_tradeoff_pressure_scenario_ids",
       {"feedback_scope", "objective_tradeoff"},
       "scenario_id",
@@ -4870,7 +4884,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "objective-tradeoff branch identity remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "objective_tradeoff_pressure_branch_ids",
       {"feedback_scope", "objective_tradeoff"},
       "branch_id",
@@ -4881,7 +4895,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "objective-tradeoff station identity remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "objective_tradeoff_pressure_ground_station_ids",
       {"feedback_scope", "objective_tradeoff"},
       "ground_station_id",
@@ -4892,7 +4906,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "objective-tradeoff collection identities remain source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "objective_tradeoff_pressure_collection_ids",
       {"feedback_scope", "objective_tradeoff"},
       ["collection_id", "collection_ids"],
@@ -4903,7 +4917,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "objective-tradeoff product identities remain source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "objective_tradeoff_pressure_product_ids",
       {"feedback_scope", "objective_tradeoff"},
       ["product_id", "product_ids"],
@@ -4914,7 +4928,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "objective-tradeoff payload identities remain source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "objective_tradeoff_pressure_payload_ids",
       {"feedback_scope", "objective_tradeoff"},
       ["payload_id", "payload_ids"],
@@ -4925,7 +4939,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "objective-tradeoff instrument identities remain source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "objective_tradeoff_pressure_instrument_ids",
       {"feedback_scope", "objective_tradeoff"},
       ["instrument_id", "instrument_ids"],
@@ -4936,7 +4950,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "objective-tradeoff start timing remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "objective_tradeoff_pressure_start_values_s",
       {"feedback_scope", "objective_tradeoff"},
       "starts_at_s",
@@ -4947,7 +4961,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "objective-tradeoff end timing remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "objective_tradeoff_pressure_end_values_s",
       {"feedback_scope", "objective_tradeoff"},
       "ends_at_s",
@@ -4958,7 +4972,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "objective-tradeoff required contacts remain source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "objective_tradeoff_pressure_required_contact_values",
       {"feedback_scope", "objective_tradeoff"},
       "required_contacts",
@@ -4969,7 +4983,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "objective-tradeoff planned contacts remain source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "objective_tradeoff_pressure_planned_contact_values",
       {"feedback_scope", "objective_tradeoff"},
       "planned_contacts",
@@ -4980,7 +4994,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "objective-tradeoff required downlink remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "objective_tradeoff_pressure_required_downlink_values_mb",
       {"feedback_scope", "objective_tradeoff"},
       "required_downlink_mb",
@@ -4991,7 +5005,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "objective-tradeoff planned downlink remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "objective_tradeoff_pressure_planned_downlink_values_mb",
       {"feedback_scope", "objective_tradeoff"},
       "planned_downlink_mb",
@@ -5002,7 +5016,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "objective-tradeoff maximum latency remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "objective_tradeoff_pressure_max_latency_values_s",
       {"feedback_scope", "objective_tradeoff"},
       "max_latency_s",
@@ -5013,7 +5027,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "objective-tradeoff planned latency remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "objective_tradeoff_pressure_planned_latency_values_s",
       {"feedback_scope", "objective_tradeoff"},
       "planned_latency_s",
@@ -5024,7 +5038,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "objective-tradeoff source activity remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "objective_tradeoff_pressure_source_activity_ids",
       {"feedback_scope", "objective_tradeoff"},
       ["source_activity_id", "source_activity_ids"],
@@ -5035,7 +5049,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "objective-tradeoff score remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "objective_tradeoff_pressure_score_values",
       {"feedback_scope", "objective_tradeoff"},
       "score",
@@ -5046,7 +5060,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "objective-tradeoff score delta remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "objective_tradeoff_pressure_score_delta_from_selected_values",
       {"feedback_scope", "objective_tradeoff"},
       "score_delta_from_selected",
@@ -5057,7 +5071,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "objective-tradeoff score terms remain source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "objective_tradeoff_pressure_score_term_maps",
       {"feedback_scope", "objective_tradeoff"},
       "score_terms",
@@ -5068,7 +5082,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "objective-tradeoff required observations remain source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "objective_tradeoff_pressure_required_observation_values",
       {"feedback_scope", "objective_tradeoff"},
       "required_observations",
@@ -5079,7 +5093,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "objective-tradeoff planned observations remain source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "objective_tradeoff_pressure_planned_observation_values",
       {"feedback_scope", "objective_tradeoff"},
       "planned_observations",
@@ -5090,7 +5104,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "objective-tradeoff priority remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "objective_tradeoff_pressure_priorities",
       {"feedback_scope", "objective_tradeoff"},
       "priority",
@@ -5101,7 +5115,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "objective-tradeoff latitude remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "objective_tradeoff_pressure_latitude_values_deg",
       {"feedback_scope", "objective_tradeoff"},
       "latitude_deg",
@@ -5112,7 +5126,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "objective-tradeoff longitude remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "objective_tradeoff_pressure_longitude_values_deg",
       {"feedback_scope", "objective_tradeoff"},
       "longitude_deg",
@@ -5123,7 +5137,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "objective-tradeoff minimum elevation remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "objective_tradeoff_pressure_minimum_elevation_values_deg",
       {"feedback_scope", "objective_tradeoff"},
       "minimum_elevation_deg",
@@ -5134,7 +5148,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "objective-tradeoff feedback source remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "objective_tradeoff_pressure_feedback_sources",
       {"feedback_scope", "objective_tradeoff"},
       "feedback_source",
@@ -5145,7 +5159,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "objective-tradeoff feedback scope remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "objective_tradeoff_pressure_feedback_scopes",
       {"feedback_scope", "objective_tradeoff"},
       "feedback_scope",
@@ -5156,7 +5170,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "objective-tradeoff trust boundary remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "objective_tradeoff_pressure_trust_boundaries",
       {"feedback_scope", "objective_tradeoff"},
       "trust_boundary",
@@ -5167,7 +5181,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "objective-tradeoff derivation reasons remain source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "objective_tradeoff_pressure_derivation_reasons",
       {"feedback_scope", "objective_tradeoff"},
       ["derivation_reasons"],
@@ -5183,7 +5197,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "station conflict expiration risk context remains source exact across handoffs" do
     assert_risk_expiration_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "station_reservation_conflict_expiration_statuses",
       {"contact_id", "dl_reservation_conflict"},
       "active"
@@ -5192,7 +5206,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "station conflict contact identity remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "station_reservation_conflict_contact_ids",
       {"contact_id", "dl_reservation_conflict"},
       "contact_id",
@@ -5203,7 +5217,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "station conflict source activity identity remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "station_reservation_conflict_source_activity_ids",
       {"contact_id", "dl_reservation_conflict"},
       ["source_activity_id", "source_activity_ids"],
@@ -5214,7 +5228,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "station conflict ground-station identity remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "station_reservation_conflict_ground_station_ids",
       {"contact_id", "dl_reservation_conflict"},
       "ground_station_id",
@@ -5225,7 +5239,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "station conflict reservation identity remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "station_reservation_conflict_reservation_ids",
       {"contact_id", "dl_reservation_conflict"},
       "station_reservation_id",
@@ -5236,7 +5250,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "station conflict reservation owner remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "station_reservation_conflict_reserved_by",
       {"contact_id", "dl_reservation_conflict"},
       "station_reserved_by",
@@ -5247,7 +5261,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "station conflict reservation status remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "station_reservation_conflict_statuses",
       {"contact_id", "dl_reservation_conflict"},
       "station_reservation_status",
@@ -5258,7 +5272,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "station conflict match status remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "station_reservation_conflict_match_statuses",
       {"contact_id", "dl_reservation_conflict"},
       "station_reservation_match_status",
@@ -5269,7 +5283,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "station conflict reservation deadline remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "station_reservation_conflict_expires_at_values_s",
       {"contact_id", "dl_reservation_conflict"},
       "station_reservation_expires_at_s",
@@ -5280,7 +5294,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "station conflict derivation reason remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "station_reservation_conflict_derivation_reasons",
       {"contact_id", "dl_reservation_conflict"},
       "derivation_reasons",
@@ -5291,7 +5305,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "station conflict feedback source remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "station_reservation_conflict_feedback_sources",
       {"contact_id", "dl_reservation_conflict"},
       "feedback_source",
@@ -5302,7 +5316,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "station conflict feedback scope remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "station_reservation_conflict_feedback_scopes",
       {"contact_id", "dl_reservation_conflict"},
       "feedback_scope",
@@ -5313,7 +5327,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "station conflict trust boundary remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "station_reservation_conflict_trust_boundaries",
       {"contact_id", "dl_reservation_conflict"},
       "trust_boundary",
@@ -5324,7 +5338,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "station hold expiration risk context remains source exact across handoffs" do
     assert_risk_expiration_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "station_reservation_hold_expiration_statuses",
       {"contact_id", "dl_hold_import_review"},
       "active"
@@ -5333,7 +5347,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "station hold identity remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "station_reservation_hold_ids",
       {"contact_id", "dl_hold_import_review"},
       "station_reservation_hold_ids",
@@ -5344,7 +5358,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "station hold identity routing by import status remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "station_reservation_hold_ids_by_import_status",
       {"contact_id", "dl_hold_import_review"},
       "station_reservation_hold_ids_by_import_status",
@@ -5362,7 +5376,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "station hold identity routing by required action remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "station_reservation_hold_ids_by_required_import_action",
       {"contact_id", "dl_hold_import_review"},
       "station_reservation_hold_ids_by_required_import_action",
@@ -5378,7 +5392,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "station hold identity routing by direction remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "station_reservation_hold_ids_by_direction",
       {"contact_id", "dl_hold_import_review"},
       "station_reservation_hold_ids_by_direction",
@@ -5394,7 +5408,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "station hold identity routing by direction and station remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "station_reservation_hold_ids_by_direction_and_ground_station_id",
       {"contact_id", "dl_hold_import_review"},
       "station_reservation_hold_ids_by_direction_and_ground_station_id",
@@ -5410,7 +5424,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "station hold contact identity remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "station_reservation_hold_contact_ids",
       {"contact_id", "dl_hold_import_review"},
       "contact_id",
@@ -5421,7 +5435,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "station hold contact routing by import status remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "station_reservation_hold_contact_ids_by_import_status",
       {"contact_id", "dl_hold_import_review"},
       "station_reservation_hold_contact_ids_by_import_status",
@@ -5432,7 +5446,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "station hold contact routing by expiration status remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "station_reservation_hold_contact_ids_by_expiration_status",
       {"contact_id", "dl_hold_import_review"},
       "station_reservation_hold_contact_ids_by_expiration_status",
@@ -5443,7 +5457,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "station hold contact routing by direction remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "station_reservation_hold_contact_ids_by_direction",
       {"contact_id", "dl_hold_import_review"},
       "station_reservation_hold_contact_ids_by_direction",
@@ -5454,7 +5468,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "station hold contact routing by direction and station remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "station_reservation_hold_contact_ids_by_direction_and_ground_station_id",
       {"contact_id", "dl_hold_import_review"},
       "station_reservation_hold_contact_ids_by_direction_and_ground_station_id",
@@ -5465,7 +5479,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "station hold counts by import status remain source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "station_reservation_hold_import_status_count_maps",
       {"contact_id", "dl_hold_import_review"},
       "station_reservation_hold_import_status_counts",
@@ -5476,7 +5490,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "station hold counts by required action remain source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "station_reservation_hold_required_import_action_count_maps",
       {"contact_id", "dl_hold_import_review"},
       "station_reservation_hold_required_import_action_counts",
@@ -5492,7 +5506,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "station hold import execution boundary remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "station_reservation_hold_import_execution_boundaries",
       {"contact_id", "dl_hold_import_review"},
       "station_reservation_hold_import_execution_boundary",
@@ -5503,7 +5517,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "station hold provider-write boundary remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "station_reservation_hold_provider_write_values",
       {"contact_id", "dl_hold_import_review"},
       "station_reservation_hold_provider_write",
@@ -5514,7 +5528,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "station hold Cadence-write boundary remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "station_reservation_hold_cadence_write_values",
       {"contact_id", "dl_hold_import_review"},
       "station_reservation_hold_cadence_write",
@@ -5525,7 +5539,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "station hold reservation-acceptance boundary remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "station_reservation_hold_reservation_acceptance_values",
       {"contact_id", "dl_hold_import_review"},
       "station_reservation_hold_reservation_acceptance",
@@ -5536,7 +5550,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "station hold feedback source remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "station_reservation_hold_feedback_sources",
       {"contact_id", "dl_hold_import_review"},
       "feedback_source",
@@ -5547,7 +5561,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "station hold feedback scope remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "station_reservation_hold_feedback_scopes",
       {"contact_id", "dl_hold_import_review"},
       "feedback_scope",
@@ -5558,7 +5572,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "station hold trust boundary remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "station_reservation_hold_trust_boundaries",
       {"contact_id", "dl_hold_import_review"},
       "trust_boundary",
@@ -5569,7 +5583,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "station hold source summary remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "source_station_reservation_hold_import_readiness_summaries",
       {"contact_id", "dl_hold_import_review"},
       "source_station_reservation_hold_import_readiness_summary",
@@ -5598,7 +5612,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "station hold summary model remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "station_reservation_hold_import_readiness_summary_models",
       {"contact_id", "dl_hold_import_review"},
       "station_reservation_hold_import_readiness_summary_model",
@@ -5609,7 +5623,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "station hold summary source remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "station_reservation_hold_import_readiness_sources",
       {"contact_id", "dl_hold_import_review"},
       "station_reservation_hold_import_readiness_source",
@@ -5620,7 +5634,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "station hold summary source artifact type remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "station_reservation_hold_import_readiness_source_artifact_types",
       {"contact_id", "dl_hold_import_review"},
       "station_reservation_hold_import_readiness_source_artifact_type",
@@ -5631,7 +5645,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "station hold import status remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "station_reservation_hold_import_statuses",
       {"contact_id", "dl_hold_import_review"},
       "station_reservation_hold_import_status",
@@ -5642,7 +5656,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "station hold readiness status remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "station_reservation_hold_import_readiness_statuses",
       {"contact_id", "dl_hold_import_review"},
       "station_reservation_hold_import_readiness_status",
@@ -5653,7 +5667,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "station hold import classification remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "station_reservation_hold_import_classifications",
       {"contact_id", "dl_hold_import_review"},
       "station_reservation_hold_import_classification",
@@ -5664,7 +5678,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "station hold count remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "station_reservation_hold_count_values",
       {"contact_id", "dl_hold_import_review"},
       "station_reservation_hold_count",
@@ -5675,7 +5689,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "station calendar expiration risk context remains source exact across handoffs" do
     assert_risk_expiration_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "station_calendar_pressure_station_reservation_expiration_statuses",
       {"station_reservation_id", "reservation_calendar_selected"},
       "active"
@@ -5684,7 +5698,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "station calendar reservation deadlines remain source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "station_calendar_pressure_station_reservation_expires_at_values_s",
       {"station_reservation_id", "reservation_calendar_selected"},
       "station_reservation_expires_at_s",
@@ -5695,7 +5709,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "station calendar reservation identity remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "station_calendar_pressure_station_reservation_ids",
       {"station_reservation_id", "reservation_calendar_selected"},
       "station_reservation_id",
@@ -5706,7 +5720,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "station calendar reservation ownership remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "station_calendar_pressure_station_reserved_by",
       {"station_reservation_id", "reservation_calendar_selected"},
       "station_reserved_by",
@@ -5717,7 +5731,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "station calendar reservation status remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "station_calendar_pressure_station_reservation_statuses",
       {"station_reservation_id", "reservation_calendar_selected"},
       "station_reservation_status",
@@ -5728,7 +5742,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "station calendar reservation match status remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "station_calendar_pressure_station_reservation_match_statuses",
       {"station_reservation_id", "reservation_calendar_selected"},
       "station_reservation_match_status",
@@ -5739,7 +5753,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "station calendar entry identity remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "station_calendar_pressure_station_calendar_entry_ids",
       {"station_reservation_id", "reservation_calendar_selected"},
       "station_calendar_entry_id",
@@ -5750,7 +5764,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "station calendar provider identity remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "station_calendar_pressure_station_calendar_provider_ids",
       {"station_reservation_id", "reservation_calendar_selected"},
       "station_calendar_provider_id",
@@ -5761,7 +5775,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "station calendar provider entry identity remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "station_calendar_pressure_station_calendar_provider_entry_ids",
       {"station_reservation_id", "reservation_calendar_selected"},
       "station_calendar_provider_entry_id",
@@ -5772,7 +5786,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "station calendar direction remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "station_calendar_pressure_station_calendar_directions",
       {"station_reservation_id", "reservation_calendar_selected"},
       "station_calendar_directions",
@@ -5783,7 +5797,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "station calendar status remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "station_calendar_pressure_station_calendar_statuses",
       {"station_reservation_id", "reservation_calendar_selected"},
       "station_calendar_status",
@@ -5794,7 +5808,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "station calendar availability remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "station_calendar_pressure_station_availabilities",
       {"station_reservation_id", "reservation_calendar_selected"},
       "station_availability",
@@ -5805,7 +5819,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "station calendar contention status remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "station_calendar_pressure_station_contention_statuses",
       {"station_reservation_id", "reservation_calendar_selected"},
       "station_contention_status",
@@ -5816,7 +5830,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "station calendar overlap count remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "station_calendar_pressure_station_calendar_overlap_count_values",
       {"station_reservation_id", "reservation_calendar_selected"},
       "station_calendar_overlap_count",
@@ -5827,7 +5841,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "station calendar overlap entry identity remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "station_calendar_pressure_station_calendar_overlap_entry_ids",
       {"station_reservation_id", "reservation_calendar_selected"},
       "station_calendar_overlap_entry_ids",
@@ -5838,7 +5852,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "station calendar overlap availability remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "station_calendar_pressure_station_calendar_overlap_availabilities",
       {"station_reservation_id", "reservation_calendar_selected"},
       "station_calendar_overlap_availabilities",
@@ -5849,7 +5863,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "station calendar entry ambiguity remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "station_calendar_pressure_station_calendar_entry_ambiguous_values",
       {"station_reservation_id", "reservation_calendar_selected"},
       "station_calendar_entry_ambiguous",
@@ -5860,7 +5874,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "station calendar ambiguous entry count remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "station_calendar_pressure_station_calendar_ambiguous_entry_count_values",
       {"station_reservation_id", "reservation_calendar_selected"},
       "station_calendar_ambiguous_entry_count",
@@ -5871,7 +5885,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "station calendar ambiguous entry identity remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "station_calendar_pressure_station_calendar_ambiguous_entry_ids",
       {"station_reservation_id", "reservation_calendar_selected"},
       "station_calendar_ambiguous_entry_ids",
@@ -5882,7 +5896,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "station calendar reservation overlap count remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "station_calendar_pressure_station_calendar_reservation_overlap_count_values",
       {"station_reservation_id", "reservation_calendar_selected"},
       "station_calendar_reservation_overlap_count",
@@ -5893,7 +5907,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "calendar-scoped reservation identity remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "station_calendar_pressure_station_calendar_reservation_ids",
       {"station_reservation_id", "reservation_calendar_selected"},
       "station_calendar_reservation_ids",
@@ -5904,7 +5918,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "calendar-scoped reservation ownership remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "station_calendar_pressure_station_calendar_reserved_by",
       {"station_reservation_id", "reservation_calendar_selected"},
       "station_calendar_reserved_by",
@@ -5915,7 +5929,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "calendar-scoped reservation status remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "station_calendar_pressure_station_calendar_reservation_statuses",
       {"station_reservation_id", "reservation_calendar_selected"},
       "station_calendar_reservation_statuses",
@@ -5926,7 +5940,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "station calendar trust-boundary status remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "station_calendar_pressure_station_calendar_trust_boundary_statuses",
       {"station_reservation_id", "reservation_calendar_selected"},
       "station_calendar_trust_boundary_status",
@@ -5937,7 +5951,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "provider calendar contention group remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "station_calendar_pressure_provider_calendar_contention_group_ids",
       {"station_reservation_id", "reservation_calendar_selected"},
       "provider_calendar_contention_group_id",
@@ -5948,7 +5962,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "provider calendar contention status remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "station_calendar_pressure_provider_calendar_contention_statuses",
       {"station_reservation_id", "reservation_calendar_selected"},
       "provider_calendar_contention_status",
@@ -5959,7 +5973,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "provider calendar contention entry identity remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "station_calendar_pressure_provider_calendar_contention_entry_ids",
       {"station_reservation_id", "reservation_calendar_selected"},
       "provider_calendar_contention_entry_ids",
@@ -5970,7 +5984,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "provider calendar contention provider identity remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "station_calendar_pressure_provider_calendar_contention_provider_ids",
       {"station_reservation_id", "reservation_calendar_selected"},
       "provider_calendar_contention_provider_ids",
@@ -5981,7 +5995,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "provider calendar contention provider-entry identity remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "station_calendar_pressure_provider_calendar_contention_provider_entry_ids",
       {"station_reservation_id", "reservation_calendar_selected"},
       "provider_calendar_contention_provider_entry_ids",
@@ -5992,7 +6006,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "provider calendar contention availability remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "station_calendar_pressure_provider_calendar_contention_availabilities",
       {"station_reservation_id", "reservation_calendar_selected"},
       "provider_calendar_contention_availabilities",
@@ -6003,7 +6017,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "provider calendar contention direction remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "station_calendar_pressure_provider_calendar_contention_directions",
       {"station_reservation_id", "reservation_calendar_selected"},
       "provider_calendar_contention_directions",
@@ -6014,7 +6028,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "provider calendar contention reservation identity remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "station_calendar_pressure_provider_calendar_contention_reservation_ids",
       {"station_reservation_id", "reservation_calendar_selected"},
       "provider_calendar_contention_reservation_ids",
@@ -6025,7 +6039,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "provider calendar contention reservation owner remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "station_calendar_pressure_provider_calendar_contention_reserved_by",
       {"station_reservation_id", "reservation_calendar_selected"},
       "provider_calendar_contention_reserved_by",
@@ -6036,7 +6050,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "provider calendar contention reservation status remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "station_calendar_pressure_provider_calendar_contention_reservation_statuses",
       {"station_reservation_id", "reservation_calendar_selected"},
       "provider_calendar_contention_reservation_statuses",
@@ -6047,7 +6061,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "provider calendar contention trust-boundary status remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "station_calendar_pressure_provider_calendar_contention_trust_boundary_statuses",
       {"station_reservation_id", "reservation_calendar_selected"},
       "provider_calendar_contention_trust_boundary_statuses",
@@ -6068,7 +6082,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
     stale_pair = Map.put(expected_pair, "right_entry_id", "calendar_stale_maintenance")
 
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "station_calendar_pressure_provider_calendar_contention_overlap_pairs",
       {"station_reservation_id", "reservation_calendar_selected"},
       "provider_calendar_contention_overlap_pairs",
@@ -6079,7 +6093,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "station calendar ground-station identity remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "station_calendar_pressure_ground_station_ids",
       {"station_reservation_id", "reservation_calendar_selected"},
       "ground_station_id",
@@ -6090,7 +6104,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "station calendar start timing remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "station_calendar_pressure_start_values_s",
       {"station_reservation_id", "reservation_calendar_selected"},
       "starts_at_s",
@@ -6101,7 +6115,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "station calendar end timing remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "station_calendar_pressure_end_values_s",
       {"station_reservation_id", "reservation_calendar_selected"},
       "ends_at_s",
@@ -6112,7 +6126,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "station calendar capacity fraction remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "station_calendar_pressure_capacity_fraction_values",
       {"station_reservation_id", "reservation_calendar_selected"},
       "capacity_fraction",
@@ -6123,7 +6137,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "station calendar risk type remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "station_calendar_pressure_risk_types",
       {"station_reservation_id", "reservation_calendar_selected"},
       "type",
@@ -6135,7 +6149,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "station calendar required action remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "station_calendar_pressure_required_operator_actions",
       {"station_reservation_id", "reservation_calendar_selected"},
       "required_operator_action",
@@ -6146,7 +6160,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "station calendar feedback source remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "station_calendar_pressure_feedback_sources",
       {"station_reservation_id", "reservation_calendar_selected"},
       "feedback_source",
@@ -6157,7 +6171,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "station calendar feedback scope remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "station_calendar_pressure_feedback_scopes",
       {"station_reservation_id", "reservation_calendar_selected"},
       "feedback_scope",
@@ -6168,7 +6182,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "station calendar trust boundary remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "station_calendar_pressure_trust_boundaries",
       {"station_reservation_id", "reservation_calendar_selected"},
       "trust_boundary",
@@ -6179,7 +6193,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "station calendar derivation reasons remain source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "station_calendar_pressure_derivation_reasons",
       {"station_reservation_id", "reservation_calendar_selected"},
       "derivation_reasons",
@@ -6190,7 +6204,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contact allocation risk type remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_allocation_pressure_risk_types",
       {"contact_id", "dl_reservation_conflict"},
       ["type", "risk_type"],
@@ -6201,7 +6215,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contact allocation contact identity remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_allocation_pressure_contact_ids",
       {"contact_id", "dl_reservation_conflict"},
       "contact_id",
@@ -6212,7 +6226,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contact allocation scenario identity remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_allocation_pressure_scenario_ids",
       {"contact_id", "dl_reservation_conflict"},
       "scenario_id",
@@ -6223,7 +6237,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contact allocation spacecraft identity remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_allocation_pressure_spacecraft_ids",
       {"contact_id", "dl_reservation_conflict"},
       "spacecraft_id",
@@ -6234,7 +6248,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contact allocation station identity remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_allocation_pressure_ground_station_ids",
       {"contact_id", "dl_reservation_conflict"},
       "ground_station_id",
@@ -6245,7 +6259,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contact allocation source activity remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_allocation_pressure_source_activity_ids",
       {"contact_id", "dl_reservation_conflict"},
       ["source_activity_id", "source_activity_ids"],
@@ -6256,7 +6270,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contact allocation source window remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_allocation_pressure_source_window_ids",
       {"contact_id", "dl_reservation_conflict"},
       "source_window_id",
@@ -6267,7 +6281,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contact allocation required contact demand remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_allocation_pressure_required_contact_values",
       {"contact_id", "dl_reservation_conflict"},
       "required_contacts",
@@ -6278,7 +6292,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contact allocation planned contact demand remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_allocation_pressure_planned_contact_values",
       {"contact_id", "dl_reservation_conflict"},
       "planned_contacts",
@@ -6289,7 +6303,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contact allocation required downlink demand remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_allocation_pressure_required_downlink_values_mb",
       {"contact_id", "dl_reservation_conflict"},
       "required_downlink_mb",
@@ -6300,7 +6314,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contact allocation planned downlink demand remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_allocation_pressure_planned_downlink_values_mb",
       {"contact_id", "dl_reservation_conflict"},
       "planned_downlink_mb",
@@ -6311,7 +6325,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contact allocation start bound remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_allocation_pressure_start_values_s",
       {"contact_id", "dl_reservation_conflict"},
       "starts_at_s",
@@ -6322,7 +6336,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contact allocation end bound remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_allocation_pressure_end_values_s",
       {"contact_id", "dl_reservation_conflict"},
       "ends_at_s",
@@ -6333,7 +6347,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contact allocation realized status remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_allocation_pressure_realized_statuses",
       {"contact_id", "dl_reservation_conflict"},
       "realized_status",
@@ -6344,7 +6358,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contact allocation result remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_allocation_pressure_contact_results",
       {"contact_id", "dl_reservation_conflict"},
       "contact_result",
@@ -6355,7 +6369,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contact allocation status remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_allocation_pressure_allocation_statuses",
       {"contact_id", "dl_reservation_conflict"},
       "allocation_status",
@@ -6366,7 +6380,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contact allocation effective status remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_allocation_pressure_effective_allocation_statuses",
       {"contact_id", "dl_reservation_conflict"},
       "effective_allocation_status",
@@ -6377,7 +6391,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contact allocation reason remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_allocation_pressure_allocation_reasons",
       {"contact_id", "dl_reservation_conflict"},
       "allocation_reason",
@@ -6388,7 +6402,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contact allocation review status remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_allocation_pressure_review_statuses",
       {"contact_id", "dl_reservation_conflict"},
       "review_status",
@@ -6399,7 +6413,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contact allocation approval status remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_allocation_pressure_approval_statuses",
       {"contact_id", "dl_reservation_conflict"},
       "approval_status",
@@ -6410,7 +6424,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contact allocation policy classification remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_allocation_pressure_policy_classifications",
       {"contact_id", "dl_reservation_conflict"},
       "policy_classification",
@@ -6421,7 +6435,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contact allocation policy bundle remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_allocation_pressure_policy_bundle_ids",
       {"contact_id", "dl_reservation_conflict"},
       "policy_bundle_id",
@@ -6432,7 +6446,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contact allocation reservation identity remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_allocation_pressure_station_reservation_ids",
       {"contact_id", "dl_reservation_conflict"},
       "station_reservation_id",
@@ -6443,7 +6457,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contact allocation reservation owner remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_allocation_pressure_station_reserved_by",
       {"contact_id", "dl_reservation_conflict"},
       "station_reserved_by",
@@ -6454,7 +6468,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contact allocation reservation status remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_allocation_pressure_station_reservation_statuses",
       {"contact_id", "dl_reservation_conflict"},
       "station_reservation_status",
@@ -6465,7 +6479,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contact allocation reservation match remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_allocation_pressure_station_reservation_match_statuses",
       {"contact_id", "dl_reservation_conflict"},
       "station_reservation_match_status",
@@ -6476,7 +6490,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contact allocation calendar entry identity remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_allocation_pressure_station_calendar_entry_ids",
       {"contact_id", "dl_reservation_conflict"},
       "station_calendar_entry_id",
@@ -6487,7 +6501,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contact allocation calendar entry status remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_allocation_pressure_station_calendar_entry_statuses",
       {"contact_id", "dl_reservation_conflict"},
       "station_calendar_entry_status",
@@ -6498,7 +6512,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contact allocation calendar direction remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_allocation_pressure_station_calendar_directions",
       {"contact_id", "dl_reservation_conflict"},
       "station_calendar_directions",
@@ -6509,7 +6523,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contact allocation downlink demand source remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_allocation_pressure_downlink_demand_sources",
       {"contact_id", "dl_reservation_conflict"},
       "downlink_demand_sources",
@@ -6520,7 +6534,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contact allocation downlink completion source remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_allocation_pressure_downlink_completion_sources",
       {"contact_id", "dl_reservation_conflict"},
       "downlink_completion_sources",
@@ -6531,7 +6545,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contact allocation feedback source remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_allocation_pressure_feedback_sources",
       {"contact_id", "dl_reservation_conflict"},
       "feedback_source",
@@ -6542,7 +6556,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contact allocation feedback scope remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_allocation_pressure_feedback_scopes",
       {"contact_id", "dl_reservation_conflict"},
       "feedback_scope",
@@ -6553,7 +6567,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contact allocation trust boundary remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_allocation_pressure_trust_boundaries",
       {"contact_id", "dl_reservation_conflict"},
       "trust_boundary",
@@ -6564,7 +6578,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contact allocation derivation reason remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_allocation_pressure_derivation_reasons",
       {"contact_id", "dl_reservation_conflict"},
       "derivation_reasons",
@@ -6575,7 +6589,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contact intent risk type remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_intent_pressure_risk_types",
       {"contact_id", "contact_intent:selected_blocked"},
       ["type", "risk_type"],
@@ -6586,7 +6600,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contact intent contact identity remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_intent_pressure_contact_ids",
       {"contact_id", "contact_intent:selected_blocked"},
       "contact_id",
@@ -6597,7 +6611,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contact intent source activity identity remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_intent_pressure_source_activity_ids",
       {"contact_id", "contact_intent:selected_blocked"},
       ["source_activity_id", "source_activity_ids"],
@@ -6608,7 +6622,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contact intent ground station identity remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_intent_pressure_ground_station_ids",
       {"contact_id", "contact_intent:selected_blocked"},
       "ground_station_id",
@@ -6619,7 +6633,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contact intent required contact demand remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_intent_pressure_required_contact_values",
       {"contact_id", "contact_intent:selected_blocked"},
       "required_contacts",
@@ -6630,7 +6644,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contact intent planned contact demand remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_intent_pressure_planned_contact_values",
       {"contact_id", "contact_intent:selected_blocked"},
       "planned_contacts",
@@ -6641,7 +6655,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contact intent required downlink demand remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_intent_pressure_required_downlink_values_mb",
       {"contact_id", "contact_intent:selected_blocked"},
       "required_downlink_mb",
@@ -6652,7 +6666,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contact intent planned downlink demand remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_intent_pressure_planned_downlink_values_mb",
       {"contact_id", "contact_intent:selected_blocked"},
       "planned_downlink_mb",
@@ -6663,7 +6677,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contact intent start bound remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_intent_pressure_start_values_s",
       {"contact_id", "contact_intent:selected_blocked"},
       "starts_at_s",
@@ -6674,7 +6688,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contact intent end bound remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_intent_pressure_end_values_s",
       {"contact_id", "contact_intent:selected_blocked"},
       "ends_at_s",
@@ -6685,7 +6699,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contact intent source window identity remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_intent_pressure_source_window_ids",
       {"contact_id", "contact_intent:selected_blocked"},
       "source_window_id",
@@ -6696,7 +6710,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contact intent timeline identity remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_intent_pressure_timeline_ids",
       {"contact_id", "contact_intent:selected_blocked"},
       "timeline_id",
@@ -6707,7 +6721,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contact intent approval status remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_intent_pressure_approval_statuses",
       {"contact_id", "contact_intent:selected_blocked"},
       "approval_status",
@@ -6718,7 +6732,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contact intent required action remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_intent_pressure_required_operator_actions",
       {"contact_id", "contact_intent:selected_blocked"},
       "required_operator_action",
@@ -6729,7 +6743,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contact intent import status remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_intent_pressure_cadence_import_statuses",
       {"contact_id", "contact_intent:selected_blocked"},
       "cadence_import_status",
@@ -6740,7 +6754,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contact intent gate status remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_intent_pressure_gate_statuses",
       {"contact_id", "contact_intent:selected_blocked"},
       "contact_intent_gate_status",
@@ -6751,7 +6765,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contact intent policy classification remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_intent_pressure_policy_classifications",
       {"contact_id", "contact_intent:selected_blocked"},
       "policy_classification",
@@ -6762,7 +6776,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contact intent policy bundle identity remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_intent_pressure_policy_bundle_ids",
       {"contact_id", "contact_intent:selected_blocked"},
       "policy_bundle_id",
@@ -6773,7 +6787,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contact intent invalid import flag remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_intent_pressure_invalid_cadence_import_values",
       {"contact_id", "contact_intent:selected_blocked"},
       "invalid_cadence_import",
@@ -6784,7 +6798,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contact intent invalid import reason remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_intent_pressure_invalid_cadence_import_reasons",
       {"contact_id", "contact_intent:selected_blocked"},
       "invalid_cadence_import_reason",
@@ -6795,7 +6809,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contact intent activity validity remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_intent_pressure_invalid_activity_input_values",
       {"contact_id", "contact_intent:selected_blocked"},
       "invalid_activity_input",
@@ -6806,7 +6820,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "invalid contact intent activity reason remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.invalid_contact_intent_artifact(),
+      invalid_contact_intent_artifact(),
       "contact_intent_pressure_invalid_activity_input_reasons",
       {"contact_id", "contact_intent:selected_blocked"},
       "invalid_activity_input_reason",
@@ -6817,7 +6831,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contact intent station availability remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_intent_pressure_station_availabilities",
       {"contact_id", "contact_intent:selected_blocked"},
       "station_availability",
@@ -6828,7 +6842,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contact intent station contention remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_intent_pressure_station_contention_statuses",
       {"contact_id", "contact_intent:selected_blocked"},
       "station_contention_status",
@@ -6839,7 +6853,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contact intent station calendar entry identity remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_intent_pressure_station_calendar_entry_ids",
       {"contact_id", "contact_intent:selected_blocked"},
       "station_calendar_entry_id",
@@ -6850,7 +6864,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contact intent station calendar provider identity remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_intent_pressure_station_calendar_provider_ids",
       {"contact_id", "contact_intent:selected_blocked"},
       "station_calendar_provider_id",
@@ -6861,7 +6875,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contact intent station calendar provider entry remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_intent_pressure_station_calendar_provider_entry_ids",
       {"contact_id", "contact_intent:selected_blocked"},
       "station_calendar_provider_entry_id",
@@ -6872,7 +6886,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contact intent station calendar direction remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_intent_pressure_station_calendar_directions",
       {"contact_id", "contact_intent:selected_blocked"},
       "station_calendar_directions",
@@ -6883,7 +6897,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contact intent station calendar status remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_intent_pressure_station_calendar_statuses",
       {"contact_id", "contact_intent:selected_blocked"},
       "station_calendar_status",
@@ -6894,7 +6908,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contact intent calendar trust boundary remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_intent_pressure_station_calendar_trust_boundary_statuses",
       {"contact_id", "contact_intent:selected_blocked"},
       "station_calendar_trust_boundary_status",
@@ -6905,7 +6919,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contact intent station reservation identity remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_intent_pressure_station_reservation_ids",
       {"contact_id", "contact_intent:selected_blocked"},
       "station_reservation_id",
@@ -6916,7 +6930,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contact intent station reservation owner remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_intent_pressure_station_reserved_by",
       {"contact_id", "contact_intent:selected_blocked"},
       "station_reserved_by",
@@ -6927,7 +6941,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contact intent station reservation status remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_intent_pressure_station_reservation_statuses",
       {"contact_id", "contact_intent:selected_blocked"},
       "station_reservation_status",
@@ -6938,7 +6952,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contact intent station reservation match remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_intent_pressure_station_reservation_match_statuses",
       {"contact_id", "contact_intent:selected_blocked"},
       "station_reservation_match_status",
@@ -6949,7 +6963,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contact intent feedback source remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_intent_pressure_feedback_sources",
       {"contact_id", "contact_intent:selected_blocked"},
       "feedback_source",
@@ -6960,7 +6974,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contact intent feedback scope remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_intent_pressure_feedback_scopes",
       {"contact_id", "contact_intent:selected_blocked"},
       "feedback_scope",
@@ -6971,7 +6985,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contact intent trust boundary remains source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_intent_pressure_trust_boundaries",
       {"contact_id", "contact_intent:selected_blocked"},
       "trust_boundary",
@@ -6982,7 +6996,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
 
   test "contact intent derivation reasons remain source exact across handoffs" do
     assert_risk_context_contract(
-      StrategyRecommendationPressureEventsFixture.artifact(),
+      artifact(),
       "contact_intent_pressure_derivation_reasons",
       {"contact_id", "contact_intent:selected_blocked"},
       "derivation_reasons",
@@ -7071,7 +7085,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
         @resource_filter_availability_context_contracts do
     test "resource-filter #{description} remains source exact across handoffs" do
       assert_risk_context_contract(
-        StrategyRecommendationPressureEventsFixture.artifact(),
+        artifact(),
         unquote(field),
         {"feedback_scope", "resource_filter"},
         unquote(Macro.escape(source_field)),
@@ -7116,7 +7130,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
         @resource_filter_margin_context_contracts do
     test "resource-filter #{description} remains source exact across handoffs" do
       assert_risk_context_contract(
-        StrategyRecommendationPressureEventsFixture.artifact(),
+        artifact(),
         unquote(field),
         {"resource_field", unquote(resource_field)},
         unquote(Macro.escape(source_field)),
@@ -7233,7 +7247,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
         @resource_margin_context_contracts do
     test "resource-margin #{description} remains source exact across handoffs" do
       assert_risk_context_contract(
-        StrategyRecommendationPressureEventsFixture.artifact(),
+        artifact(),
         unquote(field),
         {"resource_margin_risk_type", @resource_margin_risk_types},
         unquote(Macro.escape(source_field)),
@@ -7310,7 +7324,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
         @resource_projection_downlink_context_contracts do
     test "resource-projection #{description} remains source exact across handoffs" do
       assert_risk_context_contract(
-        StrategyRecommendationPressureEventsFixture.artifact(),
+        artifact(),
         unquote(field),
         {"feedback_scope", "resource_projection"},
         unquote(Macro.escape(source_field)),
@@ -7378,7 +7392,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
         @resource_projection_resource_context_contracts do
     test "resource-projection #{description} remains source exact across handoffs" do
       assert_risk_context_contract(
-        StrategyRecommendationPressureEventsFixture.artifact(),
+        artifact(),
         unquote(field),
         {"feedback_scope", "resource_projection"},
         unquote(Macro.escape(source_field)),
@@ -7386,6 +7400,16 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffT
         unquote(Macro.escape(stale_value))
       )
     end
+  end
+
+  defp artifact do
+    {artifact, _invalid_contact_intent_artifact} = Process.get(@artifact_context_key)
+    artifact
+  end
+
+  defp invalid_contact_intent_artifact do
+    {_artifact, invalid_contact_intent_artifact} = Process.get(@artifact_context_key)
+    invalid_contact_intent_artifact
   end
 
   defp assert_risk_expiration_context_contract(
