@@ -3,18 +3,8 @@ defmodule OrbitalDynamics.Schema.JsonSchemaExportContractsTest do
 
   alias OrbitalDynamics.Schema
 
-  setup_all do
-    schemas =
-      Map.new(Schema.contracts(), fn {contract_name, _contract} ->
-        {:ok, schema} = Schema.json_schema(contract_name)
-        {contract_name, schema}
-      end)
-
-    {:ok, schemas: schemas}
-  end
-
-  test "exports top-level JSON Schema documents for executable contracts", %{schemas: schemas} do
-    assert {:ok, schema} = Map.fetch(schemas, "campaign_plan.v1")
+  test "exports top-level JSON Schema documents for executable contracts" do
+    assert {:ok, schema} = Schema.json_schema("campaign_plan.v1")
 
     assert schema["$schema"] == "https://json-schema.org/draft/2020-12/schema"
     assert schema["$id"] =~ "campaign_plan.v1.schema.json"
@@ -33,8 +23,8 @@ defmodule OrbitalDynamics.Schema.JsonSchemaExportContractsTest do
            } = schema["x-orbital-dynamics"]
   end
 
-  test "exports selected recommendation reservation expiration context", %{schemas: schemas} do
-    assert {:ok, schema} = Map.fetch(schemas, "campaign_strategy.v3")
+  test "exports selected recommendation reservation expiration context" do
+    assert {:ok, schema} = Schema.json_schema("campaign_strategy.v3")
 
     assert get_in(schema, [
              "properties",
@@ -49,10 +39,10 @@ defmodule OrbitalDynamics.Schema.JsonSchemaExportContractsTest do
            ]) == "string"
   end
 
-  test "exports recommendation risk context", %{schemas: schemas} do
-    assert {:ok, strategy_schema} = Map.fetch(schemas, "campaign_strategy.v3")
-    assert {:ok, review_schema} = Map.fetch(schemas, "operator_review_package.v1")
-    assert {:ok, import_schema} = Map.fetch(schemas, "cadence_import_manifest.v1")
+  test "exports recommendation risk context" do
+    assert {:ok, strategy_schema} = Schema.json_schema("campaign_strategy.v3")
+    assert {:ok, review_schema} = Schema.json_schema("operator_review_package.v1")
+    assert {:ok, import_schema} = Schema.json_schema("cadence_import_manifest.v1")
 
     scalar_field = "station_reservation_expiration_status"
     stable_id_pattern = Schema.identity_policy()["stable_id_pattern"]
@@ -789,8 +779,8 @@ defmodule OrbitalDynamics.Schema.JsonSchemaExportContractsTest do
     end)
   end
 
-  test "exports nested branch comparison report row schema", %{schemas: schemas} do
-    assert {:ok, schema} = Map.fetch(schemas, "branch_comparison_report.v1")
+  test "exports nested branch comparison report row schema" do
+    assert {:ok, schema} = Schema.json_schema("branch_comparison_report.v1")
 
     row_schema = get_in(schema, ["properties", "rows", "items"])
 
@@ -1137,8 +1127,8 @@ defmodule OrbitalDynamics.Schema.JsonSchemaExportContractsTest do
            ]) == "number"
   end
 
-  test "exports nested score term report row schema", %{schemas: schemas} do
-    assert {:ok, schema} = Map.fetch(schemas, "score_term_report.v1")
+  test "exports nested score term report row schema" do
+    assert {:ok, schema} = Schema.json_schema("score_term_report.v1")
 
     row_schema = get_in(schema, ["properties", "rows", "items"])
 
@@ -1180,8 +1170,8 @@ defmodule OrbitalDynamics.Schema.JsonSchemaExportContractsTest do
              OrbitalDynamics.CampaignPlanner.score_report_model_limits()
   end
 
-  test "exports nested link capacity report row schema", %{schemas: schemas} do
-    assert {:ok, schema} = Map.fetch(schemas, "link_capacity_report.v1")
+  test "exports nested link capacity report row schema" do
+    assert {:ok, schema} = Schema.json_schema("link_capacity_report.v1")
 
     row_schema = get_in(schema, ["properties", "rows", "items"])
 
@@ -1337,8 +1327,8 @@ defmodule OrbitalDynamics.Schema.JsonSchemaExportContractsTest do
     assert get_in(row_schema, ["properties", "contact_ids", "items", "type"]) == "string"
   end
 
-  test "exports relay data-path summary row schema", %{schemas: schemas} do
-    assert {:ok, schema} = Map.fetch(schemas, "relay_data_path_summary.v1")
+  test "exports relay data-path summary row schema" do
+    assert {:ok, schema} = Schema.json_schema("relay_data_path_summary.v1")
 
     row_schema = get_in(schema, ["properties", "rows", "items"])
 
@@ -1380,8 +1370,8 @@ defmodule OrbitalDynamics.Schema.JsonSchemaExportContractsTest do
     assert get_in(row_schema, ["properties", "risk_reasons", "items", "type"]) == "string"
   end
 
-  test "exports nested objective satisfaction report row schema", %{schemas: schemas} do
-    assert {:ok, schema} = Map.fetch(schemas, "objective_satisfaction_report.v1")
+  test "exports nested objective satisfaction report row schema" do
+    assert {:ok, schema} = Schema.json_schema("objective_satisfaction_report.v1")
 
     row_schema = get_in(schema, ["properties", "rows", "items"])
 
@@ -1429,8 +1419,8 @@ defmodule OrbitalDynamics.Schema.JsonSchemaExportContractsTest do
              OrbitalDynamics.CampaignPlanner.objective_satisfaction_model_limits()
   end
 
-  test "exports nested timeline diff report row schema", %{schemas: schemas} do
-    assert {:ok, schema} = Map.fetch(schemas, "timeline_diff_report.v1")
+  test "exports nested timeline diff report row schema" do
+    assert {:ok, schema} = Schema.json_schema("timeline_diff_report.v1")
 
     row_schema = get_in(schema, ["properties", "rows", "items"])
 
@@ -1463,8 +1453,8 @@ defmodule OrbitalDynamics.Schema.JsonSchemaExportContractsTest do
              OrbitalDynamics.Timeline.capabilities().transition_decisions
   end
 
-  test "exports nested objective tradeoff report row schema", %{schemas: schemas} do
-    assert {:ok, schema} = Map.fetch(schemas, "objective_tradeoff_report.v1")
+  test "exports nested objective tradeoff report row schema" do
+    assert {:ok, schema} = Schema.json_schema("objective_tradeoff_report.v1")
 
     row_schema = get_in(schema, ["properties", "tradeoffs", "items"])
 
@@ -1508,8 +1498,8 @@ defmodule OrbitalDynamics.Schema.JsonSchemaExportContractsTest do
              OrbitalDynamics.CampaignPlanner.score_report_model_limits()
   end
 
-  test "exports nested ranking comparison report row schema", %{schemas: schemas} do
-    assert {:ok, schema} = Map.fetch(schemas, "ranking_comparison_report.v1")
+  test "exports nested ranking comparison report row schema" do
+    assert {:ok, schema} = Schema.json_schema("ranking_comparison_report.v1")
 
     row_schema = get_in(schema, ["properties", "rows", "items"])
 
@@ -1545,8 +1535,8 @@ defmodule OrbitalDynamics.Schema.JsonSchemaExportContractsTest do
              OrbitalDynamics.Optimizer.ranking_comparison_model_limits()
   end
 
-  test "exports nested Pareto frontier report row schema", %{schemas: schemas} do
-    assert {:ok, schema} = Map.fetch(schemas, "pareto_frontier_report.v1")
+  test "exports nested Pareto frontier report row schema" do
+    assert {:ok, schema} = Schema.json_schema("pareto_frontier_report.v1")
 
     row_schema = get_in(schema, ["properties", "rows", "items"])
 
@@ -1587,8 +1577,8 @@ defmodule OrbitalDynamics.Schema.JsonSchemaExportContractsTest do
              OrbitalDynamics.Optimizer.pareto_frontier_model_limits()
   end
 
-  test "exports nested constraint report row schema", %{schemas: schemas} do
-    assert {:ok, schema} = Map.fetch(schemas, "constraint_report.v1")
+  test "exports nested constraint report row schema" do
+    assert {:ok, schema} = Schema.json_schema("constraint_report.v1")
 
     row_schema = get_in(schema, ["properties", "rows", "items"])
 
@@ -1739,29 +1729,44 @@ defmodule OrbitalDynamics.Schema.JsonSchemaExportContractsTest do
            )
   end
 
-  test "exported schemas do not leave identity fields as opaque object schemas", %{
-    schemas: schemas
-  } do
-    violations =
+  test "exported schemas do not leave identity fields opaque or report counts as objects" do
+    # This single export assertion deliberately replaces the duplicate assertion in the former
+    # contract-wide count scan; both invariants inspect the same successful boundary export.
+    exported_contracts =
       Schema.contracts()
-      |> Enum.flat_map(fn {contract_name, _contract} ->
-        assert {:ok, schema} = Map.fetch(schemas, contract_name)
+      |> Enum.map(fn {contract_name, contract} ->
+        assert {:ok, schema} = Schema.json_schema(contract_name)
+        {contract_name, contract, schema}
+      end)
 
+    violations =
+      Enum.flat_map(exported_contracts, fn {contract_name, _contract, schema} ->
         schema
         |> opaque_identity_property_paths()
         |> Enum.map(&"#{contract_name}:#{&1}")
       end)
 
     assert violations == []
+
+    count_violations =
+      Enum.flat_map(exported_contracts, fn {contract_name, contract, schema} ->
+        fields =
+          ((contract["required_fields"] || []) ++ (contract["optional_fields"] || []))
+          |> Enum.filter(&String.ends_with?(&1, "_count"))
+
+        fields
+        |> Enum.filter(&(get_in(schema, ["properties", &1, "type"]) == "object"))
+        |> Enum.map(&"#{contract_name}:#{&1}")
+      end)
+
+    assert count_violations == []
   end
 
-  test "exported schemas and executable validators treat report counts as integers", %{
-    schemas: schemas
-  } do
+  test "exported schemas and executable validators treat report counts as integers" do
     assert {:ok, manifest_field_reference_schema} =
-             Map.fetch(schemas, "manifest_field_reference.v1")
+             Schema.json_schema("manifest_field_reference.v1")
 
-    assert {:ok, refreshed_window_schema} = Map.fetch(schemas, "refreshed_window.v1")
+    assert {:ok, refreshed_window_schema} = Schema.json_schema("refreshed_window.v1")
 
     assert get_in(manifest_field_reference_schema, ["properties", "field_count"]) == %{
              "type" => "integer",
@@ -1772,22 +1777,6 @@ defmodule OrbitalDynamics.Schema.JsonSchemaExportContractsTest do
              "type" => "integer",
              "minimum" => 0
            }
-
-    violations =
-      Schema.contracts()
-      |> Enum.flat_map(fn {contract_name, contract} ->
-        assert {:ok, schema} = Map.fetch(schemas, contract_name)
-
-        fields =
-          ((contract["required_fields"] || []) ++ (contract["optional_fields"] || []))
-          |> Enum.filter(&String.ends_with?(&1, "_count"))
-
-        fields
-        |> Enum.filter(&(get_in(schema, ["properties", &1, "type"]) == "object"))
-        |> Enum.map(&"#{contract_name}:#{&1}")
-      end)
-
-    assert violations == []
 
     for {path, field} <- [
           {"study_results/candidate_diff_report_v1.json", "prior_candidate_count"},
