@@ -8,7 +8,9 @@ Code.require_file(
 defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffCase do
   defmacro __using__(opts) do
     quote do
-      use ExUnit.Case, async: true
+      use ExUnit.Case,
+        async: true,
+        group: :strategy_recommendation_pressure_handoff
 
       alias OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffSupport
       alias OrbitalDynamics.Schema
