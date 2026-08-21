@@ -4,7 +4,9 @@ Code.require_file(
 )
 
 defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceRepairContextTest do
-  use OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceCase, async: true
+  use OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceCase,
+    async: true,
+    group: :campaign_strategy_produced_surface
 
   alias OrbitalDynamics.Schema
   alias OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContracts
