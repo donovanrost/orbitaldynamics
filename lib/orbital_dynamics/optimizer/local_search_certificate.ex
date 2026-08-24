@@ -30,6 +30,48 @@ defmodule OrbitalDynamics.Optimizer.LocalSearchCertificate do
   alias OrbitalDynamics.Schema.JsonSafety
   alias OrbitalDynamics.Search.Local
 
+  defmodule JsonSafetyLimitClassifier do
+    @moduledoc false
+
+    @limits OrbitalDynamics.Schema.JsonSafety.limits()
+    @max_depth @limits["max_depth"]
+    @max_nodes @limits["max_nodes"]
+    @max_collection_items @limits["max_collection_items"]
+    @max_aggregate_bytes @limits["max_aggregate_bytes"]
+
+    @depth_message "exceeds maximum JSON nesting depth of #{@max_depth}"
+    @nodes_message "exceeds maximum JSON node budget of #{@max_nodes}"
+    @collection_message "exceeds maximum JSON collection size of #{@max_collection_items}"
+    @bytes_message "exceeds maximum aggregate JSON string byte budget of #{@max_aggregate_bytes}"
+
+    def classify(
+          %{
+            "severity" => "error",
+            "path" => path,
+            "message" => message
+          } = issue
+        )
+        when map_size(issue) == 3 and is_binary(path) and is_binary(message) do
+      if String.valid?(path) and String.valid?(message),
+        do: classify_message(message),
+        else: fallback()
+    end
+
+    def classify(_issue), do: fallback()
+
+    defp classify_message(@depth_message), do: {"max_depth", @max_depth}
+    defp classify_message(@nodes_message), do: {"max_nodes", @max_nodes}
+
+    defp classify_message(@collection_message),
+      do: {"max_collection_items", @max_collection_items}
+
+    defp classify_message(@bytes_message),
+      do: {"max_aggregate_bytes", @max_aggregate_bytes}
+
+    defp classify_message(_message), do: fallback()
+    defp fallback, do: {"strict_json", nil}
+  end
+
   @schema_contract "local_search_optimization_certificate.v1"
   @model "exact_enumeration_of_deterministic_bounded_axis_step_neighborhood"
   @identity_algorithm "canonical_json_sha256.v1"
@@ -948,8 +990,9 @@ defmodule OrbitalDynamics.Optimizer.LocalSearchCertificate do
          projected_bytes,
          json_safety_issue
        ) do
+    {limit_kind, limit} = JsonSafetyLimitClassifier.classify(json_safety_issue)
+    limit = if is_nil(limit), do: :null, else: limit
     json_safety_issue = compact_json_safety_issue(json_safety_issue)
-    {limit_kind, limit} = json_safety_limit(json_safety_issue["message"])
 
     %{
       "status" => "rejected",
@@ -988,29 +1031,6 @@ defmodule OrbitalDynamics.Optimizer.LocalSearchCertificate do
       "message" => "certificate projection violates a JSON safety resource limit"
     }
   end
-
-  defp json_safety_limit(message) when is_binary(message) do
-    limits = JsonSafety.limits()
-
-    cond do
-      String.starts_with?(message, "exceeds maximum JSON nesting depth") ->
-        {"max_depth", limits["max_depth"]}
-
-      String.starts_with?(message, "exceeds maximum JSON node budget") ->
-        {"max_nodes", limits["max_nodes"]}
-
-      String.starts_with?(message, "exceeds maximum JSON collection size") ->
-        {"max_collection_items", limits["max_collection_items"]}
-
-      String.starts_with?(message, "exceeds maximum aggregate JSON string byte budget") ->
-        {"max_aggregate_bytes", limits["max_aggregate_bytes"]}
-
-      true ->
-        {"strict_json", :null}
-    end
-  end
-
-  defp json_safety_limit(_message), do: {"strict_json", :null}
 
   defp evaluate_candidate(candidate, evidence, source_registry, evaluator_fun, options) do
     evidence_row = Map.fetch!(evidence, candidate["id"])

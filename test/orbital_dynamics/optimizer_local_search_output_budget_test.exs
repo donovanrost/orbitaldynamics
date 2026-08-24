@@ -3,6 +3,7 @@ defmodule OrbitalDynamics.OptimizerLocalSearchOutputBudgetTest do
 
   alias OrbitalDynamics.{Optimizer, Schema}
   alias OrbitalDynamics.Optimizer.LocalSearchCertificate
+  alias OrbitalDynamics.Optimizer.LocalSearchCertificate.JsonSafetyLimitClassifier
 
   alias OrbitalDynamics.Schema.{
     ArtifactValidationRouter,
@@ -32,6 +33,90 @@ defmodule OrbitalDynamics.OptimizerLocalSearchOutputBudgetTest do
     {"optimizer router", Optimizer, :certified_local_search},
     {"public facade", OrbitalDynamics, :certified_local_search}
   ]
+
+  test "JSON safety limit classifier exact-matches all published resource messages" do
+    limits = JsonSafety.limits()
+
+    cases = [
+      {"exceeds maximum JSON nesting depth of #{limits["max_depth"]}",
+       {"max_depth", limits["max_depth"]}},
+      {"exceeds maximum JSON node budget of #{limits["max_nodes"]}",
+       {"max_nodes", limits["max_nodes"]}},
+      {"exceeds maximum JSON collection size of #{limits["max_collection_items"]}",
+       {"max_collection_items", limits["max_collection_items"]}},
+      {"exceeds maximum aggregate JSON string byte budget of #{limits["max_aggregate_bytes"]}",
+       {"max_aggregate_bytes", limits["max_aggregate_bytes"]}}
+    ]
+
+    Enum.each(cases, fn {message, expected} ->
+      issue = %{"severity" => "error", "path" => "$.projection", "message" => message}
+      assert JsonSafetyLimitClassifier.classify(issue) == expected
+
+      {kind, limit} = expected
+      assert_json_total(%{"kind" => kind, "limit" => limit})
+    end)
+  end
+
+  test "JSON safety limit classifier fails closed for every unknown or hostile issue shape" do
+    limits = JsonSafety.limits()
+    parent = self()
+    exact_nodes_message = "exceeds maximum JSON node budget of #{limits["max_nodes"]}"
+
+    hostile_fun = fn ->
+      send(parent, :hostile_classifier_value_executed)
+      exact_nodes_message
+    end
+
+    valid_issue = %{
+      "severity" => "error",
+      "path" => "$.projection",
+      "message" => exact_nodes_message
+    }
+
+    cases = [
+      %{
+        "severity" => "error",
+        "path" => "$.projection",
+        "message" => "exceeds maximum JSON node budget of 7"
+      },
+      %{
+        "severity" => "error",
+        "path" => "$.projection",
+        "message" => "JSON node budget exceeded at #{limits["max_nodes"]} nodes"
+      },
+      %{"severity" => "error", "path" => "$.projection", "message" => nil},
+      %{"severity" => "error", "path" => "$.projection", "message" => 7},
+      %{"severity" => "error", "path" => nil, "message" => exact_nodes_message},
+      %{"severity" => "error", "path" => <<255>>, "message" => exact_nodes_message},
+      %{"severity" => "error", "path" => "$.projection", "message" => <<255>>},
+      %{
+        "severity" => "error",
+        "path" => "$.projection",
+        "message" => String.duplicate("x", limits["max_aggregate_bytes"] + 1)
+      },
+      %{"severity" => "error", "path" => "$.projection", "message" => hostile_fun},
+      %{"severity" => "error", "path" => hostile_fun, "message" => exact_nodes_message},
+      Map.put(valid_issue, "hostile_extra", hostile_fun),
+      Map.delete(valid_issue, "severity"),
+      %{severity: "error", path: "$.projection", message: exact_nodes_message},
+      URI.parse("https://example.invalid/resource-limit"),
+      [valid_issue | :improper],
+      {:issue, valid_issue},
+      exact_nodes_message,
+      20_000,
+      nil,
+      self(),
+      make_ref(),
+      hostile_fun
+    ]
+
+    Enum.each(cases, fn issue ->
+      assert {"strict_json", nil} = JsonSafetyLimitClassifier.classify(issue)
+      assert_json_total(%{"kind" => "strict_json", "limit" => :null})
+    end)
+
+    refute_received :hostile_classifier_value_executed
+  end
 
   for {label, module, function} <- @facades do
     test "#{label} rejects an exact-ceiling objective before callback one" do
