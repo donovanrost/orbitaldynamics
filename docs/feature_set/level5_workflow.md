@@ -52,7 +52,7 @@ The fenced block is the source of truth consumed by the focused workflow test.
     "expected": {
       "schema_contract": "capability_catalog.v1",
       "schema_version": 1,
-      "artifact_contract_count": 127,
+      "artifact_contract_count": 128,
       "compatibility_policy_version": 1,
       "identity_policy_version": 1,
       "required_artifact_contracts": [
