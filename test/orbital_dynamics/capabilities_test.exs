@@ -142,6 +142,11 @@ defmodule OrbitalDynamics.CapabilitiesTest do
 
   test "public capability catalog artifact is JSON-facing and schema-valid" do
     artifact = OrbitalDynamics.capability_catalog_artifact()
+    live_bytes = artifact |> :json.encode() |> IO.iodata_to_binary() |> Kernel.<>("\n")
+    checked_in_bytes = File.read!("study_results/capability_catalog_v1.json")
+
+    assert checked_in_bytes == live_bytes
+    assert :json.decode(checked_in_bytes) == artifact
 
     assert %{
              "schema_contract" => "capability_catalog.v1",

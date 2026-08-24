@@ -325,6 +325,91 @@ defmodule OrbitalDynamics.OptimizerLocalSearchCertificateTest do
              "local_search_optimization_certificate.v1"
   end
 
+  test "public schema rejects every reproduced malformed nested certificate mutation" do
+    certificate = build_certificate()
+
+    mutations = [
+      {"$.evaluations[0].eligible",
+       &put_in(&1, ["evaluations", Access.at(0), "eligible"], "true")},
+      {"$.evaluations[0].alternative_id",
+       &put_in(&1, ["evaluations", Access.at(0), "alternative_id"], 7)},
+      {"$.evaluations[0].score", &put_in(&1, ["evaluations", Access.at(0), "score"], "1")},
+      {"$.evaluations[0].source_evidence_identity",
+       &put_in(&1, ["evaluations", Access.at(0), "source_evidence_identity"], "sha256")},
+      {"$.evaluations[0]", &put_in(&1, ["evaluations", Access.at(0)], true)},
+      {"$.search_space.candidates[0]",
+       &put_in(&1, ["search_space", "candidates", Access.at(0)], true)},
+      {"$.search_space.step_parameters", &put_in(&1, ["search_space", "step_parameters"], "x")},
+      {"$.source_evidence_registry.entries[0]",
+       &put_in(&1, ["source_evidence_registry", "entries", Access.at(0)], true)},
+      {"$.source_evidence_registry.entries",
+       &put_in(&1, ["source_evidence_registry", "entries"], "entries")}
+    ]
+
+    Enum.each(mutations, fn {path, mutate} ->
+      mutated = mutate.(certificate)
+      assert_public_boundary_schema_errors(mutated, [path, "$.id"])
+
+      reidentified =
+        Map.put(
+          mutated,
+          "id",
+          LocalSearchCertificate.certificate_id(Map.delete(mutated, "id"))
+        )
+
+      report = assert_public_boundary_schema_errors(reidentified, [path])
+      refute Enum.any?(report["errors"], &(&1["path"] == "$.id"))
+    end)
+  end
+
+  test "public schema rejects improper mixed-key and non-JSON nested certificate terms" do
+    certificate = build_certificate()
+    first_evaluation = hd(certificate["evaluations"])
+
+    mutations = [
+      {"$.evaluations", &Map.put(&1, "evaluations", [first_evaluation | :improper])},
+      {"$.evaluations[0].rejection_reasons",
+       &put_in(
+         &1,
+         ["evaluations", Access.at(0), "rejection_reasons"],
+         ["reason" | :improper]
+       )},
+      {"$.evaluations[0]",
+       &put_in(
+         &1,
+         ["evaluations", Access.at(0)],
+         Map.put(first_evaluation, :eligible, true)
+       )},
+      {"$.evaluations[0].score_terms",
+       &put_in(
+         &1,
+         ["evaluations", Access.at(0), "score_terms"],
+         %{"value" => 1, value: 1}
+       )},
+      {"$.evaluations[0].score_terms",
+       &put_in(&1, ["evaluations", Access.at(0), "score_terms"], %{1 => 1})},
+      {"$.search_space.seed_parameters",
+       &put_in(&1, ["search_space", "seed_parameters"], %{"x\n" => 1})},
+      {"$.search_space.seed_parameters.<invalid_utf8_key>",
+       &put_in(&1, ["search_space", "seed_parameters"], %{<<255>> => 1})},
+      {"$.evaluations[0].score",
+       &put_in(&1, ["evaluations", Access.at(0), "score"], {:not, "json"})},
+      {"$.evaluations[0].score", &put_in(&1, ["evaluations", Access.at(0), "score"], self())},
+      {"$.evaluations[0].score", &put_in(&1, ["evaluations", Access.at(0), "score"], make_ref())},
+      {"$.evaluations[0].score",
+       &put_in(&1, ["evaluations", Access.at(0), "score"], fn -> :not_json end)},
+      {"$.evaluations[0].score",
+       &put_in(&1, ["evaluations", Access.at(0), "score"], %URI{host: "example.test"})},
+      {"$.evaluations[0].score", &put_in(&1, ["evaluations", Access.at(0), "score"], :not_json)},
+      {"$.evaluations[0].alternative_id",
+       &put_in(&1, ["evaluations", Access.at(0), "alternative_id"], <<255>>)}
+    ]
+
+    Enum.each(mutations, fn {path, mutate} ->
+      assert_public_boundary_schema_errors(mutate.(certificate), [path])
+    end)
+  end
+
   test "eligible_ids_by_rank improper lists return a typed JSON-total schema failure" do
     certificate =
       Map.put(build_certificate(), "eligible_ids_by_rank", ["certificate:seed" | :bad])
@@ -919,6 +1004,21 @@ defmodule OrbitalDynamics.OptimizerLocalSearchCertificateTest do
     assert {:error, report} = Schema.validate_artifact(certificate)
     assert Enum.any?(report["errors"], &(&1["path"] == expected_path))
     assert_json_total(report)
+  end
+
+  defp assert_public_boundary_schema_errors(certificate, expected_paths) do
+    assert {:error, report} =
+             Schema.validate_artifact(certificate,
+               schema_contract: "local_search_optimization_certificate.v1"
+             )
+
+    Enum.each(expected_paths, fn expected_path ->
+      assert Enum.any?(report["errors"], &(&1["path"] == expected_path)),
+             "expected a typed schema error at #{expected_path}, got: #{inspect(report["errors"])}"
+    end)
+
+    assert_json_total(report)
+    report
   end
 
   defp assert_replay_failure(evaluator_fun, expected_kind, expected_detail) do

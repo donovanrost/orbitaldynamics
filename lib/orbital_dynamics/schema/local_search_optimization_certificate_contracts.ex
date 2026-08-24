@@ -22,6 +22,8 @@ defmodule OrbitalDynamics.Schema.LocalSearchOptimizationCertificateContracts do
     candidate_count generation_attempt_count generation_rejected_count candidates
     generation_rejected_moves identity id_prefix
   )
+  @bound_fields ~w(minimum maximum)
+  @candidate_fields ~w(id generation_index parameters move)
   @registry_fields ~w(trust_boundary entry_count entries identity)
   @registry_entry_fields ~w(
     alternative_id source_id source_revision content_identity
@@ -108,31 +110,7 @@ defmodule OrbitalDynamics.Schema.LocalSearchOptimizationCertificateContracts do
       )
       |> expect_equal(path, certificate, "assumptions", @assumptions)
 
-    if structure_valid?(certificate),
-      do: validate_semantics(issues, path, certificate),
-      else: issues
-  end
-
-  defp structure_valid?(certificate) do
-    is_map(certificate["claim"]) and
-      search_space_structure_valid?(certificate["search_space"]) and
-      registry_structure_valid?(certificate["source_evidence_registry"]) and
-      is_map(certificate["evaluator_execution_policy"]) and
-      proper_list?(certificate["eligible_ids_by_rank"]) and
-      proper_list?(certificate["evaluations"]) and
-      Enum.all?(certificate["evaluations"], &evaluation_structure_valid?/1) and
-      proper_list?(certificate["deterministic_ordering"]) and
-      proper_list?(certificate["model_limits"]) and
-      is_map(certificate["assumptions"]) and
-      certificate["objective_direction"] in ["maximize", "minimize"] and
-      is_integer(certificate["evaluation_budget"]) and
-      certificate["evaluation_budget"] >= 1 and
-      is_integer(certificate["search_space"]["candidate_count"])
-  end
-
-  defp registry_structure_valid?(registry) do
-    is_map(registry) and proper_list?(registry["entries"]) and
-      Enum.all?(registry["entries"], &is_map/1)
+    validate_semantics(issues, path, certificate)
   end
 
   defp evaluation_structure_valid?(evaluation) do
@@ -148,6 +126,7 @@ defmodule OrbitalDynamics.Schema.LocalSearchOptimizationCertificateContracts do
     issues
     |> validate_certificate_identity(path, certificate)
     |> validate_evaluator_execution_policy(path, certificate["evaluator_execution_policy"])
+    |> validate_claim_shape(path, certificate["claim"])
     |> validate_search_space(path, certificate["search_space"])
     |> validate_registry(path, certificate)
     |> validate_evaluations(path, certificate)
@@ -200,26 +179,51 @@ defmodule OrbitalDynamics.Schema.LocalSearchOptimizationCertificateContracts do
 
   defp validate_evaluator_execution_policy(issues, _path, _policy), do: issues
 
-  defp validate_search_space(issues, path, search_space) do
+  defp validate_claim_shape(issues, path, claim) when is_map(claim) do
+    claim_path = "#{path}.claim"
+
+    issues
+    |> exact_fields(claim_path, claim, @claim_fields)
+    |> expect_one_of(claim_path, claim, "status", ["supported", "not_supported"])
+    |> expect_one_of(claim_path, claim, "type", [
+      "best_eligible_alternative_in_enumerated_finite_neighborhood",
+      "no_eligible_alternative_in_enumerated_finite_neighborhood",
+      "no_optimality_claim"
+    ])
+    |> expect_equal(claim_path, claim, "scope", "enumerated_search_space_only")
+    |> expect_nullable_stable_id(claim_path, claim, "selected_alternative_id")
+    |> expect_non_empty_string(claim_path, claim, "reason")
+    |> expect_equal(claim_path, claim, "global_optimality_claimed", false)
+  end
+
+  defp validate_claim_shape(issues, _path, _claim), do: issues
+
+  defp validate_search_space(issues, path, search_space) when is_map(search_space) do
     search_path = "#{path}.search_space"
 
     issues =
       issues
       |> exact_fields(search_path, search_space, @search_space_fields)
       |> expect_non_empty_string(search_path, search_space, "generator_model")
-      |> expect_non_empty_string(search_path, search_space, "seed_id")
+      |> expect_stable_id(search_path, search_space, "seed_id")
       |> expect_finite_numeric_map(search_path, search_space, "seed_parameters")
       |> expect_string_list(search_path, search_space, "step_parameters")
       |> expect_finite_numeric_map(search_path, search_space, "steps")
       |> expect_type(search_path, search_space, "bounds", :map)
       |> expect_non_empty_string(search_path, search_space, "ordering")
-      |> expect_non_empty_string(search_path, search_space, "id_prefix")
+      |> expect_stable_id(search_path, search_space, "id_prefix")
       |> expect_non_negative_integer(search_path, search_space, "candidate_count")
       |> expect_non_negative_integer(search_path, search_space, "generation_attempt_count")
       |> expect_non_negative_integer(search_path, search_space, "generation_rejected_count")
       |> expect_type(search_path, search_space, "candidates", :list)
       |> expect_type(search_path, search_space, "generation_rejected_moves", :list)
       |> validate_identity("#{search_path}.identity", search_space["identity"])
+      |> validate_bounds("#{search_path}.bounds", search_space["bounds"])
+      |> validate_candidate_rows("#{search_path}.candidates", search_space["candidates"])
+      |> validate_map_rows(
+        "#{search_path}.generation_rejected_moves",
+        search_space["generation_rejected_moves"]
+      )
 
     if search_space_structure_valid?(search_space) do
       expected = regenerate_search_space(search_space)
@@ -244,15 +248,92 @@ defmodule OrbitalDynamics.Schema.LocalSearchOptimizationCertificateContracts do
       ]
   end
 
+  defp validate_search_space(issues, _path, _search_space), do: issues
+
+  defp validate_bounds(issues, path, bounds) when is_map(bounds) do
+    Enum.reduce(bounds, issues, fn {name, bound}, acc ->
+      bound_path = "#{path}.#{name}"
+
+      if is_map(bound) do
+        acc
+        |> exact_fields(bound_path, bound, @bound_fields)
+        |> expect_finite_number(bound_path, bound, "minimum")
+        |> expect_finite_number(bound_path, bound, "maximum")
+        |> ensure(
+          finite_number?(bound["minimum"]) and finite_number?(bound["maximum"]) and
+            bound["minimum"] <= bound["maximum"],
+          bound_path,
+          "minimum must be less than or equal to maximum"
+        )
+      else
+        [error(bound_path, "must be a map") | acc]
+      end
+    end)
+  end
+
+  defp validate_bounds(issues, _path, _bounds), do: issues
+
+  defp validate_candidate_rows(issues, path, candidates) do
+    if proper_list?(candidates) do
+      candidates
+      |> Enum.with_index()
+      |> Enum.reduce(issues, fn {candidate, index}, acc ->
+        validate_candidate_row(acc, "#{path}[#{index}]", candidate)
+      end)
+    else
+      issues
+    end
+  end
+
+  defp validate_candidate_row(issues, path, candidate) when is_map(candidate) do
+    issues
+    |> exact_fields(path, candidate, @candidate_fields)
+    |> expect_stable_id(path, candidate, "id")
+    |> expect_non_negative_integer(path, candidate, "generation_index")
+    |> expect_finite_numeric_map(path, candidate, "parameters")
+    |> expect_type(path, candidate, "move", :map)
+  end
+
+  defp validate_candidate_row(issues, path, _candidate),
+    do: [error(path, "must be a map") | issues]
+
+  defp validate_map_rows(issues, path, rows) do
+    if proper_list?(rows) do
+      rows
+      |> Enum.with_index()
+      |> Enum.reduce(issues, fn
+        {row, _index}, acc when is_map(row) -> acc
+        {_row, index}, acc -> [error("#{path}[#{index}]", "must be a map") | acc]
+      end)
+    else
+      issues
+    end
+  end
+
   defp search_space_structure_valid?(search_space) do
-    is_map(search_space) and is_map(search_space["seed_parameters"]) and
-      proper_list?(search_space["step_parameters"]) and is_map(search_space["steps"]) and
-      is_map(search_space["bounds"]) and proper_list?(search_space["candidates"]) and
+    is_map(search_space) and finite_score_terms_map?(search_space["seed_parameters"]) and
+      proper_list?(search_space["step_parameters"]) and
+      Enum.all?(search_space["step_parameters"], &is_binary/1) and
+      finite_score_terms_map?(search_space["steps"]) and valid_bounds?(search_space["bounds"]) and
+      proper_list?(search_space["candidates"]) and
       Enum.all?(search_space["candidates"], &is_map/1) and
       proper_list?(search_space["generation_rejected_moves"]) and
       Enum.all?(search_space["generation_rejected_moves"], &is_map/1) and
-      is_binary(search_space["id_prefix"])
+      stable_id?(search_space["id_prefix"])
   end
+
+  defp valid_bounds?(bounds) when is_map(bounds) do
+    Enum.all?(bounds, fn
+      {_name, %{"minimum" => minimum, "maximum" => maximum} = bound} ->
+        map_size(bound) == 2 and finite_number?(minimum) and finite_number?(maximum) and
+          minimum <= maximum
+
+      _entry ->
+        false
+    end)
+  end
+
+  defp valid_bounds?(_bounds), do: false
 
   defp regenerate_search_space(search_space) do
     bounds =
@@ -288,8 +369,12 @@ defmodule OrbitalDynamics.Schema.LocalSearchOptimizationCertificateContracts do
     Map.put(core, "identity", LocalSearchCertificate.search_space_identity(core))
   end
 
-  defp validate_registry(issues, path, certificate) do
-    registry = certificate["source_evidence_registry"]
+  defp validate_registry(
+         issues,
+         path,
+         %{"source_evidence_registry" => registry} = certificate
+       )
+       when is_map(registry) do
     registry_path = "#{path}.source_evidence_registry"
 
     issues =
@@ -305,46 +390,78 @@ defmodule OrbitalDynamics.Schema.LocalSearchOptimizationCertificateContracts do
       |> expect_type(registry_path, registry, "entries", :list)
       |> validate_identity("#{registry_path}.identity", registry["identity"])
 
-    if proper_list?(registry["entries"]) and Enum.all?(registry["entries"], &is_map/1) do
-      entries = registry["entries"]
+    issues = validate_registry_entries(issues, registry_path, registry["entries"])
 
-      issues =
-        entries
-        |> Enum.with_index()
-        |> Enum.reduce(issues, fn {entry, index}, acc ->
-          entry_path = "#{registry_path}.entries[#{index}]"
+    issues =
+      if proper_list?(registry["entries"]) do
+        ensure(
+          issues,
+          registry["entry_count"] == length(registry["entries"]),
+          "#{registry_path}.entry_count",
+          "must equal entries count"
+        )
+      else
+        issues
+      end
 
-          acc
-          |> exact_fields(entry_path, entry, @registry_entry_fields)
-          |> expect_stable_id(entry_path, entry, "alternative_id")
-          |> expect_stable_id(entry_path, entry, "source_id")
-          |> expect_stable_id(entry_path, entry, "source_revision")
-          |> validate_identity("#{entry_path}.content_identity", entry["content_identity"])
-        end)
+    core = Map.delete(registry, "identity")
 
-      candidate_ids = Enum.map(certificate["search_space"]["candidates"], & &1["id"])
-      entry_ids = Enum.map(entries, & &1["alternative_id"])
-      core = Map.delete(registry, "identity")
-
-      issues
-      |> ensure(
-        registry["entry_count"] == length(entries),
-        "#{registry_path}.entry_count",
-        "must equal entries count"
-      )
-      |> ensure(
-        entry_ids == candidate_ids,
-        "#{registry_path}.entries",
-        "must contain exactly one entry for every candidate in generation order"
-      )
-      |> ensure(
+    issues =
+      ensure(
+        issues,
         registry["identity"] == LocalSearchCertificate.source_registry_identity(core),
         "#{registry_path}.identity",
         "must be the content identity of the source-evidence registry summary"
       )
+
+    if registry_relations_valid?(certificate) do
+      entries = registry["entries"]
+      candidate_ids = Enum.map(certificate["search_space"]["candidates"], & &1["id"])
+      entry_ids = Enum.map(entries, & &1["alternative_id"])
+
+      ensure(
+        issues,
+        entry_ids == candidate_ids,
+        "#{registry_path}.entries",
+        "must contain exactly one entry for every candidate in generation order"
+      )
     else
       issues
     end
+  end
+
+  defp validate_registry(issues, _path, _certificate), do: issues
+
+  defp validate_registry_entries(issues, path, entries) do
+    if proper_list?(entries) do
+      entries
+      |> Enum.with_index()
+      |> Enum.reduce(issues, fn {entry, index}, acc ->
+        validate_registry_entry(acc, "#{path}.entries[#{index}]", entry)
+      end)
+    else
+      issues
+    end
+  end
+
+  defp validate_registry_entry(issues, path, entry) when is_map(entry) do
+    issues
+    |> exact_fields(path, entry, @registry_entry_fields)
+    |> expect_stable_id(path, entry, "alternative_id")
+    |> expect_stable_id(path, entry, "source_id")
+    |> expect_stable_id(path, entry, "source_revision")
+    |> validate_identity("#{path}.content_identity", entry["content_identity"])
+  end
+
+  defp validate_registry_entry(issues, path, _entry),
+    do: [error(path, "must be a map") | issues]
+
+  defp registry_relations_valid?(certificate) do
+    registry = certificate["source_evidence_registry"]
+    search_space = certificate["search_space"]
+
+    is_map(registry) and proper_map_list?(registry["entries"]) and
+      is_map(search_space) and proper_map_list?(search_space["candidates"])
   end
 
   defp validate_evaluations(issues, path, certificate) do
@@ -352,30 +469,67 @@ defmodule OrbitalDynamics.Schema.LocalSearchOptimizationCertificateContracts do
     evaluations = certificate["evaluations"]
 
     issues =
-      evaluations
-      |> Enum.with_index()
-      |> Enum.reduce(issues, fn {evaluation, index}, acc ->
-        row_path = "#{evaluation_path}[#{index}]"
+      if proper_list?(evaluations) do
+        evaluations
+        |> Enum.with_index()
+        |> Enum.reduce(issues, fn {evaluation, index}, acc ->
+          validate_evaluation(acc, "#{evaluation_path}[#{index}]", evaluation)
+        end)
+      else
+        issues
+      end
 
-        acc
-        |> exact_fields(row_path, evaluation, @evaluation_fields)
-        |> expect_stable_id(row_path, evaluation, "alternative_id")
-        |> expect_non_negative_integer(row_path, evaluation, "generation_index")
-        |> validate_identity(
-          "#{row_path}.source_evidence_identity",
-          evaluation["source_evidence_identity"]
-        )
-        |> expect_finite_score_terms_map(row_path, evaluation, "score_terms")
-        |> expect_finite_number(row_path, evaluation, "score")
-        |> expect_type(row_path, evaluation, "eligible", :boolean)
-        |> expect_string_list(row_path, evaluation, "rejection_reasons")
-        |> expect_nullable_stable_id(row_path, evaluation, "incumbent_after_evaluation_id")
-        |> expect_nullable_positive_integer(row_path, evaluation, "rank")
-        |> validate_evaluation_row(row_path, evaluation)
-      end)
-
-    validate_evaluation_relations(issues, path, certificate)
+    if evaluation_relations_valid?(certificate),
+      do: validate_evaluation_relations(issues, path, certificate),
+      else: issues
   end
+
+  defp validate_evaluation(issues, path, evaluation) when is_map(evaluation) do
+    issues
+    |> exact_fields(path, evaluation, @evaluation_fields)
+    |> expect_stable_id(path, evaluation, "alternative_id")
+    |> expect_non_negative_integer(path, evaluation, "generation_index")
+    |> validate_identity(
+      "#{path}.source_evidence_identity",
+      evaluation["source_evidence_identity"]
+    )
+    |> expect_finite_score_terms_map(path, evaluation, "score_terms")
+    |> expect_finite_number(path, evaluation, "score")
+    |> expect_type(path, evaluation, "eligible", :boolean)
+    |> expect_string_list(path, evaluation, "rejection_reasons")
+    |> expect_nullable_stable_id(path, evaluation, "incumbent_after_evaluation_id")
+    |> expect_nullable_positive_integer(path, evaluation, "rank")
+    |> validate_evaluation_row(path, evaluation)
+  end
+
+  defp validate_evaluation(issues, path, _evaluation),
+    do: [error(path, "must be a map") | issues]
+
+  defp evaluation_relations_valid?(certificate) do
+    evaluations = certificate["evaluations"]
+    search_space = certificate["search_space"]
+    registry = certificate["source_evidence_registry"]
+
+    proper_list?(evaluations) and Enum.all?(evaluations, &evaluation_structure_valid?/1) and
+      is_map(search_space) and proper_list?(search_space["candidates"]) and
+      Enum.all?(search_space["candidates"], &candidate_relation_structure_valid?/1) and
+      is_map(registry) and proper_list?(registry["entries"]) and
+      Enum.all?(registry["entries"], &registry_entry_relation_structure_valid?/1) and
+      certificate["objective_direction"] in ["maximize", "minimize"]
+  end
+
+  defp candidate_relation_structure_valid?(candidate) do
+    is_map(candidate) and is_binary(candidate["id"]) and
+      is_integer(candidate["generation_index"])
+  end
+
+  defp registry_entry_relation_structure_valid?(entry) do
+    is_map(entry) and is_binary(entry["alternative_id"]) and
+      is_map(entry["content_identity"])
+  end
+
+  defp proper_map_list?(value),
+    do: proper_list?(value) and Enum.all?(value, &is_map/1)
 
   defp validate_evaluation_row(issues, path, evaluation) do
     terms = evaluation["score_terms"]
@@ -486,6 +640,20 @@ defmodule OrbitalDynamics.Schema.LocalSearchOptimizationCertificateContracts do
   end
 
   defp validate_termination_and_claim(issues, path, certificate) do
+    if termination_relations_valid?(certificate),
+      do: do_validate_termination_and_claim(issues, path, certificate),
+      else: issues
+  end
+
+  defp termination_relations_valid?(certificate) do
+    search_space = certificate["search_space"]
+
+    evaluation_relations_valid?(certificate) and is_map(search_space) and
+      is_integer(search_space["candidate_count"]) and
+      is_integer(certificate["evaluation_budget"])
+  end
+
+  defp do_validate_termination_and_claim(issues, path, certificate) do
     evaluations = certificate["evaluations"]
     evaluated_count = length(evaluations)
     eligible_count = Enum.count(evaluations, &(&1["eligible"] == true))
@@ -716,8 +884,6 @@ defmodule OrbitalDynamics.Schema.LocalSearchOptimizationCertificateContracts do
     )
   end
 
-  defp exact_fields(issues, _path, _map, _expected), do: issues
-
   defp expect_equal(issues, path, map, field, expected) do
     ensure(issues, map[field] == expected, "#{path}.#{field}", "must equal #{inspect(expected)}")
   end
@@ -811,7 +977,7 @@ defmodule OrbitalDynamics.Schema.LocalSearchOptimizationCertificateContracts do
       issues,
       finite_numeric_map?(map[field]),
       "#{path}.#{field}",
-      "must be a non-empty finite numeric map"
+      "must be a non-empty finite numeric map with supported parameter names"
     )
   end
 
@@ -825,15 +991,14 @@ defmodule OrbitalDynamics.Schema.LocalSearchOptimizationCertificateContracts do
   end
 
   defp finite_numeric_map?(map) when is_map(map) and map_size(map) > 0 do
-    Enum.all?(map, fn {key, value} -> is_binary(key) and finite_number?(value) end)
+    Enum.all?(map, fn {key, value} ->
+      is_binary(key) and Regex.match?(@score_term_name, key) and finite_number?(value)
+    end)
   end
 
   defp finite_numeric_map?(_map), do: false
 
-  defp finite_score_terms_map?(map) do
-    finite_numeric_map?(map) and
-      Enum.all?(Map.keys(map), &Regex.match?(@score_term_name, &1))
-  end
+  defp finite_score_terms_map?(map), do: finite_numeric_map?(map)
 
   defp finite_number?(value) when is_integer(value), do: true
 
