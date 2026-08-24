@@ -7,8 +7,9 @@ defmodule OrbitalDynamics.Schema.LocalSearchOptimizationCertificateContracts do
 
   @contract "local_search_optimization_certificate.v1"
   @identity_algorithm "erlang_term_to_binary_deterministic_sha256.v1"
-  @sha256 ~r/^[0-9a-f]{64}$/
-  @stable_id ~r/^[A-Za-z0-9][A-Za-z0-9._:@-]*$/
+  @sha256 ~r/\A[0-9a-f]{64}\z/
+  @stable_id ~r/\A[A-Za-z0-9][A-Za-z0-9._:@-]*\z/
+  @score_term_name ~r/\A[A-Za-z][A-Za-z0-9_.-]*\z/
   @max_float 1.7976931348623157e308
 
   @root_fields OrbitalDynamics.Schema.OptimizationRegistryContracts.contracts()
@@ -41,8 +42,21 @@ defmodule OrbitalDynamics.Schema.LocalSearchOptimizationCertificateContracts do
   }
 
   def validate(issues, path, certificate) when is_list(issues) and is_map(certificate) do
-    issues = JsonSafety.errors(certificate, path) ++ issues
+    case JsonSafety.errors(certificate, path) do
+      [] -> validate_json_safe(issues, path, certificate)
+      json_issues -> json_issues ++ issues
+    end
+  rescue
+    _error -> [error(path, "must be safely validatable as a local-search certificate") | issues]
+  catch
+    _kind, _reason ->
+      [error(path, "must be safely validatable as a local-search certificate") | issues]
+  end
 
+  def validate(issues, path, _certificate),
+    do: [error(path, "must be a map") | issues]
+
+  defp validate_json_safe(issues, path, certificate) do
     issues =
       issues
       |> PrimitiveValidation.require_fields(path, certificate, @root_fields)
@@ -89,25 +103,20 @@ defmodule OrbitalDynamics.Schema.LocalSearchOptimizationCertificateContracts do
       )
       |> expect_equal(path, certificate, "assumptions", @assumptions)
 
-    if JsonSafety.errors(certificate, path) == [] and structure_valid?(certificate) do
-      validate_semantics(issues, path, certificate)
-    else
-      issues
-    end
+    if structure_valid?(certificate),
+      do: validate_semantics(issues, path, certificate),
+      else: issues
   end
-
-  def validate(issues, path, _certificate),
-    do: [error(path, "must be a map") | issues]
 
   defp structure_valid?(certificate) do
     is_map(certificate["claim"]) and
       search_space_structure_valid?(certificate["search_space"]) and
       registry_structure_valid?(certificate["source_evidence_registry"]) and
-      is_list(certificate["eligible_ids_by_rank"]) and
-      is_list(certificate["evaluations"]) and
+      proper_list?(certificate["eligible_ids_by_rank"]) and
+      proper_list?(certificate["evaluations"]) and
       Enum.all?(certificate["evaluations"], &evaluation_structure_valid?/1) and
-      is_list(certificate["deterministic_ordering"]) and
-      is_list(certificate["model_limits"]) and
+      proper_list?(certificate["deterministic_ordering"]) and
+      proper_list?(certificate["model_limits"]) and
       is_map(certificate["assumptions"]) and
       certificate["objective_direction"] in ["maximize", "minimize"] and
       is_integer(certificate["evaluation_budget"]) and
@@ -116,7 +125,7 @@ defmodule OrbitalDynamics.Schema.LocalSearchOptimizationCertificateContracts do
   end
 
   defp registry_structure_valid?(registry) do
-    is_map(registry) and is_list(registry["entries"]) and
+    is_map(registry) and proper_list?(registry["entries"]) and
       Enum.all?(registry["entries"], &is_map/1)
   end
 
@@ -126,7 +135,7 @@ defmodule OrbitalDynamics.Schema.LocalSearchOptimizationCertificateContracts do
       is_map(evaluation["source_evidence_identity"]) and
       finite_numeric_map?(evaluation["score_terms"]) and
       finite_number?(evaluation["score"]) and is_boolean(evaluation["eligible"]) and
-      is_list(evaluation["rejection_reasons"])
+      proper_list?(evaluation["rejection_reasons"])
   end
 
   defp validate_semantics(issues, path, certificate) do
@@ -201,10 +210,10 @@ defmodule OrbitalDynamics.Schema.LocalSearchOptimizationCertificateContracts do
 
   defp search_space_structure_valid?(search_space) do
     is_map(search_space) and is_map(search_space["seed_parameters"]) and
-      is_list(search_space["step_parameters"]) and is_map(search_space["steps"]) and
-      is_map(search_space["bounds"]) and is_list(search_space["candidates"]) and
+      proper_list?(search_space["step_parameters"]) and is_map(search_space["steps"]) and
+      is_map(search_space["bounds"]) and proper_list?(search_space["candidates"]) and
       Enum.all?(search_space["candidates"], &is_map/1) and
-      is_list(search_space["generation_rejected_moves"]) and
+      proper_list?(search_space["generation_rejected_moves"]) and
       Enum.all?(search_space["generation_rejected_moves"], &is_map/1) and
       is_binary(search_space["id_prefix"])
   end
@@ -260,7 +269,7 @@ defmodule OrbitalDynamics.Schema.LocalSearchOptimizationCertificateContracts do
       |> expect_type(registry_path, registry, "entries", :list)
       |> validate_identity("#{registry_path}.identity", registry["identity"])
 
-    if is_list(registry["entries"]) and Enum.all?(registry["entries"], &is_map/1) do
+    if proper_list?(registry["entries"]) and Enum.all?(registry["entries"], &is_map/1) do
       entries = registry["entries"]
 
       issues =
@@ -320,7 +329,7 @@ defmodule OrbitalDynamics.Schema.LocalSearchOptimizationCertificateContracts do
           "#{row_path}.source_evidence_identity",
           evaluation["source_evidence_identity"]
         )
-        |> expect_finite_numeric_map(row_path, evaluation, "score_terms")
+        |> expect_finite_score_terms_map(row_path, evaluation, "score_terms")
         |> expect_finite_number(row_path, evaluation, "score")
         |> expect_type(row_path, evaluation, "eligible", :boolean)
         |> expect_string_list(row_path, evaluation, "rejection_reasons")
@@ -337,20 +346,29 @@ defmodule OrbitalDynamics.Schema.LocalSearchOptimizationCertificateContracts do
     reasons = evaluation["rejection_reasons"]
 
     issues =
-      if finite_numeric_map?(terms) do
-        score = Enum.reduce(Map.values(terms), 0, &Kernel.+/2)
+      if finite_score_terms_map?(terms) do
+        case safe_finite_sum(Map.values(terms)) do
+          {:ok, score} ->
+            ensure(
+              issues,
+              score == evaluation["score"],
+              "#{path}.score",
+              "must equal the finite sum of score_terms"
+            )
 
-        ensure(
-          issues,
-          finite_number?(score) and score == evaluation["score"],
-          "#{path}.score",
-          "must equal the finite sum of score_terms"
-        )
+          :error ->
+            ensure(
+              issues,
+              false,
+              "#{path}.score",
+              "score_terms sum must remain finite"
+            )
+        end
       else
         issues
       end
 
-    if is_list(reasons) do
+    if proper_list?(reasons) do
       issues
       |> ensure(
         reasons == reasons |> Enum.uniq() |> Enum.sort(),
@@ -746,7 +764,7 @@ defmodule OrbitalDynamics.Schema.LocalSearchOptimizationCertificateContracts do
   defp expect_string_list(issues, path, map, field) do
     ensure(
       issues,
-      is_list(map[field]) and Enum.all?(map[field], &is_binary/1),
+      proper_list?(map[field]) and Enum.all?(map[field], &is_binary/1),
       "#{path}.#{field}",
       "must be a proper list of strings"
     )
@@ -761,11 +779,25 @@ defmodule OrbitalDynamics.Schema.LocalSearchOptimizationCertificateContracts do
     )
   end
 
+  defp expect_finite_score_terms_map(issues, path, map, field) do
+    ensure(
+      issues,
+      finite_score_terms_map?(map[field]),
+      "#{path}.#{field}",
+      "must be a non-empty finite numeric map with supported score-term names"
+    )
+  end
+
   defp finite_numeric_map?(map) when is_map(map) and map_size(map) > 0 do
     Enum.all?(map, fn {key, value} -> is_binary(key) and finite_number?(value) end)
   end
 
   defp finite_numeric_map?(_map), do: false
+
+  defp finite_score_terms_map?(map) do
+    finite_numeric_map?(map) and
+      Enum.all?(Map.keys(map), &Regex.match?(@score_term_name, &1))
+  end
 
   defp finite_number?(value) when is_integer(value), do: true
 
@@ -774,6 +806,22 @@ defmodule OrbitalDynamics.Schema.LocalSearchOptimizationCertificateContracts do
 
   defp finite_number?(_value), do: false
 
+  defp safe_finite_sum(values) do
+    Enum.reduce_while(values, {:ok, 0}, fn value, {:ok, sum} ->
+      case safe_finite_add(sum, value) do
+        {:ok, next_sum} -> {:cont, {:ok, next_sum}}
+        :error -> {:halt, :error}
+      end
+    end)
+  end
+
+  defp safe_finite_add(left, right) do
+    sum = left + right
+    if finite_number?(sum), do: {:ok, sum}, else: :error
+  rescue
+    ArithmeticError -> :error
+  end
+
   defp stable_id?(value) when is_binary(value), do: Regex.match?(@stable_id, value)
   defp stable_id?(_value), do: false
 
@@ -781,8 +829,12 @@ defmodule OrbitalDynamics.Schema.LocalSearchOptimizationCertificateContracts do
   defp nullable_equal?(actual, expected), do: actual == expected
 
   defp type?(value, :map), do: is_map(value)
-  defp type?(value, :list), do: is_list(value)
+  defp type?(value, :list), do: proper_list?(value)
   defp type?(value, :boolean), do: is_boolean(value)
+
+  defp proper_list?([]), do: true
+  defp proper_list?([_head | tail]), do: proper_list?(tail)
+  defp proper_list?(_value), do: false
 
   defp ensure(issues, true, _path, _message), do: issues
   defp ensure(issues, false, path, message), do: [error(path, message) | issues]

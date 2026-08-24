@@ -47,8 +47,9 @@ defmodule OrbitalDynamics.Optimizer.LocalSearchCertificate do
     "not_calibrated_from_operational_outcomes"
   ]
 
-  @stable_id ~r/^[A-Za-z0-9][A-Za-z0-9._:@-]*$/
-  @score_term_name ~r/^[A-Za-z][A-Za-z0-9_.-]*$/
+  @stable_id ~r/\A[A-Za-z0-9][A-Za-z0-9._:@-]*\z/
+  @score_term_name ~r/\A[A-Za-z][A-Za-z0-9_.-]*\z/
+  @certificate_id ~r/\Alocal_search_optimization_certificate:[0-9a-f]{64}\z/
   @max_float 1.7976931348623157e308
 
   def schema_contract, do: @schema_contract
@@ -231,7 +232,15 @@ defmodule OrbitalDynamics.Optimizer.LocalSearchCertificate do
     error ->
       {:error,
        verification_failure(certificate, "replay_input_or_source_evidence_invalid", %{
-         "detail" => Exception.message(error)
+         "failure_kind" => "error",
+         "detail" => safe_exception_message(error)
+       })}
+  catch
+    kind, reason ->
+      {:error,
+       verification_failure(certificate, "replay_input_or_source_evidence_invalid", %{
+         "failure_kind" => Atom.to_string(kind),
+         "detail" => safe_inspect(reason)
        })}
   end
 
@@ -421,10 +430,7 @@ defmodule OrbitalDynamics.Optimizer.LocalSearchCertificate do
         :ok
     end
 
-    score = Enum.reduce(Map.values(score_terms), 0, &Kernel.+/2)
-
-    unless finite_number?(score),
-      do: raise(ArgumentError, "summed score_terms must produce a finite score")
+    score = finite_sum!(Map.values(score_terms), "summed score_terms must produce a finite score")
 
     source_entry =
       Enum.find(source_registry["entries"], &(&1["alternative_id"] == candidate["id"]))
@@ -575,9 +581,41 @@ defmodule OrbitalDynamics.Optimizer.LocalSearchCertificate do
     %{
       "status" => "rejected",
       "reason" => reason,
-      "certificate_id" => if(is_map(certificate), do: certificate["id"] || :null, else: :null),
+      "certificate_id" => certificate_id_for_report(certificate),
       "details" => details
     }
+  end
+
+  defp certificate_id_for_report(%{"id" => id})
+       when is_binary(id) and byte_size(id) <= 128 do
+    if String.valid?(id) and Regex.match?(@certificate_id, id), do: id, else: :null
+  end
+
+  defp certificate_id_for_report(_certificate), do: :null
+
+  defp safe_exception_message(error) do
+    error
+    |> Exception.message()
+    |> truncate_detail()
+  rescue
+    _error -> "evaluator or replay raised an unreportable error"
+  catch
+    _kind, _reason -> "evaluator or replay raised an unreportable error"
+  end
+
+  defp safe_inspect(term) do
+    term
+    |> inspect(limit: 20, printable_limit: 512, width: 80)
+    |> truncate_detail()
+  rescue
+    _error -> "unreportable caught value"
+  catch
+    _kind, _reason -> "unreportable caught value"
+  end
+
+  defp truncate_detail(detail) do
+    detail = if String.valid?(detail), do: detail, else: inspect(detail)
+    String.slice(detail, 0, 1_024)
   end
 
   defp stable_id!(value, label) when is_binary(value) do
@@ -602,4 +640,23 @@ defmodule OrbitalDynamics.Optimizer.LocalSearchCertificate do
     do: value == value and value <= @max_float and value >= -@max_float
 
   defp finite_number?(_value), do: false
+
+  defp finite_sum!(values, message) do
+    case Enum.reduce_while(values, {:ok, 0}, fn value, {:ok, sum} ->
+           case safe_finite_add(sum, value) do
+             {:ok, next_sum} -> {:cont, {:ok, next_sum}}
+             :error -> {:halt, :error}
+           end
+         end) do
+      {:ok, sum} -> sum
+      :error -> raise ArgumentError, message
+    end
+  end
+
+  defp safe_finite_add(left, right) do
+    sum = left + right
+    if finite_number?(sum), do: {:ok, sum}, else: :error
+  rescue
+    ArithmeticError -> :error
+  end
 end

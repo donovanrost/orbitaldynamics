@@ -56,6 +56,7 @@ defmodule OrbitalDynamics.Schema.OptimizationRegistryContracts do
         "schema_contract" => "local_search_optimization_certificate.v1",
         "artifact_family" => "local_search_optimization_certificate",
         "schema_version" => 1,
+        "additional_properties" => false,
         "required_fields" => [
           "schema_contract",
           "id",

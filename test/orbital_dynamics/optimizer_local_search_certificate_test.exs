@@ -3,6 +3,7 @@ defmodule OrbitalDynamics.OptimizerLocalSearchCertificateTest do
 
   alias OrbitalDynamics.{Optimizer, Schema}
   alias OrbitalDynamics.Optimizer.LocalSearchCertificate
+  alias OrbitalDynamics.Schema.JsonSafety
 
   @seed %{"x" => 1, "y" => 0}
   @opts [
@@ -16,6 +17,7 @@ defmodule OrbitalDynamics.OptimizerLocalSearchCertificateTest do
     "certificate:x:increase",
     "certificate:y:increase"
   ]
+  @max_float 1.7976931348623157e308
 
   test "certifies the best eligible alternative only after exact finite-space exhaustion" do
     certificate = build_certificate()
@@ -225,19 +227,6 @@ defmodule OrbitalDynamics.OptimizerLocalSearchCertificateTest do
 
     assert source_failure["reason"] ==
              "certificate_does_not_match_replayed_source_evidence_and_evaluation"
-
-    raising_evaluator = fn _parameters, _evidence -> raise "evaluator unavailable" end
-
-    assert {:error, evaluator_failure} =
-             Optimizer.verify_local_search_certificate(
-               certificate,
-               @seed,
-               source_evidence(@candidate_ids),
-               raising_evaluator,
-               @opts
-             )
-
-    assert evaluator_failure["reason"] == "replay_input_or_source_evidence_invalid"
   end
 
   test "empty or incomplete finite-space evidence is rejected before evaluation" do
@@ -259,8 +248,12 @@ defmodule OrbitalDynamics.OptimizerLocalSearchCertificateTest do
 
   test "exports the executable certificate schema and preserves the default heuristic" do
     assert {:ok, schema} = Schema.json_schema("local_search_optimization_certificate.v1")
-    assert schema["additionalProperties"] == true
+    assert schema["additionalProperties"] == false
     assert get_in(schema, ["properties", "claim", "additionalProperties"]) == false
+    assert_typed_schema_error(Map.put(build_certificate(), "unexpected", true), "$")
+
+    assert {:ok, legacy_schema} = Schema.json_schema("optimizer_contract.v1")
+    assert legacy_schema["additionalProperties"] == true
 
     assert get_in(schema, ["properties", "model", "const"]) ==
              LocalSearchCertificate.model()
@@ -295,6 +288,262 @@ defmodule OrbitalDynamics.OptimizerLocalSearchCertificateTest do
 
     assert capabilities.local_search_optimization_certificate.artifact_contract ==
              "local_search_optimization_certificate.v1"
+  end
+
+  test "eligible_ids_by_rank improper lists return a typed JSON-total schema failure" do
+    certificate =
+      Map.put(build_certificate(), "eligible_ids_by_rank", ["certificate:seed" | :bad])
+
+    assert_typed_schema_error(certificate, "$.eligible_ids_by_rank")
+  end
+
+  test "deterministic_ordering improper lists return a typed JSON-total schema failure" do
+    certificate =
+      Map.put(build_certificate(), "deterministic_ordering", ["evaluation order" | :bad])
+
+    assert_typed_schema_error(certificate, "$.deterministic_ordering")
+  end
+
+  test "model_limits improper lists return a typed JSON-total schema failure" do
+    certificate = Map.put(build_certificate(), "model_limits", ["bounded" | :bad])
+
+    assert_typed_schema_error(certificate, "$.model_limits")
+  end
+
+  test "every other list-bearing certificate location rejects improper lists before semantics" do
+    certificate = build_certificate()
+
+    mutations = [
+      {"$.evaluations", &Map.put(&1, "evaluations", [hd(&1["evaluations"]) | :bad])},
+      {"$.search_space.step_parameters",
+       &put_in(&1, ["search_space", "step_parameters"], ["x" | :bad])},
+      {"$.search_space.candidates",
+       &put_in(
+         &1,
+         ["search_space", "candidates"],
+         [hd(&1["search_space"]["candidates"]) | :bad]
+       )},
+      {"$.search_space.generation_rejected_moves",
+       &put_in(
+         &1,
+         ["search_space", "generation_rejected_moves"],
+         [hd(&1["search_space"]["generation_rejected_moves"]) | :bad]
+       )},
+      {"$.source_evidence_registry.entries",
+       &put_in(
+         &1,
+         ["source_evidence_registry", "entries"],
+         [hd(&1["source_evidence_registry"]["entries"]) | :bad]
+       )},
+      {"$.evaluations[0].rejection_reasons",
+       &put_in(&1, ["evaluations", Access.at(0), "rejection_reasons"], ["bad" | :bad])}
+    ]
+
+    Enum.each(mutations, fn {path, mutate} ->
+      assert_typed_schema_error(mutate.(certificate), path)
+    end)
+  end
+
+  test "finite score terms whose sum overflows return a typed schema failure" do
+    certificate =
+      build_certificate()
+      |> put_in(
+        ["evaluations", Access.at(0), "score_terms"],
+        %{"large_a" => @max_float, "large_b" => @max_float}
+      )
+      |> put_in(["evaluations", Access.at(0), "score"], @max_float)
+
+    assert_typed_schema_error(certificate, "$.evaluations[0].score")
+  end
+
+  test "finite local-neighborhood operands whose addition or subtraction overflows fail typed" do
+    Enum.each([@max_float, -@max_float], fn seed_value ->
+      certificate =
+        build_certificate()
+        |> put_in(["search_space", "seed_parameters", "x"], seed_value)
+        |> put_in(["search_space", "steps", "x"], @max_float)
+
+      assert_typed_schema_error(certificate, "$.search_space")
+    end)
+  end
+
+  test "verifier contains evaluator errors in a typed JSON-total failure" do
+    evaluator = fn _parameters, _evidence -> raise "evaluator error" end
+
+    assert_replay_failure(evaluator, "error", "evaluator error")
+  end
+
+  test "verifier contains evaluator exits in a typed JSON-total failure" do
+    evaluator = fn _parameters, _evidence -> exit(:evaluator_exit) end
+
+    assert_replay_failure(evaluator, "exit", ":evaluator_exit")
+  end
+
+  test "verifier contains evaluator throws in a typed JSON-total failure" do
+    evaluator = fn _parameters, _evidence -> throw({:evaluator_throw, self()}) end
+
+    assert_replay_failure(evaluator, "throw", ":evaluator_throw")
+  end
+
+  test "untrusted non-JSON certificate IDs never enter verification failure reports" do
+    certificate = build_certificate()
+
+    Enum.each([fn -> :id end, self(), make_ref()], fn unsafe_id ->
+      assert {:error, report} =
+               Optimizer.verify_local_search_certificate(
+                 Map.put(certificate, "id", unsafe_id),
+                 @seed,
+                 source_evidence(@candidate_ids),
+                 &evaluator/2,
+                 @opts
+               )
+
+      assert report["reason"] == "certificate_schema_invalid"
+      assert report["certificate_id"] == :null
+      assert_json_total(report)
+    end)
+  end
+
+  test "newline-terminated source IDs are rejected by producer and executable schema" do
+    evidence =
+      @candidate_ids
+      |> source_evidence()
+      |> put_in(["certificate:seed", "id"], "source:certificate:seed\n")
+
+    assert_raise ArgumentError, ~r/must be a stable identity/, fn ->
+      Optimizer.certified_local_search(@seed, evidence, &evaluator/2, @opts)
+    end
+
+    certificate =
+      build_certificate()
+      |> put_in(
+        ["source_evidence_registry", "entries", Access.at(0), "source_id"],
+        "source:certificate:seed\n"
+      )
+
+    assert_typed_schema_error(
+      certificate,
+      "$.source_evidence_registry.entries[0].source_id"
+    )
+  end
+
+  test "newline-terminated source revisions are rejected by producer and executable schema" do
+    evidence =
+      @candidate_ids
+      |> source_evidence()
+      |> put_in(["certificate:seed", "revision"], "revision:1\n")
+
+    assert_raise ArgumentError, ~r/must be a stable identity/, fn ->
+      Optimizer.certified_local_search(@seed, evidence, &evaluator/2, @opts)
+    end
+
+    certificate =
+      build_certificate()
+      |> put_in(
+        ["source_evidence_registry", "entries", Access.at(0), "source_revision"],
+        "revision:1\n"
+      )
+
+    assert_typed_schema_error(
+      certificate,
+      "$.source_evidence_registry.entries[0].source_revision"
+    )
+  end
+
+  test "newline-terminated stable IDs and local parameter names are rejected" do
+    assert_raise ArgumentError, "id_prefix must be a stable identity", fn ->
+      Optimizer.certified_local_search(
+        @seed,
+        source_evidence(@candidate_ids),
+        &evaluator/2,
+        Keyword.put(@opts, :id_prefix, "certificate\n")
+      )
+    end
+
+    assert_raise ArgumentError, ~r/parameter and score-term names/, fn ->
+      Optimizer.certified_local_search(
+        @seed,
+        source_evidence(@candidate_ids),
+        &evaluator/2,
+        Keyword.put(@opts, :steps, %{"x\n" => 1})
+      )
+    end
+  end
+
+  test "newline-terminated score-term names are rejected by producer and executable schema" do
+    bad_evaluator = fn _parameters, _evidence ->
+      %{"score_terms" => %{"value\n" => 1}, "eligible" => true, "rejection_reasons" => []}
+    end
+
+    assert_raise ArgumentError, ~r/supported names/, fn ->
+      Optimizer.certified_local_search(
+        @seed,
+        source_evidence(@candidate_ids),
+        bad_evaluator,
+        @opts
+      )
+    end
+
+    certificate =
+      build_certificate()
+      |> put_in(
+        ["evaluations", Access.at(0), "score_terms"],
+        %{"value\n" => 1}
+      )
+      |> put_in(["evaluations", Access.at(0), "score"], 1)
+
+    assert_typed_schema_error(certificate, "$.evaluations[0].score_terms")
+  end
+
+  test "exported certificate patterns require absolute string termination" do
+    assert {:ok, schema} = Schema.json_schema("local_search_optimization_certificate.v1")
+
+    stable_id_patterns = [
+      get_in(schema, ["properties", "id", "pattern"]),
+      get_in(schema, [
+        "properties",
+        "source_evidence_registry",
+        "properties",
+        "entries",
+        "items",
+        "properties",
+        "source_revision",
+        "pattern"
+      ])
+    ]
+
+    Enum.each(stable_id_patterns, fn pattern ->
+      refute String.contains?(pattern, "$")
+      assert_pattern_accepts_only_complete_string(pattern, "stable:id")
+    end)
+
+    score_term_pattern =
+      get_in(schema, [
+        "properties",
+        "evaluations",
+        "items",
+        "properties",
+        "score_terms",
+        "propertyNames",
+        "pattern"
+      ])
+
+    refute String.contains?(score_term_pattern, "$")
+    assert_pattern_accepts_only_complete_string(score_term_pattern, "score.term")
+
+    sha256_pattern =
+      get_in(schema, [
+        "properties",
+        "search_space",
+        "properties",
+        "identity",
+        "properties",
+        "sha256",
+        "pattern"
+      ])
+
+    refute String.contains?(sha256_pattern, "$")
+    assert_pattern_accepts_only_complete_string(sha256_pattern, String.duplicate("a", 64))
   end
 
   defp build_certificate do
@@ -332,4 +581,41 @@ defmodule OrbitalDynamics.OptimizerLocalSearchCertificateTest do
 
   defp evaluation(certificate, id),
     do: Enum.find(certificate["evaluations"], &(&1["alternative_id"] == id))
+
+  defp assert_typed_schema_error(certificate, expected_path) do
+    assert {:error, report} = Schema.validate_artifact(certificate)
+    assert Enum.any?(report["errors"], &(&1["path"] == expected_path))
+    assert_json_total(report)
+  end
+
+  defp assert_replay_failure(evaluator_fun, expected_kind, expected_detail) do
+    certificate = build_certificate()
+
+    assert {:error, report} =
+             Optimizer.verify_local_search_certificate(
+               certificate,
+               @seed,
+               source_evidence(@candidate_ids),
+               evaluator_fun,
+               @opts
+             )
+
+    assert report["reason"] == "replay_input_or_source_evidence_invalid"
+    assert report["certificate_id"] == certificate["id"]
+    assert report["details"]["failure_kind"] == expected_kind
+    assert report["details"]["detail"] =~ expected_detail
+    assert_json_total(report)
+  end
+
+  defp assert_json_total(value) do
+    assert JsonSafety.errors(value) == []
+    encoded = value |> :json.encode() |> IO.iodata_to_binary()
+    assert :json.decode(encoded) == value
+  end
+
+  defp assert_pattern_accepts_only_complete_string(pattern, accepted) do
+    assert {:ok, regex} = Regex.compile(pattern)
+    assert Regex.match?(regex, accepted)
+    refute Regex.match?(regex, accepted <> "\n")
+  end
 end

@@ -195,7 +195,7 @@ defmodule OrbitalDynamics.Search.Local do
     do: normalize_name!(Atom.to_string(key), label)
 
   defp normalize_name!(key, _label) when is_binary(key) do
-    if Regex.match?(~r/^[A-Za-z][A-Za-z0-9_.-]*$/, key) do
+    if Regex.match?(~r/\A[A-Za-z][A-Za-z0-9_.-]*\z/, key) do
       key
     else
       raise ArgumentError,
