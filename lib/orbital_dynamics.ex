@@ -3119,6 +3119,7 @@ defmodule OrbitalDynamics do
 
   defp json_safe_capability_value(nil), do: :null
   defp json_safe_capability_value(:null), do: :null
+  defp json_safe_capability_value(value) when is_boolean(value), do: value
   defp json_safe_capability_value(value) when is_atom(value), do: Atom.to_string(value)
   defp json_safe_capability_value(value), do: value
 

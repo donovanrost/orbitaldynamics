@@ -32,6 +32,25 @@ defmodule OrbitalDynamics.Validation.ArtifactObservations.CapabilityCatalog do
         |> List.wrap()
         |> List.first(),
       "optimizer_contract" => get_in(artifact, ["planning", "optimizer", "artifact_contract"]),
+      "optimizer_public_facades" =>
+        artifact
+        |> get_in(["planning", "optimizer", "public_facades"])
+        |> List.wrap()
+        |> Enum.join("|"),
+      "local_search_optimization_certificate_contract" =>
+        get_in(artifact, [
+          "planning",
+          "optimizer",
+          "local_search_optimization_certificate",
+          "artifact_contract"
+        ]),
+      "local_search_optimization_certificate_global_optimality_claimed" =>
+        get_in(artifact, [
+          "planning",
+          "optimizer",
+          "local_search_optimization_certificate",
+          "global_optimality_claimed"
+        ]),
       "cadence_import_contract" =>
         get_in(artifact, ["operations", "cadence_import", "artifact_contract"]),
       "operational_readiness_contract" =>

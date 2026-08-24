@@ -19,6 +19,33 @@ defmodule OrbitalDynamics.OptimizerLocalSearchCertificateTest do
   ]
   @max_float 1.7976931348623157e308
 
+  test "capability artifact advertises the bounded certificate without stringifying booleans" do
+    artifact = OrbitalDynamics.capability_catalog_artifact()
+    optimizer = get_in(artifact, ["planning", "optimizer"])
+    certificate_capability = optimizer["local_search_optimization_certificate"]
+
+    assert optimizer["public_facades"] == [
+             "explainable_local_search",
+             "certified_local_search",
+             "verify_local_search_certificate"
+           ]
+
+    assert certificate_capability["artifact_contract"] ==
+             "local_search_optimization_certificate.v1"
+
+    assert certificate_capability["global_optimality_claimed"] === false
+    assert certificate_capability["mode"] == "opt_in_exact_finite_neighborhood_enumeration"
+    assert get_in(artifact, ["validation", "schema", "artifact_contract_count"]) == 128
+
+    assert "local_search_optimization_certificate.v1" in get_in(artifact, [
+             "validation",
+             "schema",
+             "artifact_contracts"
+           ])
+
+    assert_json_total(artifact)
+  end
+
   test "certifies the best eligible alternative only after exact finite-space exhaustion" do
     certificate = build_certificate()
 

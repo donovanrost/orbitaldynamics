@@ -110,6 +110,25 @@ defmodule OrbitalDynamics.Validation.PlanningInputFixtureTest do
 
     fixture_observations = capability_catalog_fixture_observations()
 
+    assert fixture_observations["artifact_contract_count"] == 128
+    assert fixture_observations["artifact_contract_list_count"] == 128
+
+    assert fixture_observations["optimizer_public_facades"] ==
+             "explainable_local_search|certified_local_search|verify_local_search_certificate"
+
+    assert fixture_observations["local_search_optimization_certificate_contract"] ==
+             "local_search_optimization_certificate.v1"
+
+    assert fixture_observations[
+             "local_search_optimization_certificate_global_optimality_claimed"
+           ] === false
+
+    assert "local_search_optimization_certificate.v1" in get_in(report, [
+             "validation",
+             "schema",
+             "artifact_contracts"
+           ])
+
     assert fixture_observations["station_calendar_reservation_contract"] ==
              "station_reservation_report.v1"
 
