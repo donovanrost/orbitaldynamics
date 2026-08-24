@@ -14,7 +14,12 @@ defmodule OrbitalDynamics.OptimizerTest do
              local_search_deterministic_ordering: local_search_deterministic_ordering,
              local_search_model_limits: local_search_model_limits,
              local_search_hard_feasibility: local_search_hard_feasibility,
-             public_facades: [:explainable_local_search],
+             local_search_optimization_certificate: local_search_optimization_certificate,
+             public_facades: [
+               :explainable_local_search,
+               :certified_local_search,
+               :verify_local_search_certificate
+             ],
              comparison_models: comparison_models,
              deterministic_ordering: deterministic_ordering,
              preserved_lineage_fields: preserved_lineage_fields,
@@ -37,6 +42,14 @@ defmodule OrbitalDynamics.OptimizerTest do
     assert "caller_supplied_trusted_composition_registry_not_authentication" in local_search_hard_feasibility.model_limits
 
     assert "no_registry_signature_or_authentication" in local_search_hard_feasibility.model_limits
+
+    assert local_search_optimization_certificate.artifact_contract ==
+             "local_search_optimization_certificate.v1"
+
+    assert local_search_optimization_certificate.claim_scope ==
+             :enumerated_finite_search_space_only
+
+    refute local_search_optimization_certificate.global_optimality_claimed
 
     assert LocalSearchSelection.numeric_policy_keys() == [
              "target_value_weight",

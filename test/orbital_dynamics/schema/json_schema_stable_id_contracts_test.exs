@@ -2,6 +2,7 @@ defmodule OrbitalDynamics.Schema.JsonSchemaStableIdContractsTest do
   use ExUnit.Case, async: true
 
   alias OrbitalDynamics.Schema
+  alias OrbitalDynamics.Schema.StableIdValidation
 
   test "exports stable-id hints for standalone artifact identity fields" do
     stable_id_pattern = Schema.identity_policy()["stable_id_pattern"]
@@ -2247,5 +2248,33 @@ defmodule OrbitalDynamics.Schema.JsonSchemaStableIdContractsTest do
 
     assert get_in(validation_schema, ["properties", "model_id", "pattern"]) ==
              stable_id_pattern
+  end
+
+  test "stable ID executable and exported forms require absolute valid UTF-8 machine IDs" do
+    pattern = Schema.identity_policy()["stable_id_pattern"]
+    assert pattern == StableIdValidation.pattern()
+    refute String.contains?(pattern, "$")
+    assert {:ok, regex} = Regex.compile(pattern)
+
+    assert StableIdValidation.valid?("machine.id:revision-1")
+    assert Regex.match?(regex, "machine.id:revision-1")
+
+    Enum.each(
+      [
+        "",
+        "machine.id\n",
+        "machine.id\r",
+        "machine.id\t",
+        "machine.id\u0000",
+        "machine.id\u001F",
+        "machine.id\u007F",
+        "machine.id\u200B",
+        <<"machine.id", 255>>
+      ],
+      fn invalid ->
+        refute StableIdValidation.valid?(invalid)
+        refute Regex.match?(regex, invalid)
+      end
+    )
   end
 end

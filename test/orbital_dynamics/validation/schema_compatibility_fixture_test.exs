@@ -180,8 +180,8 @@ defmodule OrbitalDynamics.Validation.SchemaCompatibilityFixtureTest do
              "deprecated_contract_count" => 1,
              "deprecated_contracts" => "campaign_plan.v1",
              "replacement_contracts" => "campaign_strategy.v3",
-             "status_counts" => %{"current" => 126, "deprecated" => 1},
-             "row_derived_status_counts" => %{"current" => 126, "deprecated" => 1}
+             "status_counts" => %{"current" => 127, "deprecated" => 1},
+             "row_derived_status_counts" => %{"current" => 127, "deprecated" => 1}
            } = schema_migration_report_fixture_observations()
 
     stale_status_counts =
@@ -262,14 +262,14 @@ defmodule OrbitalDynamics.Validation.SchemaCompatibilityFixtureTest do
              "status" => "review_required",
              "future_contract_count" => 1,
              "deprecated_contract_count" => 0,
-             "status_counts" => %{"current" => 127, "future" => 1},
-             "row_derived_status_counts" => %{"current" => 127, "future" => 1},
+             "status_counts" => %{"current" => 128, "future" => 1},
+             "row_derived_status_counts" => %{"current" => 128, "future" => 1},
              "migration_action_counts" => %{
-               "continue_current_contract" => 127,
+               "continue_current_contract" => 128,
                "prepare_future_contract" => 1
              },
              "row_derived_migration_action_counts" => %{
-               "continue_current_contract" => 127,
+               "continue_current_contract" => 128,
                "prepare_future_contract" => 1
              }
            } = observations

@@ -142,6 +142,11 @@ defmodule OrbitalDynamics.CapabilitiesTest do
 
   test "public capability catalog artifact is JSON-facing and schema-valid" do
     artifact = OrbitalDynamics.capability_catalog_artifact()
+    live_bytes = artifact |> :json.encode() |> IO.iodata_to_binary() |> Kernel.<>("\n")
+    checked_in_bytes = File.read!("study_results/capability_catalog_v1.json")
+
+    assert checked_in_bytes == live_bytes
+    assert :json.decode(checked_in_bytes) == artifact
 
     assert %{
              "schema_contract" => "capability_catalog.v1",
@@ -157,7 +162,28 @@ defmodule OrbitalDynamics.CapabilitiesTest do
 
     assert artifact_contract_count == map_size(Schema.contracts())
     assert artifact_contract_count == length(artifact_contracts)
+    assert artifact_contract_count == 128
     assert "capability_catalog.v1" in artifact_contracts
+    assert "local_search_optimization_certificate.v1" in artifact_contracts
+
+    assert get_in(artifact, ["planning", "optimizer", "public_facades"]) == [
+             "explainable_local_search",
+             "certified_local_search",
+             "verify_local_search_certificate"
+           ]
+
+    local_search_certificate =
+      get_in(artifact, ["planning", "optimizer", "local_search_optimization_certificate"])
+
+    assert local_search_certificate["artifact_contract"] ==
+             "local_search_optimization_certificate.v1"
+
+    assert local_search_certificate["global_optimality_claimed"] === false
+    assert local_search_certificate["mode"] == "opt_in_exact_finite_neighborhood_enumeration"
+    assert get_in(artifact, ["analysis", "propagator", "supports_batching"]) === false
+
+    assert get_in(artifact, ["planning", "optimizer", "validation_level"]) ==
+             "artifact_contract"
 
     assert :null =
              get_in(artifact, [

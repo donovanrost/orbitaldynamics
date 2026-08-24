@@ -2,6 +2,8 @@ defmodule OrbitalDynamics.Schema.ValidationPolicyContractsTest do
   use ExUnit.Case, async: true
 
   alias OrbitalDynamics.{Schema, Validation}
+  alias OrbitalDynamics.Schema.JsonSafety
+  alias OrbitalDynamics.Validation.ImplementationKey
 
   test "exports and validates validation policy contracts" do
     assert {:ok, %{"schema_contract" => "validation_tolerance_policy.v1"}} =
@@ -252,7 +254,7 @@ defmodule OrbitalDynamics.Schema.ValidationPolicyContractsTest do
 
     assert migration_report["status"] == "review_required"
     assert migration_report["deprecated_contract_count"] == 1
-    assert migration_report["status_counts"] == %{"current" => 126, "deprecated" => 1}
+    assert migration_report["status_counts"] == %{"current" => 127, "deprecated" => 1}
 
     stale_migration_model =
       Map.put(migration_report, "model", "stale_schema_migration_report_model")
@@ -355,6 +357,62 @@ defmodule OrbitalDynamics.Schema.ValidationPolicyContractsTest do
              "migration_action",
              "enum"
            ]) == Validation.capabilities().schema_migration_actions
+  end
+
+  test "backend implementation keys share one executable exported and runtime machine ID policy" do
+    policy = Validation.backend_acceptance_policy()
+    pattern = ImplementationKey.pattern()
+
+    assert {:ok, schema} = Schema.json_schema("backend_acceptance_policy.v1")
+
+    assert get_in(schema, ["properties", "implementation_tiers", "propertyNames", "pattern"]) ==
+             pattern
+
+    assert get_in(schema, [
+             "properties",
+             "reference_backend",
+             "properties",
+             "implementations",
+             "items",
+             "pattern"
+           ]) == pattern
+
+    assert {:ok, _evidence} =
+             Validation.backend_acceptance_evidence("OrbitalDynamics.Propagators.TwoBody")
+
+    invalid_keys = ["", "backend\n", "backend\u0000", "backend\u200B", <<"backend", 255>>]
+
+    Enum.each(invalid_keys, fn invalid_key ->
+      refute ImplementationKey.valid?(invalid_key)
+      assert :error = ImplementationKey.normalize(invalid_key)
+
+      assert {:error, :invalid_backend_implementation} =
+               Validation.backend_acceptance_evidence(invalid_key)
+
+      invalid_tiers =
+        put_in(
+          policy,
+          ["implementation_tiers"],
+          Map.put(policy["implementation_tiers"], invalid_key, "reference_default")
+        )
+
+      assert {:error, tiers_report} =
+               Schema.validate_artifact(invalid_tiers,
+                 schema_contract: "backend_acceptance_policy.v1"
+               )
+
+      assert JsonSafety.errors(tiers_report) == []
+
+      invalid_reference =
+        put_in(policy, ["reference_backend", "implementations", Access.at(0)], invalid_key)
+
+      assert {:error, reference_report} =
+               Schema.validate_artifact(invalid_reference,
+                 schema_contract: "backend_acceptance_policy.v1"
+               )
+
+      assert JsonSafety.errors(reference_report) == []
+    end)
   end
 
   defp read_json!(path) do

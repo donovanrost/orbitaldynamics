@@ -1,6 +1,8 @@
 defmodule OrbitalDynamics.Schema.ValidationPolicyContracts do
   @moduledoc false
 
+  alias OrbitalDynamics.Validation.ImplementationKey
+
   import OrbitalDynamics.Schema.PrimitiveValidation,
     only: [
       error: 2,
@@ -185,6 +187,15 @@ defmodule OrbitalDynamics.Schema.ValidationPolicyContracts do
         not is_binary(implementation) ->
           acc
 
+        not ImplementationKey.valid?(implementation) ->
+          [
+            error(
+              "$.reference_backend.implementations[#{index}]",
+              "must be a valid backend implementation machine identifier"
+            )
+            | acc
+          ]
+
         Map.get(implementation_tiers, implementation) == reference_tier ->
           acc
 
@@ -214,6 +225,15 @@ defmodule OrbitalDynamics.Schema.ValidationPolicyContracts do
         not is_binary(implementation) ->
           [
             error("$.implementation_tiers", "implementation names must be strings")
+            | acc
+          ]
+
+        not ImplementationKey.valid?(implementation) ->
+          [
+            error(
+              "$.implementation_tiers",
+              "implementation names must be valid backend implementation machine identifiers"
+            )
             | acc
           ]
 

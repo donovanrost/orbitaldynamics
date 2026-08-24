@@ -1380,6 +1380,36 @@ defmodule OrbitalDynamics do
   end
 
   @doc """
+  Emits an executable certificate for opt-in exact enumeration of one complete
+  bounded local neighborhood.
+
+  Any supported best-alternative claim is limited to the declared finite search
+  space; the default heuristic and campaign-planner paths are unchanged.
+  """
+  def certified_local_search(seed_parameters, source_evidence, evaluator_fun, opts) do
+    Optimizer.certified_local_search(seed_parameters, source_evidence, evaluator_fun, opts)
+  end
+
+  @doc """
+  Verifies a local-search certificate by exact replay against trusted inputs.
+  """
+  def verify_local_search_certificate(
+        certificate,
+        seed_parameters,
+        source_evidence,
+        evaluator_fun,
+        opts
+      ) do
+    Optimizer.verify_local_search_certificate(
+      certificate,
+      seed_parameters,
+      source_evidence,
+      evaluator_fun,
+      opts
+    )
+  end
+
+  @doc """
   Evaluates artifact-level metric constraints against a persisted result artifact.
 
   Returns one deterministic row per scenario/constraint pair. This uses saved
@@ -3089,6 +3119,7 @@ defmodule OrbitalDynamics do
 
   defp json_safe_capability_value(nil), do: :null
   defp json_safe_capability_value(:null), do: :null
+  defp json_safe_capability_value(value) when is_boolean(value), do: value
   defp json_safe_capability_value(value) when is_atom(value), do: Atom.to_string(value)
   defp json_safe_capability_value(value), do: value
 
