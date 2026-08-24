@@ -19,6 +19,11 @@ defmodule OrbitalDynamics.Optimizer.LocalSearchCertificate do
   change an identity while distinct BEAM aliases such as string/atom keys or
   `nil`/`:null` are never silently collapsed. Source evidence is content-addressed
   but is not authenticated.
+
+  Before invoking the evaluator, construction reserves the complete certificate
+  envelope and a smallest valid next evaluation against the shared JSON resource
+  limits. Each actual result is then admitted against the cumulative projected
+  certificate before it becomes retained builder state.
   """
 
   alias OrbitalDynamics.Schema
@@ -70,6 +75,8 @@ defmodule OrbitalDynamics.Optimizer.LocalSearchCertificate do
   @stable_id ~r/\A[A-Za-z0-9][A-Za-z0-9._:@-]*\z/
   @score_term_name ~r/\A[A-Za-z][A-Za-z0-9_.-]*\z/
   @certificate_id ~r/\Alocal_search_optimization_certificate:[0-9a-f]{64}\z/
+  @certificate_id_placeholder "local_search_optimization_certificate:" <>
+                                String.duplicate("0", 64)
   @max_float 1.7976931348623157e308
 
   def schema_contract, do: @schema_contract
@@ -176,7 +183,13 @@ defmodule OrbitalDynamics.Optimizer.LocalSearchCertificate do
 
         search_space["candidates"]
         |> Enum.take(options.evaluation_budget)
-        |> evaluate_candidates(evidence, source_registry, evaluator_fun, options)
+        |> evaluate_candidates(
+          evidence,
+          search_space,
+          source_registry,
+          evaluator_fun,
+          options
+        )
         |> case do
           {:ok, evaluations} ->
             finalize_certificate(evaluations, search_space, source_registry, options)
@@ -191,6 +204,24 @@ defmodule OrbitalDynamics.Optimizer.LocalSearchCertificate do
   end
 
   defp finalize_certificate(evaluations, search_space, source_registry, options) do
+    core = certificate_core(evaluations, search_space, source_registry, options)
+    certificate = Map.put(core, "id", certificate_id(core))
+
+    case Schema.validate_artifact(certificate, schema_contract: @schema_contract) do
+      {:ok, _report} ->
+        certificate
+
+      {:error, report} ->
+        {:error,
+         %{
+           "status" => "rejected",
+           "reason" => "generated_certificate_schema_invalid",
+           "details" => %{"schema_validation" => report}
+         }}
+    end
+  end
+
+  defp certificate_core(evaluations, search_space, source_registry, options) do
     ranked = ranked_eligible(evaluations, options.objective_direction)
     rank_by_id = Map.new(ranked, &{&1["alternative_id"], &1["rank"]})
 
@@ -207,7 +238,7 @@ defmodule OrbitalDynamics.Optimizer.LocalSearchCertificate do
     search_space_exhausted = evaluated_count == candidate_count
     budget_limited = evaluated_count < candidate_count
 
-    core = %{
+    %{
       "schema_contract" => @schema_contract,
       "model" => @model,
       "objective" => options.objective,
@@ -247,21 +278,6 @@ defmodule OrbitalDynamics.Optimizer.LocalSearchCertificate do
         "global_search" => false
       }
     }
-
-    certificate = Map.put(core, "id", certificate_id(core))
-
-    case Schema.validate_artifact(certificate, schema_contract: @schema_contract) do
-      {:ok, _report} ->
-        certificate
-
-      {:error, report} ->
-        {:error,
-         %{
-           "status" => "rejected",
-           "reason" => "generated_certificate_schema_invalid",
-           "details" => %{"schema_validation" => report}
-         }}
-    end
   end
 
   @doc """
@@ -732,18 +748,217 @@ defmodule OrbitalDynamics.Optimizer.LocalSearchCertificate do
     Map.put(core, "identity", source_registry_identity(core))
   end
 
-  defp evaluate_candidates(candidates, evidence, source_registry, evaluator_fun, options) do
+  defp evaluate_candidates(
+         candidates,
+         evidence,
+         search_space,
+         source_registry,
+         evaluator_fun,
+         options
+       ) do
+    with {:ok, envelope_bytes} <-
+           admit_certificate_output(
+             [],
+             search_space,
+             source_registry,
+             options,
+             "preflight_certificate_envelope",
+             0,
+             0,
+             0
+           ) do
+      do_evaluate_candidates(
+        candidates,
+        evidence,
+        search_space,
+        source_registry,
+        evaluator_fun,
+        options,
+        envelope_bytes
+      )
+    end
+  end
+
+  defp do_evaluate_candidates(
+         candidates,
+         evidence,
+         search_space,
+         source_registry,
+         evaluator_fun,
+         options,
+         envelope_bytes
+       ) do
     candidates
-    |> Enum.reduce_while({:ok, []}, fn candidate, {:ok, evaluations} ->
-      case evaluate_candidate(candidate, evidence, source_registry, evaluator_fun, options) do
-        {:ok, evaluation} -> {:cont, {:ok, [evaluation | evaluations]}}
-        {:error, failure} -> {:halt, {:error, failure}}
+    |> Enum.reduce_while(
+      {:ok, [], envelope_bytes},
+      fn candidate, {:ok, retained_reversed, admitted_bytes} ->
+        retained = Enum.reverse(retained_reversed)
+
+        preflight_phase =
+          if retained == [],
+            do: "preflight_before_first_evaluator",
+            else: "incremental_before_evaluator"
+
+        with {:ok, _reserved_bytes} <-
+               admit_next_evaluation_output(
+                 retained,
+                 candidate,
+                 search_space,
+                 source_registry,
+                 options,
+                 preflight_phase,
+                 admitted_bytes
+               ),
+             {:ok, evaluation} <-
+               evaluate_candidate(candidate, evidence, source_registry, evaluator_fun, options),
+             candidate_evaluations = retained ++ [evaluation],
+             {:ok, candidate_bytes} <-
+               admit_certificate_output(
+                 candidate_evaluations,
+                 search_space,
+                 source_registry,
+                 options,
+                 "incremental_after_evaluator",
+                 length(retained),
+                 length(candidate_evaluations),
+                 admitted_bytes
+               ) do
+          {:cont, {:ok, [evaluation | retained_reversed], candidate_bytes}}
+        else
+          {:error, failure} -> {:halt, {:error, failure}}
+        end
       end
-    end)
+    )
     |> case do
-      {:ok, evaluations} -> {:ok, Enum.reverse(evaluations)}
+      {:ok, evaluations, _admitted_bytes} -> {:ok, Enum.reverse(evaluations)}
       {:error, failure} -> {:error, failure}
     end
+  end
+
+  defp admit_next_evaluation_output(
+         retained,
+         candidate,
+         search_space,
+         source_registry,
+         options,
+         phase,
+         admitted_bytes
+       ) do
+    admissions =
+      candidate
+      |> minimum_evaluations(source_registry)
+      |> Enum.map(fn minimum_next ->
+        projected = retained ++ [minimum_next]
+
+        admit_certificate_output(
+          projected,
+          search_space,
+          source_registry,
+          options,
+          phase,
+          length(retained),
+          length(projected),
+          admitted_bytes
+        )
+      end)
+
+    case Enum.filter(admissions, &match?({:ok, _bytes}, &1)) do
+      [] ->
+        Enum.min_by(admissions, fn {:error, failure} ->
+          failure["details"]["projected_aggregate_string_bytes"]
+        end)
+
+      safe_admissions ->
+        Enum.min_by(safe_admissions, fn {:ok, bytes} -> bytes end)
+    end
+  end
+
+  defp minimum_evaluations(candidate, source_registry) do
+    source_entry =
+      Enum.find(source_registry["entries"], &(&1["alternative_id"] == candidate["id"]))
+
+    base = %{
+      "alternative_id" => candidate["id"],
+      "generation_index" => candidate["generation_index"],
+      "source_evidence_identity" => source_entry["content_identity"],
+      "score_terms" => %{"s" => 0},
+      "score" => 0
+    }
+
+    [
+      Map.merge(base, %{"eligible" => true, "rejection_reasons" => []}),
+      Map.merge(base, %{"eligible" => false, "rejection_reasons" => ["r"]})
+    ]
+  end
+
+  defp admit_certificate_output(
+         evaluations,
+         search_space,
+         source_registry,
+         options,
+         phase,
+         retained_count,
+         projected_count,
+         admitted_bytes
+       ) do
+    projection =
+      evaluations
+      |> certificate_core(search_space, source_registry, options)
+      |> Map.put("id", @certificate_id_placeholder)
+
+    projected_bytes = aggregate_json_string_bytes(projection)
+
+    case JsonSafety.errors(projection) do
+      [] ->
+        {:ok, projected_bytes}
+
+      [_issue | _rest] ->
+        {:error,
+         certificate_output_failure(
+           phase,
+           retained_count,
+           projected_count,
+           admitted_bytes,
+           projected_bytes
+         )}
+    end
+  end
+
+  defp aggregate_json_string_bytes(value) when is_binary(value), do: byte_size(value)
+  defp aggregate_json_string_bytes(value) when is_boolean(value), do: 0
+  defp aggregate_json_string_bytes(value) when is_number(value), do: 0
+  defp aggregate_json_string_bytes(nil), do: 0
+  defp aggregate_json_string_bytes(:null), do: 0
+
+  defp aggregate_json_string_bytes(value) when is_list(value),
+    do: Enum.reduce(value, 0, &(&2 + aggregate_json_string_bytes(&1)))
+
+  defp aggregate_json_string_bytes(value) when is_map(value) do
+    Enum.reduce(value, 0, fn {key, nested}, total ->
+      total + byte_size(key) + aggregate_json_string_bytes(nested)
+    end)
+  end
+
+  defp certificate_output_failure(
+         phase,
+         retained_count,
+         projected_count,
+         admitted_bytes,
+         projected_bytes
+       ) do
+    %{
+      "status" => "rejected",
+      "reason" => "certificate_output_budget_exceeded",
+      "details" => %{
+        "phase" => phase,
+        "retained_evaluation_count" => retained_count,
+        "projected_evaluation_count" => projected_count,
+        "previously_admitted_aggregate_string_bytes" => admitted_bytes,
+        "projected_aggregate_string_bytes" => projected_bytes,
+        "aggregate_string_byte_limit" => JsonSafety.limits()["max_aggregate_bytes"],
+        "resource_scope" => "complete_local_search_optimization_certificate"
+      }
+    }
   end
 
   defp evaluate_candidate(candidate, evidence, source_registry, evaluator_fun, options) do
