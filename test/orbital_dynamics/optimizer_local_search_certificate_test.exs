@@ -305,6 +305,37 @@ defmodule OrbitalDynamics.OptimizerLocalSearchCertificateTest do
                rejection_reasons incumbent_after_evaluation_id rank
              )
 
+    assumptions_schema = get_in(schema, ["properties", "assumptions"])
+    assert assumptions_schema["additionalProperties"] == false
+
+    assert Enum.sort(assumptions_schema["required"]) ==
+             build_certificate()["assumptions"] |> Map.keys() |> Enum.sort()
+
+    candidate_move_schema =
+      get_in(schema, [
+        "properties",
+        "search_space",
+        "properties",
+        "candidates",
+        "items",
+        "properties",
+        "move"
+      ])
+
+    assert Enum.all?(candidate_move_schema["oneOf"], &(&1["additionalProperties"] == false))
+
+    rejected_move_schema =
+      get_in(schema, [
+        "properties",
+        "search_space",
+        "properties",
+        "generation_rejected_moves",
+        "items"
+      ])
+
+    assert rejected_move_schema["additionalProperties"] == false
+    assert get_in(rejected_move_schema, ["properties", "move", "additionalProperties"]) == false
+
     heuristic =
       Optimizer.explainable_local_search(
         %{"x" => 1},
@@ -323,6 +354,37 @@ defmodule OrbitalDynamics.OptimizerLocalSearchCertificateTest do
 
     assert capabilities.local_search_optimization_certificate.artifact_contract ==
              "local_search_optimization_certificate.v1"
+  end
+
+  test "exported nested closure matches executable exact-field rejection" do
+    certificate = build_certificate()
+
+    mutations = [
+      {"$.assumptions", &put_in(&1, ["assumptions", "unexpected"], true)},
+      {"$.search_space.candidates[0].move",
+       &put_in(&1, ["search_space", "candidates", Access.at(0), "move", "unexpected"], true)},
+      {"$.search_space.generation_rejected_moves[0]",
+       &put_in(
+         &1,
+         ["search_space", "generation_rejected_moves", Access.at(0), "unexpected"],
+         true
+       )}
+    ]
+
+    Enum.each(mutations, fn {path, mutate} ->
+      mutated = mutate.(certificate)
+      assert_public_boundary_schema_errors(mutated, [path, "$.id"])
+
+      reidentified =
+        Map.put(
+          mutated,
+          "id",
+          LocalSearchCertificate.certificate_id(Map.delete(mutated, "id"))
+        )
+
+      report = assert_public_boundary_schema_errors(reidentified, [path])
+      refute Enum.any?(report["errors"], &(&1["path"] == "$.id"))
+    end)
   end
 
   test "public schema rejects every reproduced malformed nested certificate mutation" do

@@ -24,6 +24,9 @@ defmodule OrbitalDynamics.Schema.LocalSearchOptimizationCertificateContracts do
   )
   @bound_fields ~w(minimum maximum)
   @candidate_fields ~w(id generation_index parameters move)
+  @seed_move_fields ~w(type)
+  @axis_step_move_fields ~w(type parameter direction delta from to)
+  @rejected_move_fields ~w(id generation_index move reason)
   @registry_fields ~w(trust_boundary entry_count entries identity)
   @registry_entry_fields ~w(
     alternative_id source_id source_revision content_identity
@@ -248,7 +251,7 @@ defmodule OrbitalDynamics.Schema.LocalSearchOptimizationCertificateContracts do
       |> validate_identity("#{search_path}.identity", search_space["identity"])
       |> validate_bounds("#{search_path}.bounds", search_space["bounds"])
       |> validate_candidate_rows("#{search_path}.candidates", search_space["candidates"])
-      |> validate_map_rows(
+      |> validate_rejected_moves(
         "#{search_path}.generation_rejected_moves",
         search_space["generation_rejected_moves"]
       )
@@ -320,23 +323,68 @@ defmodule OrbitalDynamics.Schema.LocalSearchOptimizationCertificateContracts do
     |> expect_non_negative_integer(path, candidate, "generation_index")
     |> expect_finite_numeric_map(path, candidate, "parameters")
     |> expect_type(path, candidate, "move", :map)
+    |> validate_candidate_move("#{path}.move", candidate["move"])
   end
 
   defp validate_candidate_row(issues, path, _candidate),
     do: [error(path, "must be a map") | issues]
 
-  defp validate_map_rows(issues, path, rows) do
+  defp validate_candidate_move(issues, path, %{"type" => "seed"} = move) do
+    exact_fields(issues, path, move, @seed_move_fields)
+  end
+
+  defp validate_candidate_move(issues, path, %{"type" => "axis_step"} = move) do
+    issues
+    |> exact_fields(path, move, @axis_step_move_fields)
+    |> expect_equal(path, move, "type", "axis_step")
+    |> ensure(
+      supported_parameter_name?(move["parameter"]),
+      "#{path}.parameter",
+      "must be a supported parameter name"
+    )
+    |> expect_one_of(path, move, "direction", ["decrease", "increase"])
+    |> expect_finite_number(path, move, "delta")
+    |> expect_finite_number(path, move, "from")
+    |> expect_finite_number(path, move, "to")
+  end
+
+  defp validate_candidate_move(issues, path, _move),
+    do: [error(path, "must be an exact seed or axis-step move") | issues]
+
+  defp validate_rejected_moves(issues, path, rows) do
     if proper_list?(rows) do
       rows
       |> Enum.with_index()
-      |> Enum.reduce(issues, fn
-        {row, _index}, acc when is_map(row) -> acc
-        {_row, index}, acc -> [error("#{path}[#{index}]", "must be a map") | acc]
+      |> Enum.reduce(issues, fn {row, index}, acc ->
+        validate_rejected_move(acc, "#{path}[#{index}]", row)
       end)
     else
       issues
     end
   end
+
+  defp validate_rejected_move(issues, path, row) when is_map(row) do
+    issues
+    |> exact_fields(path, row, @rejected_move_fields)
+    |> expect_stable_id(path, row, "id")
+    |> expect_non_negative_integer(path, row, "generation_index")
+    |> expect_type(path, row, "move", :map)
+    |> validate_rejected_move_shape("#{path}.move", row["move"])
+    |> expect_one_of(path, row, "reason", [
+      "below_minimum_bound",
+      "above_maximum_bound",
+      "alternative_limit"
+    ])
+  end
+
+  defp validate_rejected_move(issues, path, _row),
+    do: [error(path, "must be a map") | issues]
+
+  defp validate_rejected_move_shape(issues, path, %{"type" => "axis_step"} = move),
+    do: validate_candidate_move(issues, path, move)
+
+  defp validate_rejected_move_shape(issues, path, _move),
+    do: [error(path, "must be an exact axis-step move") | issues]
 
   defp search_space_structure_valid?(search_space) do
     is_map(search_space) and finite_score_terms_map?(search_space["seed_parameters"]) and
@@ -1027,6 +1075,9 @@ defmodule OrbitalDynamics.Schema.LocalSearchOptimizationCertificateContracts do
   defp finite_numeric_map?(_map), do: false
 
   defp finite_score_terms_map?(map), do: finite_numeric_map?(map)
+
+  defp supported_parameter_name?(value),
+    do: is_binary(value) and Regex.match?(@score_term_name, value)
 
   defp finite_number?(value) when is_integer(value), do: true
 

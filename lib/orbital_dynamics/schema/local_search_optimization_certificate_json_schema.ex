@@ -81,8 +81,7 @@ defmodule OrbitalDynamics.Schema.LocalSearchOptimizationCertificateJsonSchema do
     }
   end
 
-  def property("assumptions", _stable_id_pattern),
-    do: %{"type" => "object", "additionalProperties" => true}
+  def property("assumptions", _stable_id_pattern), do: assumptions_schema()
 
   defp evaluator_execution_policy_schema do
     policy =
@@ -162,7 +161,7 @@ defmodule OrbitalDynamics.Schema.LocalSearchOptimizationCertificateJsonSchema do
         },
         "generation_rejected_moves" => %{
           "type" => "array",
-          "items" => %{"type" => "object", "additionalProperties" => true}
+          "items" => rejected_move_schema()
         },
         "identity" => identity_schema()
       }
@@ -174,7 +173,58 @@ defmodule OrbitalDynamics.Schema.LocalSearchOptimizationCertificateJsonSchema do
       "id" => stable_id_schema(),
       "generation_index" => non_negative_integer(),
       "parameters" => numeric_map(),
-      "move" => %{"type" => "object", "additionalProperties" => true}
+      "move" => candidate_move_schema()
+    })
+  end
+
+  defp assumptions_schema do
+    object_schema(
+      ~w(
+        score_rule evaluator eligibility_timing source_evidence_trust_boundary external_solver
+        global_search
+      ),
+      %{
+        "score_rule" => string_const("sum_of_score_terms"),
+        "evaluator" =>
+          string_const("caller_supplied_pure_deterministic_supervised_unlinked_bounded_worker"),
+        "eligibility_timing" => string_const("during_deterministic_enumeration_before_ranking"),
+        "source_evidence_trust_boundary" =>
+          string_const(LocalSearchCertificate.source_trust_boundary()),
+        "external_solver" => %{"type" => "boolean", "const" => false},
+        "global_search" => %{"type" => "boolean", "const" => false}
+      }
+    )
+  end
+
+  defp candidate_move_schema do
+    %{
+      "oneOf" => [
+        object_schema(~w(type), %{"type" => string_const("seed")}),
+        axis_step_move_schema()
+      ]
+    }
+  end
+
+  defp axis_step_move_schema do
+    object_schema(~w(type parameter direction delta from to), %{
+      "type" => string_const("axis_step"),
+      "parameter" => %{"type" => "string", "pattern" => @score_term_name_pattern},
+      "direction" => %{"type" => "string", "enum" => ["decrease", "increase"]},
+      "delta" => %{"type" => "number"},
+      "from" => %{"type" => "number"},
+      "to" => %{"type" => "number"}
+    })
+  end
+
+  defp rejected_move_schema do
+    object_schema(~w(id generation_index move reason), %{
+      "id" => stable_id_schema(),
+      "generation_index" => non_negative_integer(),
+      "move" => axis_step_move_schema(),
+      "reason" => %{
+        "type" => "string",
+        "enum" => ["below_minimum_bound", "above_maximum_bound", "alternative_limit"]
+      }
     })
   end
 
@@ -248,6 +298,7 @@ defmodule OrbitalDynamics.Schema.LocalSearchOptimizationCertificateJsonSchema do
 
   defp string_array, do: %{"type" => "array", "items" => %{"type" => "string"}}
   defp non_negative_integer, do: %{"type" => "integer", "minimum" => 0}
+  defp string_const(value), do: %{"type" => "string", "const" => value}
 
   defp object_schema(required, properties) do
     %{
