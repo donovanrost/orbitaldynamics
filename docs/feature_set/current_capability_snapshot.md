@@ -14,8 +14,11 @@ Implemented or partially implemented modules and artifacts include:
 - Events: `EventDetectors.AccessWindows`,
   `EventDetectors.TargetVisibility`, `EventDetectors.Eclipses`, and sampled
   `EventDetectors.GroundTrackCrossings`.
-- Search and scoring: `Search.Grid`, `Search.MonteCarlo`,
-  `Constraints.ArtifactMetric`, and report ranking metrics.
+- Search and scoring: `Search.Grid`, `Search.MonteCarlo`, `Search.Local`,
+  `Constraints.ArtifactMetric`, report ranking metrics, opt-in bounded
+  explainable local search, and a standalone executable certificate for exact
+  enumeration of one declared finite local neighborhood. The certificate makes
+  no global-optimality claim and is not a V1/V2/V3 default.
 - Mission planning: `MissionPlan`, `MissionPlan.Activity`, and
   `Maneuver.ImpulsiveBurn`.
 - Artifacts and reports: `ResultSet`, `ResultSet.Artifact`,

@@ -1,0 +1,2112 @@
+defmodule OrbitalDynamics.OptimizerLocalSearchCertificateTest do
+  use ExUnit.Case, async: false
+
+  alias OrbitalDynamics.{Optimizer, Schema, Validation}
+  alias OrbitalDynamics.Optimizer.LocalSearchCertificate
+
+  alias OrbitalDynamics.Schema.{
+    ArtifactValidationRouter,
+    JsonSafety,
+    LocalSearchOptimizationCertificateContracts
+  }
+
+  @seed %{"x" => 1, "y" => 0}
+  @opts [
+    steps: %{"y" => 1, "x" => 1},
+    bounds: %{"y" => {0, 2}, "x" => {0, 2}},
+    id_prefix: "certificate"
+  ]
+  @candidate_ids [
+    "certificate:seed",
+    "certificate:x:decrease",
+    "certificate:x:increase",
+    "certificate:y:increase"
+  ]
+  @max_float 1.7976931348623157e308
+
+  test "capability artifact advertises the bounded certificate without stringifying booleans" do
+    artifact = OrbitalDynamics.capability_catalog_artifact()
+    optimizer = get_in(artifact, ["planning", "optimizer"])
+    certificate_capability = optimizer["local_search_optimization_certificate"]
+
+    assert optimizer["public_facades"] == [
+             "explainable_local_search",
+             "certified_local_search",
+             "verify_local_search_certificate"
+           ]
+
+    assert certificate_capability["artifact_contract"] ==
+             "local_search_optimization_certificate.v1"
+
+    assert certificate_capability["global_optimality_claimed"] === false
+    assert certificate_capability["mode"] == "opt_in_exact_finite_neighborhood_enumeration"
+    assert get_in(artifact, ["validation", "schema", "artifact_contract_count"]) == 128
+
+    assert "local_search_optimization_certificate.v1" in get_in(artifact, [
+             "validation",
+             "schema",
+             "artifact_contracts"
+           ])
+
+    assert_json_total(artifact)
+  end
+
+  test "certifies the best eligible alternative only after exact finite-space exhaustion" do
+    certificate = build_certificate()
+
+    assert certificate["schema_contract"] == "local_search_optimization_certificate.v1"
+    assert certificate["model"] == LocalSearchCertificate.model()
+    assert certificate["search_space"]["candidate_count"] == 4
+    assert certificate["search_space"]["generation_attempt_count"] == 4
+    assert certificate["search_space"]["generation_rejected_count"] == 1
+
+    assert [
+             %{
+               "id" => "certificate:y:decrease",
+               "generation_index" => 3,
+               "reason" => "below_minimum_bound"
+             }
+           ] = certificate["search_space"]["generation_rejected_moves"]
+
+    assert certificate["evaluated_count"] == 4
+    assert certificate["eligible_count"] == 3
+    assert certificate["rejected_count"] == 1
+    assert certificate["unevaluated_count"] == 0
+    assert certificate["search_space_exhausted"]
+    refute certificate["budget_limited"]
+    assert certificate["termination_reason"] == "search_space_exhausted"
+
+    assert certificate["selected_alternative_id"] == "certificate:x:increase"
+    assert certificate["selected_score"] == 2
+
+    assert certificate["eligible_ids_by_rank"] == [
+             "certificate:x:increase",
+             "certificate:y:increase",
+             "certificate:seed"
+           ]
+
+    assert certificate["claim"] == %{
+             "status" => "supported",
+             "type" => "best_eligible_alternative_in_enumerated_finite_neighborhood",
+             "scope" => "enumerated_search_space_only",
+             "selected_alternative_id" => "certificate:x:increase",
+             "reason" => "search_space_exhausted_and_incumbent_ordering_applied",
+             "global_optimality_claimed" => false
+           }
+
+    refute certificate["global_optimality_claimed"]
+    assert {:ok, _report} = Schema.validate_artifact(certificate)
+
+    round_tripped =
+      certificate
+      |> :json.encode()
+      |> IO.iodata_to_binary()
+      |> :json.decode()
+
+    assert round_tripped == certificate
+    assert {:ok, _report} = Schema.validate_artifact(round_tripped)
+
+    assert {:ok, verification} =
+             Optimizer.verify_local_search_certificate(
+               round_tripped,
+               @seed,
+               source_evidence(@candidate_ids),
+               &evaluator/2,
+               @opts
+             )
+
+    assert verification["status"] == "verified"
+    assert verification["certificate_id"] == certificate["id"]
+    assert verification["claim"] == certificate["claim"]
+  end
+
+  test "uses generation index and alternative identity as deterministic score tie breaks" do
+    certificate = build_certificate()
+
+    x_increase = evaluation(certificate, "certificate:x:increase")
+    y_increase = evaluation(certificate, "certificate:y:increase")
+
+    assert x_increase["score"] == y_increase["score"]
+    assert x_increase["generation_index"] < y_increase["generation_index"]
+    assert x_increase["rank"] == 1
+    assert y_increase["rank"] == 2
+
+    assert Enum.map(certificate["evaluations"], & &1["incumbent_after_evaluation_id"]) == [
+             "certificate:seed",
+             "certificate:seed",
+             "certificate:x:increase",
+             "certificate:x:increase"
+           ]
+
+    reversed_input_order =
+      @candidate_ids
+      |> Enum.reverse()
+      |> source_evidence()
+
+    assert Optimizer.certified_local_search(@seed, reversed_input_order, &evaluator/2, @opts) ==
+             certificate
+  end
+
+  test "budget termination preserves the observed incumbent but makes no optimality claim" do
+    opts = Keyword.put(@opts, :evaluation_budget, 2)
+
+    certificate =
+      Optimizer.certified_local_search(
+        @seed,
+        source_evidence(@candidate_ids),
+        &evaluator/2,
+        opts
+      )
+
+    assert certificate["evaluated_count"] == 2
+    assert certificate["eligible_count"] == 1
+    assert certificate["rejected_count"] == 1
+    assert certificate["unevaluated_count"] == 2
+    assert certificate["budget_used"] == 2
+    assert certificate["budget_remaining"] == 0
+    assert certificate["budget_limited"]
+    refute certificate["search_space_exhausted"]
+    assert certificate["termination_reason"] == "evaluation_budget_exhausted"
+    assert certificate["selected_alternative_id"] == "certificate:seed"
+
+    assert certificate["claim"] == %{
+             "status" => "not_supported",
+             "type" => "no_optimality_claim",
+             "scope" => "enumerated_search_space_only",
+             "selected_alternative_id" => :null,
+             "reason" => "evaluation_budget_exhausted_before_search_space",
+             "global_optimality_claimed" => false
+           }
+
+    assert {:ok, _report} = Schema.validate_artifact(certificate)
+
+    assert {:ok, %{"status" => "verified"}} =
+             Optimizer.verify_local_search_certificate(
+               certificate,
+               @seed,
+               source_evidence(@candidate_ids),
+               &evaluator/2,
+               opts
+             )
+  end
+
+  test "exhaustion can certify that the finite neighborhood has no eligible candidate" do
+    reject_all = fn parameters, evidence ->
+      %{
+        "score_terms" => %{"value" => parameters["x"] + parameters["y"]},
+        "eligible" => false,
+        "rejection_reasons" => ["source_revision_not_eligible:#{evidence["revision"]}"]
+      }
+    end
+
+    certificate =
+      Optimizer.certified_local_search(
+        @seed,
+        source_evidence(@candidate_ids),
+        reject_all,
+        @opts
+      )
+
+    assert certificate["evaluated_count"] == 4
+    assert certificate["eligible_count"] == 0
+    assert certificate["rejected_count"] == 4
+    assert certificate["selected_alternative_id"] == :null
+    assert certificate["selected_score"] == :null
+    assert certificate["eligible_ids_by_rank"] == []
+    assert Enum.all?(certificate["evaluations"], &(&1["rank"] == :null))
+    assert Enum.all?(certificate["evaluations"], &(&1["incumbent_after_evaluation_id"] == :null))
+
+    assert certificate["claim"]["type"] ==
+             "no_eligible_alternative_in_enumerated_finite_neighborhood"
+
+    assert certificate["claim"]["status"] == "supported"
+    assert {:ok, _report} = Schema.validate_artifact(certificate)
+  end
+
+  test "verification fails closed for certificate and trusted-source tampering" do
+    certificate = build_certificate()
+    tampered_certificate = put_in(certificate, ["evaluations", Access.at(0), "score"], 999)
+
+    assert {:error, certificate_failure} =
+             Optimizer.verify_local_search_certificate(
+               tampered_certificate,
+               @seed,
+               source_evidence(@candidate_ids),
+               &evaluator/2,
+               @opts
+             )
+
+    assert certificate_failure["reason"] == "certificate_schema_invalid"
+
+    malformed_certificate = Map.put(certificate, "evaluations", %{"not" => "a list"})
+
+    assert {:error, malformed_report} = Schema.validate_artifact(malformed_certificate)
+    assert malformed_report["status"] == "fail"
+
+    tampered_evidence =
+      @candidate_ids
+      |> source_evidence()
+      |> put_in(["certificate:seed", "payload", "quality"], "tampered")
+
+    assert {:error, source_failure} =
+             Optimizer.verify_local_search_certificate(
+               certificate,
+               @seed,
+               tampered_evidence,
+               &evaluator/2,
+               @opts
+             )
+
+    assert source_failure["reason"] ==
+             "certificate_does_not_match_replayed_source_evidence_and_evaluation"
+  end
+
+  test "empty or incomplete finite-space evidence is rejected before evaluation" do
+    assert_builder_error(
+      Optimizer.certified_local_search(
+        @seed,
+        %{},
+        &evaluator/2,
+        Keyword.put(@opts, :steps, %{})
+      ),
+      "$.options.steps"
+    )
+
+    assert_builder_error(
+      Optimizer.certified_local_search(@seed, %{}, &evaluator/2, @opts),
+      "$.source_evidence"
+    )
+  end
+
+  test "exports the executable certificate schema and preserves the default heuristic" do
+    assert {:ok, schema} = Schema.json_schema("local_search_optimization_certificate.v1")
+    assert schema["additionalProperties"] == false
+    assert get_in(schema, ["properties", "claim", "additionalProperties"]) == false
+    assert get_in(schema, ["properties", "global_optimality_claimed", "const"]) == false
+
+    assert get_in(schema, [
+             "properties",
+             "evaluator_execution_policy",
+             "additionalProperties"
+           ]) == false
+
+    assert_typed_schema_error(Map.put(build_certificate(), "unexpected", true), "$")
+
+    assert {:ok, legacy_schema} = Schema.json_schema("optimizer_contract.v1")
+    assert legacy_schema["additionalProperties"] == true
+
+    assert get_in(schema, ["properties", "model", "const"]) ==
+             LocalSearchCertificate.model()
+
+    assert get_in(schema, ["properties", "evaluation_budget"]) == %{
+             "type" => "integer",
+             "minimum" => 1,
+             "maximum" => 65
+           }
+
+    assert get_in(schema, ["properties", "evaluations", "items", "required"]) ==
+             ~w(
+               alternative_id generation_index source_evidence_identity score_terms score eligible
+               rejection_reasons incumbent_after_evaluation_id rank
+             )
+
+    assumptions_schema = get_in(schema, ["properties", "assumptions"])
+    assert assumptions_schema["additionalProperties"] == false
+
+    assert Enum.sort(assumptions_schema["required"]) ==
+             build_certificate()["assumptions"] |> Map.keys() |> Enum.sort()
+
+    candidate_move_schema =
+      get_in(schema, [
+        "properties",
+        "search_space",
+        "properties",
+        "candidates",
+        "items",
+        "properties",
+        "move"
+      ])
+
+    assert Enum.all?(candidate_move_schema["oneOf"], &(&1["additionalProperties"] == false))
+
+    rejected_move_schema =
+      get_in(schema, [
+        "properties",
+        "search_space",
+        "properties",
+        "generation_rejected_moves",
+        "items"
+      ])
+
+    assert rejected_move_schema["additionalProperties"] == false
+    assert get_in(rejected_move_schema, ["properties", "move", "additionalProperties"]) == false
+
+    heuristic =
+      Optimizer.explainable_local_search(
+        %{"x" => 1},
+        fn parameters ->
+          %{"value" => parameters["x"]}
+        end,
+        steps: %{"x" => 1}
+      )
+
+    assert heuristic["model"] == "deterministic_bounded_axis_step_local_search"
+    refute Map.has_key?(heuristic, "schema_contract")
+    refute Map.has_key?(heuristic, "claim")
+
+    capabilities = Optimizer.capabilities()
+    assert capabilities.local_search_models == ["deterministic_bounded_axis_step_local_search"]
+
+    assert capabilities.local_search_optimization_certificate.artifact_contract ==
+             "local_search_optimization_certificate.v1"
+  end
+
+  test "exported nested closure matches executable exact-field rejection" do
+    certificate = build_certificate()
+
+    mutations = [
+      {"$.assumptions", &put_in(&1, ["assumptions", "unexpected"], true)},
+      {"$.search_space.candidates[0].move",
+       &put_in(&1, ["search_space", "candidates", Access.at(0), "move", "unexpected"], true)},
+      {"$.search_space.generation_rejected_moves[0]",
+       &put_in(
+         &1,
+         ["search_space", "generation_rejected_moves", Access.at(0), "unexpected"],
+         true
+       )}
+    ]
+
+    Enum.each(mutations, fn {path, mutate} ->
+      mutated = mutate.(certificate)
+      assert_public_boundary_schema_errors(mutated, [path, "$.id"])
+
+      reidentified =
+        Map.put(
+          mutated,
+          "id",
+          LocalSearchCertificate.certificate_id(Map.delete(mutated, "id"))
+        )
+
+      report = assert_public_boundary_schema_errors(reidentified, [path])
+      refute Enum.any?(report["errors"], &(&1["path"] == "$.id"))
+    end)
+  end
+
+  test "public schema rejects every reproduced malformed nested certificate mutation" do
+    certificate = build_certificate()
+
+    mutations = [
+      {"$.evaluations[0].eligible",
+       &put_in(&1, ["evaluations", Access.at(0), "eligible"], "true")},
+      {"$.evaluations[0].alternative_id",
+       &put_in(&1, ["evaluations", Access.at(0), "alternative_id"], 7)},
+      {"$.evaluations[0].score", &put_in(&1, ["evaluations", Access.at(0), "score"], "1")},
+      {"$.evaluations[0].source_evidence_identity",
+       &put_in(&1, ["evaluations", Access.at(0), "source_evidence_identity"], "sha256")},
+      {"$.evaluations[0]", &put_in(&1, ["evaluations", Access.at(0)], true)},
+      {"$.search_space.candidates[0]",
+       &put_in(&1, ["search_space", "candidates", Access.at(0)], true)},
+      {"$.search_space.step_parameters", &put_in(&1, ["search_space", "step_parameters"], "x")},
+      {"$.source_evidence_registry.entries[0]",
+       &put_in(&1, ["source_evidence_registry", "entries", Access.at(0)], true)},
+      {"$.source_evidence_registry.entries",
+       &put_in(&1, ["source_evidence_registry", "entries"], "entries")}
+    ]
+
+    Enum.each(mutations, fn {path, mutate} ->
+      mutated = mutate.(certificate)
+      assert_public_boundary_schema_errors(mutated, [path, "$.id"])
+
+      reidentified =
+        Map.put(
+          mutated,
+          "id",
+          LocalSearchCertificate.certificate_id(Map.delete(mutated, "id"))
+        )
+
+      report = assert_public_boundary_schema_errors(reidentified, [path])
+      refute Enum.any?(report["errors"], &(&1["path"] == "$.id"))
+    end)
+  end
+
+  test "public schema rejects improper mixed-key and non-JSON nested certificate terms" do
+    certificate = build_certificate()
+    first_evaluation = hd(certificate["evaluations"])
+
+    mutations = [
+      {"$.evaluations", &Map.put(&1, "evaluations", [first_evaluation | :improper])},
+      {"$.evaluations[0].rejection_reasons",
+       &put_in(
+         &1,
+         ["evaluations", Access.at(0), "rejection_reasons"],
+         ["reason" | :improper]
+       )},
+      {"$.evaluations[0]",
+       &put_in(
+         &1,
+         ["evaluations", Access.at(0)],
+         Map.put(first_evaluation, :eligible, true)
+       )},
+      {"$.evaluations[0].score_terms",
+       &put_in(
+         &1,
+         ["evaluations", Access.at(0), "score_terms"],
+         %{"value" => 1, value: 1}
+       )},
+      {"$.evaluations[0].score_terms",
+       &put_in(&1, ["evaluations", Access.at(0), "score_terms"], %{1 => 1})},
+      {"$.search_space.seed_parameters",
+       &put_in(&1, ["search_space", "seed_parameters"], %{"x\n" => 1})},
+      {"$.search_space.seed_parameters.<invalid_utf8_key>",
+       &put_in(&1, ["search_space", "seed_parameters"], %{<<255>> => 1})},
+      {"$.evaluations[0].score",
+       &put_in(&1, ["evaluations", Access.at(0), "score"], {:not, "json"})},
+      {"$.evaluations[0].score", &put_in(&1, ["evaluations", Access.at(0), "score"], self())},
+      {"$.evaluations[0].score", &put_in(&1, ["evaluations", Access.at(0), "score"], make_ref())},
+      {"$.evaluations[0].score",
+       &put_in(&1, ["evaluations", Access.at(0), "score"], fn -> :not_json end)},
+      {"$.evaluations[0].score",
+       &put_in(&1, ["evaluations", Access.at(0), "score"], %URI{host: "example.test"})},
+      {"$.evaluations[0].score", &put_in(&1, ["evaluations", Access.at(0), "score"], :not_json)},
+      {"$.evaluations[0].alternative_id",
+       &put_in(&1, ["evaluations", Access.at(0), "alternative_id"], <<255>>)}
+    ]
+
+    Enum.each(mutations, fn {path, mutate} ->
+      assert_public_boundary_schema_errors(mutate.(certificate), [path])
+    end)
+  end
+
+  test "atom-only and mixed-key public search inputs cannot alias accepted string-key identity" do
+    string_certificate = build_certificate()
+    assert is_binary(string_certificate["id"])
+
+    atom_seed_result =
+      Optimizer.certified_local_search(
+        %{x: 1, y: 0},
+        source_evidence(@candidate_ids),
+        &evaluator/2,
+        @opts
+      )
+
+    atom_steps_result =
+      Optimizer.certified_local_search(
+        @seed,
+        source_evidence(@candidate_ids),
+        &evaluator/2,
+        Keyword.put(@opts, :steps, %{x: 1, y: 1})
+      )
+
+    mixed_seed_result =
+      Optimizer.certified_local_search(
+        %{"x" => 1, "y" => 0, x: 1},
+        source_evidence(@candidate_ids),
+        &evaluator/2,
+        @opts
+      )
+
+    assert_builder_error(atom_seed_result, "$.seed_parameters")
+    assert_builder_error(atom_steps_result, "$.options.steps")
+    assert_builder_error(mixed_seed_result, "$.seed_parameters")
+
+    refute is_map(atom_seed_result)
+    refute is_map(atom_steps_result)
+
+    assert %{"algorithm" => _, "sha256" => string_digest} =
+             LocalSearchCertificate.content_identity(%{"x" => 1})
+
+    assert {:error, atom_identity_failure} =
+             LocalSearchCertificate.content_identity(%{x: 1})
+
+    assert atom_identity_failure["reason"] == "identity_input_not_strict_json"
+    assert byte_size(string_digest) == 64
+    refute Map.has_key?(atom_identity_failure, "sha256")
+    assert_json_total(atom_identity_failure)
+
+    assert "local_search_optimization_certificate:" <> string_certificate_digest =
+             LocalSearchCertificate.certificate_id(%{"x" => 1})
+
+    assert {:error, atom_certificate_id_failure} =
+             LocalSearchCertificate.certificate_id(%{x: 1})
+
+    assert byte_size(string_certificate_digest) == 64
+    assert atom_certificate_id_failure["reason"] == "identity_input_not_strict_json"
+    assert_json_total(atom_certificate_id_failure)
+  end
+
+  test "all certified builder facades reject malformed arguments without raising" do
+    invalid_calls = [
+      fn ->
+        LocalSearchCertificate.build(:not_a_map, %{}, &evaluator/2, @opts)
+      end,
+      fn ->
+        Optimizer.certified_local_search(@seed, :not_a_map, &evaluator/2, @opts)
+      end,
+      fn ->
+        OrbitalDynamics.certified_local_search(@seed, %{}, :not_an_evaluator, @opts)
+      end,
+      fn ->
+        Optimizer.certified_local_search(@seed, %{}, &evaluator/2, :not_options)
+      end
+    ]
+
+    Enum.each(invalid_calls, fn invalid_call ->
+      assert {:error, failure} = invalid_call.()
+      assert failure["reason"] == "builder_input_invalid"
+      assert_json_total(failure)
+    end)
+  end
+
+  test "builder options reject improper duplicate conflicting nested and oversized inputs" do
+    valid_evidence = source_evidence(@candidate_ids)
+
+    invalid_options = [
+      [:improper | :tail],
+      [{:steps, %{"x" => 1}} | :tail],
+      [steps: %{"x" => 1}, steps: %{"x" => 2}],
+      [{:steps, %{"x" => 1}}, {"steps", %{"x" => 1}}],
+      [steps: %{"x" => 1}, unsupported: true],
+      [],
+      [steps: "x"],
+      [steps: %{"x" => 1, x: 1}],
+      [steps: %{"x" => 1}, bounds: %{x: {0, 2}}],
+      [steps: %{"x" => 1}, bounds: %{"x" => [0, 2]}],
+      [steps: %{"x" => 1}, objective_direction: :sideways],
+      [steps: %{"x" => 1}, evaluator_timeout_ms: 0],
+      [steps: %{"x" => 1}, evaluation_budget: 66],
+      List.duplicate({:steps, %{"x" => 1}}, 8)
+    ]
+
+    Enum.each(invalid_options, fn opts ->
+      assert {:error, failure} =
+               Optimizer.certified_local_search(@seed, valid_evidence, &evaluator/2, opts)
+
+      assert failure["reason"] == "builder_input_invalid"
+      assert_json_total(failure)
+    end)
+
+    assert_builder_error(
+      Optimizer.certified_local_search(
+        %{"x" => @max_float},
+        %{},
+        &evaluator/2,
+        steps: %{"x" => @max_float}
+      ),
+      "$.options.steps"
+    )
+  end
+
+  test "builder source boundary rejects malformed unsafe and oversized values without collapse" do
+    port = Port.open({:spawn_executable, System.find_executable("cat")}, [])
+    on_exit(fn -> if Port.info(port), do: Port.close(port) end)
+
+    unsafe_values = [
+      :atom,
+      :null,
+      {:tuple, "value"},
+      self(),
+      make_ref(),
+      fn -> :value end,
+      port,
+      <<1::size(1)>>,
+      ["head" | :tail],
+      %URI{host: "example.test"},
+      <<255>>,
+      List.duplicate("value", JsonSafety.limits()["max_collection_items"] + 1)
+    ]
+
+    Enum.each(unsafe_values, fn unsafe_value ->
+      evidence =
+        @candidate_ids
+        |> source_evidence()
+        |> put_in(["certificate:seed", "payload", "unsafe"], unsafe_value)
+
+      assert_builder_error(
+        Optimizer.certified_local_search(@seed, evidence, &evaluator/2, @opts),
+        "$.source_evidence"
+      )
+    end)
+
+    malformed_entries = [
+      true,
+      "entry",
+      %{"revision" => "revision:1"},
+      %{"id" => "source:certificate:seed"},
+      %{id: "source:certificate:seed", revision: "revision:1"},
+      %{"id" => "source", "revision" => "revision:1", id: "alias"}
+    ]
+
+    Enum.each(malformed_entries, fn malformed_entry ->
+      evidence =
+        @candidate_ids
+        |> source_evidence()
+        |> Map.put("certificate:seed", malformed_entry)
+
+      assert {:error, failure} =
+               Optimizer.certified_local_search(@seed, evidence, &evaluator/2, @opts)
+
+      assert failure["reason"] == "builder_input_invalid"
+      assert_json_total(failure)
+    end)
+  end
+
+  test "evaluator output boundary rejects every malformed BEAM and container shape typed" do
+    port = Port.open({:spawn_executable, System.find_executable("cat")}, [])
+    on_exit(fn -> if Port.info(port), do: Port.close(port) end)
+
+    invalid_results = [
+      true,
+      "result",
+      [],
+      ["row" | :tail],
+      {:tuple, "result"},
+      self(),
+      make_ref(),
+      fn -> :result end,
+      %URI{host: "example.test"},
+      %{:eligible => true, "eligible" => true},
+      %{"eligible" => true, "rejection_reasons" => [], "score_terms" => %{}, "extra" => 1},
+      %{"eligible" => "true", "rejection_reasons" => [], "score_terms" => %{"value" => 1}},
+      %{"eligible" => true, "rejection_reasons" => "none", "score_terms" => %{"value" => 1}},
+      %{
+        "eligible" => true,
+        "rejection_reasons" => ["reason" | :tail],
+        "score_terms" => %{"value" => 1}
+      },
+      %{
+        "eligible" => true,
+        "rejection_reasons" =>
+          List.duplicate("reason", JsonSafety.limits()["max_collection_items"] + 1),
+        "score_terms" => %{"value" => 1}
+      },
+      %{"eligible" => true, "rejection_reasons" => [], "score_terms" => %{value: 1}},
+      %{"eligible" => true, "rejection_reasons" => [], "score_terms" => %{"value" => port}},
+      %{
+        "eligible" => true,
+        "rejection_reasons" => [],
+        "score_terms" => %{"value" => <<1::size(1)>>}
+      },
+      %{"eligible" => true, "rejection_reasons" => [], "score_terms" => %{"value" => <<255>>}}
+    ]
+
+    Enum.each(invalid_results, fn invalid_result ->
+      evaluator = fn _parameters, _evidence -> invalid_result end
+
+      assert {:error, failure} =
+               Optimizer.certified_local_search(
+                 @seed,
+                 source_evidence(@candidate_ids),
+                 evaluator,
+                 @opts
+               )
+
+      assert failure["reason"] == "evaluator_execution_failed"
+      assert failure["details"]["failure_kind"] in ["error", "invalid_result"]
+      assert_json_total(failure)
+    end)
+  end
+
+  test "schema and router boundaries reject every term and selector shape without raising" do
+    certificate = build_certificate()
+    {:ok, contract} = Schema.contract("local_search_optimization_certificate.v1")
+    port = Port.open({:spawn_executable, System.find_executable("cat")}, [])
+    on_exit(fn -> if Port.info(port), do: Port.close(port) end)
+
+    malformed_artifacts = [
+      :artifact,
+      nil,
+      {:artifact},
+      self(),
+      make_ref(),
+      fn -> :artifact end,
+      port,
+      <<1::size(1)>>,
+      ["artifact" | :tail],
+      %URI{host: "example.test"}
+    ]
+
+    Enum.each(malformed_artifacts, fn artifact ->
+      Enum.each([&Schema.validate_artifact/2, &OrbitalDynamics.validate_artifact/2], fn facade ->
+        assert {:error, report} =
+                 facade.(artifact,
+                   schema_contract: "local_search_optimization_certificate.v1"
+                 )
+
+        assert_json_total(report)
+      end)
+    end)
+
+    malformed_options = [
+      :options,
+      [{:schema_contract, "local_search_optimization_certificate.v1"} | :tail],
+      [schema_contract: "local_search_optimization_certificate.v1", schema_contract: "other.v1"],
+      [
+        schema_contract: "local_search_optimization_certificate.v1",
+        contract: "local_search_optimization_certificate.v1"
+      ],
+      [schema_contract: 7],
+      [schema_contract: <<255>>],
+      [schema_contract: "local_search_optimization_certificate.v1", validation_mode: false],
+      [schema_contract: "local_search_optimization_certificate.v1", artifact_path: <<255>>],
+      [
+        {:schema_contract, "local_search_optimization_certificate.v1"},
+        {"schema_contract", "local_search_optimization_certificate.v1"}
+      ],
+      [unsupported: "local_search_optimization_certificate.v1"]
+    ]
+
+    Enum.each(malformed_options, fn opts ->
+      assert {:error, report} = Schema.validate_artifact(certificate, opts)
+      assert_json_total(report)
+    end)
+
+    assert {:ok, _report} =
+             Schema.validate_artifact(certificate,
+               schema_contract: "local_search_optimization_certificate.v1",
+               validation_mode: "artifact_file",
+               artifact_path: "certificate.json"
+             )
+
+    assert {:error, missing_report} = Schema.validate_artifact(%{})
+    assert {:error, unknown_report} = Schema.validate_artifact(%{}, schema_contract: "unknown.v1")
+    assert_json_total(missing_report)
+    assert_json_total(unknown_report)
+
+    Enum.each(
+      [
+        ArtifactValidationRouter.validate(nil, contract, certificate),
+        ArtifactValidationRouter.validate(
+          "local_search_optimization_certificate.v1",
+          nil,
+          certificate
+        ),
+        ArtifactValidationRouter.validate(
+          "local_search_optimization_certificate.v1",
+          contract,
+          :artifact
+        )
+      ],
+      fn issues ->
+        assert is_list(issues) and issues != []
+        assert_json_total(issues)
+      end
+    )
+  end
+
+  test "local certificate schema validation rejects atom-only root keys" do
+    string_certificate = build_certificate()
+
+    assert {:ok, _report} =
+             Schema.validate_artifact(string_certificate,
+               schema_contract: "local_search_optimization_certificate.v1"
+             )
+
+    atom_only_certificate = %{
+      schema_contract: string_certificate["schema_contract"],
+      id: string_certificate["id"]
+    }
+
+    assert {:error, atom_report} =
+             Schema.validate_artifact(atom_only_certificate,
+               schema_contract: "local_search_optimization_certificate.v1"
+             )
+
+    assert Enum.any?(atom_report["errors"], &(&1["message"] == "object keys must be strings"))
+    assert_json_total(atom_report)
+  end
+
+  test "legacy executable contracts retain their own nil rejection without route relaxation" do
+    assert {:ok, template} = OrbitalDynamics.activity_template("observe")
+    catalog = OrbitalDynamics.capability_catalog_artifact()
+
+    probes = [
+      {Map.put(template, "id", nil), "$.id"},
+      {Map.put(catalog, "schema_version", nil), "$.schema_version"}
+    ]
+
+    Enum.each(probes, fn {artifact, path} ->
+      assert {:error, report} = Schema.validate_artifact(artifact)
+      assert Enum.any?(report["errors"], &(&1["path"] == path))
+      assert_json_total(report)
+    end)
+  end
+
+  test "non-JSON certificates report identity as unverifiable without unsafe encoding" do
+    certificate = build_certificate()
+
+    mutations = [
+      {"$.evaluations[0].score", fn -> :score end, :exact},
+      {"$.evaluations[0].score_terms", %{value: 1}, :exact},
+      {"$.evaluations", [hd(certificate["evaluations"]) | :tail], :exact},
+      {"$.evaluations",
+       List.duplicate(
+         hd(certificate["evaluations"]),
+         JsonSafety.limits()["max_collection_items"] + 1
+       ), :bounded},
+      {"$.evaluations[0].alternative_id", <<255>>, :exact}
+    ]
+
+    Enum.each(mutations, fn {path, value, path_mode} ->
+      mutated =
+        case path do
+          "$.evaluations" ->
+            Map.put(certificate, "evaluations", value)
+
+          "$.evaluations[0].score_terms" ->
+            put_in(certificate, ["evaluations", Access.at(0), "score_terms"], value)
+
+          field_path ->
+            field = field_path |> String.split(".") |> List.last()
+            put_in(certificate, ["evaluations", Access.at(0), field], value)
+        end
+
+      expected_paths = if(path_mode == :exact, do: [path, "$.id"], else: ["$.id"])
+      report = assert_public_boundary_schema_errors(mutated, expected_paths)
+
+      if path_mode == :bounded do
+        assert Enum.any?(report["errors"], &String.starts_with?(&1["path"], path))
+      end
+
+      assert Enum.any?(
+               report["errors"],
+               &(&1["path"] == "$.id" and &1["message"] =~ "cannot verify identity")
+             )
+    end)
+
+    assert {:error, identity_failure} =
+             LocalSearchCertificate.certificate_id(%{"unsafe" => fn -> :value end})
+
+    assert identity_failure["reason"] == "identity_input_not_strict_json"
+    assert_json_total(identity_failure)
+  end
+
+  test "one hostile leaf does not hide simultaneous structural and nested identity failures" do
+    certificate = build_certificate()
+    parent = self()
+    hostile = fn -> send(parent, :hostile_certificate_term_executed) end
+
+    corrupted =
+      certificate
+      |> put_in(["evaluations", Access.at(0), "score"], hostile)
+      |> update_in(["evaluations", Access.at(1)], &Map.delete(&1, "eligible"))
+      |> put_in(["evaluations", Access.at(2), "unexpected"], true)
+      |> put_in(
+        ["source_evidence_registry", "identity", "sha256"],
+        String.duplicate("0", 64)
+      )
+
+    expected_paths = [
+      "$.evaluations[0].score",
+      "$.evaluations[1].eligible",
+      "$.evaluations[2]",
+      "$.source_evidence_registry.identity",
+      "$.id"
+    ]
+
+    assert {:error, inferred_report} = Schema.validate_artifact(corrupted)
+
+    assert {:error, selected_report} =
+             Schema.validate_artifact(corrupted,
+               schema_contract: "local_search_optimization_certificate.v1"
+             )
+
+    assert {:error, facade_report} = OrbitalDynamics.validate_artifact(corrupted)
+
+    executable_issues =
+      LocalSearchOptimizationCertificateContracts.validate([], "$", corrupted)
+
+    Enum.each([inferred_report, selected_report, facade_report], fn report ->
+      assert_issue_paths(report["errors"], expected_paths)
+      assert report["errors"] == executable_issues
+      assert_json_total(report)
+    end)
+
+    assert_issue_paths(executable_issues, expected_paths)
+    assert_json_total(executable_issues)
+
+    assert executable_issues ==
+             Enum.sort_by(executable_issues, &{&1["path"], &1["message"], &1["severity"]})
+
+    assert Enum.any?(
+             executable_issues,
+             &(&1["path"] == "$.evaluations[1].eligible" and
+                 &1["message"] == "must be a boolean")
+           )
+
+    assert Enum.any?(
+             executable_issues,
+             &(&1["path"] == "$.evaluations[2]" and
+                 &1["message"] == "must contain exactly the registered fields")
+           )
+
+    assert Enum.any?(
+             executable_issues,
+             &(&1["path"] == "$.source_evidence_registry.identity" and
+                 &1["message"] ==
+                   "must be the content identity of the source-evidence registry summary")
+           )
+
+    assert Enum.any?(
+             executable_issues,
+             &(&1["path"] == "$.id" and &1["message"] =~ "cannot verify identity")
+           )
+
+    same_branch_unsafe =
+      put_in(
+        certificate,
+        [
+          "source_evidence_registry",
+          "entries",
+          Access.at(0),
+          "content_identity",
+          "sha256"
+        ],
+        hostile
+      )
+
+    same_branch_issues =
+      LocalSearchOptimizationCertificateContracts.validate([], "$", same_branch_unsafe)
+
+    assert_issue_paths(same_branch_issues, [
+      "$.source_evidence_registry.entries[0].content_identity.sha256",
+      "$.id"
+    ])
+
+    refute Enum.any?(
+             same_branch_issues,
+             &(&1["path"] == "$.source_evidence_registry.identity" and
+                 &1["message"] ==
+                   "must be the content identity of the source-evidence registry summary")
+           )
+
+    improper_and_hostile =
+      certificate
+      |> Map.put("eligible_ids_by_rank", ["certificate:seed" | :improper])
+      |> put_in(["evaluations", Access.at(0), "score"], hostile)
+
+    improper_and_hostile_issues =
+      LocalSearchOptimizationCertificateContracts.validate([], "$", improper_and_hostile)
+
+    assert_issue_paths(improper_and_hostile_issues, [
+      "$.eligible_ids_by_rank",
+      "$.evaluations[0].score",
+      "$.id"
+    ])
+
+    assert_json_total(improper_and_hostile_issues)
+
+    validation_report =
+      Schema.validation_report(corrupted,
+        schema_contract: "local_search_optimization_certificate.v1"
+      )
+
+    assert validation_report["status"] == "fail"
+    assert_issue_paths(validation_report["errors"], expected_paths)
+    assert_json_total(validation_report)
+
+    assert {:ok, standalone_schema} =
+             Schema.json_schema("local_search_optimization_certificate.v1")
+
+    bundle = Schema.json_schema_bundle()
+    assert bundle["schemas"]["local_search_optimization_certificate.v1"] == standalone_schema
+
+    evaluation_schema = get_in(standalone_schema, ["properties", "evaluations", "items"])
+    assert evaluation_schema["additionalProperties"] == false
+    assert "eligible" in evaluation_schema["required"]
+
+    registry_identity_schema =
+      get_in(standalone_schema, [
+        "properties",
+        "source_evidence_registry",
+        "properties",
+        "identity"
+      ])
+
+    assert registry_identity_schema["additionalProperties"] == false
+    assert Enum.sort(registry_identity_schema["required"]) == ["algorithm", "sha256"]
+
+    assert standalone_schema ==
+             "schemas/local_search_optimization_certificate.v1.schema.json"
+             |> File.read!()
+             |> :json.decode()
+
+    assert bundle ==
+             "schemas/orbital_dynamics.schema_bundle.v1.json"
+             |> File.read!()
+             |> :json.decode()
+
+    # A JSON fixture cannot contain the hostile BEAM function, so its exact
+    # serializable counterpart keeps the same corrupt location as JSON null.
+    lint_artifact = put_in(corrupted, ["evaluations", Access.at(0), "score"], :null)
+
+    lint_path =
+      Path.join(
+        System.tmp_dir!(),
+        "orbital_dynamics_local_search_multi_corruption_#{System.unique_integer([:positive])}.json"
+      )
+
+    on_exit(fn -> File.rm(lint_path) end)
+    File.write!(lint_path, :json.encode(lint_artifact))
+
+    assert {:error, lint_report} = Schema.lint_file(lint_path)
+    assert_issue_paths(lint_report["errors"], expected_paths)
+    assert_json_total(lint_report)
+
+    lint_fixture_report = Schema.lint_file_report(lint_path)
+    assert lint_fixture_report["status"] == "fail"
+    assert lint_fixture_report["artifact_path"] == lint_path
+    assert_issue_paths(lint_fixture_report["errors"], expected_paths)
+    assert_json_total(lint_fixture_report)
+    refute_received :hostile_certificate_term_executed
+  end
+
+  test "strict JSON semantic validation stops at one bounded deterministic issue budget" do
+    maximum = JsonSafety.limits()["max_issues"]
+    contract = "local_search_optimization_certificate.v1"
+
+    corrupted =
+      build_certificate()
+      |> Map.put("evaluations", List.duplicate(%{}, 1_000))
+      |> Map.delete("eligible_count")
+      |> Map.put("unexpected", true)
+      |> put_in(
+        ["source_evidence_registry", "identity", "sha256"],
+        String.duplicate("0", 64)
+      )
+
+    direct_issues =
+      LocalSearchOptimizationCertificateContracts.validate([], "$", corrupted)
+
+    assert length(direct_issues) == maximum
+
+    assert Enum.count(
+             direct_issues,
+             &(&1["message"] ==
+                 "certificate validation issue budget exhausted after #{maximum - 1} errors")
+           ) == 1
+
+    assert_issue_paths(direct_issues, [
+      "$",
+      "$.eligible_count",
+      "$.id",
+      "$.source_evidence_registry.identity"
+    ])
+
+    assert direct_issues ==
+             Enum.sort_by(direct_issues, &{&1["path"], &1["message"], &1["severity"]})
+
+    assert direct_issues ==
+             LocalSearchOptimizationCertificateContracts.validate([], "$", corrupted)
+
+    assert {:error, inferred_report} = Schema.validate_artifact(corrupted)
+
+    assert {:error, selected_report} =
+             Schema.validate_artifact(corrupted,
+               schema_contract: "local_search_optimization_certificate.v1"
+             )
+
+    assert {:error, facade_report} = OrbitalDynamics.validate_artifact(corrupted)
+
+    Enum.each([inferred_report, selected_report, facade_report], fn report ->
+      assert report["errors"] == direct_issues
+      assert length(report["errors"]) == maximum
+      assert JsonSafety.errors(report) == []
+      assert is_binary(report |> :json.encode() |> IO.iodata_to_binary())
+    end)
+
+    validation_report =
+      Schema.validation_report(corrupted,
+        schema_contract: "local_search_optimization_certificate.v1"
+      )
+
+    assert validation_report["status"] == "fail"
+    assert validation_report["error_count"] == maximum
+    assert validation_report["errors"] == direct_issues
+    assert JsonSafety.errors(validation_report) == []
+    assert is_binary(validation_report |> :json.encode() |> IO.iodata_to_binary())
+
+    parent = self()
+    hostile = fn -> send(parent, :hostile_validation_report_term_executed) end
+
+    unsafe_corrupted =
+      put_in(corrupted, ["evaluations", Access.at(0), "score"], hostile)
+
+    unsafe_issues =
+      LocalSearchOptimizationCertificateContracts.validate([], "$", unsafe_corrupted)
+
+    assert length(unsafe_issues) == maximum
+
+    assert Enum.count(
+             unsafe_issues,
+             &(&1["message"] ==
+                 "certificate validation issue budget exhausted after #{maximum - 1} errors")
+           ) == 1
+
+    assert_issue_paths(unsafe_issues, ["$", "$.evaluations[0].score", "$.id"])
+
+    assert unsafe_issues ==
+             Enum.sort_by(unsafe_issues, &{&1["path"], &1["message"], &1["severity"]})
+
+    assert unsafe_issues ==
+             LocalSearchOptimizationCertificateContracts.validate([], "$", unsafe_corrupted)
+
+    assert {:error, unsafe_report} = Schema.validate_artifact(unsafe_corrupted)
+    assert unsafe_report["errors"] == unsafe_issues
+    assert JsonSafety.errors(unsafe_report) == []
+
+    base = build_certificate()
+
+    expected_direct_counts = %{
+      42_711 => 100,
+      42_712 => 100,
+      42_713 => 100,
+      42_714 => 100,
+      42_715 => 99,
+      42_716 => 99,
+      42_717 => 99,
+      42_718 => 99,
+      42_719 => 99
+    }
+
+    boundary_artifacts =
+      Map.new(42_711..42_719, fn key_size ->
+        artifact = large_key_certificate(base, key_size)
+        encoded_size = artifact |> :json.encode() |> IO.iodata_to_binary() |> byte_size()
+
+        assert encoded_size == 1_074_913 + 25 * (key_size - 42_711)
+        {key_size, artifact}
+      end)
+
+    Enum.each(boundary_artifacts, fn {key_size, artifact} ->
+      assert JsonSafety.errors(artifact) == []
+
+      direct = LocalSearchOptimizationCertificateContracts.validate([], "$", artifact)
+      assert length(direct) == expected_direct_counts[key_size]
+      assert_bounded_issue_envelope(direct, maximum)
+
+      assert direct ==
+               LocalSearchOptimizationCertificateContracts.validate([], "$", artifact)
+
+      assert {:ok, executable_contract} = Schema.contract(contract)
+
+      routed = ArtifactValidationRouter.validate(contract, executable_contract, artifact)
+      assert length(routed) <= length(direct)
+      assert_bounded_issue_envelope(routed, maximum)
+
+      assert {:error, inferred} = Schema.validate_artifact(artifact)
+      assert {:error, selected} = Schema.validate_artifact(artifact, schema_contract: contract)
+      assert {:error, facade} = OrbitalDynamics.validate_artifact(artifact)
+      assert inferred == selected
+      assert inferred == facade
+
+      Enum.each([inferred, selected, facade], fn report ->
+        assert length(report["errors"]) <= length(direct)
+        assert_bounded_issue_envelope(report["errors"], maximum)
+        assert_json_total(report)
+      end)
+
+      observation = Validation.artifact_observations(contract, artifact)
+      public_observation = OrbitalDynamics.validation_artifact_observations(contract, artifact)
+
+      assert observation == public_observation
+      assert observation["status"] == "error"
+      assert length(observation["errors"]) <= length(direct)
+      assert_bounded_issue_envelope(observation["errors"], maximum)
+      assert_json_total(observation)
+
+      schema_report = Schema.validation_report(artifact, schema_contract: contract)
+      inferred_schema_report = Schema.validation_report(artifact)
+      public_schema_report = OrbitalDynamics.schema_validation_report(artifact)
+      assert schema_report == inferred_schema_report
+      assert schema_report == public_schema_report
+
+      Enum.each([schema_report, inferred_schema_report, public_schema_report], fn report ->
+        assert report["status"] == "fail"
+        assert report["error_count"] == length(report["errors"])
+        assert report["error_count"] <= length(direct)
+        assert report["remediation_count"] == 0
+        assert report["remediation"] == []
+        assert_bounded_issue_envelope(report["errors"], maximum)
+        assert_json_total(report)
+      end)
+    end)
+
+    boundary_artifact = boundary_artifacts[42_719]
+
+    boundary_report = Schema.validation_report(boundary_artifact)
+    assert {:ok, report_validation} = Schema.validate_artifact(boundary_report)
+    assert_json_total(report_validation)
+
+    hostile_wrapper_value = String.duplicate("p", JsonSafety.limits()["max_aggregate_bytes"])
+
+    oversized_path_report =
+      Schema.validation_report(boundary_artifact,
+        schema_contract: contract,
+        artifact_path: hostile_wrapper_value
+      )
+
+    assert oversized_path_report["status"] == "fail"
+    refute Map.has_key?(oversized_path_report, "artifact_path")
+    assert oversized_path_report["remediation_count"] == 0
+    assert_bounded_issue_envelope(oversized_path_report["errors"], maximum)
+    assert_json_total(oversized_path_report)
+
+    valid_oversized_path_report =
+      Schema.validation_report(base,
+        schema_contract: contract,
+        artifact_path: hostile_wrapper_value
+      )
+
+    assert valid_oversized_path_report["status"] == "pass"
+    assert valid_oversized_path_report["errors"] == []
+    refute Map.has_key?(valid_oversized_path_report, "artifact_path")
+    assert_json_total(valid_oversized_path_report)
+
+    oversized_mode_report =
+      Schema.validation_report(boundary_artifact,
+        schema_contract: contract,
+        validation_mode: hostile_wrapper_value
+      )
+
+    assert oversized_mode_report["validation_mode"] == "artifact_map"
+    assert oversized_mode_report["remediation_count"] == 0
+    assert_bounded_issue_envelope(oversized_mode_report["errors"], maximum)
+    assert_json_total(oversized_mode_report)
+
+    oversized_selector_report =
+      Schema.validation_report(base, schema_contract: hostile_wrapper_value)
+
+    assert oversized_selector_report["status"] == "fail"
+    assert oversized_selector_report["error_count"] == 1
+    assert oversized_selector_report["remediation_count"] == 0
+    assert oversized_selector_report["remediation"] == []
+    assert_bounded_issue_envelope(oversized_selector_report["errors"], maximum)
+    assert_json_total(oversized_selector_report)
+
+    deep =
+      Enum.reduce(1..70, :null, fn index, nested -> %{Integer.to_string(index) => nested} end)
+
+    hostile_artifacts = [
+      hostile,
+      ["root" | :tail],
+      self(),
+      Map.put(base, "model_limits", ["limit" | :tail]),
+      Map.put(base, "claim", %URI{scheme: "https"}),
+      Map.put(base, "claim", self()),
+      Map.put(base, "objective", <<255>>),
+      Map.put(base, "selected_score", :nan),
+      Map.put(base, :objective, "alias"),
+      Map.put(base, "deep", deep),
+      Map.put(base, "oversized", List.duplicate(0, 2_049))
+    ]
+
+    Enum.each(hostile_artifacts, fn artifact ->
+      schema_report =
+        Schema.validation_report(artifact,
+          schema_contract: "local_search_optimization_certificate.v1"
+        )
+
+      public_report =
+        OrbitalDynamics.schema_validation_report(artifact,
+          schema_contract: "local_search_optimization_certificate.v1"
+        )
+
+      assert schema_report == public_report
+      assert schema_report["status"] == "fail"
+      assert schema_report["error_count"] >= 1
+      assert schema_report["error_count"] <= maximum
+      assert length(schema_report["errors"]) <= maximum
+      assert JsonSafety.errors(schema_report) == []
+      assert is_binary(schema_report |> :json.encode() |> IO.iodata_to_binary())
+
+      assert schema_report ==
+               Schema.validation_report(artifact,
+                 schema_contract: "local_search_optimization_certificate.v1"
+               )
+    end)
+
+    malformed_options = [
+      [{:schema_contract, "local_search_optimization_certificate.v1"} | :tail],
+      [schema_contract: "local_search_optimization_certificate.v1", schema_contract: "duplicate"],
+      [
+        contract: "local_search_optimization_certificate.v1",
+        schema_contract: "local_search_optimization_certificate.v1"
+      ],
+      [schema_contract: hostile],
+      [schema_contract: self()],
+      [validation_mode: <<255>>],
+      hostile,
+      self(),
+      %{}
+    ]
+
+    Enum.each(malformed_options, fn opts ->
+      malformed_report = Schema.validation_report(base, opts)
+      public_malformed_report = OrbitalDynamics.schema_validation_report(base, opts)
+
+      assert malformed_report == public_malformed_report
+      assert malformed_report["status"] == "fail"
+      assert malformed_report["error_count"] >= 1
+      assert JsonSafety.errors(malformed_report) == []
+      assert is_binary(malformed_report |> :json.encode() |> IO.iodata_to_binary())
+    end)
+
+    arity_one_report = Schema.validation_report(hostile)
+    assert arity_one_report == OrbitalDynamics.schema_validation_report(hostile)
+    assert arity_one_report["status"] == "fail"
+    assert JsonSafety.errors(arity_one_report) == []
+
+    refute_received :hostile_validation_report_term_executed
+  end
+
+  test "verifier facades return typed failures for malformed replay inputs" do
+    certificate = build_certificate()
+
+    invalid_replays = [
+      {:seed,
+       fn facade ->
+         facade.(certificate, %{x: 1, y: 0}, source_evidence(@candidate_ids), &evaluator/2, @opts)
+       end},
+      {:source, fn facade -> facade.(certificate, @seed, :source, &evaluator/2, @opts) end},
+      {:evaluator,
+       fn facade ->
+         facade.(certificate, @seed, source_evidence(@candidate_ids), :evaluator, @opts)
+       end},
+      {:options,
+       fn facade ->
+         facade.(
+           certificate,
+           @seed,
+           source_evidence(@candidate_ids),
+           &evaluator/2,
+           [{:steps, %{"x" => 1}} | :tail]
+         )
+       end}
+    ]
+
+    facades = [
+      &LocalSearchCertificate.verify/5,
+      &Optimizer.verify_local_search_certificate/5,
+      &OrbitalDynamics.verify_local_search_certificate/5
+    ]
+
+    Enum.each(invalid_replays, fn {_kind, invoke} ->
+      Enum.each(facades, fn facade ->
+        assert {:error, report} = invoke.(facade)
+        assert report["reason"] == "replay_input_or_source_evidence_invalid"
+        assert_json_total(report)
+      end)
+    end)
+
+    Enum.each(facades, fn facade ->
+      assert {:error, report} =
+               facade.(:certificate, @seed, source_evidence(@candidate_ids), &evaluator/2, @opts)
+
+      assert report["reason"] == "certificate_schema_invalid"
+      assert_json_total(report)
+    end)
+  end
+
+  test "eligible_ids_by_rank improper lists return a typed JSON-total schema failure" do
+    certificate =
+      Map.put(build_certificate(), "eligible_ids_by_rank", ["certificate:seed" | :bad])
+
+    assert_typed_schema_error(certificate, "$.eligible_ids_by_rank")
+  end
+
+  test "deterministic_ordering improper lists return a typed JSON-total schema failure" do
+    certificate =
+      Map.put(build_certificate(), "deterministic_ordering", ["evaluation order" | :bad])
+
+    assert_typed_schema_error(certificate, "$.deterministic_ordering")
+  end
+
+  test "model_limits improper lists return a typed JSON-total schema failure" do
+    certificate = Map.put(build_certificate(), "model_limits", ["bounded" | :bad])
+
+    assert_typed_schema_error(certificate, "$.model_limits")
+  end
+
+  test "every other list-bearing certificate location rejects improper lists before semantics" do
+    certificate = build_certificate()
+
+    mutations = [
+      {"$.evaluations", &Map.put(&1, "evaluations", [hd(&1["evaluations"]) | :bad])},
+      {"$.search_space.step_parameters",
+       &put_in(&1, ["search_space", "step_parameters"], ["x" | :bad])},
+      {"$.search_space.candidates",
+       &put_in(
+         &1,
+         ["search_space", "candidates"],
+         [hd(&1["search_space"]["candidates"]) | :bad]
+       )},
+      {"$.search_space.generation_rejected_moves",
+       &put_in(
+         &1,
+         ["search_space", "generation_rejected_moves"],
+         [hd(&1["search_space"]["generation_rejected_moves"]) | :bad]
+       )},
+      {"$.source_evidence_registry.entries",
+       &put_in(
+         &1,
+         ["source_evidence_registry", "entries"],
+         [hd(&1["source_evidence_registry"]["entries"]) | :bad]
+       )},
+      {"$.evaluations[0].rejection_reasons",
+       &put_in(&1, ["evaluations", Access.at(0), "rejection_reasons"], ["bad" | :bad])}
+    ]
+
+    Enum.each(mutations, fn {path, mutate} ->
+      assert_typed_schema_error(mutate.(certificate), path)
+    end)
+  end
+
+  test "finite score terms whose sum overflows return a typed schema failure" do
+    certificate =
+      build_certificate()
+      |> put_in(
+        ["evaluations", Access.at(0), "score_terms"],
+        %{"large_a" => @max_float, "large_b" => @max_float}
+      )
+      |> put_in(["evaluations", Access.at(0), "score"], @max_float)
+
+    assert_typed_schema_error(certificate, "$.evaluations[0].score")
+  end
+
+  test "finite local-neighborhood operands whose addition or subtraction overflows fail typed" do
+    Enum.each([@max_float, -@max_float], fn seed_value ->
+      certificate =
+        build_certificate()
+        |> put_in(["search_space", "seed_parameters", "x"], seed_value)
+        |> put_in(["search_space", "steps", "x"], @max_float)
+
+      assert_typed_schema_error(certificate, "$.search_space")
+    end)
+  end
+
+  test "verifier contains evaluator errors in a typed JSON-total failure" do
+    evaluator = fn _parameters, _evidence -> raise "evaluator error" end
+
+    assert_replay_failure(evaluator, "error", "evaluator error")
+  end
+
+  test "verifier contains evaluator exits in a typed JSON-total failure" do
+    evaluator = fn _parameters, _evidence -> exit(:evaluator_exit) end
+
+    assert_replay_failure(evaluator, "exit", ":evaluator_exit")
+  end
+
+  test "verifier contains evaluator throws in a typed JSON-total failure" do
+    evaluator = fn _parameters, _evidence -> throw({:evaluator_throw, self()}) end
+
+    assert_replay_failure(evaluator, "throw", ":evaluator_throw")
+  end
+
+  test "untrusted non-JSON certificate IDs never enter verification failure reports" do
+    certificate = build_certificate()
+
+    Enum.each([fn -> :id end, self(), make_ref(), :certificate_id, <<255>>], fn unsafe_id ->
+      assert {:error, report} =
+               Optimizer.verify_local_search_certificate(
+                 Map.put(certificate, "id", unsafe_id),
+                 @seed,
+                 source_evidence(@candidate_ids),
+                 &evaluator/2,
+                 @opts
+               )
+
+      assert report["reason"] == "certificate_schema_invalid"
+      assert report["certificate_id"] == :null
+      assert_json_total(report)
+    end)
+  end
+
+  test "newline-terminated source IDs are rejected by producer and executable schema" do
+    evidence =
+      @candidate_ids
+      |> source_evidence()
+      |> put_in(["certificate:seed", "id"], "source:certificate:seed\n")
+
+    assert_builder_error(
+      Optimizer.certified_local_search(@seed, evidence, &evaluator/2, @opts),
+      "$.source_evidence.certificate:seed.id"
+    )
+
+    certificate =
+      build_certificate()
+      |> put_in(
+        ["source_evidence_registry", "entries", Access.at(0), "source_id"],
+        "source:certificate:seed\n"
+      )
+
+    assert_typed_schema_error(
+      certificate,
+      "$.source_evidence_registry.entries[0].source_id"
+    )
+  end
+
+  test "newline-terminated source revisions are rejected by producer and executable schema" do
+    evidence =
+      @candidate_ids
+      |> source_evidence()
+      |> put_in(["certificate:seed", "revision"], "revision:1\n")
+
+    assert_builder_error(
+      Optimizer.certified_local_search(@seed, evidence, &evaluator/2, @opts),
+      "$.source_evidence.certificate:seed.revision"
+    )
+
+    certificate =
+      build_certificate()
+      |> put_in(
+        ["source_evidence_registry", "entries", Access.at(0), "source_revision"],
+        "revision:1\n"
+      )
+
+    assert_typed_schema_error(
+      certificate,
+      "$.source_evidence_registry.entries[0].source_revision"
+    )
+  end
+
+  test "newline-terminated stable IDs and local parameter names are rejected" do
+    assert_builder_error(
+      Optimizer.certified_local_search(
+        @seed,
+        source_evidence(@candidate_ids),
+        &evaluator/2,
+        Keyword.put(@opts, :id_prefix, "certificate\n")
+      ),
+      "$.options.id_prefix"
+    )
+
+    assert_builder_error(
+      Optimizer.certified_local_search(
+        @seed,
+        source_evidence(@candidate_ids),
+        &evaluator/2,
+        Keyword.put(@opts, :steps, %{"x\n" => 1})
+      ),
+      "$.options.steps"
+    )
+  end
+
+  test "newline-terminated score-term names are rejected by producer and executable schema" do
+    bad_evaluator = fn _parameters, _evidence ->
+      %{"score_terms" => %{"value\n" => 1}, "eligible" => true, "rejection_reasons" => []}
+    end
+
+    assert {:error, failure} =
+             Optimizer.certified_local_search(
+               @seed,
+               source_evidence(@candidate_ids),
+               bad_evaluator,
+               @opts
+             )
+
+    assert failure["reason"] == "evaluator_execution_failed"
+    assert failure["details"]["failure_kind"] == "invalid_result"
+    assert failure["details"]["detail"] =~ "supported names"
+    assert_json_total(failure)
+
+    certificate =
+      build_certificate()
+      |> put_in(
+        ["evaluations", Access.at(0), "score_terms"],
+        %{"value\n" => 1}
+      )
+      |> put_in(["evaluations", Access.at(0), "score"], 1)
+
+    assert_typed_schema_error(certificate, "$.evaluations[0].score_terms")
+  end
+
+  test "exported certificate patterns require absolute string termination" do
+    assert {:ok, schema} = Schema.json_schema("local_search_optimization_certificate.v1")
+
+    certificate_id_pattern = get_in(schema, ["properties", "id", "pattern"])
+    refute String.contains?(certificate_id_pattern, "$")
+
+    assert_pattern_accepts_only_complete_string(
+      certificate_id_pattern,
+      "local_search_optimization_certificate:" <> String.duplicate("a", 64)
+    )
+
+    source_revision_pattern =
+      get_in(schema, [
+        "properties",
+        "source_evidence_registry",
+        "properties",
+        "entries",
+        "items",
+        "properties",
+        "source_revision",
+        "pattern"
+      ])
+
+    refute String.contains?(source_revision_pattern, "$")
+    assert_pattern_accepts_only_complete_string(source_revision_pattern, "stable:id")
+
+    score_term_pattern =
+      get_in(schema, [
+        "properties",
+        "evaluations",
+        "items",
+        "properties",
+        "score_terms",
+        "propertyNames",
+        "pattern"
+      ])
+
+    refute String.contains?(score_term_pattern, "$")
+    assert_pattern_accepts_only_complete_string(score_term_pattern, "score.term")
+
+    sha256_pattern =
+      get_in(schema, [
+        "properties",
+        "search_space",
+        "properties",
+        "identity",
+        "properties",
+        "sha256",
+        "pattern"
+      ])
+
+    refute String.contains?(sha256_pattern, "$")
+    assert_pattern_accepts_only_complete_string(sha256_pattern, String.duplicate("a", 64))
+  end
+
+  test "root global optimality is executable const false and certificate IDs are exact digests" do
+    certificate = build_certificate()
+
+    assert certificate["id"] ==
+             LocalSearchCertificate.certificate_id(Map.delete(certificate, "id"))
+
+    assert_typed_schema_error(
+      Map.put(certificate, "global_optimality_claimed", true),
+      "$.global_optimality_claimed"
+    )
+
+    Enum.each(
+      [
+        "local_search_optimization_certificate:" <> String.duplicate("a", 63),
+        "local_search_optimization_certificate:" <> String.duplicate("A", 64),
+        "wrong_prefix:" <> String.duplicate("a", 64),
+        certificate["id"] <> "\n"
+      ],
+      fn invalid_id ->
+        assert_typed_schema_error(Map.put(certificate, "id", invalid_id), "$.id")
+      end
+    )
+  end
+
+  test "timeout policy is versioned and bound into build and replay identity" do
+    opts = Keyword.put(@opts, :evaluator_timeout_ms, 25)
+    certificate = build_certificate(opts)
+    default_certificate = build_certificate()
+
+    assert certificate["evaluator_execution_policy"] ==
+             LocalSearchCertificate.evaluator_execution_policy(25)
+
+    refute certificate["id"] == default_certificate["id"]
+    assert {:ok, %{"status" => "verified"}} = verify(certificate, &evaluator/2, opts)
+
+    assert {:error, replay_report} =
+             verify(certificate, &evaluator/2, Keyword.put(opts, :evaluator_timeout_ms, 26))
+
+    assert replay_report["reason"] ==
+             "certificate_does_not_match_replayed_source_evidence_and_evaluation"
+
+    stale_identity =
+      put_in(certificate, ["evaluator_execution_policy", "timeout_ms"], 26)
+
+    assert_typed_schema_error(stale_identity, "$.id")
+
+    independently_reidentified =
+      Map.put(
+        stale_identity,
+        "id",
+        LocalSearchCertificate.certificate_id(Map.delete(stale_identity, "id"))
+      )
+
+    assert {:ok, _report} = Schema.validate_artifact(independently_reidentified)
+    assert {:error, mismatch_report} = verify(independently_reidentified, &evaluator/2, opts)
+
+    assert mismatch_report["reason"] ==
+             "certificate_does_not_match_replayed_source_evidence_and_evaluation"
+  end
+
+  test "build isolates sleeping and infinite evaluators and removes timed out workers" do
+    Enum.each([:sleeping, :infinite], fn mode ->
+      parent = self()
+      tag = make_ref()
+
+      evaluator = fn _parameters, _evidence ->
+        send(parent, {tag, self()})
+
+        case mode do
+          :sleeping -> Process.sleep(250)
+          :infinite -> wait_forever()
+        end
+
+        %{"score_terms" => %{"value" => 1}, "eligible" => true, "rejection_reasons" => []}
+      end
+
+      assert {:error, failure} =
+               Optimizer.certified_local_search(
+                 @seed,
+                 source_evidence(@candidate_ids),
+                 evaluator,
+                 Keyword.put(@opts, :evaluator_timeout_ms, 25)
+               )
+
+      assert failure["reason"] == "evaluator_execution_failed"
+      assert failure["details"]["failure_kind"] == "timeout"
+      assert failure["details"]["timeout_ms"] == 25
+      assert_receive {^tag, worker}
+      assert Process.alive?(self())
+      assert_process_terminated(worker)
+      assert_json_total(failure)
+    end)
+  end
+
+  test "build isolates raise exit throw and self-kill without emitting a certificate" do
+    parent = self()
+    self_kill_tag = make_ref()
+
+    evaluators = [
+      {fn _parameters, _evidence -> raise "build evaluator error" end, "error"},
+      {fn _parameters, _evidence -> exit(:build_evaluator_exit) end, "exit"},
+      {fn _parameters, _evidence -> throw(:build_evaluator_throw) end, "throw"},
+      {fn _parameters, _evidence ->
+         send(parent, {self_kill_tag, self()})
+         Process.exit(self(), :kill)
+       end, "worker_exit"}
+    ]
+
+    Enum.each(evaluators, fn {evaluator, expected_kind} ->
+      assert {:error, failure} =
+               Optimizer.certified_local_search(
+                 @seed,
+                 source_evidence(@candidate_ids),
+                 evaluator,
+                 Keyword.put(@opts, :evaluator_timeout_ms, 50)
+               )
+
+      assert failure["reason"] == "evaluator_execution_failed"
+      assert failure["details"]["failure_kind"] == expected_kind
+      assert Process.alive?(self())
+      assert_json_total(failure)
+    end)
+
+    assert_receive {^self_kill_tag, killed_worker}
+    assert_process_terminated(killed_worker)
+  end
+
+  test "verifier isolates timeout and self-kill evaluators and preserves its caller" do
+    certificate = build_certificate()
+    parent = self()
+
+    Enum.each([:infinite, :self_kill], fn mode ->
+      tag = make_ref()
+
+      evaluator = fn _parameters, _evidence ->
+        send(parent, {tag, self()})
+
+        case mode do
+          :infinite -> wait_forever()
+          :self_kill -> Process.exit(self(), :kill)
+        end
+      end
+
+      assert {:error, report} =
+               verify(
+                 certificate,
+                 evaluator,
+                 Keyword.put(@opts, :evaluator_timeout_ms, 25)
+               )
+
+      assert report["reason"] == "replay_evaluator_execution_failed"
+      assert_receive {^tag, worker}
+      assert Process.alive?(self())
+      assert_process_terminated(worker)
+      assert_json_total(report)
+    end)
+  end
+
+  test "caller cancellation kills the unlinked evaluator worker" do
+    parent = self()
+    tag = make_ref()
+
+    caller =
+      spawn(fn ->
+        evaluator = fn _parameters, _evidence ->
+          send(parent, {tag, self()})
+          wait_forever()
+        end
+
+        Optimizer.certified_local_search(
+          @seed,
+          source_evidence(@candidate_ids),
+          evaluator,
+          Keyword.put(@opts, :evaluator_timeout_ms, 5_000)
+        )
+      end)
+
+    caller_ref = Process.monitor(caller)
+    assert_receive {^tag, worker}, 1_000
+    Process.exit(caller, :kill)
+    assert_receive {:DOWN, ^caller_ref, :process, ^caller, :killed}, 1_000
+    assert_process_terminated(worker)
+    assert Process.alive?(self())
+  end
+
+  test "source capture accepts only strict JSON inputs and rejects BEAM aliases" do
+    nil_evidence =
+      @candidate_ids
+      |> source_evidence()
+      |> put_in(["certificate:seed", "payload", "nullable"], nil)
+
+    assert %{} =
+             Optimizer.certified_local_search(@seed, nil_evidence, &evaluator/2, @opts)
+
+    unsafe_values = [
+      :atom_value,
+      :null,
+      {:tuple, "value"},
+      self(),
+      make_ref(),
+      fn -> :value end,
+      ["proper_head" | :improper_tail],
+      %URI{scheme: "https", host: "example.test"},
+      <<255>>
+    ]
+
+    Enum.each(unsafe_values, fn unsafe_value ->
+      evidence =
+        @candidate_ids
+        |> source_evidence()
+        |> put_in(["certificate:seed", "payload", "unsafe"], unsafe_value)
+
+      assert_builder_error(
+        Optimizer.certified_local_search(@seed, evidence, &evaluator/2, @opts),
+        "$.source_evidence"
+      )
+    end)
+
+    unsafe_maps = [
+      %{atom_key: "value"},
+      %{"alias" => "string", alias: "atom"},
+      %{1 => "non-string"},
+      %{<<255>> => "invalid-key"}
+    ]
+
+    Enum.each(unsafe_maps, fn unsafe_map ->
+      evidence =
+        @candidate_ids
+        |> source_evidence()
+        |> put_in(["certificate:seed", "payload", "unsafe_map"], unsafe_map)
+
+      assert_builder_error(
+        Optimizer.certified_local_search(@seed, evidence, &evaluator/2, @opts),
+        "$.source_evidence"
+      )
+    end)
+  end
+
+  test "canonical JSON source identity is invariant to object insertion order" do
+    ascending_payload = Map.new(1..40, &{"field_#{&1}", &1})
+    descending_payload = Map.new(40..1//-1, &{"field_#{&1}", &1})
+
+    ascending =
+      @candidate_ids
+      |> source_evidence()
+      |> put_in(["certificate:seed", "payload", "ordered"], ascending_payload)
+
+    descending =
+      @candidate_ids
+      |> source_evidence()
+      |> put_in(["certificate:seed", "payload", "ordered"], descending_payload)
+
+    assert build_with_evidence(ascending) == build_with_evidence(descending)
+  end
+
+  test "finite evaluator operands whose score sum overflows fail typed" do
+    evaluator = fn _parameters, _evidence ->
+      %{
+        "score_terms" => %{"large_a" => @max_float, "large_b" => @max_float},
+        "eligible" => true,
+        "rejection_reasons" => []
+      }
+    end
+
+    assert {:error, failure} =
+             Optimizer.certified_local_search(
+               @seed,
+               source_evidence(@candidate_ids),
+               evaluator,
+               @opts
+             )
+
+    assert failure["reason"] == "evaluator_execution_failed"
+    assert failure["details"]["failure_kind"] == "invalid_result"
+    assert failure["details"]["detail"] =~ "finite score"
+    assert_json_total(failure)
+  end
+
+  defp build_certificate(opts \\ @opts) do
+    Optimizer.certified_local_search(
+      @seed,
+      source_evidence(@candidate_ids),
+      &evaluator/2,
+      opts
+    )
+  end
+
+  defp build_with_evidence(evidence) do
+    Optimizer.certified_local_search(@seed, evidence, &evaluator/2, @opts)
+  end
+
+  defp verify(certificate, evaluator_fun, opts) do
+    Optimizer.verify_local_search_certificate(
+      certificate,
+      @seed,
+      source_evidence(@candidate_ids),
+      evaluator_fun,
+      opts
+    )
+  end
+
+  defp source_evidence(ids) do
+    Map.new(ids, fn id ->
+      {id,
+       %{
+         "id" => "source:#{id}",
+         "revision" => "revision:1",
+         "payload" => %{"quality" => "accepted", "candidate_id" => id}
+       }}
+    end)
+  end
+
+  defp large_key_certificate(certificate, key_size) do
+    bounds =
+      Map.new(0..24, fn index ->
+        suffix = index |> Integer.to_string() |> String.pad_leading(2, "0")
+        key = String.duplicate("k", key_size - byte_size(suffix)) <> suffix
+        {key, %{}}
+      end)
+
+    put_in(certificate, ["search_space", "bounds"], bounds)
+  end
+
+  defp evaluator(parameters, evidence) do
+    eligible = parameters["x"] > 0
+
+    %{
+      "score_terms" => %{
+        "parameter_value" => parameters["x"] + parameters["y"],
+        "source_quality" => if(evidence["payload"]["quality"] == "accepted", do: 0, else: -100)
+      },
+      "eligible" => eligible,
+      "rejection_reasons" => if(eligible, do: [], else: ["x_must_be_positive"])
+    }
+  end
+
+  defp evaluation(certificate, id),
+    do: Enum.find(certificate["evaluations"], &(&1["alternative_id"] == id))
+
+  defp assert_typed_schema_error(certificate, expected_path) do
+    assert {:error, report} = Schema.validate_artifact(certificate)
+    assert Enum.any?(report["errors"], &(&1["path"] == expected_path))
+    assert_json_total(report)
+  end
+
+  defp assert_public_boundary_schema_errors(certificate, expected_paths) do
+    assert {:error, report} =
+             Schema.validate_artifact(certificate,
+               schema_contract: "local_search_optimization_certificate.v1"
+             )
+
+    Enum.each(expected_paths, fn expected_path ->
+      assert Enum.any?(report["errors"], &(&1["path"] == expected_path)),
+             "expected a typed schema error at #{expected_path}, got: #{inspect(report["errors"])}"
+    end)
+
+    assert_json_total(report)
+    report
+  end
+
+  defp assert_builder_error({:error, failure}, expected_path) do
+    assert failure["reason"] == "builder_input_invalid"
+    assert Enum.any?(failure["details"]["errors"], &(&1["path"] == expected_path))
+    assert_json_total(failure)
+    failure
+  end
+
+  defp assert_issue_paths(issues, expected_paths) do
+    Enum.each(expected_paths, fn expected_path ->
+      assert Enum.any?(issues, &(&1["path"] == expected_path)),
+             "expected a typed schema error at #{expected_path}, got: #{inspect(issues)}"
+    end)
+  end
+
+  defp assert_replay_failure(evaluator_fun, expected_kind, expected_detail) do
+    certificate = build_certificate()
+
+    assert {:error, report} =
+             Optimizer.verify_local_search_certificate(
+               certificate,
+               @seed,
+               source_evidence(@candidate_ids),
+               evaluator_fun,
+               @opts
+             )
+
+    assert report["reason"] == "replay_evaluator_execution_failed"
+    assert report["certificate_id"] == certificate["id"]
+
+    evaluator_failure = report["details"]["evaluator_failure"]
+    assert evaluator_failure["reason"] == "evaluator_execution_failed"
+    assert evaluator_failure["details"]["failure_kind"] == expected_kind
+    assert evaluator_failure["details"]["detail"] =~ expected_detail
+    assert_json_total(report)
+  end
+
+  defp assert_json_total(value) do
+    assert JsonSafety.errors(value) == []
+    encoded = value |> :json.encode() |> IO.iodata_to_binary()
+    assert :json.decode(encoded) == value
+  end
+
+  defp assert_bounded_issue_envelope(issues, maximum) do
+    assert length(issues) <= maximum
+
+    assert Enum.count(issues, fn issue ->
+             message = issue["message"]
+
+             is_binary(message) and
+               (String.contains?(message, "issue budget exhausted") or
+                  String.contains?(message, "validation envelope truncated"))
+           end) == 1
+
+    assert issues == Enum.sort_by(issues, &{&1["path"], &1["message"], &1["severity"]})
+    assert_json_total(issues)
+  end
+
+  defp assert_process_terminated(pid) do
+    ref = Process.monitor(pid)
+    assert_receive {:DOWN, ^ref, :process, ^pid, _reason}, 1_000
+  end
+
+  defp wait_forever do
+    receive do
+    after
+      :infinity -> :unreachable
+    end
+  end
+
+  defp assert_pattern_accepts_only_complete_string(pattern, accepted) do
+    assert {:ok, regex} = Regex.compile(pattern)
+    assert Regex.match?(regex, accepted)
+    refute Regex.match?(regex, accepted <> "\n")
+  end
+end

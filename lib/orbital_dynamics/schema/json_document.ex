@@ -56,7 +56,7 @@ defmodule OrbitalDynamics.Schema.JsonDocument do
       "$id" => "https://orbital-dynamics.local/schemas/#{name}.schema.json",
       "title" => "OrbitalDynamics #{name}",
       "type" => "object",
-      "additionalProperties" => additional_properties?(name),
+      "additionalProperties" => additional_properties?(name, contract),
       "required" => required_fields,
       "properties" =>
         property_fields
@@ -95,7 +95,9 @@ defmodule OrbitalDynamics.Schema.JsonDocument do
     |> then(& &1.(field, name, contract))
   end
 
-  defp additional_properties?(name), do: name not in @closed_top_level_contracts
+  defp additional_properties?(name, contract) do
+    Map.get(contract, "additional_properties", name not in @closed_top_level_contracts)
+  end
 
   defp maybe_put_non_empty(map, _key, value) when value == %{}, do: map
   defp maybe_put_non_empty(map, key, value), do: Map.put(map, key, value)

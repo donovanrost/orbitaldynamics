@@ -1,36 +1,159 @@
 defmodule OrbitalDynamics.Schema.Report do
   @moduledoc false
 
-  def validation_report_for_artifact(%{} = artifact, opts, validate_fun, report_opts)
-      when is_list(opts) and is_function(validate_fun, 2) and is_list(report_opts) do
-    validation_mode = opts |> Keyword.get(:validation_mode, "artifact_map") |> to_string()
-    artifact_path = Keyword.get(opts, :artifact_path)
+  alias OrbitalDynamics.Schema.{
+    JsonSafety,
+    LocalSearchValidationEnvelope,
+    PrimitiveValidation
+  }
+
+  @local_search_certificate "local_search_optimization_certificate.v1"
+
+  def validation_report_for_artifact(artifact, opts, validate_fun, report_opts)
+      when is_function(validate_fun, 2) and is_list(report_opts) do
+    {validation_mode, artifact_path} = report_context(opts)
 
     {_status, report} =
       case validate_fun.(artifact, opts) do
         {:ok, report} -> {:ok, report}
         {:error, report} -> {:error, report}
+        _result -> {:error, safe_validation_failure()}
       end
 
     validation_report(report, validation_mode, artifact_path, report_opts)
+  rescue
+    _error ->
+      validation_report(
+        safe_validation_failure(),
+        "artifact_map",
+        nil,
+        report_opts
+      )
+  catch
+    _kind, _reason ->
+      validation_report(
+        safe_validation_failure(),
+        "artifact_map",
+        nil,
+        report_opts
+      )
   end
 
   def validation_report(report, validation_mode, artifact_path, opts) do
-    schema_contract = Keyword.fetch!(opts, :schema_contract)
-    model_limits = Keyword.fetch!(opts, :model_limits)
     errors = Map.get(report, "errors", [])
     warnings = Map.get(report, "warnings", [])
-    remediation = validation_remediation(report, errors)
 
+    candidate =
+      if Map.get(report, "schema_contract") == @local_search_certificate do
+        {_errors, compact_report} =
+          LocalSearchValidationEnvelope.fit_issues(errors, fn fitted_errors ->
+            build_validation_report(
+              report,
+              validation_mode,
+              artifact_path,
+              opts,
+              fitted_errors,
+              warnings,
+              []
+            )
+          end)
+
+        compact_report =
+          if JsonSafety.errors(compact_report) != [] and not is_nil(artifact_path) do
+            {_errors, without_artifact_path} =
+              LocalSearchValidationEnvelope.fit_issues(errors, fn fitted_errors ->
+                build_validation_report(
+                  report,
+                  validation_mode,
+                  nil,
+                  opts,
+                  fitted_errors,
+                  warnings,
+                  []
+                )
+              end)
+
+            without_artifact_path
+          else
+            compact_report
+          end
+
+        fitted_errors = compact_report["errors"]
+
+        if LocalSearchValidationEnvelope.truncated?(fitted_errors) do
+          compact_report
+        else
+          remediation = validation_remediation(report, fitted_errors)
+
+          remediated =
+            build_validation_report(
+              report,
+              validation_mode,
+              artifact_path,
+              opts,
+              fitted_errors,
+              warnings,
+              remediation
+            )
+
+          if JsonSafety.errors(remediated) == [], do: remediated, else: compact_report
+        end
+      else
+        remediation = validation_remediation(report, errors)
+
+        build_validation_report(
+          report,
+          validation_mode,
+          artifact_path,
+          opts,
+          errors,
+          warnings,
+          remediation
+        )
+      end
+
+    ensure_complete_report(candidate, report, validation_mode, opts, errors, warnings)
+  end
+
+  defp ensure_complete_report(candidate, report, validation_mode, opts, errors, warnings) do
+    if JsonSafety.errors(candidate) == [] do
+      candidate
+    else
+      {_errors, compact_report} =
+        LocalSearchValidationEnvelope.fit_issues(errors, fn fitted_errors ->
+          build_validation_report(
+            report,
+            validation_mode,
+            nil,
+            opts,
+            fitted_errors,
+            warnings,
+            []
+          )
+        end)
+
+      compact_report
+    end
+  end
+
+  defp build_validation_report(
+         report,
+         validation_mode,
+         artifact_path,
+         opts,
+         errors,
+         warnings,
+         remediation
+       ) do
     %{
-      "schema_contract" => schema_contract,
+      "schema_contract" => Keyword.fetch!(opts, :schema_contract),
       "model" => "executable_artifact_contract_validation",
       "validation_mode" => validation_mode,
       "validated_contract" => Map.get(report, "schema_contract") || "unknown",
       "validated_artifact_family" => Map.get(report, "artifact_family"),
       "validated_schema_version" => Map.get(report, "schema_version"),
-      "status" => Map.get(report, "status"),
-      "model_limits" => model_limits,
+      "status" => if(errors == [], do: "pass", else: "fail"),
+      "model_limits" => Keyword.fetch!(opts, :model_limits),
       "error_count" => length(errors),
       "warning_count" => length(warnings),
       "errors" => errors,
@@ -50,6 +173,7 @@ defmodule OrbitalDynamics.Schema.Report do
     contract_name = Map.get(report, "schema_contract") || "artifact"
 
     errors
+    |> Enum.reject(&LocalSearchValidationEnvelope.truncation_issue?/1)
     |> Enum.map(&remediation_for_issue(&1, contract_name))
     |> Enum.reject(&is_nil/1)
   end
@@ -137,4 +261,53 @@ defmodule OrbitalDynamics.Schema.Report do
 
   defp maybe_put(map, _key, nil), do: map
   defp maybe_put(map, key, value), do: Map.put(map, key, value)
+
+  defp report_context(opts) do
+    case collect_report_context(opts, 0, %{}) do
+      {:ok, context} ->
+        validation_mode = Map.get(context, :validation_mode, "artifact_map")
+
+        validation_mode =
+          if validation_mode in ["artifact_map", "artifact_file"],
+            do: validation_mode,
+            else: "artifact_map"
+
+        {validation_mode, Map.get(context, :artifact_path)}
+
+      :error ->
+        {"artifact_map", nil}
+    end
+  end
+
+  defp collect_report_context([], _count, context), do: {:ok, context}
+
+  defp collect_report_context([_entry | _tail], count, _context) when count >= 4,
+    do: :error
+
+  defp collect_report_context([{key, value} | tail], count, context)
+       when key in [:validation_mode, :artifact_path] do
+    if is_binary(value) and value != "" and String.valid?(value) do
+      collect_report_context(tail, count + 1, Map.put(context, key, value))
+    else
+      :error
+    end
+  end
+
+  defp collect_report_context([{key, _value} | tail], count, context)
+       when key in [:contract, :schema_contract],
+       do: collect_report_context(tail, count + 1, context)
+
+  defp collect_report_context([_entry | _tail], _count, _context), do: :error
+  defp collect_report_context(_improper, _count, _context), do: :error
+
+  defp safe_validation_failure do
+    %{
+      "schema_contract" => :null,
+      "artifact_family" => :null,
+      "schema_version" => :null,
+      "status" => "fail",
+      "errors" => [PrimitiveValidation.error("$", "artifact validation failed safely")],
+      "warnings" => []
+    }
+  end
 end

@@ -42,7 +42,7 @@ defmodule OrbitalDynamics.Optimizer do
     "score_terms"
   ]
 
-  alias OrbitalDynamics.Optimizer.HardFeasibility
+  alias OrbitalDynamics.Optimizer.{HardFeasibility, LocalSearchCertificate}
   alias OrbitalDynamics.Search.Local
 
   @doc """
@@ -64,7 +64,12 @@ defmodule OrbitalDynamics.Optimizer do
       ],
       local_search_model_limits: @local_search_model_limits,
       local_search_hard_feasibility: HardFeasibility.capabilities(),
-      public_facades: [:explainable_local_search],
+      local_search_optimization_certificate: LocalSearchCertificate.capabilities(),
+      public_facades: [
+        :explainable_local_search,
+        :certified_local_search,
+        :verify_local_search_certificate
+      ],
       deterministic_ordering: [
         :score_descending,
         :start_time_ascending,
@@ -205,6 +210,37 @@ defmodule OrbitalDynamics.Optimizer do
   def explainable_local_search(_seed_parameters, _score_terms_fun, _opts) do
     raise ArgumentError,
           "seed_parameters must be a map, score_terms_fun must have arity 1, and opts must be a keyword list"
+  end
+
+  @doc """
+  Runs opt-in exact enumeration of the complete bounded local neighborhood.
+
+  The result is a schema-versioned certificate. Its supported claim is limited
+  to the declared finite neighborhood and is emitted only when every in-bounds
+  candidate was evaluated. See `LocalSearchCertificate.build/4` for the source
+  evidence and evaluator contract.
+  """
+  def certified_local_search(seed_parameters, source_evidence, evaluator_fun, opts) do
+    LocalSearchCertificate.build(seed_parameters, source_evidence, evaluator_fun, opts)
+  end
+
+  @doc """
+  Verifies a local-search optimization certificate by exact replay.
+  """
+  def verify_local_search_certificate(
+        certificate,
+        seed_parameters,
+        source_evidence,
+        evaluator_fun,
+        opts
+      ) do
+    LocalSearchCertificate.verify(
+      certificate,
+      seed_parameters,
+      source_evidence,
+      evaluator_fun,
+      opts
+    )
   end
 
   defp legacy_local_search_result(evaluated, neighborhood, objective, objective_direction) do

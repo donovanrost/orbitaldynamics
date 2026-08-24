@@ -90,13 +90,18 @@ defmodule OrbitalDynamics.Validation.ReferenceFixtures.CapabilityCatalogArtifact
         "planning_capability_count" => 6,
         "operations_capability_count" => 19,
         "validation_family_count" => 2,
-        "artifact_contract_count" => 127,
-        "artifact_contract_list_count" => 127,
+        "artifact_contract_count" => 128,
+        "artifact_contract_list_count" => 128,
         "compatibility_policy_version" => 1,
         "identity_policy_version" => 1,
         "public_validation_facade_count" => 13,
         "optimizer_model" => "per_spacecraft_greedy_non_overlapping",
         "optimizer_contract" => "optimizer_contract.v1",
+        "optimizer_public_facades" =>
+          "explainable_local_search|certified_local_search|verify_local_search_certificate",
+        "local_search_optimization_certificate_contract" =>
+          "local_search_optimization_certificate.v1",
+        "local_search_optimization_certificate_global_optimality_claimed" => false,
         "cadence_import_contract" => "cadence_import_manifest.v1",
         "operational_readiness_contract" => "operational_readiness_report.v1",
         "station_calendar_reservation_contract" => "station_reservation_report.v1",
@@ -127,7 +132,7 @@ defmodule OrbitalDynamics.Validation.ReferenceFixtures.CapabilityCatalogArtifact
       ],
       "known_limits" => [
         "internal checked-in artifact regression, not full capability certification",
-        "checks public catalog counts and key contract routing only"
+        "checks public catalog counts, opt-in optimizer surface, and key contract routing only"
       ]
     }
   }

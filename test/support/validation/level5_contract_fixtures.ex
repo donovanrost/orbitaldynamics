@@ -38,6 +38,57 @@ defmodule OrbitalDynamics.Validation.Level5ContractFixtures do
     |> Map.fetch!("optimizer_search_trace")
   end
 
+  def local_search_optimization_certificate_fixture_observations do
+    Validation.artifact_observations(
+      "local_search_optimization_certificate.v1",
+      local_search_optimization_certificate_fixture()
+    )
+  end
+
+  def local_search_optimization_certificate_fixture do
+    seed = %{"x" => 1, "y" => 0}
+
+    candidate_ids = [
+      "fixture_certificate:seed",
+      "fixture_certificate:x:decrease",
+      "fixture_certificate:x:increase",
+      "fixture_certificate:y:increase"
+    ]
+
+    evidence =
+      Map.new(candidate_ids, fn id ->
+        {id,
+         %{
+           "id" => "source:#{id}",
+           "revision" => "fixture-revision-1",
+           "payload" => %{"candidate_id" => id, "quality" => "accepted"}
+         }}
+      end)
+
+    evaluator = fn parameters, source_evidence ->
+      eligible = parameters["x"] > 0
+
+      %{
+        "score_terms" => %{
+          "parameter_value" => parameters["x"] + parameters["y"],
+          "source_quality" =>
+            if(source_evidence["payload"]["quality"] == "accepted", do: 0, else: -100)
+        },
+        "eligible" => eligible,
+        "rejection_reasons" => if(eligible, do: [], else: ["x_must_be_positive"])
+      }
+    end
+
+    case OrbitalDynamics.certified_local_search(seed, evidence, evaluator,
+           steps: %{"x" => 1, "y" => 1},
+           bounds: %{"x" => {0, 2}, "y" => {0, 2}},
+           id_prefix: "fixture_certificate"
+         ) do
+      %{} = certificate -> certificate
+      {:error, failure} -> raise "local-search certificate fixture failed: #{inspect(failure)}"
+    end
+  end
+
   def candidate_refresh_execution_fixture_observations do
     Validation.artifact_observations(
       "candidate_refresh_execution.v1",

@@ -222,6 +222,10 @@ defmodule OrbitalDynamics.Schema.JsonSchemaPropertyRouter do
     ValidationPropertyRouter.property(field, contract_name, contract, context)
   end
 
+  def property(field, "backend_acceptance_policy.v1" = contract_name, contract, context) do
+    ValidationPropertyRouter.property(field, contract_name, contract, context)
+  end
+
   def property(field, contract_name, contract, context)
       when contract_name in ["schema_validation_report.v1", "schema_validation_batch_report.v1"] do
     ValidationPropertyRouter.property(field, contract_name, contract, context)
@@ -456,6 +460,13 @@ defmodule OrbitalDynamics.Schema.JsonSchemaPropertyRouter do
   def property(field, contract_name, contract, context)
       when contract_name in ["ranking_comparison_report.v1", "pareto_frontier_report.v1"] do
     StrategyPlanningPropertyRouter.property(field, contract_name, contract, context)
+  end
+
+  def property(field, "local_search_optimization_certificate.v1", _contract, context) do
+    OrbitalDynamics.Schema.LocalSearchOptimizationCertificateJsonSchema.property(
+      field,
+      context_value(context, :stable_id_pattern)
+    )
   end
 
   def property(field, "score_term_report.v1" = contract_name, contract, context) do

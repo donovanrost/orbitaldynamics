@@ -104,24 +104,59 @@ V3 strategy artifacts emit `branch_comparison_report.v1` rows that flatten, for 
   propagation, or calibration from operational outcomes. Without explicit hard
   mode it performs no feasibility evaluation beyond box bounds. Hard mode is
   limited to one semantically validated resource-state threshold and one
-  validated downlink threshold per candidate; it is not wired into V1, V2, or
-  V3 planner execution and does not repair ranking results. Its caller-supplied
-  registry is an immutable routing snapshot, not authentication or signature
-  verification; coordinated malicious replacement of registry and artifacts is
-  outside Level 5 and Domain 22.
+  validated downlink threshold per candidate; the separate opt-in V1 path uses
+  that mode, while V2 and V3 retain their existing planner behavior. Its
+  caller-supplied registry is an immutable routing snapshot, not authentication
+  or signature verification; coordinated malicious replacement of registry and
+  artifacts is outside Level 5 and Domain 22.
+
+### Exact finite-neighborhood optimization certificate
+
+- **Opt-in API and unchanged defaults** —
+  `Optimizer.certified_local_search/4` and
+  `OrbitalDynamics.certified_local_search/4` reuse the complete finite
+  `Search.Local` neighborhood without changing `explainable_local_search/3`,
+  the default greedy optimizer, or the opt-in V1 campaign trace contract. This
+  certificate path is not implicitly selected by V1, V2, or V3.
+- **Executable contract** — `local_search_optimization_certificate.v1` binds
+  the normalized seed, steps, box bounds, generation order, all in-bounds
+  candidates, bound-rejected moves, caller-supplied source-evidence identities,
+  evaluated score terms, semantic eligibility/rejection reasons, incumbent
+  history, rank tie-breaks, counts, budget use, and termination reason. The
+  executable validator regenerates the neighborhood and reconciles identities,
+  ordering, ranks, counts, incumbent history, exhaustion, and the claim.
+- **Supported claim** — after every in-bounds candidate has been evaluated, the
+  artifact may claim either the best eligible alternative or that no eligible
+  alternative exists **within that exact enumerated finite neighborhood**. A
+  budget-limited artifact retains the best observed eligible incumbent but
+  states `no_optimality_claim`. The contract always sets
+  `global_optimality_claimed` to false.
+- **Fail-closed replay** — `Optimizer.verify_local_search_certificate/5` and
+  the top-level facade first validate the persisted certificate, then reproduce
+  it exactly from the independently supplied seed, search options, complete
+  source-evidence registry, and evaluator. Missing, changed, or extra evidence,
+  evaluator drift, altered ordering/counts/scores, and certificate tampering are
+  rejected. Evidence is content-addressed but caller-supplied; authenticity,
+  signatures, and independent model truth remain outside the claim.
+- **Scale limit** — the exact space is still only the seed plus one decrease and
+  one increase for each of at most 32 scalar parameters, with at most 65
+  in-bounds evaluations. It is not iterative search, a coupled-move grid, a gap
+  bound, an external solver, or evidence of fleet-scale optimizer performance.
 
 ## Partial
 
 - Candidate generation can be refreshed from planning-state artifacts, including per-branch V3 refresh inputs, but optimizers remain transparent and simple.
 - Ranking comparison and Pareto reporting still operate only on supplied rows;
   the additive local-search path generates and evaluates a small alternative
-  set but is not wired into V1, V2, or V3 planner execution.
+  set. Only the separate opt-in V1 path consumes the feasibility-aware heuristic;
+  the exact certificate is standalone and V2/V3 do not consume either path.
 
 ## Near-term
 
 - Broaden comparison reports across richer branch generations, saved result-set comparisons, and operator workflows that need persisted dominance context beyond branch-local objective vectors.
-- Add schema-versioned persistence for local-search evidence only when a stable
-  operator or interchange consumer requires it.
+- Add an explicit operator-review/import consumer for optimization certificates
+  only when a stable workflow needs the standalone artifact; none is implied by
+  the producer-side certificate.
 
 ## Later
 

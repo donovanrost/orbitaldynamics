@@ -385,6 +385,7 @@ defmodule OrbitalDynamics.Validation.DeterministicReferenceFixtureReport do
       campaign_plan_search_trace_fixture_observations: 0,
       candidate_refresh_execution_fixture_observations: 0,
       downlink_link_budget_fixture_observations: 0,
+      local_search_optimization_certificate_fixture_observations: 0,
       resource_state_trace_fixture_observations: 0,
       timeline_revision_fixture_observations: 0
     ]
@@ -759,6 +760,8 @@ defmodule OrbitalDynamics.Validation.DeterministicReferenceFixtureReport do
       "fixture.artifact.candidate_refresh_execution.v1" =>
         candidate_refresh_execution_fixture_observations(),
       "fixture.artifact.downlink_link_budget.v1" => downlink_link_budget_fixture_observations(),
+      "fixture.artifact.local_search_optimization_certificate.v1" =>
+        local_search_optimization_certificate_fixture_observations(),
       "fixture.artifact.resource_state_trace.v1" => resource_state_trace_fixture_observations(),
       "fixture.artifact.timeline_revision.v1" => timeline_revision_fixture_observations()
     })
