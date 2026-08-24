@@ -912,14 +912,15 @@ defmodule OrbitalDynamics.Optimizer.LocalSearchCertificate do
       [] ->
         {:ok, projected_bytes}
 
-      [_issue | _rest] ->
+      [issue | _rest] ->
         {:error,
          certificate_output_failure(
            phase,
            retained_count,
            projected_count,
            admitted_bytes,
-           projected_bytes
+           projected_bytes,
+           issue
          )}
     end
   end
@@ -944,8 +945,12 @@ defmodule OrbitalDynamics.Optimizer.LocalSearchCertificate do
          retained_count,
          projected_count,
          admitted_bytes,
-         projected_bytes
+         projected_bytes,
+         json_safety_issue
        ) do
+    json_safety_issue = compact_json_safety_issue(json_safety_issue)
+    {limit_kind, limit} = json_safety_limit(json_safety_issue["message"])
+
     %{
       "status" => "rejected",
       "reason" => "certificate_output_budget_exceeded",
@@ -956,10 +961,56 @@ defmodule OrbitalDynamics.Optimizer.LocalSearchCertificate do
         "previously_admitted_aggregate_string_bytes" => admitted_bytes,
         "projected_aggregate_string_bytes" => projected_bytes,
         "aggregate_string_byte_limit" => JsonSafety.limits()["max_aggregate_bytes"],
+        "json_safety_limit_kind" => limit_kind,
+        "json_safety_limit" => limit,
+        "json_safety_issue" => json_safety_issue,
         "resource_scope" => "complete_local_search_optimization_certificate"
       }
     }
   end
+
+  defp compact_json_safety_issue(%{
+         "path" => path,
+         "message" => message
+       })
+       when is_binary(path) and is_binary(message) do
+    %{
+      "severity" => "error",
+      "path" => truncate_detail(path),
+      "message" => truncate_detail(message)
+    }
+  end
+
+  defp compact_json_safety_issue(_issue) do
+    %{
+      "severity" => "error",
+      "path" => "$",
+      "message" => "certificate projection violates a JSON safety resource limit"
+    }
+  end
+
+  defp json_safety_limit(message) when is_binary(message) do
+    limits = JsonSafety.limits()
+
+    cond do
+      String.starts_with?(message, "exceeds maximum JSON nesting depth") ->
+        {"max_depth", limits["max_depth"]}
+
+      String.starts_with?(message, "exceeds maximum JSON node budget") ->
+        {"max_nodes", limits["max_nodes"]}
+
+      String.starts_with?(message, "exceeds maximum JSON collection size") ->
+        {"max_collection_items", limits["max_collection_items"]}
+
+      String.starts_with?(message, "exceeds maximum aggregate JSON string byte budget") ->
+        {"max_aggregate_bytes", limits["max_aggregate_bytes"]}
+
+      true ->
+        {"strict_json", :null}
+    end
+  end
+
+  defp json_safety_limit(_message), do: {"strict_json", :null}
 
   defp evaluate_candidate(candidate, evidence, source_registry, evaluator_fun, options) do
     evidence_row = Map.fetch!(evidence, candidate["id"])

@@ -50,7 +50,14 @@ defmodule OrbitalDynamics.OptimizerLocalSearchOutputBudgetTest do
                )
 
       assert :atomics.get(counter, 1) == 0
-      assert_output_budget_failure(failure, "preflight_certificate_envelope", 0, 0)
+
+      assert_output_budget_failure(
+        failure,
+        "preflight_certificate_envelope",
+        0,
+        0,
+        "max_aggregate_bytes"
+      )
     end
 
     test "#{label} stops before the next callback when retained result growth consumes the budget" do
@@ -80,7 +87,14 @@ defmodule OrbitalDynamics.OptimizerLocalSearchOutputBudgetTest do
                )
 
       assert :atomics.get(oversized_counter, 1) == 1
-      assert_output_budget_failure(oversized_failure, "incremental_after_evaluator", 0, 1)
+
+      assert_output_budget_failure(
+        oversized_failure,
+        "incremental_after_evaluator",
+        0,
+        1,
+        "max_aggregate_bytes"
+      )
 
       assert oversized_failure["details"]["projected_aggregate_string_bytes"] >
                JsonSafety.limits()["max_aggregate_bytes"]
@@ -102,13 +116,64 @@ defmodule OrbitalDynamics.OptimizerLocalSearchOutputBudgetTest do
                invoke(facade, @seed, source_evidence(@candidate_ids), evaluator, @opts)
 
       assert :atomics.get(counter, 1) == 1
-      assert_output_budget_failure(failure, "incremental_before_evaluator", 1, 2)
+
+      assert_output_budget_failure(
+        failure,
+        "incremental_before_evaluator",
+        1,
+        2,
+        "max_aggregate_bytes"
+      )
 
       assert failure["details"]["previously_admitted_aggregate_string_bytes"] <=
                JsonSafety.limits()["max_aggregate_bytes"]
 
       assert failure["details"]["projected_aggregate_string_bytes"] >
                JsonSafety.limits()["max_aggregate_bytes"]
+    end
+
+    test "#{label} reports the cumulative JSON node limit without re-evaluating candidates" do
+      facade = {unquote(module), unquote(function)}
+      {seed, evidence, opts, candidate_ids} = cumulative_node_budget_inputs()
+      counters = :atomics.new(length(candidate_ids), [])
+      index_by_id = candidate_ids |> Enum.with_index(1) |> Map.new()
+
+      score_terms =
+        Map.new(0..999, fn index ->
+          name = "s" <> String.pad_leading(Integer.to_string(index, 36), 3, "0")
+          {name, 1}
+        end)
+
+      assert Enum.all?(Map.keys(score_terms), &(byte_size(&1) == 4))
+
+      evaluator = fn _parameters, evidence_entry ->
+        alternative_id = evidence_entry["payload"]["candidate_id"]
+        :atomics.add(counters, Map.fetch!(index_by_id, alternative_id), 1)
+
+        %{
+          "score_terms" => score_terms,
+          "eligible" => true,
+          "rejection_reasons" => []
+        }
+      end
+
+      assert {:error, failure} = invoke(facade, seed, evidence, evaluator, opts)
+
+      assert Enum.all?(1..10, &(:atomics.get(counters, &1) == 1))
+      assert :atomics.get(counters, 11) == 0
+      assert_output_budget_failure(failure, "incremental_after_evaluator", 9, 10, "max_nodes")
+
+      details = failure["details"]
+      issue = details["json_safety_issue"]
+
+      assert details["projected_aggregate_string_bytes"] <
+               JsonSafety.limits()["max_aggregate_bytes"]
+
+      assert issue["severity"] == "error"
+      assert String.starts_with?(issue["path"], "$.evaluations[9].score_terms")
+
+      assert issue["message"] ==
+               "exceeds maximum JSON node budget of #{JsonSafety.limits()["max_nodes"]}"
     end
 
     test "#{label} admits and accounts for the complete 65-candidate boundary" do
@@ -240,7 +305,38 @@ defmodule OrbitalDynamics.OptimizerLocalSearchOutputBudgetTest do
     {seed, source_evidence(candidate_ids), opts, candidate_ids}
   end
 
-  defp assert_output_budget_failure(failure, phase, retained_count, projected_count) do
+  defp cumulative_node_budget_inputs do
+    parameter_names = Enum.map(1..5, &"p#{&1}")
+    seed = Map.new(parameter_names, &{&1, 0})
+    steps = Map.new(parameter_names, &{&1, 1})
+    bounds = Map.new(parameter_names, &{&1, {-1, 1}})
+
+    opts = [
+      steps: steps,
+      bounds: bounds,
+      id_prefix: "nodes",
+      evaluation_budget: 11
+    ]
+
+    neighborhood =
+      Local.neighborhood(seed,
+        steps: steps,
+        bounds: bounds,
+        id_prefix: "nodes",
+        max_alternatives: 11
+      )
+
+    candidate_ids = Enum.map(neighborhood["alternatives"], & &1["id"])
+    {seed, source_evidence(candidate_ids), opts, candidate_ids}
+  end
+
+  defp assert_output_budget_failure(
+         failure,
+         phase,
+         retained_count,
+         projected_count,
+         expected_limit_kind
+       ) do
     assert failure["status"] == "rejected"
     assert failure["reason"] == "certificate_output_budget_exceeded"
     assert failure["details"]["phase"] == phase
@@ -249,6 +345,15 @@ defmodule OrbitalDynamics.OptimizerLocalSearchOutputBudgetTest do
 
     assert failure["details"]["aggregate_string_byte_limit"] ==
              JsonSafety.limits()["max_aggregate_bytes"]
+
+    assert failure["details"]["json_safety_limit_kind"] == expected_limit_kind
+
+    assert failure["details"]["json_safety_limit"] ==
+             JsonSafety.limits()[expected_limit_kind]
+
+    assert failure["details"]["json_safety_issue"]["severity"] == "error"
+    assert is_binary(failure["details"]["json_safety_issue"]["path"])
+    assert is_binary(failure["details"]["json_safety_issue"]["message"])
 
     assert failure["details"]["resource_scope"] ==
              "complete_local_search_optimization_certificate"
