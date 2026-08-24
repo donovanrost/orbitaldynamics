@@ -1060,6 +1060,177 @@ defmodule OrbitalDynamics.OptimizerLocalSearchCertificateTest do
     refute_received :hostile_certificate_term_executed
   end
 
+  test "strict JSON semantic validation stops at one bounded deterministic issue budget" do
+    maximum = JsonSafety.limits()["max_issues"]
+
+    corrupted =
+      build_certificate()
+      |> Map.put("evaluations", List.duplicate(%{}, 1_000))
+      |> Map.delete("eligible_count")
+      |> Map.put("unexpected", true)
+      |> put_in(
+        ["source_evidence_registry", "identity", "sha256"],
+        String.duplicate("0", 64)
+      )
+
+    direct_issues =
+      LocalSearchOptimizationCertificateContracts.validate([], "$", corrupted)
+
+    assert length(direct_issues) == maximum
+
+    assert Enum.count(
+             direct_issues,
+             &(&1["message"] ==
+                 "certificate validation issue budget exhausted after #{maximum - 1} errors")
+           ) == 1
+
+    assert_issue_paths(direct_issues, [
+      "$",
+      "$.eligible_count",
+      "$.id",
+      "$.source_evidence_registry.identity"
+    ])
+
+    assert direct_issues ==
+             Enum.sort_by(direct_issues, &{&1["path"], &1["message"], &1["severity"]})
+
+    assert direct_issues ==
+             LocalSearchOptimizationCertificateContracts.validate([], "$", corrupted)
+
+    assert {:error, inferred_report} = Schema.validate_artifact(corrupted)
+
+    assert {:error, selected_report} =
+             Schema.validate_artifact(corrupted,
+               schema_contract: "local_search_optimization_certificate.v1"
+             )
+
+    assert {:error, facade_report} = OrbitalDynamics.validate_artifact(corrupted)
+
+    Enum.each([inferred_report, selected_report, facade_report], fn report ->
+      assert report["errors"] == direct_issues
+      assert length(report["errors"]) == maximum
+      assert JsonSafety.errors(report) == []
+      assert is_binary(report |> :json.encode() |> IO.iodata_to_binary())
+    end)
+
+    validation_report =
+      Schema.validation_report(corrupted,
+        schema_contract: "local_search_optimization_certificate.v1"
+      )
+
+    assert validation_report["status"] == "fail"
+    assert validation_report["error_count"] == maximum
+    assert validation_report["errors"] == direct_issues
+    assert JsonSafety.errors(validation_report) == []
+    assert is_binary(validation_report |> :json.encode() |> IO.iodata_to_binary())
+
+    parent = self()
+    hostile = fn -> send(parent, :hostile_validation_report_term_executed) end
+
+    unsafe_corrupted =
+      put_in(corrupted, ["evaluations", Access.at(0), "score"], hostile)
+
+    unsafe_issues =
+      LocalSearchOptimizationCertificateContracts.validate([], "$", unsafe_corrupted)
+
+    assert length(unsafe_issues) == maximum
+
+    assert Enum.count(
+             unsafe_issues,
+             &(&1["message"] ==
+                 "certificate validation issue budget exhausted after #{maximum - 1} errors")
+           ) == 1
+
+    assert_issue_paths(unsafe_issues, ["$", "$.evaluations[0].score", "$.id"])
+
+    assert unsafe_issues ==
+             Enum.sort_by(unsafe_issues, &{&1["path"], &1["message"], &1["severity"]})
+
+    assert unsafe_issues ==
+             LocalSearchOptimizationCertificateContracts.validate([], "$", unsafe_corrupted)
+
+    assert {:error, unsafe_report} = Schema.validate_artifact(unsafe_corrupted)
+    assert unsafe_report["errors"] == unsafe_issues
+    assert JsonSafety.errors(unsafe_report) == []
+
+    base = build_certificate()
+
+    deep =
+      Enum.reduce(1..70, :null, fn index, nested -> %{Integer.to_string(index) => nested} end)
+
+    hostile_artifacts = [
+      hostile,
+      ["root" | :tail],
+      self(),
+      Map.put(base, "model_limits", ["limit" | :tail]),
+      Map.put(base, "claim", %URI{scheme: "https"}),
+      Map.put(base, "claim", self()),
+      Map.put(base, "objective", <<255>>),
+      Map.put(base, "selected_score", :nan),
+      Map.put(base, :objective, "alias"),
+      Map.put(base, "deep", deep),
+      Map.put(base, "oversized", List.duplicate(0, 2_049))
+    ]
+
+    Enum.each(hostile_artifacts, fn artifact ->
+      schema_report =
+        Schema.validation_report(artifact,
+          schema_contract: "local_search_optimization_certificate.v1"
+        )
+
+      public_report =
+        OrbitalDynamics.schema_validation_report(artifact,
+          schema_contract: "local_search_optimization_certificate.v1"
+        )
+
+      assert schema_report == public_report
+      assert schema_report["status"] == "fail"
+      assert schema_report["error_count"] >= 1
+      assert schema_report["error_count"] <= maximum
+      assert length(schema_report["errors"]) <= maximum
+      assert JsonSafety.errors(schema_report) == []
+      assert is_binary(schema_report |> :json.encode() |> IO.iodata_to_binary())
+
+      assert schema_report ==
+               Schema.validation_report(artifact,
+                 schema_contract: "local_search_optimization_certificate.v1"
+               )
+    end)
+
+    malformed_options = [
+      [{:schema_contract, "local_search_optimization_certificate.v1"} | :tail],
+      [schema_contract: "local_search_optimization_certificate.v1", schema_contract: "duplicate"],
+      [
+        contract: "local_search_optimization_certificate.v1",
+        schema_contract: "local_search_optimization_certificate.v1"
+      ],
+      [schema_contract: hostile],
+      [schema_contract: self()],
+      [validation_mode: <<255>>],
+      hostile,
+      self(),
+      %{}
+    ]
+
+    Enum.each(malformed_options, fn opts ->
+      malformed_report = Schema.validation_report(base, opts)
+      public_malformed_report = OrbitalDynamics.schema_validation_report(base, opts)
+
+      assert malformed_report == public_malformed_report
+      assert malformed_report["status"] == "fail"
+      assert malformed_report["error_count"] >= 1
+      assert JsonSafety.errors(malformed_report) == []
+      assert is_binary(malformed_report |> :json.encode() |> IO.iodata_to_binary())
+    end)
+
+    arity_one_report = Schema.validation_report(hostile)
+    assert arity_one_report == OrbitalDynamics.schema_validation_report(hostile)
+    assert arity_one_report["status"] == "fail"
+    assert JsonSafety.errors(arity_one_report) == []
+
+    refute_received :hostile_validation_report_term_executed
+  end
+
   test "verifier facades return typed failures for malformed replay inputs" do
     certificate = build_certificate()
 

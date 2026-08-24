@@ -272,7 +272,7 @@ defmodule OrbitalDynamics.Schema do
   @doc """
   Wraps artifact validation in a `schema_validation_report.v1` artifact.
   """
-  def validation_report(%{} = artifact, opts \\ []) do
+  def validation_report(artifact, opts \\ []) do
     OrbitalDynamics.Schema.Report.validation_report_for_artifact(
       artifact,
       opts,

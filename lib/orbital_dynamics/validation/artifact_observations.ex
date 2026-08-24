@@ -156,6 +156,10 @@ defmodule OrbitalDynamics.Validation.ArtifactObservations do
     "validation_safety_case_summary.v1" => {__MODULE__.ValidationSafetyCaseSummary, :build}
   }
 
+  def build("local_search_optimization_certificate.v1", artifact) do
+    __MODULE__.LocalSearchOptimizationCertificate.build(artifact)
+  end
+
   def build(contract, artifact) when is_map(artifact) do
     case Map.fetch(@builders, contract) do
       {:ok, {module, function}} -> apply(module, function, [artifact])

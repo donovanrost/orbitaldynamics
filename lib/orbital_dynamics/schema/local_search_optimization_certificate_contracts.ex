@@ -53,42 +53,47 @@ defmodule OrbitalDynamics.Schema.LocalSearchOptimizationCertificateContracts do
   def validate(issues, path, certificate) when is_list(issues) and is_map(certificate) do
     case JsonSafety.errors(certificate, path) do
       [] ->
-        validate_json_safe(issues, path, certificate)
+        issues
+        |> validate_json_safe(path, certificate)
+        |> deterministic_issues()
 
       json_issues ->
-        validate_json_unsafe(json_issues ++ issues, path, certificate, json_issues)
+        validate_json_unsafe(issues, path, certificate, json_issues)
     end
   rescue
-    _error -> [error(path, "must be safely validatable as a local-search certificate") | issues]
+    _error -> total_failure(issues, path)
   catch
     _kind, _reason ->
-      [error(path, "must be safely validatable as a local-search certificate") | issues]
+      total_failure(issues, path)
   end
 
   def validate(issues, path, _certificate),
-    do: [error(path, "must be a map") | issues]
+    do: issues |> add_issue(path, "must be a map") |> deterministic_issues()
 
   defp validate_json_unsafe(issues, path, certificate, json_issues) do
-    if analysis_resource_exhausted?(json_issues) do
+    issues =
       issues
       |> validate_unencodable_certificate_identity(path, certificate)
-      |> deterministic_issues()
+      |> merge_issues(json_issues)
+
+    if issue_budget_exhausted?(issues) or analysis_resource_exhausted?(json_issues) do
+      deterministic_issues(issues)
     else
       case analysis_surrogate(certificate, path) do
         {:ok, surrogate, analysis_issues} when is_map(surrogate) ->
-          (analysis_issues ++ issues)
+          issues
+          |> merge_issues(analysis_issues)
           |> validate_json_safe(path, surrogate, false, json_issues)
-          |> validate_unencodable_certificate_identity(path, certificate)
           |> deterministic_issues()
 
         {:ok, _surrogate, analysis_issues} ->
-          (analysis_issues ++ issues)
-          |> validate_unencodable_certificate_identity(path, certificate)
+          issues
+          |> merge_issues(analysis_issues)
           |> deterministic_issues()
 
         {:error, resource_issue} ->
-          [resource_issue | issues]
-          |> validate_unencodable_certificate_identity(path, certificate)
+          issues
+          |> add_existing_issue(resource_issue)
           |> deterministic_issues()
       end
     end
@@ -103,7 +108,7 @@ defmodule OrbitalDynamics.Schema.LocalSearchOptimizationCertificateContracts do
        ) do
     issues =
       issues
-      |> PrimitiveValidation.require_fields(path, certificate, @root_fields)
+      |> require_fields(path, certificate, @root_fields)
       |> exact_fields(path, certificate, @root_fields)
       |> expect_equal(path, certificate, "schema_contract", @contract)
       |> expect_equal(path, certificate, "model", LocalSearchCertificate.model())
@@ -173,20 +178,32 @@ defmodule OrbitalDynamics.Schema.LocalSearchOptimizationCertificateContracts do
         else: issues
 
     issues
-    |> validate_evaluator_execution_policy(path, certificate["evaluator_execution_policy"])
-    |> validate_claim_shape(path, certificate["claim"])
-    |> validate_search_space(
-      path,
-      certificate["search_space"],
-      branch_strict_json?(json_issues, "#{path}.search_space")
+    |> continue_validation(
+      &validate_evaluator_execution_policy(
+        &1,
+        path,
+        certificate["evaluator_execution_policy"]
+      )
     )
-    |> validate_registry(
-      path,
-      certificate,
-      branch_strict_json?(json_issues, "#{path}.source_evidence_registry")
+    |> continue_validation(&validate_claim_shape(&1, path, certificate["claim"]))
+    |> continue_validation(
+      &validate_search_space(
+        &1,
+        path,
+        certificate["search_space"],
+        branch_strict_json?(json_issues, "#{path}.search_space")
+      )
     )
-    |> validate_evaluations(path, certificate)
-    |> validate_termination_and_claim(path, certificate)
+    |> continue_validation(
+      &validate_registry(
+        &1,
+        path,
+        certificate,
+        branch_strict_json?(json_issues, "#{path}.source_evidence_registry")
+      )
+    )
+    |> continue_validation(&validate_evaluations(&1, path, certificate))
+    |> continue_validation(&validate_termination_and_claim(&1, path, certificate))
   end
 
   defp validate_certificate_identity(issues, path, certificate) do
@@ -207,10 +224,11 @@ defmodule OrbitalDynamics.Schema.LocalSearchOptimizationCertificateContracts do
         )
 
       {:error, _failure} ->
-        [
-          error("#{path}.id", "cannot verify identity until certificate content is strict JSON")
-          | issues
-        ]
+        add_issue(
+          issues,
+          "#{path}.id",
+          "cannot verify identity until certificate content is strict JSON"
+        )
     end
   end
 
@@ -223,12 +241,10 @@ defmodule OrbitalDynamics.Schema.LocalSearchOptimizationCertificateContracts do
       "#{path}.id",
       "must exactly match local_search_optimization_certificate:<64 lowercase hex>"
     )
-    |> then(fn issues ->
-      [
-        error("#{path}.id", "cannot verify identity until certificate content is strict JSON")
-        | issues
-      ]
-    end)
+    |> add_issue(
+      "#{path}.id",
+      "cannot verify identity until certificate content is strict JSON"
+    )
   end
 
   defp analysis_resource_exhausted?(issues) do
@@ -513,7 +529,7 @@ defmodule OrbitalDynamics.Schema.LocalSearchOptimizationCertificateContracts do
         |> Enum.take(retained_count)
 
       [
-        error("$", "certificate validation issue budget exhausted after #{maximum - 1} errors")
+        issue_budget_error(maximum)
         | if(identity_issue, do: [identity_issue | retained], else: retained)
       ]
       |> Enum.sort_by(&{&1["path"], &1["message"], &1["severity"]})
@@ -596,7 +612,8 @@ defmodule OrbitalDynamics.Schema.LocalSearchOptimizationCertificateContracts do
         search_space["generation_rejected_moves"]
       )
 
-    if verify_reproduction? and search_space_structure_valid?(search_space) do
+    if not issue_budget_exhausted?(issues) and verify_reproduction? and
+         search_space_structure_valid?(search_space) do
       expected = regenerate_search_space(search_space)
 
       ensure(
@@ -610,19 +627,19 @@ defmodule OrbitalDynamics.Schema.LocalSearchOptimizationCertificateContracts do
     end
   rescue
     _error ->
-      [
-        error(
-          "#{path}.search_space",
-          "must be a valid reproducible deterministic local-neighborhood description"
-        )
-        | issues
-      ]
+      add_issue(
+        issues,
+        "#{path}.search_space",
+        "must be a valid reproducible deterministic local-neighborhood description"
+      )
   end
 
   defp validate_search_space(issues, _path, _search_space, _verify_reproduction?), do: issues
 
   defp validate_bounds(issues, path, bounds) when is_map(bounds) do
-    Enum.reduce(bounds, issues, fn {name, bound}, acc ->
+    bounds
+    |> Enum.sort_by(fn {name, _bound} -> name end)
+    |> reduce_until_issue_budget(issues, fn {name, bound}, acc ->
       bound_path = "#{path}.#{name}"
 
       if is_map(bound) do
@@ -637,7 +654,7 @@ defmodule OrbitalDynamics.Schema.LocalSearchOptimizationCertificateContracts do
           "minimum must be less than or equal to maximum"
         )
       else
-        [error(bound_path, "must be a map") | acc]
+        add_issue(acc, bound_path, "must be a map")
       end
     end)
   end
@@ -648,7 +665,7 @@ defmodule OrbitalDynamics.Schema.LocalSearchOptimizationCertificateContracts do
     if proper_list?(candidates) do
       candidates
       |> Enum.with_index()
-      |> Enum.reduce(issues, fn {candidate, index}, acc ->
+      |> reduce_until_issue_budget(issues, fn {candidate, index}, acc ->
         validate_candidate_row(acc, "#{path}[#{index}]", candidate)
       end)
     else
@@ -667,7 +684,7 @@ defmodule OrbitalDynamics.Schema.LocalSearchOptimizationCertificateContracts do
   end
 
   defp validate_candidate_row(issues, path, _candidate),
-    do: [error(path, "must be a map") | issues]
+    do: add_issue(issues, path, "must be a map")
 
   defp validate_candidate_move(issues, path, %{"type" => "seed"} = move) do
     exact_fields(issues, path, move, @seed_move_fields)
@@ -689,13 +706,13 @@ defmodule OrbitalDynamics.Schema.LocalSearchOptimizationCertificateContracts do
   end
 
   defp validate_candidate_move(issues, path, _move),
-    do: [error(path, "must be an exact seed or axis-step move") | issues]
+    do: add_issue(issues, path, "must be an exact seed or axis-step move")
 
   defp validate_rejected_moves(issues, path, rows) do
     if proper_list?(rows) do
       rows
       |> Enum.with_index()
-      |> Enum.reduce(issues, fn {row, index}, acc ->
+      |> reduce_until_issue_budget(issues, fn {row, index}, acc ->
         validate_rejected_move(acc, "#{path}[#{index}]", row)
       end)
     else
@@ -718,13 +735,13 @@ defmodule OrbitalDynamics.Schema.LocalSearchOptimizationCertificateContracts do
   end
 
   defp validate_rejected_move(issues, path, _row),
-    do: [error(path, "must be a map") | issues]
+    do: add_issue(issues, path, "must be a map")
 
   defp validate_rejected_move_shape(issues, path, %{"type" => "axis_step"} = move),
     do: validate_candidate_move(issues, path, move)
 
   defp validate_rejected_move_shape(issues, path, _move),
-    do: [error(path, "must be an exact axis-step move") | issues]
+    do: add_issue(issues, path, "must be an exact axis-step move")
 
   defp search_space_structure_valid?(search_space) do
     is_map(search_space) and finite_score_terms_map?(search_space["seed_parameters"]) and
@@ -809,45 +826,50 @@ defmodule OrbitalDynamics.Schema.LocalSearchOptimizationCertificateContracts do
 
     issues = validate_registry_entries(issues, registry_path, registry["entries"])
 
-    issues =
-      if proper_list?(registry["entries"]) do
-        ensure(
-          issues,
-          registry["entry_count"] == length(registry["entries"]),
-          "#{registry_path}.entry_count",
-          "must equal entries count"
-        )
-      else
-        issues
-      end
-
-    issues =
-      if verify_identity_and_relations? do
-        core = Map.delete(registry, "identity")
-
-        ensure(
-          issues,
-          registry["identity"] == LocalSearchCertificate.source_registry_identity(core),
-          "#{registry_path}.identity",
-          "must be the content identity of the source-evidence registry summary"
-        )
-      else
-        issues
-      end
-
-    if verify_identity_and_relations? and registry_relations_valid?(certificate) do
-      entries = registry["entries"]
-      candidate_ids = Enum.map(certificate["search_space"]["candidates"], & &1["id"])
-      entry_ids = Enum.map(entries, & &1["alternative_id"])
-
-      ensure(
-        issues,
-        entry_ids == candidate_ids,
-        "#{registry_path}.entries",
-        "must contain exactly one entry for every candidate in generation order"
-      )
-    else
+    if issue_budget_exhausted?(issues) do
       issues
+    else
+      issues =
+        if proper_list?(registry["entries"]) do
+          ensure(
+            issues,
+            registry["entry_count"] == length(registry["entries"]),
+            "#{registry_path}.entry_count",
+            "must equal entries count"
+          )
+        else
+          issues
+        end
+
+      issues =
+        if verify_identity_and_relations? do
+          core = Map.delete(registry, "identity")
+
+          ensure(
+            issues,
+            registry["identity"] == LocalSearchCertificate.source_registry_identity(core),
+            "#{registry_path}.identity",
+            "must be the content identity of the source-evidence registry summary"
+          )
+        else
+          issues
+        end
+
+      if not issue_budget_exhausted?(issues) and verify_identity_and_relations? and
+           registry_relations_valid?(certificate) do
+        entries = registry["entries"]
+        candidate_ids = Enum.map(certificate["search_space"]["candidates"], & &1["id"])
+        entry_ids = Enum.map(entries, & &1["alternative_id"])
+
+        ensure(
+          issues,
+          entry_ids == candidate_ids,
+          "#{registry_path}.entries",
+          "must contain exactly one entry for every candidate in generation order"
+        )
+      else
+        issues
+      end
     end
   end
 
@@ -857,7 +879,7 @@ defmodule OrbitalDynamics.Schema.LocalSearchOptimizationCertificateContracts do
     if proper_list?(entries) do
       entries
       |> Enum.with_index()
-      |> Enum.reduce(issues, fn {entry, index}, acc ->
+      |> reduce_until_issue_budget(issues, fn {entry, index}, acc ->
         validate_registry_entry(acc, "#{path}.entries[#{index}]", entry)
       end)
     else
@@ -875,7 +897,7 @@ defmodule OrbitalDynamics.Schema.LocalSearchOptimizationCertificateContracts do
   end
 
   defp validate_registry_entry(issues, path, _entry),
-    do: [error(path, "must be a map") | issues]
+    do: add_issue(issues, path, "must be a map")
 
   defp registry_relations_valid?(certificate) do
     registry = certificate["source_evidence_registry"]
@@ -893,14 +915,14 @@ defmodule OrbitalDynamics.Schema.LocalSearchOptimizationCertificateContracts do
       if proper_list?(evaluations) do
         evaluations
         |> Enum.with_index()
-        |> Enum.reduce(issues, fn {evaluation, index}, acc ->
+        |> reduce_until_issue_budget(issues, fn {evaluation, index}, acc ->
           validate_evaluation(acc, "#{evaluation_path}[#{index}]", evaluation)
         end)
       else
         issues
       end
 
-    if evaluation_relations_valid?(certificate),
+    if not issue_budget_exhausted?(issues) and evaluation_relations_valid?(certificate),
       do: validate_evaluation_relations(issues, path, certificate),
       else: issues
   end
@@ -924,7 +946,7 @@ defmodule OrbitalDynamics.Schema.LocalSearchOptimizationCertificateContracts do
   end
 
   defp validate_evaluation(issues, path, _evaluation),
-    do: [error(path, "must be a map") | issues]
+    do: add_issue(issues, path, "must be a map")
 
   defp evaluation_relations_valid?(certificate) do
     evaluations = certificate["evaluations"]
@@ -1061,7 +1083,7 @@ defmodule OrbitalDynamics.Schema.LocalSearchOptimizationCertificateContracts do
   end
 
   defp validate_termination_and_claim(issues, path, certificate) do
-    if termination_relations_valid?(certificate),
+    if not issue_budget_exhausted?(issues) and termination_relations_valid?(certificate),
       do: do_validate_termination_and_claim(issues, path, certificate),
       else: issues
   end
@@ -1294,7 +1316,7 @@ defmodule OrbitalDynamics.Schema.LocalSearchOptimizationCertificateContracts do
   end
 
   defp validate_identity(issues, path, _identity),
-    do: [error(path, "must declare the supported content identity") | issues]
+    do: add_issue(issues, path, "must declare the supported content identity")
 
   defp exact_fields(issues, path, map, expected) when is_map(map) do
     ensure(
@@ -1461,8 +1483,75 @@ defmodule OrbitalDynamics.Schema.LocalSearchOptimizationCertificateContracts do
   defp proper_list?([_head | tail]), do: proper_list?(tail)
   defp proper_list?(_value), do: false
 
+  defp require_fields(issues, path, map, fields) when is_map(map) do
+    reduce_until_issue_budget(fields, issues, fn field, acc ->
+      if Map.has_key?(map, field),
+        do: acc,
+        else: add_issue(acc, "#{path}.#{field}", "is required")
+    end)
+  end
+
+  defp continue_validation(issues, validation) when is_function(validation, 1) do
+    if issue_budget_exhausted?(issues), do: issues, else: validation.(issues)
+  end
+
+  defp reduce_until_issue_budget(enumerable, issues, reducer) when is_function(reducer, 2) do
+    if issue_budget_exhausted?(issues) do
+      issues
+    else
+      Enum.reduce_while(enumerable, issues, fn entry, acc ->
+        next = reducer.(entry, acc)
+        if issue_budget_exhausted?(next), do: {:halt, next}, else: {:cont, next}
+      end)
+    end
+  end
+
   defp ensure(issues, true, _path, _message), do: issues
-  defp ensure(issues, false, path, message), do: [error(path, message) | issues]
+  defp ensure(issues, false, path, message), do: add_issue(issues, path, message)
+
+  defp merge_issues(issues, additions) do
+    reduce_until_issue_budget(additions, issues, &add_existing_issue(&2, &1))
+  end
+
+  defp add_issue(issues, path, message),
+    do: add_existing_issue(issues, error(path, message))
+
+  defp add_existing_issue(issues, issue) do
+    maximum = JsonSafety.limits()["max_issues"]
+
+    cond do
+      issue_budget_exhausted?(issues) ->
+        issues
+
+      Enum.any?(issues, &(&1 == issue)) ->
+        issues
+
+      length(issues) < maximum - 1 ->
+        [issue | issues]
+
+      true ->
+        [issue_budget_error(maximum) | Enum.take(issues, maximum - 1)]
+    end
+  end
+
+  defp issue_budget_exhausted?(issues) do
+    Enum.any?(issues, fn
+      %{"message" => message} when is_binary(message) ->
+        String.contains?(message, "issue budget exhausted")
+
+      _issue ->
+        false
+    end)
+  end
+
+  defp issue_budget_error(maximum),
+    do: error("$", "certificate validation issue budget exhausted after #{maximum - 1} errors")
+
+  defp total_failure(issues, path) do
+    issues
+    |> add_issue(path, "must be safely validatable as a local-search certificate")
+    |> deterministic_issues()
+  end
 
   defp error(path, message), do: PrimitiveValidation.error(path, message)
 end

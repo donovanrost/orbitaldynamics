@@ -2,8 +2,32 @@ defmodule OrbitalDynamics.Validation.ArtifactObservations.LocalSearchOptimizatio
   @moduledoc false
 
   alias OrbitalDynamics.Optimizer.LocalSearchCertificate
+  alias OrbitalDynamics.Schema
+  alias OrbitalDynamics.Schema.{JsonSafety, PrimitiveValidation}
 
-  def build(%{} = artifact) do
+  @contract "local_search_optimization_certificate.v1"
+
+  def build(artifact) do
+    case Schema.validate_artifact(artifact, schema_contract: @contract) do
+      {:ok, _report} ->
+        artifact
+        |> extract()
+        |> ensure_json_safe()
+
+      {:error, %{"errors" => errors}} when is_list(errors) ->
+        failure(errors)
+
+      {:error, _report} ->
+        failure([PrimitiveValidation.error("$", "certificate validation failed safely")])
+    end
+  rescue
+    _error -> failure([PrimitiveValidation.error("$", "observation extraction failed safely")])
+  catch
+    _kind, _reason ->
+      failure([PrimitiveValidation.error("$", "observation extraction failed safely")])
+  end
+
+  defp extract(artifact) do
     search_space = map_value(artifact, "search_space")
     registry = map_value(artifact, "source_evidence_registry")
     claim = map_value(artifact, "claim")
@@ -33,6 +57,28 @@ defmodule OrbitalDynamics.Validation.ArtifactObservations.LocalSearchOptimizatio
       "evaluator_policy_version" => Map.get(evaluator_policy, "policy_version"),
       "evaluator_timeout_ms" => Map.get(evaluator_policy, "timeout_ms"),
       "model_limit_count" => count(artifact, "model_limits")
+    }
+  end
+
+  defp ensure_json_safe(observations) do
+    case JsonSafety.errors(observations) do
+      [] -> observations
+      errors -> failure(errors)
+    end
+  end
+
+  defp failure(errors) do
+    safe_errors =
+      case JsonSafety.errors(errors, "$.errors") do
+        [] -> errors
+        safety_errors -> safety_errors
+      end
+
+    %{
+      "contract" => @contract,
+      "status" => "error",
+      "reason" => "artifact_observation_input_invalid",
+      "errors" => safe_errors
     }
   end
 
