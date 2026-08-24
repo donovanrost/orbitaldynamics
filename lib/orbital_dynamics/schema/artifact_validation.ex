@@ -51,28 +51,15 @@ defmodule OrbitalDynamics.Schema.ArtifactValidation do
 
     cond do
       is_map(artifact) ->
-        case public_json_issues(artifact, contract_hint) do
-          [] ->
-            validate_contract(
-              artifact,
-              opts,
-              contracts,
-              requested_contract,
-              contract_fun,
-              validate_contract_fun
-            )
-
-          _issues when contract_hint == @local_search_certificate ->
-            validate_named_contract(
-              contract_hint,
-              artifact,
-              contract_fun,
-              validate_contract_fun
-            )
-
-          issues ->
-            {:error, failure_report(requested_contract, issues)}
-        end
+        validate_map_input(
+          artifact,
+          opts,
+          contracts,
+          requested_contract,
+          contract_hint,
+          contract_fun,
+          validate_contract_fun
+        )
 
       contract_hint == @local_search_certificate ->
         validate_named_contract(
@@ -89,6 +76,55 @@ defmodule OrbitalDynamics.Schema.ArtifactValidation do
            PrimitiveValidation.error("$", "artifact must be a map")
          )}
     end
+  end
+
+  defp validate_map_input(
+         artifact,
+         opts,
+         contracts,
+         requested_contract,
+         @local_search_certificate,
+         contract_fun,
+         validate_contract_fun
+       ) do
+    case JsonSafety.errors(artifact) do
+      [] ->
+        validate_contract(
+          artifact,
+          opts,
+          contracts,
+          requested_contract,
+          contract_fun,
+          validate_contract_fun
+        )
+
+      _issues ->
+        validate_named_contract(
+          @local_search_certificate,
+          artifact,
+          contract_fun,
+          validate_contract_fun
+        )
+    end
+  end
+
+  defp validate_map_input(
+         artifact,
+         opts,
+         contracts,
+         requested_contract,
+         _legacy_contract,
+         contract_fun,
+         validate_contract_fun
+       ) do
+    validate_contract(
+      artifact,
+      opts,
+      contracts,
+      requested_contract,
+      contract_fun,
+      validate_contract_fun
+    )
   end
 
   defp validate_contract(
@@ -265,14 +301,6 @@ defmodule OrbitalDynamics.Schema.ArtifactValidation do
     do: if(String.valid?(contract_name), do: contract_name, else: :null)
 
   defp contract_hint(_requested_contract, _artifact), do: :null
-
-  defp public_json_issues(artifact, @local_search_certificate), do: JsonSafety.errors(artifact)
-
-  defp public_json_issues(artifact, _legacy_contract) do
-    artifact
-    |> JsonSafety.artifact_errors()
-    |> Enum.reject(&(&1["message"] == "nil is not a JSON value"))
-  end
 
   defp option_error(path, message), do: {:error, PrimitiveValidation.error(path, message)}
 

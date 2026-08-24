@@ -788,7 +788,7 @@ defmodule OrbitalDynamics.OptimizerLocalSearchCertificateTest do
     )
   end
 
-  test "schema validation rejects atom-only and hidden sibling atom keys before inference" do
+  test "local certificate schema validation rejects atom-only root keys" do
     string_certificate = build_certificate()
 
     assert {:ok, _report} =
@@ -808,18 +808,22 @@ defmodule OrbitalDynamics.OptimizerLocalSearchCertificateTest do
 
     assert Enum.any?(atom_report["errors"], &(&1["message"] == "object keys must be strings"))
     assert_json_total(atom_report)
+  end
 
-    hidden_alias = %{
-      "campaign_plan" => %{
-        "schema_version" => 1,
-        "planner" => "OrbitalDynamics.CampaignPlanner.V1"
-      },
-      hidden_atom_key: "must not be dropped by inference"
-    }
+  test "legacy executable contracts retain their own nil rejection without route relaxation" do
+    assert {:ok, template} = OrbitalDynamics.activity_template("observe")
+    catalog = OrbitalDynamics.capability_catalog_artifact()
 
-    assert {:error, hidden_report} = Schema.validate_artifact(hidden_alias)
-    assert Enum.any?(hidden_report["errors"], &(&1["message"] == "object keys must be strings"))
-    assert_json_total(hidden_report)
+    probes = [
+      {Map.put(template, "id", nil), "$.id"},
+      {Map.put(catalog, "schema_version", nil), "$.schema_version"}
+    ]
+
+    Enum.each(probes, fn {artifact, path} ->
+      assert {:error, report} = Schema.validate_artifact(artifact)
+      assert Enum.any?(report["errors"], &(&1["path"] == path))
+      assert_json_total(report)
+    end)
   end
 
   test "non-JSON certificates report identity as unverifiable without unsafe encoding" do

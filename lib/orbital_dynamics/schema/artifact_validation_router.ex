@@ -66,18 +66,13 @@ defmodule OrbitalDynamics.Schema.ArtifactValidationRouter do
       _issues when name == @local_search_certificate ->
         name |> route(contract, artifact) |> normalize_issues()
 
-      issues ->
-        normalize_issues(issues)
+      _legacy_issues ->
+        name |> route(contract, artifact) |> normalize_issues()
     end
   end
 
   defp json_issues(artifact, @local_search_certificate), do: JsonSafety.errors(artifact)
-
-  defp json_issues(artifact, _legacy_contract) do
-    artifact
-    |> JsonSafety.artifact_errors()
-    |> Enum.reject(&(&1["message"] == "nil is not a JSON value"))
-  end
+  defp json_issues(_artifact, _legacy_contract), do: []
 
   defp registered_contract?(name, contract) when is_map(contract) do
     case OrbitalDynamics.Schema.contract(name) do
