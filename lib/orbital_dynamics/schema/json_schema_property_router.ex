@@ -458,6 +458,13 @@ defmodule OrbitalDynamics.Schema.JsonSchemaPropertyRouter do
     StrategyPlanningPropertyRouter.property(field, contract_name, contract, context)
   end
 
+  def property(field, "local_search_optimization_certificate.v1", _contract, context) do
+    OrbitalDynamics.Schema.LocalSearchOptimizationCertificateJsonSchema.property(
+      field,
+      context_value(context, :stable_id_pattern)
+    )
+  end
+
   def property(field, "score_term_report.v1" = contract_name, contract, context) do
     StrategyPlanningPropertyRouter.property(field, contract_name, contract, context)
   end

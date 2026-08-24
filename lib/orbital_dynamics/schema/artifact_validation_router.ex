@@ -450,6 +450,10 @@ defmodule OrbitalDynamics.Schema.ArtifactValidationRouter do
     DecisionSupportValidation.validate_pareto_frontier_report([], "$", artifact)
   end
 
+  def validate("local_search_optimization_certificate.v1", _contract, artifact) do
+    OrbitalDynamics.Schema.LocalSearchOptimizationCertificateContracts.validate([], "$", artifact)
+  end
+
   def validate("operational_timeline_report.v1", _contract, artifact) do
     TimelineArtifactValidation.validate([], "$", artifact, "operational_timeline_report.v1")
   end

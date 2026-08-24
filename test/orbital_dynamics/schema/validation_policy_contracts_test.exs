@@ -252,7 +252,7 @@ defmodule OrbitalDynamics.Schema.ValidationPolicyContractsTest do
 
     assert migration_report["status"] == "review_required"
     assert migration_report["deprecated_contract_count"] == 1
-    assert migration_report["status_counts"] == %{"current" => 126, "deprecated" => 1}
+    assert migration_report["status_counts"] == %{"current" => 127, "deprecated" => 1}
 
     stale_migration_model =
       Map.put(migration_report, "model", "stale_schema_migration_report_model")
