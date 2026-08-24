@@ -15,9 +15,19 @@ defmodule OrbitalDynamics.CadenceImport.Adapter do
   containing at most 2,048 entries. It must return an acknowledgement that
   copies the request's source identity, immutable authority evidence, manifest
   digest, and idempotency identity. There is deliberately no create, update,
-  write, or mutation callback. The callback runs synchronously in the caller
-  process; this conformance boundary does not provide adapter timeout or
-  process isolation, so callers must supply a trusted adapter implementation.
+  write, or mutation callback.
+
+  `CadenceImport.dry_run/3` preserves the original trusted-adapter behavior and
+  runs callbacks synchronously in the caller process.
+  `CadenceImport.bounded_dry_run/4` instead runs `capabilities/0` and `dry_run/2`
+  in monitored workers under one caller-supplied monotonic deadline. It kills
+  and drains a direct worker that exceeds the deadline.
+
+  The bounded path contains only the direct callback process lifecycle. An
+  adapter is ordinary BEAM code: this behavior is not a malicious-code sandbox,
+  cannot guarantee containment of descendant processes or side effects, grants
+  no write authority, supplies no live Cadence client, and does not prove
+  acceptance by a downstream consumer.
   """
 
   @type request :: %{required(String.t()) => term()}

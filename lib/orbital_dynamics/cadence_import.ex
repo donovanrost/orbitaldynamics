@@ -64,11 +64,33 @@ defmodule OrbitalDynamics.CadenceImport do
 
   Returns a typed, deterministic conformance map or a typed error tuple. Adapter
   errors, exceptions, throws, exits, and malformed returns are contained and do
-  not escape this boundary.
+  not escape this boundary. Adapter callbacks execute synchronously in the
+  caller process, so this compatibility path requires a trusted adapter.
   """
   @spec dry_run(term(), module(), keyword()) :: {:ok, map()} | {:error, map()}
   def dry_run(artifact_or_manifest, adapter, opts \\ []) do
     ConsumerConformance.run(artifact_or_manifest, adapter, opts)
+  end
+
+  @doc """
+  Performs the same no-write consumer conformance dry-run while containing each
+  adapter callback in a monitored worker process.
+
+  `adapter_opts` have exactly the same bounded normalization and semantic
+  request-identity role as the third argument to `dry_run/3`. `lifecycle_opts`
+  must contain exactly one positive integer `:timeout` in milliseconds. One
+  monotonic deadline covers both `capabilities/0` and `dry_run/2`; timed-out
+  workers are killed and their lifecycle messages are drained before return.
+
+  This is process-lifecycle containment for the direct callback workers only.
+  It is not a malicious-code sandbox, does not guarantee containment of adapter
+  descendants or side effects, grants no write authority, supplies no live
+  Cadence client, and does not establish downstream consumer acceptance.
+  """
+  @spec bounded_dry_run(term(), module(), keyword(), keyword()) ::
+          {:ok, map()} | {:error, map()}
+  def bounded_dry_run(artifact_or_manifest, adapter, adapter_opts, lifecycle_opts) do
+    ConsumerConformance.run(artifact_or_manifest, adapter, adapter_opts, lifecycle_opts)
   end
 
   @doc """

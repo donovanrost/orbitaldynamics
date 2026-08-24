@@ -7,6 +7,33 @@ defmodule OrbitalDynamics.CadenceImportConsumerConformanceTest do
   alias OrbitalDynamics.CadenceImport.OuterAdmission
   alias OrbitalDynamics.Schema
 
+  defmodule AdapterFixture do
+    def capabilities do
+      %{
+        "contract" => "cadence_consumer_dry_run_adapter.v1",
+        "operations" => ["dry_run"],
+        "writes" => false
+      }
+    end
+
+    def acknowledgement(request) do
+      %{
+        "status" => "conformant",
+        "source_identity" => request["source_identity"],
+        "authority_evidence" => request["authority_evidence"],
+        "manifest_semantic_sha256" => request["manifest_semantic_sha256"],
+        "idempotency_identity" => request["idempotency_identity"]
+      }
+    end
+
+    def notify(message) do
+      case Process.whereis(OrbitalDynamics.CadenceImportConsumerConformanceTest) do
+        nil -> :ok
+        observer -> send(observer, message)
+      end
+    end
+  end
+
   defmodule InMemoryFakeAdapter do
     @behaviour OrbitalDynamics.CadenceImport.Adapter
 
@@ -82,6 +109,166 @@ defmodule OrbitalDynamics.CadenceImportConsumerConformanceTest do
     def dry_run(_request, _opts), do: raise("must not delegate")
   end
 
+  defmodule LifecycleAdapter do
+    @behaviour OrbitalDynamics.CadenceImport.Adapter
+
+    alias OrbitalDynamics.CadenceImportConsumerConformanceTest.AdapterFixture
+
+    @impl true
+    def capabilities do
+      AdapterFixture.notify({:adapter_callback_started, :capabilities, self()})
+      AdapterFixture.capabilities()
+    end
+
+    @impl true
+    def dry_run(request, opts) do
+      AdapterFixture.notify({:adapter_callback_started, :dry_run, self(), request, opts})
+
+      case opts["mode"] do
+        "never" ->
+          receive do
+            :release_test_adapter -> {:ok, AdapterFixture.acknowledgement(request)}
+          end
+
+        "sleep" ->
+          Process.sleep(opts["sleep_ms"])
+          {:ok, AdapterFixture.acknowledgement(request)}
+
+        "exception" ->
+          raise "bounded dry-run exception"
+
+        "throw" ->
+          throw(:bounded_dry_run_throw)
+
+        "exit" ->
+          exit(:bounded_dry_run_exit)
+
+        "death" ->
+          Process.exit(self(), :kill)
+
+        _mode ->
+          {:ok, AdapterFixture.acknowledgement(request)}
+      end
+    end
+  end
+
+  defmodule NeverReturningCapabilitiesAdapter do
+    @behaviour OrbitalDynamics.CadenceImport.Adapter
+
+    alias OrbitalDynamics.CadenceImportConsumerConformanceTest.{
+      AdapterFixture,
+      LifecycleAdapter
+    }
+
+    @impl true
+    def capabilities do
+      AdapterFixture.notify({:adapter_callback_started, :capabilities, self()})
+
+      receive do
+        :release_test_adapter -> AdapterFixture.capabilities()
+      end
+    end
+
+    @impl true
+    defdelegate dry_run(request, opts), to: LifecycleAdapter
+  end
+
+  defmodule SlowCapabilitiesAdapter do
+    @behaviour OrbitalDynamics.CadenceImport.Adapter
+
+    alias OrbitalDynamics.CadenceImportConsumerConformanceTest.{
+      AdapterFixture,
+      LifecycleAdapter
+    }
+
+    @impl true
+    def capabilities do
+      AdapterFixture.notify({:adapter_callback_started, :capabilities, self()})
+      Process.sleep(200)
+      AdapterFixture.capabilities()
+    end
+
+    @impl true
+    defdelegate dry_run(request, opts), to: LifecycleAdapter
+  end
+
+  defmodule ExceptionCapabilitiesAdapter do
+    @behaviour OrbitalDynamics.CadenceImport.Adapter
+
+    alias OrbitalDynamics.CadenceImportConsumerConformanceTest.{
+      AdapterFixture,
+      LifecycleAdapter
+    }
+
+    @impl true
+    def capabilities do
+      AdapterFixture.notify({:adapter_callback_started, :capabilities, self()})
+      raise "bounded capabilities exception"
+    end
+
+    @impl true
+    defdelegate dry_run(request, opts), to: LifecycleAdapter
+  end
+
+  defmodule ThrowingCapabilitiesAdapter do
+    @behaviour OrbitalDynamics.CadenceImport.Adapter
+
+    alias OrbitalDynamics.CadenceImportConsumerConformanceTest.{
+      AdapterFixture,
+      LifecycleAdapter
+    }
+
+    @impl true
+    def capabilities do
+      AdapterFixture.notify({:adapter_callback_started, :capabilities, self()})
+      throw(:bounded_capabilities_throw)
+    end
+
+    @impl true
+    defdelegate dry_run(request, opts), to: LifecycleAdapter
+  end
+
+  defmodule ExitingCapabilitiesAdapter do
+    @behaviour OrbitalDynamics.CadenceImport.Adapter
+
+    alias OrbitalDynamics.CadenceImportConsumerConformanceTest.{
+      AdapterFixture,
+      LifecycleAdapter
+    }
+
+    @impl true
+    def capabilities do
+      AdapterFixture.notify({:adapter_callback_started, :capabilities, self()})
+      exit(:bounded_capabilities_exit)
+    end
+
+    @impl true
+    defdelegate dry_run(request, opts), to: LifecycleAdapter
+  end
+
+  defmodule DyingCapabilitiesAdapter do
+    @behaviour OrbitalDynamics.CadenceImport.Adapter
+
+    alias OrbitalDynamics.CadenceImportConsumerConformanceTest.{
+      AdapterFixture,
+      LifecycleAdapter
+    }
+
+    @impl true
+    def capabilities do
+      AdapterFixture.notify({:adapter_callback_started, :capabilities, self()})
+      Process.exit(self(), :kill)
+    end
+
+    @impl true
+    defdelegate dry_run(request, opts), to: LifecycleAdapter
+  end
+
+  setup do
+    true = Process.register(self(), __MODULE__)
+    :ok
+  end
+
   test "declares the exact no-write adapter and public conformance capability surfaces" do
     assert Adapter.behaviour_info(:callbacks) |> Enum.sort() ==
              [capabilities: 0, dry_run: 2]
@@ -106,6 +293,17 @@ defmodule OrbitalDynamics.CadenceImportConsumerConformanceTest do
              result_type: "cadence_consumer_conformance.v1",
              idempotency: :deterministic_semantic_request_identity,
              max_adapter_options: 2_048,
+             execution_modes: [
+               :synchronous_trusted_adapter,
+               :bounded_monitored_callback_lifecycle
+             ],
+             bounded_callback_lifecycle: %{
+               api: :bounded_dry_run_4,
+               timeout_option: :timeout,
+               deadline: :single_monotonic_deadline,
+               callback_phases: [:capabilities, :dry_run],
+               timed_out_worker: :killed_and_drained
+             },
              outer_admission: %{
                "max_external_size_bytes" => 67_108_864,
                "max_top_level_fields" => 64,
@@ -531,6 +729,353 @@ defmodule OrbitalDynamics.CadenceImportConsumerConformanceTest do
     end
   end
 
+  test "bounded and synchronous success preserve identical semantic request and result identity" do
+    manifest = valid_manifest_with_authority()
+    adapter_opts = [scenario: "nominal"]
+
+    assert {:ok, synchronous_result} =
+             CadenceImport.dry_run(manifest, LifecycleAdapter, adapter_opts)
+
+    assert_receive {:adapter_callback_started, :capabilities, synchronous_capabilities_pid}
+
+    assert_receive {:adapter_callback_started, :dry_run, synchronous_dry_run_pid,
+                    synchronous_request, %{"scenario" => "nominal"}}
+
+    assert synchronous_capabilities_pid == self()
+    assert synchronous_dry_run_pid == self()
+
+    assert {:ok, bounded_result} =
+             CadenceImport.bounded_dry_run(
+               manifest,
+               LifecycleAdapter,
+               adapter_opts,
+               timeout: 500
+             )
+
+    assert_receive {:adapter_callback_started, :capabilities, bounded_capabilities_pid}
+
+    assert_receive {:adapter_callback_started, :dry_run, bounded_dry_run_pid, bounded_request,
+                    %{"scenario" => "nominal"}}
+
+    refute bounded_capabilities_pid == self()
+    refute bounded_dry_run_pid == self()
+    refute bounded_capabilities_pid == bounded_dry_run_pid
+    assert_process_dead(bounded_capabilities_pid)
+    assert_process_dead(bounded_dry_run_pid)
+
+    assert bounded_request == synchronous_request
+    assert bounded_result == synchronous_result
+    assert bounded_result["source_identity"] == synchronous_request["source_identity"]
+    assert bounded_result["authority_evidence"] == synchronous_request["authority_evidence"]
+
+    assert bounded_result["idempotency"]["identity"] ==
+             synchronous_request["idempotency_identity"]
+  end
+
+  test "validates one finite positive timeout before any adapter delegation" do
+    manifest = valid_manifest_with_authority()
+
+    invalid_lifecycle_options = [
+      [],
+      [timeout: 0],
+      [timeout: -1],
+      [timeout: 1.0],
+      [timeout: :infinity],
+      [timeout: 10, timeout: 20],
+      [timeout: 10, unsupported: true],
+      [unsupported: 10],
+      [{"timeout", 10}],
+      [{:timeout, 10} | :improper_tail]
+    ]
+
+    for lifecycle_opts <- invalid_lifecycle_options do
+      assert {:error,
+              %{
+                "type" => "cadence_consumer_conformance_error.v1",
+                "code" => "invalid_timeout_options"
+              }} =
+               CadenceImport.bounded_dry_run(
+                 manifest,
+                 LifecycleAdapter,
+                 [],
+                 lifecycle_opts
+               )
+    end
+
+    assert {:error,
+            %{
+              "code" => "invalid_timeout_options",
+              "details" => %{
+                "duplicate_key" => "timeout",
+                "examined_item_count" => 2
+              }
+            }} =
+             CadenceImport.bounded_dry_run(
+               manifest,
+               LifecycleAdapter,
+               [],
+               timeout: 10,
+               timeout: 20
+             )
+
+    refute_receive {:adapter_callback_started, _phase, _worker}
+    refute_receive {:adapter_callback_started, _phase, _worker, _request, _opts}
+  end
+
+  test "times out kills and drains a never-returning capabilities worker" do
+    sentinel = make_ref()
+    send(self(), {:unrelated_mailbox_message, sentinel})
+
+    assert {:error,
+            %{
+              "type" => "cadence_consumer_conformance_error.v1",
+              "code" => "adapter_capabilities_timeout",
+              "details" => %{"phase" => "capabilities", "timeout_ms" => 30}
+            }} =
+             CadenceImport.bounded_dry_run(
+               valid_manifest_with_authority(),
+               NeverReturningCapabilitiesAdapter,
+               [],
+               timeout: 30
+             )
+
+    assert_receive {:unrelated_mailbox_message, ^sentinel}
+    assert_receive {:adapter_callback_started, :capabilities, worker}
+    refute Process.alive?(worker)
+    assert Process.alive?(self())
+
+    refute_receive {{OrbitalDynamics.CadenceImport.ConsumerConformance, :bounded_callback, _ref},
+                    _outcome},
+                   20
+
+    refute_receive {:DOWN, _ref, :process, ^worker, _reason}, 20
+  end
+
+  test "uses one monotonic deadline across slow capabilities and never-returning dry_run" do
+    started = System.monotonic_time(:millisecond)
+
+    assert {:error,
+            %{
+              "code" => "adapter_dry_run_timeout",
+              "details" => %{"phase" => "dry_run", "timeout_ms" => 400}
+            }} =
+             CadenceImport.bounded_dry_run(
+               valid_manifest_with_authority(),
+               SlowCapabilitiesAdapter,
+               [mode: "never"],
+               timeout: 400
+             )
+
+    elapsed = System.monotonic_time(:millisecond) - started
+
+    assert_receive {:adapter_callback_started, :capabilities, capabilities_worker}
+
+    assert_receive {:adapter_callback_started, :dry_run, dry_run_worker, _request,
+                    %{"mode" => "never"}}
+
+    assert_process_dead(capabilities_worker)
+    refute Process.alive?(dry_run_worker)
+    assert elapsed < 550
+    assert Process.alive?(self())
+  end
+
+  test "rejects an acknowledgement racing at the deadline and cannot reuse it later" do
+    manifest = valid_manifest_with_authority()
+
+    assert {:error, %{"code" => "adapter_dry_run_timeout"}} =
+             CadenceImport.bounded_dry_run(
+               manifest,
+               LifecycleAdapter,
+               [mode: "sleep", sleep_ms: 30],
+               timeout: 30
+             )
+
+    assert_receive {:adapter_callback_started, :capabilities, first_capabilities_worker}
+
+    assert_receive {:adapter_callback_started, :dry_run, first_dry_run_worker, _request,
+                    %{"mode" => "sleep", "sleep_ms" => 30}}
+
+    assert_process_dead(first_capabilities_worker)
+    refute Process.alive?(first_dry_run_worker)
+
+    assert {:ok, retry_result} =
+             CadenceImport.bounded_dry_run(manifest, LifecycleAdapter, [], timeout: 500)
+
+    assert_receive {:adapter_callback_started, :capabilities, retry_capabilities_worker}
+
+    assert_receive {:adapter_callback_started, :dry_run, retry_dry_run_worker, retry_request, %{}}
+
+    assert retry_result["idempotency"]["identity"] == retry_request["idempotency_identity"]
+    assert_process_dead(retry_capabilities_worker)
+    assert_process_dead(retry_dry_run_worker)
+
+    refute_receive {{OrbitalDynamics.CadenceImport.ConsumerConformance, :bounded_callback, _ref},
+                    _outcome},
+                   50
+  end
+
+  test "contains capability exceptions throws exits and monitored worker death distinctly" do
+    caller = self()
+    manifest = valid_manifest_with_authority()
+
+    for {adapter, expected_code} <- [
+          {ExceptionCapabilitiesAdapter, "adapter_capabilities_exception"},
+          {ThrowingCapabilitiesAdapter, "adapter_capabilities_throw"},
+          {ExitingCapabilitiesAdapter, "adapter_capabilities_exit"},
+          {DyingCapabilitiesAdapter, "adapter_capabilities_worker_death"}
+        ] do
+      assert {:error,
+              %{
+                "type" => "cadence_consumer_conformance_error.v1",
+                "code" => ^expected_code
+              }} =
+               CadenceImport.bounded_dry_run(manifest, adapter, [], timeout: 500)
+
+      assert_receive {:adapter_callback_started, :capabilities, worker}
+      assert_process_dead(worker)
+      assert self() == caller
+      assert Process.alive?(caller)
+    end
+  end
+
+  test "contains dry_run exceptions throws exits and monitored worker death distinctly" do
+    caller = self()
+    manifest = valid_manifest_with_authority()
+
+    for {mode, expected_code} <- [
+          {"exception", "adapter_dry_run_exception"},
+          {"throw", "adapter_dry_run_throw"},
+          {"exit", "adapter_dry_run_exit"},
+          {"death", "adapter_dry_run_worker_death"}
+        ] do
+      assert {:error,
+              %{
+                "type" => "cadence_consumer_conformance_error.v1",
+                "code" => ^expected_code
+              }} =
+               CadenceImport.bounded_dry_run(
+                 manifest,
+                 LifecycleAdapter,
+                 [mode: mode],
+                 timeout: 500
+               )
+
+      assert_receive {:adapter_callback_started, :capabilities, capabilities_worker}
+
+      assert_receive {:adapter_callback_started, :dry_run, dry_run_worker, _request,
+                      %{"mode" => ^mode}}
+
+      assert_process_dead(capabilities_worker)
+      assert_process_dead(dry_run_worker)
+      assert self() == caller
+      assert Process.alive?(caller)
+    end
+  end
+
+  test "keeps synchronous trusted-adapter exception throw and exit errors byte-compatible" do
+    manifest = valid_manifest_with_authority()
+
+    for {mode, expected_error} <- [
+          {"exception",
+           %{
+             "type" => "cadence_consumer_conformance_error.v1",
+             "status" => "error",
+             "code" => "adapter_exception",
+             "message" => "adapter dry_run raised an exception",
+             "details" => %{"exception" => "Elixir.RuntimeError"}
+           }},
+          {"throw",
+           %{
+             "type" => "cadence_consumer_conformance_error.v1",
+             "status" => "error",
+             "code" => "adapter_throw",
+             "message" => "adapter dry_run did not return",
+             "details" => %{}
+           }},
+          {"exit",
+           %{
+             "type" => "cadence_consumer_conformance_error.v1",
+             "status" => "error",
+             "code" => "adapter_exit",
+             "message" => "adapter dry_run did not return",
+             "details" => %{}
+           }}
+        ] do
+      assert {:error, ^expected_error} =
+               CadenceImport.dry_run(manifest, LifecycleAdapter, mode: mode)
+
+      assert_receive {:adapter_callback_started, :capabilities, caller}
+      assert caller == self()
+
+      assert_receive {:adapter_callback_started, :dry_run, ^caller, _request, %{"mode" => ^mode}}
+    end
+
+    for {adapter, expected_error} <- [
+          {ExceptionCapabilitiesAdapter,
+           %{
+             "type" => "cadence_consumer_conformance_error.v1",
+             "status" => "error",
+             "code" => "adapter_capabilities_exception",
+             "message" => "adapter capabilities raised an exception",
+             "details" => %{"exception" => "Elixir.RuntimeError"}
+           }},
+          {ThrowingCapabilitiesAdapter,
+           %{
+             "type" => "cadence_consumer_conformance_error.v1",
+             "status" => "error",
+             "code" => "adapter_capabilities_throw",
+             "message" => "adapter capabilities did not return",
+             "details" => %{}
+           }},
+          {ExitingCapabilitiesAdapter,
+           %{
+             "type" => "cadence_consumer_conformance_error.v1",
+             "status" => "error",
+             "code" => "adapter_capabilities_exit",
+             "message" => "adapter capabilities did not return",
+             "details" => %{}
+           }}
+        ] do
+      assert {:error, ^expected_error} = CadenceImport.dry_run(manifest, adapter)
+      assert_receive {:adapter_callback_started, :capabilities, caller}
+      assert caller == self()
+    end
+  end
+
+  test "bounded lifecycle adds no network or write API and does not mutate its input" do
+    manifest = valid_manifest_with_authority()
+    original_bytes = :erlang.term_to_binary(manifest, [:deterministic])
+
+    assert Adapter.behaviour_info(:callbacks) |> Enum.sort() ==
+             [capabilities: 0, dry_run: 2]
+
+    for callback <- [:connect, :request, :create, :update, :write, :mutate, :approve, :execute] do
+      refute function_exported?(LifecycleAdapter, callback, 2)
+    end
+
+    assert {:ok, %{"conformance" => %{"writes_permitted" => false}}} =
+             CadenceImport.bounded_dry_run(
+               manifest,
+               LifecycleAdapter,
+               [],
+               timeout: 500
+             )
+
+    assert_receive {:adapter_callback_started, :capabilities, capabilities_worker}
+    assert_receive {:adapter_callback_started, :dry_run, dry_run_worker, request, %{}}
+    assert request["manifest"] == manifest
+    assert_process_dead(capabilities_worker)
+    assert_process_dead(dry_run_worker)
+    assert :erlang.term_to_binary(manifest, [:deterministic]) == original_bytes
+
+    limits = CadenceImport.capabilities().consumer_conformance.known_limits
+    assert :bounded_lifecycle_is_not_a_malicious_code_sandbox in limits
+    assert :bounded_lifecycle_does_not_guarantee_descendant_process_containment in limits
+    assert :bounded_lifecycle_does_not_contain_adapter_side_effects in limits
+    assert :does_not_supply_a_live_cadence_client in limits
+    assert :does_not_establish_downstream_consumer_acceptance in limits
+  end
+
   test "leaves the producer-only manifest and capability APIs unchanged" do
     manifest = valid_manifest_with_authority()
 
@@ -650,6 +1195,19 @@ defmodule OrbitalDynamics.CadenceImportConsumerConformanceTest do
     |> Enum.filter(&(Atom.to_string(&1) |> String.valid?()))
     |> Enum.sort_by(&Atom.to_string/1)
   end
+
+  defp assert_process_dead(pid, attempts \\ 100)
+
+  defp assert_process_dead(pid, attempts) when attempts > 0 do
+    if Process.alive?(pid) do
+      Process.sleep(1)
+      assert_process_dead(pid, attempts - 1)
+    else
+      refute Process.alive?(pid)
+    end
+  end
+
+  defp assert_process_dead(pid, 0), do: refute(Process.alive?(pid))
 
   defp read_json!(path) do
     path

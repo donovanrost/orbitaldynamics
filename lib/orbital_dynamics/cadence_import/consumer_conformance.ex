@@ -17,6 +17,7 @@ defmodule OrbitalDynamics.CadenceImport.ConsumerConformance do
   @error_type "cadence_consumer_conformance_error.v1"
   @identity_algorithm "erlang_term_to_binary_deterministic_sha256.v1"
   @max_adapter_options 2_048
+  @max_receive_interval_ms 60_000
   @authority_fields ~w(eligibility_status authority_context authority_context_evaluation)
   @acknowledgement_fields ~w(
     status
@@ -53,6 +54,43 @@ defmodule OrbitalDynamics.CadenceImport.ConsumerConformance do
       )
   end
 
+  @spec run(term(), term(), term(), term()) :: {:ok, map()} | {:error, map()}
+  def run(artifact_or_manifest, adapter, adapter_opts, lifecycle_opts) do
+    with {:ok, timeout} <- normalize_lifecycle_options(lifecycle_opts),
+         :ok <- preflight_input(artifact_or_manifest),
+         {:ok, adapter_options} <- normalize_options(adapter_opts),
+         {:ok, manifest} <- validate_input(artifact_or_manifest),
+         deadline <- monotonic_deadline(timeout),
+         {:ok, adapter_name, capabilities} <-
+           validate_bounded_adapter(adapter, deadline, timeout),
+         request <- build_request(manifest, adapter_name, capabilities, adapter_options),
+         {:ok, acknowledgement} <-
+           call_bounded_adapter(
+             adapter,
+             request,
+             adapter_options,
+             deadline,
+             timeout
+           ),
+         :ok <- validate_acknowledgement(acknowledgement, request) do
+      {:ok, conformance_result(request)}
+    end
+  rescue
+    exception ->
+      typed_error(
+        "conformance_exception",
+        "Cadence consumer conformance did not complete",
+        %{"exception" => exception_name(exception)}
+      )
+  catch
+    kind, _reason ->
+      typed_error(
+        "conformance_#{kind}",
+        "Cadence consumer conformance did not complete",
+        %{}
+      )
+  end
+
   defp preflight_input(input) do
     case OuterAdmission.validate(input) do
       :ok ->
@@ -61,6 +99,66 @@ defmodule OrbitalDynamics.CadenceImport.ConsumerConformance do
       {:error, %{"code" => code, "message" => message, "details" => details}} ->
         typed_error(code, message, details)
     end
+  end
+
+  defp normalize_lifecycle_options(lifecycle_opts) do
+    collect_lifecycle_options(lifecycle_opts, :missing, 0)
+  end
+
+  defp collect_lifecycle_options([], timeout, 1), do: {:ok, timeout}
+
+  defp collect_lifecycle_options([], :missing, 0) do
+    typed_error(
+      "invalid_timeout_options",
+      "bounded dry-run requires exactly one timeout option",
+      %{"required_option" => "timeout"}
+    )
+  end
+
+  defp collect_lifecycle_options([{:timeout, _duplicate} | _tail], _previous, 1) do
+    typed_error(
+      "invalid_timeout_options",
+      "bounded dry-run timeout option must not be duplicated",
+      %{"duplicate_key" => "timeout", "examined_item_count" => 2}
+    )
+  end
+
+  defp collect_lifecycle_options([{:timeout, timeout} | tail], :missing, 0)
+       when is_integer(timeout) and timeout > 0 do
+    collect_lifecycle_options(tail, timeout, 1)
+  end
+
+  defp collect_lifecycle_options([{:timeout, _timeout} | _tail], :missing, 0) do
+    typed_error(
+      "invalid_timeout_options",
+      "bounded dry-run timeout must be a positive integer number of milliseconds",
+      %{"option" => "timeout"}
+    )
+  end
+
+  defp collect_lifecycle_options([{key, _value} | _tail], _timeout, count)
+       when is_atom(key) do
+    typed_error(
+      "invalid_timeout_options",
+      "bounded dry-run lifecycle options contain an unsupported key",
+      %{"unsupported_key" => Atom.to_string(key), "invalid_item_position" => count + 1}
+    )
+  end
+
+  defp collect_lifecycle_options([_entry | _tail], _timeout, count) do
+    typed_error(
+      "invalid_timeout_options",
+      "bounded dry-run lifecycle options must contain atom-key tuple entries",
+      %{"invalid_item_position" => count + 1}
+    )
+  end
+
+  defp collect_lifecycle_options(_improper_tail, _timeout, count) do
+    typed_error(
+      "invalid_timeout_options",
+      "bounded dry-run lifecycle options must be a proper list",
+      %{"validated_item_count" => count}
+    )
   end
 
   defp normalize_options(opts) do
@@ -333,6 +431,37 @@ defmodule OrbitalDynamics.CadenceImport.ConsumerConformance do
     typed_error("invalid_adapter", "adapter must be an existing module atom", %{})
   end
 
+  defp validate_bounded_adapter(adapter, deadline, timeout) when is_atom(adapter) do
+    with {:module, ^adapter} <- Code.ensure_loaded(adapter),
+         true <- function_exported?(adapter, :capabilities, 0),
+         true <- function_exported?(adapter, :dry_run, 2),
+         {:ok, declared} <- call_bounded_capabilities(adapter, deadline, timeout),
+         {:ok, capabilities} <-
+           normalize_json(
+             declared,
+             "Cadence consumer adapter capabilities",
+             "invalid_adapter_capabilities",
+             "adapter capabilities must be bounded JSON-safe values"
+           ),
+         :ok <- validate_adapter_capabilities(capabilities) do
+      {:ok, Atom.to_string(adapter), capabilities}
+    else
+      {:error, _error} = failure ->
+        failure
+
+      _missing ->
+        typed_error(
+          "invalid_adapter",
+          "adapter must be a loaded module exporting capabilities/0 and dry_run/2",
+          %{}
+        )
+    end
+  end
+
+  defp validate_bounded_adapter(_adapter, _deadline, _timeout) do
+    typed_error("invalid_adapter", "adapter must be an existing module atom", %{})
+  end
+
   defp call_capabilities(adapter) do
     try do
       {:ok, apply(adapter, :capabilities, [])}
@@ -350,6 +479,32 @@ defmodule OrbitalDynamics.CadenceImport.ConsumerConformance do
           "adapter capabilities did not return",
           %{}
         )
+    end
+  end
+
+  defp call_bounded_capabilities(adapter, deadline, timeout) do
+    case bounded_callback(deadline, fn -> apply(adapter, :capabilities, []) end) do
+      {:returned, declared} ->
+        {:ok, declared}
+
+      :timeout ->
+        callback_timeout_error(:capabilities, timeout)
+
+      {:exception, exception} ->
+        typed_error(
+          "adapter_capabilities_exception",
+          "adapter capabilities callback raised an exception",
+          %{"exception" => exception, "phase" => "capabilities"}
+        )
+
+      :throw ->
+        callback_nonreturn_error(:capabilities, :throw)
+
+      :exit ->
+        callback_nonreturn_error(:capabilities, :exit)
+
+      {:worker_death, reason} ->
+        callback_worker_death_error(:capabilities, reason)
     end
   end
 
@@ -434,6 +589,176 @@ defmodule OrbitalDynamics.CadenceImport.ConsumerConformance do
         typed_error("adapter_#{kind}", "adapter dry_run did not return", %{})
     end
   end
+
+  defp call_bounded_adapter(adapter, request, adapter_options, deadline, timeout) do
+    result =
+      bounded_callback(deadline, fn ->
+        apply(adapter, :dry_run, [request, adapter_options])
+      end)
+
+    case result do
+      {:returned, {:ok, acknowledgement}} ->
+        normalize_json(
+          acknowledgement,
+          "Cadence consumer adapter acknowledgement",
+          "invalid_adapter_return",
+          "adapter acknowledgement must be a bounded JSON-safe map"
+        )
+
+      {:returned, {:error, reason}} ->
+        typed_error("adapter_error", "adapter rejected the dry-run request", %{
+          "adapter_error" => adapter_error_evidence(reason)
+        })
+
+      {:returned, _other} ->
+        typed_error(
+          "invalid_adapter_return",
+          "adapter must return {:ok, acknowledgement} or {:error, reason}",
+          %{}
+        )
+
+      :timeout ->
+        callback_timeout_error(:dry_run, timeout)
+
+      {:exception, exception} ->
+        typed_error(
+          "adapter_dry_run_exception",
+          "adapter dry_run callback raised an exception",
+          %{"exception" => exception, "phase" => "dry_run"}
+        )
+
+      :throw ->
+        callback_nonreturn_error(:dry_run, :throw)
+
+      :exit ->
+        callback_nonreturn_error(:dry_run, :exit)
+
+      {:worker_death, reason} ->
+        callback_worker_death_error(:dry_run, reason)
+    end
+  end
+
+  defp monotonic_deadline(timeout) do
+    System.monotonic_time() + System.convert_time_unit(timeout, :millisecond, :native)
+  end
+
+  defp bounded_callback(deadline, callback) do
+    if deadline_expired?(deadline) do
+      :timeout
+    else
+      parent = self()
+      message_ref = make_ref()
+      message_tag = {__MODULE__, :bounded_callback, message_ref}
+
+      {worker, monitor_ref} =
+        spawn_monitor(fn ->
+          outcome =
+            try do
+              {:returned, callback.()}
+            rescue
+              exception -> {:exception, exception_name(exception)}
+            catch
+              :throw, _reason -> :throw
+              :exit, _reason -> :exit
+            end
+
+          send(parent, {message_tag, outcome})
+        end)
+
+      await_bounded_callback(worker, monitor_ref, message_tag, deadline)
+    end
+  end
+
+  defp await_bounded_callback(worker, monitor_ref, message_tag, deadline) do
+    if deadline_expired?(deadline) do
+      terminate_and_drain_worker(worker, monitor_ref, message_tag)
+      :timeout
+    else
+      receive do
+        {^message_tag, outcome} ->
+          if deadline_expired?(deadline) do
+            terminate_and_drain_worker(worker, monitor_ref, message_tag)
+            :timeout
+          else
+            Process.demonitor(monitor_ref, [:flush])
+            outcome
+          end
+
+        {:DOWN, ^monitor_ref, :process, ^worker, reason} ->
+          drain_callback_messages(message_tag)
+          Process.demonitor(monitor_ref, [:flush])
+          {:worker_death, reason}
+      after
+        receive_interval(deadline) ->
+          await_bounded_callback(worker, monitor_ref, message_tag, deadline)
+      end
+    end
+  end
+
+  defp terminate_and_drain_worker(worker, monitor_ref, message_tag) do
+    Process.exit(worker, :kill)
+
+    receive do
+      {:DOWN, ^monitor_ref, :process, ^worker, _reason} -> :ok
+    end
+
+    drain_callback_messages(message_tag)
+    Process.demonitor(monitor_ref, [:flush])
+    :ok
+  end
+
+  defp drain_callback_messages(message_tag) do
+    receive do
+      {^message_tag, _outcome} -> drain_callback_messages(message_tag)
+    after
+      0 -> :ok
+    end
+  end
+
+  defp deadline_expired?(deadline), do: System.monotonic_time() >= deadline
+
+  defp receive_interval(deadline) do
+    remaining = deadline - System.monotonic_time()
+
+    remaining
+    |> System.convert_time_unit(:native, :millisecond)
+    |> max(1)
+    |> min(@max_receive_interval_ms)
+  end
+
+  defp callback_timeout_error(phase, timeout) do
+    phase_name = Atom.to_string(phase)
+
+    typed_error(
+      "adapter_#{phase_name}_timeout",
+      "adapter #{phase_name} callback exceeded the bounded dry-run deadline",
+      %{"phase" => phase_name, "timeout_ms" => timeout}
+    )
+  end
+
+  defp callback_nonreturn_error(phase, kind) do
+    phase_name = Atom.to_string(phase)
+    kind_name = Atom.to_string(kind)
+
+    typed_error(
+      "adapter_#{phase_name}_#{kind_name}",
+      "adapter #{phase_name} callback did not return",
+      %{"phase" => phase_name, "termination" => kind_name}
+    )
+  end
+
+  defp callback_worker_death_error(phase, reason) do
+    phase_name = Atom.to_string(phase)
+
+    typed_error(
+      "adapter_#{phase_name}_worker_death",
+      "adapter #{phase_name} monitored worker died before returning",
+      %{"phase" => phase_name, "reason" => worker_death_reason(reason)}
+    )
+  end
+
+  defp worker_death_reason(reason) when is_atom(reason), do: Atom.to_string(reason)
+  defp worker_death_reason(reason), do: term_type(reason)
 
   defp validate_acknowledgement(%{} = acknowledgement, request) do
     missing = Enum.reject(@acknowledgement_fields, &Map.has_key?(acknowledgement, &1))

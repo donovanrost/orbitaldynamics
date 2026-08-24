@@ -208,12 +208,28 @@ defmodule OrbitalDynamics.CadenceImport.Capability do
         result_type: "cadence_consumer_conformance.v1",
         idempotency: :deterministic_semantic_request_identity,
         max_adapter_options: 2_048,
+        execution_modes: [
+          :synchronous_trusted_adapter,
+          :bounded_monitored_callback_lifecycle
+        ],
+        bounded_callback_lifecycle: %{
+          api: :bounded_dry_run_4,
+          timeout_option: :timeout,
+          deadline: :single_monotonic_deadline,
+          callback_phases: [:capabilities, :dry_run],
+          timed_out_worker: :killed_and_drained
+        },
         outer_admission: OuterAdmission.limits(),
         known_limits: [
           :does_not_supply_a_cadence_consumer,
           :does_not_create_update_write_or_mutate,
           :does_not_replace_operator_authority,
-          :adapter_executes_in_caller_process_without_timeout_or_isolation
+          :synchronous_path_executes_adapter_in_caller_process,
+          :bounded_lifecycle_is_not_a_malicious_code_sandbox,
+          :bounded_lifecycle_does_not_guarantee_descendant_process_containment,
+          :bounded_lifecycle_does_not_contain_adapter_side_effects,
+          :does_not_supply_a_live_cadence_client,
+          :does_not_establish_downstream_consumer_acceptance
         ]
       },
       known_limits: [
