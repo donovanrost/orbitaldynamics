@@ -20,14 +20,18 @@ defmodule OrbitalDynamics.CadenceImport.Adapter do
   `CadenceImport.dry_run/3` preserves the original trusted-adapter behavior and
   runs callbacks synchronously in the caller process.
   `CadenceImport.bounded_dry_run/4` instead runs `capabilities/0` and `dry_run/2`
-  in monitored workers under one caller-supplied monotonic deadline. It kills
-  and drains a direct worker that exceeds the deadline.
+  in monitored workers under one caller-supplied monotonic deadline. Each
+  callback has a separate controller monitoring the original caller and direct
+  worker plus an independent guardian that reaps the worker after caller
+  cancellation or controller shutdown. Cleanup uses an untrappable kill and
+  drains the direct worker and monitor messages before lifecycle termination.
 
   The bounded path contains only the direct callback process lifecycle. An
   adapter is ordinary BEAM code: this behavior is not a malicious-code sandbox,
-  cannot guarantee containment of descendant processes or side effects, grants
-  no write authority, supplies no live Cadence client, and does not prove
-  acceptance by a downstream consumer.
+  cannot guarantee containment of descendant processes (including descendants
+  that trap exits) or ambient side effects, grants no write authority, supplies
+  no live Cadence client, and does not prove acceptance by a downstream
+  consumer.
   """
 
   @type request :: %{required(String.t()) => term()}

@@ -217,6 +217,11 @@ defmodule OrbitalDynamics.CadenceImport.Capability do
           timeout_option: :timeout,
           deadline: :single_monotonic_deadline,
           callback_phases: [:capabilities, :dry_run],
+          controller: :separately_monitors_original_caller_and_direct_worker,
+          guardian: :independently_monitors_caller_controller_and_direct_worker,
+          caller_cancellation: :kills_and_drains_direct_worker,
+          controller_shutdown: :guardian_kills_and_drains_direct_worker,
+          trapping_direct_worker: :killed_and_drained,
           timed_out_worker: :killed_and_drained
         },
         outer_admission: OuterAdmission.limits(),

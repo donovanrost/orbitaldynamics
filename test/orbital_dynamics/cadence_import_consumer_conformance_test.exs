@@ -130,6 +130,21 @@ defmodule OrbitalDynamics.CadenceImportConsumerConformanceTest do
             :release_test_adapter -> {:ok, AdapterFixture.acknowledgement(request)}
           end
 
+        "trap_never" ->
+          Process.flag(:trap_exit, true)
+          AdapterFixture.notify({:adapter_callback_trapping, :dry_run, self()})
+          trap_forever()
+
+        "await_return" ->
+          receive do
+            :release_test_adapter ->
+              AdapterFixture.notify({:adapter_callback_ready_to_return, self()})
+
+              receive do
+                :return_test_adapter -> {:ok, AdapterFixture.acknowledgement(request)}
+              end
+          end
+
         "sleep" ->
           Process.sleep(opts["sleep_ms"])
           {:ok, AdapterFixture.acknowledgement(request)}
@@ -148,6 +163,12 @@ defmodule OrbitalDynamics.CadenceImportConsumerConformanceTest do
 
         _mode ->
           {:ok, AdapterFixture.acknowledgement(request)}
+      end
+    end
+
+    defp trap_forever do
+      receive do
+        _message -> trap_forever()
       end
     end
   end
@@ -171,6 +192,53 @@ defmodule OrbitalDynamics.CadenceImportConsumerConformanceTest do
 
     @impl true
     defdelegate dry_run(request, opts), to: LifecycleAdapter
+  end
+
+  defmodule TrappingCapabilitiesAdapter do
+    @behaviour OrbitalDynamics.CadenceImport.Adapter
+
+    alias OrbitalDynamics.CadenceImportConsumerConformanceTest.{
+      AdapterFixture,
+      LifecycleAdapter
+    }
+
+    @impl true
+    def capabilities do
+      AdapterFixture.notify({:adapter_callback_started, :capabilities, self()})
+      Process.flag(:trap_exit, true)
+      AdapterFixture.notify({:adapter_callback_trapping, :capabilities, self()})
+      trap_forever()
+    end
+
+    @impl true
+    defdelegate dry_run(request, opts), to: LifecycleAdapter
+
+    defp trap_forever do
+      receive do
+        _message -> trap_forever()
+      end
+    end
+  end
+
+  defmodule SilentTrappingCapabilitiesAdapter do
+    @behaviour OrbitalDynamics.CadenceImport.Adapter
+
+    alias OrbitalDynamics.CadenceImportConsumerConformanceTest.LifecycleAdapter
+
+    @impl true
+    def capabilities do
+      Process.flag(:trap_exit, true)
+      trap_forever()
+    end
+
+    @impl true
+    defdelegate dry_run(request, opts), to: LifecycleAdapter
+
+    defp trap_forever do
+      receive do
+        _message -> trap_forever()
+      end
+    end
   end
 
   defmodule SlowCapabilitiesAdapter do
@@ -822,7 +890,7 @@ defmodule OrbitalDynamics.CadenceImportConsumerConformanceTest do
     refute_receive {:adapter_callback_started, _phase, _worker, _request, _opts}
   end
 
-  test "times out kills and drains a never-returning capabilities worker" do
+  test "times out and cancellation kill trapping capabilities lifecycle processes cleanly" do
     sentinel = make_ref()
     send(self(), {:unrelated_mailbox_message, sentinel})
 
@@ -849,9 +917,35 @@ defmodule OrbitalDynamics.CadenceImportConsumerConformanceTest do
                    20
 
     refute_receive {:DOWN, _ref, :process, ^worker, _reason}, 20
+
+    baseline_monitors = observer_monitors()
+    baseline_messages = observer_messages()
+
+    {caller, caller_ref, call_tag} =
+      spawn_bounded_call(
+        valid_manifest_with_authority(),
+        TrappingCapabilitiesAdapter,
+        [],
+        timeout: 5_000
+      )
+
+    assert_receive {:adapter_callback_started, :capabilities, trapping_worker}
+    assert_receive {:adapter_callback_trapping, :capabilities, ^trapping_worker}
+    {controller, guardian} = lifecycle_owners(trapping_worker)
+
+    Process.exit(caller, :kill)
+    assert_receive {:DOWN, ^caller_ref, :process, ^caller, :killed}
+
+    assert_process_dead(trapping_worker)
+    assert_process_dead(controller)
+    assert_process_dead(guardian)
+    refute_receive {:bounded_caller_result, ^call_tag, ^caller, _result}, 30
+    assert observer_monitors() == baseline_monitors
+    assert observer_messages() == baseline_messages
+    assert_no_lifecycle_messages([caller, trapping_worker, controller, guardian])
   end
 
-  test "uses one monotonic deadline across slow capabilities and never-returning dry_run" do
+  test "uses one deadline and cancellation contains trapping dry_run without accumulation" do
     started = System.monotonic_time(:millisecond)
 
     assert {:error,
@@ -877,6 +971,54 @@ defmodule OrbitalDynamics.CadenceImportConsumerConformanceTest do
     refute Process.alive?(dry_run_worker)
     assert elapsed < 550
     assert Process.alive?(self())
+
+    baseline_monitors = observer_monitors()
+    baseline_messages = observer_messages()
+    baseline_roles = lifecycle_role_pids()
+
+    {caller, caller_ref, call_tag} =
+      spawn_bounded_call(
+        valid_manifest_with_authority(),
+        LifecycleAdapter,
+        [mode: "trap_never"],
+        timeout: 5_000
+      )
+
+    assert_receive {:adapter_callback_started, :capabilities, cancellation_capabilities_worker}
+
+    assert_receive {:adapter_callback_started, :dry_run, trapping_worker, _request,
+                    %{"mode" => "trap_never"}}
+
+    assert_receive {:adapter_callback_trapping, :dry_run, ^trapping_worker}
+    {controller, guardian} = lifecycle_owners(trapping_worker)
+
+    Process.exit(caller, :kill)
+    assert_receive {:DOWN, ^caller_ref, :process, ^caller, :killed}
+
+    assert_process_dead(cancellation_capabilities_worker)
+    assert_process_dead(trapping_worker)
+    assert_process_dead(controller)
+    assert_process_dead(guardian)
+    refute_receive {:bounded_caller_result, ^call_tag, ^caller, _result}, 30
+    assert observer_monitors() == baseline_monitors
+
+    cancelled_processes =
+      for iteration <- 1..8, reduce: [] do
+        processes ->
+          {adapter, options, phase} =
+            if rem(iteration, 2) == 0 do
+              {TrappingCapabilitiesAdapter, [], :capabilities}
+            else
+              {LifecycleAdapter, [mode: "trap_never"], :dry_run}
+            end
+
+          processes ++ cancel_trapping_call(adapter, options, phase)
+      end
+
+    assert_role_processes_restored(baseline_roles)
+    assert observer_monitors() == baseline_monitors
+    assert observer_messages() == baseline_messages
+    assert_no_lifecycle_messages(cancelled_processes)
   end
 
   test "rejects an acknowledgement racing at the deadline and cannot reuse it later" do
@@ -912,6 +1054,160 @@ defmodule OrbitalDynamics.CadenceImportConsumerConformanceTest do
     refute_receive {{OrbitalDynamics.CadenceImport.ConsumerConformance, :bounded_callback, _ref},
                     _outcome},
                    50
+
+    startup_role_baseline = lifecycle_role_pids()
+
+    for _iteration <- 1..20 do
+      assert {:error, %{"code" => "adapter_capabilities_timeout"}} =
+               CadenceImport.bounded_dry_run(
+                 manifest,
+                 SilentTrappingCapabilitiesAdapter,
+                 [],
+                 timeout: 1
+               )
+    end
+
+    assert_role_processes_restored(startup_role_baseline)
+
+    baseline_monitors = observer_monitors()
+    baseline_messages = observer_messages()
+
+    {before_result_caller, before_result_ref, before_result_tag} =
+      spawn_bounded_call(
+        manifest,
+        LifecycleAdapter,
+        [mode: "await_return"],
+        timeout: 5_000
+      )
+
+    assert_receive {:adapter_callback_started, :capabilities, before_result_capabilities}
+
+    assert_receive {:adapter_callback_started, :dry_run, before_result_worker, _request,
+                    %{"mode" => "await_return"}}
+
+    {before_result_controller, before_result_guardian} =
+      lifecycle_owners(before_result_worker)
+
+    send(before_result_worker, :release_test_adapter)
+    assert_receive {:adapter_callback_ready_to_return, ^before_result_worker}
+    Process.exit(before_result_caller, :kill)
+    send(before_result_worker, :return_test_adapter)
+
+    assert_receive {:DOWN, ^before_result_ref, :process, ^before_result_caller, :killed}
+    assert_process_dead(before_result_capabilities)
+    assert_process_dead(before_result_worker)
+    assert_process_dead(before_result_controller)
+    assert_process_dead(before_result_guardian)
+
+    refute_receive {:bounded_caller_result, ^before_result_tag, ^before_result_caller, _result},
+                   30
+
+    {after_result_caller, after_result_ref, after_result_tag} =
+      spawn_bounded_call(
+        manifest,
+        LifecycleAdapter,
+        [mode: "await_return"],
+        timeout: 500
+      )
+
+    assert_receive {:adapter_callback_started, :capabilities, after_result_capabilities}
+
+    assert_receive {:adapter_callback_started, :dry_run, after_result_worker, _request,
+                    %{"mode" => "await_return"}}
+
+    {after_result_controller, after_result_guardian} = lifecycle_owners(after_result_worker)
+    send(after_result_worker, :release_test_adapter)
+    assert_receive {:adapter_callback_ready_to_return, ^after_result_worker}
+    send(after_result_worker, :return_test_adapter)
+
+    assert_receive {:bounded_caller_result, ^after_result_tag, ^after_result_caller,
+                    {:ok, _result}}
+
+    assert_process_dead(after_result_capabilities)
+    assert_process_dead(after_result_worker)
+    assert_process_dead(after_result_controller)
+    assert_process_dead(after_result_guardian)
+    Process.exit(after_result_caller, :kill)
+    assert_receive {:DOWN, ^after_result_ref, :process, ^after_result_caller, :killed}
+
+    {before_deadline_caller, before_deadline_ref, before_deadline_tag} =
+      spawn_bounded_call(
+        manifest,
+        LifecycleAdapter,
+        [mode: "trap_never"],
+        timeout: 200
+      )
+
+    assert_receive {:adapter_callback_started, :capabilities, before_deadline_capabilities}
+
+    assert_receive {:adapter_callback_started, :dry_run, before_deadline_worker, _request,
+                    %{"mode" => "trap_never"}}
+
+    assert_receive {:adapter_callback_trapping, :dry_run, ^before_deadline_worker}
+
+    {before_deadline_controller, before_deadline_guardian} =
+      lifecycle_owners(before_deadline_worker)
+
+    Process.sleep(150)
+    Process.exit(before_deadline_caller, :kill)
+
+    assert_receive {:DOWN, ^before_deadline_ref, :process, ^before_deadline_caller, :killed}
+    assert_process_dead(before_deadline_capabilities)
+    assert_process_dead(before_deadline_worker)
+    assert_process_dead(before_deadline_controller)
+    assert_process_dead(before_deadline_guardian)
+
+    refute_receive {:bounded_caller_result, ^before_deadline_tag, ^before_deadline_caller,
+                    _result},
+                   30
+
+    {after_deadline_caller, after_deadline_ref, after_deadline_tag} =
+      spawn_bounded_call(
+        manifest,
+        LifecycleAdapter,
+        [mode: "trap_never"],
+        timeout: 30
+      )
+
+    assert_receive {:adapter_callback_started, :capabilities, after_deadline_capabilities}
+
+    assert_receive {:adapter_callback_started, :dry_run, after_deadline_worker, _request,
+                    %{"mode" => "trap_never"}}
+
+    assert_receive {:adapter_callback_trapping, :dry_run, ^after_deadline_worker}
+    {after_deadline_controller, after_deadline_guardian} = lifecycle_owners(after_deadline_worker)
+
+    assert_receive {:bounded_caller_result, ^after_deadline_tag, ^after_deadline_caller,
+                    {:error, %{"code" => "adapter_dry_run_timeout"}}}
+
+    assert_process_dead(after_deadline_capabilities)
+    assert_process_dead(after_deadline_worker)
+    assert_process_dead(after_deadline_controller)
+    assert_process_dead(after_deadline_guardian)
+    Process.exit(after_deadline_caller, :kill)
+    assert_receive {:DOWN, ^after_deadline_ref, :process, ^after_deadline_caller, :killed}
+
+    assert observer_monitors() == baseline_monitors
+    assert observer_messages() == baseline_messages
+
+    assert_no_lifecycle_messages([
+      before_result_caller,
+      before_result_worker,
+      before_result_controller,
+      before_result_guardian,
+      after_result_caller,
+      after_result_worker,
+      after_result_controller,
+      after_result_guardian,
+      before_deadline_caller,
+      before_deadline_worker,
+      before_deadline_controller,
+      before_deadline_guardian,
+      after_deadline_caller,
+      after_deadline_worker,
+      after_deadline_controller,
+      after_deadline_guardian
+    ])
   end
 
   test "contains capability exceptions throws exits and monitored worker death distinctly" do
@@ -936,6 +1232,40 @@ defmodule OrbitalDynamics.CadenceImportConsumerConformanceTest do
       assert self() == caller
       assert Process.alive?(caller)
     end
+
+    baseline_monitors = observer_monitors()
+    baseline_messages = observer_messages()
+
+    {controlled_caller, controlled_caller_ref, call_tag} =
+      spawn_bounded_call(manifest, TrappingCapabilitiesAdapter, [], timeout: 5_000)
+
+    assert_receive {:adapter_callback_started, :capabilities, trapping_worker}
+    assert_receive {:adapter_callback_trapping, :capabilities, ^trapping_worker}
+    {controller, guardian} = lifecycle_owners(trapping_worker)
+
+    Process.exit(controller, :kill)
+
+    assert_receive {:bounded_caller_result, ^call_tag, ^controlled_caller,
+                    {:error,
+                     %{
+                       "type" => "cadence_consumer_conformance_error.v1",
+                       "code" => "adapter_capabilities_controller_death",
+                       "details" => %{
+                         "phase" => "capabilities",
+                         "reason" => "killed"
+                       }
+                     }}}
+
+    assert_process_dead(controller)
+    assert_process_dead(trapping_worker)
+    assert_process_dead(guardian)
+    assert Process.alive?(controlled_caller)
+    Process.exit(controlled_caller, :kill)
+
+    assert_receive {:DOWN, ^controlled_caller_ref, :process, ^controlled_caller, :killed}
+    assert observer_monitors() == baseline_monitors
+    assert observer_messages() == baseline_messages
+    assert_no_lifecycle_messages([controlled_caller, controller, trapping_worker, guardian])
   end
 
   test "contains dry_run exceptions throws exits and monitored worker death distinctly" do
@@ -970,6 +1300,49 @@ defmodule OrbitalDynamics.CadenceImportConsumerConformanceTest do
       assert self() == caller
       assert Process.alive?(caller)
     end
+
+    baseline_monitors = observer_monitors()
+    baseline_messages = observer_messages()
+
+    {controlled_caller, controlled_caller_ref, call_tag} =
+      spawn_bounded_call(
+        manifest,
+        LifecycleAdapter,
+        [mode: "trap_never"],
+        timeout: 5_000
+      )
+
+    assert_receive {:adapter_callback_started, :capabilities, capabilities_worker}
+
+    assert_receive {:adapter_callback_started, :dry_run, trapping_worker, _request,
+                    %{"mode" => "trap_never"}}
+
+    assert_receive {:adapter_callback_trapping, :dry_run, ^trapping_worker}
+    {controller, guardian} = lifecycle_owners(trapping_worker)
+    Process.exit(controller, :shutdown)
+
+    assert_receive {:bounded_caller_result, ^call_tag, ^controlled_caller,
+                    {:error,
+                     %{
+                       "type" => "cadence_consumer_conformance_error.v1",
+                       "code" => "adapter_dry_run_controller_death",
+                       "details" => %{
+                         "phase" => "dry_run",
+                         "reason" => "shutdown"
+                       }
+                     }}}
+
+    assert_process_dead(capabilities_worker)
+    assert_process_dead(controller)
+    assert_process_dead(trapping_worker)
+    assert_process_dead(guardian)
+    assert Process.alive?(controlled_caller)
+    Process.exit(controlled_caller, :kill)
+
+    assert_receive {:DOWN, ^controlled_caller_ref, :process, ^controlled_caller, :killed}
+    assert observer_monitors() == baseline_monitors
+    assert observer_messages() == baseline_messages
+    assert_no_lifecycle_messages([controlled_caller, controller, trapping_worker, guardian])
   end
 
   test "keeps synchronous trusted-adapter exception throw and exit errors byte-compatible" do
@@ -1194,6 +1567,139 @@ defmodule OrbitalDynamics.CadenceImportConsumerConformanceTest do
     |> Enum.uniq()
     |> Enum.filter(&(Atom.to_string(&1) |> String.valid?()))
     |> Enum.sort_by(&Atom.to_string/1)
+  end
+
+  defp spawn_bounded_call(manifest, adapter, adapter_options, lifecycle_options) do
+    observer = self()
+    call_tag = make_ref()
+
+    {caller, caller_ref} =
+      spawn_monitor(fn ->
+        result =
+          CadenceImport.bounded_dry_run(
+            manifest,
+            adapter,
+            adapter_options,
+            lifecycle_options
+          )
+
+        send(observer, {:bounded_caller_result, call_tag, self(), result})
+
+        receive do
+          {:finish_bounded_caller, ^call_tag} -> :ok
+        end
+      end)
+
+    {caller, caller_ref, call_tag}
+  end
+
+  defp cancel_trapping_call(adapter, adapter_options, phase) do
+    {caller, caller_ref, call_tag} =
+      spawn_bounded_call(
+        valid_manifest_with_authority(),
+        adapter,
+        adapter_options,
+        timeout: 5_000
+      )
+
+    {worker, preceding_workers} =
+      case phase do
+        :capabilities ->
+          assert_receive {:adapter_callback_started, :capabilities, worker}
+          assert_receive {:adapter_callback_trapping, :capabilities, ^worker}
+          {worker, []}
+
+        :dry_run ->
+          assert_receive {:adapter_callback_started, :capabilities, capabilities_worker}
+
+          assert_receive {:adapter_callback_started, :dry_run, worker, _request,
+                          %{"mode" => "trap_never"}}
+
+          assert_receive {:adapter_callback_trapping, :dry_run, ^worker}
+          {worker, [capabilities_worker]}
+      end
+
+    {controller, guardian} = lifecycle_owners(worker)
+    Process.exit(caller, :kill)
+    assert_receive {:DOWN, ^caller_ref, :process, ^caller, :killed}
+
+    for process <- [caller, worker, controller, guardian | preceding_workers] do
+      assert_process_dead(process)
+    end
+
+    refute_receive {:bounded_caller_result, ^call_tag, ^caller, _result}, 10
+    [caller, worker, controller, guardian | preceding_workers]
+  end
+
+  defp lifecycle_owners(worker) do
+    {:monitored_by, owners} = Process.info(worker, :monitored_by)
+
+    owners_by_role =
+      Map.new(owners, fn owner ->
+        {lifecycle_role(owner), owner}
+      end)
+
+    assert Map.keys(owners_by_role) |> Enum.sort() == [:controller, :guardian]
+    {Map.fetch!(owners_by_role, :controller), Map.fetch!(owners_by_role, :guardian)}
+  end
+
+  defp lifecycle_role(process) do
+    case Process.info(process, :dictionary) do
+      {:dictionary, dictionary} ->
+        case List.keyfind(
+               dictionary,
+               {OrbitalDynamics.CadenceImport.ConsumerConformance, :bounded_lifecycle_role},
+               0
+             ) do
+          {_key, role} -> role
+          nil -> :unowned
+        end
+
+      nil ->
+        :unowned
+    end
+  end
+
+  defp lifecycle_role_pids do
+    Process.list()
+    |> Enum.filter(&(lifecycle_role(&1) in [:controller, :guardian]))
+    |> MapSet.new()
+  end
+
+  defp assert_role_processes_restored(expected, attempts \\ 100)
+
+  defp assert_role_processes_restored(expected, attempts) when attempts > 0 do
+    if lifecycle_role_pids() == expected do
+      assert lifecycle_role_pids() == expected
+    else
+      Process.sleep(1)
+      assert_role_processes_restored(expected, attempts - 1)
+    end
+  end
+
+  defp assert_role_processes_restored(expected, 0) do
+    assert lifecycle_role_pids() == expected
+  end
+
+  defp observer_monitors do
+    {:monitors, monitors} = Process.info(self(), :monitors)
+    MapSet.new(monitors)
+  end
+
+  defp observer_messages do
+    {:messages, messages} = Process.info(self(), :messages)
+    messages
+  end
+
+  defp assert_no_lifecycle_messages(processes) do
+    conformance = OrbitalDynamics.CadenceImport.ConsumerConformance
+
+    refute_receive {{^conformance, :bounded_callback, _ref}, _kind, _one}, 20
+    refute_receive {{^conformance, :bounded_callback, _ref}, _kind, _one, _two}, 20
+
+    for process <- Enum.uniq(processes) do
+      refute_receive {:DOWN, _ref, :process, ^process, _reason}, 0
+    end
   end
 
   defp assert_process_dead(pid, attempts \\ 100)

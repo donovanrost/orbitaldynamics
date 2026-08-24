@@ -75,15 +75,21 @@ Status: **implemented** (with a **partial** semantic-depth area, plus **near-ter
 - `bounded_dry_run/4` requires a separate lifecycle option list containing
   exactly one positive integer `timeout` in milliseconds. It validates that
   option before delegation, then gives `capabilities/0` and `dry_run/2` one
-  shared monotonic deadline. Each callback runs in a monitored direct worker.
-  A timeout is phase-specific, kills the direct worker, drains its result and
-  monitor messages, and cannot later satisfy the call. Capability and dry-run
-  timeout, exception, throw, exit, and monitored-worker-death outcomes fail
-  closed with distinct typed errors; the caller survives those outcomes.
+  shared monotonic deadline. Each callback runs in a monitored direct worker
+  under a separate lifecycle controller. That controller monitors both the
+  original caller and direct worker; an independent guardian monitors caller,
+  controller, and worker. Deadline expiry, caller cancellation, worker
+  result/death, or controller shutdown kills and drains the direct worker
+  (including a direct worker trapping exits), flushes monitor/result messages,
+  and terminates the controller and guardian. A result at or after the deadline
+  cannot later satisfy the call. Capability and dry-run timeout, exception,
+  throw, exit, monitored-worker-death, and controller-death outcomes fail closed
+  with distinct typed errors; the caller survives callback failures.
 - Bounded execution is direct callback process-lifecycle containment only. It
   is not a malicious-code sandbox, does not guarantee containment of adapter
-  descendants or arbitrary side effects, and does not turn the declared
-  no-write capability into enforced write isolation or write authority.
+  descendants (including descendants that trap exits) or ambient/arbitrary
+  side effects, and does not turn the declared no-write capability into enforced
+  write isolation or write authority.
 - This boundary defines producer-side conformance only. The repository supplies
   no live Cadence consumer or API client, database writer, mutation
   implementation, or evidence of acceptance by a downstream Cadence consumer.
