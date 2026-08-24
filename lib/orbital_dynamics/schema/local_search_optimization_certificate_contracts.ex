@@ -49,8 +49,11 @@ defmodule OrbitalDynamics.Schema.LocalSearchOptimizationCertificateContracts do
 
   def validate(issues, path, certificate) when is_list(issues) and is_map(certificate) do
     case JsonSafety.errors(certificate, path) do
-      [] -> validate_json_safe(issues, path, certificate)
-      json_issues -> json_issues ++ issues
+      [] ->
+        validate_json_safe(issues, path, certificate)
+
+      json_issues ->
+        validate_unencodable_certificate_identity(json_issues ++ issues, path, certificate)
     end
   rescue
     _error -> [error(path, "must be safely validatable as a local-search certificate") | issues]
@@ -135,19 +138,44 @@ defmodule OrbitalDynamics.Schema.LocalSearchOptimizationCertificateContracts do
 
   defp validate_certificate_identity(issues, path, certificate) do
     core = Map.delete(certificate, "id")
-    expected_id = LocalSearchCertificate.certificate_id(core)
+
+    case LocalSearchCertificate.certificate_id(core) do
+      expected_id when is_binary(expected_id) ->
+        issues
+        |> ensure(
+          is_binary(certificate["id"]) and Regex.match?(@certificate_id, certificate["id"]),
+          "#{path}.id",
+          "must exactly match local_search_optimization_certificate:<64 lowercase hex>"
+        )
+        |> ensure(
+          certificate["id"] == expected_id,
+          "#{path}.id",
+          "must be the content identity of the complete certificate"
+        )
+
+      {:error, _failure} ->
+        [
+          error("#{path}.id", "cannot verify identity until certificate content is strict JSON")
+          | issues
+        ]
+    end
+  end
+
+  defp validate_unencodable_certificate_identity(issues, path, certificate) do
+    certificate_id = Map.get(certificate, "id")
 
     issues
     |> ensure(
-      is_binary(certificate["id"]) and Regex.match?(@certificate_id, certificate["id"]),
+      is_binary(certificate_id) and Regex.match?(@certificate_id, certificate_id),
       "#{path}.id",
       "must exactly match local_search_optimization_certificate:<64 lowercase hex>"
     )
-    |> ensure(
-      certificate["id"] == expected_id,
-      "#{path}.id",
-      "must be the content identity of the complete certificate"
-    )
+    |> then(fn issues ->
+      [
+        error("#{path}.id", "cannot verify identity until certificate content is strict JSON")
+        | issues
+      ]
+    end)
   end
 
   defp validate_evaluator_execution_policy(issues, path, policy) when is_map(policy) do

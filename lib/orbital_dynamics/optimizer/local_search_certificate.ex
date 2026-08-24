@@ -10,8 +10,12 @@ defmodule OrbitalDynamics.Optimizer.LocalSearchCertificate do
 
   Verification is fail closed: callers must provide the original seed, options,
   source-evidence registry, and evaluator so the certificate can be reproduced
-  exactly. Source evidence is captured as strict JSON before hashing. Identity
-  uses recursively key-sorted canonical JSON, so object insertion order does not
+  exactly. Public seed, source-evidence, and evaluator-result maps require valid
+  UTF-8 string keys and strict JSON values before hashing or search generation;
+  atom-keyed and mixed-key BEAM maps are rejected rather than normalized. The
+  keyword `opts` argument is the explicit BEAM configuration constructor and is
+  parsed separately without becoming certificate identity content. Identity uses
+  recursively key-sorted canonical JSON, so object insertion order does not
   change an identity while distinct BEAM aliases such as string/atom keys or
   `nil`/`:null` are never silently collapsed. Source evidence is content-addressed
   but is not authenticated.
@@ -31,6 +35,10 @@ defmodule OrbitalDynamics.Optimizer.LocalSearchCertificate do
   @evaluator_worker_model "task_supervisor_async_nolink_per_candidate.v1"
   @default_evaluator_timeout_ms 1_000
   @max_evaluator_timeout_ms 5_000
+  @max_option_entries 7
+  @max_step_parameters 32
+  @max_input_map_entries 2_048
+  @max_input_string_bytes 4_194_304
   @allowed_options [
     :steps,
     :bounds,
@@ -112,6 +120,10 @@ defmodule OrbitalDynamics.Optimizer.LocalSearchCertificate do
   must be valid UTF-8 strings; atom keys and values, including `:null`, are
   rejected. Elixir `nil` is the only accepted JSON-null input.
 
+  `seed_parameters`, `:steps`, and `:bounds` parameter names must likewise be
+  valid UTF-8 strings. Atom-keyed search data is not a public alias for the
+  exported JSON contract.
+
   `evaluator_fun` receives `(parameters, source_evidence_entry)` and must return
   a map containing:
 
@@ -129,32 +141,53 @@ defmodule OrbitalDynamics.Optimizer.LocalSearchCertificate do
   #{@default_evaluator_timeout_ms} and must be from 1 through
   #{@max_evaluator_timeout_ms}; its versioned policy is embedded in the
   certificate and replay identity.
+
+  Malformed input or evaluator failure returns `{:error, json_total_failure}`;
+  this public boundary does not raise, throw, or exit for rejected input.
   """
-  def build(seed_parameters, source_evidence, evaluator_fun, opts)
+  def build(seed_parameters, source_evidence, evaluator_fun, opts) do
+    with :ok <- validate_evaluator_fun(evaluator_fun),
+         {:ok, seed_parameters} <-
+           validate_parameter_map(seed_parameters, "$.seed_parameters", false),
+         {:ok, source_evidence} <- capture_source_evidence(source_evidence),
+         {:ok, options} <- normalize_options(opts),
+         :ok <- validate_neighborhood_inputs(seed_parameters, options) do
+      do_build(seed_parameters, source_evidence, evaluator_fun, options)
+    end
+  rescue
+    error ->
+      {:error, input_failure("builder_input_invalid", "error", safe_exception_message(error))}
+  catch
+    kind, reason ->
+      {:error,
+       input_failure(
+         "builder_input_invalid",
+         Atom.to_string(kind),
+         safe_inspect(reason)
+       )}
+  end
 
-  def build(seed_parameters, source_evidence, evaluator_fun, opts)
-      when is_map(seed_parameters) and is_map(source_evidence) and
-             is_function(evaluator_fun, 2) and is_list(opts) do
-    options = normalize_options!(opts)
+  defp do_build(seed_parameters, source_evidence, evaluator_fun, options) do
     search_space = build_search_space(seed_parameters, options)
-    evidence = normalize_source_evidence!(source_evidence, search_space)
-    source_registry = source_evidence_registry(evidence, search_space)
 
-    search_space["candidates"]
-    |> Enum.take(options.evaluation_budget)
-    |> evaluate_candidates(evidence, source_registry, evaluator_fun, options)
-    |> case do
-      {:ok, evaluations} ->
-        finalize_certificate(evaluations, search_space, source_registry, options)
+    case normalize_source_evidence(source_evidence, search_space) do
+      {:ok, evidence} ->
+        source_registry = source_evidence_registry(evidence, search_space)
+
+        search_space["candidates"]
+        |> Enum.take(options.evaluation_budget)
+        |> evaluate_candidates(evidence, source_registry, evaluator_fun, options)
+        |> case do
+          {:ok, evaluations} ->
+            finalize_certificate(evaluations, search_space, source_registry, options)
+
+          {:error, failure} ->
+            {:error, failure}
+        end
 
       {:error, failure} ->
         {:error, failure}
     end
-  end
-
-  def build(_seed_parameters, _source_evidence, _evaluator_fun, _opts) do
-    raise ArgumentError,
-          "seed_parameters and source_evidence must be maps, evaluator_fun must have arity 2, and opts must be a keyword list"
   end
 
   defp finalize_certificate(evaluations, search_space, source_registry, options) do
@@ -222,8 +255,12 @@ defmodule OrbitalDynamics.Optimizer.LocalSearchCertificate do
         certificate
 
       {:error, report} ->
-        raise ArgumentError,
-              "generated local-search optimization certificate failed its schema contract: #{inspect(report["errors"])}"
+        {:error,
+         %{
+           "status" => "rejected",
+           "reason" => "generated_certificate_schema_invalid",
+           "details" => %{"schema_validation" => report}
+         }}
     end
   end
 
@@ -232,23 +269,27 @@ defmodule OrbitalDynamics.Optimizer.LocalSearchCertificate do
 
   The caller must provide the same seed, evidence, evaluator, and options used to
   build the certificate. Verification first applies the executable schema, then
-  reproduces the full certificate and requires exact equality.
+  reproduces the full certificate and requires exact equality. Every rejection
+  is returned as `{:error, json_total_failure}`.
   """
-  def verify(certificate, seed_parameters, source_evidence, evaluator_fun, opts)
-
-  def verify(certificate, seed_parameters, source_evidence, evaluator_fun, opts)
-      when is_map(certificate) and is_map(seed_parameters) and is_map(source_evidence) and
-             is_function(evaluator_fun, 2) and is_list(opts) do
+  def verify(certificate, seed_parameters, source_evidence, evaluator_fun, opts) do
     case Schema.validate_artifact(certificate, schema_contract: @schema_contract) do
       {:ok, schema_report} ->
-        verify_replay(
-          certificate,
-          schema_report,
-          seed_parameters,
-          source_evidence,
-          evaluator_fun,
-          opts
-        )
+        if is_map(certificate) do
+          verify_replay(
+            certificate,
+            schema_report,
+            seed_parameters,
+            source_evidence,
+            evaluator_fun,
+            opts
+          )
+        else
+          {:error,
+           verification_failure(certificate, "invalid_verifier_arguments", %{
+             "detail" => "certificate must be a strict JSON map"
+           })}
+        end
 
       {:error, schema_report} ->
         {:error,
@@ -274,14 +315,6 @@ defmodule OrbitalDynamics.Optimizer.LocalSearchCertificate do
        })}
   end
 
-  def verify(certificate, _seed_parameters, _source_evidence, _evaluator_fun, _opts) do
-    {:error,
-     verification_failure(certificate, "invalid_verifier_arguments", %{
-       "detail" =>
-         "certificate, seed_parameters, and source_evidence must be maps; evaluator_fun must have arity 2; opts must be a keyword list"
-     })}
-  end
-
   defp verify_replay(
          certificate,
          schema_report,
@@ -303,10 +336,16 @@ defmodule OrbitalDynamics.Optimizer.LocalSearchCertificate do
            "claim" => certificate["claim"]
          }}
 
-      {:error, evaluator_failure} ->
+      {:error, %{"reason" => "evaluator_execution_failed"} = evaluator_failure} ->
         {:error,
          verification_failure(certificate, "replay_evaluator_execution_failed", %{
            "evaluator_failure" => evaluator_failure
+         })}
+
+      {:error, replay_input_failure} ->
+        {:error,
+         verification_failure(certificate, "replay_input_or_source_evidence_invalid", %{
+           "input_failure" => replay_input_failure
          })}
 
       %{} ->
@@ -321,79 +360,277 @@ defmodule OrbitalDynamics.Optimizer.LocalSearchCertificate do
 
   @doc false
   def content_identity(value) do
-    %{"algorithm" => @identity_algorithm, "sha256" => deterministic_digest(value)}
+    case deterministic_digest(value) do
+      {:ok, digest} -> %{"algorithm" => @identity_algorithm, "sha256" => digest}
+      {:error, failure} -> {:error, failure}
+    end
   end
 
   @doc false
-  def certificate_id(core) when is_map(core),
-    do: "local_search_optimization_certificate:" <> deterministic_digest(core)
+  def certificate_id(core) when is_map(core) do
+    case deterministic_digest(core) do
+      {:ok, digest} -> "local_search_optimization_certificate:" <> digest
+      {:error, failure} -> {:error, failure}
+    end
+  end
+
+  def certificate_id(_core),
+    do: {:error, identity_failure("certificate_identity_input_must_be_a_strict_json_object")}
 
   @doc false
   def search_space_identity(search_space_core) when is_map(search_space_core),
     do: content_identity(search_space_core)
 
+  def search_space_identity(_search_space_core),
+    do: {:error, identity_failure("search_space_identity_input_must_be_a_strict_json_object")}
+
   @doc false
   def source_registry_identity(registry_core) when is_map(registry_core),
     do: content_identity(registry_core)
 
-  defp normalize_options!(opts) do
-    unless Keyword.keyword?(opts), do: raise(ArgumentError, "opts must be a keyword list")
+  def source_registry_identity(_registry_core),
+    do: {:error, identity_failure("source_registry_identity_input_must_be_a_strict_json_object")}
 
-    option_keys = Keyword.keys(opts)
-
-    if length(option_keys) != length(Enum.uniq(option_keys)),
-      do: raise(ArgumentError, "opts must not contain duplicate keys")
-
-    case Enum.find(option_keys, &(&1 not in @allowed_options)) do
-      nil -> :ok
-      key -> raise ArgumentError, "unsupported certified local-search option #{inspect(key)}"
+  defp normalize_options(opts) do
+    with {:ok, entries} <- collect_option_entries(opts, 0, []),
+         :ok <- validate_option_keys(entries),
+         {:ok, steps} <-
+           validate_parameter_map(
+             option_value(entries, :steps, :missing),
+             "$.options.steps",
+             false
+           ),
+         {:ok, bounds} <- validate_bounds(option_value(entries, :bounds, %{})),
+         {:ok, id_prefix} <-
+           validate_stable_id(option_value(entries, :id_prefix, "local"), "$.options.id_prefix"),
+         {:ok, evaluation_budget} <-
+           validate_bounded_integer(
+             option_value(entries, :evaluation_budget, @max_evaluations),
+             "$.options.evaluation_budget",
+             @max_evaluations
+           ),
+         {:ok, evaluator_timeout_ms} <-
+           validate_bounded_integer(
+             option_value(entries, :evaluator_timeout_ms, @default_evaluator_timeout_ms),
+             "$.options.evaluator_timeout_ms",
+             @max_evaluator_timeout_ms
+           ),
+         {:ok, objective} <-
+           validate_non_empty_string(
+             option_value(entries, :objective, "sum_of_score_terms"),
+             "$.options.objective"
+           ),
+         {:ok, objective_direction} <-
+           normalize_objective_direction(option_value(entries, :objective_direction, :maximize)) do
+      {:ok,
+       %{
+         steps: steps,
+         bounds: bounds,
+         id_prefix: id_prefix,
+         evaluation_budget: evaluation_budget,
+         evaluator_timeout_ms: evaluator_timeout_ms,
+         objective: objective,
+         objective_direction: objective_direction
+       }}
     end
-
-    unless Keyword.has_key?(opts, :steps),
-      do: raise(ArgumentError, "missing required :steps option")
-
-    evaluation_budget = Keyword.get(opts, :evaluation_budget, @max_evaluations)
-
-    unless is_integer(evaluation_budget) and evaluation_budget >= 1 and
-             evaluation_budget <= @max_evaluations do
-      raise ArgumentError,
-            "evaluation_budget must be an integer from 1 through #{@max_evaluations}"
-    end
-
-    objective = Keyword.get(opts, :objective, "sum_of_score_terms")
-
-    evaluator_timeout_ms =
-      Keyword.get(opts, :evaluator_timeout_ms, @default_evaluator_timeout_ms)
-
-    unless is_integer(evaluator_timeout_ms) and evaluator_timeout_ms >= 1 and
-             evaluator_timeout_ms <= @max_evaluator_timeout_ms do
-      raise ArgumentError,
-            "evaluator_timeout_ms must be an integer from 1 through #{@max_evaluator_timeout_ms}"
-    end
-
-    unless is_binary(objective) and objective != "" and String.valid?(objective),
-      do: raise(ArgumentError, "objective must be a non-empty UTF-8 string")
-
-    %{
-      steps: Keyword.fetch!(opts, :steps),
-      bounds: Keyword.get(opts, :bounds, %{}),
-      id_prefix: stable_id!(Keyword.get(opts, :id_prefix, "local"), "id_prefix"),
-      evaluation_budget: evaluation_budget,
-      evaluator_timeout_ms: evaluator_timeout_ms,
-      objective: objective,
-      objective_direction:
-        normalize_objective_direction!(Keyword.get(opts, :objective_direction, :maximize))
-    }
   end
 
-  defp normalize_objective_direction!(direction) when direction in [:maximize, "maximize"],
-    do: :maximize
+  defp collect_option_entries([], _count, entries), do: {:ok, Enum.reverse(entries)}
 
-  defp normalize_objective_direction!(direction) when direction in [:minimize, "minimize"],
-    do: :minimize
+  defp collect_option_entries([_entry | _tail], count, _entries)
+       when count >= @max_option_entries,
+       do: builder_error("$.options", "must contain at most #{@max_option_entries} entries")
 
-  defp normalize_objective_direction!(_direction),
-    do: raise(ArgumentError, "objective_direction must be :maximize or :minimize")
+  defp collect_option_entries([{key, value} | tail], count, entries) when is_atom(key),
+    do: collect_option_entries(tail, count + 1, [{key, value} | entries])
+
+  defp collect_option_entries([_entry | _tail], _count, _entries),
+    do: builder_error("$.options", "must contain only atom-keyed option pairs")
+
+  defp collect_option_entries(_improper, _count, _entries),
+    do: builder_error("$.options", "must be a proper keyword list")
+
+  defp validate_option_keys(entries) do
+    keys = Enum.map(entries, &elem(&1, 0))
+
+    cond do
+      length(keys) != length(Enum.uniq(keys)) ->
+        builder_error("$.options", "must not contain duplicate or conflicting options")
+
+      Enum.any?(keys, &(&1 not in @allowed_options)) ->
+        builder_error("$.options", "contains an unsupported certified local-search option")
+
+      :steps not in keys ->
+        builder_error("$.options.steps", "is required")
+
+      true ->
+        :ok
+    end
+  end
+
+  defp option_value(entries, key, default) do
+    case List.keyfind(entries, key, 0) do
+      {^key, value} -> value
+      nil -> default
+    end
+  end
+
+  defp normalize_objective_direction(direction) when direction in [:maximize, "maximize"],
+    do: {:ok, :maximize}
+
+  defp normalize_objective_direction(direction) when direction in [:minimize, "minimize"],
+    do: {:ok, :minimize}
+
+  defp normalize_objective_direction(_direction),
+    do: builder_error("$.options.objective_direction", "must be maximize or minimize")
+
+  defp validate_evaluator_fun(evaluator_fun) do
+    if is_function(evaluator_fun, 2),
+      do: :ok,
+      else: builder_error("$.evaluator", "must be a function with arity 2")
+  end
+
+  defp validate_parameter_map(parameters, path, allow_empty?)
+       when is_map(parameters) and map_size(parameters) <= @max_input_map_entries do
+    cond do
+      map_size(parameters) == 0 and not allow_empty? ->
+        builder_error(path, "must be a non-empty map")
+
+      Enum.any?(parameters, fn {name, _value} -> not valid_parameter_name?(name) end) ->
+        builder_error(path, "must use valid UTF-8 string parameter names only")
+
+      Enum.any?(parameters, fn {_name, value} -> not finite_number?(value) end) ->
+        builder_error(path, "must contain only finite numeric values")
+
+      true ->
+        {:ok, parameters}
+    end
+  end
+
+  defp validate_parameter_map(parameters, path, _allow_empty?) when is_map(parameters),
+    do: builder_error(path, "exceeds the bounded input map size")
+
+  defp validate_parameter_map(_parameters, path, _allow_empty?),
+    do: builder_error(path, "must be a string-keyed finite numeric map")
+
+  defp validate_bounds(bounds)
+       when is_map(bounds) and map_size(bounds) <= @max_step_parameters do
+    bounds
+    |> Enum.reduce_while({:ok, %{}}, fn
+      {name, {minimum, maximum}}, {:ok, validated}
+      when is_binary(name) ->
+        cond do
+          not valid_parameter_name?(name) ->
+            {:halt,
+             builder_error("$.options.bounds", "must use valid UTF-8 string parameter names only")}
+
+          not finite_number?(minimum) or not finite_number?(maximum) ->
+            {:halt,
+             builder_error("$.options.bounds.#{name}", "must contain finite numeric bounds")}
+
+          minimum > maximum ->
+            {:halt, builder_error("$.options.bounds.#{name}", "minimum must not exceed maximum")}
+
+          true ->
+            {:cont, {:ok, Map.put(validated, name, {minimum, maximum})}}
+        end
+
+      {_name, _bound}, _acc ->
+        {:halt,
+         builder_error(
+           "$.options.bounds",
+           "must contain string-keyed numeric {minimum, maximum} tuples"
+         )}
+    end)
+  end
+
+  defp validate_bounds(bounds) when is_map(bounds),
+    do: builder_error("$.options.bounds", "may contain at most #{@max_step_parameters} entries")
+
+  defp validate_bounds(_bounds),
+    do: builder_error("$.options.bounds", "must be a map of numeric bound tuples")
+
+  defp validate_stable_id(value, path)
+       when is_binary(value) and byte_size(value) <= @max_input_string_bytes do
+    if String.valid?(value) and Regex.match?(@stable_id, value),
+      do: {:ok, value},
+      else: builder_error(path, "must be a stable identity")
+  end
+
+  defp validate_stable_id(_value, path), do: builder_error(path, "must be a stable identity")
+
+  defp validate_bounded_integer(value, path, maximum) do
+    if is_integer(value) and value >= 1 and value <= maximum,
+      do: {:ok, value},
+      else: builder_error(path, "must be an integer from 1 through #{maximum}")
+  end
+
+  defp validate_non_empty_string(value, path)
+       when is_binary(value) and value != "" and byte_size(value) <= @max_input_string_bytes do
+    if String.valid?(value),
+      do: {:ok, value},
+      else: builder_error(path, "must be a non-empty UTF-8 string")
+  end
+
+  defp validate_non_empty_string(_value, path),
+    do: builder_error(path, "must be a non-empty UTF-8 string")
+
+  defp capture_source_evidence(source_evidence) when is_map(source_evidence) do
+    try do
+      {:ok, JsonSafety.capture_json!(source_evidence, "source_evidence")}
+    rescue
+      error -> builder_error("$.source_evidence", safe_exception_message(error))
+    catch
+      _kind, _reason -> builder_error("$.source_evidence", "must be strict JSON")
+    end
+  end
+
+  defp capture_source_evidence(_source_evidence),
+    do: builder_error("$.source_evidence", "must be a strict JSON object")
+
+  defp validate_neighborhood_inputs(seed_parameters, options) do
+    seed_names = MapSet.new(Map.keys(seed_parameters))
+    step_names = MapSet.new(Map.keys(options.steps))
+    bound_names = MapSet.new(Map.keys(options.bounds))
+
+    cond do
+      map_size(options.steps) > @max_step_parameters ->
+        builder_error(
+          "$.options.steps",
+          "may contain at most #{@max_step_parameters} step parameters"
+        )
+
+      Enum.any?(options.steps, fn {_name, step} -> step <= 0 end) ->
+        builder_error("$.options.steps", "must contain only positive finite values")
+
+      not MapSet.subset?(step_names, seed_names) ->
+        builder_error("$.options.steps", "keys must identify seed parameters")
+
+      not MapSet.subset?(bound_names, seed_names) ->
+        builder_error("$.options.bounds", "keys must identify seed parameters")
+
+      Enum.any?(options.bounds, fn {name, {minimum, maximum}} ->
+        value = Map.fetch!(seed_parameters, name)
+        value < minimum or value > maximum
+      end) ->
+        builder_error("$.options.bounds", "seed parameters must be within declared bounds")
+
+      Enum.any?(options.steps, fn {name, step} ->
+        value = Map.fetch!(seed_parameters, name)
+        safe_finite_add(value, step) == :error or safe_finite_add(value, -step) == :error
+      end) ->
+        builder_error("$.options.steps", "finite neighborhood arithmetic must not overflow")
+
+      true ->
+        :ok
+    end
+  end
+
+  defp valid_parameter_name?(name) when is_binary(name) do
+    String.valid?(name) and Regex.match?(@score_term_name, name)
+  end
+
+  defp valid_parameter_name?(_name), do: false
 
   defp build_search_space(seed_parameters, options) do
     neighborhood =
@@ -426,40 +663,61 @@ defmodule OrbitalDynamics.Optimizer.LocalSearchCertificate do
     Map.put(core, "identity", search_space_identity(core))
   end
 
-  defp normalize_source_evidence!(source_evidence, search_space) do
-    source_evidence = JsonSafety.capture_json!(source_evidence, "source_evidence")
+  defp normalize_source_evidence(source_evidence, search_space) do
     candidate_ids = Enum.map(search_space["candidates"], & &1["id"])
     evidence_ids = Map.keys(source_evidence) |> Enum.sort()
 
-    unless evidence_ids == Enum.sort(candidate_ids) do
-      raise ArgumentError,
-            "source_evidence keys must exactly match every in-bounds search-space alternative ID"
+    if evidence_ids == Enum.sort(candidate_ids) do
+      candidate_ids
+      |> Enum.reduce_while({:ok, %{}}, fn alternative_id, {:ok, evidence} ->
+        entry = Map.fetch!(source_evidence, alternative_id)
+
+        with :ok <- validate_source_entry(entry, alternative_id),
+             {:ok, source_id} <-
+               validate_stable_id(
+                 entry["id"],
+                 "$.source_evidence.#{alternative_id}.id"
+               ),
+             {:ok, revision} <-
+               validate_stable_id(
+                 entry["revision"],
+                 "$.source_evidence.#{alternative_id}.revision"
+               ) do
+          row = %{
+            entry: entry,
+            summary: %{
+              "alternative_id" => alternative_id,
+              "source_id" => source_id,
+              "source_revision" => revision,
+              "content_identity" => content_identity(entry)
+            }
+          }
+
+          {:cont, {:ok, Map.put(evidence, alternative_id, row)}}
+        else
+          {:error, failure} -> {:halt, {:error, failure}}
+        end
+      end)
+    else
+      builder_error(
+        "$.source_evidence",
+        "keys must exactly match every in-bounds search-space alternative ID"
+      )
     end
-
-    Map.new(source_evidence, fn {alternative_id, entry} ->
-      unless is_map(entry),
-        do: raise(ArgumentError, "source_evidence.#{alternative_id} must be a map")
-
-      source_id = stable_id!(entry["id"], "source_evidence.#{alternative_id}.id")
-
-      revision =
-        stable_id!(entry["revision"], "source_evidence.#{alternative_id}.revision")
-
-      if map_size(entry) < 2,
-        do: raise(ArgumentError, "source_evidence.#{alternative_id} must contain id and revision")
-
-      {alternative_id,
-       %{
-         entry: entry,
-         summary: %{
-           "alternative_id" => alternative_id,
-           "source_id" => source_id,
-           "source_revision" => revision,
-           "content_identity" => content_identity(entry)
-         }
-       }}
-    end)
   end
+
+  defp validate_source_entry(entry, alternative_id) when is_map(entry) do
+    if Map.has_key?(entry, "id") and Map.has_key?(entry, "revision"),
+      do: :ok,
+      else:
+        builder_error(
+          "$.source_evidence.#{alternative_id}",
+          "must contain id and revision"
+        )
+  end
+
+  defp validate_source_entry(_entry, alternative_id),
+    do: builder_error("$.source_evidence.#{alternative_id}", "must be a strict JSON object")
 
   defp source_evidence_registry(evidence, search_space) do
     candidate_ids = Enum.map(search_space["candidates"], & &1["id"])
@@ -877,21 +1135,27 @@ defmodule OrbitalDynamics.Optimizer.LocalSearchCertificate do
     String.slice(detail, 0, 1_024)
   end
 
-  defp stable_id!(value, label) when is_binary(value) do
-    if String.valid?(value) and Regex.match?(@stable_id, value),
-      do: value,
-      else: raise(ArgumentError, "#{label} must be a stable identity")
-  end
-
-  defp stable_id!(_value, label),
-    do: raise(ArgumentError, "#{label} must be a stable identity")
-
   defp deterministic_digest(value) do
-    value
-    |> canonical_json_iodata()
-    |> IO.iodata_to_binary()
-    |> then(&:crypto.hash(:sha256, &1))
-    |> Base.encode16(case: :lower)
+    case JsonSafety.errors(value) do
+      [] ->
+        try do
+          digest =
+            value
+            |> canonical_json_iodata()
+            |> IO.iodata_to_binary()
+            |> then(&:crypto.hash(:sha256, &1))
+            |> Base.encode16(case: :lower)
+
+          {:ok, digest}
+        rescue
+          _error -> {:error, identity_failure("identity_encoding_failed")}
+        catch
+          _kind, _reason -> {:error, identity_failure("identity_encoding_failed")}
+        end
+
+      issues ->
+        {:error, identity_failure("identity_input_not_strict_json", issues)}
+    end
   end
 
   defp canonical_json_iodata(:null), do: "null"
@@ -942,5 +1206,41 @@ defmodule OrbitalDynamics.Optimizer.LocalSearchCertificate do
     if finite_number?(sum), do: {:ok, sum}, else: :error
   rescue
     ArithmeticError -> :error
+  end
+
+  defp builder_error(path, message) do
+    {:error,
+     %{
+       "status" => "rejected",
+       "reason" => "builder_input_invalid",
+       "details" => %{
+         "errors" => [
+           %{
+             "severity" => "error",
+             "path" => path,
+             "message" => message
+           }
+         ]
+       }
+     }}
+  end
+
+  defp input_failure(reason, failure_kind, detail) do
+    %{
+      "status" => "rejected",
+      "reason" => reason,
+      "details" => %{
+        "failure_kind" => failure_kind,
+        "detail" => detail
+      }
+    }
+  end
+
+  defp identity_failure(reason, issues \\ []) do
+    %{
+      "status" => "rejected",
+      "reason" => reason,
+      "details" => %{"errors" => issues}
+    }
   end
 end

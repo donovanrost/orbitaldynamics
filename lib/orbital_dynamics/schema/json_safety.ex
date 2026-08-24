@@ -6,6 +6,7 @@ defmodule OrbitalDynamics.Schema.JsonSafety do
   @max_float 1.7976931348623157e308
   @max_depth 64
   @max_nodes 20_000
+  @max_artifact_nodes 100_000
   @max_collection_items 2_048
   @max_aggregate_bytes 4_194_304
   @max_issues 100
@@ -51,7 +52,15 @@ defmodule OrbitalDynamics.Schema.JsonSafety do
   end
 
   def errors(value, path \\ "$") do
-    case resource_errors(value, path) do
+    errors_with_max_nodes(value, path, @max_nodes)
+  end
+
+  def artifact_errors(value, path \\ "$") do
+    errors_with_max_nodes(value, path, @max_artifact_nodes)
+  end
+
+  defp errors_with_max_nodes(value, path, max_nodes) do
+    case resource_errors(value, path, max_nodes) do
       [] ->
         state = validate(value, path, %{halted: false, issue_count: 0, issues: []})
         Enum.reverse(state.issues)
@@ -178,48 +187,57 @@ defmodule OrbitalDynamics.Schema.JsonSafety do
   defp normalize_key!(_key, label),
     do: raise(ArgumentError, "#{label} contains a non-string object key")
 
-  defp resource_errors(value, path) do
-    case validate_resources(value, path, 0, %{aggregate_bytes: 0, nodes: 0}) do
+  defp resource_errors(value, path), do: resource_errors(value, path, @max_nodes)
+
+  defp resource_errors(value, path, max_nodes) do
+    case validate_resources(value, path, 0, %{aggregate_bytes: 0, nodes: 0}, max_nodes) do
       {:ok, _state} -> []
       {:error, issue} -> [issue]
     end
   end
 
-  defp validate_resources(_value, path, depth, _state) when depth > @max_depth,
+  defp validate_resources(_value, path, depth, _state, _max_nodes) when depth > @max_depth,
     do: {:error, error(path, "exceeds maximum JSON nesting depth of #{@max_depth}")}
 
-  defp validate_resources(value, path, depth, state) do
-    with {:ok, state} <- consume_node(state, path) do
-      validate_resource_value(value, path, depth, state)
+  defp validate_resources(value, path, depth, state, max_nodes) do
+    with {:ok, state} <- consume_node(state, path, max_nodes) do
+      validate_resource_value(value, path, depth, state, max_nodes)
     end
   end
 
-  defp validate_resource_value(value, _path, _depth, state) when is_boolean(value),
-    do: {:ok, state}
+  defp validate_resource_value(value, _path, _depth, state, _max_nodes)
+       when is_boolean(value),
+       do: {:ok, state}
 
-  defp validate_resource_value(:null, _path, _depth, state), do: {:ok, state}
-  defp validate_resource_value(nil, _path, _depth, state), do: {:ok, state}
+  defp validate_resource_value(:null, _path, _depth, state, _max_nodes), do: {:ok, state}
+  defp validate_resource_value(nil, _path, _depth, state, _max_nodes), do: {:ok, state}
 
-  defp validate_resource_value(value, path, _depth, state) when is_binary(value),
+  defp validate_resource_value(value, path, _depth, state, _max_nodes) when is_binary(value),
     do: consume_bytes(state, byte_size(value), path)
 
-  defp validate_resource_value(value, path, _depth, state) when is_atom(value),
+  defp validate_resource_value(value, path, _depth, state, _max_nodes) when is_atom(value),
     do: consume_bytes(state, value |> Atom.to_string() |> byte_size(), path)
 
-  defp validate_resource_value(value, path, depth, state) when is_list(value),
-    do: validate_resource_list(value, path, depth, 0, state)
+  defp validate_resource_value(value, path, depth, state, max_nodes) when is_list(value),
+    do: validate_resource_list(value, path, depth, 0, state, max_nodes)
 
-  defp validate_resource_value(%_module{}, _path, _depth, state), do: {:ok, state}
+  defp validate_resource_value(%_module{}, _path, _depth, state, _max_nodes), do: {:ok, state}
 
-  defp validate_resource_value(%{} = map, path, depth, state) do
+  defp validate_resource_value(%{} = map, path, depth, state, max_nodes) do
     if map_size(map) > @max_collection_items do
       {:error, error(path, "exceeds maximum JSON collection size of #{@max_collection_items}")}
     else
       Enum.reduce_while(map, {:ok, state}, fn {key, value}, {:ok, acc} ->
-        with {:ok, acc} <- consume_node(acc, path),
+        with {:ok, acc} <- consume_node(acc, path, max_nodes),
              {:ok, acc} <- consume_key_bytes(acc, key, path),
              {:ok, acc} <-
-               validate_resources(value, resource_child_path(path, key), depth + 1, acc) do
+               validate_resources(
+                 value,
+                 resource_child_path(path, key),
+                 depth + 1,
+                 acc,
+                 max_nodes
+               ) do
           {:cont, {:ok, acc}}
         else
           {:error, issue} -> {:halt, {:error, issue}}
@@ -228,29 +246,33 @@ defmodule OrbitalDynamics.Schema.JsonSafety do
     end
   end
 
-  defp validate_resource_value(_value, _path, _depth, state), do: {:ok, state}
+  defp validate_resource_value(_value, _path, _depth, state, _max_nodes), do: {:ok, state}
 
-  defp validate_resource_list([], _path, _depth, _index, state), do: {:ok, state}
+  defp validate_resource_list([], _path, _depth, _index, state, _max_nodes), do: {:ok, state}
 
-  defp validate_resource_list([_head | _tail], path, _depth, index, _state)
+  defp validate_resource_list([_head | _tail], path, _depth, index, _state, _max_nodes)
        when index >= @max_collection_items,
        do:
          {:error, error(path, "exceeds maximum JSON collection size of #{@max_collection_items}")}
 
-  defp validate_resource_list([head | tail], path, depth, index, state) do
-    case validate_resources(head, "#{path}[#{index}]", depth + 1, state) do
-      {:ok, state} -> validate_resource_list(tail, path, depth, index + 1, state)
-      {:error, issue} -> {:error, issue}
+  defp validate_resource_list([head | tail], path, depth, index, state, max_nodes) do
+    case validate_resources(head, "#{path}[#{index}]", depth + 1, state, max_nodes) do
+      {:ok, state} ->
+        validate_resource_list(tail, path, depth, index + 1, state, max_nodes)
+
+      {:error, issue} ->
+        {:error, issue}
     end
   end
 
-  defp validate_resource_list(_improper_tail, path, _depth, _index, _state),
+  defp validate_resource_list(_improper_tail, path, _depth, _index, _state, _max_nodes),
     do: {:error, error(path, "improper lists are not JSON arrays")}
 
-  defp consume_node(%{nodes: nodes}, path) when nodes >= @max_nodes,
-    do: {:error, error(path, "exceeds maximum JSON node budget of #{@max_nodes}")}
+  defp consume_node(%{nodes: nodes}, path, max_nodes) when nodes >= max_nodes,
+    do: {:error, error(path, "exceeds maximum JSON node budget of #{max_nodes}")}
 
-  defp consume_node(state, _path), do: {:ok, %{state | nodes: state.nodes + 1}}
+  defp consume_node(state, _path, _max_nodes),
+    do: {:ok, %{state | nodes: state.nodes + 1}}
 
   defp consume_key_bytes(state, key, path) when is_binary(key),
     do: consume_bytes(state, byte_size(key), path)

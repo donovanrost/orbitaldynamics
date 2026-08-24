@@ -261,7 +261,7 @@ defmodule OrbitalDynamics.Schema do
   Returns `{:ok, report}` when the artifact satisfies the contract and
   `{:error, report}` otherwise. Reports are JSON-serializable maps.
   """
-  def validate_artifact(%{} = artifact, opts \\ []) do
+  def validate_artifact(artifact, opts \\ []) do
     OrbitalDynamics.Schema.ArtifactValidation.validate(artifact, opts, contracts(),
       contract: &contract/1,
       error: &error/2,
