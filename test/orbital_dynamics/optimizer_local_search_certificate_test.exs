@@ -1,7 +1,7 @@
 defmodule OrbitalDynamics.OptimizerLocalSearchCertificateTest do
   use ExUnit.Case, async: false
 
-  alias OrbitalDynamics.{Optimizer, Schema}
+  alias OrbitalDynamics.{Optimizer, Schema, Validation}
   alias OrbitalDynamics.Optimizer.LocalSearchCertificate
 
   alias OrbitalDynamics.Schema.{
@@ -1062,6 +1062,7 @@ defmodule OrbitalDynamics.OptimizerLocalSearchCertificateTest do
 
   test "strict JSON semantic validation stops at one bounded deterministic issue budget" do
     maximum = JsonSafety.limits()["max_issues"]
+    contract = "local_search_optimization_certificate.v1"
 
     corrupted =
       build_certificate()
@@ -1154,6 +1155,133 @@ defmodule OrbitalDynamics.OptimizerLocalSearchCertificateTest do
     assert JsonSafety.errors(unsafe_report) == []
 
     base = build_certificate()
+
+    expected_direct_counts = %{
+      42_711 => 100,
+      42_712 => 100,
+      42_713 => 100,
+      42_714 => 100,
+      42_715 => 99,
+      42_716 => 99,
+      42_717 => 99,
+      42_718 => 99,
+      42_719 => 99
+    }
+
+    boundary_artifacts =
+      Map.new(42_711..42_719, fn key_size ->
+        artifact = large_key_certificate(base, key_size)
+        encoded_size = artifact |> :json.encode() |> IO.iodata_to_binary() |> byte_size()
+
+        assert encoded_size == 1_074_913 + 25 * (key_size - 42_711)
+        {key_size, artifact}
+      end)
+
+    Enum.each(boundary_artifacts, fn {key_size, artifact} ->
+      assert JsonSafety.errors(artifact) == []
+
+      direct = LocalSearchOptimizationCertificateContracts.validate([], "$", artifact)
+      assert length(direct) == expected_direct_counts[key_size]
+      assert_bounded_issue_envelope(direct, maximum)
+
+      assert direct ==
+               LocalSearchOptimizationCertificateContracts.validate([], "$", artifact)
+
+      assert {:ok, executable_contract} = Schema.contract(contract)
+
+      routed = ArtifactValidationRouter.validate(contract, executable_contract, artifact)
+      assert length(routed) <= length(direct)
+      assert_bounded_issue_envelope(routed, maximum)
+
+      assert {:error, inferred} = Schema.validate_artifact(artifact)
+      assert {:error, selected} = Schema.validate_artifact(artifact, schema_contract: contract)
+      assert {:error, facade} = OrbitalDynamics.validate_artifact(artifact)
+      assert inferred == selected
+      assert inferred == facade
+
+      Enum.each([inferred, selected, facade], fn report ->
+        assert length(report["errors"]) <= length(direct)
+        assert_bounded_issue_envelope(report["errors"], maximum)
+        assert_json_total(report)
+      end)
+
+      observation = Validation.artifact_observations(contract, artifact)
+      public_observation = OrbitalDynamics.validation_artifact_observations(contract, artifact)
+
+      assert observation == public_observation
+      assert observation["status"] == "error"
+      assert length(observation["errors"]) <= length(direct)
+      assert_bounded_issue_envelope(observation["errors"], maximum)
+      assert_json_total(observation)
+
+      schema_report = Schema.validation_report(artifact, schema_contract: contract)
+      inferred_schema_report = Schema.validation_report(artifact)
+      public_schema_report = OrbitalDynamics.schema_validation_report(artifact)
+      assert schema_report == inferred_schema_report
+      assert schema_report == public_schema_report
+
+      Enum.each([schema_report, inferred_schema_report, public_schema_report], fn report ->
+        assert report["status"] == "fail"
+        assert report["error_count"] == length(report["errors"])
+        assert report["error_count"] <= length(direct)
+        assert report["remediation_count"] == 0
+        assert report["remediation"] == []
+        assert_bounded_issue_envelope(report["errors"], maximum)
+        assert_json_total(report)
+      end)
+    end)
+
+    boundary_artifact = boundary_artifacts[42_719]
+
+    boundary_report = Schema.validation_report(boundary_artifact)
+    assert {:ok, report_validation} = Schema.validate_artifact(boundary_report)
+    assert_json_total(report_validation)
+
+    hostile_wrapper_value = String.duplicate("p", JsonSafety.limits()["max_aggregate_bytes"])
+
+    oversized_path_report =
+      Schema.validation_report(boundary_artifact,
+        schema_contract: contract,
+        artifact_path: hostile_wrapper_value
+      )
+
+    assert oversized_path_report["status"] == "fail"
+    refute Map.has_key?(oversized_path_report, "artifact_path")
+    assert oversized_path_report["remediation_count"] == 0
+    assert_bounded_issue_envelope(oversized_path_report["errors"], maximum)
+    assert_json_total(oversized_path_report)
+
+    valid_oversized_path_report =
+      Schema.validation_report(base,
+        schema_contract: contract,
+        artifact_path: hostile_wrapper_value
+      )
+
+    assert valid_oversized_path_report["status"] == "pass"
+    assert valid_oversized_path_report["errors"] == []
+    refute Map.has_key?(valid_oversized_path_report, "artifact_path")
+    assert_json_total(valid_oversized_path_report)
+
+    oversized_mode_report =
+      Schema.validation_report(boundary_artifact,
+        schema_contract: contract,
+        validation_mode: hostile_wrapper_value
+      )
+
+    assert oversized_mode_report["validation_mode"] == "artifact_map"
+    assert oversized_mode_report["remediation_count"] == 0
+    assert_bounded_issue_envelope(oversized_mode_report["errors"], maximum)
+    assert_json_total(oversized_mode_report)
+
+    oversized_selector_report =
+      Schema.validation_report(base, schema_contract: hostile_wrapper_value)
+
+    assert oversized_selector_report["status"] == "fail"
+    assert oversized_selector_report["error_count"] == 1
+    assert oversized_selector_report["remediation_count"] == 0
+    assert oversized_selector_report["remediation"] == []
+    assert_bounded_issue_envelope(oversized_selector_report["errors"], maximum)
+    assert_json_total(oversized_selector_report)
 
     deep =
       Enum.reduce(1..70, :null, fn index, nested -> %{Integer.to_string(index) => nested} end)
@@ -1859,6 +1987,17 @@ defmodule OrbitalDynamics.OptimizerLocalSearchCertificateTest do
     end)
   end
 
+  defp large_key_certificate(certificate, key_size) do
+    bounds =
+      Map.new(0..24, fn index ->
+        suffix = index |> Integer.to_string() |> String.pad_leading(2, "0")
+        key = String.duplicate("k", key_size - byte_size(suffix)) <> suffix
+        {key, %{}}
+      end)
+
+    put_in(certificate, ["search_space", "bounds"], bounds)
+  end
+
   defp evaluator(parameters, evidence) do
     eligible = parameters["x"] > 0
 
@@ -1936,6 +2075,21 @@ defmodule OrbitalDynamics.OptimizerLocalSearchCertificateTest do
     assert JsonSafety.errors(value) == []
     encoded = value |> :json.encode() |> IO.iodata_to_binary()
     assert :json.decode(encoded) == value
+  end
+
+  defp assert_bounded_issue_envelope(issues, maximum) do
+    assert length(issues) <= maximum
+
+    assert Enum.count(issues, fn issue ->
+             message = issue["message"]
+
+             is_binary(message) and
+               (String.contains?(message, "issue budget exhausted") or
+                  String.contains?(message, "validation envelope truncated"))
+           end) == 1
+
+    assert issues == Enum.sort_by(issues, &{&1["path"], &1["message"], &1["severity"]})
+    assert_json_total(issues)
   end
 
   defp assert_process_terminated(pid) do

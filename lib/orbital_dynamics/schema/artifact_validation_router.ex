@@ -15,6 +15,7 @@ defmodule OrbitalDynamics.Schema.ArtifactValidationRouter do
     DecisionSupportValidation,
     ExecutionReproducibilityValidation,
     LinkCapacityValidation,
+    LocalSearchValidationEnvelope,
     ModelCapabilityValidation,
     OperationalReadinessValidation,
     OperatorReviewValidation,
@@ -61,13 +62,13 @@ defmodule OrbitalDynamics.Schema.ArtifactValidationRouter do
   defp validate_routed_artifact(name, contract, artifact) do
     case json_issues(artifact, name) do
       [] ->
-        name |> route(contract, artifact) |> normalize_issues()
+        name |> route(contract, artifact) |> normalize_issues(name)
 
       _issues when name == @local_search_certificate ->
-        name |> route(contract, artifact) |> normalize_issues()
+        name |> route(contract, artifact) |> normalize_issues(name)
 
       _legacy_issues ->
-        name |> route(contract, artifact) |> normalize_issues()
+        name |> route(contract, artifact) |> normalize_issues(name)
     end
   end
 
@@ -83,7 +84,16 @@ defmodule OrbitalDynamics.Schema.ArtifactValidationRouter do
 
   defp registered_contract?(_name, _contract), do: false
 
-  defp normalize_issues(issues) do
+  defp normalize_issues(issues, @local_search_certificate) do
+    if valid_issue_list?(issues) do
+      {fitted_issues, _envelope} = LocalSearchValidationEnvelope.fit_issues(issues, & &1)
+      fitted_issues
+    else
+      [error("$", "schema validator returned malformed issues")]
+    end
+  end
+
+  defp normalize_issues(issues, _legacy_contract) do
     if valid_issue_list?(issues) and JsonSafety.errors(issues) == [],
       do: issues,
       else: [error("$", "schema validator returned malformed issues")]

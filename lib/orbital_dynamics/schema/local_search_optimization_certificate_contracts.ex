@@ -2,7 +2,7 @@ defmodule OrbitalDynamics.Schema.LocalSearchOptimizationCertificateContracts do
   @moduledoc false
 
   alias OrbitalDynamics.Optimizer.LocalSearchCertificate
-  alias OrbitalDynamics.Schema.{JsonSafety, PrimitiveValidation}
+  alias OrbitalDynamics.Schema.{JsonSafety, LocalSearchValidationEnvelope, PrimitiveValidation}
   alias OrbitalDynamics.Search.Local
 
   @contract "local_search_optimization_certificate.v1"
@@ -513,27 +513,31 @@ defmodule OrbitalDynamics.Schema.LocalSearchOptimizationCertificateContracts do
 
     maximum = JsonSafety.limits()["max_issues"]
 
-    if length(sorted) <= maximum do
-      sorted
-    else
-      identity_issue =
-        Enum.find(sorted, fn issue ->
-          issue["message"] == "cannot verify identity until certificate content is strict JSON"
-        end)
-
-      retained_count = maximum - if(identity_issue, do: 2, else: 1)
-
-      retained =
+    bounded =
+      if length(sorted) <= maximum do
         sorted
-        |> Enum.reject(&(&1 == identity_issue))
-        |> Enum.take(retained_count)
+      else
+        identity_issue =
+          Enum.find(sorted, fn issue ->
+            issue["message"] == "cannot verify identity until certificate content is strict JSON"
+          end)
 
-      [
-        issue_budget_error(maximum)
-        | if(identity_issue, do: [identity_issue | retained], else: retained)
-      ]
-      |> Enum.sort_by(&{&1["path"], &1["message"], &1["severity"]})
-    end
+        retained_count = maximum - if(identity_issue, do: 2, else: 1)
+
+        retained =
+          sorted
+          |> Enum.reject(&(&1 == identity_issue))
+          |> Enum.take(retained_count)
+
+        [
+          issue_budget_error(maximum)
+          | if(identity_issue, do: [identity_issue | retained], else: retained)
+        ]
+        |> Enum.sort_by(&{&1["path"], &1["message"], &1["severity"]})
+      end
+
+    {issues, _envelope} = LocalSearchValidationEnvelope.fit_issues(bounded, & &1)
+    issues
   end
 
   defp validate_evaluator_execution_policy(issues, path, policy) when is_map(policy) do
@@ -644,15 +648,18 @@ defmodule OrbitalDynamics.Schema.LocalSearchOptimizationCertificateContracts do
 
       if is_map(bound) do
         acc
-        |> exact_fields(bound_path, bound, @bound_fields)
-        |> expect_finite_number(bound_path, bound, "minimum")
-        |> expect_finite_number(bound_path, bound, "maximum")
-        |> ensure(
-          finite_number?(bound["minimum"]) and finite_number?(bound["maximum"]) and
-            bound["minimum"] <= bound["maximum"],
-          bound_path,
-          "minimum must be less than or equal to maximum"
-        )
+        |> continue_validation(&exact_fields(&1, bound_path, bound, @bound_fields))
+        |> continue_validation(&expect_finite_number(&1, bound_path, bound, "minimum"))
+        |> continue_validation(&expect_finite_number(&1, bound_path, bound, "maximum"))
+        |> continue_validation(fn current ->
+          ensure(
+            current,
+            finite_number?(bound["minimum"]) and finite_number?(bound["maximum"]) and
+              bound["minimum"] <= bound["maximum"],
+            bound_path,
+            "minimum must be less than or equal to maximum"
+          )
+        end)
       else
         add_issue(acc, bound_path, "must be a map")
       end
@@ -675,12 +682,12 @@ defmodule OrbitalDynamics.Schema.LocalSearchOptimizationCertificateContracts do
 
   defp validate_candidate_row(issues, path, candidate) when is_map(candidate) do
     issues
-    |> exact_fields(path, candidate, @candidate_fields)
-    |> expect_stable_id(path, candidate, "id")
-    |> expect_non_negative_integer(path, candidate, "generation_index")
-    |> expect_finite_numeric_map(path, candidate, "parameters")
-    |> expect_type(path, candidate, "move", :map)
-    |> validate_candidate_move("#{path}.move", candidate["move"])
+    |> continue_validation(&exact_fields(&1, path, candidate, @candidate_fields))
+    |> continue_validation(&expect_stable_id(&1, path, candidate, "id"))
+    |> continue_validation(&expect_non_negative_integer(&1, path, candidate, "generation_index"))
+    |> continue_validation(&expect_finite_numeric_map(&1, path, candidate, "parameters"))
+    |> continue_validation(&expect_type(&1, path, candidate, "move", :map))
+    |> continue_validation(&validate_candidate_move(&1, "#{path}.move", candidate["move"]))
   end
 
   defp validate_candidate_row(issues, path, _candidate),
@@ -692,17 +699,20 @@ defmodule OrbitalDynamics.Schema.LocalSearchOptimizationCertificateContracts do
 
   defp validate_candidate_move(issues, path, %{"type" => "axis_step"} = move) do
     issues
-    |> exact_fields(path, move, @axis_step_move_fields)
-    |> expect_equal(path, move, "type", "axis_step")
-    |> ensure(
-      supported_parameter_name?(move["parameter"]),
-      "#{path}.parameter",
-      "must be a supported parameter name"
-    )
-    |> expect_one_of(path, move, "direction", ["decrease", "increase"])
-    |> expect_finite_number(path, move, "delta")
-    |> expect_finite_number(path, move, "from")
-    |> expect_finite_number(path, move, "to")
+    |> continue_validation(&exact_fields(&1, path, move, @axis_step_move_fields))
+    |> continue_validation(&expect_equal(&1, path, move, "type", "axis_step"))
+    |> continue_validation(fn current ->
+      ensure(
+        current,
+        supported_parameter_name?(move["parameter"]),
+        "#{path}.parameter",
+        "must be a supported parameter name"
+      )
+    end)
+    |> continue_validation(&expect_one_of(&1, path, move, "direction", ["decrease", "increase"]))
+    |> continue_validation(&expect_finite_number(&1, path, move, "delta"))
+    |> continue_validation(&expect_finite_number(&1, path, move, "from"))
+    |> continue_validation(&expect_finite_number(&1, path, move, "to"))
   end
 
   defp validate_candidate_move(issues, path, _move),
@@ -722,16 +732,18 @@ defmodule OrbitalDynamics.Schema.LocalSearchOptimizationCertificateContracts do
 
   defp validate_rejected_move(issues, path, row) when is_map(row) do
     issues
-    |> exact_fields(path, row, @rejected_move_fields)
-    |> expect_stable_id(path, row, "id")
-    |> expect_non_negative_integer(path, row, "generation_index")
-    |> expect_type(path, row, "move", :map)
-    |> validate_rejected_move_shape("#{path}.move", row["move"])
-    |> expect_one_of(path, row, "reason", [
-      "below_minimum_bound",
-      "above_maximum_bound",
-      "alternative_limit"
-    ])
+    |> continue_validation(&exact_fields(&1, path, row, @rejected_move_fields))
+    |> continue_validation(&expect_stable_id(&1, path, row, "id"))
+    |> continue_validation(&expect_non_negative_integer(&1, path, row, "generation_index"))
+    |> continue_validation(&expect_type(&1, path, row, "move", :map))
+    |> continue_validation(&validate_rejected_move_shape(&1, "#{path}.move", row["move"]))
+    |> continue_validation(
+      &expect_one_of(&1, path, row, "reason", [
+        "below_minimum_bound",
+        "above_maximum_bound",
+        "alternative_limit"
+      ])
+    )
   end
 
   defp validate_rejected_move(issues, path, _row),
@@ -889,11 +901,13 @@ defmodule OrbitalDynamics.Schema.LocalSearchOptimizationCertificateContracts do
 
   defp validate_registry_entry(issues, path, entry) when is_map(entry) do
     issues
-    |> exact_fields(path, entry, @registry_entry_fields)
-    |> expect_stable_id(path, entry, "alternative_id")
-    |> expect_stable_id(path, entry, "source_id")
-    |> expect_stable_id(path, entry, "source_revision")
-    |> validate_identity("#{path}.content_identity", entry["content_identity"])
+    |> continue_validation(&exact_fields(&1, path, entry, @registry_entry_fields))
+    |> continue_validation(&expect_stable_id(&1, path, entry, "alternative_id"))
+    |> continue_validation(&expect_stable_id(&1, path, entry, "source_id"))
+    |> continue_validation(&expect_stable_id(&1, path, entry, "source_revision"))
+    |> continue_validation(
+      &validate_identity(&1, "#{path}.content_identity", entry["content_identity"])
+    )
   end
 
   defp validate_registry_entry(issues, path, _entry),
@@ -929,20 +943,25 @@ defmodule OrbitalDynamics.Schema.LocalSearchOptimizationCertificateContracts do
 
   defp validate_evaluation(issues, path, evaluation) when is_map(evaluation) do
     issues
-    |> exact_fields(path, evaluation, @evaluation_fields)
-    |> expect_stable_id(path, evaluation, "alternative_id")
-    |> expect_non_negative_integer(path, evaluation, "generation_index")
-    |> validate_identity(
-      "#{path}.source_evidence_identity",
-      evaluation["source_evidence_identity"]
+    |> continue_validation(&exact_fields(&1, path, evaluation, @evaluation_fields))
+    |> continue_validation(&expect_stable_id(&1, path, evaluation, "alternative_id"))
+    |> continue_validation(&expect_non_negative_integer(&1, path, evaluation, "generation_index"))
+    |> continue_validation(
+      &validate_identity(
+        &1,
+        "#{path}.source_evidence_identity",
+        evaluation["source_evidence_identity"]
+      )
     )
-    |> expect_finite_score_terms_map(path, evaluation, "score_terms")
-    |> expect_finite_number(path, evaluation, "score")
-    |> expect_type(path, evaluation, "eligible", :boolean)
-    |> expect_string_list(path, evaluation, "rejection_reasons")
-    |> expect_nullable_stable_id(path, evaluation, "incumbent_after_evaluation_id")
-    |> expect_nullable_positive_integer(path, evaluation, "rank")
-    |> validate_evaluation_row(path, evaluation)
+    |> continue_validation(&expect_finite_score_terms_map(&1, path, evaluation, "score_terms"))
+    |> continue_validation(&expect_finite_number(&1, path, evaluation, "score"))
+    |> continue_validation(&expect_type(&1, path, evaluation, "eligible", :boolean))
+    |> continue_validation(&expect_string_list(&1, path, evaluation, "rejection_reasons"))
+    |> continue_validation(
+      &expect_nullable_stable_id(&1, path, evaluation, "incumbent_after_evaluation_id")
+    )
+    |> continue_validation(&expect_nullable_positive_integer(&1, path, evaluation, "rank"))
+    |> continue_validation(&validate_evaluation_row(&1, path, evaluation))
   end
 
   defp validate_evaluation(issues, path, _evaluation),
@@ -979,44 +998,54 @@ defmodule OrbitalDynamics.Schema.LocalSearchOptimizationCertificateContracts do
     reasons = evaluation["rejection_reasons"]
 
     issues =
-      if finite_score_terms_map?(terms) do
-        case safe_finite_sum(Map.values(terms)) do
-          {:ok, score} ->
-            ensure(
-              issues,
-              score == evaluation["score"],
-              "#{path}.score",
-              "must equal the finite sum of score_terms"
-            )
+      continue_validation(issues, fn current ->
+        if finite_score_terms_map?(terms) do
+          case safe_finite_sum(Map.values(terms)) do
+            {:ok, score} ->
+              ensure(
+                current,
+                score == evaluation["score"],
+                "#{path}.score",
+                "must equal the finite sum of score_terms"
+              )
 
-          :error ->
-            ensure(
-              issues,
-              false,
-              "#{path}.score",
-              "score_terms sum must remain finite"
-            )
+            :error ->
+              ensure(
+                current,
+                false,
+                "#{path}.score",
+                "score_terms sum must remain finite"
+              )
+          end
+        else
+          current
         end
-      else
-        issues
-      end
+      end)
 
-    if proper_list?(reasons) do
-      issues
-      |> ensure(
-        reasons == reasons |> Enum.uniq() |> Enum.sort(),
-        "#{path}.rejection_reasons",
-        "must be unique and sorted"
-      )
-      |> ensure(
-        (evaluation["eligible"] == true and reasons == []) or
-          (evaluation["eligible"] == false and reasons != []),
-        "#{path}.rejection_reasons",
-        "must be empty only for eligible candidates and non-empty for rejected candidates"
-      )
-    else
-      issues
-    end
+    continue_validation(issues, fn current ->
+      if proper_list?(reasons) do
+        current
+        |> continue_validation(fn next ->
+          ensure(
+            next,
+            reasons == reasons |> Enum.uniq() |> Enum.sort(),
+            "#{path}.rejection_reasons",
+            "must be unique and sorted"
+          )
+        end)
+        |> continue_validation(fn next ->
+          ensure(
+            next,
+            (evaluation["eligible"] == true and reasons == []) or
+              (evaluation["eligible"] == false and reasons != []),
+            "#{path}.rejection_reasons",
+            "must be empty only for eligible candidates and non-empty for rejected candidates"
+          )
+        end)
+      else
+        current
+      end
+    end)
   end
 
   defp validate_evaluation_relations(issues, path, certificate) do

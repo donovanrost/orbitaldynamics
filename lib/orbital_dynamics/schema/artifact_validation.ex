@@ -1,7 +1,12 @@
 defmodule OrbitalDynamics.Schema.ArtifactValidation do
   @moduledoc false
 
-  alias OrbitalDynamics.Schema.{Inference, JsonSafety, PrimitiveValidation}
+  alias OrbitalDynamics.Schema.{
+    Inference,
+    JsonSafety,
+    LocalSearchValidationEnvelope,
+    PrimitiveValidation
+  }
 
   @local_search_certificate "local_search_optimization_certificate.v1"
   @validation_options [:contract, :schema_contract, :validation_mode, :artifact_path]
@@ -182,6 +187,8 @@ defmodule OrbitalDynamics.Schema.ArtifactValidation do
         "warnings" => warnings
       }
 
+      report = fit_local_search_report(contract_name, report)
+
       if errors == [], do: {:ok, report}, else: {:error, report}
     else
       {:error,
@@ -191,6 +198,17 @@ defmodule OrbitalDynamics.Schema.ArtifactValidation do
        )}
     end
   end
+
+  defp fit_local_search_report(@local_search_certificate, report) do
+    {_errors, envelope} =
+      LocalSearchValidationEnvelope.fit_issues(report["errors"], fn errors ->
+        %{report | "errors" => errors, "status" => if(errors == [], do: "pass", else: "fail")}
+      end)
+
+    envelope
+  end
+
+  defp fit_local_search_report(_contract, report), do: report
 
   defp validate_options(opts) do
     with {:ok, entries} <- collect_options(opts, 0, []),
@@ -305,7 +323,7 @@ defmodule OrbitalDynamics.Schema.ArtifactValidation do
   defp option_error(path, message), do: {:error, PrimitiveValidation.error(path, message)}
 
   defp failure_report(requested_contract, errors) when is_list(errors) do
-    %{
+    report = %{
       "schema_contract" => requested_contract || :null,
       "artifact_family" => :null,
       "schema_version" => :null,
@@ -313,15 +331,26 @@ defmodule OrbitalDynamics.Schema.ArtifactValidation do
       "errors" => errors,
       "warnings" => []
     }
+
+    if JsonSafety.errors(report) == [], do: report, else: compact_failure_report()
   end
 
   defp failure_report(requested_contract, error) do
+    failure_report(requested_contract, [error])
+  end
+
+  defp compact_failure_report do
     %{
-      "schema_contract" => requested_contract || :null,
+      "schema_contract" => :null,
       "artifact_family" => :null,
       "schema_version" => :null,
       "status" => "fail",
-      "errors" => [error],
+      "errors" => [
+        PrimitiveValidation.error(
+          "$",
+          "artifact validation envelope truncated to remain within JSON safety limits"
+        )
+      ],
       "warnings" => []
     }
   end

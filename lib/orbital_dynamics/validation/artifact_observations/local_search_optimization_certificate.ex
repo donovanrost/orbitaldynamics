@@ -3,7 +3,7 @@ defmodule OrbitalDynamics.Validation.ArtifactObservations.LocalSearchOptimizatio
 
   alias OrbitalDynamics.Optimizer.LocalSearchCertificate
   alias OrbitalDynamics.Schema
-  alias OrbitalDynamics.Schema.{JsonSafety, PrimitiveValidation}
+  alias OrbitalDynamics.Schema.{JsonSafety, LocalSearchValidationEnvelope, PrimitiveValidation}
 
   @contract "local_search_optimization_certificate.v1"
 
@@ -68,18 +68,17 @@ defmodule OrbitalDynamics.Validation.ArtifactObservations.LocalSearchOptimizatio
   end
 
   defp failure(errors) do
-    safe_errors =
-      case JsonSafety.errors(errors, "$.errors") do
-        [] -> errors
-        safety_errors -> safety_errors
-      end
+    {_errors, envelope} =
+      LocalSearchValidationEnvelope.fit_issues(errors, fn fitted_errors ->
+        %{
+          "contract" => @contract,
+          "status" => "error",
+          "reason" => "artifact_observation_input_invalid",
+          "errors" => fitted_errors
+        }
+      end)
 
-    %{
-      "contract" => @contract,
-      "status" => "error",
-      "reason" => "artifact_observation_input_invalid",
-      "errors" => safe_errors
-    }
+    envelope
   end
 
   defp identity_matches_content?(artifact) do
