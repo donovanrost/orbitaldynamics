@@ -189,9 +189,9 @@ defmodule OrbitalDynamics.Validation.CorePolicyTest do
              "status" => "review_required",
              "deprecated_contract_count" => 1,
              "future_contract_count" => 1,
-             "status_counts" => %{"current" => 126, "deprecated" => 1, "future" => 1},
+             "status_counts" => %{"current" => 127, "deprecated" => 1, "future" => 1},
              "migration_action_counts" => %{
-               "continue_current_contract" => 126,
+               "continue_current_contract" => 127,
                "plan_replacement" => 1,
                "prepare_future_contract" => 1
              }

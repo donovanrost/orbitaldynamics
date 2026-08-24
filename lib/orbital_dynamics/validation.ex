@@ -87,8 +87,17 @@ defmodule OrbitalDynamics.Validation do
   """
   def backend_acceptance_evidence(implementation) do
     policy = backend_acceptance_policy()
-    implementation_name = implementation_name(implementation)
 
+    case OrbitalDynamics.Validation.ImplementationKey.normalize(implementation) do
+      {:ok, implementation_name} ->
+        backend_acceptance_evidence(policy, implementation_name)
+
+      :error ->
+        {:error, :invalid_backend_implementation}
+    end
+  end
+
+  defp backend_acceptance_evidence(policy, implementation_name) do
     with {:ok, tier} <- Map.fetch(policy["implementation_tiers"], implementation_name),
          {:ok, acceptance_tier} <- Map.fetch(policy["acceptance_tiers"], tier) do
       {:ok,
@@ -108,8 +117,7 @@ defmodule OrbitalDynamics.Validation do
          "known_limits" => policy["known_limits"]
        }}
     else
-      :error ->
-        {:error, {:unknown_backend_implementation, implementation_name}}
+      :error -> {:error, {:unknown_backend_implementation, implementation_name}}
     end
   end
 
@@ -134,13 +142,12 @@ defmodule OrbitalDynamics.Validation do
   """
   def record(id_or_module), do: OrbitalDynamics.Validation.Registry.fetch(id_or_module)
 
-  defp implementation_name(module) when is_atom(module) do
-    module
-    |> Atom.to_string()
-    |> String.trim_leading("Elixir.")
+  defp implementation_name(implementation) do
+    case OrbitalDynamics.Validation.ImplementationKey.normalize(implementation) do
+      {:ok, name} -> name
+      :error -> to_string(implementation)
+    end
   end
-
-  defp implementation_name(implementation), do: to_string(implementation)
 
   @doc """
   Builds a deterministic model-acceptance report for a declared intended use.

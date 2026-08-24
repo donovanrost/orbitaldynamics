@@ -6,10 +6,11 @@ defmodule OrbitalDynamics.Schema.LocalSearchOptimizationCertificateContracts do
   alias OrbitalDynamics.Search.Local
 
   @contract "local_search_optimization_certificate.v1"
-  @identity_algorithm "erlang_term_to_binary_deterministic_sha256.v1"
+  @identity_algorithm "canonical_json_sha256.v1"
   @sha256 ~r/\A[0-9a-f]{64}\z/
   @stable_id ~r/\A[A-Za-z0-9][A-Za-z0-9._:@-]*\z/
   @score_term_name ~r/\A[A-Za-z][A-Za-z0-9_.-]*\z/
+  @certificate_id ~r/\Alocal_search_optimization_certificate:[0-9a-f]{64}\z/
   @max_float 1.7976931348623157e308
 
   @root_fields OrbitalDynamics.Schema.OptimizationRegistryContracts.contracts()
@@ -32,9 +33,12 @@ defmodule OrbitalDynamics.Schema.LocalSearchOptimizationCertificateContracts do
   @claim_fields ~w(
     status type scope selected_alternative_id reason global_optimality_claimed
   )
+  @evaluator_policy_fields ~w(
+    policy_version worker_model timeout_ms timeout_action caller_cancellation_action
+  )
   @assumptions %{
     "score_rule" => "sum_of_score_terms",
-    "evaluator" => "caller_supplied_and_required_to_be_pure_and_deterministic",
+    "evaluator" => "caller_supplied_pure_deterministic_supervised_unlinked_bounded_worker",
     "eligibility_timing" => "during_deterministic_enumeration_before_ranking",
     "source_evidence_trust_boundary" => LocalSearchCertificate.source_trust_boundary(),
     "external_solver" => false,
@@ -66,6 +70,7 @@ defmodule OrbitalDynamics.Schema.LocalSearchOptimizationCertificateContracts do
       |> expect_non_empty_string(path, certificate, "id")
       |> expect_non_empty_string(path, certificate, "objective")
       |> expect_one_of(path, certificate, "objective_direction", ["maximize", "minimize"])
+      |> expect_type(path, certificate, "evaluator_execution_policy", :map)
       |> expect_type(path, certificate, "claim", :map)
       |> expect_equal(path, certificate, "global_optimality_claimed", false)
       |> expect_type(path, certificate, "search_space", :map)
@@ -112,6 +117,7 @@ defmodule OrbitalDynamics.Schema.LocalSearchOptimizationCertificateContracts do
     is_map(certificate["claim"]) and
       search_space_structure_valid?(certificate["search_space"]) and
       registry_structure_valid?(certificate["source_evidence_registry"]) and
+      is_map(certificate["evaluator_execution_policy"]) and
       proper_list?(certificate["eligible_ids_by_rank"]) and
       proper_list?(certificate["evaluations"]) and
       Enum.all?(certificate["evaluations"], &evaluation_structure_valid?/1) and
@@ -141,6 +147,7 @@ defmodule OrbitalDynamics.Schema.LocalSearchOptimizationCertificateContracts do
   defp validate_semantics(issues, path, certificate) do
     issues
     |> validate_certificate_identity(path, certificate)
+    |> validate_evaluator_execution_policy(path, certificate["evaluator_execution_policy"])
     |> validate_search_space(path, certificate["search_space"])
     |> validate_registry(path, certificate)
     |> validate_evaluations(path, certificate)
@@ -153,9 +160,9 @@ defmodule OrbitalDynamics.Schema.LocalSearchOptimizationCertificateContracts do
 
     issues
     |> ensure(
-      stable_id?(certificate["id"]),
+      is_binary(certificate["id"]) and Regex.match?(@certificate_id, certificate["id"]),
       "#{path}.id",
-      "must be a stable identity"
+      "must exactly match local_search_optimization_certificate:<64 lowercase hex>"
     )
     |> ensure(
       certificate["id"] == expected_id,
@@ -163,6 +170,35 @@ defmodule OrbitalDynamics.Schema.LocalSearchOptimizationCertificateContracts do
       "must be the content identity of the complete certificate"
     )
   end
+
+  defp validate_evaluator_execution_policy(issues, path, policy) when is_map(policy) do
+    policy_path = "#{path}.evaluator_execution_policy"
+    timeout_ms = policy["timeout_ms"]
+
+    issues =
+      issues
+      |> exact_fields(policy_path, policy, @evaluator_policy_fields)
+      |> expect_positive_bounded_integer(
+        policy_path,
+        policy,
+        "timeout_ms",
+        LocalSearchCertificate.max_evaluator_timeout_ms()
+      )
+
+    if is_integer(timeout_ms) and timeout_ms >= 1 and
+         timeout_ms <= LocalSearchCertificate.max_evaluator_timeout_ms() do
+      ensure(
+        issues,
+        policy == LocalSearchCertificate.evaluator_execution_policy(timeout_ms),
+        policy_path,
+        "must exactly declare the supported evaluator worker and timeout lifecycle"
+      )
+    else
+      issues
+    end
+  end
+
+  defp validate_evaluator_execution_policy(issues, _path, _policy), do: issues
 
   defp validate_search_space(issues, path, search_space) do
     search_path = "#{path}.search_space"

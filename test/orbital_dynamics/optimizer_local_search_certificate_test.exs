@@ -1,5 +1,5 @@
 defmodule OrbitalDynamics.OptimizerLocalSearchCertificateTest do
-  use ExUnit.Case, async: true
+  use ExUnit.Case, async: false
 
   alias OrbitalDynamics.{Optimizer, Schema}
   alias OrbitalDynamics.Optimizer.LocalSearchCertificate
@@ -250,6 +250,14 @@ defmodule OrbitalDynamics.OptimizerLocalSearchCertificateTest do
     assert {:ok, schema} = Schema.json_schema("local_search_optimization_certificate.v1")
     assert schema["additionalProperties"] == false
     assert get_in(schema, ["properties", "claim", "additionalProperties"]) == false
+    assert get_in(schema, ["properties", "global_optimality_claimed", "const"]) == false
+
+    assert get_in(schema, [
+             "properties",
+             "evaluator_execution_policy",
+             "additionalProperties"
+           ]) == false
+
     assert_typed_schema_error(Map.put(build_certificate(), "unexpected", true), "$")
 
     assert {:ok, legacy_schema} = Schema.json_schema("optimizer_contract.v1")
@@ -388,7 +396,7 @@ defmodule OrbitalDynamics.OptimizerLocalSearchCertificateTest do
   test "untrusted non-JSON certificate IDs never enter verification failure reports" do
     certificate = build_certificate()
 
-    Enum.each([fn -> :id end, self(), make_ref()], fn unsafe_id ->
+    Enum.each([fn -> :id end, self(), make_ref(), :certificate_id, <<255>>], fn unsafe_id ->
       assert {:error, report} =
                Optimizer.verify_local_search_certificate(
                  Map.put(certificate, "id", unsafe_id),
@@ -475,14 +483,18 @@ defmodule OrbitalDynamics.OptimizerLocalSearchCertificateTest do
       %{"score_terms" => %{"value\n" => 1}, "eligible" => true, "rejection_reasons" => []}
     end
 
-    assert_raise ArgumentError, ~r/supported names/, fn ->
-      Optimizer.certified_local_search(
-        @seed,
-        source_evidence(@candidate_ids),
-        bad_evaluator,
-        @opts
-      )
-    end
+    assert {:error, failure} =
+             Optimizer.certified_local_search(
+               @seed,
+               source_evidence(@candidate_ids),
+               bad_evaluator,
+               @opts
+             )
+
+    assert failure["reason"] == "evaluator_execution_failed"
+    assert failure["details"]["failure_kind"] == "invalid_result"
+    assert failure["details"]["detail"] =~ "supported names"
+    assert_json_total(failure)
 
     certificate =
       build_certificate()
@@ -498,8 +510,15 @@ defmodule OrbitalDynamics.OptimizerLocalSearchCertificateTest do
   test "exported certificate patterns require absolute string termination" do
     assert {:ok, schema} = Schema.json_schema("local_search_optimization_certificate.v1")
 
-    stable_id_patterns = [
-      get_in(schema, ["properties", "id", "pattern"]),
+    certificate_id_pattern = get_in(schema, ["properties", "id", "pattern"])
+    refute String.contains?(certificate_id_pattern, "$")
+
+    assert_pattern_accepts_only_complete_string(
+      certificate_id_pattern,
+      "local_search_optimization_certificate:" <> String.duplicate("a", 64)
+    )
+
+    source_revision_pattern =
       get_in(schema, [
         "properties",
         "source_evidence_registry",
@@ -510,12 +529,9 @@ defmodule OrbitalDynamics.OptimizerLocalSearchCertificateTest do
         "source_revision",
         "pattern"
       ])
-    ]
 
-    Enum.each(stable_id_patterns, fn pattern ->
-      refute String.contains?(pattern, "$")
-      assert_pattern_accepts_only_complete_string(pattern, "stable:id")
-    end)
+    refute String.contains?(source_revision_pattern, "$")
+    assert_pattern_accepts_only_complete_string(source_revision_pattern, "stable:id")
 
     score_term_pattern =
       get_in(schema, [
@@ -546,12 +562,302 @@ defmodule OrbitalDynamics.OptimizerLocalSearchCertificateTest do
     assert_pattern_accepts_only_complete_string(sha256_pattern, String.duplicate("a", 64))
   end
 
-  defp build_certificate do
+  test "root global optimality is executable const false and certificate IDs are exact digests" do
+    certificate = build_certificate()
+
+    assert certificate["id"] ==
+             LocalSearchCertificate.certificate_id(Map.delete(certificate, "id"))
+
+    assert_typed_schema_error(
+      Map.put(certificate, "global_optimality_claimed", true),
+      "$.global_optimality_claimed"
+    )
+
+    Enum.each(
+      [
+        "local_search_optimization_certificate:" <> String.duplicate("a", 63),
+        "local_search_optimization_certificate:" <> String.duplicate("A", 64),
+        "wrong_prefix:" <> String.duplicate("a", 64),
+        certificate["id"] <> "\n"
+      ],
+      fn invalid_id ->
+        assert_typed_schema_error(Map.put(certificate, "id", invalid_id), "$.id")
+      end
+    )
+  end
+
+  test "timeout policy is versioned and bound into build and replay identity" do
+    opts = Keyword.put(@opts, :evaluator_timeout_ms, 25)
+    certificate = build_certificate(opts)
+    default_certificate = build_certificate()
+
+    assert certificate["evaluator_execution_policy"] ==
+             LocalSearchCertificate.evaluator_execution_policy(25)
+
+    refute certificate["id"] == default_certificate["id"]
+    assert {:ok, %{"status" => "verified"}} = verify(certificate, &evaluator/2, opts)
+
+    assert {:error, replay_report} =
+             verify(certificate, &evaluator/2, Keyword.put(opts, :evaluator_timeout_ms, 26))
+
+    assert replay_report["reason"] ==
+             "certificate_does_not_match_replayed_source_evidence_and_evaluation"
+
+    stale_identity =
+      put_in(certificate, ["evaluator_execution_policy", "timeout_ms"], 26)
+
+    assert_typed_schema_error(stale_identity, "$.id")
+
+    independently_reidentified =
+      Map.put(
+        stale_identity,
+        "id",
+        LocalSearchCertificate.certificate_id(Map.delete(stale_identity, "id"))
+      )
+
+    assert {:ok, _report} = Schema.validate_artifact(independently_reidentified)
+    assert {:error, mismatch_report} = verify(independently_reidentified, &evaluator/2, opts)
+
+    assert mismatch_report["reason"] ==
+             "certificate_does_not_match_replayed_source_evidence_and_evaluation"
+  end
+
+  test "build isolates sleeping and infinite evaluators and removes timed out workers" do
+    Enum.each([:sleeping, :infinite], fn mode ->
+      parent = self()
+      tag = make_ref()
+
+      evaluator = fn _parameters, _evidence ->
+        send(parent, {tag, self()})
+
+        case mode do
+          :sleeping -> Process.sleep(250)
+          :infinite -> wait_forever()
+        end
+
+        %{"score_terms" => %{"value" => 1}, "eligible" => true, "rejection_reasons" => []}
+      end
+
+      assert {:error, failure} =
+               Optimizer.certified_local_search(
+                 @seed,
+                 source_evidence(@candidate_ids),
+                 evaluator,
+                 Keyword.put(@opts, :evaluator_timeout_ms, 25)
+               )
+
+      assert failure["reason"] == "evaluator_execution_failed"
+      assert failure["details"]["failure_kind"] == "timeout"
+      assert failure["details"]["timeout_ms"] == 25
+      assert_receive {^tag, worker}
+      assert Process.alive?(self())
+      assert_process_terminated(worker)
+      assert_json_total(failure)
+    end)
+  end
+
+  test "build isolates raise exit throw and self-kill without emitting a certificate" do
+    parent = self()
+    self_kill_tag = make_ref()
+
+    evaluators = [
+      {fn _parameters, _evidence -> raise "build evaluator error" end, "error"},
+      {fn _parameters, _evidence -> exit(:build_evaluator_exit) end, "exit"},
+      {fn _parameters, _evidence -> throw(:build_evaluator_throw) end, "throw"},
+      {fn _parameters, _evidence ->
+         send(parent, {self_kill_tag, self()})
+         Process.exit(self(), :kill)
+       end, "worker_exit"}
+    ]
+
+    Enum.each(evaluators, fn {evaluator, expected_kind} ->
+      assert {:error, failure} =
+               Optimizer.certified_local_search(
+                 @seed,
+                 source_evidence(@candidate_ids),
+                 evaluator,
+                 Keyword.put(@opts, :evaluator_timeout_ms, 50)
+               )
+
+      assert failure["reason"] == "evaluator_execution_failed"
+      assert failure["details"]["failure_kind"] == expected_kind
+      assert Process.alive?(self())
+      assert_json_total(failure)
+    end)
+
+    assert_receive {^self_kill_tag, killed_worker}
+    assert_process_terminated(killed_worker)
+  end
+
+  test "verifier isolates timeout and self-kill evaluators and preserves its caller" do
+    certificate = build_certificate()
+    parent = self()
+
+    Enum.each([:infinite, :self_kill], fn mode ->
+      tag = make_ref()
+
+      evaluator = fn _parameters, _evidence ->
+        send(parent, {tag, self()})
+
+        case mode do
+          :infinite -> wait_forever()
+          :self_kill -> Process.exit(self(), :kill)
+        end
+      end
+
+      assert {:error, report} =
+               verify(
+                 certificate,
+                 evaluator,
+                 Keyword.put(@opts, :evaluator_timeout_ms, 25)
+               )
+
+      assert report["reason"] == "replay_evaluator_execution_failed"
+      assert_receive {^tag, worker}
+      assert Process.alive?(self())
+      assert_process_terminated(worker)
+      assert_json_total(report)
+    end)
+  end
+
+  test "caller cancellation kills the unlinked evaluator worker" do
+    parent = self()
+    tag = make_ref()
+
+    caller =
+      spawn(fn ->
+        evaluator = fn _parameters, _evidence ->
+          send(parent, {tag, self()})
+          wait_forever()
+        end
+
+        Optimizer.certified_local_search(
+          @seed,
+          source_evidence(@candidate_ids),
+          evaluator,
+          Keyword.put(@opts, :evaluator_timeout_ms, 5_000)
+        )
+      end)
+
+    caller_ref = Process.monitor(caller)
+    assert_receive {^tag, worker}, 1_000
+    Process.exit(caller, :kill)
+    assert_receive {:DOWN, ^caller_ref, :process, ^caller, :killed}, 1_000
+    assert_process_terminated(worker)
+    assert Process.alive?(self())
+  end
+
+  test "source capture accepts only strict JSON inputs and rejects BEAM aliases" do
+    nil_evidence =
+      @candidate_ids
+      |> source_evidence()
+      |> put_in(["certificate:seed", "payload", "nullable"], nil)
+
+    assert %{} =
+             Optimizer.certified_local_search(@seed, nil_evidence, &evaluator/2, @opts)
+
+    unsafe_values = [
+      :atom_value,
+      :null,
+      {:tuple, "value"},
+      self(),
+      make_ref(),
+      fn -> :value end,
+      ["proper_head" | :improper_tail],
+      %URI{scheme: "https", host: "example.test"},
+      <<255>>
+    ]
+
+    Enum.each(unsafe_values, fn unsafe_value ->
+      evidence =
+        @candidate_ids
+        |> source_evidence()
+        |> put_in(["certificate:seed", "payload", "unsafe"], unsafe_value)
+
+      assert_raise ArgumentError, fn ->
+        Optimizer.certified_local_search(@seed, evidence, &evaluator/2, @opts)
+      end
+    end)
+
+    unsafe_maps = [
+      %{atom_key: "value"},
+      %{"alias" => "string", alias: "atom"},
+      %{1 => "non-string"},
+      %{<<255>> => "invalid-key"}
+    ]
+
+    Enum.each(unsafe_maps, fn unsafe_map ->
+      evidence =
+        @candidate_ids
+        |> source_evidence()
+        |> put_in(["certificate:seed", "payload", "unsafe_map"], unsafe_map)
+
+      assert_raise ArgumentError, fn ->
+        Optimizer.certified_local_search(@seed, evidence, &evaluator/2, @opts)
+      end
+    end)
+  end
+
+  test "canonical JSON source identity is invariant to object insertion order" do
+    ascending_payload = Map.new(1..40, &{"field_#{&1}", &1})
+    descending_payload = Map.new(40..1//-1, &{"field_#{&1}", &1})
+
+    ascending =
+      @candidate_ids
+      |> source_evidence()
+      |> put_in(["certificate:seed", "payload", "ordered"], ascending_payload)
+
+    descending =
+      @candidate_ids
+      |> source_evidence()
+      |> put_in(["certificate:seed", "payload", "ordered"], descending_payload)
+
+    assert build_with_evidence(ascending) == build_with_evidence(descending)
+  end
+
+  test "finite evaluator operands whose score sum overflows fail typed" do
+    evaluator = fn _parameters, _evidence ->
+      %{
+        "score_terms" => %{"large_a" => @max_float, "large_b" => @max_float},
+        "eligible" => true,
+        "rejection_reasons" => []
+      }
+    end
+
+    assert {:error, failure} =
+             Optimizer.certified_local_search(
+               @seed,
+               source_evidence(@candidate_ids),
+               evaluator,
+               @opts
+             )
+
+    assert failure["reason"] == "evaluator_execution_failed"
+    assert failure["details"]["failure_kind"] == "invalid_result"
+    assert failure["details"]["detail"] =~ "finite score"
+    assert_json_total(failure)
+  end
+
+  defp build_certificate(opts \\ @opts) do
     Optimizer.certified_local_search(
       @seed,
       source_evidence(@candidate_ids),
       &evaluator/2,
-      @opts
+      opts
+    )
+  end
+
+  defp build_with_evidence(evidence) do
+    Optimizer.certified_local_search(@seed, evidence, &evaluator/2, @opts)
+  end
+
+  defp verify(certificate, evaluator_fun, opts) do
+    Optimizer.verify_local_search_certificate(
+      certificate,
+      @seed,
+      source_evidence(@candidate_ids),
+      evaluator_fun,
+      opts
     )
   end
 
@@ -600,10 +906,13 @@ defmodule OrbitalDynamics.OptimizerLocalSearchCertificateTest do
                @opts
              )
 
-    assert report["reason"] == "replay_input_or_source_evidence_invalid"
+    assert report["reason"] == "replay_evaluator_execution_failed"
     assert report["certificate_id"] == certificate["id"]
-    assert report["details"]["failure_kind"] == expected_kind
-    assert report["details"]["detail"] =~ expected_detail
+
+    evaluator_failure = report["details"]["evaluator_failure"]
+    assert evaluator_failure["reason"] == "evaluator_execution_failed"
+    assert evaluator_failure["details"]["failure_kind"] == expected_kind
+    assert evaluator_failure["details"]["detail"] =~ expected_detail
     assert_json_total(report)
   end
 
@@ -611,6 +920,18 @@ defmodule OrbitalDynamics.OptimizerLocalSearchCertificateTest do
     assert JsonSafety.errors(value) == []
     encoded = value |> :json.encode() |> IO.iodata_to_binary()
     assert :json.decode(encoded) == value
+  end
+
+  defp assert_process_terminated(pid) do
+    ref = Process.monitor(pid)
+    assert_receive {:DOWN, ^ref, :process, ^pid, _reason}, 1_000
+  end
+
+  defp wait_forever do
+    receive do
+    after
+      :infinity -> :unreachable
+    end
   end
 
   defp assert_pattern_accepts_only_complete_string(pattern, accepted) do

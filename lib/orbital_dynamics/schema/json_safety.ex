@@ -30,6 +30,16 @@ defmodule OrbitalDynamics.Schema.JsonSafety do
     end
   end
 
+  def capture_json!(value, label) when is_binary(label) do
+    case resource_errors(value, "$") do
+      [] ->
+        capture_json_value!(value, label)
+
+      [%{"path" => path, "message" => message}] ->
+        raise ArgumentError, "#{label} exceeds JSON safety limits at #{path}: #{message}"
+    end
+  end
+
   def validate_artifact!(value, label) when is_binary(label) do
     case errors(value) do
       [] ->
@@ -95,6 +105,58 @@ defmodule OrbitalDynamics.Schema.JsonSafety do
 
   defp normalize(value, label),
     do: raise(ArgumentError, "#{label} contains unsupported #{input_type(value)} content")
+
+  defp capture_json_value!(value, _label) when is_boolean(value), do: value
+
+  defp capture_json_value!(value, label) when is_binary(value) do
+    if String.valid?(value),
+      do: value,
+      else: raise(ArgumentError, "#{label} contains invalid UTF-8 string content")
+  end
+
+  defp capture_json_value!(nil, _label), do: :null
+  defp capture_json_value!(value, _label) when is_integer(value), do: value
+
+  defp capture_json_value!(value, label) when is_float(value) do
+    if finite_float?(value),
+      do: value,
+      else: raise(ArgumentError, "#{label} contains a non-finite number")
+  end
+
+  defp capture_json_value!(value, label) when is_list(value),
+    do: capture_json_list!(value, label, 0)
+
+  defp capture_json_value!(%_module{} = _value, label),
+    do: raise(ArgumentError, "#{label} contains an unsupported struct")
+
+  defp capture_json_value!(%{} = map, label) do
+    Map.new(map, fn
+      {key, nested} when is_binary(key) ->
+        unless String.valid?(key),
+          do: raise(ArgumentError, "#{label} contains an invalid UTF-8 object key")
+
+        {key, capture_json_value!(nested, "#{label}.#{key}")}
+
+      {_key, _nested} ->
+        raise ArgumentError,
+              "#{label} contains a non-string object key; atom/string key aliases are rejected"
+    end)
+  end
+
+  defp capture_json_value!(value, label),
+    do: raise(ArgumentError, "#{label} contains non-JSON #{input_type(value)} content")
+
+  defp capture_json_list!([], _label, _index), do: []
+
+  defp capture_json_list!([head | tail], label, index) do
+    [
+      capture_json_value!(head, "#{label}[#{index}]")
+      | capture_json_list!(tail, label, index + 1)
+    ]
+  end
+
+  defp capture_json_list!(_improper_tail, label, _index),
+    do: raise(ArgumentError, "#{label} contains an improper list")
 
   defp normalize_list([], _label, _index), do: []
 

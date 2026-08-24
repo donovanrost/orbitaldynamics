@@ -1,12 +1,14 @@
 defmodule OrbitalDynamics.Schema.StableIdValidation do
   @moduledoc false
 
-  @stable_id_pattern "^[A-Za-z0-9][A-Za-z0-9._:@-]*$"
-  @stable_id_regex ~r/^[A-Za-z0-9][A-Za-z0-9._:@-]*$/
+  @stable_id_pattern "^[A-Za-z0-9][A-Za-z0-9._:@-]*(?![\\s\\S])"
+  @stable_id_regex ~r/\A[A-Za-z0-9][A-Za-z0-9._:@-]*\z/
 
   def pattern, do: @stable_id_pattern
 
-  def valid?(value) when is_binary(value), do: Regex.match?(@stable_id_regex, value)
+  def valid?(value) when is_binary(value),
+    do: String.valid?(value) and Regex.match?(@stable_id_regex, value)
+
   def valid?(_value), do: false
 
   def validate_stable_ids(issues, path, map, fields) when is_map(map) do

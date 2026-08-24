@@ -10,7 +10,11 @@ defmodule OrbitalDynamics.Optimizer.LocalSearchCertificate do
 
   Verification is fail closed: callers must provide the original seed, options,
   source-evidence registry, and evaluator so the certificate can be reproduced
-  exactly. Source evidence is content-addressed but is not authenticated.
+  exactly. Source evidence is captured as strict JSON before hashing. Identity
+  uses recursively key-sorted canonical JSON, so object insertion order does not
+  change an identity while distinct BEAM aliases such as string/atom keys or
+  `nil`/`:null` are never silently collapsed. Source evidence is content-addressed
+  but is not authenticated.
   """
 
   alias OrbitalDynamics.Schema
@@ -19,16 +23,22 @@ defmodule OrbitalDynamics.Optimizer.LocalSearchCertificate do
 
   @schema_contract "local_search_optimization_certificate.v1"
   @model "exact_enumeration_of_deterministic_bounded_axis_step_neighborhood"
-  @identity_algorithm "erlang_term_to_binary_deterministic_sha256.v1"
+  @identity_algorithm "canonical_json_sha256.v1"
   @source_trust_boundary "caller_supplied_replay_evidence_not_authenticated"
   @max_evaluations 65
+  @evaluator_supervisor OrbitalDynamics.ScenarioSupervisor
+  @evaluator_policy_version 1
+  @evaluator_worker_model "task_supervisor_async_nolink_per_candidate.v1"
+  @default_evaluator_timeout_ms 1_000
+  @max_evaluator_timeout_ms 5_000
   @allowed_options [
     :steps,
     :bounds,
     :id_prefix,
     :evaluation_budget,
     :objective,
-    :objective_direction
+    :objective_direction,
+    :evaluator_timeout_ms
   ]
   @model_limits [
     "claim_is_limited_to_the_declared_enumerated_finite_search_space",
@@ -39,6 +49,8 @@ defmodule OrbitalDynamics.Optimizer.LocalSearchCertificate do
     "at_most_65_evaluated_candidates",
     "score_is_sum_of_caller_supplied_terms",
     "caller_must_supply_a_pure_deterministic_evaluator",
+    "each_evaluator_invocation_runs_in_a_supervised_unlinked_monitored_worker",
+    "evaluator_timeout_policy_is_versioned_bounded_and_certificate_bound",
     "caller_supplied_source_evidence_is_content_addressed_not_authenticated",
     "coordinated_certificate_source_evidence_and_evaluator_replacement_is_out_of_scope",
     "no_iterative_convergence_or_coupled_moves",
@@ -57,7 +69,21 @@ defmodule OrbitalDynamics.Optimizer.LocalSearchCertificate do
   def identity_algorithm, do: @identity_algorithm
   def source_trust_boundary, do: @source_trust_boundary
   def max_evaluations, do: @max_evaluations
+  def evaluator_policy_version, do: @evaluator_policy_version
+  def default_evaluator_timeout_ms, do: @default_evaluator_timeout_ms
+  def max_evaluator_timeout_ms, do: @max_evaluator_timeout_ms
   def model_limits, do: @model_limits
+
+  @doc false
+  def evaluator_execution_policy(timeout_ms) do
+    %{
+      "policy_version" => @evaluator_policy_version,
+      "worker_model" => @evaluator_worker_model,
+      "timeout_ms" => timeout_ms,
+      "timeout_action" => "brutal_kill_then_demonitor_flush_and_drain",
+      "caller_cancellation_action" => "monitor_caller_and_brutal_kill_worker"
+    }
+  end
 
   def capabilities do
     %{
@@ -66,6 +92,8 @@ defmodule OrbitalDynamics.Optimizer.LocalSearchCertificate do
       search_model: @model,
       source_search_generator: Local.capabilities().model,
       max_evaluations: @max_evaluations,
+      evaluator_execution_policy: evaluator_execution_policy(@default_evaluator_timeout_ms),
+      max_evaluator_timeout_ms: @max_evaluator_timeout_ms,
       evaluation_callback: :score_terms_eligibility_and_rejection_reasons,
       verification: :exact_replay_against_caller_supplied_source_evidence,
       source_evidence_trust_boundary: @source_trust_boundary,
@@ -80,7 +108,9 @@ defmodule OrbitalDynamics.Optimizer.LocalSearchCertificate do
 
   `source_evidence` must be a map keyed by every in-bounds alternative ID.
   Every evidence entry must contain stable string `id` and `revision` fields;
-  additional JSON-safe evidence is allowed and content-addressed.
+  additional strict JSON evidence is allowed and content-addressed. Map keys
+  must be valid UTF-8 strings; atom keys and values, including `:null`, are
+  rejected. Elixir `nil` is the only accepted JSON-null input.
 
   `evaluator_fun` receives `(parameters, source_evidence_entry)` and must return
   a map containing:
@@ -95,7 +125,10 @@ defmodule OrbitalDynamics.Optimizer.LocalSearchCertificate do
   defaults to 65 and must be from 1 through 65. A budget smaller than the
   in-bounds candidate count emits a valid incomplete certificate with no
   optimality claim. `:objective_direction` is `:maximize` by default and may be
-  `:minimize`.
+  `:minimize`. `:evaluator_timeout_ms` defaults to
+  #{@default_evaluator_timeout_ms} and must be from 1 through
+  #{@max_evaluator_timeout_ms}; its versioned policy is embedded in the
+  certificate and replay identity.
   """
   def build(seed_parameters, source_evidence, evaluator_fun, opts)
 
@@ -107,11 +140,24 @@ defmodule OrbitalDynamics.Optimizer.LocalSearchCertificate do
     evidence = normalize_source_evidence!(source_evidence, search_space)
     source_registry = source_evidence_registry(evidence, search_space)
 
-    evaluations =
-      search_space["candidates"]
-      |> Enum.take(options.evaluation_budget)
-      |> Enum.map(&evaluate_candidate(&1, evidence, source_registry, evaluator_fun))
+    search_space["candidates"]
+    |> Enum.take(options.evaluation_budget)
+    |> evaluate_candidates(evidence, source_registry, evaluator_fun, options)
+    |> case do
+      {:ok, evaluations} ->
+        finalize_certificate(evaluations, search_space, source_registry, options)
 
+      {:error, failure} ->
+        {:error, failure}
+    end
+  end
+
+  def build(_seed_parameters, _source_evidence, _evaluator_fun, _opts) do
+    raise ArgumentError,
+          "seed_parameters and source_evidence must be maps, evaluator_fun must have arity 2, and opts must be a keyword list"
+  end
+
+  defp finalize_certificate(evaluations, search_space, source_registry, options) do
     ranked = ranked_eligible(evaluations, options.objective_direction)
     rank_by_id = Map.new(ranked, &{&1["alternative_id"], &1["rank"]})
 
@@ -133,6 +179,7 @@ defmodule OrbitalDynamics.Optimizer.LocalSearchCertificate do
       "model" => @model,
       "objective" => options.objective,
       "objective_direction" => Atom.to_string(options.objective_direction),
+      "evaluator_execution_policy" => evaluator_execution_policy(options.evaluator_timeout_ms),
       "claim" => claim(search_space_exhausted, selected),
       "global_optimality_claimed" => false,
       "search_space" => search_space,
@@ -160,7 +207,7 @@ defmodule OrbitalDynamics.Optimizer.LocalSearchCertificate do
       "model_limits" => @model_limits,
       "assumptions" => %{
         "score_rule" => "sum_of_score_terms",
-        "evaluator" => "caller_supplied_and_required_to_be_pure_and_deterministic",
+        "evaluator" => "caller_supplied_pure_deterministic_supervised_unlinked_bounded_worker",
         "eligibility_timing" => "during_deterministic_enumeration_before_ranking",
         "source_evidence_trust_boundary" => @source_trust_boundary,
         "external_solver" => false,
@@ -180,11 +227,6 @@ defmodule OrbitalDynamics.Optimizer.LocalSearchCertificate do
     end
   end
 
-  def build(_seed_parameters, _source_evidence, _evaluator_fun, _opts) do
-    raise ArgumentError,
-          "seed_parameters and source_evidence must be maps, evaluator_fun must have arity 2, and opts must be a keyword list"
-  end
-
   @doc """
   Replays a certificate from the original trusted inputs and fails closed.
 
@@ -197,35 +239,23 @@ defmodule OrbitalDynamics.Optimizer.LocalSearchCertificate do
   def verify(certificate, seed_parameters, source_evidence, evaluator_fun, opts)
       when is_map(certificate) and is_map(seed_parameters) and is_map(source_evidence) and
              is_function(evaluator_fun, 2) and is_list(opts) do
-    with {:ok, schema_report} <-
-           Schema.validate_artifact(certificate, schema_contract: @schema_contract),
-         expected <- build(seed_parameters, source_evidence, evaluator_fun, opts),
-         true <- certificate == expected do
-      {:ok,
-       %{
-         "status" => "verified",
-         "certificate_id" => certificate["id"],
-         "schema_validation_status" => schema_report["status"],
-         "search_space_identity" => get_in(certificate, ["search_space", "identity"]),
-         "source_evidence_identity" =>
-           get_in(certificate, ["source_evidence_registry", "identity"]),
-         "claim" => certificate["claim"]
-       }}
-    else
+    case Schema.validate_artifact(certificate, schema_contract: @schema_contract) do
+      {:ok, schema_report} ->
+        verify_replay(
+          certificate,
+          schema_report,
+          seed_parameters,
+          source_evidence,
+          evaluator_fun,
+          opts
+        )
+
       {:error, schema_report} ->
         {:error,
          verification_failure(
            certificate,
            "certificate_schema_invalid",
            %{"schema_validation" => schema_report}
-         )}
-
-      false ->
-        {:error,
-         verification_failure(
-           certificate,
-           "certificate_does_not_match_replayed_source_evidence_and_evaluation",
-           %{}
          )}
     end
   rescue
@@ -250,6 +280,43 @@ defmodule OrbitalDynamics.Optimizer.LocalSearchCertificate do
        "detail" =>
          "certificate, seed_parameters, and source_evidence must be maps; evaluator_fun must have arity 2; opts must be a keyword list"
      })}
+  end
+
+  defp verify_replay(
+         certificate,
+         schema_report,
+         seed_parameters,
+         source_evidence,
+         evaluator_fun,
+         opts
+       ) do
+    case build(seed_parameters, source_evidence, evaluator_fun, opts) do
+      %{} = expected when expected == certificate ->
+        {:ok,
+         %{
+           "status" => "verified",
+           "certificate_id" => certificate["id"],
+           "schema_validation_status" => schema_report["status"],
+           "search_space_identity" => get_in(certificate, ["search_space", "identity"]),
+           "source_evidence_identity" =>
+             get_in(certificate, ["source_evidence_registry", "identity"]),
+           "claim" => certificate["claim"]
+         }}
+
+      {:error, evaluator_failure} ->
+        {:error,
+         verification_failure(certificate, "replay_evaluator_execution_failed", %{
+           "evaluator_failure" => evaluator_failure
+         })}
+
+      %{} ->
+        {:error,
+         verification_failure(
+           certificate,
+           "certificate_does_not_match_replayed_source_evidence_and_evaluation",
+           %{}
+         )}
+    end
   end
 
   @doc false
@@ -295,6 +362,15 @@ defmodule OrbitalDynamics.Optimizer.LocalSearchCertificate do
 
     objective = Keyword.get(opts, :objective, "sum_of_score_terms")
 
+    evaluator_timeout_ms =
+      Keyword.get(opts, :evaluator_timeout_ms, @default_evaluator_timeout_ms)
+
+    unless is_integer(evaluator_timeout_ms) and evaluator_timeout_ms >= 1 and
+             evaluator_timeout_ms <= @max_evaluator_timeout_ms do
+      raise ArgumentError,
+            "evaluator_timeout_ms must be an integer from 1 through #{@max_evaluator_timeout_ms}"
+    end
+
     unless is_binary(objective) and objective != "" and String.valid?(objective),
       do: raise(ArgumentError, "objective must be a non-empty UTF-8 string")
 
@@ -303,6 +379,7 @@ defmodule OrbitalDynamics.Optimizer.LocalSearchCertificate do
       bounds: Keyword.get(opts, :bounds, %{}),
       id_prefix: stable_id!(Keyword.get(opts, :id_prefix, "local"), "id_prefix"),
       evaluation_budget: evaluation_budget,
+      evaluator_timeout_ms: evaluator_timeout_ms,
       objective: objective,
       objective_direction:
         normalize_objective_direction!(Keyword.get(opts, :objective_direction, :maximize))
@@ -350,7 +427,7 @@ defmodule OrbitalDynamics.Optimizer.LocalSearchCertificate do
   end
 
   defp normalize_source_evidence!(source_evidence, search_space) do
-    source_evidence = JsonSafety.normalize_input!(source_evidence, "source_evidence")
+    source_evidence = JsonSafety.capture_json!(source_evidence, "source_evidence")
     candidate_ids = Enum.map(search_space["candidates"], & &1["id"])
     evidence_ids = Map.keys(source_evidence) |> Enum.sort()
 
@@ -397,14 +474,63 @@ defmodule OrbitalDynamics.Optimizer.LocalSearchCertificate do
     Map.put(core, "identity", source_registry_identity(core))
   end
 
-  defp evaluate_candidate(candidate, evidence, source_registry, evaluator_fun) do
+  defp evaluate_candidates(candidates, evidence, source_registry, evaluator_fun, options) do
+    candidates
+    |> Enum.reduce_while({:ok, []}, fn candidate, {:ok, evaluations} ->
+      case evaluate_candidate(candidate, evidence, source_registry, evaluator_fun, options) do
+        {:ok, evaluation} -> {:cont, {:ok, [evaluation | evaluations]}}
+        {:error, failure} -> {:halt, {:error, failure}}
+      end
+    end)
+    |> case do
+      {:ok, evaluations} -> {:ok, Enum.reverse(evaluations)}
+      {:error, failure} -> {:error, failure}
+    end
+  end
+
+  defp evaluate_candidate(candidate, evidence, source_registry, evaluator_fun, options) do
     evidence_row = Map.fetch!(evidence, candidate["id"])
 
-    result =
-      candidate["parameters"]
-      |> evaluator_fun.(evidence_row.entry)
-      |> JsonSafety.normalize_input!("certified local-search evaluator result")
+    case invoke_evaluator(
+           candidate["parameters"],
+           evidence_row.entry,
+           evaluator_fun,
+           options.evaluator_timeout_ms
+         ) do
+      {:ok, result} ->
+        normalize_evaluator_result(
+          candidate,
+          source_registry,
+          result,
+          options.evaluator_timeout_ms
+        )
 
+      {:error, details} ->
+        {:error, evaluator_failure(candidate, options.evaluator_timeout_ms, details)}
+    end
+  end
+
+  defp normalize_evaluator_result(candidate, source_registry, result, timeout_ms) do
+    try do
+      {:ok, build_evaluation(candidate, source_registry, result)}
+    rescue
+      error ->
+        {:error,
+         evaluator_failure(candidate, timeout_ms, %{
+           "failure_kind" => "invalid_result",
+           "detail" => safe_exception_message(error)
+         })}
+    catch
+      kind, reason ->
+        {:error,
+         evaluator_failure(candidate, timeout_ms, %{
+           "failure_kind" => "invalid_result_#{kind}",
+           "detail" => safe_inspect(reason)
+         })}
+    end
+  end
+
+  defp build_evaluation(candidate, source_registry, result) do
     unless is_map(result) and
              Enum.sort(Map.keys(result)) ==
                ~w(eligible rejection_reasons score_terms) do
@@ -446,9 +572,142 @@ defmodule OrbitalDynamics.Optimizer.LocalSearchCertificate do
     }
   end
 
-  defp normalize_score_terms!(terms) when is_map(terms) do
-    terms = JsonSafety.normalize_input!(terms, "score_terms")
+  defp invoke_evaluator(parameters, source_evidence, evaluator_fun, timeout_ms) do
+    caller = self()
 
+    task =
+      Task.Supervisor.async_nolink(@evaluator_supervisor, fn ->
+        evaluator_worker(caller, parameters, source_evidence, evaluator_fun)
+      end)
+
+    await_evaluator_task(task, timeout_ms)
+  rescue
+    error ->
+      {:error,
+       %{
+         "failure_kind" => "worker_start_error",
+         "detail" => safe_exception_message(error)
+       }}
+  catch
+    kind, reason ->
+      {:error,
+       %{
+         "failure_kind" => "worker_start_#{kind}",
+         "detail" => safe_inspect(reason)
+       }}
+  end
+
+  defp evaluator_worker(caller, parameters, source_evidence, evaluator_fun) do
+    worker = self()
+    guard = spawn(fn -> evaluator_caller_guard(caller, worker) end)
+
+    try do
+      result = evaluator_fun.(parameters, source_evidence)
+      {:ok, JsonSafety.capture_json!(result, "certified local-search evaluator result")}
+    rescue
+      error ->
+        {:error,
+         %{
+           "failure_kind" => "error",
+           "detail" => safe_exception_message(error)
+         }}
+    catch
+      kind, reason ->
+        {:error,
+         %{
+           "failure_kind" => Atom.to_string(kind),
+           "detail" => safe_inspect(reason)
+         }}
+    after
+      send(guard, {:worker_finished, worker})
+    end
+  end
+
+  defp evaluator_caller_guard(caller, worker) do
+    caller_ref = Process.monitor(caller)
+    worker_ref = Process.monitor(worker)
+
+    receive do
+      {:worker_finished, ^worker} ->
+        :ok
+
+      {:DOWN, ^caller_ref, :process, ^caller, _reason} ->
+        Process.exit(worker, :kill)
+        await_worker_down(worker_ref, worker)
+
+      {:DOWN, ^worker_ref, :process, ^worker, _reason} ->
+        :ok
+    end
+
+    Process.demonitor(caller_ref, [:flush])
+    Process.demonitor(worker_ref, [:flush])
+  end
+
+  defp await_worker_down(worker_ref, worker) do
+    receive do
+      {:DOWN, ^worker_ref, :process, ^worker, _reason} -> :ok
+    after
+      1_000 -> :ok
+    end
+  end
+
+  defp await_evaluator_task(task, timeout_ms) do
+    result =
+      case Task.yield(task, timeout_ms) do
+        {:ok, {:ok, captured}} ->
+          {:ok, captured}
+
+        {:ok, {:error, details}} ->
+          {:error, details}
+
+        {:exit, reason} ->
+          {:error,
+           %{
+             "failure_kind" => "worker_exit",
+             "detail" => safe_inspect(reason)
+           }}
+
+        nil ->
+          Task.shutdown(task, :brutal_kill)
+
+          {:error,
+           %{
+             "failure_kind" => "timeout",
+             "timeout_ms" => timeout_ms,
+             "detail" => "evaluator exceeded the bounded timeout"
+           }}
+      end
+
+    cleanup_evaluator_task(task)
+    result
+  end
+
+  defp cleanup_evaluator_task(%Task{ref: ref}) do
+    Process.demonitor(ref, [:flush])
+    drain_evaluator_task_messages(ref)
+  end
+
+  defp drain_evaluator_task_messages(ref) do
+    receive do
+      {^ref, _reply} -> drain_evaluator_task_messages(ref)
+      {:DOWN, ^ref, :process, _pid, _reason} -> drain_evaluator_task_messages(ref)
+    after
+      0 -> :ok
+    end
+  end
+
+  defp evaluator_failure(candidate, timeout_ms, details) do
+    %{
+      "status" => "rejected",
+      "reason" => "evaluator_execution_failed",
+      "alternative_id" => candidate["id"],
+      "generation_index" => candidate["generation_index"],
+      "evaluator_execution_policy" => evaluator_execution_policy(timeout_ms),
+      "details" => details
+    }
+  end
+
+  defp normalize_score_terms!(terms) when is_map(terms) do
     cond do
       map_size(terms) == 0 ->
         raise ArgumentError, "score_terms must be a non-empty map"
@@ -619,7 +878,7 @@ defmodule OrbitalDynamics.Optimizer.LocalSearchCertificate do
   end
 
   defp stable_id!(value, label) when is_binary(value) do
-    if Regex.match?(@stable_id, value),
+    if String.valid?(value) and Regex.match?(@stable_id, value),
       do: value,
       else: raise(ArgumentError, "#{label} must be a stable identity")
   end
@@ -629,9 +888,34 @@ defmodule OrbitalDynamics.Optimizer.LocalSearchCertificate do
 
   defp deterministic_digest(value) do
     value
-    |> :erlang.term_to_binary([:deterministic])
+    |> canonical_json_iodata()
+    |> IO.iodata_to_binary()
     |> then(&:crypto.hash(:sha256, &1))
     |> Base.encode16(case: :lower)
+  end
+
+  defp canonical_json_iodata(:null), do: "null"
+  defp canonical_json_iodata(nil), do: "null"
+
+  defp canonical_json_iodata(value)
+       when is_boolean(value) or is_binary(value) or is_number(value),
+       do: :json.encode(value)
+
+  defp canonical_json_iodata(values) when is_list(values) do
+    encoded = values |> Enum.map(&canonical_json_iodata/1) |> Enum.intersperse(",")
+    ["[", encoded, "]"]
+  end
+
+  defp canonical_json_iodata(%{} = map) do
+    encoded =
+      map
+      |> Enum.sort_by(fn {key, _value} -> key end)
+      |> Enum.map(fn {key, value} ->
+        [:json.encode(key), ":", canonical_json_iodata(value)]
+      end)
+      |> Enum.intersperse(",")
+
+    ["{", encoded, "}"]
   end
 
   defp finite_number?(value) when is_integer(value), do: true

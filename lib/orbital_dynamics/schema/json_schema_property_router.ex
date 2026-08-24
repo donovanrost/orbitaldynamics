@@ -222,6 +222,10 @@ defmodule OrbitalDynamics.Schema.JsonSchemaPropertyRouter do
     ValidationPropertyRouter.property(field, contract_name, contract, context)
   end
 
+  def property(field, "backend_acceptance_policy.v1" = contract_name, contract, context) do
+    ValidationPropertyRouter.property(field, contract_name, contract, context)
+  end
+
   def property(field, contract_name, contract, context)
       when contract_name in ["schema_validation_report.v1", "schema_validation_batch_report.v1"] do
     ValidationPropertyRouter.property(field, contract_name, contract, context)

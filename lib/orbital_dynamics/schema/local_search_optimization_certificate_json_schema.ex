@@ -10,12 +10,13 @@ defmodule OrbitalDynamics.Schema.LocalSearchOptimizationCertificateJsonSchema do
   @stable_id_pattern "^[A-Za-z0-9][A-Za-z0-9._:@-]*(?![\\s\\S])"
   @score_term_name_pattern "^[A-Za-z][A-Za-z0-9_.-]*(?![\\s\\S])"
   @sha256_pattern "^[0-9a-f]{64}(?![\\s\\S])"
+  @certificate_id_pattern "^local_search_optimization_certificate:[0-9a-f]{64}(?![\\s\\S])"
 
   def property("schema_contract", _stable_id_pattern),
     do: %{"type" => "string", "const" => LocalSearchCertificate.schema_contract()}
 
   def property("id", _stable_id_pattern),
-    do: stable_id_schema()
+    do: %{"type" => "string", "pattern" => @certificate_id_pattern}
 
   def property("model", _stable_id_pattern),
     do: %{"type" => "string", "const" => LocalSearchCertificate.model()}
@@ -25,6 +26,9 @@ defmodule OrbitalDynamics.Schema.LocalSearchOptimizationCertificateJsonSchema do
 
   def property("objective_direction", _stable_id_pattern),
     do: %{"type" => "string", "enum" => ["maximize", "minimize"]}
+
+  def property("evaluator_execution_policy", _stable_id_pattern),
+    do: evaluator_execution_policy_schema()
 
   def property("claim", _stable_id_pattern), do: claim_schema()
   def property("search_space", _stable_id_pattern), do: search_space_schema()
@@ -42,6 +46,9 @@ defmodule OrbitalDynamics.Schema.LocalSearchOptimizationCertificateJsonSchema do
 
   def property(field, _stable_id_pattern) when field in @count_fields,
     do: %{"type" => "integer", "minimum" => 0}
+
+  def property("global_optimality_claimed", _stable_id_pattern),
+    do: %{"type" => "boolean", "const" => false}
 
   def property(field, _stable_id_pattern) when field in @boolean_fields,
     do: %{"type" => "boolean"}
@@ -76,6 +83,31 @@ defmodule OrbitalDynamics.Schema.LocalSearchOptimizationCertificateJsonSchema do
 
   def property("assumptions", _stable_id_pattern),
     do: %{"type" => "object", "additionalProperties" => true}
+
+  defp evaluator_execution_policy_schema do
+    policy =
+      LocalSearchCertificate.evaluator_execution_policy(
+        LocalSearchCertificate.default_evaluator_timeout_ms()
+      )
+
+    object_schema(
+      ~w(policy_version worker_model timeout_ms timeout_action caller_cancellation_action),
+      %{
+        "policy_version" => %{"type" => "integer", "const" => policy["policy_version"]},
+        "worker_model" => %{"type" => "string", "const" => policy["worker_model"]},
+        "timeout_ms" => %{
+          "type" => "integer",
+          "minimum" => 1,
+          "maximum" => LocalSearchCertificate.max_evaluator_timeout_ms()
+        },
+        "timeout_action" => %{"type" => "string", "const" => policy["timeout_action"]},
+        "caller_cancellation_action" => %{
+          "type" => "string",
+          "const" => policy["caller_cancellation_action"]
+        }
+      }
+    )
+  end
 
   defp claim_schema do
     object_schema(

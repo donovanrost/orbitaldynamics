@@ -59,6 +59,41 @@ defmodule OrbitalDynamics.Schema.ValidationPropertyRouter do
     )
   end
 
+  def property(
+        "implementation_tiers",
+        "backend_acceptance_policy.v1",
+        _contract,
+        _context
+      ) do
+    %{
+      "type" => "object",
+      "propertyNames" => %{
+        "pattern" => OrbitalDynamics.Validation.ImplementationKey.pattern()
+      },
+      "additionalProperties" => %{"type" => "string"}
+    }
+  end
+
+  def property("reference_backend", "backend_acceptance_policy.v1", _contract, _context) do
+    %{
+      "type" => "object",
+      "additionalProperties" => true,
+      "properties" => %{
+        "implementations" => %{
+          "type" => "array",
+          "items" => %{
+            "type" => "string",
+            "pattern" => OrbitalDynamics.Validation.ImplementationKey.pattern()
+          }
+        }
+      }
+    }
+  end
+
+  def property(field, "backend_acceptance_policy.v1" = contract_name, contract, context) do
+    fallback(field, contract_name, contract, context)
+  end
+
   def property(field, contract_name, contract, context)
       when contract_name in ["schema_validation_report.v1", "schema_validation_batch_report.v1"] do
     OrbitalDynamics.Schema.SchemaValidationPropertyDispatch.property(

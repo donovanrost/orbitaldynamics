@@ -63,6 +63,7 @@ defmodule OrbitalDynamics.Schema.OptimizationRegistryContracts do
           "model",
           "objective",
           "objective_direction",
+          "evaluator_execution_policy",
           "claim",
           "global_optimality_claimed",
           "search_space",
