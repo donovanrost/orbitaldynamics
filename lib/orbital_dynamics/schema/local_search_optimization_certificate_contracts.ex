@@ -56,7 +56,7 @@ defmodule OrbitalDynamics.Schema.LocalSearchOptimizationCertificateContracts do
         validate_json_safe(issues, path, certificate)
 
       json_issues ->
-        validate_unencodable_certificate_identity(json_issues ++ issues, path, certificate)
+        validate_json_unsafe(json_issues ++ issues, path, certificate, json_issues)
     end
   rescue
     _error -> [error(path, "must be safely validatable as a local-search certificate") | issues]
@@ -68,7 +68,39 @@ defmodule OrbitalDynamics.Schema.LocalSearchOptimizationCertificateContracts do
   def validate(issues, path, _certificate),
     do: [error(path, "must be a map") | issues]
 
-  defp validate_json_safe(issues, path, certificate) do
+  defp validate_json_unsafe(issues, path, certificate, json_issues) do
+    if analysis_resource_exhausted?(json_issues) do
+      issues
+      |> validate_unencodable_certificate_identity(path, certificate)
+      |> deterministic_issues()
+    else
+      case analysis_surrogate(certificate, path) do
+        {:ok, surrogate, analysis_issues} when is_map(surrogate) ->
+          (analysis_issues ++ issues)
+          |> validate_json_safe(path, surrogate, false, json_issues)
+          |> validate_unencodable_certificate_identity(path, certificate)
+          |> deterministic_issues()
+
+        {:ok, _surrogate, analysis_issues} ->
+          (analysis_issues ++ issues)
+          |> validate_unencodable_certificate_identity(path, certificate)
+          |> deterministic_issues()
+
+        {:error, resource_issue} ->
+          [resource_issue | issues]
+          |> validate_unencodable_certificate_identity(path, certificate)
+          |> deterministic_issues()
+      end
+    end
+  end
+
+  defp validate_json_safe(
+         issues,
+         path,
+         certificate,
+         verify_root_identity? \\ true,
+         json_issues \\ []
+       ) do
     issues =
       issues
       |> PrimitiveValidation.require_fields(path, certificate, @root_fields)
@@ -116,7 +148,7 @@ defmodule OrbitalDynamics.Schema.LocalSearchOptimizationCertificateContracts do
       )
       |> expect_equal(path, certificate, "assumptions", @assumptions)
 
-    validate_semantics(issues, path, certificate)
+    validate_semantics(issues, path, certificate, verify_root_identity?, json_issues)
   end
 
   defp evaluation_structure_valid?(evaluation) do
@@ -128,13 +160,31 @@ defmodule OrbitalDynamics.Schema.LocalSearchOptimizationCertificateContracts do
       proper_list?(evaluation["rejection_reasons"])
   end
 
-  defp validate_semantics(issues, path, certificate) do
+  defp validate_semantics(
+         issues,
+         path,
+         certificate,
+         verify_root_identity?,
+         json_issues
+       ) do
+    issues =
+      if verify_root_identity?,
+        do: validate_certificate_identity(issues, path, certificate),
+        else: issues
+
     issues
-    |> validate_certificate_identity(path, certificate)
     |> validate_evaluator_execution_policy(path, certificate["evaluator_execution_policy"])
     |> validate_claim_shape(path, certificate["claim"])
-    |> validate_search_space(path, certificate["search_space"])
-    |> validate_registry(path, certificate)
+    |> validate_search_space(
+      path,
+      certificate["search_space"],
+      branch_strict_json?(json_issues, "#{path}.search_space")
+    )
+    |> validate_registry(
+      path,
+      certificate,
+      branch_strict_json?(json_issues, "#{path}.source_evidence_registry")
+    )
     |> validate_evaluations(path, certificate)
     |> validate_termination_and_claim(path, certificate)
   end
@@ -179,6 +229,295 @@ defmodule OrbitalDynamics.Schema.LocalSearchOptimizationCertificateContracts do
         | issues
       ]
     end)
+  end
+
+  defp analysis_resource_exhausted?(issues) do
+    Enum.any?(issues, fn
+      %{"message" => message} when is_binary(message) ->
+        String.starts_with?(message, "exceeds maximum JSON") or
+          String.starts_with?(message, "JSON safety issue budget exhausted")
+
+      _issue ->
+        false
+    end)
+  end
+
+  defp branch_strict_json?(issues, branch_path) do
+    Enum.all?(issues, fn
+      %{"path" => issue_path} when is_binary(issue_path) ->
+        issue_path != "$" and issue_path != branch_path and
+          not String.starts_with?(issue_path, branch_path <> ".") and
+          not String.starts_with?(issue_path, branch_path <> "[")
+
+      _issue ->
+        false
+    end)
+  end
+
+  # This certificate-only view allows structural and independently knowable
+  # semantic checks to continue after a bounded hostile BEAM leaf is reported.
+  # It is never encoded or used for the root certificate identity.
+  defp analysis_surrogate(value, path) do
+    limits = JsonSafety.limits()
+
+    case sanitize_analysis_value(
+           value,
+           path,
+           0,
+           %{aggregate_bytes: 0, issue_count: 0, issue_halted: false, issues: [], nodes: 0},
+           limits
+         ) do
+      {:ok, surrogate, state} -> {:ok, surrogate, state.issues}
+      {:error, issue} -> {:error, issue}
+    end
+  end
+
+  defp sanitize_analysis_value(value, path, depth, state, limits) do
+    with :ok <- analysis_depth_available(depth, path, limits),
+         {:ok, state} <- consume_analysis_node(state, path, limits) do
+      sanitize_analysis_value_type(value, path, depth, state, limits)
+    end
+  end
+
+  defp sanitize_analysis_value_type(value, _path, _depth, state, _limits)
+       when is_boolean(value),
+       do: {:ok, value, state}
+
+  defp sanitize_analysis_value_type(nil, path, _depth, state, limits),
+    do: {:ok, :null, add_analysis_issue(state, path, "nil is not a JSON value", limits)}
+
+  defp sanitize_analysis_value_type(:null, _path, _depth, state, _limits),
+    do: {:ok, :null, state}
+
+  defp sanitize_analysis_value_type(value, _path, _depth, state, _limits)
+       when is_integer(value),
+       do: {:ok, value, state}
+
+  defp sanitize_analysis_value_type(value, path, _depth, state, limits)
+       when is_binary(value) do
+    with {:ok, state} <- consume_analysis_bytes(state, byte_size(value), path, limits) do
+      if String.valid?(value) do
+        {:ok, value, state}
+      else
+        {:ok, :null, add_analysis_issue(state, path, "must be a valid UTF-8 JSON string", limits)}
+      end
+    end
+  end
+
+  defp sanitize_analysis_value_type(value, path, _depth, state, limits)
+       when is_float(value) do
+    if finite_number?(value),
+      do: {:ok, value, state},
+      else: {:ok, :null, add_analysis_issue(state, path, "must be a finite JSON number", limits)}
+  end
+
+  defp sanitize_analysis_value_type(value, path, depth, state, limits)
+       when is_list(value),
+       do: sanitize_analysis_list(value, path, depth, 0, state, limits)
+
+  defp sanitize_analysis_value_type(%_module{}, path, _depth, state, limits),
+    do: {:ok, :null, add_analysis_issue(state, path, "structs are not JSON values", limits)}
+
+  defp sanitize_analysis_value_type(%{} = map, path, depth, state, limits) do
+    if map_size(map) > limits["max_collection_items"] do
+      {:error,
+       error(
+         path,
+         "exceeds maximum JSON collection size of #{limits["max_collection_items"]}"
+       )}
+    else
+      state =
+        if duplicate_analysis_keys?(map),
+          do:
+            add_analysis_issue(
+              state,
+              path,
+              "contains duplicate atom/string keys after normalization",
+              limits
+            ),
+          else: state
+
+      map
+      |> Enum.sort_by(fn {key, _value} -> analysis_key_order(key) end)
+      |> Enum.reduce_while({:ok, [], state}, fn {key, nested}, {:ok, entries, acc} ->
+        case sanitize_analysis_entry(key, nested, path, depth, acc, limits) do
+          {:ok, :drop, next} -> {:cont, {:ok, entries, next}}
+          {:ok, entry, next} -> {:cont, {:ok, [entry | entries], next}}
+          {:error, issue} -> {:halt, {:error, issue}}
+        end
+      end)
+      |> case do
+        {:ok, entries, state} -> {:ok, Map.new(entries), state}
+        {:error, issue} -> {:error, issue}
+      end
+    end
+  end
+
+  defp sanitize_analysis_value_type(value, path, _depth, state, limits),
+    do:
+      {:ok, :null,
+       add_analysis_issue(
+         state,
+         path,
+         "#{analysis_input_type(value)} is not a JSON value",
+         limits
+       )}
+
+  defp sanitize_analysis_entry(key, nested, path, depth, state, limits) do
+    with {:ok, state} <- consume_analysis_node(state, path, limits),
+         {:ok, state} <- consume_analysis_key_bytes(state, key, path, limits) do
+      if is_binary(key) and String.valid?(key) do
+        case sanitize_analysis_value(nested, "#{path}.#{key}", depth + 1, state, limits) do
+          {:ok, safe_nested, state} -> {:ok, {key, safe_nested}, state}
+          {:error, issue} -> {:error, issue}
+        end
+      else
+        {issue_path, message} = analysis_key_issue(key, path)
+        {:ok, :drop, add_analysis_issue(state, issue_path, message, limits)}
+      end
+    end
+  end
+
+  defp sanitize_analysis_list([], _path, _depth, _index, state, _limits),
+    do: {:ok, [], state}
+
+  defp sanitize_analysis_list([head | tail], path, depth, index, state, limits) do
+    if index >= limits["max_collection_items"] do
+      {:error,
+       error(
+         path,
+         "exceeds maximum JSON collection size of #{limits["max_collection_items"]}"
+       )}
+    else
+      with {:ok, safe_head, state} <-
+             sanitize_analysis_value(head, "#{path}[#{index}]", depth + 1, state, limits),
+           {:ok, safe_tail, state} <-
+             sanitize_analysis_list(tail, path, depth, index + 1, state, limits) do
+        {:ok, [safe_head | safe_tail], state}
+      end
+    end
+  end
+
+  defp sanitize_analysis_list(_improper_tail, path, _depth, _index, state, limits),
+    do:
+      {:ok, [:null],
+       add_analysis_issue(state, path, "improper lists are not JSON arrays", limits)}
+
+  defp analysis_depth_available(depth, path, limits) do
+    if depth > limits["max_depth"],
+      do: {:error, error(path, "exceeds maximum JSON nesting depth of #{limits["max_depth"]}")},
+      else: :ok
+  end
+
+  defp consume_analysis_node(state, path, limits) do
+    if state.nodes >= limits["max_nodes"] do
+      {:error, error(path, "exceeds maximum JSON node budget of #{limits["max_nodes"]}")}
+    else
+      {:ok, %{state | nodes: state.nodes + 1}}
+    end
+  end
+
+  defp consume_analysis_key_bytes(state, key, path, limits) when is_binary(key),
+    do: consume_analysis_bytes(state, byte_size(key), path, limits)
+
+  defp consume_analysis_key_bytes(state, key, path, limits) when is_atom(key),
+    do: consume_analysis_bytes(state, key |> Atom.to_string() |> byte_size(), path, limits)
+
+  defp consume_analysis_key_bytes(state, _key, _path, _limits), do: {:ok, state}
+
+  defp consume_analysis_bytes(state, bytes, path, limits) do
+    if bytes > limits["max_aggregate_bytes"] - state.aggregate_bytes do
+      {:error,
+       error(
+         path,
+         "exceeds maximum aggregate JSON string byte budget of #{limits["max_aggregate_bytes"]}"
+       )}
+    else
+      {:ok, %{state | aggregate_bytes: state.aggregate_bytes + bytes}}
+    end
+  end
+
+  defp analysis_key_order(key) when is_binary(key), do: {0, key}
+  defp analysis_key_order(key) when is_atom(key), do: {1, Atom.to_string(key)}
+  defp analysis_key_order(_key), do: {2, ""}
+
+  defp duplicate_analysis_keys?(map) do
+    normalized_keys =
+      map
+      |> Map.keys()
+      |> Enum.filter(&(is_atom(&1) or is_binary(&1)))
+      |> Enum.map(&if(is_atom(&1), do: Atom.to_string(&1), else: &1))
+
+    length(normalized_keys) != length(Enum.uniq(normalized_keys))
+  end
+
+  defp analysis_key_issue(key, path) when is_binary(key),
+    do: {"#{path}.<invalid_utf8_key>", "object keys must be valid UTF-8 strings"}
+
+  defp analysis_key_issue(_key, path), do: {path, "object keys must be strings"}
+
+  defp add_analysis_issue(%{issue_halted: true} = state, _path, _message, _limits),
+    do: state
+
+  defp add_analysis_issue(state, path, message, limits) do
+    if state.issue_count < limits["max_issues"] - 1 do
+      %{
+        state
+        | issue_count: state.issue_count + 1,
+          issues: [error(path, message) | state.issues]
+      }
+    else
+      %{
+        state
+        | issue_count: limits["max_issues"],
+          issue_halted: true,
+          issues: [
+            error(
+              path,
+              "JSON safety issue budget exhausted after #{limits["max_issues"] - 1} errors"
+            )
+            | state.issues
+          ]
+      }
+    end
+  end
+
+  defp analysis_input_type(value) when is_tuple(value), do: "tuple"
+  defp analysis_input_type(value) when is_pid(value), do: "PID"
+  defp analysis_input_type(value) when is_reference(value), do: "reference"
+  defp analysis_input_type(value) when is_function(value), do: "function"
+  defp analysis_input_type(value) when is_bitstring(value), do: "non-binary bitstring"
+  defp analysis_input_type(_value), do: "unsupported term"
+
+  defp deterministic_issues(issues) do
+    sorted =
+      issues
+      |> Enum.uniq_by(&{&1["path"], &1["message"], &1["severity"]})
+      |> Enum.sort_by(&{&1["path"], &1["message"], &1["severity"]})
+
+    maximum = JsonSafety.limits()["max_issues"]
+
+    if length(sorted) <= maximum do
+      sorted
+    else
+      identity_issue =
+        Enum.find(sorted, fn issue ->
+          issue["message"] == "cannot verify identity until certificate content is strict JSON"
+        end)
+
+      retained_count = maximum - if(identity_issue, do: 2, else: 1)
+
+      retained =
+        sorted
+        |> Enum.reject(&(&1 == identity_issue))
+        |> Enum.take(retained_count)
+
+      [
+        error("$", "certificate validation issue budget exhausted after #{maximum - 1} errors")
+        | if(identity_issue, do: [identity_issue | retained], else: retained)
+      ]
+      |> Enum.sort_by(&{&1["path"], &1["message"], &1["severity"]})
+    end
   end
 
   defp validate_evaluator_execution_policy(issues, path, policy) when is_map(policy) do
@@ -229,7 +568,8 @@ defmodule OrbitalDynamics.Schema.LocalSearchOptimizationCertificateContracts do
 
   defp validate_claim_shape(issues, _path, _claim), do: issues
 
-  defp validate_search_space(issues, path, search_space) when is_map(search_space) do
+  defp validate_search_space(issues, path, search_space, verify_reproduction?)
+       when is_map(search_space) do
     search_path = "#{path}.search_space"
 
     issues =
@@ -256,7 +596,7 @@ defmodule OrbitalDynamics.Schema.LocalSearchOptimizationCertificateContracts do
         search_space["generation_rejected_moves"]
       )
 
-    if search_space_structure_valid?(search_space) do
+    if verify_reproduction? and search_space_structure_valid?(search_space) do
       expected = regenerate_search_space(search_space)
 
       ensure(
@@ -279,7 +619,7 @@ defmodule OrbitalDynamics.Schema.LocalSearchOptimizationCertificateContracts do
       ]
   end
 
-  defp validate_search_space(issues, _path, _search_space), do: issues
+  defp validate_search_space(issues, _path, _search_space, _verify_reproduction?), do: issues
 
   defp validate_bounds(issues, path, bounds) when is_map(bounds) do
     Enum.reduce(bounds, issues, fn {name, bound}, acc ->
@@ -448,7 +788,8 @@ defmodule OrbitalDynamics.Schema.LocalSearchOptimizationCertificateContracts do
   defp validate_registry(
          issues,
          path,
-         %{"source_evidence_registry" => registry} = certificate
+         %{"source_evidence_registry" => registry} = certificate,
+         verify_identity_and_relations?
        )
        when is_map(registry) do
     registry_path = "#{path}.source_evidence_registry"
@@ -480,17 +821,21 @@ defmodule OrbitalDynamics.Schema.LocalSearchOptimizationCertificateContracts do
         issues
       end
 
-    core = Map.delete(registry, "identity")
-
     issues =
-      ensure(
-        issues,
-        registry["identity"] == LocalSearchCertificate.source_registry_identity(core),
-        "#{registry_path}.identity",
-        "must be the content identity of the source-evidence registry summary"
-      )
+      if verify_identity_and_relations? do
+        core = Map.delete(registry, "identity")
 
-    if registry_relations_valid?(certificate) do
+        ensure(
+          issues,
+          registry["identity"] == LocalSearchCertificate.source_registry_identity(core),
+          "#{registry_path}.identity",
+          "must be the content identity of the source-evidence registry summary"
+        )
+      else
+        issues
+      end
+
+    if verify_identity_and_relations? and registry_relations_valid?(certificate) do
       entries = registry["entries"]
       candidate_ids = Enum.map(certificate["search_space"]["candidates"], & &1["id"])
       entry_ids = Enum.map(entries, & &1["alternative_id"])
@@ -506,7 +851,7 @@ defmodule OrbitalDynamics.Schema.LocalSearchOptimizationCertificateContracts do
     end
   end
 
-  defp validate_registry(issues, _path, _certificate), do: issues
+  defp validate_registry(issues, _path, _certificate, _verify_identity_and_relations?), do: issues
 
   defp validate_registry_entries(issues, path, entries) do
     if proper_list?(entries) do

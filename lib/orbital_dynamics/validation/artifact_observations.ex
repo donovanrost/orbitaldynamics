@@ -6,6 +6,8 @@ defmodule OrbitalDynamics.Validation.ArtifactObservations do
     "authority_context.v1" => {__MODULE__.AuthorityContext, :build},
     "campaign_plan.v1" => {__MODULE__.CampaignPlan, :build},
     "campaign_plan_search_trace.v1" => {__MODULE__.CampaignPlanSearchTrace, :build},
+    "local_search_optimization_certificate.v1" =>
+      {__MODULE__.LocalSearchOptimizationCertificate, :build},
     "result_artifact.v1" => {__MODULE__.ResultArtifact, :build},
     "campaign_repair.v2" => {__MODULE__.CampaignRepair, :build},
     "campaign_request_lint.v1" => {__MODULE__.CampaignRequestLint, :build},

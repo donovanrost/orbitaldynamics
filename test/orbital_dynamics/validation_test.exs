@@ -142,6 +142,8 @@ defmodule OrbitalDynamics.ValidationTest do
 
     expected_fixture_count = map_size(Validation.reference_fixtures())
 
+    assert expected_fixture_count == 210
+
     assert %{
              "schema_contract" => "validation_reference_fixture_report.v1",
              "status" => "pass",
@@ -150,8 +152,12 @@ defmodule OrbitalDynamics.ValidationTest do
              "reports" => reports
            } = report
 
-    checked_in_report = read_json!("study_results/validation_reference_fixtures.json")
+    live_bytes = report |> :json.encode() |> IO.iodata_to_binary() |> Kernel.<>("\n")
 
+    checked_in_bytes = File.read!("study_results/validation_reference_fixtures.json")
+    checked_in_report = :json.decode(checked_in_bytes)
+
+    assert checked_in_bytes == live_bytes
     assert checked_in_report == report
 
     stale_checked_in_report =
@@ -212,11 +218,5 @@ defmodule OrbitalDynamics.ValidationTest do
              &(&1["path"] == "$.status_counts" and
                  &1["message"] == "must equal nested report status counts")
            )
-  end
-
-  defp read_json!(path) do
-    path
-    |> File.read!()
-    |> :json.decode()
   end
 end

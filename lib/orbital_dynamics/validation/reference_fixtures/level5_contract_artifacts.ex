@@ -94,6 +94,69 @@ defmodule OrbitalDynamics.Validation.ReferenceFixtures.Level5ContractArtifacts d
         "covers one bounded three-alternative planning neighborhood"
       ]
     },
+    "fixture.artifact.local_search_optimization_certificate.v1" => %{
+      "id" => "fixture.artifact.local_search_optimization_certificate.v1",
+      "model_id" => "artifact.local_search_optimization_certificate.v1",
+      "reference_case" =>
+        "exact exhaustion selects the best eligible alternative in one bounded finite neighborhood",
+      "validation_level" => "artifact_contract",
+      "fixture_type" => "curated_internal_artifact_regression",
+      "inputs" => %{
+        "producer" => "OrbitalDynamics.certified_local_search/4",
+        "seed_parameter_count" => 2,
+        "candidate_count" => 4,
+        "evaluation_budget" => 65,
+        "objective_direction" => "maximize"
+      },
+      "expected" => %{
+        "schema_contract" => "local_search_optimization_certificate.v1",
+        "id" =>
+          "local_search_optimization_certificate:757a0827bb2f7bbe2cc9d77d253fcc53c1f6378ebcf62d5d97a561261bc093aa",
+        "identity_matches_content" => true,
+        "model" => "exact_enumeration_of_deterministic_bounded_axis_step_neighborhood",
+        "objective_direction" => "maximize",
+        "candidate_count" => 4,
+        "evaluated_count" => 4,
+        "eligible_count" => 3,
+        "rejected_count" => 1,
+        "selected_alternative_id" => "fixture_certificate:x:increase",
+        "selected_score" => 2,
+        "search_space_exhausted" => true,
+        "budget_limited" => false,
+        "termination_reason" => "search_space_exhausted",
+        "claim_status" => "supported",
+        "claim_type" => "best_eligible_alternative_in_enumerated_finite_neighborhood",
+        "claim_scope" => "enumerated_search_space_only",
+        "global_optimality_claimed" => false,
+        "source_evidence_registry_entry_count" => 4,
+        "source_evidence_registry_sha256" =>
+          "24c4952aa831023f41cf133d4b48469e0abf7a3613e844e7da6e741ed895996a",
+        "evaluator_policy_version" => 1,
+        "evaluator_timeout_ms" => 1000,
+        "model_limit_count" => 16
+      },
+      "tolerances" => %{
+        "candidate_count" => 0,
+        "evaluated_count" => 0,
+        "eligible_count" => 0,
+        "rejected_count" => 0,
+        "selected_score" => 0,
+        "source_evidence_registry_entry_count" => 0,
+        "evaluator_policy_version" => 0,
+        "evaluator_timeout_ms" => 0,
+        "model_limit_count" => 0
+      },
+      "evidence" => [
+        "generated through OrbitalDynamics.certified_local_search/4",
+        "content identity is recomputed by the observation builder",
+        "executable schema validation checks the complete certificate",
+        "checked by OrbitalDynamics.Validation.verify_reference_fixture/2"
+      ],
+      "known_limits" => [
+        "internal deterministic bounded-neighborhood regression, not global optimality evidence",
+        "covers four generated candidates with caller-supplied content-addressed evidence"
+      ]
+    },
     "fixture.artifact.candidate_refresh_execution.v1" => %{
       "id" => "fixture.artifact.candidate_refresh_execution.v1",
       "model_id" => "artifact.candidate_refresh_execution.v1",
