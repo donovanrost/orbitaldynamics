@@ -33,10 +33,11 @@ Status: **implemented** (with a **partial** semantic-depth area, plus **near-ter
 
 ### V3 Cadence consumer dry-run conformance
 
-- `OrbitalDynamics.CadenceImport.dry_run/3` accepts either a validated
+- `OrbitalDynamics.CadenceImport.dry_run/3` and the opt-in
+  `OrbitalDynamics.CadenceImport.bounded_dry_run/4` accept either a validated
   `campaign_strategy.v3` artifact with its bound embedded manifest or that
-  validated `cadence_import_manifest.v1` directly. It does not rebuild the
-  strategy, choose a recommendation, or reread ambient configuration.
+  validated `cadence_import_manifest.v1` directly. Neither path rebuilds the
+  strategy, chooses a recommendation, or rereads ambient configuration.
 - The handwritten `OrbitalDynamics.CadenceImport.Adapter` contract exposes
   only `capabilities/0` and `dry_run/2`. Its exact capability surface permits
   only `dry_run` and declares `writes: false`; it has no create, update, write,
@@ -47,7 +48,10 @@ Status: **implemented** (with a **partial** semantic-depth area, plus **near-ter
 - Successful evaluations return a compact typed conformance record with a
   deterministic semantic manifest digest, request idempotency identity, and
   semantic-output digest. Repeating the same manifest, adapter, and normalized
-  options yields the same semantic result and identity.
+  adapter options yields the same semantic result and identity. The bounded
+  lifecycle timeout is control metadata, not an adapter option: successful
+  synchronous and bounded calls therefore produce identical semantic requests,
+  results, and idempotency identities.
 - Malformed or unsupported inputs, source/authority drift, unsupported adapter
   capabilities, adapter errors, exceptions, exits/throws, and invalid adapter
   returns are contained as typed errors. Adapter controls and acknowledgements
@@ -64,12 +68,31 @@ Status: **implemented** (with a **partial** semantic-depth area, plus **near-ter
   inference and extraction. Adapter option lists are collected once with an
   incremental duplicate/shape check and a fixed 2,048-entry cap before their
   bounded string-key map is passed to JSON-safety validation.
-- Adapter callbacks execute synchronously in the caller process. This boundary
-  contains returned errors, exceptions, throws, and exits, but deliberately
-  provides no callback timeout or process isolation and therefore requires a
-  trusted adapter implementation.
-- This boundary defines conformance only. The repository supplies no live
-  Cadence consumer, API client, database writer, or mutation implementation.
+- `dry_run/3` remains the compatibility path: both callbacks execute
+  synchronously in the caller process and therefore require a trusted adapter.
+  Its option normalization, typed callback errors, and semantic identities are
+  unchanged.
+- `bounded_dry_run/4` requires a separate lifecycle option list containing
+  exactly one positive integer `timeout` in milliseconds. It validates that
+  option before delegation, then gives `capabilities/0` and `dry_run/2` one
+  shared monotonic deadline. Each callback runs in a monitored direct worker
+  under a separate lifecycle controller. That controller monitors both the
+  original caller and direct worker; an independent guardian monitors caller,
+  controller, and worker. Deadline expiry, caller cancellation, worker
+  result/death, or controller shutdown kills and drains the direct worker
+  (including a direct worker trapping exits), flushes monitor/result messages,
+  and terminates the controller and guardian. A result at or after the deadline
+  cannot later satisfy the call. Capability and dry-run timeout, exception,
+  throw, exit, monitored-worker-death, and controller-death outcomes fail closed
+  with distinct typed errors; the caller survives callback failures.
+- Bounded execution is direct callback process-lifecycle containment only. It
+  is not a malicious-code sandbox, does not guarantee containment of adapter
+  descendants (including descendants that trap exits) or ambient/arbitrary
+  side effects, and does not turn the declared no-write capability into enforced
+  write isolation or write authority.
+- This boundary defines producer-side conformance only. The repository supplies
+  no live Cadence consumer or API client, database writer, mutation
+  implementation, or evidence of acceptance by a downstream Cadence consumer.
 
 ### Operational readiness classification
 

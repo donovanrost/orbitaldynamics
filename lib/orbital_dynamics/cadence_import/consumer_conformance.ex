@@ -17,6 +17,7 @@ defmodule OrbitalDynamics.CadenceImport.ConsumerConformance do
   @error_type "cadence_consumer_conformance_error.v1"
   @identity_algorithm "erlang_term_to_binary_deterministic_sha256.v1"
   @max_adapter_options 2_048
+  @max_receive_interval_ms 60_000
   @authority_fields ~w(eligibility_status authority_context authority_context_evaluation)
   @acknowledgement_fields ~w(
     status
@@ -53,6 +54,43 @@ defmodule OrbitalDynamics.CadenceImport.ConsumerConformance do
       )
   end
 
+  @spec run(term(), term(), term(), term()) :: {:ok, map()} | {:error, map()}
+  def run(artifact_or_manifest, adapter, adapter_opts, lifecycle_opts) do
+    with {:ok, timeout} <- normalize_lifecycle_options(lifecycle_opts),
+         :ok <- preflight_input(artifact_or_manifest),
+         {:ok, adapter_options} <- normalize_options(adapter_opts),
+         {:ok, manifest} <- validate_input(artifact_or_manifest),
+         deadline <- monotonic_deadline(timeout),
+         {:ok, adapter_name, capabilities} <-
+           validate_bounded_adapter(adapter, deadline, timeout),
+         request <- build_request(manifest, adapter_name, capabilities, adapter_options),
+         {:ok, acknowledgement} <-
+           call_bounded_adapter(
+             adapter,
+             request,
+             adapter_options,
+             deadline,
+             timeout
+           ),
+         :ok <- validate_acknowledgement(acknowledgement, request) do
+      {:ok, conformance_result(request)}
+    end
+  rescue
+    exception ->
+      typed_error(
+        "conformance_exception",
+        "Cadence consumer conformance did not complete",
+        %{"exception" => exception_name(exception)}
+      )
+  catch
+    kind, _reason ->
+      typed_error(
+        "conformance_#{kind}",
+        "Cadence consumer conformance did not complete",
+        %{}
+      )
+  end
+
   defp preflight_input(input) do
     case OuterAdmission.validate(input) do
       :ok ->
@@ -61,6 +99,66 @@ defmodule OrbitalDynamics.CadenceImport.ConsumerConformance do
       {:error, %{"code" => code, "message" => message, "details" => details}} ->
         typed_error(code, message, details)
     end
+  end
+
+  defp normalize_lifecycle_options(lifecycle_opts) do
+    collect_lifecycle_options(lifecycle_opts, :missing, 0)
+  end
+
+  defp collect_lifecycle_options([], timeout, 1), do: {:ok, timeout}
+
+  defp collect_lifecycle_options([], :missing, 0) do
+    typed_error(
+      "invalid_timeout_options",
+      "bounded dry-run requires exactly one timeout option",
+      %{"required_option" => "timeout"}
+    )
+  end
+
+  defp collect_lifecycle_options([{:timeout, _duplicate} | _tail], _previous, 1) do
+    typed_error(
+      "invalid_timeout_options",
+      "bounded dry-run timeout option must not be duplicated",
+      %{"duplicate_key" => "timeout", "examined_item_count" => 2}
+    )
+  end
+
+  defp collect_lifecycle_options([{:timeout, timeout} | tail], :missing, 0)
+       when is_integer(timeout) and timeout > 0 do
+    collect_lifecycle_options(tail, timeout, 1)
+  end
+
+  defp collect_lifecycle_options([{:timeout, _timeout} | _tail], :missing, 0) do
+    typed_error(
+      "invalid_timeout_options",
+      "bounded dry-run timeout must be a positive integer number of milliseconds",
+      %{"option" => "timeout"}
+    )
+  end
+
+  defp collect_lifecycle_options([{key, _value} | _tail], _timeout, count)
+       when is_atom(key) do
+    typed_error(
+      "invalid_timeout_options",
+      "bounded dry-run lifecycle options contain an unsupported key",
+      %{"unsupported_key" => Atom.to_string(key), "invalid_item_position" => count + 1}
+    )
+  end
+
+  defp collect_lifecycle_options([_entry | _tail], _timeout, count) do
+    typed_error(
+      "invalid_timeout_options",
+      "bounded dry-run lifecycle options must contain atom-key tuple entries",
+      %{"invalid_item_position" => count + 1}
+    )
+  end
+
+  defp collect_lifecycle_options(_improper_tail, _timeout, count) do
+    typed_error(
+      "invalid_timeout_options",
+      "bounded dry-run lifecycle options must be a proper list",
+      %{"validated_item_count" => count}
+    )
   end
 
   defp normalize_options(opts) do
@@ -333,6 +431,37 @@ defmodule OrbitalDynamics.CadenceImport.ConsumerConformance do
     typed_error("invalid_adapter", "adapter must be an existing module atom", %{})
   end
 
+  defp validate_bounded_adapter(adapter, deadline, timeout) when is_atom(adapter) do
+    with {:module, ^adapter} <- Code.ensure_loaded(adapter),
+         true <- function_exported?(adapter, :capabilities, 0),
+         true <- function_exported?(adapter, :dry_run, 2),
+         {:ok, declared} <- call_bounded_capabilities(adapter, deadline, timeout),
+         {:ok, capabilities} <-
+           normalize_json(
+             declared,
+             "Cadence consumer adapter capabilities",
+             "invalid_adapter_capabilities",
+             "adapter capabilities must be bounded JSON-safe values"
+           ),
+         :ok <- validate_adapter_capabilities(capabilities) do
+      {:ok, Atom.to_string(adapter), capabilities}
+    else
+      {:error, _error} = failure ->
+        failure
+
+      _missing ->
+        typed_error(
+          "invalid_adapter",
+          "adapter must be a loaded module exporting capabilities/0 and dry_run/2",
+          %{}
+        )
+    end
+  end
+
+  defp validate_bounded_adapter(_adapter, _deadline, _timeout) do
+    typed_error("invalid_adapter", "adapter must be an existing module atom", %{})
+  end
+
   defp call_capabilities(adapter) do
     try do
       {:ok, apply(adapter, :capabilities, [])}
@@ -350,6 +479,35 @@ defmodule OrbitalDynamics.CadenceImport.ConsumerConformance do
           "adapter capabilities did not return",
           %{}
         )
+    end
+  end
+
+  defp call_bounded_capabilities(adapter, deadline, timeout) do
+    case bounded_callback(deadline, fn -> apply(adapter, :capabilities, []) end) do
+      {:returned, declared} ->
+        {:ok, declared}
+
+      :timeout ->
+        callback_timeout_error(:capabilities, timeout)
+
+      {:exception, exception} ->
+        typed_error(
+          "adapter_capabilities_exception",
+          "adapter capabilities callback raised an exception",
+          %{"exception" => exception, "phase" => "capabilities"}
+        )
+
+      :throw ->
+        callback_nonreturn_error(:capabilities, :throw)
+
+      :exit ->
+        callback_nonreturn_error(:capabilities, :exit)
+
+      {:worker_death, reason} ->
+        callback_worker_death_error(:capabilities, reason)
+
+      {:controller_death, reason} ->
+        callback_controller_death_error(:capabilities, reason)
     end
   end
 
@@ -434,6 +592,626 @@ defmodule OrbitalDynamics.CadenceImport.ConsumerConformance do
         typed_error("adapter_#{kind}", "adapter dry_run did not return", %{})
     end
   end
+
+  defp call_bounded_adapter(adapter, request, adapter_options, deadline, timeout) do
+    result =
+      bounded_callback(deadline, fn ->
+        apply(adapter, :dry_run, [request, adapter_options])
+      end)
+
+    case result do
+      {:returned, {:ok, acknowledgement}} ->
+        normalize_json(
+          acknowledgement,
+          "Cadence consumer adapter acknowledgement",
+          "invalid_adapter_return",
+          "adapter acknowledgement must be a bounded JSON-safe map"
+        )
+
+      {:returned, {:error, reason}} ->
+        typed_error("adapter_error", "adapter rejected the dry-run request", %{
+          "adapter_error" => adapter_error_evidence(reason)
+        })
+
+      {:returned, _other} ->
+        typed_error(
+          "invalid_adapter_return",
+          "adapter must return {:ok, acknowledgement} or {:error, reason}",
+          %{}
+        )
+
+      :timeout ->
+        callback_timeout_error(:dry_run, timeout)
+
+      {:exception, exception} ->
+        typed_error(
+          "adapter_dry_run_exception",
+          "adapter dry_run callback raised an exception",
+          %{"exception" => exception, "phase" => "dry_run"}
+        )
+
+      :throw ->
+        callback_nonreturn_error(:dry_run, :throw)
+
+      :exit ->
+        callback_nonreturn_error(:dry_run, :exit)
+
+      {:worker_death, reason} ->
+        callback_worker_death_error(:dry_run, reason)
+
+      {:controller_death, reason} ->
+        callback_controller_death_error(:dry_run, reason)
+    end
+  end
+
+  defp monotonic_deadline(timeout) do
+    System.monotonic_time() + System.convert_time_unit(timeout, :millisecond, :native)
+  end
+
+  defp bounded_callback(deadline, callback) do
+    if deadline_expired?(deadline) do
+      :timeout
+    else
+      caller = self()
+      message_ref = make_ref()
+      message_tag = {__MODULE__, :bounded_callback, message_ref}
+
+      {guardian, guardian_ref} =
+        spawn_monitor(fn ->
+          lifecycle_guardian(caller, message_tag, deadline, callback)
+        end)
+
+      await_lifecycle_ready(guardian, guardian_ref, message_tag)
+    end
+  end
+
+  defp await_lifecycle_ready(guardian, guardian_ref, message_tag) do
+    receive do
+      {^message_tag, :lifecycle_ready, ^guardian, controller} ->
+        controller_ref = Process.monitor(controller)
+        send(guardian, {message_tag, :request_ready, self()})
+
+        await_lifecycle_outcome(%{
+          controller: controller,
+          controller_down: nil,
+          controller_ref: controller_ref,
+          guardian: guardian,
+          guardian_down: nil,
+          guardian_ref: guardian_ref,
+          message_tag: message_tag
+        })
+
+      {:DOWN, ^guardian_ref, :process, ^guardian, reason} ->
+        Process.demonitor(guardian_ref, [:flush])
+        drain_request_lifecycle_messages(message_tag)
+        {:controller_death, reason}
+    end
+  end
+
+  defp await_lifecycle_outcome(state) do
+    receive do
+      {message_tag, :controller_result, controller, outcome}
+      when message_tag == state.message_tag and controller == state.controller ->
+        await_lifecycle_shutdown(state, outcome)
+
+      {message_tag, :controller_cleanup, controller, outcome}
+      when message_tag == state.message_tag and controller == state.controller ->
+        await_lifecycle_shutdown(state, outcome)
+
+      {:DOWN, controller_ref, :process, controller, reason}
+      when controller_ref == state.controller_ref and controller == state.controller ->
+        state
+        |> Map.put(:controller_down, reason)
+        |> lifecycle_down_or_continue()
+
+      {:DOWN, guardian_ref, :process, guardian, reason}
+      when guardian_ref == state.guardian_ref and guardian == state.guardian ->
+        state
+        |> Map.put(:guardian_down, reason)
+        |> lifecycle_down_or_continue()
+    end
+  end
+
+  defp lifecycle_down_or_continue(%{controller_down: nil} = state),
+    do: await_lifecycle_outcome(state)
+
+  defp lifecycle_down_or_continue(%{guardian_down: nil} = state),
+    do: await_lifecycle_outcome(state)
+
+  defp lifecycle_down_or_continue(state) do
+    reason = state.controller_down || state.guardian_down
+    finish_request_lifecycle(state)
+    {:controller_death, reason}
+  end
+
+  defp await_lifecycle_shutdown(state, outcome) do
+    cond do
+      state.controller_down == nil ->
+        receive do
+          {:DOWN, controller_ref, :process, controller, reason}
+          when controller_ref == state.controller_ref and controller == state.controller ->
+            await_lifecycle_shutdown(Map.put(state, :controller_down, reason), outcome)
+
+          {:DOWN, guardian_ref, :process, guardian, reason}
+          when guardian_ref == state.guardian_ref and guardian == state.guardian ->
+            await_lifecycle_shutdown(Map.put(state, :guardian_down, reason), outcome)
+        end
+
+      state.guardian_down == nil ->
+        receive do
+          {:DOWN, guardian_ref, :process, guardian, reason}
+          when guardian_ref == state.guardian_ref and guardian == state.guardian ->
+            await_lifecycle_shutdown(Map.put(state, :guardian_down, reason), outcome)
+        end
+
+      true ->
+        finish_request_lifecycle(state)
+        outcome
+    end
+  end
+
+  defp finish_request_lifecycle(state) do
+    Process.demonitor(state.controller_ref, [:flush])
+    Process.demonitor(state.guardian_ref, [:flush])
+    drain_request_lifecycle_messages(state.message_tag)
+    :ok
+  end
+
+  defp lifecycle_guardian(caller, message_tag, deadline, callback) do
+    Process.put({__MODULE__, :bounded_lifecycle_role}, :guardian)
+    caller_ref = Process.monitor(caller)
+    guardian = self()
+
+    {controller, controller_ref} =
+      spawn_monitor(fn ->
+        lifecycle_controller(caller, guardian, message_tag, deadline)
+      end)
+
+    send(caller, {message_tag, :lifecycle_ready, guardian, controller})
+
+    guardian_loop(%{
+      armed: false,
+      callback: callback,
+      caller: caller,
+      caller_down: false,
+      caller_ref: caller_ref,
+      controller: controller,
+      controller_down: false,
+      controller_ready: false,
+      controller_ref: controller_ref,
+      deadline: deadline,
+      deadline_notified: false,
+      finalized: false,
+      message_tag: message_tag,
+      request_ready: false,
+      worker: nil,
+      worker_ref: nil
+    })
+  end
+
+  defp guardian_loop(state) do
+    state = state |> guardian_maybe_arm_controller() |> guardian_maybe_start_worker()
+
+    receive do
+      {message_tag, :request_ready, caller}
+      when message_tag == state.message_tag and caller == state.caller ->
+        guardian_loop(%{state | request_ready: true})
+
+      {message_tag, :controller_ready, controller}
+      when message_tag == state.message_tag and controller == state.controller ->
+        guardian_loop(%{state | controller_ready: true})
+
+      {message_tag, :worker_booted, worker}
+      when message_tag == state.message_tag and worker == state.worker ->
+        send(state.controller, {state.message_tag, :worker_ready, worker})
+        guardian_loop(%{state | callback: nil})
+
+      {message_tag, :controller_finalize, controller}
+      when message_tag == state.message_tag and controller == state.controller ->
+        state = guardian_cleanup_worker(state)
+        send(controller, {state.message_tag, :guardian_cleaned, self()})
+        guardian_loop(%{state | finalized: true})
+
+      {:DOWN, caller_ref, :process, caller, _reason}
+      when caller_ref == state.caller_ref and caller == state.caller ->
+        state = guardian_cleanup_worker(%{state | caller_down: true})
+        send(state.controller, {state.message_tag, :caller_down, self()})
+        guardian_loop(state)
+
+      {:DOWN, controller_ref, :process, controller, reason}
+      when controller_ref == state.controller_ref and controller == state.controller ->
+        guardian_controller_down(state, reason)
+
+      {:DOWN, worker_ref, :process, worker, _reason}
+      when worker_ref == state.worker_ref and worker == state.worker ->
+        Process.demonitor(worker_ref, [:flush])
+        guardian_loop(%{state | worker: nil, worker_ref: nil})
+    after
+      receive_interval(state.deadline) ->
+        guardian_loop(guardian_check_deadline(state))
+    end
+  end
+
+  defp guardian_maybe_arm_controller(state) do
+    if state.controller_ready and state.request_ready and not state.armed do
+      send(state.controller, {state.message_tag, :controller_armed, self()})
+      %{state | armed: true}
+    else
+      state
+    end
+  end
+
+  defp guardian_maybe_start_worker(state) do
+    cond do
+      state.finalized or state.caller_down or state.worker != nil or
+          not state.armed ->
+        guardian_check_deadline(state)
+
+      deadline_expired?(state.deadline) ->
+        guardian_check_deadline(state)
+
+      true ->
+        guardian = self()
+
+        {worker, worker_ref} =
+          spawn_monitor(fn ->
+            lifecycle_worker(
+              guardian,
+              state.controller,
+              state.message_tag,
+              state.callback
+            )
+          end)
+
+        %{state | worker: worker, worker_ref: worker_ref}
+    end
+  end
+
+  defp guardian_check_deadline(%{armed: false} = state), do: state
+  defp guardian_check_deadline(%{deadline_notified: true} = state), do: state
+
+  defp guardian_check_deadline(state) do
+    if deadline_expired?(state.deadline) do
+      send(state.controller, {state.message_tag, :guardian_deadline, self()})
+
+      state
+      |> Map.put(:deadline_notified, true)
+      |> guardian_cleanup_worker()
+    else
+      state
+    end
+  end
+
+  defp guardian_controller_down(state, reason) do
+    state = guardian_cleanup_worker(%{state | controller_down: true})
+
+    if not state.finalized and not state.caller_down and Process.alive?(state.caller) do
+      send(
+        state.caller,
+        {state.message_tag, :controller_cleanup, state.controller, {:controller_death, reason}}
+      )
+    end
+
+    guardian_cleanup_and_exit(state)
+  end
+
+  defp guardian_cleanup_worker(%{worker: nil} = state), do: state
+
+  defp guardian_cleanup_worker(state) do
+    Process.exit(state.worker, :kill)
+
+    receive do
+      {:DOWN, worker_ref, :process, worker, _reason}
+      when worker_ref == state.worker_ref and worker == state.worker ->
+        :ok
+    end
+
+    Process.demonitor(state.worker_ref, [:flush])
+    %{state | callback: nil, worker: nil, worker_ref: nil}
+  end
+
+  defp guardian_cleanup_and_exit(state) do
+    Process.demonitor(state.caller_ref, [:flush])
+    Process.demonitor(state.controller_ref, [:flush])
+    drain_guardian_messages(state.message_tag)
+    :ok
+  end
+
+  defp lifecycle_controller(caller, guardian, message_tag, deadline) do
+    Process.put({__MODULE__, :bounded_lifecycle_role}, :controller)
+    caller_ref = Process.monitor(caller)
+    guardian_ref = Process.monitor(guardian)
+    send(guardian, {message_tag, :controller_ready, self()})
+
+    controller_loop(%{
+      armed: false,
+      caller: caller,
+      caller_down: false,
+      caller_ref: caller_ref,
+      deadline: deadline,
+      guardian: guardian,
+      guardian_down: false,
+      guardian_ref: guardian_ref,
+      message_tag: message_tag,
+      pending_outcome: nil,
+      worker: nil,
+      worker_ref: nil
+    })
+  end
+
+  defp controller_loop(state) do
+    if state.armed and deadline_expired?(state.deadline) do
+      controller_finish(state, :timeout, not state.caller_down)
+    else
+      receive do
+        {message_tag, :controller_armed, guardian}
+        when message_tag == state.message_tag and guardian == state.guardian ->
+          controller_loop(%{state | armed: true})
+
+        {message_tag, :worker_ready, worker} when message_tag == state.message_tag ->
+          worker_ref = Process.monitor(worker)
+          state = %{state | worker: worker, worker_ref: worker_ref}
+
+          cond do
+            state.caller_down or not Process.alive?(state.caller) ->
+              controller_finish(%{state | caller_down: true}, :timeout, false)
+
+            deadline_expired?(state.deadline) ->
+              controller_finish(state, :timeout, true)
+
+            state.guardian_down ->
+              controller_finish(state, {:controller_death, :guardian_down}, true)
+
+            state.pending_outcome != nil ->
+              controller_finish(state, state.pending_outcome, true)
+
+            true ->
+              send(worker, {state.message_tag, :execute, self()})
+              controller_loop(state)
+          end
+
+        {message_tag, :worker_result, worker, outcome}
+        when message_tag == state.message_tag and
+               (state.worker == nil or worker == state.worker) ->
+          if state.worker == nil do
+            controller_loop(%{state | pending_outcome: outcome})
+          else
+            outcome = if deadline_expired?(state.deadline), do: :timeout, else: outcome
+            controller_finish(state, outcome, not state.caller_down)
+          end
+
+        {message_tag, :guardian_deadline, guardian}
+        when message_tag == state.message_tag and guardian == state.guardian ->
+          controller_finish(state, :timeout, not state.caller_down)
+
+        {message_tag, :caller_down, guardian}
+        when message_tag == state.message_tag and guardian == state.guardian ->
+          controller_finish(%{state | caller_down: true}, :timeout, false)
+
+        {:DOWN, caller_ref, :process, caller, _reason}
+        when caller_ref == state.caller_ref and caller == state.caller ->
+          controller_finish(%{state | caller_down: true}, :timeout, false)
+
+        {:DOWN, guardian_ref, :process, guardian, reason}
+        when guardian_ref == state.guardian_ref and guardian == state.guardian ->
+          controller_finish(
+            %{state | guardian_down: true},
+            {:controller_death, reason},
+            not state.caller_down
+          )
+
+        {:DOWN, worker_ref, :process, worker, reason}
+        when worker_ref == state.worker_ref and worker == state.worker ->
+          controller_worker_down(state, reason)
+      after
+        controller_receive_interval(state) ->
+          controller_loop(state)
+      end
+    end
+  end
+
+  defp controller_receive_interval(%{armed: false}), do: @max_receive_interval_ms
+  defp controller_receive_interval(state), do: receive_interval(state.deadline)
+
+  defp controller_worker_down(state, reason) do
+    outcome =
+      cond do
+        state.caller_down or not Process.alive?(state.caller) ->
+          :caller_down
+
+        deadline_expired?(state.deadline) ->
+          :timeout
+
+        true ->
+          receive do
+            {message_tag, :worker_result, worker, worker_outcome}
+            when message_tag == state.message_tag and worker == state.worker ->
+              worker_outcome
+          after
+            0 -> {:worker_death, reason}
+          end
+      end
+
+    Process.demonitor(state.worker_ref, [:flush])
+    state = %{state | worker: nil, worker_ref: nil}
+
+    case outcome do
+      :caller_down -> controller_finish(%{state | caller_down: true}, :timeout, false)
+      other -> controller_finish(state, other, true)
+    end
+  end
+
+  defp controller_finish(state, outcome, deliver?) do
+    state = controller_cleanup_worker(state)
+
+    {state, deliver?} =
+      if state.guardian_down do
+        {state, deliver?}
+      else
+        send(state.guardian, {state.message_tag, :controller_finalize, self()})
+        await_guardian_cleanup(state, deliver?)
+      end
+
+    Process.demonitor(state.caller_ref, [:flush])
+    Process.demonitor(state.guardian_ref, [:flush])
+    drain_controller_messages(state.message_tag)
+
+    if deliver? and not state.caller_down and Process.alive?(state.caller) do
+      send(state.caller, {state.message_tag, :controller_result, self(), outcome})
+    end
+
+    :ok
+  end
+
+  defp controller_cleanup_worker(%{worker: nil} = state), do: state
+
+  defp controller_cleanup_worker(state) do
+    Process.exit(state.worker, :kill)
+
+    receive do
+      {:DOWN, worker_ref, :process, worker, _reason}
+      when worker_ref == state.worker_ref and worker == state.worker ->
+        :ok
+    end
+
+    Process.demonitor(state.worker_ref, [:flush])
+    drain_worker_results(state.message_tag, state.worker)
+    %{state | worker: nil, worker_ref: nil}
+  end
+
+  defp await_guardian_cleanup(state, deliver?) do
+    receive do
+      {message_tag, :guardian_cleaned, guardian}
+      when message_tag == state.message_tag and guardian == state.guardian ->
+        {state, deliver?}
+
+      {:DOWN, caller_ref, :process, caller, _reason}
+      when caller_ref == state.caller_ref and caller == state.caller ->
+        await_guardian_cleanup(%{state | caller_down: true}, false)
+
+      {:DOWN, guardian_ref, :process, guardian, _reason}
+      when guardian_ref == state.guardian_ref and guardian == state.guardian ->
+        {%{state | guardian_down: true}, deliver?}
+    end
+  end
+
+  defp lifecycle_worker(guardian, controller, message_tag, callback) do
+    guardian_ref = Process.monitor(guardian)
+    controller_ref = Process.monitor(controller)
+    send(guardian, {message_tag, :worker_booted, self()})
+
+    receive do
+      {^message_tag, :execute, ^controller} ->
+        outcome =
+          try do
+            {:returned, callback.()}
+          rescue
+            exception -> {:exception, exception_name(exception)}
+          catch
+            :throw, _reason -> :throw
+            :exit, _reason -> :exit
+          end
+
+        send(controller, {message_tag, :worker_result, self(), outcome})
+
+      {:DOWN, ^guardian_ref, :process, ^guardian, _reason} ->
+        :ok
+
+      {:DOWN, ^controller_ref, :process, ^controller, _reason} ->
+        :ok
+    end
+  end
+
+  defp drain_worker_results(message_tag, worker) do
+    receive do
+      {^message_tag, :worker_result, ^worker, _outcome} ->
+        drain_worker_results(message_tag, worker)
+    after
+      0 -> :ok
+    end
+  end
+
+  defp drain_request_lifecycle_messages(message_tag) do
+    receive do
+      {^message_tag, _kind, _one} -> drain_request_lifecycle_messages(message_tag)
+      {^message_tag, _kind, _one, _two} -> drain_request_lifecycle_messages(message_tag)
+    after
+      0 -> :ok
+    end
+  end
+
+  defp drain_guardian_messages(message_tag) do
+    receive do
+      {^message_tag, _kind, _one} -> drain_guardian_messages(message_tag)
+      {^message_tag, _kind, _one, _two} -> drain_guardian_messages(message_tag)
+    after
+      0 -> :ok
+    end
+  end
+
+  defp drain_controller_messages(message_tag) do
+    receive do
+      {^message_tag, _kind, _one} -> drain_controller_messages(message_tag)
+      {^message_tag, _kind, _one, _two} -> drain_controller_messages(message_tag)
+    after
+      0 -> :ok
+    end
+  end
+
+  defp deadline_expired?(deadline), do: System.monotonic_time() >= deadline
+
+  defp receive_interval(deadline) do
+    remaining = deadline - System.monotonic_time()
+
+    remaining
+    |> System.convert_time_unit(:native, :millisecond)
+    |> max(1)
+    |> min(@max_receive_interval_ms)
+  end
+
+  defp callback_timeout_error(phase, timeout) do
+    phase_name = Atom.to_string(phase)
+
+    typed_error(
+      "adapter_#{phase_name}_timeout",
+      "adapter #{phase_name} callback exceeded the bounded dry-run deadline",
+      %{"phase" => phase_name, "timeout_ms" => timeout}
+    )
+  end
+
+  defp callback_nonreturn_error(phase, kind) do
+    phase_name = Atom.to_string(phase)
+    kind_name = Atom.to_string(kind)
+
+    typed_error(
+      "adapter_#{phase_name}_#{kind_name}",
+      "adapter #{phase_name} callback did not return",
+      %{"phase" => phase_name, "termination" => kind_name}
+    )
+  end
+
+  defp callback_worker_death_error(phase, reason) do
+    phase_name = Atom.to_string(phase)
+
+    typed_error(
+      "adapter_#{phase_name}_worker_death",
+      "adapter #{phase_name} monitored worker died before returning",
+      %{"phase" => phase_name, "reason" => worker_death_reason(reason)}
+    )
+  end
+
+  defp callback_controller_death_error(phase, reason) do
+    phase_name = Atom.to_string(phase)
+
+    typed_error(
+      "adapter_#{phase_name}_controller_death",
+      "adapter #{phase_name} lifecycle controller died before cleanup completed",
+      %{"phase" => phase_name, "reason" => worker_death_reason(reason)}
+    )
+  end
+
+  defp worker_death_reason(reason) when is_atom(reason), do: Atom.to_string(reason)
+  defp worker_death_reason(reason), do: term_type(reason)
 
   defp validate_acknowledgement(%{} = acknowledgement, request) do
     missing = Enum.reject(@acknowledgement_fields, &Map.has_key?(acknowledgement, &1))
