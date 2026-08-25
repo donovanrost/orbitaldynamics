@@ -91,13 +91,13 @@ defmodule OrbitalDynamics.FrameTransformTest do
         pid when is_pid(pid) ->
           send(pid, {:bounded_earth_rotation_fetched, angle_rad, rate_rad_s})
 
-        _pid -> :ok
+        _pid ->
+          :ok
       end
 
       {:ok,
        %{
-         "provider_id" =>
-           Keyword.get(opts, :product_provider_id, capabilities()["id"]),
+         "provider_id" => Keyword.get(opts, :product_provider_id, capabilities()["id"]),
          "model" => Keyword.get(opts, :product_model, capabilities()["model"]),
          "earth_rotation_angle_rad" => angle_rad,
          "earth_rotation_rate_rad_s" => rate_rad_s,
@@ -124,10 +124,8 @@ defmodule OrbitalDynamics.FrameTransformTest do
                  epoch_abs_max_s_since_j2000: @maximum_epoch_magnitude_s
                },
                provider_product: %{
-                 earth_rotation_angle_abs_max_rad:
-                   @maximum_earth_rotation_angle_magnitude_rad,
-                 earth_rotation_rate_abs_max_rad_s:
-                   @maximum_earth_rotation_rate_magnitude_rad_s
+                 earth_rotation_angle_abs_max_rad: @maximum_earth_rotation_angle_magnitude_rad,
+                 earth_rotation_rate_abs_max_rad_s: @maximum_earth_rotation_rate_magnitude_rad_s
                }
              },
              public_facades: [:frame_transform_provider_policy, :transform_state_frame],
@@ -146,6 +144,7 @@ defmodule OrbitalDynamics.FrameTransformTest do
     assert :not_flight_certified in known_limits
     assert :no_time_scale_conversion in known_limits
     assert :input_envelope_not_closed_under_transform in known_limits
+
     assert @maximum_earth_rotation_rate_magnitude_rad_s >=
              @retained_quarter_rotation_rate_rad_s
 
@@ -237,8 +236,7 @@ defmodule OrbitalDynamics.FrameTransformTest do
 
     vector_fields = [
       {:position_km, @maximum_position_component_km, {:unsupported_state, :position_km}},
-      {:velocity_km_s, @maximum_velocity_component_km_s,
-       {:unsupported_state, :velocity_km_s}}
+      {:velocity_km_s, @maximum_velocity_component_km_s, {:unsupported_state, :velocity_km_s}}
     ]
 
     for {field, maximum, expected_error} <- vector_fields,
@@ -288,16 +286,13 @@ defmodule OrbitalDynamics.FrameTransformTest do
        {:error, {:unsupported_state, :velocity_km_s}}},
       {%{base | epoch: Epoch.new!(huge_integer, :tdb)},
        {:error, {:unsupported_time, :seconds_since_j2000}}},
-      {%{base | position_km: {1.0e308, 0.0, 0.0}},
-       {:error, {:unsupported_state, :position_km}}},
+      {%{base | position_km: {1.0e308, 0.0, 0.0}}, {:error, {:unsupported_state, :position_km}}},
       {%{base | velocity_km_s: {0.0, 1.0e308, 0.0}},
        {:error, {:unsupported_state, :velocity_km_s}}},
       {%{base | epoch: Epoch.new!(1.0e308, :tdb)},
        {:error, {:unsupported_time, :seconds_since_j2000}}},
-      {%{base | position_km: {:nan, 0.0, 0.0}},
-       {:error, {:invalid_state, :state_vector}}},
-      {%{base | velocity_km_s: {0.0, :infinity, 0.0}},
-       {:error, {:invalid_state, :state_vector}}},
+      {%{base | position_km: {:nan, 0.0, 0.0}}, {:error, {:invalid_state, :state_vector}}},
+      {%{base | velocity_km_s: {0.0, :infinity, 0.0}}, {:error, {:invalid_state, :state_vector}}},
       {%{base | epoch: %{base.epoch | seconds_since_j2000: :infinity}},
        {:error, {:invalid_state, :state_vector}}},
       {%{base | position_km: {7_000.0, 0.0}}, {:error, {:invalid_state, :state_vector}}},
@@ -331,8 +326,7 @@ defmodule OrbitalDynamics.FrameTransformTest do
           {%{earth | name: "earth"}, {:error, {:invalid_central_body, :name}}},
           {%{earth | mu_km3_s2: nil}, {:error, {:invalid_central_body, :mu_km3_s2}}},
           {%{earth | mu_km3_s2: 0.0}, {:error, {:invalid_central_body, :mu_km3_s2}}},
-          {%{earth | mu_km3_s2: -huge_integer},
-           {:error, {:invalid_central_body, :mu_km3_s2}}},
+          {%{earth | mu_km3_s2: -huge_integer}, {:error, {:invalid_central_body, :mu_km3_s2}}},
           {%{earth | equatorial_radius_km: :infinity},
            {:error, {:invalid_central_body, :equatorial_radius_km}}},
           {%{earth | equatorial_radius_km: 0.0},
@@ -350,8 +344,7 @@ defmodule OrbitalDynamics.FrameTransformTest do
          {:error, {:invalid_state, :frame}}}
       end) ++
         Enum.map([:name, :center, :orientation], fn field ->
-          {state, Map.delete(target, field), earth,
-           {:error, {:invalid_input, :target_frame}}}
+          {state, Map.delete(target, field), earth, {:error, {:invalid_input, :target_frame}}}
         end) ++
         Enum.map(malformed_body_cases, fn {candidate_body, expected} ->
           {state, target, candidate_body, expected}
@@ -395,6 +388,7 @@ defmodule OrbitalDynamics.FrameTransformTest do
     malformed_source_state = %{state | frame: Map.delete(state.frame, :name)}
     malformed_target = Map.delete(Frame.earth_fixed(), :name)
     moon = CentralBody.new!(:moon, 4_902.800066)
+
     malformed_source_utc_state =
       %{malformed_source_state | epoch: Epoch.new!(0.0, :utc)}
 
@@ -547,14 +541,14 @@ defmodule OrbitalDynamics.FrameTransformTest do
       {%{
          positive_corner_state
          | position_km:
-             {next_up(@maximum_position_component_km),
-              @maximum_position_component_km, @maximum_position_component_km}
+             {next_up(@maximum_position_component_km), @maximum_position_component_km,
+              @maximum_position_component_km}
        }, positive_corner_policy, {:error, {:unsupported_state, :position_km}}},
       {%{
          positive_corner_state
          | velocity_km_s:
-             {next_up(@maximum_velocity_component_km_s),
-              @maximum_velocity_component_km_s, @maximum_velocity_component_km_s}
+             {next_up(@maximum_velocity_component_km_s), @maximum_velocity_component_km_s,
+              @maximum_velocity_component_km_s}
        }, positive_corner_policy, {:error, {:unsupported_state, :velocity_km_s}}},
       {%{
          positive_corner_state
@@ -913,7 +907,7 @@ defmodule OrbitalDynamics.FrameTransformTest do
 
   defp next_up(value) when is_float(value) and value >= 0.0 do
     <<bits::unsigned-integer-size(64)>> = <<value::float-size(64)>>
-    <<next::float-size(64)>> = <<(bits + 1)::unsigned-integer-size(64)>>
+    <<next::float-size(64)>> = <<bits + 1::unsigned-integer-size(64)>>
     next
   end
 

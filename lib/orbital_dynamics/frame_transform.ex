@@ -84,8 +84,7 @@ defmodule OrbitalDynamics.FrameTransform do
         },
         provider_product: %{
           earth_rotation_angle_abs_max_rad: @maximum_earth_rotation_angle_magnitude_rad,
-          earth_rotation_rate_abs_max_rad_s:
-            @maximum_earth_rotation_rate_magnitude_rad_s
+          earth_rotation_rate_abs_max_rad_s: @maximum_earth_rotation_rate_magnitude_rad_s
         }
       },
       round_trip_tolerances: %{
@@ -336,14 +335,16 @@ defmodule OrbitalDynamics.FrameTransform do
 
   defp validate_nil_or_positive_central_body_field(central_body, field) do
     case Map.fetch(central_body, field) do
-      {:ok, nil} -> :ok
+      {:ok, nil} ->
+        :ok
 
       {:ok, value} ->
         if positive_number?(value),
           do: :ok,
           else: {:error, {:invalid_central_body, field}}
 
-      :error -> {:error, {:invalid_central_body, field}}
+      :error ->
+        {:error, {:invalid_central_body, field}}
     end
   end
 
