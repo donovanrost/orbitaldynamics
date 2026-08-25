@@ -12,10 +12,16 @@ defmodule OrbitalDynamics.FrameTransform do
   rotating-frame transport term, not just the position rotation matrix.
   """
 
-  alias OrbitalDynamics.{CentralBody, Environment, Frame, StateVector, Vector3}
+  alias OrbitalDynamics.{CentralBody, Environment, Epoch, Frame, StateVector, Vector3}
 
-  @position_tolerance_km 1.0e-9
-  @velocity_tolerance_km_s 1.0e-12
+  @position_absolute_tolerance_km 1.0e-9
+  @velocity_absolute_tolerance_km_s 1.0e-12
+  @round_trip_relative_scale_factor 1.0e-12
+  @maximum_position_component_km 1.0e9
+  @maximum_velocity_component_km_s 2.0e4
+  @maximum_epoch_magnitude_s 1.0e12
+  @maximum_earth_rotation_angle_magnitude_rad 1.0e12
+  @maximum_earth_rotation_rate_magnitude_rad_s 2.0
 
   defmodule ProviderPolicy do
     @moduledoc """
@@ -23,17 +29,25 @@ defmodule OrbitalDynamics.FrameTransform do
 
     Construct policies with `OrbitalDynamics.FrameTransform.provider_policy/2`
     so provider capability, finite coverage, source, and source revision are
-    captured once before transforming states.
+    captured once before transforming states. The integrity value is an
+    internal same-runtime content binding, not a stable external serialization.
     """
 
-    @enforce_keys [:provider, :provider_opts, :capability, :source_revision]
-    defstruct [:provider, :provider_opts, :capability, :source_revision]
+    @enforce_keys [
+      :provider,
+      :provider_opts,
+      :capability,
+      :source_revision,
+      :integrity_sha256
+    ]
+    defstruct @enforce_keys
 
     @type t :: %__MODULE__{
             provider: module(),
             provider_opts: keyword(),
             capability: map(),
-            source_revision: String.t()
+            source_revision: String.t(),
+            integrity_sha256: String.t()
           }
   end
 
@@ -51,6 +65,7 @@ defmodule OrbitalDynamics.FrameTransform do
         %{source: :earth_body_fixed, target: :eci_j2000}
       ],
       provider_policy: :explicit_immutable_caller_supplied,
+      provider_policy_integrity: :sha256_same_runtime_content_binding,
       provider_requirements: [
         :offline,
         :earth_rotation_angle_rad,
@@ -58,9 +73,28 @@ defmodule OrbitalDynamics.FrameTransform do
         :epoch_coverage,
         :source_revision
       ],
+      supported_numeric_envelope: %{
+        bound_policy: :inclusive,
+        scope: :per_call_input_and_provider_product,
+        transformed_state_re_admission: :not_guaranteed,
+        state: %{
+          position_component_abs_max_km: @maximum_position_component_km,
+          velocity_component_abs_max_km_s: @maximum_velocity_component_km_s,
+          epoch_abs_max_s_since_j2000: @maximum_epoch_magnitude_s
+        },
+        provider_product: %{
+          earth_rotation_angle_abs_max_rad: @maximum_earth_rotation_angle_magnitude_rad,
+          earth_rotation_rate_abs_max_rad_s:
+            @maximum_earth_rotation_rate_magnitude_rad_s
+        }
+      },
       round_trip_tolerances: %{
-        position_km: @position_tolerance_km,
-        velocity_km_s: @velocity_tolerance_km_s
+        position_km: @position_absolute_tolerance_km,
+        velocity_km_s: @velocity_absolute_tolerance_km_s,
+        model: :absolute_floor_plus_realized_scale,
+        position_absolute_floor_km: @position_absolute_tolerance_km,
+        velocity_absolute_floor_km_s: @velocity_absolute_tolerance_km_s,
+        relative_scale_factor: @round_trip_relative_scale_factor
       },
       public_facades: [:frame_transform_provider_policy, :transform_state_frame],
       outputs: [:state, :transform_evidence, :round_trip_tolerance_evidence],
@@ -73,6 +107,7 @@ defmodule OrbitalDynamics.FrameTransform do
         :no_precession_nutation_or_polar_motion,
         :no_authoritative_eop_source,
         :offline_providers_only,
+        :input_envelope_not_closed_under_transform,
         :not_flight_certified
       ]
     }
@@ -106,7 +141,9 @@ defmodule OrbitalDynamics.FrameTransform do
          provider: provider,
          provider_opts: provider_opts,
          capability: capability,
-         source_revision: source_revision
+         source_revision: source_revision,
+         integrity_sha256:
+           policy_integrity_sha256(provider, provider_opts, capability, source_revision)
        }}
     else
       {:error, {:invalid_option, _field} = reason} -> {:error, reason}
@@ -137,6 +174,8 @@ defmodule OrbitalDynamics.FrameTransform do
     with :ok <- validate_state(state),
          :ok <- validate_central_body(central_body),
          :ok <- validate_epoch(state),
+         :ok <- validate_source_frame(state.frame),
+         :ok <- validate_target_frame(target_frame),
          {:ok, direction} <- transform_direction(state.frame, target_frame),
          :ok <- validate_policy(policy),
          :ok <- validate_policy_request(policy, state, central_body),
@@ -225,28 +264,110 @@ defmodule OrbitalDynamics.FrameTransform do
   defp validate_state(%StateVector{
          position_km: position_km,
          velocity_km_s: velocity_km_s,
-         epoch: %{seconds_since_j2000: seconds_since_j2000},
+         epoch: %Epoch{seconds_since_j2000: seconds_since_j2000},
          frame: %Frame{}
        }) do
-    if Vector3.valid?(position_km) and Vector3.valid?(velocity_km_s) and
-         is_number(seconds_since_j2000) do
-      :ok
-    else
-      {:error, {:invalid_state, :state_vector}}
+    cond do
+      not Vector3.valid?(position_km) or not Vector3.valid?(velocity_km_s) or
+          not number?(seconds_since_j2000) ->
+        {:error, {:invalid_state, :state_vector}}
+
+      not vector_components_within?(position_km, @maximum_position_component_km) ->
+        {:error, {:unsupported_state, :position_km}}
+
+      not vector_components_within?(velocity_km_s, @maximum_velocity_component_km_s) ->
+        {:error, {:unsupported_state, :velocity_km_s}}
+
+      not number_in_symmetric_range?(seconds_since_j2000, @maximum_epoch_magnitude_s) ->
+        {:error, {:unsupported_time, :seconds_since_j2000}}
+
+      true ->
+        :ok
     end
   end
 
   defp validate_state(%StateVector{}), do: {:error, {:invalid_state, :state_vector}}
 
-  defp validate_central_body(%CentralBody{name: :earth}), do: :ok
+  defp validate_source_frame(%Frame{} = frame) do
+    if valid_frame?(frame),
+      do: :ok,
+      else: {:error, {:invalid_state, :frame}}
+  end
 
-  defp validate_central_body(%CentralBody{name: body}),
-    do: {:error, {:unsupported_central_body, body}}
+  defp validate_target_frame(%Frame{} = frame) do
+    if valid_frame?(frame),
+      do: :ok,
+      else: {:error, {:invalid_input, :target_frame}}
+  end
 
-  defp validate_epoch(%StateVector{epoch: %{scale: :tdb}}), do: :ok
+  defp validate_central_body(%CentralBody{} = central_body) do
+    case Map.fetch(central_body, :name) do
+      {:ok, name} when is_atom(name) ->
+        if name == :earth do
+          with :ok <- validate_positive_central_body_field(central_body, :mu_km3_s2),
+               :ok <-
+                 validate_nil_or_positive_central_body_field(
+                   central_body,
+                   :equatorial_radius_km
+                 ),
+               :ok <- validate_nil_or_non_negative_central_body_field(central_body, :j2) do
+            :ok
+          end
+        else
+          {:error, {:unsupported_central_body, name}}
+        end
 
-  defp validate_epoch(%StateVector{epoch: %{scale: scale}}),
+      _missing_or_invalid_name ->
+        {:error, {:invalid_central_body, :name}}
+    end
+  end
+
+  defp validate_positive_central_body_field(central_body, field) do
+    case Map.fetch(central_body, field) do
+      {:ok, value} ->
+        if positive_number?(value),
+          do: :ok,
+          else: {:error, {:invalid_central_body, field}}
+
+      :error ->
+        {:error, {:invalid_central_body, field}}
+    end
+  end
+
+  defp validate_nil_or_positive_central_body_field(central_body, field) do
+    case Map.fetch(central_body, field) do
+      {:ok, nil} -> :ok
+
+      {:ok, value} ->
+        if positive_number?(value),
+          do: :ok,
+          else: {:error, {:invalid_central_body, field}}
+
+      :error -> {:error, {:invalid_central_body, field}}
+    end
+  end
+
+  defp validate_nil_or_non_negative_central_body_field(central_body, field) do
+    case Map.fetch(central_body, field) do
+      {:ok, nil} ->
+        :ok
+
+      {:ok, value} ->
+        if non_negative_number?(value),
+          do: :ok,
+          else: {:error, {:invalid_central_body, field}}
+
+      :error ->
+        {:error, {:invalid_central_body, field}}
+    end
+  end
+
+  defp validate_epoch(%StateVector{epoch: %Epoch{scale: :tdb}}), do: :ok
+
+  defp validate_epoch(%StateVector{epoch: %Epoch{scale: scale}}),
     do: {:error, {:unsupported_time_scale, scale}}
+
+  defp validate_epoch(_state), do: {:error, {:invalid_state, :state_vector}}
 
   defp transform_direction(source_frame, target_frame) do
     inertial = Frame.earth_inertial_j2000()
@@ -267,24 +388,40 @@ defmodule OrbitalDynamics.FrameTransform do
 
   defp frame_name(%Frame{name: name}), do: name
 
+  defp valid_frame?(%Frame{name: name, center: center, orientation: orientation})
+       when is_atom(name) and is_atom(center) and is_atom(orientation),
+       do: true
+
+  defp valid_frame?(_frame), do: false
+
   defp validate_policy(%ProviderPolicy{} = policy) do
+    provider = Map.get(policy, :provider)
+    provider_opts = Map.get(policy, :provider_opts)
+    capability = Map.get(policy, :capability)
+    source_revision = Map.get(policy, :source_revision)
+    integrity_sha256 = Map.get(policy, :integrity_sha256)
+
     cond do
-      not is_atom(policy.provider) ->
+      not is_atom(provider) ->
         {:error, {:invalid_provider_policy, :provider}}
 
-      not is_list(policy.provider_opts) or not Keyword.keyword?(policy.provider_opts) ->
+      not is_list(provider_opts) or not Keyword.keyword?(provider_opts) ->
         {:error, {:invalid_provider_policy, :provider_opts}}
 
-      not valid_source_revision?(policy.source_revision) ->
+      not valid_source_revision?(source_revision) ->
         {:error, {:invalid_provider_policy, :source_revision}}
 
-      Environment.validate_provider_capability(policy.capability) != :ok ->
+      Environment.validate_provider_capability(capability) != :ok ->
         {:error, {:invalid_provider_policy, :capability}}
 
+      integrity_sha256 !=
+          policy_integrity_sha256(provider, provider_opts, capability, source_revision) ->
+        {:error, {:invalid_provider_policy, :integrity_sha256}}
+
       true ->
-        with :ok <- validate_provider_fetch(policy.provider),
-             :ok <- validate_offline_provider(policy.capability),
-             :ok <- validate_provider_time_scale(policy.capability) do
+        with :ok <- validate_provider_fetch(provider),
+             :ok <- validate_offline_provider(capability),
+             :ok <- validate_provider_time_scale(capability) do
           :ok
         else
           {:error, reason} -> {:error, {:invalid_provider_policy, reason}}
@@ -331,8 +468,18 @@ defmodule OrbitalDynamics.FrameTransform do
   defp validate_rotation_product(product, policy) do
     with :ok <- matching_product_field(product, policy.capability, "provider_id", "id"),
          :ok <- matching_product_field(product, policy.capability, "model", "model"),
-         {:ok, angle_rad} <- numeric_product_field(product, "earth_rotation_angle_rad"),
-         {:ok, rate_rad_s} <- numeric_product_field(product, "earth_rotation_rate_rad_s") do
+         {:ok, angle_rad} <-
+           numeric_product_field(
+             product,
+             "earth_rotation_angle_rad",
+             @maximum_earth_rotation_angle_magnitude_rad
+           ),
+         {:ok, rate_rad_s} <-
+           numeric_product_field(
+             product,
+             "earth_rotation_rate_rad_s",
+             @maximum_earth_rotation_rate_magnitude_rad_s
+           ) do
       {:ok, angle_rad, rate_rad_s}
     end
   end
@@ -346,13 +493,20 @@ defmodule OrbitalDynamics.FrameTransform do
       else: {:error, {:invalid_environment_product, product_atom_field}}
   end
 
-  defp numeric_product_field(product, field) do
+  defp numeric_product_field(product, field, maximum_magnitude) do
     product_atom_field = product_atom_field(field)
     value = Map.get(product, field) || Map.get(product, product_atom_field)
 
-    if is_number(value),
-      do: {:ok, value * 1.0},
-      else: {:error, {:invalid_environment_product, product_atom_field}}
+    cond do
+      not number?(value) ->
+        {:error, {:invalid_environment_product, product_atom_field}}
+
+      not number_in_symmetric_range?(value, maximum_magnitude) ->
+        {:error, {:unsupported_environment_product, product_atom_field}}
+
+      true ->
+        {:ok, value * 1.0}
+    end
   end
 
   defp product_atom_field("provider_id"), do: :provider_id
@@ -414,14 +568,49 @@ defmodule OrbitalDynamics.FrameTransform do
       |> Vector3.subtract(source.velocity_km_s)
       |> Vector3.norm()
 
+    position_scale_km =
+      maximum_vector_norm([
+        source.position_km,
+        transformed.position_km,
+        round_trip_state.position_km
+      ])
+
+    velocity_scale_km_s =
+      max(
+        maximum_vector_norm([
+          source.velocity_km_s,
+          transformed.velocity_km_s,
+          round_trip_state.velocity_km_s
+        ]),
+        abs(rate_rad_s) * position_scale_km
+      )
+
+    position_tolerance_km =
+      max(
+        @position_absolute_tolerance_km,
+        @round_trip_relative_scale_factor * position_scale_km
+      )
+
+    velocity_tolerance_km_s =
+      max(
+        @velocity_absolute_tolerance_km_s,
+        @round_trip_relative_scale_factor * velocity_scale_km_s
+      )
+
     %{
       position_error_km: position_error_km,
       velocity_error_km_s: velocity_error_km_s,
-      position_tolerance_km: @position_tolerance_km,
-      velocity_tolerance_km_s: @velocity_tolerance_km_s,
+      tolerance_model: :absolute_floor_plus_realized_scale,
+      position_scale_km: position_scale_km,
+      velocity_scale_km_s: velocity_scale_km_s,
+      position_absolute_floor_km: @position_absolute_tolerance_km,
+      velocity_absolute_floor_km_s: @velocity_absolute_tolerance_km_s,
+      relative_scale_factor: @round_trip_relative_scale_factor,
+      position_tolerance_km: position_tolerance_km,
+      velocity_tolerance_km_s: velocity_tolerance_km_s,
       within_tolerance:
-        position_error_km <= @position_tolerance_km and
-          velocity_error_km_s <= @velocity_tolerance_km_s
+        position_error_km <= position_tolerance_km and
+          velocity_error_km_s <= velocity_tolerance_km_s
     }
   end
 
@@ -517,6 +706,12 @@ defmodule OrbitalDynamics.FrameTransform do
     Vector3.cross({0.0, 0.0, rate_rad_s}, position_km)
   end
 
+  defp maximum_vector_norm(vectors) do
+    Enum.reduce(vectors, 1.0, fn vector, maximum ->
+      max(maximum, Vector3.norm(vector))
+    end)
+  end
+
   defp rotate_z({x, y, z}, angle_rad) do
     cos_angle = :math.cos(angle_rad)
     sin_angle = :math.sin(angle_rad)
@@ -527,4 +722,37 @@ defmodule OrbitalDynamics.FrameTransform do
       z * 1.0
     }
   end
+
+  defp policy_integrity_sha256(provider, provider_opts, capability, source_revision) do
+    {provider, provider_opts, capability, source_revision}
+    |> :erlang.term_to_binary([:deterministic])
+    |> then(&:crypto.hash(:sha256, &1))
+    |> Base.encode16(case: :lower)
+  end
+
+  defp vector_components_within?({x, y, z}, maximum_magnitude) do
+    number_in_symmetric_range?(x, maximum_magnitude) and
+      number_in_symmetric_range?(y, maximum_magnitude) and
+      number_in_symmetric_range?(z, maximum_magnitude)
+  end
+
+  defp vector_components_within?(_vector, _maximum_magnitude), do: false
+
+  defp number_in_symmetric_range?(value, maximum_magnitude) when is_integer(value),
+    do: value >= -maximum_magnitude and value <= maximum_magnitude
+
+  defp number_in_symmetric_range?(value, maximum_magnitude) when is_float(value),
+    do: value == value and value >= -maximum_magnitude and value <= maximum_magnitude
+
+  defp number_in_symmetric_range?(_value, _maximum_magnitude), do: false
+
+  defp positive_number?(value) when is_integer(value), do: value > 0
+  defp positive_number?(value) when is_float(value), do: value == value and value > 0.0
+  defp positive_number?(_value), do: false
+
+  defp non_negative_number?(value) when is_integer(value), do: value >= 0
+  defp non_negative_number?(value) when is_float(value), do: value == value and value >= 0.0
+  defp non_negative_number?(_value), do: false
+
+  defp number?(value), do: is_integer(value) or is_float(value)
 end
