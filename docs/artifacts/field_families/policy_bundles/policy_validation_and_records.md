@@ -70,9 +70,13 @@ state-estimate rows: spacecraft/scenario IDs, epoch, frame, Cartesian position
 and velocity triplets, source metadata, quality uncertainty triplets, and
 OPM/OEM-derived object metadata when present. The standalone and nested
 `spacecraft_state_estimate.v1` JSON Schema also types OPM/OEM-derived creation
-and originator metadata, spacecraft mass and physical-property fields,
-covariance status, covariance epoch/component-order fields, and OPM maneuver
-metadata count/status fields as machine-readable adapter evidence.
+and originator metadata, spacecraft mass and physical-property fields, covariance
+status, and OPM maneuver metadata count/status fields for structural
+compatibility. Executable `OrbitData` adapter validation is the source of
+truth for covariance completeness, exact frame/epoch/unit binding, and numerical
+support; the generated JSON Schema remains an extensible compatibility and
+structural schema, was not broadened by Slice A, and currently types only the
+narrower covariance fields that are actually present in the checked schema.
 `spacecraft_state_estimate.v1` is also exported as a standalone executable row
 contract for linting individual accepted state vectors outside a full
 planning-state snapshot. Executable validation and JSON Schema require
@@ -106,11 +110,13 @@ provider, adapter, or adapter-version metadata, it must also declare
 The OPM adapter preserves
 `CCSDS_OPM_VERS`, `CREATION_DATE`, `ORIGINATOR`, `OBJECT_NAME`, `OBJECT_ID`,
 `CENTER_NAME`, `REF_FRAME`, `TIME_SYSTEM`, `MASS`, `DRAG_AREA`, `DRAG_COEFF`,
-`SOLAR_RAD_AREA`, `SOLAR_RAD_COEFF`, and `COV_REF_FRAME` as planning provenance,
+`SOLAR_RAD_AREA`, and `SOLAR_RAD_COEFF` as planning provenance,
 exports `MASS` and the physical
-metadata fields from accepted planning-state metadata, exports `COV_REF_FRAME`, imports and exports
-complete OPM covariance matrix terms as `covariance_matrix_6x6` metadata-only
-evidence with component order and explicit no-propagation status, and preserves one or more repeated OPM
+metadata fields from accepted planning-state metadata, imports and exports
+complete frame/epoch-bound OPM covariance matrix terms as
+`covariance_matrix_6x6` metadata-only evidence with component order, closed exact
+canonical CCSDS units, deterministic normalized numerical support evidence, and
+explicit no-propagation status, and preserves one or more repeated OPM
 `MAN_*` maneuver metadata blocks as `maneuver_execution_delta` rows without
 applying maneuver propagation. OPM export uses preserved `CREATION_DATE` and
 `ORIGINATOR` metadata when explicit export overrides are not supplied and writes maneuver-execution deltas that
@@ -124,15 +130,19 @@ they are treated as `realized_only` maneuver feedback and routed to
 `review_unplanned_realization` / `review_realized_feedback` while preserving the
 original delta under `source_feedback`. The OEM adapter preserves the same header/object/frame/time
 metadata plus the selected ephemeris sample index and epoch, imports a single
-OEM covariance block as `covariance_matrix_6x6` metadata-only evidence with
-component order, covariance epoch, and explicit no-propagation status, and can
+complete OEM covariance block as `covariance_matrix_6x6` metadata-only evidence
+with component order, closed exact canonical CCSDS units, exact selected-sample
+coepoch text binding, frame binding, deterministic normalized numerical support
+evidence, and explicit
+no-propagation status, and can
 export a single accepted state as a single-sample OEM KVN handoff with explicit
 no-interpolation metadata plus a metadata-only covariance block when accepted
-state quality carries a complete covariance matrix; OEM export also uses
-preserved `CREATION_DATE` and `ORIGINATOR` metadata unless callers override
-them. OPM and OEM covariance are
-preserved only as planning metadata and do not drive propagation, both adapters reject duplicate
-single-value KVN fields instead of silently overwriting them, and OEM
+state quality carries a complete locally validated covariance matrix; OEM export
+also uses preserved `CREATION_DATE` and `ORIGINATOR` metadata unless callers
+override them. OPM and OEM covariance are preserved only as planning metadata and
+do not drive propagation, both adapters reject duplicate single-value KVN fields,
+partial/mismatched covariance declarations, and covariance export override
+conflicts instead of silently overwriting or attaching them, and OEM
 import/export does not interpolate between samples.
 The public `OrbitalDynamics.import_ccsds_opm/2`,
 `OrbitalDynamics.import_ccsds_oem/2`,

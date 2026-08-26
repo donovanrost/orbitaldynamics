@@ -22,6 +22,7 @@ defmodule OrbitalDynamics.OrbitDataTest do
              supported_oem_covariance_fields: oem_covariance_fields,
              oem_interpolation: oem_interpolation,
              supported_covariance_component_order: covariance_component_order,
+             covariance_validation: covariance_validation,
              supported_opm_maneuver_metadata_blocks: :multiple,
              exported_opm_maneuver_metadata_blocks: :multiple,
              known_limits: known_limits
@@ -103,6 +104,24 @@ defmodule OrbitalDynamics.OrbitDataTest do
              "z_dot_km_s"
            ]
 
+    assert covariance_validation.component_order == covariance_component_order
+
+    assert covariance_validation.unit_contract == %{
+             declaration_policy:
+               "all_implicit_ccsds_units_or_all_explicit_exact_canonical_ccsds_units",
+             position_position: "km**2",
+             position_velocity: "km**2/s",
+             velocity_velocity: "km**2/s**2"
+           }
+
+    assert covariance_validation.numerical_support_check ==
+             "normalized_principal_minors_nonnegative_relative_symmetric_6x6_bounded_float"
+
+    assert covariance_validation.metadata_only == true
+    assert covariance_validation.propagation == :not_supported
+    assert covariance_validation.interpolation == :not_supported
+    assert covariance_validation.authentication == :not_provided_by_byte_identity
+
     assert "MEAN_MOTION" in tle_metadata_fields
     assert "MEAN_MOTION_FIRST_DERIVATIVE" in tle_metadata_fields
     assert "MEAN_MOTION_SECOND_DERIVATIVE" in tle_metadata_fields
@@ -134,6 +153,15 @@ defmodule OrbitalDynamics.OrbitDataTest do
     assert :oem_export_single_sample_no_interpolation in known_limits
     assert :opm_covariance_metadata_only_no_propagation in known_limits
     assert :oem_covariance_metadata_only_no_propagation in known_limits
+
+    assert :covariance_requires_complete_symmetric_6x6_lower_triangular_ccsds_terms in known_limits
+
+    assert :covariance_units_are_closed_ccsds_km_and_km_per_second_contract in known_limits
+    assert :covariance_requires_exact_frame_and_epoch_binding_without_conversion in known_limits
+
+    assert :covariance_normalized_principal_minor_support_check_is_deterministic_not_external_validation in known_limits
+
+    assert :covariance_source_identity_is_byte_identity_not_authority in known_limits
     assert :duplicate_single_value_kvn_fields_rejected in known_limits
     assert :opm_spacecraft_metadata_only_no_propagation in known_limits
     refute :single_opm_maneuver_metadata_block in known_limits
@@ -302,8 +330,8 @@ defmodule OrbitalDynamics.OrbitDataTest do
 
     assert artifact["provenance"]["trust_boundary"] == "external_orbit_data_adapter"
     assert artifact["provenance"]["network_access"] == false
-    assert artifact["provenance"]["covariance_reference_frame"] == "EME2000"
-    assert artifact["provenance"]["covariance_status"] == "reference_frame_only_no_matrix_import"
+    refute Map.has_key?(artifact["provenance"], "covariance_reference_frame")
+    refute Map.has_key?(artifact["provenance"], "covariance_status")
 
     assert [
              %{
@@ -323,13 +351,10 @@ defmodule OrbitalDynamics.OrbitDataTest do
                  "object_id" => "1998-067A",
                  "center_name" => "EARTH",
                  "ref_frame" => "EME2000",
-                 "time_system" => "UTC",
-                 "covariance_reference_frame" => "EME2000"
+                 "time_system" => "UTC"
                },
                "quality" => %{
-                 "level" => "accepted",
-                 "covariance_reference_frame" => "EME2000",
-                 "covariance_status" => "reference_frame_only_no_matrix_import"
+                 "level" => "accepted"
                }
              }
            ] = artifact["spacecraft_states"]
@@ -457,7 +482,7 @@ defmodule OrbitalDynamics.OrbitDataTest do
              Schema.validate_artifact(round_trip, schema_contract: "accepted_planning_state.v1")
   end
 
-  test "exports OPM KVN covariance reference frame provenance without covariance matrix" do
+  test "rejects OPM covariance reference frame export without a covariance matrix" do
     estimate =
       state_estimate()
       |> put_in([:quality, :covariance_reference_frame], "EME2000")
@@ -474,29 +499,12 @@ defmodule OrbitalDynamics.OrbitDataTest do
         }
       )
 
-    assert {:ok, kvn} =
+    assert {:error, {:missing_field, "covariance_matrix_6x6"}} =
              OrbitData.export_ccsds_opm(artifact,
                creation_date: "2026-05-14T00:00:00Z",
                originator: "OrbitalDynamicsTest",
                object_id: "SAT-1"
              )
-
-    assert kvn =~ "COV_REF_FRAME = EME2000"
-    refute kvn =~ "CX_X"
-
-    assert {:ok, imported} = OrbitData.import_ccsds_opm(kvn)
-
-    assert [
-             %{
-               "quality" => %{
-                 "covariance_reference_frame" => "EME2000",
-                 "covariance_status" => "reference_frame_only_no_matrix_import"
-               }
-             }
-           ] = imported["spacecraft_states"]
-
-    assert {:ok, %{"schema_contract" => "accepted_planning_state.v1"}} =
-             Schema.validate_artifact(imported, schema_contract: "accepted_planning_state.v1")
   end
 
   test "imports and exports OPM KVN covariance matrix metadata without propagation" do
@@ -536,6 +544,51 @@ defmodule OrbitalDynamics.OrbitDataTest do
     assert covariance |> Enum.at(3) |> Enum.at(0) == 4.0e-7
     assert covariance |> Enum.at(0) |> Enum.at(3) == 4.0e-7
     assert covariance |> Enum.at(5) |> Enum.at(5) == 2.1e-8
+    assert [state] = artifact["spacecraft_states"]
+    quality = state["quality"]
+    metadata = state["metadata"]
+    source_identity = artifact["source"]["content_identity"]
+
+    assert source_identity["sha256"] == sha256(opm_covariance_kvn())
+    assert source_identity["scope"] == "exact_ccsds_opm_kvn_bytes"
+    assert source_identity["authority"] == "not_authenticated"
+
+    assert source_identity["known_limits"] == [
+             "SHA-256 content identity records exact bytes only; it does not authenticate source authority"
+           ]
+
+    assert state["source"]["content_identity"] == source_identity
+    assert artifact["provenance"]["content_identity"] == source_identity
+    assert quality["covariance_unit_contract"]["declaration"] == "explicit_ccsds_units"
+
+    assert quality["covariance_frame_binding"] == %{
+             "source_ref_frame" => "EME2000",
+             "covariance_ref_frame" => "EME2000",
+             "accepted_state_frame" => "earth_inertial_j2000",
+             "conversion_applied" => false
+           }
+
+    assert quality["covariance_epoch_binding"] == %{
+             "state_epoch" => "2000-01-01T12:02:00.000000Z",
+             "covariance_epoch" => "2000-01-01T12:02:00.000000Z",
+             "time_scale" => "utc",
+             "matched" => true
+           }
+
+    assert quality["covariance_numerical_check"]["name"] ==
+             "normalized_principal_minors_nonnegative_relative_symmetric_6x6_bounded_float"
+
+    assert quality["covariance_numerical_check"]["claim"] ==
+             "deterministic_normalized_principal_minor_support_check_not_external_validation"
+
+    assert quality["covariance_numerical_check"]["status"] == "passed"
+    assert quality["covariance_propagation_status"] == "metadata_only_not_propagated"
+    assert metadata["covariance_unit_contract"] == quality["covariance_unit_contract"]
+    assert metadata["covariance_frame_binding"] == quality["covariance_frame_binding"]
+    assert metadata["covariance_epoch_binding"] == quality["covariance_epoch_binding"]
+
+    assert artifact["provenance"]["covariance_numerical_check"] ==
+             quality["covariance_numerical_check"]
 
     assert {:ok, kvn} =
              OrbitData.export_ccsds_opm(artifact,
@@ -555,6 +608,398 @@ defmodule OrbitalDynamics.OrbitDataTest do
 
     assert {:ok, %{"schema_contract" => "accepted_planning_state.v1"}} =
              Schema.validate_artifact(artifact, schema_contract: "accepted_planning_state.v1")
+  end
+
+  test "validates covariance evidence before public OPM and OEM export" do
+    legacy = covariance_export_artifact(valid_covariance_matrix())
+    canonical_epoch = "2000-01-01T12:02:00.000000Z"
+    canonical_binding = covariance_epoch_binding(canonical_epoch)
+
+    assert {:ok, opm} =
+             OrbitData.export_ccsds_opm(legacy,
+               creation_date: "2026-05-14T00:00:00Z",
+               originator: "OrbitalDynamicsTest"
+             )
+
+    assert opm =~ "COV_REF_FRAME = EME2000"
+    assert opm =~ "CX_X = 0.0001"
+
+    assert {:ok, oem} =
+             OrbitData.export_ccsds_oem(legacy,
+               creation_date: "2026-05-14T00:00:00Z",
+               originator: "OrbitalDynamicsTest"
+             )
+
+    assert oem =~ "2000-01-01T12:02:00.000000Z 7000.0 0.0 0.0 0.0 7.5 0.0"
+    assert oem =~ "EPOCH = 2000-01-01T12:02:00.000000Z"
+    assert oem =~ "COV_REF_FRAME = EME2000"
+
+    assert {:ok, opm_icrf} = OrbitData.export_ccsds_opm(legacy, ref_frame: "ICRF")
+    assert opm_icrf =~ "\nREF_FRAME = ICRF\n"
+    assert opm_icrf =~ "\nCOV_REF_FRAME = ICRF\n"
+
+    assert {:ok, oem_icrf} = OrbitData.export_ccsds_oem(legacy, ref_frame: "ICRF")
+    assert oem_icrf =~ "\nREF_FRAME = ICRF\n"
+    assert oem_icrf =~ "\nCOV_REF_FRAME = ICRF\n"
+
+    assert {:ok, facade_opm_icrf} = OrbitalDynamics.export_ccsds_opm(legacy, ref_frame: "ICRF")
+    assert facade_opm_icrf =~ "\nREF_FRAME = ICRF\n"
+    assert facade_opm_icrf =~ "\nCOV_REF_FRAME = ICRF\n"
+
+    assert {:ok, facade_oem_icrf} = OrbitalDynamics.export_ccsds_oem(legacy, ref_frame: "ICRF")
+    assert facade_oem_icrf =~ "\nREF_FRAME = ICRF\n"
+    assert facade_oem_icrf =~ "\nCOV_REF_FRAME = ICRF\n"
+
+    canonical_bound =
+      covariance_export_artifact(
+        valid_covariance_matrix(),
+        %{
+          covariance_epoch: canonical_epoch,
+          covariance_epoch_binding: canonical_binding
+        },
+        %{
+          "covariance_epoch" => canonical_epoch,
+          "covariance_epoch_binding" => canonical_binding
+        }
+      )
+
+    assert {:ok, _opm} =
+             OrbitData.export_ccsds_opm(canonical_bound,
+               covariance_epoch: canonical_epoch,
+               covariance_epoch: canonical_epoch
+             )
+
+    assert {:ok, _oem} =
+             OrbitData.export_ccsds_oem(canonical_bound,
+               covariance_epoch: canonical_epoch,
+               covariance_epoch: canonical_epoch
+             )
+
+    malformed = covariance_export_artifact([[], [], [], [], [], []])
+
+    assert {:error, {:invalid_field, "covariance_matrix_6x6"}} =
+             OrbitData.export_ccsds_opm(malformed)
+
+    assert {:error, {:invalid_field, "covariance_matrix_6x6"}} =
+             OrbitData.export_ccsds_oem(malformed)
+
+    non_symmetric =
+      valid_covariance_matrix()
+      |> List.update_at(0, &List.replace_at(&1, 1, 1.0e-3))
+      |> covariance_export_artifact()
+
+    assert {:error, {:invalid_field, "covariance_matrix.symmetric_6x6"}} =
+             OrbitData.export_ccsds_opm(non_symmetric)
+
+    indefinite =
+      valid_covariance_matrix()
+      |> List.update_at(0, &List.replace_at(&1, 0, -1.0e-4))
+      |> covariance_export_artifact()
+
+    assert {:error, {:invalid_field, "covariance_matrix.numerical_support"}} =
+             OrbitData.export_ccsds_oem(indefinite)
+
+    wrong_order =
+      covariance_export_artifact(valid_covariance_matrix(), %{
+        covariance_component_order: ["z_km", "y_km", "x_km"]
+      })
+
+    assert {:error, {:invalid_field, "covariance_component_order"}} =
+             OrbitData.export_ccsds_opm(wrong_order)
+
+    partial = covariance_export_artifact(nil, %{covariance_reference_frame: "EME2000"})
+
+    assert {:error, {:missing_field, "covariance_matrix_6x6"}} =
+             OrbitData.export_ccsds_opm(partial)
+
+    no_covariance = covariance_export_artifact(nil)
+
+    assert {:error, {:missing_field, "covariance_matrix_6x6"}} =
+             OrbitData.export_ccsds_oem(no_covariance, covariance_reference_frame: "EME2000")
+
+    bound =
+      covariance_export_artifact(valid_covariance_matrix(), %{
+        covariance_reference_frame: "EME2000"
+      })
+
+    assert {:error, {:invalid_field, "covariance_reference_frame"}} =
+             OrbitData.export_ccsds_opm(bound, covariance_reference_frame: "ICRF")
+
+    assert {:error, {:invalid_field, "covariance_frame_binding"}} =
+             OrbitData.export_ccsds_oem(bound, ref_frame: "ICRF")
+
+    assert {:error, {:invalid_field, "covariance_frame_binding"}} =
+             OrbitData.export_ccsds_opm(legacy, ref_frame: " EME2000 ")
+
+    assert {:error, {:invalid_field, "covariance_frame_binding"}} =
+             OrbitData.export_ccsds_oem(legacy, ref_frame: " EME2000 ")
+
+    assert {:error, {:invalid_field, "covariance_frame_binding"}} =
+             OrbitalDynamics.export_ccsds_opm(legacy, ref_frame: " EME2000 ")
+
+    assert {:error, {:invalid_field, "covariance_frame_binding"}} =
+             OrbitalDynamics.export_ccsds_oem(legacy, ref_frame: " EME2000 ")
+
+    for ref_frame <- [
+          42,
+          <<255>>,
+          String.duplicate("ICRF", 9),
+          "eme2000",
+          "EME2000 suffix"
+        ] do
+      OrbitData.export_ccsds_opm(legacy, ref_frame: ref_frame)
+      |> assert_ref_frame_option_rejected()
+
+      OrbitData.export_ccsds_oem(legacy, ref_frame: ref_frame)
+      |> assert_ref_frame_option_rejected()
+    end
+
+    for opts <- [
+          [ref_frame: "ICRF", ref_frame: "ICRF"],
+          [ref_frame: "ICRF", ref_frame: " EME2000 "]
+        ] do
+      OrbitData.export_ccsds_opm(legacy, opts)
+      |> assert_ref_frame_option_rejected()
+
+      OrbitData.export_ccsds_oem(legacy, opts)
+      |> assert_ref_frame_option_rejected()
+
+      OrbitalDynamics.export_ccsds_opm(legacy, opts)
+      |> assert_ref_frame_option_rejected()
+
+      OrbitalDynamics.export_ccsds_oem(legacy, opts)
+      |> assert_ref_frame_option_rejected()
+    end
+
+    assert {:error, {:invalid_field, "covariance_epoch_binding"}} =
+             OrbitData.export_ccsds_oem(bound, covariance_epoch: "2000-01-01T12:03:00.000000Z")
+
+    assert {:error, {:invalid_field, "covariance_epoch_binding"}} =
+             OrbitData.export_ccsds_opm(legacy, covariance_epoch: "2000-01-01T12:02:00Z")
+
+    assert {:error, {:invalid_field, "covariance_epoch_binding"}} =
+             OrbitData.export_ccsds_oem(legacy, covariance_epoch: "2000-01-01T12:02:00Z")
+
+    assert {:error, {:invalid_field, "covariance_epoch_binding"}} =
+             OrbitalDynamics.export_ccsds_opm(legacy,
+               covariance_epoch: "2000-01-01T12:02:00Z"
+             )
+
+    assert {:error, {:invalid_field, "covariance_epoch_binding"}} =
+             OrbitalDynamics.export_ccsds_oem(legacy,
+               covariance_epoch: "2000-01-01T12:02:00Z"
+             )
+
+    assert {:error, {:invalid_field, "covariance_epoch_binding"}} =
+             OrbitData.export_ccsds_opm(legacy,
+               covariance_epoch: canonical_epoch,
+               covariance_epoch: "2000-01-01T12:02:00Z"
+             )
+
+    assert {:error, {:invalid_field, "covariance_epoch_binding"}} =
+             OrbitData.export_ccsds_oem(legacy,
+               covariance_epoch: canonical_epoch,
+               covariance_epoch: "2000-01-01T12:02:00Z"
+             )
+
+    quality_epoch_variant =
+      covariance_export_artifact(valid_covariance_matrix(), %{
+        covariance_epoch: "2000-01-01T12:02:00Z"
+      })
+
+    assert {:error, {:invalid_field, "covariance_epoch_binding"}} =
+             OrbitData.export_ccsds_opm(quality_epoch_variant)
+
+    assert {:error, {:invalid_field, "covariance_epoch_binding"}} =
+             OrbitData.export_ccsds_oem(quality_epoch_variant)
+
+    metadata_epoch_variant =
+      covariance_export_artifact(valid_covariance_matrix(), %{}, %{
+        "covariance_epoch" => "2000-01-01T12:02:00Z"
+      })
+
+    assert {:error, {:invalid_field, "covariance_epoch_binding"}} =
+             OrbitData.export_ccsds_opm(metadata_epoch_variant)
+
+    assert {:error, {:invalid_field, "covariance_epoch_binding"}} =
+             OrbitData.export_ccsds_oem(metadata_epoch_variant)
+
+    quality_binding_variant =
+      covariance_export_artifact(valid_covariance_matrix(), %{
+        covariance_epoch_binding:
+          Map.put(canonical_binding, "covariance_epoch", "2000-01-01T12:02:00Z")
+      })
+
+    assert {:error, {:invalid_field, "covariance_epoch_binding"}} =
+             OrbitData.export_ccsds_opm(quality_binding_variant)
+
+    assert {:error, {:invalid_field, "covariance_epoch_binding"}} =
+             OrbitData.export_ccsds_oem(quality_binding_variant)
+
+    metadata_binding_variant =
+      covariance_export_artifact(valid_covariance_matrix(), %{}, %{
+        "covariance_epoch_binding" =>
+          Map.put(canonical_binding, "state_epoch", "2000-01-01T12:02:00Z")
+      })
+
+    assert {:error, {:invalid_field, "covariance_epoch_binding"}} =
+             OrbitData.export_ccsds_opm(metadata_binding_variant)
+
+    assert {:error, {:invalid_field, "covariance_epoch_binding"}} =
+             OrbitData.export_ccsds_oem(metadata_binding_variant)
+
+    nonbinary_binding =
+      covariance_export_artifact(valid_covariance_matrix(), %{
+        covariance_epoch_binding: Map.put(canonical_binding, "covariance_epoch", 120.0)
+      })
+
+    assert {:error, {:invalid_field, "covariance_epoch_binding"}} =
+             OrbitData.export_ccsds_opm(nonbinary_binding)
+
+    assert {:error, {:invalid_field, "covariance_epoch_binding"}} =
+             OrbitData.export_ccsds_oem(nonbinary_binding)
+  end
+
+  test "accepts zero and singular covariance matrices at public adapter boundaries" do
+    assert {:ok, opm_zero} =
+             opm_kvn()
+             |> Kernel.<>(diagonal_opm_covariance_lines("0", "0"))
+             |> OrbitData.import_ccsds_opm()
+
+    assert get_in(opm_zero, ["spacecraft_states", Access.at(0), "quality"])[
+             "covariance_numerical_check"
+           ]["status"] == "passed"
+
+    assert {:ok, opm_singular} =
+             opm_kvn()
+             |> Kernel.<>(diagonal_opm_covariance_lines("1", "1"))
+             |> OrbitData.import_ccsds_opm()
+
+    assert get_in(opm_singular, ["spacecraft_states", Access.at(0), "quality"])[
+             "covariance_matrix_6x6"
+           ]
+
+    assert {:ok, oem_zero} =
+             oem_kvn()
+             |> Kernel.<>(diagonal_oem_covariance_block("2000-01-01T12:03:00.000", "0", "0"))
+             |> OrbitData.import_ccsds_oem(sample: :last)
+
+    assert get_in(oem_zero, ["spacecraft_states", Access.at(0), "quality"])[
+             "covariance_numerical_check"
+           ]["status"] == "passed"
+
+    assert {:ok, oem_singular} =
+             oem_kvn()
+             |> Kernel.<>(diagonal_oem_covariance_block("2000-01-01T12:03:00.000", "1", "1"))
+             |> OrbitData.import_ccsds_oem(sample: :last)
+
+    assert get_in(oem_singular, ["spacecraft_states", Access.at(0), "quality"])[
+             "covariance_matrix_6x6"
+           ]
+  end
+
+  test "rejects invalid OPM covariance matrices at the public adapter boundary" do
+    assert {:error, {:missing_field, "covariance_matrix.CY_X"}} =
+             opm_covariance_kvn()
+             |> without_kvn_line("CY_X")
+             |> OrbitData.import_ccsds_opm()
+
+    assert {:error, {:missing_field, "covariance_matrix.CX_X"}} =
+             opm_kvn()
+             |> Kernel.<>("COV_REF_FRAME = EME2000\n")
+             |> OrbitData.import_ccsds_opm()
+
+    assert {:error, {:missing_field, "covariance_matrix.COV_REF_FRAME"}} =
+             opm_covariance_kvn()
+             |> without_kvn_line("COV_REF_FRAME")
+             |> OrbitData.import_ccsds_opm()
+
+    # OPM KVN only declares lower-triangular covariance terms; an upper-triangular
+    # term is the public adapter boundary for a nonsymmetric construction attempt.
+    assert {:error, {:unsupported_field, "covariance_matrix.CX_Y"}} =
+             opm_covariance_kvn()
+             |> Kernel.<>("CX_Y = 1.0e-5 [km**2]\n")
+             |> OrbitData.import_ccsds_opm()
+
+    assert {:error, {:unsupported_field, "ccsds_opm.duplicate_single_value_field", "CX_X"}} =
+             opm_covariance_kvn()
+             |> Kernel.<>("CX_X = 1.0e-4 [km**2]\n")
+             |> OrbitData.import_ccsds_opm()
+
+    assert {:error, {:invalid_field, "covariance_matrix.CX_X"}} =
+             opm_covariance_kvn()
+             |> replace_kvn_line("CX_X", "CX_X = NaN [km**2]")
+             |> OrbitData.import_ccsds_opm()
+
+    assert {:error, {:invalid_field, "covariance_matrix.CX_X"}} =
+             opm_covariance_kvn()
+             |> replace_kvn_line("CX_X", "CX_X = Infinity [km**2]")
+             |> OrbitData.import_ccsds_opm()
+
+    assert {:error, {:invalid_field, "covariance_frame_binding"}} =
+             opm_covariance_kvn()
+             |> replace_kvn_line("COV_REF_FRAME", "COV_REF_FRAME = ICRF")
+             |> OrbitData.import_ccsds_opm()
+
+    assert {:error, {:invalid_field, "covariance_frame_binding"}} =
+             opm_covariance_kvn()
+             |> replace_kvn_line("COV_REF_FRAME", "COV_REF_FRAME = eme2000")
+             |> OrbitData.import_ccsds_opm()
+
+    assert {:error, {:invalid_field, "covariance_frame_binding"}} =
+             opm_covariance_kvn()
+             |> replace_kvn_line("REF_FRAME", "REF_FRAME = EME2000 suffix")
+             |> OrbitData.import_ccsds_opm()
+
+    assert {:error, {:invalid_field, "covariance_units.CY_X"}} =
+             opm_covariance_kvn()
+             |> replace_kvn_line("CY_X", "CY_X = 1.0e-5 [m**2]")
+             |> OrbitData.import_ccsds_opm()
+
+    assert {:error, {:invalid_field, "covariance_units.CY_X"}} =
+             opm_covariance_kvn()
+             |> replace_kvn_line("CY_X", "CY_X = 0 [km^2]")
+             |> OrbitData.import_ccsds_opm()
+
+    assert {:error, {:invalid_field, "covariance_units.CY_X"}} =
+             opm_covariance_kvn()
+             |> replace_kvn_line("CY_X", "CY_X = 0 [KM**2]")
+             |> OrbitData.import_ccsds_opm()
+
+    assert {:error, {:invalid_field, "covariance_units.CY_X"}} =
+             opm_covariance_kvn()
+             |> replace_kvn_line("CY_X", "CY_X = 0 [K M ^ 2]")
+             |> OrbitData.import_ccsds_opm()
+
+    assert {:error, {:invalid_field, "covariance_units"}} =
+             opm_covariance_kvn()
+             |> replace_kvn_line("CY_X", "CY_X = 1.0e-5")
+             |> OrbitData.import_ccsds_opm()
+
+    assert {:error, {:invalid_field, "covariance_matrix.numerical_support"}} =
+             opm_covariance_kvn()
+             |> replace_kvn_line("CX_X", "CX_X = -1.0e-4 [km**2]")
+             |> OrbitData.import_ccsds_opm()
+
+    assert {:error, {:invalid_field, "covariance_matrix.numerical_support"}} =
+             opm_covariance_kvn()
+             |> replace_kvn_line("CY_X", "CY_X = 2.0e-2 [km**2]")
+             |> OrbitData.import_ccsds_opm()
+
+    assert {:error, {:invalid_field, "covariance_matrix.numerical_support"}} =
+             opm_kvn()
+             |> Kernel.<>(diagonal_opm_covariance_lines("1.0e-14", "2.0e-14"))
+             |> OrbitData.import_ccsds_opm()
+
+    assert {:error, {:invalid_field, "covariance_matrix.numerical_support"}} =
+             opm_kvn()
+             |> Kernel.<>(diagonal_opm_covariance_lines("1.0e20", "2.0e20"))
+             |> OrbitData.import_ccsds_opm()
+
+    assert {:error, {:invalid_field, "covariance_matrix.numerical_support"}} =
+             opm_kvn()
+             |> Kernel.<>(underflow_opm_covariance_lines())
+             |> OrbitData.import_ccsds_opm()
   end
 
   test "exports OPM KVN using preserved object metadata" do
@@ -827,7 +1272,7 @@ defmodule OrbitalDynamics.OrbitDataTest do
              "matrix_imported_metadata_only_no_propagation"
 
     assert artifact["provenance"]["covariance_reference_frame"] == "EME2000"
-    assert artifact["provenance"]["covariance_epoch"] == "2000-01-01T12:03:00.000"
+    assert artifact["provenance"]["covariance_epoch"] == "2000-01-01T12:03:00.000000Z"
 
     assert artifact["provenance"]["covariance_component_order"] == [
              "x_km",
@@ -842,13 +1287,13 @@ defmodule OrbitalDynamics.OrbitDataTest do
              %{
                "metadata" => %{
                  "covariance_reference_frame" => "EME2000",
-                 "covariance_epoch" => "2000-01-01T12:03:00.000",
+                 "covariance_epoch" => "2000-01-01T12:03:00.000000Z",
                  "covariance_status" => "matrix_imported_metadata_only_no_propagation"
                },
                "quality" => %{
                  "covariance_reference_frame" => "EME2000",
                  "covariance_status" => "matrix_imported_metadata_only_no_propagation",
-                 "covariance_epoch" => "2000-01-01T12:03:00.000",
+                 "covariance_epoch" => "2000-01-01T12:03:00.000000Z",
                  "covariance_component_order" => [
                    "x_km",
                    "y_km",
@@ -866,6 +1311,47 @@ defmodule OrbitalDynamics.OrbitDataTest do
     assert covariance |> Enum.at(3) |> Enum.at(0) == 4.0e-7
     assert covariance |> Enum.at(0) |> Enum.at(3) == 4.0e-7
     assert covariance |> Enum.at(5) |> Enum.at(5) == 2.1e-8
+    assert [state] = artifact["spacecraft_states"]
+    quality = state["quality"]
+    metadata = state["metadata"]
+    source_identity = artifact["source"]["content_identity"]
+
+    assert source_identity["sha256"] == sha256(oem_covariance_kvn())
+    assert source_identity["scope"] == "exact_ccsds_oem_kvn_bytes"
+    assert source_identity["authority"] == "not_authenticated"
+    assert state["source"]["content_identity"] == source_identity
+    assert artifact["provenance"]["content_identity"] == source_identity
+    assert quality["covariance_unit_contract"]["declaration"] == "explicit_ccsds_units"
+
+    assert quality["covariance_frame_binding"] == %{
+             "source_ref_frame" => "EME2000",
+             "covariance_ref_frame" => "EME2000",
+             "accepted_state_frame" => "earth_inertial_j2000",
+             "conversion_applied" => false
+           }
+
+    assert quality["covariance_epoch_binding"] == %{
+             "state_epoch" => "2000-01-01T12:03:00.000000Z",
+             "covariance_epoch" => "2000-01-01T12:03:00.000000Z",
+             "seconds_since_j2000" => 180.0,
+             "time_scale" => "utc",
+             "matched" => true
+           }
+
+    assert quality["covariance_numerical_check"]["name"] ==
+             "normalized_principal_minors_nonnegative_relative_symmetric_6x6_bounded_float"
+
+    assert quality["covariance_numerical_check"]["claim"] ==
+             "deterministic_normalized_principal_minor_support_check_not_external_validation"
+
+    assert quality["covariance_numerical_check"]["status"] == "passed"
+    assert quality["covariance_propagation_status"] == "metadata_only_not_propagated"
+    assert metadata["covariance_unit_contract"] == quality["covariance_unit_contract"]
+    assert metadata["covariance_frame_binding"] == quality["covariance_frame_binding"]
+    assert metadata["covariance_epoch_binding"] == quality["covariance_epoch_binding"]
+
+    assert artifact["provenance"]["covariance_numerical_check"] ==
+             quality["covariance_numerical_check"]
 
     assert {:ok, kvn} =
              OrbitData.export_ccsds_oem(artifact,
@@ -874,7 +1360,8 @@ defmodule OrbitalDynamics.OrbitDataTest do
              )
 
     assert kvn =~ "COVARIANCE_START"
-    assert kvn =~ "EPOCH = 2000-01-01T12:03:00.000"
+    assert kvn =~ "2000-01-01T12:03:00.000000Z 6990.0 450.0 0.0 -0.5 7.49 0.0"
+    assert kvn =~ "EPOCH = 2000-01-01T12:03:00.000000Z"
     assert kvn =~ "COV_REF_FRAME = EME2000"
     assert kvn =~ "CX_DOT_X = 0.0000004"
     assert kvn =~ "COVARIANCE_STOP"
@@ -887,6 +1374,296 @@ defmodule OrbitalDynamics.OrbitDataTest do
 
     assert {:ok, %{"schema_contract" => "accepted_planning_state.v1"}} =
              Schema.validate_artifact(artifact, schema_contract: "accepted_planning_state.v1")
+  end
+
+  test "rejects invalid OEM covariance matrices at the public adapter boundary" do
+    assert {:error, {:missing_field, "covariance_matrix.CY_X"}} =
+             oem_covariance_kvn()
+             |> without_kvn_line("CY_X")
+             |> OrbitData.import_ccsds_oem(sample: :last)
+
+    assert {:error, {:missing_field, "covariance_matrix.CX_X"}} =
+             oem_kvn()
+             |> Kernel.<>("COVARIANCE_START\nEPOCH = 2000-01-01T12:03:00.000\nCOVARIANCE_STOP\n")
+             |> OrbitData.import_ccsds_oem(sample: :last)
+
+    assert {:error, {:missing_field, "covariance_matrix.CX_X"}} =
+             oem_kvn()
+             |> Kernel.<>("COVARIANCE_START\nCOV_REF_FRAME = EME2000\nCOVARIANCE_STOP\n")
+             |> OrbitData.import_ccsds_oem(sample: :last)
+
+    assert {:error, {:missing_field, "covariance_matrix.CX_X"}} =
+             oem_kvn()
+             |> Kernel.<>("COVARIANCE_START\nCOVARIANCE_STOP\n")
+             |> OrbitData.import_ccsds_oem(sample: :last)
+
+    assert {:error, {:missing_field, "covariance_matrix.COV_REF_FRAME"}} =
+             oem_covariance_kvn()
+             |> without_kvn_line("COV_REF_FRAME")
+             |> OrbitData.import_ccsds_oem(sample: :last)
+
+    assert {:error, {:missing_field, "covariance_matrix.EPOCH"}} =
+             oem_covariance_kvn()
+             |> without_kvn_line("EPOCH")
+             |> OrbitData.import_ccsds_oem(sample: :last)
+
+    # OEM KVN only declares lower-triangular covariance terms; an upper-triangular
+    # term is the public adapter boundary for a nonsymmetric construction attempt.
+    assert {:error, {:unsupported_field, "covariance_matrix.CX_Y"}} =
+             oem_covariance_kvn()
+             |> replace_kvn_line("COVARIANCE_STOP", "CX_Y = 1.0e-5 [km**2]\n    COVARIANCE_STOP")
+             |> OrbitData.import_ccsds_oem(sample: :last)
+
+    assert {:error, {:unsupported_field, "ccsds_oem.duplicate_single_value_field", "CX_X"}} =
+             oem_covariance_kvn()
+             |> replace_kvn_line("COVARIANCE_STOP", "CX_X = 1.0e-4 [km**2]\n    COVARIANCE_STOP")
+             |> OrbitData.import_ccsds_oem(sample: :last)
+
+    assert {:error, {:invalid_field, "covariance_matrix.CX_X"}} =
+             oem_covariance_kvn()
+             |> replace_kvn_line("CX_X", "CX_X = NaN [km**2]")
+             |> OrbitData.import_ccsds_oem(sample: :last)
+
+    assert {:error, {:invalid_field, "covariance_matrix.CX_X"}} =
+             oem_covariance_kvn()
+             |> replace_kvn_line("CX_X", "CX_X = Infinity [km**2]")
+             |> OrbitData.import_ccsds_oem(sample: :last)
+
+    assert {:error, {:invalid_field, "covariance_frame_binding"}} =
+             oem_covariance_kvn()
+             |> replace_kvn_line("COV_REF_FRAME", "COV_REF_FRAME = J2000")
+             |> OrbitData.import_ccsds_oem(sample: :last)
+
+    assert {:error, {:invalid_field, "covariance_frame_binding"}} =
+             oem_covariance_kvn()
+             |> replace_kvn_line("COV_REF_FRAME", "COV_REF_FRAME = eme2000")
+             |> OrbitData.import_ccsds_oem(sample: :last)
+
+    assert {:error, {:invalid_field, "covariance_frame_binding"}} =
+             oem_covariance_kvn()
+             |> replace_kvn_line("REF_FRAME", "REF_FRAME = EME2000 suffix")
+             |> OrbitData.import_ccsds_oem(sample: :last)
+
+    assert {:error, {:invalid_field, "covariance_epoch_binding"}} =
+             OrbitData.import_ccsds_oem(oem_covariance_kvn(), sample: :first)
+
+    assert {:error, {:invalid_field, "covariance_epoch_binding"}} =
+             oem_covariance_kvn()
+             |> replace_kvn_line("EPOCH", "EPOCH = 2000-01-01T12:03:00Z")
+             |> OrbitData.import_ccsds_oem(sample: :last)
+
+    assert {:error, {:invalid_field, "covariance_epoch_binding"}} =
+             oem_covariance_kvn()
+             |> replace_kvn_line("EPOCH", "EPOCH = 2000-01-01T12:03:00.000 suffix")
+             |> OrbitData.import_ccsds_oem(sample: :last)
+
+    assert {:error, {:invalid_field, "covariance_units.CY_X"}} =
+             oem_covariance_kvn()
+             |> replace_kvn_line("CY_X", "CY_X = 1.0e-5 [m**2]")
+             |> OrbitData.import_ccsds_oem(sample: :last)
+
+    assert {:error, {:invalid_field, "covariance_units.CY_X"}} =
+             oem_covariance_kvn()
+             |> replace_kvn_line("CY_X", "CY_X = 0 [km^2]")
+             |> OrbitData.import_ccsds_oem(sample: :last)
+
+    assert {:error, {:invalid_field, "covariance_units.CY_X"}} =
+             oem_covariance_kvn()
+             |> replace_kvn_line("CY_X", "CY_X = 0 [KM**2]")
+             |> OrbitData.import_ccsds_oem(sample: :last)
+
+    assert {:error, {:invalid_field, "covariance_units.CY_X"}} =
+             oem_covariance_kvn()
+             |> replace_kvn_line("CY_X", "CY_X = 0 [K M ^ 2]")
+             |> OrbitData.import_ccsds_oem(sample: :last)
+
+    assert {:error, {:invalid_field, "covariance_units"}} =
+             oem_covariance_kvn()
+             |> replace_kvn_line("CY_X", "CY_X = 1.0e-5")
+             |> OrbitData.import_ccsds_oem(sample: :last)
+
+    assert {:error, {:invalid_field, "covariance_matrix.numerical_support"}} =
+             oem_covariance_kvn()
+             |> replace_kvn_line("CX_X", "CX_X = -1.0e-4 [km**2]")
+             |> OrbitData.import_ccsds_oem(sample: :last)
+
+    assert {:error, {:invalid_field, "covariance_matrix.numerical_support"}} =
+             oem_covariance_kvn()
+             |> replace_kvn_line("CY_X", "CY_X = 2.0e-2 [km**2]")
+             |> OrbitData.import_ccsds_oem(sample: :last)
+
+    assert {:error, {:invalid_field, "covariance_matrix.numerical_support"}} =
+             oem_kvn()
+             |> Kernel.<>(
+               diagonal_oem_covariance_block(
+                 "2000-01-01T12:03:00.000",
+                 "1.0e-14",
+                 "2.0e-14"
+               )
+             )
+             |> OrbitData.import_ccsds_oem(sample: :last)
+
+    assert {:error, {:invalid_field, "covariance_matrix.numerical_support"}} =
+             oem_kvn()
+             |> Kernel.<>(
+               diagonal_oem_covariance_block(
+                 "2000-01-01T12:03:00.000",
+                 "1.0e20",
+                 "2.0e20"
+               )
+             )
+             |> OrbitData.import_ccsds_oem(sample: :last)
+
+    assert {:error, {:invalid_field, "covariance_matrix.numerical_support"}} =
+             oem_kvn()
+             |> Kernel.<>(underflow_oem_covariance_block("2000-01-01T12:03:00.000"))
+             |> OrbitData.import_ccsds_oem(sample: :last)
+
+    assert {:error, {:unsupported_field, "oem_covariance_segment"}} =
+             oem_covariance_kvn()
+             |> Kernel.<>("COVARIANCE_START\nCOVARIANCE_STOP\n")
+             |> OrbitData.import_ccsds_oem(sample: :last)
+  end
+
+  test "preserves no-covariance legacy OPM and OEM imports without matrix evidence" do
+    assert {:ok, opm_artifact} = OrbitData.import_ccsds_opm(opm_kvn())
+    assert {:ok, oem_artifact} = OrbitData.import_ccsds_oem(oem_kvn(), sample: :last)
+
+    assert [opm_state] = opm_artifact["spacecraft_states"]
+    assert [oem_state] = oem_artifact["spacecraft_states"]
+
+    refute Map.has_key?(opm_state["quality"], "covariance_matrix_6x6")
+    refute Map.has_key?(opm_state["quality"], "covariance_unit_contract")
+    refute Map.has_key?(opm_artifact["provenance"], "covariance_unit_contract")
+    refute Map.has_key?(oem_state["quality"], "covariance_matrix_6x6")
+    refute Map.has_key?(oem_state["quality"], "covariance_unit_contract")
+    refute Map.has_key?(oem_artifact["provenance"], "covariance_unit_contract")
+  end
+
+  test "keeps byte source identity coherent and rejects caller source override collisions" do
+    digest_kvn = """
+    CCSDS_OPM_VERS = 2.0
+    CREATION_DATE = 2026-05-14T00:00:00Z
+    ORIGINATOR = DigestTest
+    OBJECT_NAME = SAT-DIGEST
+    OBJECT_ID = SAT-DIGEST
+    CENTER_NAME = EARTH
+    REF_FRAME = EME2000
+    TIME_SYSTEM = UTC
+    EPOCH = 2000-01-01T12:02:00.000
+    X = 7000 [km]
+    Y = 0 [km]
+    Z = 0 [km]
+    X_DOT = 0 [km/s]
+    Y_DOT = 7.5 [km/s]
+    Z_DOT = 0 [km/s]
+    """
+
+    assert {:ok, digest_artifact} = OrbitData.import_ccsds_opm(digest_kvn)
+
+    assert digest_artifact["source"]["content_identity"]["sha256"] ==
+             "bfc7126469926eefa7f8acd866f6167e55eb55569500467f8e08edbe66bc42c7"
+
+    assert {:ok, artifact} = OrbitData.import_ccsds_opm(opm_covariance_kvn())
+    exact_source = artifact["source"]
+
+    assert {:ok, exact_override} =
+             OrbitData.import_ccsds_opm(opm_covariance_kvn(), source: exact_source)
+
+    assert exact_override["source"] == exact_source
+    assert [state] = exact_override["spacecraft_states"]
+    assert state["source"] == exact_source
+    assert exact_override["provenance"]["content_identity"] == exact_source["content_identity"]
+
+    assert {:ok, wrapper_exact} =
+             OrbitData.import_orbit_data(%{
+               "format" => "ccsds_opm_kvn",
+               "content" => opm_covariance_kvn(),
+               "source" => exact_source
+             })
+
+    assert wrapper_exact["source"] == exact_source
+
+    assert {:error, {:invalid_field, "source_identity"}} =
+             OrbitData.import_ccsds_opm(opm_covariance_kvn(),
+               source: Map.put(exact_source, "extra", "not-adapter")
+             )
+
+    assert {:error, {:invalid_field, "source_identity"}} =
+             OrbitData.import_ccsds_opm(opm_covariance_kvn(),
+               source:
+                 Map.new(exact_source, fn {key, value} ->
+                   {String.to_atom(key), value}
+                 end)
+             )
+
+    assert {:error, {:invalid_field, "source_identity"}} =
+             OrbitData.import_ccsds_opm(opm_covariance_kvn(),
+               source: Map.put(exact_source, :source_id, exact_source["source_id"])
+             )
+
+    assert {:error, {:invalid_field, "source_identity"}} =
+             OrbitData.import_ccsds_opm(opm_covariance_kvn(),
+               source: Map.put(exact_source, :source_id, "conflicting-source")
+             )
+
+    assert {:error, {:invalid_field, "source_identity"}} =
+             OrbitData.import_ccsds_opm(opm_covariance_kvn(),
+               source: exact_source,
+               source: Map.put(exact_source, "source_id", "conflicting-source")
+             )
+
+    assert {:error, {:invalid_field, "source_identity"}} =
+             OrbitData.import_orbit_data(%{
+               "format" => "ccsds_opm_kvn",
+               "content" => opm_covariance_kvn(),
+               "source" => Map.put(exact_source, "extra", "not-adapter")
+             })
+
+    assert {:error, {:invalid_field, "source_identity"}} =
+             OrbitData.import_orbit_data(%{
+               "format" => "ccsds_opm_kvn",
+               "content" => opm_covariance_kvn(),
+               "source" => Map.put(exact_source, :source_id, exact_source["source_id"])
+             })
+
+    assert {:error, {:invalid_field, "source_identity"}} =
+             OrbitData.import_orbit_data(
+               %{
+                 "format" => "ccsds_opm_kvn",
+                 "content" => opm_covariance_kvn(),
+                 "source" => exact_source
+               },
+               source: Map.put(exact_source, "source_id", "conflicting-source")
+             )
+
+    assert {:error, {:invalid_field, "source_identity"}} =
+             OrbitData.import_orbit_data(%{
+               "format" => "ccsds_opm_kvn",
+               "content" => opm_covariance_kvn(),
+               "source" => exact_source,
+               source: exact_source
+             })
+
+    assert {:error, {:invalid_field, "source_identity"}} =
+             OrbitalDynamics.import_ccsds_oem(oem_covariance_kvn(),
+               sample: :last,
+               source: %{"format" => "ccsds_oem_kvn"}
+             )
+
+    same_semantics_different_bytes = "# ignored identity comment\n" <> opm_covariance_kvn()
+    assert {:ok, variant} = OrbitData.import_ccsds_opm(same_semantics_different_bytes)
+
+    refute artifact["source"]["content_identity"]["sha256"] ==
+             variant["source"]["content_identity"]["sha256"]
+
+    for imported <- [artifact, variant] do
+      assert [state] = imported["spacecraft_states"]
+      assert state["source"]["content_identity"] == imported["source"]["content_identity"]
+      assert imported["provenance"]["content_identity"] == imported["source"]["content_identity"]
+      assert imported["source"]["content_identity"]["authority"] == "not_authenticated"
+      refute imported["source"]["content_identity"]["authority"] == "authenticated"
+    end
   end
 
   test "exports single-state accepted planning state to single-sample CCSDS OEM KVN" do
@@ -921,6 +1698,44 @@ defmodule OrbitalDynamics.OrbitDataTest do
     assert state["state_vector"]["velocity_km_s"] == [0.0, 7.5, 0.0]
     assert state["metadata"]["interpolation"] == "NONE"
     assert state["metadata"]["interpolation_degree"] == "0"
+  end
+
+  test "rejects invalid epoch time scales before public OPM and OEM export text generation" do
+    invalid_time_scales = [
+      nil,
+      42,
+      :utc,
+      ["utc"],
+      <<255>>,
+      String.duplicate("utc", 512)
+    ]
+
+    for time_scale <- invalid_time_scales do
+      artifact = export_artifact_with_time_scale(time_scale)
+
+      assert {:error, {:invalid_field, "epoch.time_scale"}} =
+               OrbitData.export_ccsds_opm(artifact)
+
+      assert {:error, {:invalid_field, "epoch.time_scale"}} =
+               OrbitData.export_ccsds_oem(artifact)
+
+      assert {:error, {:invalid_field, "epoch.time_scale"}} =
+               OrbitalDynamics.export_ccsds_opm(artifact)
+
+      assert {:error, {:invalid_field, "epoch.time_scale"}} =
+               OrbitalDynamics.export_ccsds_oem(artifact)
+    end
+
+    for time_scale <- ["utc", "tai", "tdb"] do
+      artifact = export_artifact_with_time_scale(time_scale)
+
+      assert {:ok, opm} = OrbitData.export_ccsds_opm(artifact)
+      assert {:ok, oem} = OrbitData.export_ccsds_oem(artifact)
+      assert opm =~ "TIME_SYSTEM = #{String.upcase(time_scale)}"
+      assert oem =~ "TIME_SYSTEM = #{String.upcase(time_scale)}"
+      refute opm =~ "COV_REF_FRAME"
+      refute oem =~ "COVARIANCE_START"
+    end
   end
 
   test "imports orbit-data wrapper formats" do
@@ -1253,6 +2068,165 @@ defmodule OrbitalDynamics.OrbitDataTest do
     }
   end
 
+  defp covariance_export_artifact(matrix, quality_extra \\ %{}, metadata_extra \\ %{}) do
+    quality =
+      %{level: :accepted}
+      |> maybe_put_covariance_matrix(matrix)
+      |> Map.merge(quality_extra)
+
+    estimate =
+      state_estimate()
+      |> Map.put(:quality, quality)
+      |> Map.put(:metadata, metadata_extra)
+
+    OrbitData.accepted_planning_state!([estimate],
+      snapshot_id: "ops-state-covariance-export",
+      accepted_at: "2026-05-14T00:00:00Z",
+      source: %{system: :operator_import, source_id: "batch-1"},
+      quality: %{level: :planning_accepted},
+      provenance: %{
+        created_by: "orbit_data_test",
+        trust_boundary: "operator_supplied"
+      }
+    )
+  end
+
+  defp maybe_put_covariance_matrix(quality, nil), do: quality
+
+  defp maybe_put_covariance_matrix(quality, matrix),
+    do: Map.put(quality, :covariance_matrix_6x6, matrix)
+
+  defp covariance_epoch_binding(epoch) do
+    %{
+      "state_epoch" => epoch,
+      "covariance_epoch" => epoch,
+      "time_scale" => "utc",
+      "matched" => true
+    }
+  end
+
+  defp export_artifact_with_time_scale(time_scale) do
+    covariance_export_artifact(nil)
+    |> put_in(["spacecraft_states", Access.at(0), "epoch", "time_scale"], time_scale)
+  end
+
+  defp assert_ref_frame_option_rejected(result) do
+    assert {:error, {:invalid_field, "covariance_frame_binding"}} = result
+    refute match?({:ok, _kvn}, result)
+  end
+
+  defp valid_covariance_matrix do
+    [
+      [1.0e-4, 0.0, 0.0, 4.0e-7, 0.0, 0.0],
+      [0.0, 2.0e-4, 0.0, 0.0, 0.0, 0.0],
+      [0.0, 0.0, 3.0e-4, 0.0, 0.0, 0.0],
+      [4.0e-7, 0.0, 0.0, 7.0e-8, 0.0, 0.0],
+      [0.0, 0.0, 0.0, 0.0, 1.2e-8, 0.0],
+      [0.0, 0.0, 0.0, 0.0, 0.0, 2.1e-8]
+    ]
+  end
+
+  defp without_kvn_line(kvn, key) do
+    kvn
+    |> String.split("\n")
+    |> Enum.reject(fn line ->
+      line |> String.trim_leading() |> String.starts_with?("#{key} =")
+    end)
+    |> Enum.join("\n")
+    |> Kernel.<>("\n")
+  end
+
+  defp replace_kvn_line(kvn, key, replacement) do
+    kvn
+    |> String.split("\n")
+    |> Enum.map(fn line ->
+      trimmed_line = String.trim_leading(line)
+
+      if String.starts_with?(trimmed_line, "#{key} =") or trimmed_line == key,
+        do: replacement,
+        else: line
+    end)
+    |> Enum.join("\n")
+    |> Kernel.<>("\n")
+  end
+
+  defp diagonal_opm_covariance_lines(diagonal, xy) do
+    """
+    COV_REF_FRAME = EME2000
+    CX_X = #{diagonal} [km**2]
+    CY_X = #{xy} [km**2]
+    CY_Y = #{diagonal} [km**2]
+    CZ_X = 0 [km**2]
+    CZ_Y = 0 [km**2]
+    CZ_Z = #{diagonal} [km**2]
+    CX_DOT_X = 0 [km**2/s]
+    CX_DOT_Y = 0 [km**2/s]
+    CX_DOT_Z = 0 [km**2/s]
+    CX_DOT_X_DOT = #{diagonal} [km**2/s**2]
+    CY_DOT_X = 0 [km**2/s]
+    CY_DOT_Y = 0 [km**2/s]
+    CY_DOT_Z = 0 [km**2/s]
+    CY_DOT_X_DOT = 0 [km**2/s**2]
+    CY_DOT_Y_DOT = #{diagonal} [km**2/s**2]
+    CZ_DOT_X = 0 [km**2/s]
+    CZ_DOT_Y = 0 [km**2/s]
+    CZ_DOT_Z = 0 [km**2/s]
+    CZ_DOT_X_DOT = 0 [km**2/s**2]
+    CZ_DOT_Y_DOT = 0 [km**2/s**2]
+    CZ_DOT_Z_DOT = #{diagonal} [km**2/s**2]
+    """
+  end
+
+  defp diagonal_oem_covariance_block(epoch, diagonal, xy) do
+    """
+    COVARIANCE_START
+    EPOCH = #{epoch}
+    #{diagonal_opm_covariance_lines(diagonal, xy)}
+    COVARIANCE_STOP
+    """
+  end
+
+  defp underflow_opm_covariance_lines do
+    """
+    COV_REF_FRAME = EME2000
+    CX_X = 1.0e-170 [km**2]
+    CY_X = 2.0e-170 [km**2]
+    CY_Y = 1.0e-170 [km**2]
+    CZ_X = 0 [km**2]
+    CZ_Y = 0 [km**2]
+    CZ_Z = 1 [km**2]
+    CX_DOT_X = 0 [km**2/s]
+    CX_DOT_Y = 0 [km**2/s]
+    CX_DOT_Z = 0 [km**2/s]
+    CX_DOT_X_DOT = 1 [km**2/s**2]
+    CY_DOT_X = 0 [km**2/s]
+    CY_DOT_Y = 0 [km**2/s]
+    CY_DOT_Z = 0 [km**2/s]
+    CY_DOT_X_DOT = 0 [km**2/s**2]
+    CY_DOT_Y_DOT = 1 [km**2/s**2]
+    CZ_DOT_X = 0 [km**2/s]
+    CZ_DOT_Y = 0 [km**2/s]
+    CZ_DOT_Z = 0 [km**2/s]
+    CZ_DOT_X_DOT = 0 [km**2/s**2]
+    CZ_DOT_Y_DOT = 0 [km**2/s**2]
+    CZ_DOT_Z_DOT = 1 [km**2/s**2]
+    """
+  end
+
+  defp underflow_oem_covariance_block(epoch) do
+    """
+    COVARIANCE_START
+    EPOCH = #{epoch}
+    #{underflow_opm_covariance_lines()}
+    COVARIANCE_STOP
+    """
+  end
+
+  defp sha256(bytes) do
+    :crypto.hash(:sha256, bytes)
+    |> Base.encode16(case: :lower)
+  end
+
   defp opm_kvn do
     """
     CCSDS_OPM_VERS = 2.0
@@ -1264,7 +2238,6 @@ defmodule OrbitalDynamics.OrbitDataTest do
     REF_FRAME = EME2000
     TIME_SYSTEM = UTC
     EPOCH = 2000-01-01T12:02:00.000
-    COV_REF_FRAME = EME2000
     X = 7000 [km]
     Y = 0 [km]
     Z = 0 [km]
@@ -1293,27 +2266,28 @@ defmodule OrbitalDynamics.OrbitDataTest do
 
   defp opm_covariance_kvn do
     """
-    #{opm_kvn()}
+    #{opm_kvn() |> replace_kvn_line("EPOCH", "EPOCH = 2000-01-01T12:02:00.000000Z")}
+    COV_REF_FRAME = EME2000
     CX_X = 1.0e-4 [km**2]
-    CY_X = 1.0e-5 [km**2]
+    CY_X = 0 [km**2]
     CY_Y = 2.0e-4 [km**2]
-    CZ_X = 2.0e-5 [km**2]
-    CZ_Y = 3.0e-5 [km**2]
+    CZ_X = 0 [km**2]
+    CZ_Y = 0 [km**2]
     CZ_Z = 3.0e-4 [km**2]
     CX_DOT_X = 4.0e-7 [km**2/s]
-    CX_DOT_Y = 5.0e-7 [km**2/s]
-    CX_DOT_Z = 6.0e-7 [km**2/s]
+    CX_DOT_Y = 0 [km**2/s]
+    CX_DOT_Z = 0 [km**2/s]
     CX_DOT_X_DOT = 7.0e-8 [km**2/s**2]
-    CY_DOT_X = 8.0e-7 [km**2/s]
-    CY_DOT_Y = 9.0e-7 [km**2/s]
-    CY_DOT_Z = 1.0e-6 [km**2/s]
-    CY_DOT_X_DOT = 1.1e-8 [km**2/s**2]
+    CY_DOT_X = 0 [km**2/s]
+    CY_DOT_Y = 0 [km**2/s]
+    CY_DOT_Z = 0 [km**2/s]
+    CY_DOT_X_DOT = 0 [km**2/s**2]
     CY_DOT_Y_DOT = 1.2e-8 [km**2/s**2]
-    CZ_DOT_X = 1.3e-6 [km**2/s]
-    CZ_DOT_Y = 1.4e-6 [km**2/s]
-    CZ_DOT_Z = 1.5e-6 [km**2/s]
-    CZ_DOT_X_DOT = 1.9e-8 [km**2/s**2]
-    CZ_DOT_Y_DOT = 2.0e-8 [km**2/s**2]
+    CZ_DOT_X = 0 [km**2/s]
+    CZ_DOT_Y = 0 [km**2/s]
+    CZ_DOT_Z = 0 [km**2/s]
+    CZ_DOT_X_DOT = 0 [km**2/s**2]
+    CZ_DOT_Y_DOT = 0 [km**2/s**2]
     CZ_DOT_Z_DOT = 2.1e-8 [km**2/s**2]
     """
   end
@@ -1371,31 +2345,38 @@ defmodule OrbitalDynamics.OrbitDataTest do
   end
 
   defp oem_covariance_kvn do
+    base =
+      oem_kvn()
+      |> String.replace(
+        "2000-01-01T12:03:00.000 6990 450 0 -0.5 7.49 0",
+        "2000-01-01T12:03:00.000000Z 6990 450 0 -0.5 7.49 0"
+      )
+
     """
-    #{oem_kvn()}
+    #{base}
     COVARIANCE_START
-    EPOCH = 2000-01-01T12:03:00.000
+    EPOCH = 2000-01-01T12:03:00.000000Z
     COV_REF_FRAME = EME2000
     CX_X = 1.0e-4 [km**2]
-    CY_X = 1.0e-5 [km**2]
+    CY_X = 0 [km**2]
     CY_Y = 2.0e-4 [km**2]
-    CZ_X = 2.0e-5 [km**2]
-    CZ_Y = 3.0e-5 [km**2]
+    CZ_X = 0 [km**2]
+    CZ_Y = 0 [km**2]
     CZ_Z = 3.0e-4 [km**2]
     CX_DOT_X = 4.0e-7 [km**2/s]
-    CX_DOT_Y = 5.0e-7 [km**2/s]
-    CX_DOT_Z = 6.0e-7 [km**2/s]
+    CX_DOT_Y = 0 [km**2/s]
+    CX_DOT_Z = 0 [km**2/s]
     CX_DOT_X_DOT = 7.0e-8 [km**2/s**2]
-    CY_DOT_X = 8.0e-7 [km**2/s]
-    CY_DOT_Y = 9.0e-7 [km**2/s]
-    CY_DOT_Z = 1.0e-6 [km**2/s]
-    CY_DOT_X_DOT = 1.1e-8 [km**2/s**2]
+    CY_DOT_X = 0 [km**2/s]
+    CY_DOT_Y = 0 [km**2/s]
+    CY_DOT_Z = 0 [km**2/s]
+    CY_DOT_X_DOT = 0 [km**2/s**2]
     CY_DOT_Y_DOT = 1.2e-8 [km**2/s**2]
-    CZ_DOT_X = 1.3e-6 [km**2/s]
-    CZ_DOT_Y = 1.4e-6 [km**2/s]
-    CZ_DOT_Z = 1.5e-6 [km**2/s]
-    CZ_DOT_X_DOT = 1.9e-8 [km**2/s**2]
-    CZ_DOT_Y_DOT = 2.0e-8 [km**2/s**2]
+    CZ_DOT_X = 0 [km**2/s]
+    CZ_DOT_Y = 0 [km**2/s]
+    CZ_DOT_Z = 0 [km**2/s]
+    CZ_DOT_X_DOT = 0 [km**2/s**2]
+    CZ_DOT_Y_DOT = 0 [km**2/s**2]
     CZ_DOT_Z_DOT = 2.1e-8 [km**2/s**2]
     COVARIANCE_STOP
     """

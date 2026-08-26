@@ -11,43 +11,15 @@ defmodule OrbitalDynamics.OrbitData do
   alias OrbitalDynamics.InputIntegrity
   alias OrbitalDynamics.Schema
   alias OrbitalDynamics.OrbitData.AcceptedPlanningState
+  alias OrbitalDynamics.OrbitData.Covariance
   alias OrbitalDynamics.OrbitData.OmmMetadata
   alias OrbitalDynamics.OrbitData.OemInterpolation
   alias OrbitalDynamics.OrbitData.TleMetadata
 
   @j2000 ~U[2000-01-01 12:00:00Z]
-  @opm_covariance_components [
-    {0, 0, "CX_X"},
-    {1, 0, "CY_X"},
-    {1, 1, "CY_Y"},
-    {2, 0, "CZ_X"},
-    {2, 1, "CZ_Y"},
-    {2, 2, "CZ_Z"},
-    {3, 0, "CX_DOT_X"},
-    {3, 1, "CX_DOT_Y"},
-    {3, 2, "CX_DOT_Z"},
-    {3, 3, "CX_DOT_X_DOT"},
-    {4, 0, "CY_DOT_X"},
-    {4, 1, "CY_DOT_Y"},
-    {4, 2, "CY_DOT_Z"},
-    {4, 3, "CY_DOT_X_DOT"},
-    {4, 4, "CY_DOT_Y_DOT"},
-    {5, 0, "CZ_DOT_X"},
-    {5, 1, "CZ_DOT_Y"},
-    {5, 2, "CZ_DOT_Z"},
-    {5, 3, "CZ_DOT_X_DOT"},
-    {5, 4, "CZ_DOT_Y_DOT"},
-    {5, 5, "CZ_DOT_Z_DOT"}
-  ]
-  @opm_covariance_component_keys Enum.map(@opm_covariance_components, &elem(&1, 2))
-  @opm_covariance_component_order ~w(
-    x_km
-    y_km
-    z_km
-    x_dot_km_s
-    y_dot_km_s
-    z_dot_km_s
-  )
+  @export_time_scales ~w(utc tai tdb)
+  @export_ref_frames ~w(EME2000 J2000 ICRF)
+  @export_ref_frame_max_bytes 32
   @opm_spacecraft_metadata_fields [
     {"DRAG_AREA", "drag_area_m2", :drag_area_m2, " [m**2]"},
     {"DRAG_COEFF", "drag_coefficient", :drag_coefficient, ""},
@@ -108,7 +80,7 @@ defmodule OrbitalDynamics.OrbitData do
         "MAN_DV_2",
         "MAN_DV_3"
       ],
-      supported_opm_covariance_fields: ["COV_REF_FRAME" | @opm_covariance_component_keys],
+      supported_opm_covariance_fields: ["COV_REF_FRAME" | Covariance.component_keys()],
       supported_opm_spacecraft_metadata_fields: @opm_spacecraft_metadata_keys,
       supported_oem_metadata_fields: [
         "CCSDS_OEM_VERS",
@@ -129,8 +101,9 @@ defmodule OrbitalDynamics.OrbitData do
         "COV_REF_FRAME"
       ],
       oem_interpolation: OemInterpolation.capabilities(),
-      supported_oem_covariance_fields: ["EPOCH", "COV_REF_FRAME" | @opm_covariance_component_keys],
-      supported_covariance_component_order: @opm_covariance_component_order,
+      supported_oem_covariance_fields: ["EPOCH", "COV_REF_FRAME" | Covariance.component_keys()],
+      supported_covariance_component_order: Covariance.component_order(),
+      covariance_validation: Covariance.capabilities(),
       supported_tle_metadata_fields: TleMetadata.supported_metadata_fields(),
       supported_omm_metadata_fields: OmmMetadata.supported_metadata_fields(),
       supported_opm_maneuver_metadata_blocks: :multiple,
@@ -151,6 +124,11 @@ defmodule OrbitalDynamics.OrbitData do
         :omm_mean_elements_are_preflight_estimates,
         :opm_covariance_metadata_only_no_propagation,
         :oem_covariance_metadata_only_no_propagation,
+        :covariance_requires_complete_symmetric_6x6_lower_triangular_ccsds_terms,
+        :covariance_units_are_closed_ccsds_km_and_km_per_second_contract,
+        :covariance_requires_exact_frame_and_epoch_binding_without_conversion,
+        :covariance_normalized_principal_minor_support_check_is_deterministic_not_external_validation,
+        :covariance_source_identity_is_byte_identity_not_authority,
         :duplicate_single_value_kvn_fields_rejected,
         :opm_spacecraft_metadata_only_no_propagation,
         :opm_maneuver_metadata_only_no_propagation,
@@ -318,18 +296,29 @@ defmodule OrbitalDynamics.OrbitData do
   def import_orbit_data(source, opts \\ [])
 
   def import_orbit_data(%{} = source, opts) do
+    source_option_result = orbit_data_source_option(source)
     source = stringify_keys(source)
 
     case Map.get(source, "format") do
       format when format in ["ccsds_opm_kvn", "ccsds_opm_kvn_single_object_cartesian"] ->
-        import_ccsds_opm(Map.get(source, "content"), orbit_data_opts(source, opts))
+        with {:ok, source_option} <- source_option_result do
+          import_ccsds_opm(
+            Map.get(source, "content"),
+            orbit_data_opts(source, opts, source_option)
+          )
+        end
 
       format
       when format in [
              "ccsds_oem_kvn",
              "ccsds_oem_kvn_single_object_cartesian_ephemeris"
            ] ->
-        import_ccsds_oem(Map.get(source, "content"), orbit_data_opts(source, opts))
+        with {:ok, source_option} <- source_option_result do
+          import_ccsds_oem(
+            Map.get(source, "content"),
+            orbit_data_opts(source, opts, source_option)
+          )
+        end
 
       format when format in ["tle", "tle_sgp4", "tle_two_line_element"] ->
         with {:ok, metadata} <- inspect_tle(Map.get(source, "content"), opts) do
@@ -370,20 +359,57 @@ defmodule OrbitalDynamics.OrbitData do
   """
   def inspect_ccsds_omm(source, opts \\ []), do: OmmMetadata.inspect(source, opts)
 
-  defp orbit_data_opts(source, opts) do
+  defp orbit_data_source_option(source) do
+    has_string_source? = Map.has_key?(source, "source")
+    has_atom_source? = Map.has_key?(source, :source)
+
+    cond do
+      has_string_source? and has_atom_source? ->
+        {:error, {:invalid_field, "source_identity"}}
+
+      has_string_source? ->
+        {:ok, Map.fetch!(source, "source")}
+
+      has_atom_source? ->
+        {:ok, Map.fetch!(source, :source)}
+
+      true ->
+        {:ok, nil}
+    end
+  end
+
+  defp orbit_data_opts(source, opts, source_option) do
     opts
-    |> Keyword.put_new(:snapshot_id, Map.get(source, "snapshot_id"))
-    |> Keyword.put_new(:accepted_at, Map.get(source, "accepted_at"))
-    |> Keyword.put_new(:source, Map.get(source, "source"))
-    |> Keyword.put_new(:quality, Map.get(source, "quality"))
-    |> Keyword.put_new(:provenance, Map.get(source, "provenance"))
-    |> Keyword.put_new(:sample, Map.get(source, "sample"))
-    |> Keyword.put_new(:sample_index, Map.get(source, "sample_index"))
-    |> Keyword.put_new(:interpolate, Map.get(source, "interpolate"))
-    |> Keyword.put_new(:interpolation, Map.get(source, "interpolation"))
-    |> Keyword.put_new(:strategy_epoch, Map.get(source, "strategy_epoch"))
-    |> Keyword.put_new(:source_revision, Map.get(source, "source_revision"))
-    |> Keyword.put_new(:max_bracket_s, Map.get(source, "max_bracket_s"))
+    |> put_orbit_data_opt(source, "snapshot_id", :snapshot_id)
+    |> put_orbit_data_opt(source, "accepted_at", :accepted_at)
+    |> put_orbit_data_source_option(source_option)
+    |> put_orbit_data_opt(source, "quality", :quality)
+    |> put_orbit_data_opt(source, "provenance", :provenance)
+    |> put_orbit_data_opt(source, "sample", :sample)
+    |> put_orbit_data_opt(source, "sample_index", :sample_index)
+    |> put_orbit_data_opt(source, "interpolate", :interpolate)
+    |> put_orbit_data_opt(source, "interpolation", :interpolation)
+    |> put_orbit_data_opt(source, "strategy_epoch", :strategy_epoch)
+    |> put_orbit_data_opt(source, "source_revision", :source_revision)
+    |> put_orbit_data_opt(source, "max_bracket_s", :max_bracket_s)
+  end
+
+  defp put_orbit_data_opt(opts, source, source_key, opt_key) do
+    if Map.has_key?(source, source_key) do
+      Keyword.put_new(opts, opt_key, Map.fetch!(source, source_key))
+    else
+      opts
+    end
+  end
+
+  defp put_orbit_data_source_option(opts, nil), do: Keyword.put_new(opts, :source, nil)
+
+  defp put_orbit_data_source_option(opts, source_option) do
+    if Keyword.has_key?(opts, :source) do
+      [{:source, source_option} | opts]
+    else
+      Keyword.put_new(opts, :source, source_option)
+    end
   end
 
   @doc """
@@ -428,12 +454,15 @@ defmodule OrbitalDynamics.OrbitData do
              allow_duplicate_prefixes: ["MAN_"]
            ),
          {:ok, fields} <- parse_opm_kvn(kvn),
-         {:ok, estimate} <- opm_state_estimate(fields),
+         source_identity = Covariance.source_identity("ccsds_opm", fields, kvn),
+         {:ok, covariance_evidence} <- opm_covariance_evidence(fields),
          {:ok, accepted_at} <- opm_accepted_at(fields),
-         {:ok, source} <- opm_source(fields),
+         {:ok, source} <- opm_source(fields, source_identity),
+         {:ok, source} <- import_source_option(Keyword.get_values(opts, :source), source),
+         {:ok, estimate} <- opm_state_estimate(fields, source, covariance_evidence),
          {:ok, quality} <-
            quality_map(Keyword.get(opts, :quality, %{"level" => "accepted"}), "quality"),
-         {:ok, provenance} <- opm_provenance(fields, opts),
+         {:ok, provenance} <- opm_provenance(fields, opts, source_identity, covariance_evidence),
          {:ok, opm_maneuver_execution_deltas} <- opm_maneuver_execution_deltas(fields, estimate),
          {:ok, opt_maneuver_execution_deltas} <-
            maneuver_execution_deltas(
@@ -443,7 +472,7 @@ defmodule OrbitalDynamics.OrbitData do
       accepted_planning_state([estimate],
         snapshot_id: Keyword.get(opts, :snapshot_id) || opm_snapshot_id(fields, estimate),
         accepted_at: Keyword.get(opts, :accepted_at) || accepted_at,
-        source: Keyword.get(opts, :source) || source,
+        source: source,
         quality: quality,
         provenance: provenance,
         maneuver_execution_deltas: opt_maneuver_execution_deltas ++ opm_maneuver_execution_deltas
@@ -473,18 +502,23 @@ defmodule OrbitalDynamics.OrbitData do
   def import_ccsds_oem(kvn, opts) when is_binary(kvn) do
     with :ok <- reject_duplicate_kvn_single_value_fields(kvn, "ccsds_oem"),
          {:ok, oem} <- parse_oem_kvn(kvn),
+         source_identity = Covariance.source_identity("ccsds_oem", oem.fields, kvn),
          {:ok, selection} <- oem_selection(kvn, oem, opts),
+         {:ok, covariance_evidence} <-
+           oem_covariance_evidence(oem.covariance_fields, oem.fields, selection.sample),
+         {:ok, source} <- oem_source(oem.fields, selection.evidence, source_identity),
+         {:ok, source} <- import_source_option(Keyword.get_values(opts, :source), source),
          {:ok, estimate} <-
            oem_state_estimate(
              oem.fields,
              selection.sample,
              selection.sample_index,
-             oem.covariance_fields,
-             selection.evidence
+             selection.evidence,
+             source,
+             covariance_evidence
            ),
          {:ok, accepted_at} <-
            oem_accepted_at(oem.fields, selection.sample, opts, selection.evidence),
-         {:ok, source} <- oem_source(oem.fields, selection.evidence),
          {:ok, quality} <-
            quality_map(Keyword.get(opts, :quality, %{"level" => "accepted"}), "quality"),
          {:ok, provenance} <-
@@ -492,14 +526,15 @@ defmodule OrbitalDynamics.OrbitData do
              oem.fields,
              selection.sample,
              selection.sample_index,
-             oem.covariance_fields,
+             covariance_evidence,
              opts,
-             selection.evidence
+             selection.evidence,
+             source_identity
            ) do
       accepted_planning_state([estimate],
         snapshot_id: Keyword.get(opts, :snapshot_id) || oem_snapshot_id(oem.fields, estimate),
         accepted_at: accepted_at,
-        source: Keyword.get(opts, :source) || source,
+        source: source,
         quality: quality,
         provenance: provenance
       )
@@ -517,8 +552,10 @@ defmodule OrbitalDynamics.OrbitData do
     with {:ok, _report} <-
            Schema.validate_artifact(artifact, schema_contract: "accepted_planning_state.v1"),
          {:ok, state} <- single_spacecraft_state(artifact),
-         {:ok, epoch} <- opm_epoch_from_state(state) do
-      {:ok, opm_kvn(artifact, state, epoch, opts)}
+         {:ok, time_scale} <- export_time_scale_from_state(state),
+         {:ok, epoch} <- opm_epoch_from_state(state),
+         {:ok, kvn} <- opm_kvn(artifact, state, epoch, time_scale, opts) do
+      {:ok, kvn}
     else
       {:error, %{"status" => "fail"} = report} ->
         {:error, {:invalid_accepted_planning_state, report}}
@@ -545,8 +582,10 @@ defmodule OrbitalDynamics.OrbitData do
     with {:ok, _report} <-
            Schema.validate_artifact(artifact, schema_contract: "accepted_planning_state.v1"),
          {:ok, state} <- single_spacecraft_state(artifact),
-         {:ok, epoch} <- opm_epoch_from_state(state) do
-      {:ok, oem_kvn(artifact, state, epoch, opts)}
+         {:ok, time_scale} <- export_time_scale_from_state(state),
+         {:ok, epoch} <- opm_epoch_from_state(state),
+         {:ok, kvn} <- oem_kvn(artifact, state, epoch, time_scale, opts) do
+      {:ok, kvn}
     else
       {:error, %{"status" => "fail"} = report} ->
         {:error, {:invalid_accepted_planning_state, report}}
@@ -638,7 +677,11 @@ defmodule OrbitalDynamics.OrbitData do
         {:ok, data_lines, %{}}
 
       {:ok, data_lines, [covariance_fields], nil} ->
-        {:ok, data_lines, covariance_fields}
+        if map_size(covariance_fields) == 0 do
+          {:error, {:missing_field, "covariance_matrix.CX_X"}}
+        else
+          {:ok, data_lines, covariance_fields}
+        end
 
       {:ok, _data_lines, _covariance_blocks, nil} ->
         {:error, {:unsupported_field, "oem_covariance_segment"}}
@@ -764,36 +807,22 @@ defmodule OrbitalDynamics.OrbitData do
          fields,
          sample,
          sample_index,
-         covariance_fields,
-         interpolation_evidence
+         interpolation_evidence,
+         source,
+         covariance_evidence
        ) do
     with {:ok, object_name} <- opm_object_name(fields),
          {:ok, epoch_s} <- oem_epoch_seconds(sample),
          {:ok, time_scale} <- opm_time_scale(fields),
          {:ok, center_name} <- opm_center_name(fields),
-         {:ok, frame} <- opm_frame(fields),
-         {:ok, source} <- oem_source(fields, interpolation_evidence),
-         {:ok, covariance_matrix} <- opm_covariance_matrix(covariance_fields) do
+         {:ok, frame} <- opm_frame(fields) do
       covariance_status =
         interpolation_covariance_status(interpolation_evidence) ||
-          oem_covariance_status(covariance_fields, covariance_matrix)
+          covariance_status(covariance_evidence)
 
       quality =
         %{"level" => "accepted"}
-        |> maybe_put(
-          "covariance_reference_frame",
-          oem_covariance_reference_frame(covariance_fields)
-        )
-        |> maybe_put("covariance_matrix_6x6", covariance_matrix)
-        |> maybe_put(
-          "covariance_component_order",
-          if(covariance_matrix, do: @opm_covariance_component_order)
-        )
-        |> maybe_put(
-          "covariance_status",
-          covariance_status
-        )
-        |> maybe_put("covariance_epoch", opm_optional_value(covariance_fields, "EPOCH"))
+        |> Map.merge(Covariance.quality_fields(covariance_evidence, covariance_status))
 
       {:ok,
        %{
@@ -812,7 +841,7 @@ defmodule OrbitalDynamics.OrbitData do
              center_name,
              sample,
              sample_index,
-             covariance_fields,
+             covariance_evidence,
              interpolation_evidence
            )
        }}
@@ -867,7 +896,7 @@ defmodule OrbitalDynamics.OrbitData do
   defp invalid_oem_accepted_at(:option), do: {:error, {:invalid_option, :accepted_at}}
   defp invalid_oem_accepted_at(:field), do: {:error, {:invalid_field, "CREATION_DATE"}}
 
-  defp oem_source(fields, interpolation_evidence) do
+  defp oem_source(fields, interpolation_evidence, source_identity) do
     source =
       %{
         "format" => "ccsds_oem_kvn",
@@ -885,10 +914,14 @@ defmodule OrbitalDynamics.OrbitData do
           source
           |> Map.put("source_id", Map.fetch!(interpolation_source, "source_id"))
           |> Map.put("source_revision", Map.fetch!(interpolation_source, "source_revision"))
-          |> Map.put("content_identity", Map.fetch!(interpolation_source, "content_identity"))
+          |> Map.put(
+            "content_identity",
+            Map.get(source_identity, "content_identity") ||
+              Map.fetch!(interpolation_source, "content_identity")
+          )
 
         _evidence ->
-          source
+          Map.merge(source, source_identity)
       end
 
     {:ok, source}
@@ -898,9 +931,10 @@ defmodule OrbitalDynamics.OrbitData do
          fields,
          sample,
          sample_index,
-         covariance_fields,
+         covariance_evidence,
          opts,
-         interpolation_evidence
+         interpolation_evidence,
+         source_identity
        ) do
     optional_map(
       Keyword.get(opts, :provenance, %{
@@ -912,6 +946,10 @@ defmodule OrbitalDynamics.OrbitData do
     )
     |> case do
       {:ok, provenance} ->
+        covariance_status =
+          interpolation_covariance_status(interpolation_evidence) ||
+            covariance_status(covariance_evidence)
+
         provenance =
           provenance
           |> adapter_provenance(
@@ -923,28 +961,14 @@ defmodule OrbitalDynamics.OrbitData do
           |> maybe_put("center_name", opm_optional_value(fields, "CENTER_NAME") || "EARTH")
           |> maybe_put("ref_frame", opm_optional_value(fields, "REF_FRAME") || "EME2000")
           |> maybe_put("time_system", opm_optional_value(fields, "TIME_SYSTEM") || "UTC")
+          |> Map.merge(source_identity)
           |> maybe_put(
             "sample_selection",
             oem_sample_selection(interpolation_evidence)
           )
           |> maybe_put("sample_index", sample_index)
           |> maybe_put("sample_epoch", Map.fetch!(sample, "epoch"))
-          |> maybe_put(
-            "covariance_reference_frame",
-            oem_covariance_reference_frame(covariance_fields)
-          )
-          |> maybe_put("covariance_epoch", opm_optional_value(covariance_fields, "EPOCH"))
-          |> maybe_put(
-            "covariance_component_order",
-            if(opm_covariance_matrix_present?(covariance_fields),
-              do: @opm_covariance_component_order
-            )
-          )
-          |> maybe_put(
-            "covariance_status",
-            interpolation_covariance_status(interpolation_evidence) ||
-              oem_covariance_status(covariance_fields)
-          )
+          |> Map.merge(Covariance.provenance_fields(covariance_evidence, covariance_status))
 
         {:ok, maybe_put(provenance, "oem_interpolation", interpolation_evidence)}
 
@@ -963,9 +987,13 @@ defmodule OrbitalDynamics.OrbitData do
          center_name,
          sample,
          sample_index,
-         covariance_fields,
+         covariance_evidence,
          interpolation_evidence
        ) do
+    covariance_status =
+      interpolation_covariance_status(interpolation_evidence) ||
+        covariance_status(covariance_evidence)
+
     %{
       "input_format" => "ccsds_oem_kvn",
       "ccsds_oem_version" => opm_optional_value(fields, "CCSDS_OEM_VERS") || "2.0",
@@ -980,11 +1008,6 @@ defmodule OrbitalDynamics.OrbitData do
       "interpolation_degree" => opm_optional_value(fields, "INTERPOLATION_DEGREE"),
       "sample_index" => sample_index,
       "sample_epoch" => Map.fetch!(sample, "epoch"),
-      "covariance_reference_frame" => oem_covariance_reference_frame(covariance_fields),
-      "covariance_epoch" => opm_optional_value(covariance_fields, "EPOCH"),
-      "covariance_status" =>
-        interpolation_covariance_status(interpolation_evidence) ||
-          oem_covariance_status(covariance_fields),
       "oem_interpolation_evidence_id" =>
         if(is_map(interpolation_evidence), do: interpolation_evidence["id"]),
       "requested_epoch" =>
@@ -998,6 +1021,7 @@ defmodule OrbitalDynamics.OrbitData do
           do: get_in(interpolation_evidence, ["interpolation", "version"])
         )
     }
+    |> Map.merge(Covariance.metadata_fields(covariance_evidence, covariance_status))
     |> Enum.reject(fn {_key, value} -> value in [nil, ""] end)
     |> Map.new()
   end
@@ -1010,32 +1034,21 @@ defmodule OrbitalDynamics.OrbitData do
   defp interpolation_covariance_status(%{"covariance" => %{"status" => status}}), do: status
   defp interpolation_covariance_status(_evidence), do: nil
 
-  defp oem_covariance_reference_frame(covariance_fields) do
-    opm_optional_value(covariance_fields, "COV_REF_FRAME")
-  end
+  defp covariance_status(%{status: status}), do: status
+  defp covariance_status(_covariance_evidence), do: nil
 
-  defp oem_covariance_status(covariance_fields, covariance_matrix \\ :not_loaded)
-
-  defp oem_covariance_status(covariance_fields, covariance_matrix)
-       when is_list(covariance_matrix) do
-    if map_size(covariance_fields) > 0, do: "matrix_imported_metadata_only_no_propagation"
-  end
-
-  defp oem_covariance_status(covariance_fields, :not_loaded) do
-    cond do
-      opm_covariance_matrix_present?(covariance_fields) ->
-        "matrix_imported_metadata_only_no_propagation"
-
-      map_size(covariance_fields) > 0 ->
-        "reference_frame_only_no_matrix_import"
-
-      true ->
-        nil
+  defp oem_covariance_evidence(covariance_fields, fields, sample) do
+    with {:ok, epoch_s} <- oem_epoch_seconds(sample),
+         {:ok, time_scale} <- opm_time_scale(fields),
+         {:ok, frame} <- opm_frame(fields) do
+      Covariance.from_oem_fields(covariance_fields, %{
+        "source_ref_frame" => opm_optional_exact_value(fields, "REF_FRAME") || "EME2000",
+        "accepted_state_frame" => frame,
+        "state_epoch" => Map.fetch!(sample, "epoch"),
+        "state_epoch_s" => epoch_s,
+        "time_scale" => time_scale
+      })
     end
-  end
-
-  defp oem_covariance_status(covariance_fields, _covariance_matrix) do
-    if map_size(covariance_fields) > 0, do: "reference_frame_only_no_matrix_import"
   end
 
   defp parse_opm_kvn(kvn) do
@@ -1090,28 +1103,17 @@ defmodule OrbitalDynamics.OrbitData do
   defp maybe_append_opm_maneuver_block(maneuver_blocks, maneuver_block),
     do: maneuver_blocks ++ [maneuver_block]
 
-  defp opm_state_estimate(fields) do
+  defp opm_state_estimate(fields, source, covariance_evidence) do
     with {:ok, object_name} <- opm_object_name(fields),
          {:ok, epoch_s} <- opm_epoch_seconds(fields),
          {:ok, time_scale} <- opm_time_scale(fields),
          {:ok, center_name} <- opm_center_name(fields),
          {:ok, frame} <- opm_frame(fields),
          {:ok, position_km} <- opm_vector(fields, ["X", "Y", "Z"], "position_km"),
-         {:ok, velocity_km_s} <- opm_vector(fields, ["X_DOT", "Y_DOT", "Z_DOT"], "velocity_km_s"),
-         {:ok, source} <- opm_source(fields),
-         {:ok, covariance_matrix} <- opm_covariance_matrix(fields) do
+         {:ok, velocity_km_s} <- opm_vector(fields, ["X_DOT", "Y_DOT", "Z_DOT"], "velocity_km_s") do
       quality =
         %{"level" => "accepted"}
-        |> maybe_put("covariance_reference_frame", opm_optional_value(fields, "COV_REF_FRAME"))
-        |> maybe_put("covariance_matrix_6x6", covariance_matrix)
-        |> maybe_put(
-          "covariance_component_order",
-          if(covariance_matrix, do: @opm_covariance_component_order)
-        )
-        |> maybe_put(
-          "covariance_status",
-          opm_covariance_status(fields, covariance_matrix)
-        )
+        |> Map.merge(Covariance.quality_fields(covariance_evidence))
 
       {:ok,
        %{
@@ -1124,7 +1126,7 @@ defmodule OrbitalDynamics.OrbitData do
          "velocity_km_s" => velocity_km_s,
          "source" => source,
          "quality" => quality,
-         "metadata" => opm_metadata(fields, center_name)
+         "metadata" => opm_metadata(fields, center_name, covariance_evidence)
        }
        |> maybe_put("dry_mass_kg", opm_optional_number(fields, "MASS"))}
     end
@@ -1209,6 +1211,13 @@ defmodule OrbitalDynamics.OrbitData do
     end
   end
 
+  defp opm_optional_exact_value(fields, key) do
+    case Map.get(fields, key) do
+      value when is_binary(value) and value != "" -> String.trim(value)
+      _value -> nil
+    end
+  end
+
   defp opm_required_value(fields, key) do
     case Map.get(fields, key) do
       value when is_binary(value) and value != "" -> {:ok, opm_value(value)}
@@ -1241,7 +1250,7 @@ defmodule OrbitalDynamics.OrbitData do
     end
   end
 
-  defp opm_source(fields) do
+  defp opm_source(fields, source_identity) do
     {:ok,
      %{
        "format" => "ccsds_opm_kvn",
@@ -1251,10 +1260,11 @@ defmodule OrbitalDynamics.OrbitData do
        "center_name" => opm_value(Map.get(fields, "CENTER_NAME", "EARTH")),
        "ref_frame" => opm_value(Map.get(fields, "REF_FRAME", "EME2000")),
        "time_system" => opm_value(Map.get(fields, "TIME_SYSTEM", "UTC"))
-     }}
+     }
+     |> Map.merge(source_identity)}
   end
 
-  defp opm_provenance(fields, opts) do
+  defp opm_provenance(fields, opts, source_identity, covariance_evidence) do
     optional_map(
       Keyword.get(opts, :provenance, %{
         "format" => "ccsds_opm_kvn",
@@ -1276,19 +1286,12 @@ defmodule OrbitalDynamics.OrbitData do
          |> maybe_put("center_name", opm_optional_value(fields, "CENTER_NAME") || "EARTH")
          |> maybe_put("ref_frame", opm_optional_value(fields, "REF_FRAME") || "EME2000")
          |> maybe_put("time_system", opm_optional_value(fields, "TIME_SYSTEM") || "UTC")
+         |> Map.merge(source_identity)
          |> maybe_put(
            "opm_spacecraft_metadata_status",
            opm_spacecraft_metadata_status(fields)
          )
-         |> maybe_put("covariance_reference_frame", opm_optional_value(fields, "COV_REF_FRAME"))
-         |> maybe_put(
-           "covariance_component_order",
-           if(opm_covariance_matrix_present?(fields), do: @opm_covariance_component_order)
-         )
-         |> maybe_put(
-           "covariance_status",
-           opm_covariance_status(fields)
-         )
+         |> Map.merge(Covariance.provenance_fields(covariance_evidence))
          |> maybe_put("opm_maneuver_metadata_count", opm_maneuver_metadata_count(fields))
          |> maybe_put(
            "opm_maneuver_metadata_status",
@@ -1400,66 +1403,18 @@ defmodule OrbitalDynamics.OrbitData do
 
   defp single_spacecraft_state(_artifact), do: {:error, {:missing_field, "spacecraft_states"}}
 
-  defp opm_covariance_matrix(fields) do
-    if opm_covariance_matrix_present?(fields) do
-      missing_keys =
-        @opm_covariance_component_keys
-        |> Enum.reject(&Map.has_key?(fields, &1))
-
-      if missing_keys == [] do
-        opm_covariance_matrix_from_components(fields)
-      else
-        {:error, {:missing_field, "covariance_matrix.#{List.first(missing_keys)}"}}
-      end
-    else
-      {:ok, nil}
+  defp opm_covariance_evidence(fields) do
+    with {:ok, epoch_s} <- opm_epoch_seconds(fields),
+         {:ok, time_scale} <- opm_time_scale(fields),
+         {:ok, frame} <- opm_frame(fields) do
+      Covariance.from_opm_fields(fields, %{
+        "source_ref_frame" => opm_optional_exact_value(fields, "REF_FRAME") || "EME2000",
+        "accepted_state_frame" => frame,
+        "state_epoch" => opm_optional_exact_value(fields, "EPOCH"),
+        "state_epoch_s" => epoch_s,
+        "time_scale" => time_scale
+      })
     end
-  end
-
-  defp opm_covariance_matrix_present?(fields),
-    do: Enum.any?(@opm_covariance_component_keys, &Map.has_key?(fields, &1))
-
-  defp opm_covariance_matrix_from_components(fields) do
-    base_matrix = List.duplicate(List.duplicate(0.0, 6), 6)
-
-    Enum.reduce_while(@opm_covariance_components, {:ok, base_matrix}, fn {row, column, key},
-                                                                         {:ok, matrix} ->
-      case opm_number(fields, key) do
-        {:ok, value} ->
-          matrix =
-            matrix
-            |> put_covariance_value(row, column, value)
-            |> put_covariance_value(column, row, value)
-
-          {:cont, {:ok, matrix}}
-
-        {:error, _reason} ->
-          {:halt, {:error, {:invalid_field, "covariance_matrix.#{key}"}}}
-      end
-    end)
-  end
-
-  defp put_covariance_value(matrix, row, column, value) do
-    List.update_at(matrix, row, fn row_values ->
-      List.replace_at(row_values, column, value)
-    end)
-  end
-
-  defp opm_covariance_status(fields, covariance_matrix \\ :not_loaded)
-
-  defp opm_covariance_status(_fields, covariance_matrix) when is_list(covariance_matrix),
-    do: "matrix_imported_metadata_only_no_propagation"
-
-  defp opm_covariance_status(fields, :not_loaded) do
-    if opm_covariance_matrix_present?(fields) do
-      "matrix_imported_metadata_only_no_propagation"
-    else
-      opm_covariance_status(fields, nil)
-    end
-  end
-
-  defp opm_covariance_status(fields, _covariance_matrix) do
-    if Map.has_key?(fields, "COV_REF_FRAME"), do: "reference_frame_only_no_matrix_import"
   end
 
   defp opm_epoch_from_state(%{"epoch" => %{"seconds_since_j2000" => seconds}})
@@ -1470,7 +1425,45 @@ defmodule OrbitalDynamics.OrbitData do
 
   defp opm_epoch_from_state(_state), do: {:error, {:missing_field, "epoch"}}
 
-  defp opm_kvn(artifact, state, epoch, opts) do
+  defp export_time_scale_from_state(%{"epoch" => %{"time_scale" => time_scale}})
+       when time_scale in @export_time_scales,
+       do: {:ok, time_scale}
+
+  defp export_time_scale_from_state(_state), do: {:error, {:invalid_field, "epoch.time_scale"}}
+
+  defp export_ref_frame(metadata, opts) do
+    case Keyword.get_values(opts, :ref_frame) do
+      [] ->
+        {:ok, Map.get(metadata, "ref_frame") || "EME2000"}
+
+      [ref_frame] ->
+        export_ref_frame_option(ref_frame)
+
+      _ref_frames ->
+        {:error, {:invalid_field, "covariance_frame_binding"}}
+    end
+  end
+
+  defp export_ref_frame_option(ref_frame) when is_binary(ref_frame) do
+    cond do
+      byte_size(ref_frame) > @export_ref_frame_max_bytes ->
+        {:error, {:invalid_field, "covariance_frame_binding"}}
+
+      not String.valid?(ref_frame) ->
+        {:error, {:invalid_field, "covariance_frame_binding"}}
+
+      ref_frame in @export_ref_frames ->
+        {:ok, ref_frame}
+
+      true ->
+        {:error, {:invalid_field, "covariance_frame_binding"}}
+    end
+  end
+
+  defp export_ref_frame_option(_ref_frame),
+    do: {:error, {:invalid_field, "covariance_frame_binding"}}
+
+  defp opm_kvn(artifact, state, epoch, time_scale, opts) do
     position = get_in(state, ["state_vector", "position_km"])
     velocity = get_in(state, ["state_vector", "velocity_km_s"])
     metadata = Map.get(state, "metadata", %{})
@@ -1481,36 +1474,44 @@ defmodule OrbitalDynamics.OrbitData do
 
     object_id = Keyword.get(opts, :object_id) || metadata["object_id"] || object_name
     center_name = Keyword.get(opts, :center_name) || metadata["center_name"] || "EARTH"
-    ref_frame = Keyword.get(opts, :ref_frame) || metadata["ref_frame"] || "EME2000"
     mass_kg = opm_export_mass_kg(state, metadata, opts)
-    covariance_reference_frame = opm_export_covariance_reference_frame(state, metadata, opts)
 
-    [
-      "CCSDS_OPM_VERS = 2.0",
-      "CREATION_DATE = #{export_creation_date(artifact, metadata, opts)}",
-      "ORIGINATOR = #{export_originator(metadata, opts)}",
-      "OBJECT_NAME = #{object_name}",
-      "OBJECT_ID = #{object_id}",
-      "CENTER_NAME = #{center_name}",
-      "REF_FRAME = #{ref_frame}",
-      "TIME_SYSTEM = #{state |> get_in(["epoch", "time_scale"]) |> String.upcase()}",
-      mass_kg && "MASS = #{format_kvn_number(mass_kg)} [kg]",
-      opm_export_spacecraft_metadata_lines(metadata, opts),
-      covariance_reference_frame && "COV_REF_FRAME = #{covariance_reference_frame}",
-      "EPOCH = #{epoch}",
-      "X = #{format_kvn_number(Enum.at(position, 0))} [km]",
-      "Y = #{format_kvn_number(Enum.at(position, 1))} [km]",
-      "Z = #{format_kvn_number(Enum.at(position, 2))} [km]",
-      "X_DOT = #{format_kvn_number(Enum.at(velocity, 0))} [km/s]",
-      "Y_DOT = #{format_kvn_number(Enum.at(velocity, 1))} [km/s]",
-      "Z_DOT = #{format_kvn_number(Enum.at(velocity, 2))} [km/s]"
-    ]
-    |> List.flatten()
-    |> Kernel.++(opm_export_covariance_lines(state))
-    |> Kernel.++(opm_export_maneuver_lines(artifact, opts))
-    |> Enum.reject(&is_nil/1)
-    |> Enum.join("\n")
-    |> Kernel.<>("\n")
+    with {:ok, ref_frame} <- export_ref_frame(metadata, opts),
+         {:ok, covariance_evidence} <-
+           opm_export_covariance_evidence(state, metadata, epoch, ref_frame, time_scale, opts) do
+      covariance_reference_frame =
+        if covariance_evidence, do: Map.fetch!(covariance_evidence, :reference_frame)
+
+      kvn =
+        [
+          "CCSDS_OPM_VERS = 2.0",
+          "CREATION_DATE = #{export_creation_date(artifact, metadata, opts)}",
+          "ORIGINATOR = #{export_originator(metadata, opts)}",
+          "OBJECT_NAME = #{object_name}",
+          "OBJECT_ID = #{object_id}",
+          "CENTER_NAME = #{center_name}",
+          "REF_FRAME = #{ref_frame}",
+          "TIME_SYSTEM = #{String.upcase(time_scale)}",
+          mass_kg && "MASS = #{format_kvn_number(mass_kg)} [kg]",
+          opm_export_spacecraft_metadata_lines(metadata, opts),
+          covariance_reference_frame && "COV_REF_FRAME = #{covariance_reference_frame}",
+          "EPOCH = #{epoch}",
+          "X = #{format_kvn_number(Enum.at(position, 0))} [km]",
+          "Y = #{format_kvn_number(Enum.at(position, 1))} [km]",
+          "Z = #{format_kvn_number(Enum.at(position, 2))} [km]",
+          "X_DOT = #{format_kvn_number(Enum.at(velocity, 0))} [km/s]",
+          "Y_DOT = #{format_kvn_number(Enum.at(velocity, 1))} [km/s]",
+          "Z_DOT = #{format_kvn_number(Enum.at(velocity, 2))} [km/s]"
+        ]
+        |> List.flatten()
+        |> Kernel.++(opm_export_covariance_lines(covariance_evidence))
+        |> Kernel.++(opm_export_maneuver_lines(artifact, opts))
+        |> Enum.reject(&is_nil/1)
+        |> Enum.join("\n")
+        |> Kernel.<>("\n")
+
+      {:ok, kvn}
+    end
   end
 
   defp opm_export_mass_kg(state, metadata, opts) do
@@ -1518,10 +1519,16 @@ defmodule OrbitalDynamics.OrbitData do
       Map.get(state, "dry_mass_kg") || Map.get(metadata, "spacecraft_mass_kg")
   end
 
-  defp opm_export_covariance_reference_frame(state, metadata, opts) do
-    Keyword.get(opts, :covariance_reference_frame) ||
-      Map.get(metadata, "covariance_reference_frame") ||
-      get_in(state, ["quality", "covariance_reference_frame"])
+  defp opm_export_covariance_evidence(state, metadata, epoch, ref_frame, time_scale, opts) do
+    Covariance.from_export_state(:opm, state, %{
+      "accepted_state_frame" => Map.get(state, "frame"),
+      "source_ref_frame" => ref_frame,
+      "state_epoch" => epoch,
+      "state_epoch_s" => get_in(state, ["epoch", "seconds_since_j2000"]),
+      "time_scale" => time_scale,
+      "metadata" => metadata,
+      "opts" => opts
+    })
   end
 
   defp opm_export_spacecraft_metadata_lines(metadata, opts) do
@@ -1534,15 +1541,10 @@ defmodule OrbitalDynamics.OrbitData do
     end)
   end
 
-  defp opm_export_covariance_lines(state) do
-    case get_in(state, ["quality", "covariance_matrix_6x6"]) do
-      matrix when is_list(matrix) and length(matrix) == 6 ->
-        covariance_component_lines(matrix)
+  defp opm_export_covariance_lines(nil), do: []
 
-      _matrix ->
-        []
-    end
-  end
+  defp opm_export_covariance_lines(%{} = covariance_evidence),
+    do: covariance_evidence |> Map.fetch!(:matrix) |> covariance_component_lines()
 
   defp opm_export_maneuver_lines(artifact, opts) do
     artifact
@@ -1620,7 +1622,7 @@ defmodule OrbitalDynamics.OrbitData do
   end
 
   defp covariance_component_lines(matrix) do
-    @opm_covariance_components
+    Covariance.components()
     |> Enum.map(fn {row, column, key} ->
       with row_values when is_list(row_values) <- Enum.at(matrix, row),
            value when is_number(value) <- Enum.at(row_values, column) do
@@ -1632,7 +1634,7 @@ defmodule OrbitalDynamics.OrbitData do
     |> Enum.reject(&is_nil/1)
   end
 
-  defp oem_kvn(artifact, state, epoch, opts) do
+  defp oem_kvn(artifact, state, epoch, time_scale, opts) do
     position = get_in(state, ["state_vector", "position_km"])
     velocity = get_in(state, ["state_vector", "velocity_km_s"])
     metadata = Map.get(state, "metadata", %{})
@@ -1643,25 +1645,34 @@ defmodule OrbitalDynamics.OrbitData do
 
     object_id = Keyword.get(opts, :object_id) || metadata["object_id"] || object_name
     center_name = Keyword.get(opts, :center_name) || metadata["center_name"] || "EARTH"
-    ref_frame = Keyword.get(opts, :ref_frame) || metadata["ref_frame"] || "EME2000"
 
-    ([
-       "CCSDS_OEM_VERS = 2.0",
-       "CREATION_DATE = #{export_creation_date(artifact, metadata, opts)}",
-       "ORIGINATOR = #{export_originator(metadata, opts)}",
-       "META_START",
-       "OBJECT_NAME = #{object_name}",
-       "OBJECT_ID = #{object_id}",
-       "CENTER_NAME = #{center_name}",
-       "REF_FRAME = #{ref_frame}",
-       "TIME_SYSTEM = #{state |> get_in(["epoch", "time_scale"]) |> String.upcase()}",
-       "INTERPOLATION = NONE",
-       "INTERPOLATION_DEGREE = 0",
-       "META_STOP",
-       "#{epoch} #{format_kvn_number(Enum.at(position, 0))} #{format_kvn_number(Enum.at(position, 1))} #{format_kvn_number(Enum.at(position, 2))} #{format_kvn_number(Enum.at(velocity, 0))} #{format_kvn_number(Enum.at(velocity, 1))} #{format_kvn_number(Enum.at(velocity, 2))}"
-     ] ++ oem_export_covariance_lines(state, metadata, epoch, opts))
-    |> Enum.join("\n")
-    |> Kernel.<>("\n")
+    with {:ok, ref_frame} <- export_ref_frame(metadata, opts),
+         {:ok, covariance_evidence} <-
+           oem_export_covariance_evidence(state, metadata, epoch, ref_frame, time_scale, opts) do
+      export_epoch =
+        if covariance_evidence, do: Map.fetch!(covariance_evidence, :epoch), else: epoch
+
+      kvn =
+        ([
+           "CCSDS_OEM_VERS = 2.0",
+           "CREATION_DATE = #{export_creation_date(artifact, metadata, opts)}",
+           "ORIGINATOR = #{export_originator(metadata, opts)}",
+           "META_START",
+           "OBJECT_NAME = #{object_name}",
+           "OBJECT_ID = #{object_id}",
+           "CENTER_NAME = #{center_name}",
+           "REF_FRAME = #{ref_frame}",
+           "TIME_SYSTEM = #{String.upcase(time_scale)}",
+           "INTERPOLATION = NONE",
+           "INTERPOLATION_DEGREE = 0",
+           "META_STOP",
+           "#{export_epoch} #{format_kvn_number(Enum.at(position, 0))} #{format_kvn_number(Enum.at(position, 1))} #{format_kvn_number(Enum.at(position, 2))} #{format_kvn_number(Enum.at(velocity, 0))} #{format_kvn_number(Enum.at(velocity, 1))} #{format_kvn_number(Enum.at(velocity, 2))}"
+         ] ++ oem_export_covariance_lines(covariance_evidence))
+        |> Enum.join("\n")
+        |> Kernel.<>("\n")
+
+      {:ok, kvn}
+    end
   end
 
   defp export_creation_date(artifact, metadata, opts) do
@@ -1673,32 +1684,28 @@ defmodule OrbitalDynamics.OrbitData do
     Keyword.get(opts, :originator) || metadata["originator"] || "OrbitalDynamics"
   end
 
-  defp oem_export_covariance_lines(state, metadata, epoch, opts) do
-    case get_in(state, ["quality", "covariance_matrix_6x6"]) do
-      matrix when is_list(matrix) and length(matrix) == 6 ->
-        covariance_reference_frame =
-          Keyword.get(opts, :covariance_reference_frame) ||
-            Map.get(metadata, "covariance_reference_frame") ||
-            get_in(state, ["quality", "covariance_reference_frame"])
+  defp oem_export_covariance_evidence(state, metadata, epoch, ref_frame, time_scale, opts) do
+    Covariance.from_export_state(:oem, state, %{
+      "accepted_state_frame" => Map.get(state, "frame"),
+      "source_ref_frame" => ref_frame,
+      "state_epoch" => epoch,
+      "state_epoch_s" => get_in(state, ["epoch", "seconds_since_j2000"]),
+      "time_scale" => time_scale,
+      "metadata" => metadata,
+      "opts" => opts
+    })
+  end
 
-        covariance_epoch =
-          Keyword.get(opts, :covariance_epoch) ||
-            get_in(state, ["quality", "covariance_epoch"]) ||
-            Map.get(metadata, "covariance_epoch") ||
-            epoch
+  defp oem_export_covariance_lines(nil), do: []
 
-        [
-          "COVARIANCE_START",
-          "EPOCH = #{covariance_epoch}",
-          covariance_reference_frame && "COV_REF_FRAME = #{covariance_reference_frame}"
-          | covariance_component_lines(matrix)
-        ]
-        |> Enum.reject(&is_nil/1)
-        |> Kernel.++(["COVARIANCE_STOP"])
-
-      _matrix ->
-        []
-    end
+  defp oem_export_covariance_lines(%{} = covariance_evidence) do
+    [
+      "COVARIANCE_START",
+      "EPOCH = #{Map.fetch!(covariance_evidence, :epoch)}",
+      "COV_REF_FRAME = #{Map.fetch!(covariance_evidence, :reference_frame)}"
+      | covariance_evidence |> Map.fetch!(:matrix) |> covariance_component_lines()
+    ]
+    |> Kernel.++(["COVARIANCE_STOP"])
   end
 
   defp format_kvn_number(value) when is_float(value) do
@@ -1707,7 +1714,7 @@ defmodule OrbitalDynamics.OrbitData do
 
   defp format_kvn_number(value), do: value
 
-  defp opm_metadata(fields, center_name) do
+  defp opm_metadata(fields, center_name, covariance_evidence) do
     %{
       "input_format" => "ccsds_opm_kvn",
       "ccsds_opm_version" => opm_optional_value(fields, "CCSDS_OPM_VERS") || "2.0",
@@ -1720,10 +1727,10 @@ defmodule OrbitalDynamics.OrbitData do
       "time_system" => opm_optional_value(fields, "TIME_SYSTEM") || "UTC",
       "spacecraft_mass_kg" => opm_optional_number(fields, "MASS"),
       "opm_spacecraft_metadata_status" => opm_spacecraft_metadata_status(fields),
-      "covariance_reference_frame" => opm_optional_value(fields, "COV_REF_FRAME"),
       "opm_maneuver_metadata_count" => opm_maneuver_metadata_count(fields),
       "opm_maneuver_metadata_status" => opm_maneuver_metadata_status(fields)
     }
+    |> Map.merge(Covariance.metadata_fields(covariance_evidence))
     |> Map.merge(opm_spacecraft_metadata(fields))
     |> Enum.reject(fn {_key, value} -> value in [nil, ""] end)
     |> Map.new()
@@ -1763,6 +1770,31 @@ defmodule OrbitalDynamics.OrbitData do
   defp optional_map(%{} = value, _path), do: {:ok, stringify_keys(value)}
   defp optional_map(nil, _path), do: {:ok, %{}}
   defp optional_map(_value, path), do: {:error, {:invalid_field, path}}
+
+  defp import_source_option(sources, computed_source) when is_list(sources) do
+    case Enum.reject(sources, &is_nil/1) do
+      [] ->
+        {:ok, computed_source}
+
+      [source | rest] ->
+        if Enum.all?(rest, &(&1 == source)) do
+          import_source_option(source, computed_source)
+        else
+          {:error, {:invalid_field, "source_identity"}}
+        end
+    end
+  end
+
+  defp import_source_option(%{} = source, computed_source) do
+    if source == computed_source do
+      {:ok, computed_source}
+    else
+      {:error, {:invalid_field, "source_identity"}}
+    end
+  end
+
+  defp import_source_option(_source, _computed_source),
+    do: {:error, {:invalid_field, "source_identity"}}
 
   defp adapter_provenance(provenance, input_format, import_adapter) do
     provenance

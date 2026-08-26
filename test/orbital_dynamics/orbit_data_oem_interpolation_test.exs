@@ -175,6 +175,13 @@ defmodule OrbitalDynamics.OrbitDataOemInterpolationTest do
                strategy_epoch: Epoch.new!(90.0, :tai),
                source_revision: @revision
              )
+
+    assert {:error, {:time_scale_mismatch, "tai", "utc"}} =
+             OrbitData.import_ccsds_oem(linear_oem() <> covariance_block(),
+               interpolate: true,
+               strategy_epoch: Epoch.new!(60.0, :tai),
+               source_revision: @revision
+             )
   end
 
   test "requires a valid creation date when interpolation has no explicit accepted time" do
@@ -274,8 +281,8 @@ defmodule OrbitalDynamics.OrbitDataOemInterpolationTest do
              interpolate(mixed_metadata, 90.0)
   end
 
-  test "preserves source covariance while explicitly declining covariance interpolation" do
-    assert {:ok, artifact} = interpolate(linear_oem() <> covariance_block(), 90.0)
+  test "attaches source covariance only at an exact coepoch and never interpolates it" do
+    assert {:ok, artifact} = interpolate(linear_oem() <> covariance_block(), 60.0)
     assert [state] = artifact["spacecraft_states"]
     evidence = artifact["provenance"]["oem_interpolation"]
 
@@ -291,7 +298,13 @@ defmodule OrbitalDynamics.OrbitDataOemInterpolationTest do
              "source_matrix_preserved_not_interpolated"
 
     assert state["quality"]["covariance_epoch"] == "2000-01-01T12:01:00.000"
+    assert state["quality"]["covariance_unit_contract"]["declaration"] == "implicit_ccsds_units"
+    assert state["quality"]["covariance_epoch_binding"]["matched"] == true
+    assert state["quality"]["covariance_propagation_status"] == "metadata_only_not_propagated"
     assert state["quality"]["covariance_matrix_6x6"] |> List.flatten() |> length() == 36
+
+    assert {:error, {:invalid_field, "covariance_epoch_binding"}} =
+             interpolate(linear_oem() <> covariance_block(), 90.0)
   end
 
   test "preserves legacy sample-selection results when interpolation is not requested" do
@@ -443,25 +456,25 @@ defmodule OrbitalDynamics.OrbitDataOemInterpolationTest do
     EPOCH = 2000-01-01T12:01:00.000
     COV_REF_FRAME = EME2000
     CX_X = 1.0e-4
-    CY_X = 1.0e-5
+    CY_X = 0
     CY_Y = 2.0e-4
-    CZ_X = 2.0e-5
-    CZ_Y = 3.0e-5
+    CZ_X = 0
+    CZ_Y = 0
     CZ_Z = 3.0e-4
     CX_DOT_X = 4.0e-7
-    CX_DOT_Y = 5.0e-7
-    CX_DOT_Z = 6.0e-7
+    CX_DOT_Y = 0
+    CX_DOT_Z = 0
     CX_DOT_X_DOT = 7.0e-8
-    CY_DOT_X = 8.0e-7
-    CY_DOT_Y = 9.0e-7
-    CY_DOT_Z = 1.0e-6
-    CY_DOT_X_DOT = 1.1e-8
+    CY_DOT_X = 0
+    CY_DOT_Y = 0
+    CY_DOT_Z = 0
+    CY_DOT_X_DOT = 0
     CY_DOT_Y_DOT = 1.2e-8
-    CZ_DOT_X = 1.3e-6
-    CZ_DOT_Y = 1.4e-6
-    CZ_DOT_Z = 1.5e-6
-    CZ_DOT_X_DOT = 1.6e-8
-    CZ_DOT_Y_DOT = 1.7e-8
+    CZ_DOT_X = 0
+    CZ_DOT_Y = 0
+    CZ_DOT_Z = 0
+    CZ_DOT_X_DOT = 0
+    CZ_DOT_Y_DOT = 0
     CZ_DOT_Z_DOT = 2.1e-8
     COVARIANCE_STOP
     """

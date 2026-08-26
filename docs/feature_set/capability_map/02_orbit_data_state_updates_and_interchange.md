@@ -37,10 +37,14 @@ handoff. Specifically, it:
   creation date, and originator.
 - Round-trips `MASS`, drag-area/coefficient, and solar-radiation-pressure
   area/coefficient metadata as metadata-only evidence.
-- Preserves `COV_REF_FRAME` provenance.
 - Imports and exports complete OPM covariance matrix terms as
-  `covariance_matrix_6x6` metadata-only evidence, with component order and
-  no-propagation status.
+  `covariance_matrix_6x6` metadata-only evidence only when the CCSDS lower
+  triangular component set is complete, finite, symmetric when expanded to 6x6,
+  uses the closed exact canonical kilometer/kilometer-per-second covariance unit
+  contract, binds to the accepted state frame with no conversion, binds to the
+  single OPM state epoch, and passes the deterministic normalized
+  principal-minor support check. Partial covariance field declarations are
+  rejected.
 - Preserves multiple OPM `MAN_*` maneuver metadata blocks as metadata-only
   `maneuver_execution_delta` evidence, without maneuver propagation.
 - Exports maneuver-execution deltas with epoch and delta-v evidence back to
@@ -73,9 +77,14 @@ onto metadata-derived maneuver deltas.
 - Accepted-state provenance preserves the full source bracket, requested epoch,
   method/version, declared/effective coverage, object/frame/time metadata,
   caller source revision, exact-source-byte SHA-256 identity, deterministic
-  interpolation evidence identity, assumptions, and known limits. OEM
-  covariance remains source metadata with an explicit not-interpolated status;
-  it is never propagated or interpolated.
+  interpolation evidence identity, assumptions, and known limits. SHA-256 is
+  byte identity only, not source-authority authentication. OEM covariance is
+  attached only when a single complete covariance block has the complete CCSDS
+  lower-triangular component set, accepted-state frame binding without
+  conversion, exact selected-sample covariance epoch text under the admitted
+  time system, closed exact canonical covariance units, and the deterministic
+  normalized principal-minor support check. It remains metadata only and is never
+  propagated or interpolated.
 - Exports a single accepted state as single-sample OEM KVN with explicit
   no-interpolation metadata.
 
@@ -84,6 +93,13 @@ onto metadata-derived maneuver deltas.
 - Rejects non-Earth centers.
 - Rejects duplicate single-value OPM/OEM KVN fields instead of silently
   overwriting them.
+- Rejects declared covariance field sets that are partial, duplicate, mixed-unit,
+  unsupported-unit, frame-mismatched, coepoch-mismatched, nonfinite, or outside
+  the deterministic covariance numerical support check.
+- OPM/OEM covariance export is fail-closed: schema-valid ad hoc quality matrices
+  are emitted only after the same local complete-matrix, frame/epoch, exact-unit,
+  and numerical support checks pass; partial covariance metadata or mismatching
+  covariance caller overrides return typed errors.
 - OEM strategy-epoch interpolation is explicit and offline; it performs no
   provider fetch, frame transform, time conversion, or planner-default change.
 - Declares supported formats plus known unsupported interchange products through
@@ -131,9 +147,10 @@ explicit no-network-access marker.
 
 ### Schema typing and validation registry
 
-- The exported `spacecraft_state_estimate.v1` JSON Schema now types the
-  OPM/OEM-derived physical-property, covariance status/component-order,
-  creation/originator, and maneuver-metadata count/status fields.
+- The executable adapter validation is the source of truth for OPM/OEM
+  covariance binding and numerical support checks. The generated JSON Schema
+  remains an extensible compatibility schema for accepted-state artifacts and is
+  not broadened by this slice.
 - `maneuver_execution_delta.v1` types OPM `MAN_*` source, maneuver status,
   duration, delta-mass, reference-frame, and no-propagation metadata fields for
   compatibility tooling.
@@ -147,8 +164,8 @@ explicit no-network-access marker.
 - It now has:
   - A simple state-estimate adapter.
   - A first OPM KVN adapter with header/object metadata, spacecraft-mass and
-    physical-property metadata, covariance-reference and covariance-matrix
-    metadata, and multiple maneuver metadata-block import/export preservation.
+    physical-property metadata, complete bound covariance-matrix metadata, and
+    multiple maneuver metadata-block import/export preservation.
     It exports preserved creation-date and originator metadata when explicit
     export overrides are not supplied.
   - An OEM KVN adapter with compatibility-preserving single-sample selection and
@@ -160,8 +177,9 @@ explicit no-network-access marker.
 - **TLE preflight** rejects ambiguous multi-object drops.
 - **OPM/OEM imports** now reject duplicate single-value KVN fields.
 - The project does **not** yet cover broader spacecraft metadata, multi-object or
-  multi-segment OEM interpolation, OEM covariance interpolation/propagation,
-  executable SGP4/OMM propagation, frame/time conversion, or extrapolation.
+  multi-segment OEM interpolation, covariance interpolation/propagation, external
+  covariance truth validation, executable SGP4/OMM propagation, frame/time
+  conversion, or extrapolation.
 
 ## Status: **near-term**
 

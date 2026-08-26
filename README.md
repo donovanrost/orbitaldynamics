@@ -787,18 +787,21 @@ mix orbital_dynamics.schema.lint --input study_results/accepted_planning_state_s
 `OrbitalDynamics.OrbitData` also has deliberately narrow CCSDS OPM and OEM KVN
 adapters for single-object Earth-centered `EME2000`/`J2000`/`ICRF` Cartesian
 state handoff. The OPM adapter imports OPM text into
-`accepted_planning_state.v1`, preserves object/reference-frame metadata and
-`COV_REF_FRAME` provenance, preserves a single declared `MAN_*` maneuver block
-as metadata-only `maneuver_execution_delta` evidence, and can export a single
-accepted state back to deterministic OPM KVN for compatibility tests. The OEM
-adapter imports a single-object Cartesian ephemeris by selecting one declared
-sample without interpolation and recording the sample-selection policy in
-provenance, and can export a single accepted state as a single-sample OEM KVN
-handoff with explicit `INTERPOLATION = NONE`. Both adapters stamp the same
-adapter trust-boundary provenance used by simple JSON imports, reject duplicate
-single-value KVN fields instead of silently overwriting them, and preserve
-covariance matrix terms as metadata-only planning evidence instead of applying
-covariance-aware propagation.
+`accepted_planning_state.v1`, preserves object/reference-frame metadata,
+preserves a single declared `MAN_*` maneuver block as metadata-only
+`maneuver_execution_delta` evidence, and can export a single accepted state back
+to deterministic OPM KVN for compatibility tests. The OEM adapter imports a
+single-object Cartesian ephemeris by selecting one declared sample without
+interpolation and recording the sample-selection policy in provenance, and can
+export a single accepted state as a single-sample OEM KVN handoff with explicit
+`INTERPOLATION = NONE`. Both adapters stamp the same adapter trust-boundary
+provenance used by simple JSON imports, reject duplicate single-value KVN fields
+instead of silently overwriting them, and preserve complete, exact
+frame/epoch-bound covariance matrix terms as metadata-only planning evidence
+instead of applying covariance-aware propagation. Covariance export is likewise
+fail-closed: no covariance block is emitted unless the complete matrix, exact
+canonical units, frame/epoch binding, and deterministic normalized
+principal-minor support check pass locally.
 
 TLEs are intentionally handled as a separate preflight boundary:
 `OrbitalDynamics.inspect_tle/2` validates line checksums and catalog-number

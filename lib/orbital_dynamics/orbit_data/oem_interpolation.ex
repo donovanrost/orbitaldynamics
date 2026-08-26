@@ -2,18 +2,13 @@ defmodule OrbitalDynamics.OrbitData.OemInterpolation do
   @moduledoc false
 
   alias OrbitalDynamics.Epoch
+  alias OrbitalDynamics.OrbitData.Covariance
 
   @j2000 ~U[2000-01-01 12:00:00Z]
   @method "cubic_hermite_position_velocity"
   @method_version "1"
   @supported_frames ~w(EME2000 J2000 ICRF)
   @supported_time_scales ~w(utc tai tdb)
-  @covariance_component_keys ~w(
-    CX_X CY_X CY_Y CZ_X CZ_Y CZ_Z
-    CX_DOT_X CX_DOT_Y CX_DOT_Z CX_DOT_X_DOT
-    CY_DOT_X CY_DOT_Y CY_DOT_Z CY_DOT_X_DOT CY_DOT_Y_DOT
-    CZ_DOT_X CZ_DOT_Y CZ_DOT_Z CZ_DOT_X_DOT CZ_DOT_Y_DOT CZ_DOT_Z_DOT
-  )
   @assumptions [
     "OEM samples are Cartesian kilometers and kilometers per second",
     "endpoint velocities are position derivatives in the declared frame",
@@ -536,7 +531,9 @@ defmodule OrbitalDynamics.OrbitData.OemInterpolation do
         "content_identity" => %{
           "algorithm" => "sha256",
           "sha256" => source_sha256,
-          "scope" => "exact_ccsds_oem_kvn_bytes"
+          "scope" => "exact_ccsds_oem_kvn_bytes",
+          "authority" => "not_authenticated",
+          "known_limits" => [Covariance.source_identity_limit()]
         }
       },
       "covariance" => covariance_evidence(covariance),
@@ -556,7 +553,7 @@ defmodule OrbitalDynamics.OrbitData.OemInterpolation do
   end
 
   defp covariance_evidence(covariance) do
-    matrix_present = Enum.any?(@covariance_component_keys, &Map.has_key?(covariance, &1))
+    matrix_present = Enum.any?(Covariance.component_keys(), &Map.has_key?(covariance, &1))
 
     %{
       "present" => true,
