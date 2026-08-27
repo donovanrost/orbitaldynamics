@@ -1,7 +1,18 @@
 defmodule OrbitalDynamics.StudyCheckpointTest do
   use ExUnit.Case, async: true
 
-  alias OrbitalDynamics.{CentralBody, Epoch, Frame, Scenario, Spacecraft, StateVector, Study}
+  alias OrbitalDynamics.{
+    CentralBody,
+    Epoch,
+    Frame,
+    Scenario,
+    ScenarioRunner,
+    Spacecraft,
+    StateVector,
+    Study,
+    StudyCheckpoint
+  }
+
   alias OrbitalDynamics.Propagators.TwoBodyNxCompiled
 
   test "rejects checkpoint corruption and duplicate, missing, or mismatched rows" do
@@ -279,6 +290,115 @@ defmodule OrbitalDynamics.StudyCheckpointTest do
              )
   end
 
+  test "resumes missing checkpoint indexes exactly once without rerunning completed indexes" do
+    unique = System.unique_integer([:positive])
+    checkpoint_path = checkpoint_path(unique, "exact_once")
+    uninterrupted_path = checkpoint_path(unique, "uninterrupted")
+
+    on_exit(fn ->
+      File.rm(checkpoint_path)
+      File.rm(uninterrupted_path)
+    end)
+
+    scenario_count = 4
+    study = checkpoint_study(scenario_count)
+    identity_inputs = checkpoint_identity(unique)
+    first_counter = :counters.new(scenario_count, [])
+
+    assert {:error, {:checkpoint_test_interruption, :planned_after_first_chunk}} =
+             StudyCheckpoint.execute(
+               study,
+               %{path: checkpoint_path, mode: :create},
+               identity_inputs,
+               2,
+               counted_checkpoint_chunk(first_counter),
+               test_hook: fn event ->
+                 assert event.completed_scenario_indexes == [0, 1]
+                 assert event.published_completed_scenario_count == 2
+                 {:error, :planned_after_first_chunk}
+               end
+             )
+
+    assert counter_values(first_counter, scenario_count) == [1, 1, 0, 0]
+
+    partial_checkpoint = checkpoint_path |> File.read!() |> :json.decode()
+    assert partial_checkpoint["completed_scenario_count"] == 2
+
+    assert Enum.map(partial_checkpoint["completed_scenarios"], & &1["scenario_index"]) == [
+             0,
+             1
+           ]
+
+    resume_counter = :counters.new(scenario_count, [])
+
+    assert {:ok, resumed_results, resume_provenance} =
+             StudyCheckpoint.execute(
+               study,
+               %{path: checkpoint_path, mode: :resume},
+               identity_inputs,
+               2,
+               counted_checkpoint_chunk(resume_counter)
+             )
+
+    assert counter_values(resume_counter, scenario_count) == [0, 0, 1, 1]
+    assert Enum.map(resumed_results, & &1.scenario_index) == [0, 1, 2, 3]
+    assert resume_provenance.checkpoint_mode == "resume"
+    assert resume_provenance.reused_scenario_count == 2
+    assert resume_provenance.run_scenario_count == 2
+    assert resume_provenance.reused_scenario_indexes == [0, 1]
+    assert resume_provenance.run_scenario_indexes == [2, 3]
+    assert resume_provenance.completed_scenario_count == 4
+    assert resume_provenance.completed_chunk_count == 2
+    assert resume_provenance.run_completed_chunk_count == 1
+    assert resume_provenance.distributed_recovery == false
+    assert resume_provenance.batch_recovery == false
+    assert resume_provenance.persistent_queue == false
+    assert resume_provenance.automatic_retry == false
+
+    completed_resume_counter = :counters.new(scenario_count, [])
+
+    assert {:ok, completed_resume_results, completed_resume_provenance} =
+             StudyCheckpoint.execute(
+               study,
+               %{path: checkpoint_path, mode: :resume},
+               identity_inputs,
+               2,
+               counted_checkpoint_chunk(completed_resume_counter)
+             )
+
+    assert counter_values(completed_resume_counter, scenario_count) == [0, 0, 0, 0]
+
+    assert checkpoint_result_semantics(completed_resume_results) ==
+             checkpoint_result_semantics(resumed_results)
+
+    assert completed_resume_provenance.reused_scenario_count == 4
+    assert completed_resume_provenance.run_scenario_count == 0
+    assert completed_resume_provenance.reused_scenario_indexes == [0, 1, 2, 3]
+    assert completed_resume_provenance.run_scenario_indexes == []
+    assert completed_resume_provenance.run_completed_chunk_count == 0
+
+    uninterrupted_counter = :counters.new(scenario_count, [])
+
+    assert {:ok, uninterrupted_results, uninterrupted_provenance} =
+             StudyCheckpoint.execute(
+               study,
+               %{path: uninterrupted_path, mode: :create},
+               identity_inputs,
+               2,
+               counted_checkpoint_chunk(uninterrupted_counter)
+             )
+
+    assert counter_values(uninterrupted_counter, scenario_count) == [1, 1, 1, 1]
+
+    assert checkpoint_result_semantics(resumed_results) ==
+             checkpoint_result_semantics(uninterrupted_results)
+
+    assert uninterrupted_provenance.checkpoint_mode == "create"
+    assert uninterrupted_provenance.reused_scenario_count == 0
+    assert uninterrupted_provenance.run_scenario_count == 4
+    assert uninterrupted_provenance.run_scenario_indexes == [0, 1, 2, 3]
+  end
+
   test "rejects distributed, batch, retry, and identity-free checkpoint modes" do
     unique = System.unique_integer([:positive])
     checkpoint_path = checkpoint_path(unique, "unsupported")
@@ -326,6 +446,12 @@ defmodule OrbitalDynamics.StudyCheckpointTest do
                opts ++ [checkpoint: checkpoint, scenario_indexes: [0, 1, 2]]
              )
 
+    assert {:error, {:unsupported_checkpoint_mode, :failed_scenario_retry}} =
+             OrbitalDynamics.StudyRunner.run(
+               study,
+               opts ++ [checkpoint: checkpoint, retry_plan: %{mode: "failed_scenario_retry"}]
+             )
+
     assert {:error, {:checkpoint_identity_required, :manifest}} =
              OrbitalDynamics.StudyRunner.run(study, checkpoint: checkpoint)
   end
@@ -350,11 +476,22 @@ defmodule OrbitalDynamics.StudyCheckpointTest do
     ]
   end
 
-  defp checkpoint_study do
+  defp checkpoint_identity(unique) do
+    %{
+      manifest: %{
+        path: Path.join(System.tmp_dir!(), "checkpoint_manifest_#{unique}.json"),
+        sha256: sha256("manifest-#{unique}")
+      },
+      model: %{propagator: :counted_checkpoint_chunk, version: 1},
+      run_options: %{run_id: "checkpoint-exact-once-#{unique}"}
+    }
+  end
+
+  defp checkpoint_study(scenario_count \\ 3) do
     earth = CentralBody.earth()
 
     scenarios =
-      for scenario_number <- 1..3 do
+      for scenario_number <- 1..scenario_count do
         scenario_id = "checkpoint_#{scenario_number}"
 
         Scenario.new!(
@@ -371,6 +508,39 @@ defmodule OrbitalDynamics.StudyCheckpointTest do
       outputs: [:trajectories],
       propagator_opts: [max_step_s: 10.0]
     )
+  end
+
+  defp counted_checkpoint_chunk(counter) do
+    fn scenarios, indexes ->
+      scenarios
+      |> Enum.zip(indexes)
+      |> Enum.map(fn {scenario, scenario_index} ->
+        :counters.add(counter, scenario_index + 1, 1)
+
+        %ScenarioRunner.Result{
+          scenario_id: scenario.id,
+          scenario_index: scenario_index,
+          status: :ok,
+          value: %{scenario_id: scenario.id, scenario_index: scenario_index},
+          node: node()
+        }
+      end)
+    end
+  end
+
+  defp counter_values(counter, count) do
+    Enum.map(1..count, &:counters.get(counter, &1))
+  end
+
+  defp checkpoint_result_semantics(results) do
+    Enum.map(results, fn result ->
+      %{
+        scenario_id: result.scenario_id,
+        scenario_index: result.scenario_index,
+        status: result.status,
+        value: result.value
+      }
+    end)
   end
 
   defp state(earth) do

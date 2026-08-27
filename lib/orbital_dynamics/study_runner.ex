@@ -16,6 +16,7 @@ defmodule OrbitalDynamics.StudyRunner do
   }
 
   alias OrbitalDynamics.Environment.CampaignEnvironmentProvider
+  alias OrbitalDynamics.Schema.CollectionValidation
 
   alias OrbitalDynamics.{
     CentralBody,
@@ -222,14 +223,16 @@ defmodule OrbitalDynamics.StudyRunner do
 
   Failed rows are validated against the study's scenario IDs and zero-based
   indexes, deduplicated, and returned in source-manifest order regardless of the
-  report row order.
+  report row order. The source report must also carry deterministic
+  completed/failed counts that match the selected rows.
   """
   def failed_scenario_retry_plan(%Study{} = study, execution_report)
       when is_map(execution_report) do
     with :ok <- validate_retry_report_contract(execution_report),
          :ok <- validate_retry_study(study, execution_report),
          {:ok, failed_scenarios} <- retry_failed_scenarios(execution_report),
-         {:ok, rows} <- validate_retry_rows(study, failed_scenarios) do
+         {:ok, rows} <- validate_retry_rows(study, failed_scenarios),
+         :ok <- validate_retry_report_accounting(execution_report, failed_scenarios) do
       ordered_rows = Enum.sort_by(rows, & &1.scenario_index)
 
       {:ok,
@@ -241,6 +244,10 @@ defmodule OrbitalDynamics.StudyRunner do
          source_run_id: report_value(execution_report, :run_id),
          source_execution_status: report_value(execution_report, :status),
          source_scenario_count: length(study.scenarios),
+         source_completed_scenario_count:
+           report_value(execution_report, :completed_scenario_count),
+         source_failed_scenario_count: report_value(execution_report, :failed_scenario_count),
+         source_failed_scenario_indexes: Enum.map(ordered_rows, & &1.scenario_index),
          scenario_count: length(ordered_rows),
          scenario_indexes: Enum.map(ordered_rows, & &1.scenario_index),
          scenario_ids: Enum.map(ordered_rows, & &1.scenario_id)
@@ -499,7 +506,10 @@ defmodule OrbitalDynamics.StudyRunner do
       actual_study_id != expected_study_id ->
         {:error, {:retry_study_id_mismatch, expected_study_id, actual_study_id}}
 
-      actual_scenario_count != expected_scenario_count ->
+      not (is_integer(actual_scenario_count) and actual_scenario_count >= 0) ->
+        {:error, {:invalid_retry_scenario_count, actual_scenario_count}}
+
+      actual_scenario_count !== expected_scenario_count ->
         {:error, {:retry_scenario_count_mismatch, expected_scenario_count, actual_scenario_count}}
 
       true ->
@@ -508,15 +518,52 @@ defmodule OrbitalDynamics.StudyRunner do
   end
 
   defp retry_failed_scenarios(execution_report) do
-    case report_value(execution_report, :failed_scenarios) do
-      failed_scenarios when is_list(failed_scenarios) and failed_scenarios != [] ->
-        {:ok, failed_scenarios}
+    failed_scenarios = report_value(execution_report, :failed_scenarios)
 
-      [] ->
+    cond do
+      failed_scenarios == [] ->
         {:error, :no_failed_scenarios}
 
-      _value ->
+      CollectionValidation.proper_list?(failed_scenarios) ->
+        {:ok, failed_scenarios}
+
+      true ->
         {:error, :invalid_failed_scenarios}
+    end
+  end
+
+  defp validate_retry_report_accounting(execution_report, failed_scenarios) do
+    status = report_value(execution_report, :status)
+    scenario_count = report_value(execution_report, :scenario_count)
+    completed_count = report_value(execution_report, :completed_scenario_count)
+    failed_count = report_value(execution_report, :failed_scenario_count)
+
+    cond do
+      status not in ["failed", "completed_with_errors"] ->
+        {:error, {:retry_source_status_without_failures, status}}
+
+      not (is_integer(failed_count) and failed_count > 0) ->
+        {:error, {:invalid_retry_failed_scenario_count, failed_count}}
+
+      failed_count !== length(failed_scenarios) ->
+        {:error, {:retry_failed_scenario_count_mismatch, failed_count, length(failed_scenarios)}}
+
+      not (is_integer(completed_count) and completed_count >= 0) ->
+        {:error, {:invalid_retry_completed_scenario_count, completed_count}}
+
+      completed_count + failed_count !== scenario_count ->
+        {:error,
+         {:retry_scenario_count_accounting_mismatch, scenario_count, completed_count,
+          failed_count}}
+
+      status == "failed" and completed_count != 0 ->
+        {:error, {:retry_source_status_count_mismatch, status, completed_count, failed_count}}
+
+      status == "completed_with_errors" and completed_count == 0 ->
+        {:error, {:retry_source_status_count_mismatch, status, completed_count, failed_count}}
+
+      true ->
+        :ok
     end
   end
 

@@ -8,7 +8,8 @@ defmodule OrbitalDynamics.StudyCheckpoint do
   temporary file before atomic publication or replacement, so an interrupted
   process leaves a complete published checkpoint available for explicit resume.
   The portable implementation does not sync containing-directory metadata, so
-  it does not claim durability across sudden power loss.
+  it does not claim durability across sudden power loss. The hashes provide
+  local integrity evidence only; they are not signer-backed authenticity proof.
 
   This module is intentionally limited to local, between-scenario recovery. It
   is not a persistent queue, a distributed recovery protocol, an automatic

@@ -225,41 +225,30 @@ defmodule Mix.Tasks.OrbitalDynamics.Study.RunTest do
 
     File.write!(manifest_path, checkpoint_json_manifest())
     {:ok, manifest} = OrbitalDynamics.Study.Manifest.from_file(manifest_path)
-    parent = self()
-
-    interruption =
-      Task.async(fn ->
-        OrbitalDynamics.StudyRunner.run(
-          manifest.study,
-          manifest.run_opts ++
-            [
-              run_id: "task-checkpoint-run",
-              checkpoint: %{path: checkpoint_path, mode: :create},
-              checkpoint_test_hook: fn event ->
-                send(parent, {:checkpoint_chunk_published, event})
-
-                receive do
-                  :interrupt_checkpoint -> {:error, :planned_after_first_chunk}
-                after
-                  5_000 -> {:error, :checkpoint_barrier_timeout}
-                end
-              end
-            ]
-        )
-      end)
-
-    assert_receive {:checkpoint_chunk_published,
-                    %{
-                      chunk_number: 1,
-                      completed_scenario_indexes: [0, 1],
-                      published_completed_scenario_count: 2
-                    }},
-                   5_000
-
-    send(interruption.pid, :interrupt_checkpoint)
+    checkpoint_hook_count = :counters.new(1, [])
 
     assert {:error, {:checkpoint_test_interruption, :planned_after_first_chunk}} =
-             Task.await(interruption, 5_000)
+             OrbitalDynamics.StudyRunner.run(
+               manifest.study,
+               manifest.run_opts ++
+                 [
+                   run_id: "task-checkpoint-run",
+                   checkpoint: %{path: checkpoint_path, mode: :create},
+                   checkpoint_test_hook: fn event ->
+                     :counters.add(checkpoint_hook_count, 1, 1)
+
+                     assert %{
+                              chunk_number: 1,
+                              completed_scenario_indexes: [0, 1],
+                              published_completed_scenario_count: 2
+                            } = event
+
+                     {:error, :planned_after_first_chunk}
+                   end
+                 ]
+             )
+
+    assert :counters.get(checkpoint_hook_count, 1) == 1
 
     partial_checkpoint = checkpoint_path |> File.read!() |> :json.decode()
     assert partial_checkpoint["schema_contract"] == "study_checkpoint.v1"
@@ -397,6 +386,73 @@ defmodule Mix.Tasks.OrbitalDynamics.Study.RunTest do
     end
   end
 
+  test "rejects failed-retry source and output aliases before rewriting source" do
+    unique = System.unique_integer([:positive])
+    alias_root = Path.join(System.tmp_dir!(), "orbital_dynamics_retry_alias_root_#{unique}")
+    manifest_path = Path.join(alias_root, "manifest.json")
+    source_path = Path.join(alias_root, "source.json")
+    symlink_output_path = Path.join(alias_root, "source_symlink.json")
+    hardlink_output_path = Path.join(alias_root, "source_hardlink.json")
+
+    on_exit(fn ->
+      File.rm(hardlink_output_path)
+      File.rm(symlink_output_path)
+      File.rm(source_path)
+      File.rm(manifest_path)
+      File.rmdir(alias_root)
+      Mix.Task.reenable("orbital_dynamics.study.run")
+    end)
+
+    File.mkdir_p!(alias_root)
+    File.write!(manifest_path, partial_failure_json_manifest())
+
+    capture_io(fn ->
+      Mix.Task.run("orbital_dynamics.study.run", [
+        "--manifest",
+        manifest_path,
+        "--output",
+        source_path,
+        "--run-id",
+        "task-manifest-alias-source-run",
+        "--generated-at",
+        "2026-05-14T00:00:00Z"
+      ])
+    end)
+
+    source_json = File.read!(source_path)
+    source_hash = sha256(source_json)
+
+    assert source_json =~ "task-manifest-alias-source-run"
+
+    assert_retry_source_output_alias_rejected(
+      manifest_path,
+      source_path,
+      source_path,
+      source_json,
+      source_hash
+    )
+
+    File.ln_s!(source_path, symlink_output_path)
+
+    assert_retry_source_output_alias_rejected(
+      manifest_path,
+      source_path,
+      symlink_output_path,
+      source_json,
+      source_hash
+    )
+
+    File.ln!(source_path, hardlink_output_path)
+
+    assert_retry_source_output_alias_rejected(
+      manifest_path,
+      source_path,
+      hardlink_output_path,
+      source_json,
+      source_hash
+    )
+  end
+
   test "retries only failed manifest scenarios into a separate provenance-linked artifact" do
     unique = System.unique_integer([:positive])
     manifest_path = Path.join(System.tmp_dir!(), "orbital_dynamics_retry_#{unique}.json")
@@ -404,15 +460,23 @@ defmodule Mix.Tasks.OrbitalDynamics.Study.RunTest do
     output_path = Path.join(System.tmp_dir!(), "orbital_dynamics_retried_#{unique}.json")
     tampered_path = Path.join(System.tmp_dir!(), "orbital_dynamics_tampered_#{unique}.json")
 
+    tampered_report_path =
+      Path.join(System.tmp_dir!(), "orbital_dynamics_tampered_report_#{unique}.json")
+
     tampered_output_path =
       Path.join(System.tmp_dir!(), "orbital_dynamics_tampered_retry_#{unique}.json")
+
+    tampered_report_output_path =
+      Path.join(System.tmp_dir!(), "orbital_dynamics_tampered_report_retry_#{unique}.json")
 
     on_exit(fn ->
       File.rm(manifest_path)
       File.rm(source_path)
       File.rm(output_path)
       File.rm(tampered_path)
+      File.rm(tampered_report_path)
       File.rm(tampered_output_path)
+      File.rm(tampered_report_output_path)
       Mix.Task.reenable("orbital_dynamics.study.run")
     end)
 
@@ -436,6 +500,9 @@ defmodule Mix.Tasks.OrbitalDynamics.Study.RunTest do
     source_artifact = :json.decode(source_json)
 
     assert source_artifact["execution_report"]["status"] == "completed_with_errors"
+    assert source_artifact["execution_report"]["scenario_count"] == 4
+    assert source_artifact["execution_report"]["completed_scenario_count"] == 2
+    assert source_artifact["execution_report"]["failed_scenario_count"] == 2
 
     assert {:ok, %{"schema_contract" => "result_artifact.v1"}} =
              OrbitalDynamics.Schema.validate_artifact(source_artifact,
@@ -518,6 +585,9 @@ defmodule Mix.Tasks.OrbitalDynamics.Study.RunTest do
     assert retry["scenario_ids"] == ["retry_2", "retry_4"]
     assert retry["ordering"] == "source_manifest_scenario_order"
     assert retry["source_run_id"] == "task-manifest-source-run"
+    assert retry["source_completed_scenario_count"] == 2
+    assert retry["source_failed_scenario_count"] == 2
+    assert retry["source_failed_scenario_indexes"] == [1, 3]
     assert retry["source_artifact"]["path"] == source_path
     assert retry["source_artifact"]["sha256"] == sha256(source_json)
 
@@ -552,9 +622,13 @@ defmodule Mix.Tasks.OrbitalDynamics.Study.RunTest do
     assert retry_artifact["execution_report"]["execution_plan"]["resumability"] ==
              "failed_scenario_retry"
 
-    assert retry_artifact["execution_report"]["execution_plan"]["retry"][
-             "scenario_indexes"
-           ] == [1, 3]
+    retry_plan = retry_artifact["execution_report"]["execution_plan"]["retry"]
+
+    assert retry_plan["scenario_count"] == 2
+    assert retry_plan["scenario_indexes"] == [1, 3]
+    assert retry_plan["source_completed_scenario_count"] == 2
+    assert retry_plan["source_failed_scenario_count"] == 2
+    assert retry_plan["source_failed_scenario_indexes"] == [1, 3]
 
     assert {:ok, %{"schema_contract" => "result_artifact.v1"}} =
              OrbitalDynamics.Schema.validate_artifact(retry_artifact,
@@ -562,6 +636,69 @@ defmodule Mix.Tasks.OrbitalDynamics.Study.RunTest do
              )
 
     assert File.read!(source_path) == source_json
+
+    failed_rows = get_in(source_artifact, ["execution_report", "failed_scenarios"])
+
+    reordered_report_artifact =
+      put_in(source_artifact, ["execution_report", "failed_scenarios"], Enum.reverse(failed_rows))
+
+    assert {:ok, %{"schema_contract" => "result_artifact.v1"}} =
+             OrbitalDynamics.Schema.validate_artifact(reordered_report_artifact,
+               contract: "result_artifact.v1"
+             )
+
+    File.write!(tampered_report_path, [:json.encode(reordered_report_artifact), "\n"])
+    Mix.Task.reenable("orbital_dynamics.study.run")
+
+    assert_raise Mix.Error,
+                 ~r/execution_report\.failed_scenarios must match top-level errors order/s,
+                 fn ->
+                   Mix.Task.run("orbital_dynamics.study.run", [
+                     "--manifest",
+                     manifest_path,
+                     "--retry-failed-from",
+                     tampered_report_path,
+                     "--output",
+                     tampered_report_output_path
+                   ])
+                 end
+
+    refute File.exists?(tampered_report_output_path)
+
+    tampered_report_artifact =
+      put_in(
+        source_artifact,
+        ["execution_report", "failed_scenarios"],
+        [
+          failed_rows
+          |> hd()
+          |> Map.merge(%{"scenario_id" => "retry_1", "scenario_index" => 0}),
+          Enum.at(failed_rows, 1)
+        ]
+      )
+
+    assert {:ok, %{"schema_contract" => "result_artifact.v1"}} =
+             OrbitalDynamics.Schema.validate_artifact(tampered_report_artifact,
+               contract: "result_artifact.v1"
+             )
+
+    File.write!(tampered_report_path, [:json.encode(tampered_report_artifact), "\n"])
+    Mix.Task.reenable("orbital_dynamics.study.run")
+
+    assert_raise Mix.Error,
+                 ~r/execution_report\.failed_scenarios must match top-level errors.*retry_1/s,
+                 fn ->
+                   Mix.Task.run("orbital_dynamics.study.run", [
+                     "--manifest",
+                     manifest_path,
+                     "--retry-failed-from",
+                     tampered_report_path,
+                     "--output",
+                     tampered_report_output_path
+                   ])
+                 end
+
+    refute File.exists?(tampered_report_output_path)
 
     tampered_artifact =
       update_in(source_artifact, ["trajectories"], fn [trajectory | trajectories] ->
@@ -585,6 +722,109 @@ defmodule Mix.Tasks.OrbitalDynamics.Study.RunTest do
                  end
 
     refute File.exists?(tampered_output_path)
+  end
+
+  test "retries all-failed manifest scenarios with deterministic source accounting" do
+    unique = System.unique_integer([:positive])
+    manifest_path = Path.join(System.tmp_dir!(), "orbital_dynamics_retry_all_#{unique}.json")
+    source_path = Path.join(System.tmp_dir!(), "orbital_dynamics_all_failed_#{unique}.json")
+    output_path = Path.join(System.tmp_dir!(), "orbital_dynamics_all_retried_#{unique}.json")
+
+    on_exit(fn ->
+      File.rm(manifest_path)
+      File.rm(source_path)
+      File.rm(output_path)
+      Mix.Task.reenable("orbital_dynamics.study.run")
+    end)
+
+    File.write!(manifest_path, all_failure_json_manifest())
+
+    capture_io(fn ->
+      Mix.Task.run("orbital_dynamics.study.run", [
+        "--manifest",
+        manifest_path,
+        "--output",
+        source_path,
+        "--run-id",
+        "task-manifest-all-failed-source-run",
+        "--generated-at",
+        "2026-05-14T00:00:00Z"
+      ])
+    end)
+
+    source_json = File.read!(source_path)
+    source_artifact = :json.decode(source_json)
+
+    assert source_artifact["execution_report"]["status"] == "failed"
+    assert source_artifact["execution_report"]["scenario_count"] == 2
+    assert source_artifact["execution_report"]["completed_scenario_count"] == 0
+    assert source_artifact["execution_report"]["failed_scenario_count"] == 2
+    assert source_artifact["trajectories"] == []
+
+    assert Enum.map(source_artifact["errors"], & &1["scenario_index"]) == [0, 1]
+
+    assert Enum.map(
+             source_artifact["execution_report"]["failed_scenarios"],
+             & &1["scenario_index"]
+           ) == [0, 1]
+
+    assert {:ok, %{"schema_contract" => "result_artifact.v1"}} =
+             OrbitalDynamics.Schema.validate_artifact(source_artifact,
+               contract: "result_artifact.v1"
+             )
+
+    Mix.Task.reenable("orbital_dynamics.study.run")
+
+    output =
+      capture_io(fn ->
+        Mix.Task.run("orbital_dynamics.study.run", [
+          "--manifest",
+          manifest_path,
+          "--retry-failed-from",
+          source_path,
+          "--output",
+          output_path,
+          "--run-id",
+          "task-manifest-all-failed-retry-run",
+          "--generated-at",
+          "2026-05-15T00:00:00Z",
+          "--format",
+          "json"
+        ])
+      end)
+
+    assert %{
+             "study" => "task_retry_all_failed_manifest",
+             "run_id" => "task-manifest-all-failed-retry-run",
+             "retry_failed" => true,
+             "retry_source" => ^source_path,
+             "retried_scenario_count" => 2,
+             "retried_scenario_indexes" => [0, 1],
+             "trajectory_count" => 0,
+             "error_count" => 2,
+             "output_action" => "wrote"
+           } = output |> String.trim() |> :json.decode()
+
+    retry_artifact = output_path |> File.read!() |> :json.decode()
+    retry = retry_artifact["assumptions"]["retry"]
+    retry_plan = retry_artifact["execution_report"]["execution_plan"]["retry"]
+
+    assert retry["source_completed_scenario_count"] == 0
+    assert retry["source_failed_scenario_count"] == 2
+    assert retry["source_failed_scenario_indexes"] == [0, 1]
+    assert retry_plan["source_completed_scenario_count"] == 0
+    assert retry_plan["source_failed_scenario_count"] == 2
+    assert retry_plan["source_failed_scenario_indexes"] == [0, 1]
+    assert retry_artifact["execution_report"]["scenario_count"] == 2
+    assert retry_artifact["execution_report"]["completed_scenario_count"] == 0
+    assert retry_artifact["execution_report"]["failed_scenario_count"] == 2
+
+    assert {:ok, %{"schema_contract" => "result_artifact.v1"}} =
+             OrbitalDynamics.Schema.validate_artifact(retry_artifact,
+               contract: "result_artifact.v1"
+             )
+
+    assert File.read!(source_path) == source_json
   end
 
   test "rejects conflicting resume and failed-scenario retry modes" do
@@ -710,6 +950,23 @@ defmodule Mix.Tasks.OrbitalDynamics.Study.RunTest do
     |> IO.iodata_to_binary()
   end
 
+  defp all_failure_json_manifest do
+    %{
+      "schema_version" => 1,
+      "study_id" => "task_retry_all_failed_manifest",
+      "central_body" => "earth",
+      "propagator" => "two_body",
+      "propagator_opts" => %{"max_step_s" => 10.0},
+      "outputs" => ["trajectories"],
+      "scenarios" => [
+        explicit_scenario("retry_all_1", [0.0, 0.0, 0.0]),
+        explicit_scenario("retry_all_2", [0.0, 0.0, 0.0])
+      ]
+    }
+    |> :json.encode()
+    |> IO.iodata_to_binary()
+  end
+
   defp checkpoint_json_manifest do
     %{
       "schema_version" => 1,
@@ -757,6 +1014,38 @@ defmodule Mix.Tasks.OrbitalDynamics.Study.RunTest do
       "duration_s" => 120.0,
       "output_step_s" => 60.0
     }
+  end
+
+  defp assert_retry_source_output_alias_rejected(
+         manifest_path,
+         source_path,
+         output_path,
+         source_json,
+         source_hash
+       ) do
+    Mix.Task.reenable("orbital_dynamics.study.run")
+
+    assert_raise Mix.Error,
+                 ~r/--retry-failed-from must differ from --output/,
+                 fn ->
+                   Mix.Task.run("orbital_dynamics.study.run", [
+                     "--manifest",
+                     manifest_path,
+                     "--retry-failed-from",
+                     source_path,
+                     "--output",
+                     output_path,
+                     "--run-id",
+                     "task-manifest-alias-retry-run",
+                     "--generated-at",
+                     "2026-05-15T00:00:00Z"
+                   ])
+                 end
+
+    assert File.read!(source_path) == source_json
+    assert sha256(File.read!(source_path)) == source_hash
+    assert File.read!(output_path) == source_json
+    refute File.read!(source_path) =~ "task-manifest-alias-retry-run"
   end
 
   defp sha256(content) do

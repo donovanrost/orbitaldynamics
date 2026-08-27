@@ -16,6 +16,22 @@ defmodule OrbitalDynamics.StudyRunnerTest do
   alias OrbitalDynamics.Propagators.TwoBodyNxCompiled
   alias OrbitalDynamics.Environment.CampaignEnvironmentProvider
 
+  defmodule CountingTwoBody do
+    alias OrbitalDynamics.Propagators.TwoBody
+
+    defdelegate capabilities(), to: TwoBody
+
+    def propagate(scenario, opts) do
+      if counter = Keyword.get(opts, :execution_counter) do
+        Agent.update(counter, fn counts ->
+          Map.update(counts, scenario.id, 1, &(&1 + 1))
+        end)
+      end
+
+      TwoBody.propagate(scenario, Keyword.delete(opts, :execution_counter))
+    end
+  end
+
   defmodule UntrustedCampaignProvider do
     defdelegate load(opts), to: CampaignEnvironmentProvider
     defdelegate configured_capability(opts), to: CampaignEnvironmentProvider
@@ -726,12 +742,21 @@ defmodule OrbitalDynamics.StudyRunnerTest do
   end
 
   test "retries failed scenarios in deterministic source-manifest order" do
+    unique = System.unique_integer([:positive])
     earth = CentralBody.earth()
+    counter_name = {:global, {:retry_failed_counter, unique}}
+    {:ok, counter_pid} = Agent.start_link(fn -> %{} end, name: counter_name)
+
+    on_exit(fn ->
+      if Process.alive?(counter_pid), do: Agent.stop(counter_pid)
+    end)
 
     study =
       Study.new!(
         :retry_study,
         [scenario(:a, earth), scenario(:b, earth), scenario(:c, earth)],
+        propagator: CountingTwoBody,
+        propagator_opts: [max_step_s: 10.0, execution_counter: counter_name],
         outputs: [:trajectories],
         seed_manifest: %{"monte_carlo_seed" => 17},
         metadata: %{"assumption_set" => "retry-test-v1"}
@@ -743,6 +768,8 @@ defmodule OrbitalDynamics.StudyRunnerTest do
       "run_id" => "source-run",
       "status" => "completed_with_errors",
       "scenario_count" => 3,
+      "completed_scenario_count" => 1,
+      "failed_scenario_count" => 2,
       "failed_scenarios" => [
         %{"scenario_id" => "c", "scenario_index" => 2},
         %{"scenario_id" => "a", "scenario_index" => 0}
@@ -756,6 +783,9 @@ defmodule OrbitalDynamics.StudyRunnerTest do
     assert retry_plan.scenario_ids == ["a", "c"]
     assert retry_plan.ordering == "source_manifest_scenario_order"
     assert retry_plan.source_run_id == "source-run"
+    assert retry_plan.source_completed_scenario_count == 1
+    assert retry_plan.source_failed_scenario_count == 2
+    assert retry_plan.source_failed_scenario_indexes == [0, 2]
 
     retry_source = %{
       path: "study_results/source-run.json",
@@ -772,6 +802,7 @@ defmodule OrbitalDynamics.StudyRunnerTest do
 
     assert Enum.map(result_set.trajectory_results, & &1.scenario_id) == [:a, :c]
     assert Enum.map(result_set.trajectory_results, & &1.scenario_index) == [0, 2]
+    assert Agent.get(counter_name, & &1) == %{a: 1, c: 1}
     assert result_set.errors == []
     assert result_set.assumptions.seed_manifest == %{"monte_carlo_seed" => 17}
     assert result_set.assumptions.study_metadata == %{"assumption_set" => "retry-test-v1"}
@@ -808,6 +839,18 @@ defmodule OrbitalDynamics.StudyRunnerTest do
 
     assert artifact.execution_report.execution_plan["retry"]["scenario_indexes"] == [0, 2]
 
+    assert artifact.execution_report.execution_plan["retry"][
+             "source_completed_scenario_count"
+           ] == 1
+
+    assert artifact.execution_report.execution_plan["retry"]["source_failed_scenario_count"] == 2
+
+    assert artifact.execution_report.execution_plan["retry"]["source_failed_scenario_indexes"] ==
+             [
+               0,
+               2
+             ]
+
     assert {:ok, %{"schema_contract" => "result_artifact.v1"}} =
              artifact
              |> :json.encode()
@@ -825,13 +868,23 @@ defmodule OrbitalDynamics.StudyRunnerTest do
       "study_id" => "retry_study",
       "run_id" => "source-run",
       "status" => "completed_with_errors",
-      "scenario_count" => 2
+      "scenario_count" => 2,
+      "completed_scenario_count" => 1,
+      "failed_scenario_count" => 1
     }
 
     assert {:error, :no_failed_scenarios} =
              StudyRunner.failed_scenario_retry_plan(
                study,
                Map.put(base_report, "failed_scenarios", [])
+             )
+
+    assert {:error, :invalid_failed_scenarios} =
+             StudyRunner.failed_scenario_retry_plan(
+               study,
+               Map.put(base_report, "failed_scenarios", [
+                 %{"scenario_index" => 0, "scenario_id" => "a"} | :bad
+               ])
              )
 
     assert {:error, {:retry_scenario_id_mismatch, 1, "b", "a"}} =
@@ -847,6 +900,78 @@ defmodule OrbitalDynamics.StudyRunnerTest do
                study,
                Map.put(base_report, "failed_scenarios", [
                  %{"scenario_index" => 0, "scenario_id" => "a"},
+                 %{"scenario_index" => 0, "scenario_id" => "a"}
+               ])
+             )
+
+    assert {:error, {:retry_source_status_without_failures, "completed"}} =
+             StudyRunner.failed_scenario_retry_plan(
+               study,
+               base_report
+               |> Map.put("status", "completed")
+               |> Map.put("failed_scenarios", [
+                 %{"scenario_index" => 0, "scenario_id" => "a"}
+               ])
+             )
+
+    assert {:error, {:invalid_retry_scenario_count, 2.0}} =
+             StudyRunner.failed_scenario_retry_plan(
+               study,
+               base_report
+               |> Map.put("scenario_count", 2.0)
+               |> Map.put("failed_scenarios", [
+                 %{"scenario_index" => 0, "scenario_id" => "a"}
+               ])
+             )
+
+    assert {:error, {:invalid_retry_scenario_count, -1}} =
+             StudyRunner.failed_scenario_retry_plan(
+               study,
+               base_report
+               |> Map.put("scenario_count", -1)
+               |> Map.put("failed_scenarios", [
+                 %{"scenario_index" => 0, "scenario_id" => "a"}
+               ])
+             )
+
+    assert {:error, {:invalid_retry_scenario_count, nil}} =
+             StudyRunner.failed_scenario_retry_plan(
+               study,
+               base_report
+               |> Map.delete("scenario_count")
+               |> Map.put("failed_scenarios", [
+                 %{"scenario_index" => 0, "scenario_id" => "a"}
+               ])
+             )
+
+    huge_scenario_count = 10_000_000_000_000_000_000
+
+    assert {:error, {:retry_scenario_count_mismatch, 2, ^huge_scenario_count}} =
+             StudyRunner.failed_scenario_retry_plan(
+               study,
+               base_report
+               |> Map.put("scenario_count", huge_scenario_count)
+               |> Map.put("failed_scenarios", [
+                 %{"scenario_index" => 0, "scenario_id" => "a"}
+               ])
+             )
+
+    assert {:error, {:retry_failed_scenario_count_mismatch, 2, 1}} =
+             StudyRunner.failed_scenario_retry_plan(
+               study,
+               base_report
+               |> Map.put("failed_scenario_count", 2)
+               |> Map.put("failed_scenarios", [
+                 %{"scenario_index" => 0, "scenario_id" => "a"}
+               ])
+             )
+
+    assert {:error, {:retry_scenario_count_accounting_mismatch, 2, 0, 1}} =
+             StudyRunner.failed_scenario_retry_plan(
+               study,
+               base_report
+               |> Map.put("completed_scenario_count", 0)
+               |> Map.put("failed_scenarios", [
                  %{"scenario_index" => 0, "scenario_id" => "a"}
                ])
              )

@@ -17,6 +17,7 @@ defmodule Mix.Tasks.OrbitalDynamics.Study.Run do
   use Mix.Task
 
   alias OrbitalDynamics.ResultSet.Artifact
+  alias OrbitalDynamics.Schema.CollectionValidation
   alias OrbitalDynamics.Study.Manifest
   alias OrbitalDynamics.StudyRunner
 
@@ -137,12 +138,11 @@ defmodule Mix.Tasks.OrbitalDynamics.Study.Run do
          opts,
          format
        ) do
-    if Path.expand(source_path) == Path.expand(output_path) do
-      Mix.raise("--retry-failed-from must differ from --output to preserve source evidence")
-    end
+    validate_retry_source_output_path!(source_path, output_path)
 
     source_artifact = retry_source_artifact!(source_path, manifest_path, manifest)
     execution_report = Map.get(source_artifact, "execution_report")
+    validate_retry_source_semantics!(manifest.study, source_artifact, execution_report)
 
     retry_source = %{
       path: source_path,
@@ -162,6 +162,7 @@ defmodule Mix.Tasks.OrbitalDynamics.Study.Run do
       end
 
     artifact = Artifact.build(result_set, generated_at: generated_at(opts))
+    validate_retry_source_output_path!(source_path, output_path)
     Artifact.write_json!(artifact, output_path)
 
     print_summary(summary(result_set, artifact, manifest_path, output_path, false), format)
@@ -351,6 +352,182 @@ defmodule Mix.Tasks.OrbitalDynamics.Study.Run do
     do: "manifest #{path} could not be read: #{inspect(error)}"
 
   defp retry_source_error_message(reason), do: "invalid source artifact: #{inspect(reason)}"
+
+  defp validate_retry_source_output_path!(source_path, output_path) do
+    case filesystem_alias?(source_path, output_path) do
+      {:ok, true} ->
+        Mix.raise("--retry-failed-from must differ from --output to preserve source evidence")
+
+      {:ok, false} ->
+        :ok
+
+      {:error, reason} ->
+        Mix.raise("cannot safely resolve retry source and output paths: #{inspect(reason)}")
+    end
+  end
+
+  defp validate_retry_source_semantics!(study, source_artifact, execution_report) do
+    case retry_source_semantic_check(study, source_artifact, execution_report) do
+      :ok ->
+        :ok
+
+      {:error, reason} ->
+        Mix.raise("cannot retry failed scenarios: #{retry_source_semantic_error(reason)}")
+    end
+  end
+
+  defp retry_source_semantic_check(study, source_artifact, %{} = execution_report) do
+    with {:ok, report_identities} <-
+           retry_report_identities(study, Map.get(execution_report, "failed_scenarios")),
+         {:ok, error_identities} <-
+           retry_error_identities(study, Map.get(source_artifact, "errors")) do
+      cond do
+        report_identities == error_identities ->
+          :ok
+
+        MapSet.new(report_identities) == MapSet.new(error_identities) ->
+          {:error, {:retry_failed_scenario_order_mismatch, report_identities, error_identities}}
+
+        true ->
+          {:error, {:retry_failed_scenario_mismatch, report_identities, error_identities}}
+      end
+    end
+  end
+
+  defp retry_source_semantic_check(_study, _source_artifact, _execution_report),
+    do: {:error, {:invalid_retry_source_surface, "execution_report"}}
+
+  defp retry_report_identities(study, rows),
+    do: canonical_retry_identities(study, rows, "execution_report.failed_scenarios", :reject)
+
+  defp retry_error_identities(study, rows),
+    do: canonical_retry_identities(study, rows, "errors", :collapse)
+
+  defp canonical_retry_identities(study, rows, surface, duplicate_policy) do
+    if CollectionValidation.proper_list?(rows) do
+      rows
+      |> Enum.with_index()
+      |> Enum.reduce_while({:ok, [], MapSet.new()}, fn {row, row_index},
+                                                       {:ok, identities, seen} ->
+        with {:ok, identity} <- canonical_retry_identity(study, row, surface, row_index) do
+          cond do
+            MapSet.member?(seen, identity) and duplicate_policy == :reject ->
+              {:halt, {:error, {:duplicate_retry_source_row, surface, row_index, identity}}}
+
+            MapSet.member?(seen, identity) ->
+              {:cont, {:ok, identities, seen}}
+
+            true ->
+              {:cont, {:ok, identities ++ [identity], MapSet.put(seen, identity)}}
+          end
+        else
+          {:error, reason} -> {:halt, {:error, reason}}
+        end
+      end)
+      |> case do
+        {:ok, identities, _seen} -> {:ok, identities}
+        {:error, reason} -> {:error, reason}
+      end
+    else
+      {:error, {:invalid_retry_source_rows, surface}}
+    end
+  end
+
+  defp canonical_retry_identity(study, row, surface, row_index) when is_map(row) do
+    scenario_index = retry_row_value(row, "scenario_index")
+    scenario_id = retry_row_value(row, "scenario_id")
+
+    with :ok <- validate_retry_source_index(study, surface, row_index, scenario_index),
+         {:ok, actual_scenario_id} <-
+           retry_source_scenario_id(surface, row_index, scenario_id),
+         {:ok, expected_scenario_id} <- manifest_scenario_id(study, scenario_index) do
+      cond do
+        actual_scenario_id == expected_scenario_id ->
+          {:ok, {scenario_index, actual_scenario_id}}
+
+        manifest_scenario_id?(study, actual_scenario_id) ->
+          {:error,
+           {:retry_source_scenario_identity_collision, surface, row_index, scenario_index,
+            expected_scenario_id, actual_scenario_id}}
+
+        true ->
+          {:error,
+           {:retry_source_unknown_scenario_id, surface, row_index, scenario_index,
+            expected_scenario_id, actual_scenario_id}}
+      end
+    end
+  end
+
+  defp canonical_retry_identity(_study, _row, surface, row_index),
+    do: {:error, {:invalid_retry_source_row, surface, row_index}}
+
+  defp validate_retry_source_index(study, surface, row_index, scenario_index) do
+    cond do
+      not (is_integer(scenario_index) and scenario_index >= 0) ->
+        {:error, {:invalid_retry_source_scenario_index, surface, row_index, scenario_index}}
+
+      scenario_index >= length(study.scenarios) ->
+        {:error, {:unknown_retry_source_scenario_index, surface, row_index, scenario_index}}
+
+      true ->
+        :ok
+    end
+  end
+
+  defp retry_source_scenario_id(_surface, _row_index, scenario_id)
+       when is_binary(scenario_id) and scenario_id != "",
+       do: {:ok, scenario_id}
+
+  defp retry_source_scenario_id(surface, row_index, scenario_id),
+    do: {:error, {:invalid_retry_source_scenario_id, surface, row_index, scenario_id}}
+
+  defp manifest_scenario_id(study, scenario_index) do
+    study.scenarios
+    |> Enum.at(scenario_index)
+    |> Map.fetch!(:id)
+    |> manifest_identity()
+  end
+
+  defp manifest_scenario_id?(study, scenario_id) do
+    Enum.any?(study.scenarios, fn scenario ->
+      case manifest_identity(scenario.id) do
+        {:ok, manifest_id} -> manifest_id == scenario_id
+        {:error, _reason} -> false
+      end
+    end)
+  end
+
+  defp manifest_identity(value) when is_binary(value) and value != "", do: {:ok, value}
+
+  defp manifest_identity(value) when is_atom(value) and value not in [nil, true, false],
+    do: {:ok, Atom.to_string(value)}
+
+  defp manifest_identity(value), do: {:error, {:invalid_manifest_scenario_id, value}}
+
+  defp retry_row_value(row, "scenario_index"),
+    do: Map.get(row, "scenario_index", Map.get(row, :scenario_index))
+
+  defp retry_row_value(row, "scenario_id"),
+    do: Map.get(row, "scenario_id", Map.get(row, :scenario_id))
+
+  defp retry_source_semantic_error({:retry_failed_scenario_mismatch, report, errors}) do
+    "execution_report.failed_scenarios must match top-level errors; " <>
+      "report=#{inspect(identity_rows(report))} errors=#{inspect(identity_rows(errors))}"
+  end
+
+  defp retry_source_semantic_error({:retry_failed_scenario_order_mismatch, report, errors}) do
+    "execution_report.failed_scenarios must match top-level errors order; " <>
+      "report=#{inspect(identity_rows(report))} errors=#{inspect(identity_rows(errors))}"
+  end
+
+  defp retry_source_semantic_error(reason),
+    do: "source artifact failed-scenario consistency check failed: #{inspect(reason)}"
+
+  defp identity_rows(identities) do
+    Enum.map(identities, fn {scenario_index, scenario_id} ->
+      %{scenario_index: scenario_index, scenario_id: scenario_id}
+    end)
+  end
 
   defp resume_error_message(%{reason: :invalid_artifact, errors: errors}) do
     "cannot resume from invalid study artifact: #{inspect(errors)}"
