@@ -201,7 +201,7 @@ defmodule OrbitalDynamics.FrameTransformTest do
                policy
              )
 
-    assert_receive {:bounded_earth_rotation_fetched, 0.0, 0.0}
+    assert_zero_rotation_fetch()
 
     mutated_policies = [
       %{policy | provider: ConstantEarthRotationProvider},
@@ -401,7 +401,7 @@ defmodule OrbitalDynamics.FrameTransformTest do
     assert {:ok, _result} =
              FrameTransform.transform(state, target, nil_optional_body, policy)
 
-    assert_receive {:bounded_earth_rotation_fetched, 0.0, 0.0}
+    assert_zero_rotation_fetch()
 
     huge_positive_body = %{
       earth
@@ -413,7 +413,7 @@ defmodule OrbitalDynamics.FrameTransformTest do
     assert {:ok, _result} =
              FrameTransform.transform(state, target, huge_positive_body, policy)
 
-    assert_receive {:bounded_earth_rotation_fetched, 0.0, 0.0}
+    assert_zero_rotation_fetch()
   end
 
   test "preserves state central-body epoch source-frame and target-frame error precedence" do
@@ -954,6 +954,15 @@ defmodule OrbitalDynamics.FrameTransformTest do
 
   defp maximum_component_magnitude({x, y, z}) do
     max(abs(x), max(abs(y), abs(z)))
+  end
+
+  defp assert_zero_rotation_fetch do
+    assert_receive {:bounded_earth_rotation_fetched, angle_rad, rate_rad_s}
+
+    assert is_float(angle_rad)
+    assert angle_rad == 0.0
+    assert is_float(rate_rad_s)
+    assert rate_rad_s == 0.0
   end
 
   defp assert_vector_in_delta({actual_x, actual_y, actual_z}, {x, y, z}, tolerance) do
