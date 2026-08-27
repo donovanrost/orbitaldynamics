@@ -5,6 +5,11 @@ defmodule OrbitalDynamics.EventDetectors.AccessWindowsTest do
   alias OrbitalDynamics.{CentralBody, Epoch, Frame, GroundStation, StateVector, Trajectory}
 
   @earth_rotation_rate_rad_s 7.2921150e-5
+  @safe_number_bound 1_000_000_000_000_000
+
+  defmodule StructProbe do
+    defstruct [:value]
+  end
 
   test "declares detector capabilities" do
     assert %{
@@ -426,6 +431,221 @@ defmodule OrbitalDynamics.EventDetectors.AccessWindowsTest do
              AccessWindows.detect(trajectory, ground_station: :not_a_station, central_body: earth)
   end
 
+  test "public access boundaries reject hostile inputs with typed errors" do
+    earth = CentralBody.earth()
+    station = GroundStation.new!(:equator, 0.0, 0.0)
+    before_state = opposite_earth(earth, 0.0)
+    after_state = above_station(earth, 60.0)
+    trajectory = trajectory([before_state, after_state])
+
+    assert {:error, {:missing_option, :ground_station}} =
+             AccessWindows.detect(trajectory, central_body: earth)
+
+    assert {:error, {:invalid_container, :opts}} =
+             AccessWindows.detect(trajectory, [{:ground_station, station} | :tail])
+
+    assert {:error, {:container_depth_exceeded, :opts}} =
+             AccessWindows.detect(trajectory,
+               ground_station: station,
+               central_body: earth,
+               audit_payload: deep_value(10)
+             )
+
+    assert {:error, {:invalid_container, :opts}} =
+             AccessWindows.detect(trajectory,
+               ground_station: station,
+               central_body: earth,
+               audit_payload: %{42 => "bad key"}
+             )
+
+    assert {:error, {:invalid_container, :opts}} =
+             AccessWindows.detect(trajectory,
+               ground_station: station,
+               central_body: earth,
+               ignored: @safe_number_bound + 1
+             )
+
+    assert {:error, {:invalid_container, :opts}} =
+             AccessWindows.detect(trajectory,
+               ground_station: station,
+               central_body: earth,
+               ignored: huge_integer()
+             )
+
+    assert {:error, {:unsupported_option, :ignored}} =
+             AccessWindows.detect(trajectory,
+               ground_station: station,
+               central_body: earth,
+               ignored: "safe"
+             )
+
+    assert {:error, {:invalid_option, :trajectory}} =
+             AccessWindows.detect(:not_a_trajectory, ground_station: station, central_body: earth)
+
+    assert {:error, {:invalid_container, :states}} =
+             AccessWindows.detect(
+               %Trajectory{trajectory | states: [before_state | :tail]},
+               ground_station: station,
+               central_body: earth
+             )
+
+    assert {:error, {:invalid_state, :state}} =
+             AccessWindows.detect(
+               %Trajectory{
+                 trajectory
+                 | states: [%{before_state | position_km: {1.0e16, 0.0, 0.0}}]
+               },
+               ground_station: station,
+               central_body: earth
+             )
+
+    assert {:error, {:invalid_trajectory, :non_increasing_epochs}} =
+             AccessWindows.detect(
+               trajectory([after_state, before_state]),
+               ground_station: station,
+               central_body: earth
+             )
+
+    assert {:error, {:invalid_option, :ground_station}} =
+             AccessWindows.detect(trajectory,
+               ground_station: %{station | latitude_deg: 1.0e16},
+               central_body: earth
+             )
+
+    assert {:error, {:invalid_option, :ground_station}} =
+             AccessWindows.detect(trajectory,
+               ground_station: %{station | latitude_deg: @safe_number_bound + 1},
+               central_body: earth
+             )
+
+    assert {:error, {:invalid_option, :ground_station}} =
+             AccessWindows.detect(trajectory,
+               ground_station: %{station | latitude_deg: huge_integer()},
+               central_body: earth
+             )
+
+    assert {:error, {:invalid_central_body, :equatorial_radius_km}} =
+             AccessWindows.detect(trajectory,
+               ground_station: station,
+               central_body: %{earth | equatorial_radius_km: 1.0e16}
+             )
+
+    assert {:error, {:invalid_central_body, :equatorial_radius_km}} =
+             AccessWindows.detect(trajectory,
+               ground_station: station,
+               central_body: %{earth | equatorial_radius_km: @safe_number_bound + 1}
+             )
+
+    assert {:error, {:invalid_central_body, :equatorial_radius_km}} =
+             AccessWindows.detect(trajectory,
+               ground_station: station,
+               central_body: %{earth | equatorial_radius_km: huge_integer()}
+             )
+
+    for {label, nonfinite} <- nonfinite_float_values() do
+      assert {:error, {:invalid_option, :ground_station}} =
+               AccessWindows.detect(trajectory,
+                 ground_station: %{station | latitude_deg: nonfinite},
+                 central_body: earth
+               ),
+             "#{label} ground station numeric field was admitted"
+
+      assert {:error, {:invalid_central_body, :equatorial_radius_km}} =
+               AccessWindows.detect(trajectory,
+                 ground_station: station,
+                 central_body: %{earth | equatorial_radius_km: nonfinite}
+               ),
+             "#{label} central body numeric field was admitted"
+    end
+
+    assert {:ok, [_event]} =
+             AccessWindows.detect(trajectory,
+               ground_station: station,
+               central_body: earth,
+               root_tolerance_s: @safe_number_bound
+             )
+
+    assert {:error, {:invalid_option, :root_tolerance_s}} =
+             AccessWindows.detect(trajectory,
+               ground_station: station,
+               central_body: earth,
+               root_tolerance_s: @safe_number_bound + 1
+             )
+
+    assert {:error, {:invalid_option, :root_tolerance_s}} =
+             AccessWindows.detect(trajectory,
+               ground_station: station,
+               central_body: earth,
+               root_tolerance_s: huge_integer()
+             )
+
+    callback_probe = fn -> send(self(), :access_callback_invoked) end
+
+    for {label, bad_value} <- hostile_option_values(callback_probe) do
+      assert {:error, {:invalid_container, :opts}} =
+               AccessWindows.detect(trajectory,
+                 ground_station: station,
+                 central_body: earth,
+                 ignored: bad_value
+               ),
+             "#{label} ignored access option was admitted"
+
+      assert {:error, {:invalid_container, :opts}} =
+               AccessWindows.detect(trajectory,
+                 ground_station: %{station | id: bad_value},
+                 central_body: earth
+               ),
+             "#{label} ground station field was admitted"
+
+      assert {:error, {:invalid_container, :opts}} =
+               AccessWindows.detect(trajectory,
+                 ground_station: station,
+                 central_body: %{earth | name: bad_value}
+               ),
+             "#{label} central body field was admitted"
+
+      assert {:error, {:invalid_container, :opts}} =
+               AccessWindows.refine_aos_los_boundary(
+                 before_state,
+                 after_state,
+                 station,
+                 central_body: earth,
+                 ignored: bad_value
+               ),
+             "#{label} refine ignored access option was admitted"
+
+      refute_receive :access_callback_invoked
+    end
+
+    assert {:error, {:unsupported_boundary_refinement, :unsupported}} =
+             AccessWindows.model_limits(:unsupported)
+
+    assert {:error, {:invalid_option, :access_boundary}} =
+             AccessWindows.refine_aos_los_boundary(
+               :before,
+               after_state,
+               station,
+               central_body: earth
+             )
+
+    assert {:error, {:invalid_state, :before_state}} =
+             AccessWindows.refine_aos_los_boundary(
+               %{before_state | velocity_km_s: {0.0, 1.0e16, 0.0}},
+               after_state,
+               station,
+               central_body: earth
+             )
+
+    assert {:error, {:container_limit_exceeded, :opts}} =
+             AccessWindows.refine_aos_los_boundary(
+               before_state,
+               after_state,
+               station,
+               central_body: earth,
+               audit_payload: wide_map(129)
+             )
+  end
+
   defp trajectory(states) do
     %Trajectory{
       scenario_id: :access_test,
@@ -467,5 +687,42 @@ defmodule OrbitalDynamics.EventDetectors.AccessWindowsTest do
       Epoch.new!(seconds_since_j2000, :tdb),
       Frame.earth_inertial_j2000()
     )
+  end
+
+  defp deep_value(depth) do
+    Enum.reduce(1..depth, "leaf", fn index, acc -> %{"level_#{index}" => acc} end)
+  end
+
+  defp wide_map(count) do
+    Map.new(1..count, fn index -> {"k#{index}", index} end)
+  end
+
+  defp hostile_option_values(callback_probe) do
+    [
+      {"struct", %StructProbe{value: :nested}},
+      {"pid", self()},
+      {"reference", make_ref()},
+      {"function", callback_probe},
+      {"tuple", {:tuple, :not_json}}
+    ] ++ port_probe_values()
+  end
+
+  defp port_probe_values do
+    case Port.list() do
+      [port | _rest] -> [{"port", port}]
+      [] -> []
+    end
+  end
+
+  defp huge_integer, do: :erlang.bsl(1, 1_000_000)
+
+  defp nonfinite_float_values do
+    [
+      {"nan", :erlang.binary_to_term(<<131, 70, 127, 248, 0, 0, 0, 0, 0, 1>>, [:safe])},
+      {"positive infinity",
+       :erlang.binary_to_term(<<131, 70, 127, 240, 0, 0, 0, 0, 0, 0>>, [:safe])},
+      {"negative infinity",
+       :erlang.binary_to_term(<<131, 70, 255, 240, 0, 0, 0, 0, 0, 0>>, [:safe])}
+    ]
   end
 end

@@ -10,11 +10,56 @@ defmodule OrbitalDynamics.EventDetectors.GroundTrackCrossings do
   longitude.
   """
 
-  alias OrbitalDynamics.{Environment, EventTiming, StateVector, Trajectory}
+  alias OrbitalDynamics.{Environment, Epoch, EventTiming, Frame, StateVector, Trajectory}
   alias OrbitalDynamics.Environment.CampaignEnvironmentProvider
+  alias OrbitalDynamics.Environment.CampaignEnvironmentProvider.Dataset
 
   @behaviour OrbitalDynamics.EventDetector
   @earth_rotation_rate_rad_s 7.2921150e-5
+  @max_states 10_000
+  @max_opts_length 64
+  @max_container_depth 12
+  @max_container_entries 4_096
+  @max_list_length 1_024
+  @max_map_size 128
+  @safe_number_limit 1.0e15
+  @request_aliases [
+    {:starts_at_s, "starts_at_s"},
+    {:ends_at_s, "ends_at_s"},
+    {:body, "body"},
+    {:bodies, "bodies"},
+    {:central_body, "central_body"},
+    {:output, "output"},
+    {:outputs, "outputs"},
+    {:product, "product"},
+    {:kind, "kind"},
+    {:frame, "frame"},
+    {:frames, "frames"},
+    {:time_scale, "time_scale"},
+    {:time_scales, "time_scales"}
+  ]
+  @request_keys Enum.flat_map(@request_aliases, fn {atom_key, string_key} ->
+                  [atom_key, string_key]
+                end)
+  @product_aliases [
+    {"provider_id", :provider_id},
+    {"model", :model},
+    {"earth_rotation_angle_rad", :earth_rotation_angle_rad},
+    {"earth_rotation_rate_rad_s", :earth_rotation_rate_rad_s},
+    {"interpolation", :interpolation},
+    {"provider_revision", :provider_revision},
+    {"dataset_revision", :dataset_revision},
+    {"dataset_semantic_sha256", :dataset_semantic_sha256},
+    {"content_sha256", :content_sha256},
+    {"source_table_id", :source_table_id},
+    {"provenance", :provenance},
+    {"known_limits", :known_limits},
+    {"coverage_starts_at_s", :coverage_starts_at_s},
+    {"coverage_ends_at_s", :coverage_ends_at_s},
+    {"sample_count", :sample_count},
+    {"frame", :frame},
+    {"polar_motion_applied", :polar_motion_applied}
+  ]
   @campaign_ground_track_known_limits [
     :sample_cadence_limited,
     :geocentric_spherical_coordinates,
@@ -24,6 +69,42 @@ defmodule OrbitalDynamics.EventDetectors.GroundTrackCrossings do
     :no_polar_motion_application,
     :no_tirs_claim,
     :refinement_not_root_solved
+  ]
+  @allowed_options [
+    :crossing,
+    :latitude_deg,
+    :longitude_deg,
+    :frame,
+    :rotation_rate_rad_s,
+    :rotation_epoch_s,
+    :rotation_angle_offset_rad,
+    :earth_rotation_provider,
+    :campaign_environment
+  ]
+  @numeric_options [
+    :latitude_deg,
+    :longitude_deg,
+    :rotation_rate_rad_s,
+    :rotation_epoch_s,
+    :rotation_angle_offset_rad
+  ]
+  @campaign_dataset_fields [
+    :table_id,
+    :provider_id,
+    :provider_revision,
+    :dataset_revision,
+    :body,
+    :source_inertial_frame,
+    :provider_inertial_frame,
+    :earth_fixed_frame,
+    :time_scale,
+    :interpolation,
+    :sample_interval_s,
+    :coverage,
+    :samples,
+    :sources,
+    :known_limits,
+    :content_verification
   ]
 
   @doc """
@@ -64,7 +145,8 @@ defmodule OrbitalDynamics.EventDetectors.GroundTrackCrossings do
 
   @doc false
   def validate_earth_rotation_provider(provider, request) when is_map(request) do
-    with {:ok, rotation} <- provider_rotation_model(provider),
+    with :ok <- validate_provider_request(request),
+         {:ok, rotation} <- provider_rotation_model(provider),
          true <- Environment.provider_supports_request?(rotation.provider_capability, request),
          :ok <- preflight_provider_products(rotation, request) do
       :ok
@@ -78,20 +160,27 @@ defmodule OrbitalDynamics.EventDetectors.GroundTrackCrossings do
     do: {:error, {:invalid_option, :earth_rotation_provider}}
 
   @impl OrbitalDynamics.EventDetector
-  def detect(%Trajectory{} = trajectory, opts \\ []) do
-    with {:ok, crossing} <- crossing_option(Keyword.get(opts, :crossing, :latitude)),
+  def detect(trajectory, opts \\ [])
+
+  def detect(%Trajectory{} = trajectory, opts) do
+    with :ok <- validate_opts(opts),
+         :ok <- validate_trajectory(trajectory),
+         {:ok, crossing} <- crossing_option(Keyword.get(opts, :crossing, :latitude)),
          {:ok, target_deg} <- target_deg(crossing, opts),
          :ok <- validate_target(crossing, target_deg),
          {:ok, frame} <- reference_frame(opts),
          {:ok, rotation} <- rotation_model(frame, opts),
          :ok <- validate_campaign_evidence_option(opts, rotation),
-         {:ok, samples} <- samples(trajectory, crossing, target_deg, frame, rotation) do
-      {:ok,
-       samples
-       |> Enum.chunk_every(2, 1, :discard)
-       |> Enum.flat_map(&crossing_event(&1, crossing, target_deg, trajectory, frame, rotation))
-       |> Enum.map(&EventTiming.annotate_event(&1, trajectory, :ground_track_crossings))}
+         {:ok, samples} <- samples(trajectory, crossing, target_deg, frame, rotation),
+         {:ok, events} <-
+           crossing_events(samples, crossing, target_deg, trajectory, frame, rotation),
+         {:ok, annotated_events} <- annotate_events(events, trajectory) do
+      {:ok, annotated_events}
     end
+  end
+
+  def detect(_trajectory, opts) do
+    with :ok <- validate_opts(opts), do: {:error, {:invalid_option, :trajectory}}
   end
 
   @doc """
@@ -101,12 +190,16 @@ defmodule OrbitalDynamics.EventDetectors.GroundTrackCrossings do
   interpolation model as `detect/2`. It is useful for artifact metadata and
   coarse ground-track timing; it is not a root-solved event time.
   """
+  def refine_crossing_boundary(before_state, after_state, opts \\ [])
+
   def refine_crossing_boundary(
         %StateVector{} = before_state,
         %StateVector{} = after_state,
-        opts \\ []
+        opts
       ) do
-    with {:ok, crossing} <- crossing_option(Keyword.get(opts, :crossing, :latitude)),
+    with :ok <- validate_opts(opts),
+         :ok <- validate_state_pair(before_state, after_state),
+         {:ok, crossing} <- crossing_option(Keyword.get(opts, :crossing, :latitude)),
          {:ok, target_deg} <- target_deg(crossing, opts),
          :ok <- validate_target(crossing, target_deg),
          {:ok, frame} <- reference_frame(opts),
@@ -152,6 +245,10 @@ defmodule OrbitalDynamics.EventDetectors.GroundTrackCrossings do
     end
   end
 
+  def refine_crossing_boundary(_before_state, _after_state, opts) do
+    with :ok <- validate_opts(opts), do: {:error, {:invalid_option, :crossing_boundary}}
+  end
+
   defp crossing_option(crossing) when crossing in [:latitude, "latitude"], do: {:ok, :latitude}
   defp crossing_option(crossing) when crossing in [:longitude, "longitude"], do: {:ok, :longitude}
   defp crossing_option(other), do: {:error, {:unsupported_crossing, other}}
@@ -166,9 +263,19 @@ defmodule OrbitalDynamics.EventDetectors.GroundTrackCrossings do
   defp validate_target(:longitude, _target), do: {:error, {:invalid_option, :longitude_deg}}
 
   defp required_number(opts, key) do
-    case Keyword.get(opts, key) do
-      value when is_integer(value) or is_float(value) -> {:ok, value * 1.0}
-      _value -> {:error, {:missing_option, key}}
+    case Keyword.fetch(opts, key) do
+      {:ok, value} when is_integer(value) or is_float(value) ->
+        if finite_number?(value) do
+          {:ok, value * 1.0}
+        else
+          {:error, {:invalid_option, key}}
+        end
+
+      {:ok, _value} ->
+        {:error, {:invalid_option, key}}
+
+      :error ->
+        {:error, {:missing_option, key}}
     end
   end
 
@@ -215,7 +322,7 @@ defmodule OrbitalDynamics.EventDetectors.GroundTrackCrossings do
     with true <- Code.ensure_loaded?(provider),
          true <- function_exported?(provider, :fetch, 2),
          true <- function_exported?(provider, :capabilities, 0),
-         true <- Keyword.keyword?(provider_opts) do
+         :ok <- validate_provider_opts(provider_opts) do
       configured_provider_rotation_model(provider, provider_opts)
     else
       false -> {:error, {:invalid_option, :earth_rotation_provider}}
@@ -228,7 +335,7 @@ defmodule OrbitalDynamics.EventDetectors.GroundTrackCrossings do
 
   defp configured_provider_rotation_model(CampaignEnvironmentProvider, provider_opts) do
     with {:ok, configuration} <-
-           CampaignEnvironmentProvider.trusted_configuration(provider_opts) do
+           safe_campaign_trusted_configuration(provider_opts) do
       {:ok,
        %{
          mode: :provider,
@@ -245,7 +352,7 @@ defmodule OrbitalDynamics.EventDetectors.GroundTrackCrossings do
   defp configured_provider_rotation_model(provider, provider_opts) do
     with false <- CampaignEnvironmentProvider.reserved_evidence?(provider_opts),
          {:ok, provider_capability} <-
-           Environment.configured_provider_capability(provider, provider_opts),
+           safe_configured_provider_capability(provider, provider_opts),
          false <- CampaignEnvironmentProvider.reserved_evidence?(provider_capability),
          :ok <- validate_capability_module_binding(provider, provider_capability) do
       {:ok,
@@ -263,32 +370,90 @@ defmodule OrbitalDynamics.EventDetectors.GroundTrackCrossings do
     end
   end
 
+  defp safe_campaign_trusted_configuration(provider_opts) do
+    CampaignEnvironmentProvider.trusted_configuration(provider_opts)
+  rescue
+    _error in [
+      ArgumentError,
+      ArithmeticError,
+      BadMapError,
+      FunctionClauseError,
+      KeyError,
+      MatchError,
+      RuntimeError,
+      UndefinedFunctionError
+    ] ->
+      {:error,
+       {:environment_provider_callback_failed, CampaignEnvironmentProvider,
+        :trusted_configuration}}
+  end
+
   defp validate_capability_module_binding(provider, configured_capability) do
-    base_capability = provider.capabilities()
+    with {:ok, base_capability} <- safe_provider_capabilities(provider) do
+      stable_keys = [
+        "id",
+        "schema_contract",
+        "category",
+        "model",
+        "validation_level",
+        "interpolation",
+        "supported_bodies",
+        "supported_frames",
+        "supported_time_scales",
+        "network_access",
+        "outputs",
+        "known_limits"
+      ]
 
-    stable_keys = [
-      "id",
-      "schema_contract",
-      "category",
-      "model",
-      "validation_level",
-      "interpolation",
-      "supported_bodies",
-      "supported_frames",
-      "supported_time_scales",
-      "network_access",
-      "outputs",
-      "known_limits"
-    ]
-
-    case Enum.find(stable_keys, fn key ->
-           Map.get(configured_capability, key) != Map.get(base_capability, key)
-         end) do
-      nil -> :ok
-      key -> {:error, {:environment_provider_capability_mismatch, provider, key}}
+      case Enum.find(stable_keys, fn key ->
+             capability_field_changed?(configured_capability, base_capability, key)
+           end) do
+        nil -> :ok
+        key -> {:error, {:environment_provider_capability_mismatch, provider, key}}
+      end
     end
   rescue
-    _exception -> {:error, {:invalid_option, :earth_rotation_provider}}
+    _error in [BadMapError, KeyError] -> {:error, {:invalid_option, :earth_rotation_provider}}
+  end
+
+  defp capability_field_changed?(configured_capability, base_capability, key) do
+    case {Map.fetch(configured_capability, key), Map.fetch(base_capability, key)} do
+      {:error, :error} -> false
+      {{:ok, configured_value}, {:ok, base_value}} -> configured_value != base_value
+      _added_or_removed -> true
+    end
+  end
+
+  defp safe_configured_provider_capability(provider, provider_opts) do
+    Environment.configured_provider_capability(provider, provider_opts)
+  rescue
+    _error in [
+      ArgumentError,
+      ArithmeticError,
+      BadMapError,
+      FunctionClauseError,
+      KeyError,
+      MatchError,
+      RuntimeError,
+      UndefinedFunctionError
+    ] ->
+      {:error, {:environment_provider_callback_failed, provider, :capabilities}}
+  end
+
+  defp safe_provider_capabilities(provider) do
+    {:ok, provider.capabilities()}
+  rescue
+    _error in [
+      ArgumentError,
+      ArithmeticError,
+      BadMapError,
+      FunctionClauseError,
+      KeyError,
+      MatchError,
+      RuntimeError,
+      UndefinedFunctionError
+    ] ->
+      {:error, {:environment_provider_callback_failed, provider, :capabilities}}
   end
 
   defp preflight_provider_products(rotation, request) do
@@ -302,21 +467,412 @@ defmodule OrbitalDynamics.EventDetectors.GroundTrackCrossings do
     end)
   end
 
+  defp validate_provider_request(%{} = request) do
+    with :ok <- preflight_provider_request_top_level(request),
+         :ok <- preflight_provider_request_numeric_bounds(request),
+         :ok <- preflight_container(request, :provider_request),
+         :ok <- reject_alias_collisions(request, @request_aliases),
+         :ok <- reject_unsupported_request_keys(request),
+         {:ok, starts_at_s} <- request_epoch(request, :starts_at_s, "starts_at_s"),
+         {:ok, ends_at_s} <- request_epoch(request, :ends_at_s, "ends_at_s") do
+      if ends_at_s >= starts_at_s do
+        :ok
+      else
+        {:error, {:invalid_field, "ends_at_s"}}
+      end
+    end
+  end
+
+  defp preflight_provider_request_top_level(%{__struct__: _struct}),
+    do: {:error, {:invalid_container, :provider_request}}
+
+  defp preflight_provider_request_top_level(%{} = request) do
+    cond do
+      map_size(request) > @max_map_size ->
+        {:error, {:container_limit_exceeded, :provider_request}}
+
+      invalid_map_key?(request) ->
+        {:error, {:invalid_container, :provider_request}}
+
+      true ->
+        :ok
+    end
+  end
+
+  defp preflight_provider_request_numeric_bounds(%{__struct__: _struct}), do: :ok
+
+  defp preflight_provider_request_numeric_bounds(%{} = request) do
+    Enum.reduce_while(request, :ok, fn {key, value}, :ok ->
+      case request_field_name(key) do
+        {:ok, field_name} ->
+          case preflight_provider_request_numeric_value(value, field_name) do
+            :ok -> {:cont, :ok}
+            {:error, reason} -> {:halt, {:error, reason}}
+          end
+
+        :unknown ->
+          {:cont, :ok}
+      end
+    end)
+  end
+
+  defp preflight_provider_request_numeric_value(value, field_name) do
+    preflight_provider_request_numeric_stack([{value, 0}], 0, field_name)
+  end
+
+  defp preflight_provider_request_numeric_stack([], _visited, _field_name), do: :ok
+
+  defp preflight_provider_request_numeric_stack(_stack, visited, _field_name)
+       when visited > @max_container_entries,
+       do: {:error, {:container_limit_exceeded, :provider_request}}
+
+  defp preflight_provider_request_numeric_stack([{_term, depth} | _rest], _visited, _field_name)
+       when depth > @max_container_depth,
+       do: {:error, {:container_depth_exceeded, :provider_request}}
+
+  defp preflight_provider_request_numeric_stack(
+         [{%{__struct__: _struct}, _depth} | rest],
+         visited,
+         field_name
+       ),
+       do: preflight_provider_request_numeric_stack(rest, visited + 1, field_name)
+
+  defp preflight_provider_request_numeric_stack([{tuple, _depth} | rest], visited, field_name)
+       when is_tuple(tuple),
+       do: preflight_provider_request_numeric_stack(rest, visited + 1, field_name)
+
+  defp preflight_provider_request_numeric_stack([{%{} = map, depth} | rest], visited, field_name) do
+    cond do
+      map_size(map) > @max_map_size ->
+        {:error, {:container_limit_exceeded, :provider_request}}
+
+      invalid_map_key?(map) ->
+        {:error, {:invalid_container, :provider_request}}
+
+      true ->
+        children = Enum.map(Map.values(map), &{&1, depth + 1})
+
+        preflight_provider_request_numeric_stack(
+          children ++ rest,
+          visited + map_size(map),
+          field_name
+        )
+    end
+  end
+
+  defp preflight_provider_request_numeric_stack([{list, depth} | rest], visited, field_name)
+       when is_list(list) do
+    case bounded_list_items(list, :provider_request, @max_list_length) do
+      {:ok, items} ->
+        children = Enum.map(items, &{&1, depth + 1})
+
+        preflight_provider_request_numeric_stack(
+          children ++ rest,
+          visited + length(items),
+          field_name
+        )
+
+      {:error, reason} ->
+        {:error, reason}
+    end
+  end
+
+  defp preflight_provider_request_numeric_stack([{term, _depth} | rest], visited, field_name)
+       when is_integer(term) or is_float(term) do
+    if finite_number?(term) do
+      preflight_provider_request_numeric_stack(rest, visited + 1, field_name)
+    else
+      {:error, {:invalid_field, field_name}}
+    end
+  end
+
+  defp preflight_provider_request_numeric_stack([_term | rest], visited, field_name),
+    do: preflight_provider_request_numeric_stack(rest, visited + 1, field_name)
+
+  defp request_field_name(key) do
+    Enum.find_value(@request_aliases, :unknown, fn {atom_key, string_key} ->
+      if key == atom_key or key == string_key do
+        {:ok, string_key}
+      end
+    end)
+  end
+
+  defp reject_unsupported_request_keys(request) do
+    Enum.reduce_while(Map.keys(request), :ok, fn key, :ok ->
+      if key in @request_keys do
+        {:cont, :ok}
+      else
+        {:halt, {:error, {:unsupported_key, :provider_request}}}
+      end
+    end)
+  end
+
   defp provider_request_epochs(request) do
     [
-      Map.get(request, :starts_at_s) || Map.get(request, "starts_at_s"),
-      Map.get(request, :ends_at_s) || Map.get(request, "ends_at_s")
+      alias_value(request, :starts_at_s, "starts_at_s"),
+      alias_value(request, :ends_at_s, "ends_at_s")
     ]
-    |> Enum.filter(&is_number/1)
+    |> Enum.filter(&finite_number?/1)
     |> Enum.uniq()
+  end
+
+  defp request_epoch(request, atom_key, string_key) do
+    case alias_value(request, atom_key, string_key) do
+      value when is_integer(value) or is_float(value) ->
+        if finite_number?(value) do
+          {:ok, value * 1.0}
+        else
+          {:error, {:invalid_field, string_key}}
+        end
+
+      _value ->
+        {:error, {:invalid_field, string_key}}
+    end
+  end
+
+  defp reject_alias_collisions(map, aliases) do
+    Enum.reduce_while(aliases, :ok, fn {atom_key, string_key}, :ok ->
+      if Map.has_key?(map, atom_key) and Map.has_key?(map, string_key) do
+        {:halt, {:error, {:atom_string_alias_collision, string_key}}}
+      else
+        {:cont, :ok}
+      end
+    end)
+  end
+
+  defp alias_value(map, atom_key, string_key) do
+    case {Map.fetch(map, atom_key), Map.fetch(map, string_key)} do
+      {{:ok, value}, :error} -> value
+      {:error, {:ok, value}} -> value
+      _missing_or_collision -> nil
+    end
   end
 
   defp optional_number(opts, key, default) do
     case Keyword.get(opts, key, default) do
-      value when is_integer(value) or is_float(value) -> {:ok, value * 1.0}
-      _value -> {:error, {:invalid_option, key}}
+      value when is_integer(value) or is_float(value) ->
+        if finite_number?(value) do
+          {:ok, value * 1.0}
+        else
+          {:error, {:invalid_option, key}}
+        end
+
+      _value ->
+        {:error, {:invalid_option, key}}
     end
   end
+
+  defp validate_opts(opts) do
+    with {:ok, items} <- bounded_list_items(opts, :opts, @max_opts_length),
+         true <- Enum.all?(items, &keyword_entry?/1),
+         true <- unique_keyword_keys?(items),
+         :ok <- preflight_option_values(items),
+         :ok <- reject_unsupported_options(items) do
+      :ok
+    else
+      false -> {:error, {:invalid_option, :opts}}
+      {:error, reason} -> {:error, reason}
+    end
+  end
+
+  defp keyword_entry?({key, _value}) when is_atom(key), do: true
+  defp keyword_entry?(_entry), do: false
+
+  defp unique_keyword_keys?(items) do
+    keys = Enum.map(items, fn {key, _value} -> key end)
+    length(keys) == length(Enum.uniq(keys))
+  end
+
+  defp preflight_option_values(items) do
+    Enum.reduce_while(items, :ok, fn {key, value}, :ok ->
+      case preflight_option_value(key, value) do
+        :ok -> {:cont, :ok}
+        {:error, reason} -> {:halt, {:error, reason}}
+      end
+    end)
+  end
+
+  defp preflight_option_value(:earth_rotation_provider, provider),
+    do: preflight_provider_spec(provider, :earth_rotation_provider)
+
+  defp preflight_option_value(key, value) when key in @numeric_options,
+    do: preflight_numeric_option(key, value)
+
+  defp preflight_option_value(_key, value), do: preflight_container(value, :opts)
+
+  defp preflight_numeric_option(key, value) when is_integer(value) or is_float(value) do
+    if finite_number?(value), do: :ok, else: {:error, {:invalid_option, key}}
+  end
+
+  defp preflight_numeric_option(_key, value), do: preflight_container(value, :opts)
+
+  defp validate_provider_opts(opts) do
+    with {:ok, items} <- bounded_list_items(opts, :opts, @max_opts_length),
+         true <- Enum.all?(items, &keyword_entry?/1),
+         true <- unique_keyword_keys?(items),
+         :ok <- preflight_provider_option_values(items) do
+      :ok
+    else
+      false -> {:error, {:invalid_option, :opts}}
+      {:error, reason} -> {:error, reason}
+    end
+  end
+
+  defp preflight_provider_option_values(items) do
+    Enum.reduce_while(items, :ok, fn {key, value}, :ok ->
+      case preflight_provider_option_value(key, value) do
+        :ok -> {:cont, :ok}
+        {:error, reason} -> {:halt, {:error, reason}}
+      end
+    end)
+  end
+
+  defp preflight_provider_option_value(:dataset, %Dataset{} = dataset),
+    do: preflight_exact_struct_shape(dataset, Dataset, @campaign_dataset_fields, :opts)
+
+  defp preflight_provider_option_value(_key, value), do: preflight_container(value, :opts)
+
+  defp preflight_provider_spec(provider, _field) when is_atom(provider), do: :ok
+
+  defp preflight_provider_spec({provider, provider_opts}, _field)
+       when is_atom(provider) and is_list(provider_opts),
+       do: validate_provider_opts(provider_opts)
+
+  defp preflight_provider_spec(_provider, field), do: {:error, {:invalid_option, field}}
+
+  defp reject_unsupported_options(items) do
+    Enum.reduce_while(items, :ok, fn {key, _value}, :ok ->
+      if key in @allowed_options do
+        {:cont, :ok}
+      else
+        {:halt, {:error, {:unsupported_option, key}}}
+      end
+    end)
+  end
+
+  defp preflight_exact_struct_shape(struct, module, fields, field) do
+    expected_keys = MapSet.new([:__struct__ | fields])
+
+    cond do
+      Map.get(struct, :__struct__) != module ->
+        {:error, {:invalid_container, field}}
+
+      MapSet.new(Map.keys(struct)) != expected_keys ->
+        {:error, {:invalid_container, field}}
+
+      true ->
+        :ok
+    end
+  end
+
+  defp preflight_container(term, field) do
+    preflight_container([{term, 0}], 0, field)
+  end
+
+  defp preflight_container([], _visited, _field), do: :ok
+
+  defp preflight_container(_stack, visited, field) when visited > @max_container_entries,
+    do: {:error, {:container_limit_exceeded, field}}
+
+  defp preflight_container([{_term, depth} | _rest], _visited, field)
+       when depth > @max_container_depth do
+    {:error, {:container_depth_exceeded, field}}
+  end
+
+  defp preflight_container([{%{__struct__: _struct}, _depth} | _rest], _visited, field),
+    do: {:error, {:invalid_container, field}}
+
+  defp preflight_container([{tuple, _depth} | _rest], _visited, field) when is_tuple(tuple),
+    do: {:error, {:invalid_container, field}}
+
+  defp preflight_container([{%{} = map, depth} | rest], visited, field) do
+    cond do
+      map_size(map) > @max_map_size ->
+        {:error, {:container_limit_exceeded, field}}
+
+      invalid_map_key?(map) ->
+        {:error, {:invalid_container, field}}
+
+      true ->
+        with :ok <- reject_generic_alias_collisions(map) do
+          children = Enum.map(Map.values(map), &{&1, depth + 1})
+          preflight_container(children ++ rest, visited + map_size(map), field)
+        end
+    end
+  end
+
+  defp preflight_container([{list, depth} | rest], visited, field) when is_list(list) do
+    case bounded_list_items(list, field, @max_list_length) do
+      {:ok, items} ->
+        children = Enum.map(items, &{&1, depth + 1})
+        preflight_container(children ++ rest, visited + length(items), field)
+
+      {:error, reason} ->
+        {:error, reason}
+    end
+  end
+
+  defp preflight_container([{term, _depth} | rest], visited, field)
+       when is_nil(term) or is_boolean(term) or is_atom(term) or is_binary(term),
+       do: preflight_container(rest, visited + 1, field)
+
+  defp preflight_container([{term, _depth} | rest], visited, field)
+       when is_integer(term) or is_float(term) do
+    if finite_number?(term) do
+      preflight_container(rest, visited + 1, field)
+    else
+      {:error, {:invalid_container, field}}
+    end
+  end
+
+  defp preflight_container([_term | _rest], _visited, field),
+    do: {:error, {:invalid_container, field}}
+
+  defp invalid_map_key?(map) do
+    Enum.any?(Map.keys(map), fn key -> not (is_atom(key) or is_binary(key)) end)
+  end
+
+  defp reject_generic_alias_collisions(%{} = map) do
+    atom_key_strings =
+      map
+      |> Map.keys()
+      |> Enum.filter(&is_atom/1)
+      |> Enum.map(&Atom.to_string/1)
+      |> MapSet.new()
+
+    case Enum.find(Map.keys(map), fn key ->
+           is_binary(key) and MapSet.member?(atom_key_strings, key)
+         end) do
+      nil -> :ok
+      key -> {:error, {:atom_string_alias_collision, key}}
+    end
+  end
+
+  defp bounded_list_items(list, field, limit) when is_list(list) do
+    bounded_list_items(list, [], 0, field, limit)
+  end
+
+  defp bounded_list_items(_not_list, field, _limit), do: {:error, {:invalid_container, field}}
+
+  defp bounded_list_items(_list, _acc, count, field, limit) when count > limit,
+    do: {:error, {:container_limit_exceeded, field}}
+
+  defp bounded_list_items([], acc, _count, _field, _limit), do: {:ok, Enum.reverse(acc)}
+
+  defp bounded_list_items([head | tail], acc, count, field, limit) do
+    bounded_list_items(tail, [head | acc], count + 1, field, limit)
+  end
+
+  defp bounded_list_items(_improper_tail, _acc, _count, field, _limit),
+    do: {:error, {:invalid_container, field}}
+
+  defp finite_number?(value) when is_integer(value), do: abs(value) <= @safe_number_limit
+
+  defp finite_number?(value) when is_float(value) do
+    value == value and value - value == 0.0 and abs(value) <= @safe_number_limit
+  end
+
+  defp finite_number?(_value), do: false
 
   defp validate_campaign_evidence_option(opts, %{trusted_campaign?: true} = rotation) do
     case Keyword.fetch(opts, :campaign_environment) do
@@ -334,6 +890,103 @@ defmodule OrbitalDynamics.EventDetectors.GroundTrackCrossings do
     end
   end
 
+  defp validate_trajectory(%Trajectory{states: states, assumptions: assumptions}) do
+    with {:ok, states} <- bounded_list_items(states, :states, @max_states),
+         true <- is_map(assumptions),
+         :ok <- preflight_container(assumptions, :trajectory_assumptions),
+         :ok <- validate_states(states) do
+      :ok
+    else
+      false -> {:error, {:invalid_trajectory, :assumptions}}
+      {:error, reason} -> {:error, reason}
+    end
+  end
+
+  defp validate_states(states) do
+    states
+    |> Enum.reduce_while({:ok, nil}, fn
+      %StateVector{} = state, {:ok, previous_s} ->
+        with :ok <- validate_state(state, :state),
+             {:ok, seconds} <- state_epoch_seconds(state, :state) do
+          if is_number(previous_s) and seconds <= previous_s do
+            {:halt, {:error, {:invalid_trajectory, :non_increasing_epochs}}}
+          else
+            {:cont, {:ok, seconds}}
+          end
+        else
+          {:error, reason} -> {:halt, {:error, reason}}
+        end
+
+      _state, {:ok, _previous_s} ->
+        {:halt, {:error, {:invalid_trajectory, :state}}}
+    end)
+    |> case do
+      {:ok, _previous_s} -> :ok
+      {:error, reason} -> {:error, reason}
+    end
+  end
+
+  defp validate_state_pair(before_state, after_state) do
+    with :ok <- validate_state(before_state, :before_state),
+         :ok <- validate_state(after_state, :after_state) do
+      cond do
+        not Frame.compatible?(before_state.frame, after_state.frame) ->
+          {:error, :incompatible_state_frames}
+
+        before_state.epoch.scale != after_state.epoch.scale ->
+          {:error, :incompatible_epoch_scales}
+
+        after_state.epoch.seconds_since_j2000 <= before_state.epoch.seconds_since_j2000 ->
+          {:error, :non_increasing_state_epochs}
+
+        true ->
+          :ok
+      end
+    end
+  end
+
+  defp validate_state(
+         %StateVector{
+           position_km: position_km,
+           velocity_km_s: velocity_km_s,
+           epoch: %Epoch{scale: scale, seconds_since_j2000: seconds_since_j2000},
+           frame: %Frame{name: name, center: center, orientation: orientation}
+         },
+         field
+       ) do
+    cond do
+      not finite_vector?(position_km) ->
+        {:error, {:invalid_state, field}}
+
+      not finite_vector?(velocity_km_s) ->
+        {:error, {:invalid_state, field}}
+
+      scale not in [:tdb, :tai, :utc] or not finite_number?(seconds_since_j2000) ->
+        {:error, {:invalid_state, field}}
+
+      not (is_atom(name) and is_atom(center) and is_atom(orientation)) ->
+        {:error, {:invalid_state, field}}
+
+      true ->
+        :ok
+    end
+  end
+
+  defp validate_state(_state, field), do: {:error, {:invalid_state, field}}
+
+  defp state_epoch_seconds(%StateVector{epoch: %Epoch{seconds_since_j2000: seconds}}, field) do
+    if finite_number?(seconds) do
+      {:ok, seconds * 1.0}
+    else
+      {:error, {:invalid_state, field}}
+    end
+  end
+
+  defp finite_vector?({x, y, z}),
+    do: finite_number?(x) and finite_number?(y) and finite_number?(z)
+
+  defp finite_vector?(_vector), do: false
+
   defp samples(%Trajectory{} = trajectory, crossing, target_deg, frame, rotation) do
     trajectory.states
     |> Enum.with_index()
@@ -345,6 +998,34 @@ defmodule OrbitalDynamics.EventDetectors.GroundTrackCrossings do
     end)
     |> case do
       {:ok, values} -> {:ok, Enum.reverse(values)}
+      {:error, reason} -> {:error, reason}
+    end
+  end
+
+  defp crossing_events(samples, crossing, target_deg, trajectory, frame, rotation) do
+    samples
+    |> Enum.chunk_every(2, 1, :discard)
+    |> Enum.reduce_while({:ok, []}, fn pair, {:ok, events} ->
+      {:cont,
+       {:ok,
+        Enum.reverse(crossing_event(pair, crossing, target_deg, trajectory, frame, rotation)) ++
+          events}}
+    end)
+    |> case do
+      {:ok, events} -> {:ok, Enum.reverse(events)}
+      {:error, reason} -> {:error, reason}
+    end
+  end
+
+  defp annotate_events(events, trajectory) do
+    Enum.reduce_while(events, {:ok, []}, fn event, {:ok, acc} ->
+      case EventTiming.annotate_event(event, trajectory, :ground_track_crossings) do
+        %{} = annotated -> {:cont, {:ok, [annotated | acc]}}
+        {:error, reason} -> {:halt, {:error, reason}}
+      end
+    end)
+    |> case do
+      {:ok, annotated} -> {:ok, Enum.reverse(annotated)}
       {:error, reason} -> {:error, reason}
     end
   end
@@ -400,8 +1081,14 @@ defmodule OrbitalDynamics.EventDetectors.GroundTrackCrossings do
          :body_fixed,
          %{mode: :constant_rate} = rotation
        ) do
-    rotate_z(position_km, -earth_rotation_angle(seconds_since_j2000, rotation))
-    |> then(&{:ok, &1, %{}})
+    angle_rad = earth_rotation_angle(seconds_since_j2000, rotation)
+
+    if finite_number?(angle_rad) do
+      rotate_z(position_km, -angle_rad)
+      |> then(&{:ok, &1, %{}})
+    else
+      {:error, {:invalid_option, :earth_rotation_angle_rad}}
+    end
   end
 
   defp position_for_frame(
@@ -545,17 +1232,17 @@ defmodule OrbitalDynamics.EventDetectors.GroundTrackCrossings do
          before,
          after_sample
        ) do
-    before_metadata = before.rotation_metadata
-    after_metadata = after_sample.rotation_metadata
-    provider_capability = Map.get(rotation, :provider_capability, %{})
-    provider_coverage = Map.get(provider_capability, "coverage", %{})
+    before_metadata = Map.fetch!(before, :rotation_metadata)
+    after_metadata = Map.fetch!(after_sample, :rotation_metadata)
+    provider_capability = Map.fetch!(rotation, :provider_capability)
+    provider_coverage = Map.fetch!(provider_capability, "coverage")
 
     %{
       earth_rotation_provider: provider,
-      earth_rotation_provider_id: Map.get(before_metadata, :earth_rotation_provider_id),
-      earth_rotation_model: Map.get(before_metadata, :earth_rotation_model),
-      earth_rotation_provider_coverage_starts_at_s: provider_coverage["starts_at_s"],
-      earth_rotation_provider_coverage_ends_at_s: provider_coverage["ends_at_s"],
+      earth_rotation_provider_id: Map.fetch!(before_metadata, :earth_rotation_provider_id),
+      earth_rotation_model: Map.fetch!(before_metadata, :earth_rotation_model),
+      earth_rotation_provider_coverage_starts_at_s: Map.fetch!(provider_coverage, "starts_at_s"),
+      earth_rotation_provider_coverage_ends_at_s: Map.fetch!(provider_coverage, "ends_at_s"),
       earth_rotation_provider_sample_count:
         get_in(provider_capability, ["parameters", "sample_count"]),
       earth_rotation_provider_revision:
@@ -586,8 +1273,8 @@ defmodule OrbitalDynamics.EventDetectors.GroundTrackCrossings do
       earth_rotation_rate_rad_s:
         Map.get(before_metadata, :earth_rotation_rate_rad_s) ||
           Map.get(after_metadata, :earth_rotation_rate_rad_s),
-      before_earth_rotation_angle_rad: Map.get(before_metadata, :earth_rotation_angle_rad),
-      after_earth_rotation_angle_rad: Map.get(after_metadata, :earth_rotation_angle_rad),
+      before_earth_rotation_angle_rad: Map.fetch!(before_metadata, :earth_rotation_angle_rad),
+      after_earth_rotation_angle_rad: Map.fetch!(after_metadata, :earth_rotation_angle_rad),
       earth_rotation_interpolation:
         Map.get(before_metadata, :earth_rotation_interpolation) ||
           Map.get(after_metadata, :earth_rotation_interpolation)
@@ -601,7 +1288,7 @@ defmodule OrbitalDynamics.EventDetectors.GroundTrackCrossings do
       {:ok, %{} = product} ->
         angle_rad = get_product_value(product, "earth_rotation_angle_rad")
 
-        if is_number(angle_rad) do
+        if finite_number?(angle_rad) do
           {:ok, angle_rad,
            %{
              earth_rotation_provider_id: get_product_value(product, "provider_id"),
@@ -636,9 +1323,10 @@ defmodule OrbitalDynamics.EventDetectors.GroundTrackCrossings do
   defp provider_rotation_product(rotation, seconds_since_j2000) do
     opts = Keyword.put(rotation.provider_opts, :seconds_since_j2000, seconds_since_j2000)
 
-    case rotation.provider.fetch(:earth_rotation, opts) do
+    case safe_provider_fetch(rotation.provider, :earth_rotation, opts) do
       {:ok, %{} = product} ->
-        with :ok <- validate_provider_product(product, rotation) do
+        with :ok <- preflight_provider_product(product),
+             :ok <- validate_provider_product(product, rotation) do
           {:ok, product}
         end
 
@@ -648,6 +1336,22 @@ defmodule OrbitalDynamics.EventDetectors.GroundTrackCrossings do
       _other ->
         {:error, {:invalid_environment_product, :earth_rotation}}
     end
+  end
+
+  defp safe_provider_fetch(provider, kind, opts) do
+    provider.fetch(kind, opts)
+  rescue
+    _error in [
+      ArgumentError,
+      ArithmeticError,
+      BadMapError,
+      FunctionClauseError,
+      KeyError,
+      MatchError,
+      RuntimeError,
+      UndefinedFunctionError
+    ] ->
+      {:error, {:environment_provider_callback_failed, provider, :fetch}}
   end
 
   defp validate_provider_product(
@@ -693,6 +1397,9 @@ defmodule OrbitalDynamics.EventDetectors.GroundTrackCrossings do
 
     Enum.reduce_while(bindings, :ok, fn {field, expected, required_when_declared?}, :ok ->
       case fetch_product_value(product, field) do
+        {:error, reason} ->
+          {:halt, {:error, reason}}
+
         :error when is_nil(expected) or not required_when_declared? ->
           {:cont, :ok}
 
@@ -729,6 +1436,7 @@ defmodule OrbitalDynamics.EventDetectors.GroundTrackCrossings do
       {:ok, ^expected} -> :ok
       {:ok, actual} -> {:error, {:environment_provider_product_mismatch, field, expected, actual}}
       :error -> {:error, {:invalid_environment_product, field}}
+      {:error, reason} -> {:error, reason}
     end
   end
 
@@ -747,26 +1455,66 @@ defmodule OrbitalDynamics.EventDetectors.GroundTrackCrossings do
     get_in(capability, ["provenance", "source_table_id"])
   end
 
-  defp fetch_product_value(%{} = product, key) do
-    case Map.fetch(product, key) do
-      {:ok, value} -> {:ok, value}
-      :error -> fetch_existing_atom_value(product, key)
+  defp preflight_provider_product(product) do
+    with :ok <- preflight_container(product, :environment_product),
+         :ok <- reject_product_alias_collisions(product, @product_aliases),
+         :ok <- validate_optional_product_map(product, "provenance") do
+      :ok
     end
   end
 
-  defp fetch_existing_atom_value(product, key) do
-    Map.fetch(product, String.to_existing_atom(key))
-  rescue
-    ArgumentError -> :error
+  defp fetch_product_value(%{} = product, key) do
+    with {:ok, atom_key} <- product_atom_key(key),
+         :ok <- reject_product_alias_collision(product, key, atom_key) do
+      case Map.fetch(product, key) do
+        {:ok, value} -> {:ok, value}
+        :error -> Map.fetch(product, atom_key)
+      end
+    else
+      {:error, {:unsupported_product_field, _key}} -> :error
+      {:error, reason} -> {:error, reason}
+    end
   end
 
   defp get_product_value(%{} = product, key) when is_binary(key) do
-    case Map.fetch(product, key) do
+    case fetch_product_value(product, key) do
       {:ok, value} -> value
-      :error -> Map.get(product, String.to_existing_atom(key))
+      :error -> nil
+      {:error, reason} -> {:error, reason}
     end
-  rescue
-    ArgumentError -> Map.get(product, key)
+  end
+
+  defp reject_product_alias_collisions(product, aliases) do
+    Enum.reduce_while(aliases, :ok, fn {string_key, atom_key}, :ok ->
+      case reject_product_alias_collision(product, string_key, atom_key) do
+        :ok -> {:cont, :ok}
+        {:error, reason} -> {:halt, {:error, reason}}
+      end
+    end)
+  end
+
+  defp reject_product_alias_collision(product, string_key, atom_key) do
+    if Map.has_key?(product, string_key) and Map.has_key?(product, atom_key) do
+      {:error, {:atom_string_alias_collision, string_key}}
+    else
+      :ok
+    end
+  end
+
+  defp validate_optional_product_map(product, key) do
+    case get_product_value(product, key) do
+      nil -> :ok
+      %{} -> :ok
+      {:error, reason} -> {:error, reason}
+      _value -> {:error, {:invalid_environment_product, key}}
+    end
+  end
+
+  defp product_atom_key(key) do
+    Enum.find_value(@product_aliases, {:error, {:unsupported_product_field, key}}, fn
+      {^key, atom_key} -> {:ok, atom_key}
+      _alias -> nil
+    end)
   end
 
   defp ground_track_known_limits(%{trusted_campaign?: true}),

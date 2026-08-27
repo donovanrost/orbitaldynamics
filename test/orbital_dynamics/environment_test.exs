@@ -2,7 +2,20 @@ defmodule OrbitalDynamics.EnvironmentTest do
   use ExUnit.Case, async: true
 
   alias OrbitalDynamics.{Environment, Schema}
-  alias OrbitalDynamics.Environment.CampaignEnvironmentProvider
+
+  alias OrbitalDynamics.Environment.{
+    CampaignEnvironmentProvider,
+    ConstantEarthRotationProvider,
+    FixedSunProvider,
+    Provider,
+    TabularEarthOrientationProvider
+  }
+
+  defmodule StructProbe do
+    defstruct [:value]
+  end
+
+  @safe_number_bound 1_000_000_000_000_000
 
   test "declares internal environment provider capabilities" do
     assert [
@@ -698,13 +711,13 @@ defmodule OrbitalDynamics.EnvironmentTest do
              &(&1["path"] == "$.supported_bodies[1]" and &1["message"] == "must be a string")
            )
 
-    assert {:error, {:invalid_field, "outputs"}} =
+    assert {:error, {:invalid_container, :capability}} =
              Environment.validate_provider_capability(%{
                List.first(Environment.provider_capabilities())
                | "outputs" => ["sun_direction", :not_a_string]
              })
 
-    assert {:error, {:invalid_field, "model"}} =
+    assert {:error, {:invalid_container, :capability}} =
              Environment.validate_provider_capability(%{
                List.first(Environment.provider_capabilities())
                | "model" => :fixed_inertial_solar_direction
@@ -720,5 +733,489 @@ defmodule OrbitalDynamics.EnvironmentTest do
              provider_report["errors"],
              &(&1["path"] == "$.outputs[1]" and &1["message"] == "must be a string")
            )
+  end
+
+  test "provider capability and request admission rejects hostile containers" do
+    [fixed_sun | _providers] = Environment.provider_capabilities()
+
+    assert {:error, {:atom_string_alias_collision, "id"}} =
+             Environment.validate_provider_capability(Map.put(fixed_sun, :id, "shadow"))
+
+    assert {:error, {:container_limit_exceeded, :capability}} =
+             Environment.validate_provider_capability(
+               Map.put(fixed_sun, "parameters", wide_map(129))
+             )
+
+    assert {:error, {:container_depth_exceeded, :capability}} =
+             Environment.validate_provider_capability(
+               Map.put(fixed_sun, "parameters", deep_value(13))
+             )
+
+    assert {:error, {:invalid_container, :capability}} =
+             Environment.validate_provider_capability(
+               Map.put(fixed_sun, "parameters", %{42 => "bad key"})
+             )
+
+    assert {:error, {:atom_string_alias_collision, "probe"}} =
+             Provider.validate_capability(
+               Map.put(fixed_sun, "parameters", %{"probe" => 1, probe: 2})
+             )
+
+    assert {:error, {:invalid_container, :capability}} =
+             Environment.validate_provider_capability(
+               Map.put(fixed_sun, "supported_bodies", ["earth" | :tail])
+             )
+
+    assert {:error, {:invalid_container, :capability}} =
+             Provider.validate_capability(%StructProbe{value: fixed_sun})
+
+    request = %{
+      starts_at_s: 0.0,
+      ends_at_s: 60.0,
+      body: :earth,
+      output: :sun_direction
+    }
+
+    refute Environment.provider_supports_request?(
+             fixed_sun,
+             Map.put(request, "starts_at_s", 0.0)
+           )
+
+    refute Environment.provider_supports_request?(fixed_sun, %{
+             request
+             | ends_at_s: 1.0e16
+           })
+
+    refute Environment.provider_supports_request?(
+             fixed_sun,
+             Map.put(request, :outputs, ["sun_direction" | :tail])
+           )
+
+    assert :ok =
+             Provider.validate_capability(
+               Map.put(fixed_sun, "parameters", %{
+                 "nested" => %{"scale" => 1.0, "enabled" => true, "labels" => ["a", nil]}
+               })
+             )
+
+    refute Provider.supports_request?(
+             fixed_sun,
+             Map.put(request, :parameters, %{"nested" => ["safe", 1.0, true, nil]})
+           )
+
+    refute Provider.supports_request?(fixed_sun, Map.put(request, :ignored, "safe"))
+    refute Provider.supports_request?(fixed_sun, Map.put(request, :ignored, huge_integer()))
+    assert [] = Environment.provider_capabilities_for_request(Map.put(request, :ignored, "safe"))
+
+    assert [] =
+             Environment.provider_capabilities_for_request(
+               Map.put(request, :ignored, huge_integer())
+             )
+
+    callback_probe = fn -> send(self(), :provider_callback_invoked) end
+
+    for {label, bad_value} <- hostile_option_values(callback_probe) do
+      assert {:error, {:invalid_container, :capability}} =
+               Provider.validate_capability(
+                 Map.put(fixed_sun, "parameters", %{"probe" => bad_value})
+               ),
+             "#{label} capability parameter was admitted"
+
+      refute Provider.supports_request?(
+               fixed_sun,
+               Map.put(request, :parameters, %{"probe" => bad_value})
+             ),
+             "#{label} request parameter was admitted"
+
+      refute Provider.supports_request?(
+               fixed_sun,
+               Map.put(request, :ignored, bad_value)
+             ),
+             "#{label} ignored request option was admitted"
+
+      refute_receive :provider_callback_invoked
+    end
+
+    for {label, capability} <- [
+          {"coverage", put_in(fixed_sun, ["coverage", "probe"], %StructProbe{value: :coverage})},
+          {"source_identity",
+           Map.put(fixed_sun, "source_identity", source_identity_with(%StructProbe{}))},
+          {"provenance",
+           Map.put(fixed_sun, "provenance", %{"probe" => %StructProbe{value: :provenance}})}
+        ] do
+      assert {:error, {:invalid_container, :capability}} =
+               Provider.validate_capability(capability),
+             "#{label} nested struct was admitted"
+    end
+
+    assert [] =
+             Environment.provider_capabilities_for_request(Map.put(request, "starts_at_s", 0.0))
+  end
+
+  test "fixed and constant providers reject hostile fetch options" do
+    assert {:error, {:invalid_container, :opts}} =
+             FixedSunProvider.fetch(:sun_direction, [{:sun_direction, {1.0, 0.0, 0.0}} | :tail])
+
+    assert {:error, {:invalid_option, :sun_direction}} =
+             FixedSunProvider.fetch(:sun_direction, sun_direction: {1.0e16, 0.0, 0.0})
+
+    assert {:ok, _sun_product} =
+             FixedSunProvider.fetch(:sun_direction,
+               sun_direction: {@safe_number_bound, 0.0, 0.0}
+             )
+
+    assert {:error, {:invalid_option, :sun_direction}} =
+             FixedSunProvider.fetch(:sun_direction,
+               sun_direction: {@safe_number_bound + 1, 0.0, 0.0}
+             )
+
+    assert {:error, {:invalid_option, :sun_direction}} =
+             FixedSunProvider.fetch(:sun_direction, sun_direction: {huge_integer(), 0.0, 0.0})
+
+    for {label, nonfinite} <- nonfinite_float_values() do
+      assert {:error, {:invalid_option, :sun_direction}} =
+               FixedSunProvider.fetch(:sun_direction, sun_direction: {nonfinite, 0.0, 0.0}),
+             "#{label} fixed-sun vector component was admitted"
+    end
+
+    assert {:error, {:invalid_container, :opts}} =
+             FixedSunProvider.fetch(:sun_direction, sun_direction: {:not_a_vector, 0.0})
+
+    assert {:error, {:unsupported_option, :ignored}} =
+             FixedSunProvider.fetch(:sun_direction,
+               sun_direction: {-1.0, 0.0, 0.0},
+               ignored: "safe"
+             )
+
+    assert {:error, {:invalid_container, :opts}} =
+             FixedSunProvider.fetch(:sun_direction,
+               sun_direction: {-1.0, 0.0, 0.0},
+               ignored: huge_integer()
+             )
+
+    assert {:ok, sun_product} =
+             FixedSunProvider.fetch(:sun_direction, sun_direction: [0.0, 1.0, 0.0])
+
+    assert sun_product["sun_direction"] == [0.0, 1.0, 0.0]
+
+    assert {:error, {:missing_option, :seconds_since_j2000}} =
+             ConstantEarthRotationProvider.fetch(:earth_rotation, [])
+
+    assert {:error, {:invalid_container, :opts}} =
+             ConstantEarthRotationProvider.fetch(:earth_rotation, [
+               {:seconds_since_j2000, 0.0} | :tail
+             ])
+
+    assert {:error, {:invalid_option, :seconds_since_j2000}} =
+             ConstantEarthRotationProvider.fetch(:earth_rotation,
+               seconds_since_j2000: 1.0e16
+             )
+
+    assert {:ok, _rotation_product} =
+             ConstantEarthRotationProvider.fetch(:earth_rotation,
+               seconds_since_j2000: @safe_number_bound
+             )
+
+    assert {:error, {:invalid_option, :seconds_since_j2000}} =
+             ConstantEarthRotationProvider.fetch(:earth_rotation,
+               seconds_since_j2000: @safe_number_bound + 1
+             )
+
+    assert {:error, {:invalid_option, :seconds_since_j2000}} =
+             ConstantEarthRotationProvider.fetch(:earth_rotation,
+               seconds_since_j2000: huge_integer()
+             )
+
+    for {label, nonfinite} <- nonfinite_float_values() do
+      assert {:error, {:invalid_option, :seconds_since_j2000}} =
+               ConstantEarthRotationProvider.fetch(:earth_rotation,
+                 seconds_since_j2000: nonfinite
+               ),
+             "#{label} constant provider epoch option was admitted"
+    end
+
+    assert {:error, {:unsupported_option, :ignored}} =
+             ConstantEarthRotationProvider.fetch(:earth_rotation,
+               seconds_since_j2000: 0.0,
+               ignored: "safe"
+             )
+
+    assert {:error, {:invalid_container, :opts}} =
+             ConstantEarthRotationProvider.fetch(:earth_rotation,
+               seconds_since_j2000: 0.0,
+               ignored: huge_integer()
+             )
+
+    callback_probe = fn -> send(self(), :provider_fetch_callback_invoked) end
+
+    for {label, bad_value} <- hostile_option_values(callback_probe) do
+      assert {:error, {:invalid_container, :opts}} =
+               FixedSunProvider.fetch(:sun_direction,
+                 sun_direction: {-1.0, 0.0, 0.0},
+                 ignored: bad_value
+               ),
+             "#{label} fixed-sun ignored option was admitted"
+
+      assert {:error, {:invalid_container, :opts}} =
+               FixedSunProvider.fetch(:sun_direction, sun_direction: bad_value),
+             "#{label} fixed-sun sun_direction option was admitted"
+
+      assert {:error, {:invalid_container, :opts}} =
+               ConstantEarthRotationProvider.fetch(:earth_rotation,
+                 seconds_since_j2000: 0.0,
+                 ignored: bad_value
+               ),
+             "#{label} constant provider ignored option was admitted"
+
+      assert {:error, {:invalid_container, :opts}} =
+               ConstantEarthRotationProvider.fetch(:earth_rotation,
+                 seconds_since_j2000: bad_value
+               ),
+             "#{label} constant provider required option was admitted"
+
+      refute_receive :provider_fetch_callback_invoked
+    end
+  end
+
+  test "tabular Earth-orientation provider rejects hostile samples and file context" do
+    samples = [
+      %{seconds_since_j2000: 0.0, earth_rotation_angle_rad: 0.0},
+      %{seconds_since_j2000: 100.0, earth_rotation_angle_rad: 1.0}
+    ]
+
+    assert {:error, {:missing_option, :samples}} =
+             TabularEarthOrientationProvider.configured_capability([])
+
+    assert {:error, {:invalid_container, :opts}} =
+             TabularEarthOrientationProvider.configured_capability([{:samples, samples} | :tail])
+
+    assert {:error, {:invalid_container, :opts}} =
+             TabularEarthOrientationProvider.fetch(:earth_rotation, [
+               {:seconds_since_j2000, 0.0} | :tail
+             ])
+
+    assert {:error, {:invalid_container, :opts}} =
+             TabularEarthOrientationProvider.fetch_from_file(
+               :earth_rotation,
+               "missing.json",
+               %{},
+               [
+                 {:source, "verified_earth_orientation_table"} | :tail
+               ]
+             )
+
+    assert {:error, {:missing_option, :seconds_since_j2000}} =
+             TabularEarthOrientationProvider.fetch(:earth_rotation, samples: samples)
+
+    assert {:ok, _product} =
+             TabularEarthOrientationProvider.fetch(:earth_rotation,
+               seconds_since_j2000: @safe_number_bound,
+               samples: [
+                 %{seconds_since_j2000: 0.0, earth_rotation_angle_rad: 0.0},
+                 %{seconds_since_j2000: @safe_number_bound, earth_rotation_angle_rad: 1.0}
+               ]
+             )
+
+    assert {:error, {:invalid_option, :seconds_since_j2000}} =
+             TabularEarthOrientationProvider.fetch(:earth_rotation,
+               seconds_since_j2000: @safe_number_bound + 1,
+               samples: samples
+             )
+
+    assert {:error, {:invalid_option, :seconds_since_j2000}} =
+             TabularEarthOrientationProvider.fetch(:earth_rotation,
+               seconds_since_j2000: huge_integer(),
+               samples: samples
+             )
+
+    for {label, nonfinite} <- nonfinite_float_values() do
+      assert {:error, {:invalid_option, :seconds_since_j2000}} =
+               TabularEarthOrientationProvider.fetch(:earth_rotation,
+                 seconds_since_j2000: nonfinite,
+                 samples: samples
+               ),
+             "#{label} tabular epoch option was admitted"
+
+      assert {:error, {:invalid_option, :samples}} =
+               TabularEarthOrientationProvider.fetch(:earth_rotation,
+                 seconds_since_j2000: 0.0,
+                 samples: [%{seconds_since_j2000: 0.0, earth_rotation_angle_rad: nonfinite}]
+               ),
+             "#{label} tabular sample value was admitted"
+    end
+
+    assert {:error, {:unsupported_option, :ignored}} =
+             TabularEarthOrientationProvider.configured_capability(
+               samples: samples,
+               ignored: "safe"
+             )
+
+    assert {:error, {:unsupported_option, :ignored}} =
+             TabularEarthOrientationProvider.fetch(:earth_rotation,
+               seconds_since_j2000: 0.0,
+               samples: samples,
+               ignored: "safe"
+             )
+
+    assert {:error, {:invalid_container, :opts}} =
+             TabularEarthOrientationProvider.fetch(:earth_rotation,
+               seconds_since_j2000: 0.0,
+               samples: samples,
+               ignored: huge_integer()
+             )
+
+    for key <- tabular_struct_option_keys() do
+      configured_opts =
+        [samples: samples]
+        |> Keyword.put(key, %StructProbe{value: :tabular_allowed_option})
+
+      fetch_opts =
+        [seconds_since_j2000: 0.0, samples: samples]
+        |> Keyword.put(key, %StructProbe{value: :tabular_allowed_option})
+
+      assert {:error, {:invalid_container, :opts}} =
+               TabularEarthOrientationProvider.configured_capability(configured_opts),
+             "#{key} struct option reached tabular configured-capability logic"
+
+      assert {:error, {:invalid_container, :opts}} =
+               TabularEarthOrientationProvider.fetch(:earth_rotation, fetch_opts),
+             "#{key} struct option reached tabular fetch logic"
+    end
+
+    callback_probe = fn -> send(self(), :tabular_provider_callback_invoked) end
+
+    for {label, bad_value} <- hostile_option_values(callback_probe) do
+      assert {:error, {:invalid_container, :opts}} =
+               TabularEarthOrientationProvider.configured_capability(
+                 samples: samples,
+                 ignored: bad_value
+               ),
+             "#{label} tabular configured-capability ignored option was admitted"
+
+      assert {:error, {:invalid_container, :opts}} =
+               TabularEarthOrientationProvider.fetch(:earth_rotation,
+                 seconds_since_j2000: 0.0,
+                 samples: samples,
+                 ignored: bad_value
+               ),
+             "#{label} tabular fetch ignored option was admitted"
+
+      assert {:error, {:invalid_container, :opts}} =
+               TabularEarthOrientationProvider.fetch(:earth_rotation,
+                 seconds_since_j2000: 0.0,
+                 samples: [%{seconds_since_j2000: 0.0, earth_rotation_angle_rad: bad_value}]
+               ),
+             "#{label} tabular sample value was admitted"
+
+      refute_receive :tabular_provider_callback_invoked
+    end
+
+    for {label, bad_samples, expected_reason} <- [
+          {"atom string collision",
+           [
+             %{
+               "seconds_since_j2000" => 0.0,
+               seconds_since_j2000: 0.0,
+               earth_rotation_angle_rad: 0.0
+             }
+           ], {:invalid_option, :samples}},
+          {"sample alias collision",
+           [%{seconds_since_j2000: 0.0, epoch_s: 0.0, earth_rotation_angle_rad: 0.0}],
+           {:invalid_option, :samples}},
+          {"unsafe sample number",
+           [%{seconds_since_j2000: 0.0, earth_rotation_angle_rad: 1.0e16}],
+           {:invalid_option, :samples}},
+          {"unsupported sample key type", [%{42 => "bad key"}], {:invalid_container, :opts}},
+          {"oversized sample list",
+           Enum.map(0..1_024, fn index ->
+             %{seconds_since_j2000: index * 1.0, earth_rotation_angle_rad: 0.0}
+           end), {:container_limit_exceeded, :opts}}
+        ] do
+      assert {:error, ^expected_reason} =
+               TabularEarthOrientationProvider.fetch(:earth_rotation,
+                 seconds_since_j2000: 0.0,
+                 samples: bad_samples
+               ),
+             "#{label} returned the wrong public error"
+    end
+
+    assert {:error, {:invalid_option, :source_table_id}} =
+             TabularEarthOrientationProvider.fetch(:earth_rotation,
+               seconds_since_j2000: 0.0,
+               samples: samples,
+               file_content_verification: %{},
+               provenance: %{"trust_boundary" => "test"}
+             )
+
+    assert {:error, {:invalid_option, :provenance}} =
+             TabularEarthOrientationProvider.fetch(:earth_rotation,
+               seconds_since_j2000: 0.0,
+               samples: samples,
+               file_content_verification: %{},
+               source_table_id: "earth_orientation_table:test"
+             )
+  end
+
+  defp deep_value(depth) do
+    Enum.reduce(1..depth, "leaf", fn index, acc -> %{"level_#{index}" => acc} end)
+  end
+
+  defp wide_map(count) do
+    Map.new(1..count, fn index -> {"k#{index}", index} end)
+  end
+
+  defp port_probe_values do
+    case Port.list() do
+      [port | _rest] -> [{"port", port}]
+      [] -> []
+    end
+  end
+
+  defp hostile_option_values(callback_probe) do
+    [
+      {"struct", %StructProbe{value: :nested}},
+      {"pid", self()},
+      {"reference", make_ref()},
+      {"function", callback_probe},
+      {"tuple", {:tuple, :not_json}}
+    ] ++ port_probe_values()
+  end
+
+  defp tabular_struct_option_keys do
+    [
+      :source,
+      :body,
+      :frame,
+      :time_scale,
+      :interpolation,
+      :file_content_verification,
+      :source_table_id,
+      :provenance,
+      :provider_id
+    ]
+  end
+
+  defp huge_integer, do: :erlang.bsl(1, 1_000_000)
+
+  defp nonfinite_float_values do
+    [
+      {"nan", :erlang.binary_to_term(<<131, 70, 127, 248, 0, 0, 0, 0, 0, 1>>, [:safe])},
+      {"positive infinity",
+       :erlang.binary_to_term(<<131, 70, 127, 240, 0, 0, 0, 0, 0, 0>>, [:safe])},
+      {"negative infinity",
+       :erlang.binary_to_term(<<131, 70, 255, 240, 0, 0, 0, 0, 0, 0>>, [:safe])}
+    ]
+  end
+
+  defp source_identity_with(value) do
+    %{
+      "provider_revision" => "provider:v1",
+      "source_revision" => "source:v1",
+      "content_identity" => %{
+        "algorithm" => "sha256",
+        "sha256" => String.duplicate("a", 64)
+      },
+      "probe" => value
+    }
   end
 end

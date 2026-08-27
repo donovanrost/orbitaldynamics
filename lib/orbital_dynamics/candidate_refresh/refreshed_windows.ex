@@ -1,13 +1,34 @@
 defmodule OrbitalDynamics.CandidateRefresh.RefreshedWindows do
   @moduledoc false
 
+  alias OrbitalDynamics.AccessEventResultAdmission
+
+  defdelegate admit_event_results(event_results), to: AccessEventResultAdmission
+  defdelegate empty_invalid_observation_lighting, to: AccessEventResultAdmission
+  defdelegate merge_invalid_observation_lighting(left, right), to: AccessEventResultAdmission
+
+  defdelegate invalid_observation_lighting_scenario?(invalid_lighting, scenario_id),
+    to: AccessEventResultAdmission
+
   def canonical_event_results(event_results) do
-    event_results
-    |> Enum.map(&canonical_event_result/1)
-    |> Enum.sort_by(&event_result_sort_key/1)
+    case admit_event_results(event_results) do
+      {:ok, event_results, _invalid_lighting} ->
+        event_results
+        |> Enum.map(&canonical_event_result/1)
+        |> Enum.sort_by(&event_result_sort_key/1)
+
+      {:error, {:invalid_observation_lighting, _reason}} ->
+        []
+    end
   end
 
   def refreshed_windows(event_results, event_timing_keys) when is_list(event_timing_keys) do
+    event_results =
+      case admit_event_results(event_results) do
+        {:ok, event_results, _invalid_lighting} -> event_results
+        {:error, {:invalid_observation_lighting, _reason}} -> []
+      end
+
     %{
       "access_windows" => access_windows(event_results, event_timing_keys),
       "target_visibility_windows" => target_visibility_windows(event_results, event_timing_keys),
@@ -30,7 +51,11 @@ defmodule OrbitalDynamics.CandidateRefresh.RefreshedWindows do
   end
 
   defp event_sort_key(event) when is_map(event) do
-    metadata = Map.get(event, :metadata, %{})
+    metadata =
+      case Map.get(event, :metadata, %{}) do
+        %{} = metadata -> metadata
+        _metadata -> %{}
+      end
 
     {
       event_epoch_seconds(Map.get(event, :starts_at)),
@@ -55,7 +80,7 @@ defmodule OrbitalDynamics.CandidateRefresh.RefreshedWindows do
 
   defp access_windows(event_results, event_timing_keys) do
     event_results
-    |> Enum.filter(&(&1.event_type == :ground_station_access))
+    |> Enum.filter(&(Map.get(&1, :event_type) == :ground_station_access))
     |> Enum.flat_map(fn result ->
       result.events
       |> Enum.with_index(1)
@@ -91,7 +116,7 @@ defmodule OrbitalDynamics.CandidateRefresh.RefreshedWindows do
 
   defp target_visibility_windows(event_results, event_timing_keys) do
     event_results
-    |> Enum.filter(&(&1.event_type == :target_visibility))
+    |> Enum.filter(&(Map.get(&1, :event_type) == :target_visibility))
     |> Enum.flat_map(fn result ->
       result.events
       |> Enum.with_index(1)
@@ -159,7 +184,7 @@ defmodule OrbitalDynamics.CandidateRefresh.RefreshedWindows do
 
   defp eclipse_intervals(event_results, event_timing_keys) do
     event_results
-    |> Enum.filter(&(&1.event_type == :eclipse))
+    |> Enum.filter(&(Map.get(&1, :event_type) == :eclipse))
     |> Enum.flat_map(fn result ->
       result.events
       |> Enum.with_index(1)

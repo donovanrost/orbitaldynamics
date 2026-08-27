@@ -8,7 +8,11 @@ defmodule OrbitalDynamics.CandidateRefresh.ObservationCandidate do
   alias OrbitalDynamics.CandidateRefresh.SourceReportSummary.Common
   alias OrbitalDynamics.CandidateRefresh.TargetLookup
   alias OrbitalDynamics.CandidateRefresh.TargetPriority
+  alias OrbitalDynamics.AccessEventResultAdmission
   alias OrbitalDynamics.EventDetectors.Eclipses
+
+  @max_eclipse_intervals 10_000
+  @safe_number_limit 1.0e15
 
   def build(
         result,
@@ -20,10 +24,51 @@ defmodule OrbitalDynamics.CandidateRefresh.ObservationCandidate do
         numeric_value_fun,
         refresh_objectives_fun
       ) do
-    starts_at_s = CandidateActivityFields.epoch_seconds(event.starts_at)
-    ends_at_s = CandidateActivityFields.epoch_seconds(event.ends_at)
-    target_id = event.metadata.target_id
+    with {:ok, result, event} <- AccessEventResultAdmission.admit_observation_input(result, event),
+         starts_at_s = CandidateActivityFields.epoch_seconds(event.starts_at),
+         ends_at_s = CandidateActivityFields.epoch_seconds(event.ends_at),
+         target_id = event.metadata.target_id,
+         {:ok, duration_s} <- duration_seconds(starts_at_s, ends_at_s),
+         {:ok, eclipse_overlap_s} <- overlap_duration({starts_at_s, ends_at_s}, eclipse_intervals),
+         :ok <- validate_lighting_inputs(duration_s, eclipse_overlap_s),
+         {:ok, lighting_summary} <- lighting_summary(duration_s, eclipse_overlap_s) do
+      build_valid(
+        result,
+        event,
+        index,
+        refresh,
+        policy,
+        operational_feedback_fun,
+        numeric_value_fun,
+        refresh_objectives_fun,
+        starts_at_s,
+        ends_at_s,
+        target_id,
+        duration_s,
+        eclipse_overlap_s,
+        lighting_summary
+      )
+    else
+      {:error, reason} -> {:error, {:invalid_observation_lighting, reason}}
+    end
+  end
 
+  defp build_valid(
+         result,
+         event,
+         index,
+         refresh,
+         policy,
+         operational_feedback_fun,
+         numeric_value_fun,
+         refresh_objectives_fun,
+         starts_at_s,
+         ends_at_s,
+         target_id,
+         duration_s,
+         eclipse_overlap_s,
+         lighting_summary
+       ) do
     target = TargetLookup.by_id(refresh, target_id, refresh_objectives_fun)
 
     {target_priority, target_priority_context} =
@@ -82,11 +127,6 @@ defmodule OrbitalDynamics.CandidateRefresh.ObservationCandidate do
       )
 
     priority = target_priority * observation_success_score_factor
-    duration_s = ends_at_s - starts_at_s
-
-    eclipse_overlap_s = overlap_duration({starts_at_s, ends_at_s}, eclipse_intervals)
-
-    lighting_summary = Eclipses.lighting_summary(duration_s, eclipse_overlap_s)
 
     source_window_id =
       CandidateActivityFields.window_id(result.scenario_id, "target_visibility", target_id, index)
@@ -161,13 +201,121 @@ defmodule OrbitalDynamics.CandidateRefresh.ObservationCandidate do
   defp encode_value(value) when is_atom(value), do: Atom.to_string(value)
   defp encode_value(value), do: value
 
+  defp duration_seconds(starts_at_s, ends_at_s) do
+    with :ok <- validate_number(:starts_at_s, starts_at_s),
+         :ok <- validate_number(:ends_at_s, ends_at_s) do
+      duration_s = ends_at_s - starts_at_s
+
+      cond do
+        not finite_number?(duration_s) -> {:error, {:invalid_option, :duration_s}}
+        duration_s < 0.0 -> {:error, {:invalid_timing, :negative_duration_s}}
+        true -> {:ok, duration_s}
+      end
+    end
+  end
+
+  defp lighting_summary(duration_s, eclipse_overlap_s) do
+    case Eclipses.lighting_summary(duration_s, eclipse_overlap_s) do
+      %{} = summary ->
+        {:ok, summary}
+
+      {:error, {:invalid_option, field}} when field in [:duration_s, :eclipse_overlap_s] ->
+        {:error, {:invalid_option, field}}
+    end
+  end
+
+  defp validate_lighting_inputs(duration_s, eclipse_overlap_s) do
+    cond do
+      eclipse_overlap_s < 0.0 ->
+        {:error, {:invalid_timing, :negative_eclipse_overlap_s}}
+
+      eclipse_overlap_s > duration_s ->
+        {:error, {:invalid_timing, :eclipse_overlap_exceeds_duration_s}}
+
+      true ->
+        :ok
+    end
+  end
+
   defp overlap_duration(interval, intervals) do
-    intervals
-    |> Enum.map(fn other -> interval_overlap_duration(interval, other) end)
-    |> Enum.sum()
+    with {:ok, intervals} <-
+           bounded_list_items(intervals, :eclipse_intervals, @max_eclipse_intervals) do
+      Enum.reduce_while(intervals, {:ok, 0.0}, fn other, {:ok, total} ->
+        case interval_overlap_duration(interval, other) do
+          {:ok, overlap_s} ->
+            next_total = total + overlap_s
+
+            if finite_number?(next_total) do
+              {:cont, {:ok, next_total}}
+            else
+              {:halt, {:error, {:invalid_option, :eclipse_overlap_s}}}
+            end
+
+          {:error, reason} ->
+            {:halt, {:error, reason}}
+        end
+      end)
+    end
   end
 
   defp interval_overlap_duration({left_start, left_end}, {right_start, right_end}) do
-    max(0.0, min(left_end, right_end) - max(left_start, right_start))
+    with :ok <- validate_number(:eclipse_intervals, right_start),
+         :ok <- validate_number(:eclipse_intervals, right_end) do
+      interval_duration_s = right_end - right_start
+
+      cond do
+        not finite_number?(interval_duration_s) ->
+          {:error, {:invalid_option, :eclipse_intervals}}
+
+        interval_duration_s < 0.0 ->
+          {:error, {:invalid_timing, :negative_eclipse_interval_duration_s}}
+
+        true ->
+          overlap_s = max(0.0, min(left_end, right_end) - max(left_start, right_start))
+
+          if finite_number?(overlap_s) do
+            {:ok, overlap_s}
+          else
+            {:error, {:invalid_option, :eclipse_overlap_s}}
+          end
+      end
+    end
+  end
+
+  defp interval_overlap_duration(_interval, _other),
+    do: {:error, {:invalid_option, :eclipse_intervals}}
+
+  defp validate_number(field, value) when is_integer(value) or is_float(value) do
+    if finite_number?(value) do
+      :ok
+    else
+      {:error, {:invalid_option, field}}
+    end
+  end
+
+  defp validate_number(field, _value), do: {:error, {:invalid_option, field}}
+
+  defp bounded_list_items(list, field, limit) when is_list(list) do
+    bounded_list_items(list, [], 0, field, limit)
+  end
+
+  defp bounded_list_items(_not_list, field, _limit), do: {:error, {:invalid_container, field}}
+
+  defp bounded_list_items(_list, _acc, count, field, limit) when count > limit,
+    do: {:error, {:container_limit_exceeded, field}}
+
+  defp bounded_list_items([], acc, _count, _field, _limit), do: {:ok, Enum.reverse(acc)}
+
+  defp bounded_list_items([head | tail], acc, count, field, limit) do
+    bounded_list_items(tail, [head | acc], count + 1, field, limit)
+  end
+
+  defp bounded_list_items(_improper_tail, _acc, _count, field, _limit),
+    do: {:error, {:invalid_container, field}}
+
+  defp finite_number?(value) when is_integer(value), do: abs(value) <= @safe_number_limit
+
+  defp finite_number?(value) when is_float(value) do
+    value == value and value - value == 0.0 and abs(value) <= @safe_number_limit
   end
 end

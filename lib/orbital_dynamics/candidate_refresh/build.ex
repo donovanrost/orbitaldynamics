@@ -43,7 +43,14 @@ defmodule OrbitalDynamics.CandidateRefresh.Build do
     policy = Map.get(refresh, "scoring_policy", %{})
     constraints = Map.get(refresh, "constraints", %{})
 
-    event_results = RefreshedWindows.canonical_event_results(result_set.event_results)
+    {event_results, invalid_observation_lighting} =
+      case RefreshedWindows.admit_event_results(result_set.event_results) do
+        {:ok, event_results, invalid_observation_lighting} ->
+          {RefreshedWindows.canonical_event_results(event_results), invalid_observation_lighting}
+
+        {:error, {:invalid_observation_lighting, _reason}} ->
+          {[], RefreshedWindows.empty_invalid_observation_lighting()}
+      end
 
     windows =
       RefreshedWindows.refreshed_windows(
@@ -62,7 +69,8 @@ defmodule OrbitalDynamics.CandidateRefresh.Build do
         policy,
         &OperationalFeedbackAssembly.build/1,
         &SourceObjectives.objectives/1,
-        &BuildGroundNetwork.build/1
+        &BuildGroundNetwork.build/1,
+        invalid_observation_lighting
       )
       |> Enum.sort_by(&{&1["scenario_id"], &1["starts_at_s"], &1["id"]})
 

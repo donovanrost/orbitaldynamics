@@ -8,6 +8,7 @@ defmodule OrbitalDynamics.CampaignPlanner.ActivityCandidate do
     ValueEncoding
   }
 
+  alias OrbitalDynamics.AccessEventResultAdmission
   alias OrbitalDynamics.EventDetectors.Eclipses
 
   @event_timing_keys [
@@ -24,11 +25,23 @@ defmodule OrbitalDynamics.CampaignPlanner.ActivityCandidate do
     :confidence
   ]
 
+  @max_eclipse_intervals 10_000
+  @safe_number_limit 1.0e15
+
   def build(event_results, campaign, constraints, policy) do
     build(event_results, campaign, constraints, policy, callbacks())
   end
 
   def build(event_results, campaign, constraints, policy, callbacks) do
+    {event_results, invalid_observation_lighting} =
+      case AccessEventResultAdmission.admit_event_results(event_results) do
+        {:ok, event_results, invalid_observation_lighting} ->
+          {event_results, invalid_observation_lighting}
+
+        {:error, {:invalid_observation_lighting, _reason}} ->
+          {[], AccessEventResultAdmission.all_invalid_observation_lighting()}
+      end
+
     event_results = canonical_event_results(event_results, callbacks)
     eclipse_intervals_by_scenario = eclipse_intervals_by_scenario(event_results, callbacks)
     numeric_policy_value = Keyword.fetch!(callbacks, :numeric_policy_value)
@@ -40,16 +53,28 @@ defmodule OrbitalDynamics.CampaignPlanner.ActivityCandidate do
     event_results
     |> Enum.flat_map(fn
       %{event_type: :target_visibility} = result ->
-        eclipse_intervals =
-          Map.get(eclipse_intervals_by_scenario, encode_value.(result.scenario_id), [])
+        if AccessEventResultAdmission.invalid_observation_lighting_scenario?(
+             invalid_observation_lighting,
+             result.scenario_id
+           ) do
+          []
+        else
+          eclipse_intervals =
+            Map.get(eclipse_intervals_by_scenario, encode_value.(result.scenario_id), [])
 
-        result.events
-        |> Enum.with_index(1)
-        |> Enum.map(&observe(result, &1, campaign, eclipse_intervals, policy, callbacks))
-        |> Enum.reject(fn activity ->
-          activity["duration_s"] < min_duration_s or
-            (avoid_eclipse? and activity["eclipse_overlap_s"] > 0.0)
-        end)
+          result.events
+          |> Enum.with_index(1)
+          |> Enum.flat_map(fn event_with_index ->
+            case observe(result, event_with_index, campaign, eclipse_intervals, policy, callbacks) do
+              {:error, {:invalid_observation_lighting, _reason}} -> []
+              %{} = activity -> [activity]
+            end
+          end)
+          |> Enum.reject(fn activity ->
+            activity["duration_s"] < min_duration_s or
+              (avoid_eclipse? and activity["eclipse_overlap_s"] > 0.0)
+          end)
+        end
 
       %{event_type: :ground_station_access} = result ->
         contact_activity_types = contact_activity_types(policy, callbacks)
@@ -67,13 +92,58 @@ defmodule OrbitalDynamics.CampaignPlanner.ActivityCandidate do
   end
 
   def observe(result, {event, index}, campaign, eclipse_intervals, policy, callbacks) do
-    starts_at_s = event.starts_at.seconds_since_j2000
-    ends_at_s = event.ends_at.seconds_since_j2000
-    target_id = event.metadata.target_id
+    overlap_duration = Keyword.fetch!(callbacks, :overlap_duration)
+
+    with {:ok, result, event} <- AccessEventResultAdmission.admit_observation_input(result, event),
+         starts_at_s = event.starts_at.seconds_since_j2000,
+         ends_at_s = event.ends_at.seconds_since_j2000,
+         target_id = event.metadata.target_id,
+         {:ok, duration_s} <- duration_seconds(starts_at_s, ends_at_s),
+         {:ok, eclipse_intervals} <- validate_eclipse_intervals(eclipse_intervals),
+         {:ok, eclipse_overlap_s} <-
+           observation_overlap_duration(
+             overlap_duration,
+             {starts_at_s, ends_at_s},
+             eclipse_intervals
+           ),
+         :ok <- validate_lighting_inputs(duration_s, eclipse_overlap_s),
+         {:ok, lighting_summary} <- lighting_summary(duration_s, eclipse_overlap_s) do
+      build_observation_activity(
+        result,
+        event,
+        index,
+        campaign,
+        policy,
+        callbacks,
+        starts_at_s,
+        ends_at_s,
+        target_id,
+        duration_s,
+        eclipse_overlap_s,
+        lighting_summary
+      )
+    else
+      {:error, reason} -> {:error, {:invalid_observation_lighting, reason}}
+    end
+  end
+
+  defp build_observation_activity(
+         result,
+         event,
+         index,
+         campaign,
+         policy,
+         callbacks,
+         starts_at_s,
+         ends_at_s,
+         target_id,
+         duration_s,
+         eclipse_overlap_s,
+         lighting_summary
+       ) do
     target = target_by_id(campaign, target_id, callbacks)
     numeric_or_nil = Keyword.fetch!(callbacks, :numeric_or_nil)
     numeric_policy_value = Keyword.fetch!(callbacks, :numeric_policy_value)
-    overlap_duration = Keyword.fetch!(callbacks, :overlap_duration)
     activity_id = Keyword.fetch!(callbacks, :activity_id)
     window_id = Keyword.fetch!(callbacks, :window_id)
     encode_value = Keyword.fetch!(callbacks, :encode_value)
@@ -83,9 +153,6 @@ defmodule OrbitalDynamics.CampaignPlanner.ActivityCandidate do
       numeric_or_nil.(Map.get(target || %{}, "priority")) ||
         numeric_or_nil.(event.metadata.target_priority) || 1.0
 
-    duration_s = ends_at_s - starts_at_s
-    eclipse_overlap_s = overlap_duration.({starts_at_s, ends_at_s}, eclipse_intervals)
-    lighting_summary = Eclipses.lighting_summary(duration_s, eclipse_overlap_s)
     id = activity_id.(result.scenario_id, "observe", target_id, index)
     source_window_id = window_id.(result.scenario_id, "target_visibility", target_id, index)
 
@@ -93,7 +160,9 @@ defmodule OrbitalDynamics.CampaignPlanner.ActivityCandidate do
       "target_value" =>
         priority * duration_s * numeric_policy_value.(policy, "target_value_weight", 1.0),
       "eclipse_penalty" =>
-        eclipse_overlap_s * numeric_policy_value.(policy, "eclipse_penalty_weight", 1.0) * -1.0
+        eclipse_overlap_s *
+          numeric_policy_value.(policy, "eclipse_penalty_weight", 1.0) *
+          -1.0
     }
 
     %{
@@ -225,7 +294,12 @@ defmodule OrbitalDynamics.CampaignPlanner.ActivityCandidate do
 
   defp event_sort_key(event, callbacks) when is_map(event) do
     encode_value = Keyword.fetch!(callbacks, :encode_value)
-    metadata = Map.get(event, :metadata, %{})
+
+    metadata =
+      case Map.get(event, :metadata, %{}) do
+        %{} = metadata -> metadata
+        _metadata -> %{}
+      end
 
     {
       event_epoch_seconds(Map.get(event, :starts_at)),
@@ -260,17 +334,25 @@ defmodule OrbitalDynamics.CampaignPlanner.ActivityCandidate do
     encode_value = Keyword.fetch!(callbacks, :encode_value)
 
     event_results
-    |> Enum.filter(&(&1.event_type == :eclipse))
-    |> Enum.group_by(
-      &encode_value.(&1.scenario_id),
-      fn result ->
-        Enum.map(result.events, fn event ->
-          {event.starts_at.seconds_since_j2000, event.ends_at.seconds_since_j2000}
+    |> Enum.reduce(%{}, fn
+      %{event_type: :eclipse, events: events, scenario_id: scenario_id}, intervals_by_scenario ->
+        scenario_id = encode_value.(scenario_id)
+
+        events
+        |> Enum.reduce(intervals_by_scenario, fn event, intervals_by_scenario ->
+          interval = {
+            event.starts_at.seconds_since_j2000,
+            event.ends_at.seconds_since_j2000
+          }
+
+          Map.update(intervals_by_scenario, scenario_id, [interval], &[interval | &1])
         end)
-      end
-    )
-    |> Map.new(fn {scenario_id, grouped_intervals} ->
-      {scenario_id, List.flatten(grouped_intervals)}
+
+      _result, intervals_by_scenario ->
+        intervals_by_scenario
+    end)
+    |> Map.new(fn {scenario_id, intervals} ->
+      {scenario_id, Enum.reverse(intervals)}
     end)
   end
 
@@ -336,6 +418,120 @@ defmodule OrbitalDynamics.CampaignPlanner.ActivityCandidate do
 
   defp contact_candidate_cadence_import_type("command"), do: "command"
   defp contact_candidate_cadence_import_type(_type), do: "contact"
+
+  defp duration_seconds(starts_at_s, ends_at_s) do
+    with :ok <- validate_number(:starts_at_s, starts_at_s),
+         :ok <- validate_number(:ends_at_s, ends_at_s) do
+      duration_s = ends_at_s - starts_at_s
+
+      cond do
+        not finite_number?(duration_s) -> {:error, {:invalid_option, :duration_s}}
+        duration_s < 0.0 -> {:error, {:invalid_timing, :negative_duration_s}}
+        true -> {:ok, duration_s}
+      end
+    end
+  end
+
+  defp observation_overlap_duration(overlap_duration, interval, intervals) do
+    case overlap_duration.(interval, intervals) do
+      value when is_integer(value) or is_float(value) ->
+        if finite_number?(value) do
+          {:ok, value}
+        else
+          raise ArgumentError, "overlap_duration callback returned invalid eclipse_overlap_s"
+        end
+    end
+  end
+
+  defp lighting_summary(duration_s, eclipse_overlap_s) do
+    case Eclipses.lighting_summary(duration_s, eclipse_overlap_s) do
+      %{} = summary ->
+        {:ok, summary}
+
+      {:error, {:invalid_option, field}} when field in [:duration_s, :eclipse_overlap_s] ->
+        {:error, {:invalid_option, field}}
+    end
+  end
+
+  defp validate_lighting_inputs(duration_s, eclipse_overlap_s) do
+    cond do
+      eclipse_overlap_s < 0.0 ->
+        {:error, {:invalid_timing, :negative_eclipse_overlap_s}}
+
+      eclipse_overlap_s > duration_s ->
+        {:error, {:invalid_timing, :eclipse_overlap_exceeds_duration_s}}
+
+      true ->
+        :ok
+    end
+  end
+
+  defp validate_eclipse_intervals(intervals) do
+    with {:ok, intervals} <-
+           bounded_list_items(intervals, :eclipse_intervals, @max_eclipse_intervals) do
+      Enum.reduce_while(intervals, {:ok, []}, fn
+        {starts_at_s, ends_at_s} = interval, {:ok, accepted} ->
+          with :ok <- validate_number(:eclipse_intervals, starts_at_s),
+               :ok <- validate_number(:eclipse_intervals, ends_at_s) do
+            interval_duration_s = ends_at_s - starts_at_s
+
+            cond do
+              not finite_number?(interval_duration_s) ->
+                {:halt, {:error, {:invalid_option, :eclipse_intervals}}}
+
+              interval_duration_s < 0.0 ->
+                {:halt, {:error, {:invalid_timing, :negative_eclipse_interval_duration_s}}}
+
+              true ->
+                {:cont, {:ok, [interval | accepted]}}
+            end
+          else
+            {:error, reason} -> {:halt, {:error, reason}}
+          end
+
+        _interval, _accepted ->
+          {:halt, {:error, {:invalid_option, :eclipse_intervals}}}
+      end)
+      |> case do
+        {:ok, accepted} -> {:ok, Enum.reverse(accepted)}
+        {:error, reason} -> {:error, reason}
+      end
+    end
+  end
+
+  defp validate_number(field, value) when is_integer(value) or is_float(value) do
+    if finite_number?(value) do
+      :ok
+    else
+      {:error, {:invalid_option, field}}
+    end
+  end
+
+  defp validate_number(field, _value), do: {:error, {:invalid_option, field}}
+
+  defp bounded_list_items(list, field, limit) when is_list(list) do
+    bounded_list_items(list, [], 0, field, limit)
+  end
+
+  defp bounded_list_items(_not_list, field, _limit), do: {:error, {:invalid_container, field}}
+
+  defp bounded_list_items(_list, _acc, count, field, limit) when count > limit,
+    do: {:error, {:container_limit_exceeded, field}}
+
+  defp bounded_list_items([], acc, _count, _field, _limit), do: {:ok, Enum.reverse(acc)}
+
+  defp bounded_list_items([head | tail], acc, count, field, limit) do
+    bounded_list_items(tail, [head | acc], count + 1, field, limit)
+  end
+
+  defp bounded_list_items(_improper_tail, _acc, _count, field, _limit),
+    do: {:error, {:invalid_container, field}}
+
+  defp finite_number?(value) when is_integer(value), do: abs(value) <= @safe_number_limit
+
+  defp finite_number?(value) when is_float(value) do
+    value == value and value - value == 0.0 and abs(value) <= @safe_number_limit
+  end
 
   defp maybe_add_downlink_throughput(activity, "downlink", duration_s, downlink_rate_mb_s) do
     activity

@@ -4,6 +4,12 @@ defmodule OrbitalDynamics.EventDetectors.GroundTrackCrossingsTest do
   alias OrbitalDynamics.EventDetectors.GroundTrackCrossings
   alias OrbitalDynamics.{Epoch, Frame, StateVector, Trajectory}
 
+  @safe_number_bound 1_000_000_000_000_000
+
+  defmodule StructProbe do
+    defstruct [:value]
+  end
+
   defmodule CounterfeitCampaignCapabilityProvider do
     alias OrbitalDynamics.Environment.CampaignEnvironmentProvider
 
@@ -111,6 +117,42 @@ defmodule OrbitalDynamics.EventDetectors.GroundTrackCrossingsTest do
 
         _untampered ->
           {:ok, product}
+      end
+    end
+  end
+
+  defmodule RaisingRotationCapabilityProvider do
+    def capabilities, do: raise("rotation capability failure")
+    def fetch(_kind, _opts), do: {:error, :unexpected_fetch}
+  end
+
+  defmodule RaisingRotationFetchProvider do
+    alias OrbitalDynamics.Environment.ConstantEarthRotationProvider
+
+    def capabilities, do: ConstantEarthRotationProvider.capabilities()
+    def fetch(_kind, _opts), do: raise("rotation fetch failure")
+  end
+
+  defmodule CollidingRotationProductProvider do
+    alias OrbitalDynamics.Environment.ConstantEarthRotationProvider
+
+    def capabilities, do: ConstantEarthRotationProvider.capabilities()
+
+    def fetch(:earth_rotation, opts) do
+      with {:ok, product} <- ConstantEarthRotationProvider.fetch(:earth_rotation, opts) do
+        {:ok, Map.put(product, :provider_id, product["provider_id"])}
+      end
+    end
+  end
+
+  defmodule UnsafeRotationProductProvider do
+    alias OrbitalDynamics.Environment.ConstantEarthRotationProvider
+
+    def capabilities, do: ConstantEarthRotationProvider.capabilities()
+
+    def fetch(:earth_rotation, opts) do
+      with {:ok, product} <- ConstantEarthRotationProvider.fetch(:earth_rotation, opts) do
+        {:ok, Map.put(product, "earth_rotation_angle_rad", 1.0e16)}
       end
     end
   end
@@ -544,6 +586,390 @@ defmodule OrbitalDynamics.EventDetectors.GroundTrackCrossingsTest do
              )
   end
 
+  test "provider request admission rejects hostile map aliases and containers" do
+    request = %{
+      starts_at_s: 0.0,
+      ends_at_s: 100.0,
+      body: :earth,
+      output: :earth_rotation
+    }
+
+    assert {:error, {:atom_string_alias_collision, "starts_at_s"}} =
+             GroundTrackCrossings.validate_earth_rotation_provider(
+               OrbitalDynamics.Environment.ConstantEarthRotationProvider,
+               Map.put(request, "starts_at_s", 0.0)
+             )
+
+    assert {:error, {:invalid_field, "starts_at_s"}} =
+             GroundTrackCrossings.validate_earth_rotation_provider(
+               OrbitalDynamics.Environment.ConstantEarthRotationProvider,
+               %{request | starts_at_s: 1.0e16}
+             )
+
+    assert {:error, {:invalid_field, "starts_at_s"}} =
+             GroundTrackCrossings.validate_earth_rotation_provider(
+               OrbitalDynamics.Environment.ConstantEarthRotationProvider,
+               %{request | starts_at_s: @safe_number_bound + 1}
+             )
+
+    assert {:error, {:invalid_field, "starts_at_s"}} =
+             GroundTrackCrossings.validate_earth_rotation_provider(
+               OrbitalDynamics.Environment.ConstantEarthRotationProvider,
+               %{request | starts_at_s: huge_integer()}
+             )
+
+    for {label, nonfinite} <- nonfinite_float_values() do
+      assert {:error, {:invalid_field, "starts_at_s"}} =
+               GroundTrackCrossings.validate_earth_rotation_provider(
+                 OrbitalDynamics.Environment.ConstantEarthRotationProvider,
+                 %{request | starts_at_s: nonfinite}
+               ),
+             "#{label} provider request start was admitted"
+    end
+
+    assert {:error, {:invalid_field, "ends_at_s"}} =
+             GroundTrackCrossings.validate_earth_rotation_provider(
+               OrbitalDynamics.Environment.ConstantEarthRotationProvider,
+               %{request | starts_at_s: 10.0, ends_at_s: 0.0}
+             )
+
+    assert {:error, {:container_limit_exceeded, :provider_request}} =
+             GroundTrackCrossings.validate_earth_rotation_provider(
+               RaisingRotationCapabilityProvider,
+               Map.merge(request, wide_map(129))
+             )
+
+    for invalid_key <- [42, {:tuple, :key}] do
+      assert {:error, {:invalid_container, :provider_request}} =
+               GroundTrackCrossings.validate_earth_rotation_provider(
+                 RaisingRotationCapabilityProvider,
+                 Map.put(request, invalid_key, "safe")
+               ),
+             "top-level invalid provider request key #{inspect(invalid_key)} reached provider"
+    end
+
+    assert {:error, {:invalid_container, :provider_request}} =
+             GroundTrackCrossings.validate_earth_rotation_provider(
+               OrbitalDynamics.Environment.ConstantEarthRotationProvider,
+               Map.put(request, :outputs, ["earth_rotation" | :tail])
+             )
+
+    assert {:error, {:unsupported_key, :provider_request}} =
+             GroundTrackCrossings.validate_earth_rotation_provider(
+               OrbitalDynamics.Environment.ConstantEarthRotationProvider,
+               Map.put(request, :ignored, "safe")
+             )
+
+    assert {:error, {:invalid_container, :provider_request}} =
+             GroundTrackCrossings.validate_earth_rotation_provider(
+               OrbitalDynamics.Environment.ConstantEarthRotationProvider,
+               Map.put(request, :ignored, huge_integer())
+             )
+
+    for key <- [:body, :output, :product, :frame],
+        safe_wrong_type <- [42, @safe_number_bound] do
+      wrong_type_request = wrong_type_request(request, key, safe_wrong_type)
+
+      assert {:error, {:environment_provider_request_mismatch, mismatch_request}} =
+               GroundTrackCrossings.validate_earth_rotation_provider(
+                 OrbitalDynamics.Environment.ConstantEarthRotationProvider,
+                 wrong_type_request
+               ),
+             "#{key} safe wrong-type value #{safe_wrong_type} did not use provider mismatch"
+
+      assert Map.fetch!(mismatch_request, key) == safe_wrong_type
+    end
+
+    for {key, field_name} <- provider_request_non_time_keys() do
+      assert {:error, {:invalid_field, ^field_name}} =
+               GroundTrackCrossings.validate_earth_rotation_provider(
+                 OrbitalDynamics.Environment.ConstantEarthRotationProvider,
+                 Map.put(request, key, @safe_number_bound + 1)
+               ),
+             "#{key} bound+1 numeric was admitted"
+
+      assert {:error, {:invalid_field, ^field_name}} =
+               GroundTrackCrossings.validate_earth_rotation_provider(
+                 OrbitalDynamics.Environment.ConstantEarthRotationProvider,
+                 Map.put(request, key, huge_integer())
+               ),
+             "#{key} huge integer was admitted"
+
+      for {label, nonfinite} <- nonfinite_float_values() do
+        assert {:error, {:invalid_field, ^field_name}} =
+                 GroundTrackCrossings.validate_earth_rotation_provider(
+                   OrbitalDynamics.Environment.ConstantEarthRotationProvider,
+                   Map.put(request, key, nonfinite)
+                 ),
+               "#{label} #{inspect(key)} value was admitted"
+      end
+    end
+
+    callback_probe = fn -> send(self(), :ground_track_request_callback_invoked) end
+
+    for {label, bad_value} <- hostile_option_values(callback_probe) do
+      assert {:error, {:invalid_container, :provider_request}} =
+               GroundTrackCrossings.validate_earth_rotation_provider(
+                 OrbitalDynamics.Environment.ConstantEarthRotationProvider,
+                 Map.put(request, :ignored, bad_value)
+               ),
+             "#{label} ignored provider request value was admitted"
+
+      assert {:error, {:invalid_container, :provider_request}} =
+               GroundTrackCrossings.validate_earth_rotation_provider(
+                 OrbitalDynamics.Environment.ConstantEarthRotationProvider,
+                 Map.put(request, :output, bad_value)
+               ),
+             "#{label} provider request output value was admitted"
+
+      refute_receive :ground_track_request_callback_invoked
+    end
+  end
+
+  test "public ground-track boundaries reject hostile inputs with typed errors" do
+    before_state = state({1.0, 0.0, -1.0}, 0.0)
+    after_state = state({1.0, 0.0, 1.0}, 60.0)
+    trajectory = trajectory([before_state, after_state])
+
+    assert {:error, {:missing_option, :latitude_deg}} =
+             GroundTrackCrossings.detect(trajectory, crossing: :latitude)
+
+    assert {:error, {:invalid_container, :opts}} =
+             GroundTrackCrossings.detect(trajectory, [{:crossing, :latitude} | :tail])
+
+    assert {:error, {:container_depth_exceeded, :opts}} =
+             GroundTrackCrossings.detect(trajectory,
+               crossing: :latitude,
+               latitude_deg: 0.0,
+               audit_payload: deep_value(13)
+             )
+
+    assert {:error, {:invalid_container, :opts}} =
+             GroundTrackCrossings.detect(trajectory,
+               crossing: :latitude,
+               latitude_deg: 0.0,
+               audit_payload: %{42 => "bad key"}
+             )
+
+    assert {:error, {:invalid_container, :opts}} =
+             GroundTrackCrossings.detect(trajectory,
+               crossing: :latitude,
+               latitude_deg: 0.0,
+               ignored: @safe_number_bound + 1
+             )
+
+    assert {:error, {:invalid_container, :opts}} =
+             GroundTrackCrossings.detect(trajectory,
+               crossing: :latitude,
+               latitude_deg: 0.0,
+               ignored: huge_integer()
+             )
+
+    assert {:error, {:unsupported_option, :ignored}} =
+             GroundTrackCrossings.detect(trajectory,
+               crossing: :latitude,
+               latitude_deg: 0.0,
+               ignored: "safe"
+             )
+
+    assert {:error, {:invalid_option, :trajectory}} =
+             GroundTrackCrossings.detect(:not_a_trajectory,
+               crossing: :latitude,
+               latitude_deg: 0.0
+             )
+
+    assert {:error, {:invalid_container, :states}} =
+             GroundTrackCrossings.detect(
+               %Trajectory{trajectory | states: [before_state | :tail]},
+               crossing: :latitude,
+               latitude_deg: 0.0
+             )
+
+    assert {:error, {:invalid_state, :state}} =
+             GroundTrackCrossings.detect(
+               %Trajectory{
+                 trajectory
+                 | states: [%{before_state | position_km: {1.0e16, 0.0, 0.0}}]
+               },
+               crossing: :latitude,
+               latitude_deg: 0.0
+             )
+
+    assert {:error, {:invalid_trajectory, :non_increasing_epochs}} =
+             GroundTrackCrossings.detect(
+               trajectory([after_state, before_state]),
+               crossing: :latitude,
+               latitude_deg: 0.0
+             )
+
+    assert {:error, {:invalid_option, :rotation_rate_rad_s}} =
+             GroundTrackCrossings.detect(trajectory,
+               crossing: :longitude,
+               longitude_deg: 0.0,
+               frame: :body_fixed,
+               rotation_rate_rad_s: 1.0e16
+             )
+
+    assert {:ok, exact_bound_events} =
+             GroundTrackCrossings.detect(trajectory,
+               crossing: :longitude,
+               longitude_deg: 0.0,
+               frame: :body_fixed,
+               rotation_epoch_s: @safe_number_bound,
+               rotation_rate_rad_s: 0.0
+             )
+
+    assert is_list(exact_bound_events)
+
+    assert {:error, {:invalid_option, :rotation_rate_rad_s}} =
+             GroundTrackCrossings.detect(trajectory,
+               crossing: :longitude,
+               longitude_deg: 0.0,
+               frame: :body_fixed,
+               rotation_rate_rad_s: @safe_number_bound + 1
+             )
+
+    assert {:error, {:invalid_option, :rotation_rate_rad_s}} =
+             GroundTrackCrossings.detect(trajectory,
+               crossing: :longitude,
+               longitude_deg: 0.0,
+               frame: :body_fixed,
+               rotation_rate_rad_s: huge_integer()
+             )
+
+    for {label, nonfinite} <- nonfinite_float_values() do
+      assert {:error, {:invalid_option, :rotation_rate_rad_s}} =
+               GroundTrackCrossings.detect(trajectory,
+                 crossing: :longitude,
+                 longitude_deg: 0.0,
+                 frame: :body_fixed,
+                 rotation_rate_rad_s: nonfinite
+               ),
+             "#{label} rotation rate option was admitted"
+    end
+
+    for key <- [:body, :output, :product, :frame],
+        {label, bad_value} <-
+          [{"bound+1", @safe_number_bound + 1}, {"huge", huge_integer()}] ++
+            nonfinite_float_values() do
+      assert {:error, {:invalid_container, :opts}} =
+               GroundTrackCrossings.detect(trajectory,
+                 crossing: :longitude,
+                 longitude_deg: 0.0,
+                 frame: :body_fixed,
+                 earth_rotation_provider: {RaisingRotationFetchProvider, [{key, bad_value}]}
+               ),
+             "#{label} nested rotation provider #{key} option reached fetch"
+    end
+
+    callback_probe = fn -> send(self(), :ground_track_callback_invoked) end
+
+    for {label, bad_value} <- hostile_option_values(callback_probe) do
+      assert {:error, {:invalid_container, :opts}} =
+               GroundTrackCrossings.detect(trajectory,
+                 crossing: :latitude,
+                 latitude_deg: 0.0,
+                 ignored: bad_value
+               ),
+             "#{label} ignored ground-track option was admitted"
+
+      assert {:error, {:invalid_container, :opts}} =
+               GroundTrackCrossings.detect(trajectory,
+                 crossing: :longitude,
+                 longitude_deg: 0.0,
+                 frame: :body_fixed,
+                 earth_rotation_provider:
+                   {OrbitalDynamics.Environment.ConstantEarthRotationProvider, ignored: bad_value}
+               ),
+             "#{label} nested rotation provider option was admitted"
+
+      assert {:error, {:invalid_container, :opts}} =
+               GroundTrackCrossings.detect(trajectory,
+                 crossing: :longitude,
+                 longitude_deg: 0.0,
+                 frame: :body_fixed,
+                 earth_rotation_provider:
+                   {OrbitalDynamics.Environment.ConstantEarthRotationProvider, body: bad_value}
+               ),
+             "#{label} nested rotation provider body option was admitted"
+
+      assert {:error, {:invalid_container, :opts}} =
+               GroundTrackCrossings.refine_crossing_boundary(
+                 before_state,
+                 after_state,
+                 crossing: :latitude,
+                 latitude_deg: 0.0,
+                 ignored: bad_value
+               ),
+             "#{label} refine ignored ground-track option was admitted"
+
+      refute_receive :ground_track_callback_invoked
+    end
+
+    assert {:error, {:invalid_option, :crossing_boundary}} =
+             GroundTrackCrossings.refine_crossing_boundary(:before, after_state,
+               crossing: :latitude,
+               latitude_deg: 0.0
+             )
+
+    assert {:error, {:invalid_state, :before_state}} =
+             GroundTrackCrossings.refine_crossing_boundary(
+               %{before_state | velocity_km_s: {0.0, 1.0e16, 0.0}},
+               after_state,
+               crossing: :latitude,
+               latitude_deg: 0.0
+             )
+
+    assert {:error, {:container_limit_exceeded, :opts}} =
+             GroundTrackCrossings.refine_crossing_boundary(
+               before_state,
+               after_state,
+               crossing: :latitude,
+               latitude_deg: 0.0,
+               audit_payload: wide_map(129)
+             )
+  end
+
+  test "provider-backed ground-track detection rejects bad callbacks and products" do
+    trajectory =
+      trajectory([
+        state({1.0, 0.0, 0.0}, 0.0),
+        state({1.0, 0.0, 0.0}, 100.0)
+      ])
+
+    base_opts = [
+      crossing: :longitude,
+      longitude_deg: 0.0,
+      frame: :body_fixed
+    ]
+
+    assert {:error,
+            {:environment_provider_callback_failed, RaisingRotationCapabilityProvider,
+             :capabilities}} =
+             GroundTrackCrossings.detect(
+               trajectory,
+               Keyword.put(base_opts, :earth_rotation_provider, RaisingRotationCapabilityProvider)
+             )
+
+    assert {:error, {:environment_provider_callback_failed, RaisingRotationFetchProvider, :fetch}} =
+             GroundTrackCrossings.detect(
+               trajectory,
+               Keyword.put(base_opts, :earth_rotation_provider, RaisingRotationFetchProvider)
+             )
+
+    assert {:error, {:atom_string_alias_collision, "provider_id"}} =
+             GroundTrackCrossings.detect(
+               trajectory,
+               Keyword.put(base_opts, :earth_rotation_provider, CollidingRotationProductProvider)
+             )
+
+    assert {:error, {:invalid_environment_product, :earth_rotation_angle_rad}} =
+             GroundTrackCrossings.detect(
+               trajectory,
+               Keyword.put(base_opts, :earth_rotation_provider, UnsafeRotationProductProvider)
+             )
+  end
+
   defp trajectory(states) do
     %Trajectory{
       scenario_id: :ground_track_test,
@@ -571,5 +997,74 @@ defmodule OrbitalDynamics.EventDetectors.GroundTrackCrossingsTest do
       cos_latitude * :math.sin(longitude_rad),
       :math.sin(latitude_rad)
     }
+  end
+
+  defp deep_value(depth) do
+    Enum.reduce(1..depth, "leaf", fn index, acc -> %{"level_#{index}" => acc} end)
+  end
+
+  defp wide_map(count) do
+    Map.new(1..count, fn index -> {"k#{index}", index} end)
+  end
+
+  defp hostile_option_values(callback_probe) do
+    [
+      {"struct", %StructProbe{value: :nested}},
+      {"pid", self()},
+      {"reference", make_ref()},
+      {"function", callback_probe},
+      {"tuple", {:tuple, :not_json}}
+    ] ++ port_probe_values()
+  end
+
+  defp port_probe_values do
+    case Port.list() do
+      [port | _rest] -> [{"port", port}]
+      [] -> []
+    end
+  end
+
+  defp provider_request_non_time_keys do
+    [
+      {:body, "body"},
+      {"body", "body"},
+      {:bodies, "bodies"},
+      {"bodies", "bodies"},
+      {:central_body, "central_body"},
+      {"central_body", "central_body"},
+      {:output, "output"},
+      {"output", "output"},
+      {:outputs, "outputs"},
+      {"outputs", "outputs"},
+      {:product, "product"},
+      {"product", "product"},
+      {:kind, "kind"},
+      {"kind", "kind"},
+      {:frame, "frame"},
+      {"frame", "frame"},
+      {:frames, "frames"},
+      {"frames", "frames"},
+      {:time_scale, "time_scale"},
+      {"time_scale", "time_scale"},
+      {:time_scales, "time_scales"},
+      {"time_scales", "time_scales"}
+    ]
+  end
+
+  defp wrong_type_request(request, :product, value),
+    do: request |> Map.delete(:output) |> Map.put(:product, value)
+
+  defp wrong_type_request(request, key, value), do: Map.put(request, key, value)
+
+  defp huge_integer, do: :erlang.bsl(1, 1_000_000)
+
+  defp nonfinite_float_values do
+    [
+      {"nan", :erlang.binary_to_term(<<131, 70, 127, 248, 0, 0, 0, 0, 0, 1>>, [:safe])},
+      {"positive infinity",
+       :erlang.binary_to_term(<<131, 70, 127, 240, 0, 0, 0, 0, 0, 0>>, [:safe])},
+      {"negative infinity",
+       :erlang.binary_to_term(<<131, 70, 255, 240, 0, 0, 0, 0, 0, 0>>, [:safe])}
+    ]
   end
 end

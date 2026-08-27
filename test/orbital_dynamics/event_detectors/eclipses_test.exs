@@ -4,6 +4,48 @@ defmodule OrbitalDynamics.EventDetectors.EclipsesTest do
   alias OrbitalDynamics.EventDetectors.Eclipses
   alias OrbitalDynamics.{CentralBody, Epoch, Frame, StateVector, Trajectory}
 
+  @safe_number_bound 1_000_000_000_000_000
+
+  defmodule StructProbe do
+    defstruct [:value]
+  end
+
+  defmodule RaisingSunCapabilityProvider do
+    def capabilities, do: raise("sun capability failure")
+    def fetch(_kind, _opts), do: {:error, :unexpected_fetch}
+  end
+
+  defmodule RaisingSunFetchProvider do
+    alias OrbitalDynamics.Environment.FixedSunProvider
+
+    def capabilities, do: FixedSunProvider.capabilities()
+    def fetch(_kind, _opts), do: raise("sun fetch failure")
+  end
+
+  defmodule CollidingSunProductProvider do
+    alias OrbitalDynamics.Environment.FixedSunProvider
+
+    def capabilities, do: FixedSunProvider.capabilities()
+
+    def fetch(:sun_direction, opts) do
+      with {:ok, product} <- FixedSunProvider.fetch(:sun_direction, opts) do
+        {:ok, Map.put(product, :provider_id, product["provider_id"])}
+      end
+    end
+  end
+
+  defmodule BadSunProductProvider do
+    alias OrbitalDynamics.Environment.FixedSunProvider
+
+    def capabilities, do: FixedSunProvider.capabilities()
+
+    def fetch(:sun_direction, opts) do
+      with {:ok, product} <- FixedSunProvider.fetch(:sun_direction, opts) do
+        {:ok, Map.put(product, "provenance", [:not_a_map])}
+      end
+    end
+  end
+
   test "declares detector capabilities" do
     assert %{
              detector: :eclipses,
@@ -193,6 +235,228 @@ defmodule OrbitalDynamics.EventDetectors.EclipsesTest do
              Eclipses.detect(trajectory, central_body: earth, sun_direction: {0.0, 0.0, 0.0})
   end
 
+  test "public eclipse boundaries reject hostile inputs with typed errors" do
+    earth = CentralBody.earth()
+    before_state = sunward(earth, 0.0)
+    after_state = anti_sunward_inside_shadow(earth, 60.0)
+    trajectory = trajectory([before_state, after_state])
+
+    assert {:error, {:invalid_option, :trajectory}} =
+             Eclipses.detect(:not_a_trajectory, central_body: earth)
+
+    assert {:error, {:invalid_container, :opts}} =
+             Eclipses.detect(trajectory, [{:sun_direction, {1.0, 0.0, 0.0}} | :tail])
+
+    assert {:error, {:container_depth_exceeded, :opts}} =
+             Eclipses.detect(trajectory,
+               central_body: earth,
+               sun_direction: {1.0, 0.0, 0.0},
+               audit_payload: deep_value(10)
+             )
+
+    assert {:error, {:invalid_container, :opts}} =
+             Eclipses.detect(trajectory,
+               central_body: earth,
+               sun_direction: {1.0, 0.0, 0.0},
+               audit_payload: %{42 => "bad key"}
+             )
+
+    assert {:error, {:invalid_container, :opts}} =
+             Eclipses.detect(trajectory,
+               central_body: earth,
+               sun_direction: {1.0, 0.0, 0.0},
+               ignored: @safe_number_bound + 1
+             )
+
+    assert {:error, {:invalid_container, :opts}} =
+             Eclipses.detect(trajectory,
+               central_body: earth,
+               sun_direction: {1.0, 0.0, 0.0},
+               ignored: huge_integer()
+             )
+
+    assert {:error, {:unsupported_option, :ignored}} =
+             Eclipses.detect(trajectory,
+               central_body: earth,
+               sun_direction: {1.0, 0.0, 0.0},
+               ignored: "safe"
+             )
+
+    assert {:error, {:invalid_container, :states}} =
+             Eclipses.detect(
+               %Trajectory{trajectory | states: [before_state | :tail]},
+               central_body: earth,
+               sun_direction: {1.0, 0.0, 0.0}
+             )
+
+    assert {:error, {:invalid_state, :state}} =
+             Eclipses.detect(
+               %Trajectory{
+                 trajectory
+                 | states: [%{before_state | position_km: {1.0e16, 0.0, 0.0}}]
+               },
+               central_body: earth,
+               sun_direction: {1.0, 0.0, 0.0}
+             )
+
+    assert {:error, {:invalid_trajectory, :non_increasing_epochs}} =
+             Eclipses.detect(
+               trajectory([after_state, before_state]),
+               central_body: earth,
+               sun_direction: {1.0, 0.0, 0.0}
+             )
+
+    assert {:error, {:invalid_central_body, :equatorial_radius_km}} =
+             Eclipses.detect(trajectory,
+               central_body: %{earth | equatorial_radius_km: 1.0e16},
+               sun_direction: {1.0, 0.0, 0.0}
+             )
+
+    assert {:error, {:invalid_option, :sun_direction}} =
+             Eclipses.detect(trajectory, central_body: earth, sun_direction: {1.0e16, 0.0, 0.0})
+
+    assert {:ok, [_event]} =
+             Eclipses.detect(trajectory,
+               central_body: earth,
+               sun_direction: {@safe_number_bound, 0.0, 0.0}
+             )
+
+    assert {:error, {:invalid_option, :sun_direction}} =
+             Eclipses.detect(trajectory,
+               central_body: earth,
+               sun_direction: {@safe_number_bound + 1, 0.0, 0.0}
+             )
+
+    assert {:error, {:invalid_option, :sun_direction}} =
+             Eclipses.detect(trajectory,
+               central_body: earth,
+               sun_direction: {huge_integer(), 0.0, 0.0}
+             )
+
+    assert {:error, {:invalid_container, :opts}} =
+             Eclipses.detect(trajectory, central_body: earth, sun_direction: {:not_a_vector, 0.0})
+
+    assert {:error, {:invalid_central_body, :equatorial_radius_km}} =
+             Eclipses.detect(trajectory,
+               central_body: %{earth | equatorial_radius_km: @safe_number_bound + 1},
+               sun_direction: {1.0, 0.0, 0.0}
+             )
+
+    assert {:error, {:invalid_central_body, :equatorial_radius_km}} =
+             Eclipses.detect(trajectory,
+               central_body: %{earth | equatorial_radius_km: huge_integer()},
+               sun_direction: {1.0, 0.0, 0.0}
+             )
+
+    for {label, nonfinite} <- nonfinite_float_values() do
+      assert {:error, {:invalid_option, :sun_direction}} =
+               Eclipses.detect(trajectory,
+                 central_body: earth,
+                 sun_direction: {nonfinite, 0.0, 0.0}
+               ),
+             "#{label} eclipse sun direction component was admitted"
+
+      assert {:error, {:invalid_central_body, :equatorial_radius_km}} =
+               Eclipses.detect(trajectory,
+                 central_body: %{earth | equatorial_radius_km: nonfinite},
+                 sun_direction: {1.0, 0.0, 0.0}
+               ),
+             "#{label} eclipse central body numeric field was admitted"
+    end
+
+    callback_probe = fn -> send(self(), :eclipse_callback_invoked) end
+
+    for {label, bad_value} <- hostile_option_values(callback_probe) do
+      assert {:error, {:invalid_container, :opts}} =
+               Eclipses.detect(trajectory,
+                 central_body: earth,
+                 sun_direction: {1.0, 0.0, 0.0},
+                 ignored: bad_value
+               ),
+             "#{label} ignored eclipse option was admitted"
+
+      assert {:error, {:invalid_container, :opts}} =
+               Eclipses.detect(trajectory,
+                 central_body: earth,
+                 sun_direction: bad_value
+               ),
+             "#{label} sun_direction option was admitted"
+
+      assert {:error, {:invalid_container, :opts}} =
+               Eclipses.detect(trajectory,
+                 central_body: %{earth | name: bad_value},
+                 sun_direction: {1.0, 0.0, 0.0}
+               ),
+             "#{label} central body field was admitted"
+
+      assert {:error, {:invalid_container, :opts}} =
+               Eclipses.detect(trajectory,
+                 central_body: earth,
+                 sun_direction_provider: {RaisingSunFetchProvider, ignored: bad_value}
+               ),
+             "#{label} nested sun provider ignored option was admitted"
+
+      refute_receive :eclipse_callback_invoked
+    end
+
+    assert {:error, {:invalid_option, :duration_s}} =
+             Eclipses.lighting_summary(1.0e16, 0.0)
+
+    assert {:error, {:invalid_option, :eclipse_overlap_s}} =
+             Eclipses.lighting_summary(100.0, 1.0e16)
+
+    assert {:error, {:invalid_option, :eclipse_boundary}} =
+             Eclipses.refine_eclipse_boundary(:before, after_state,
+               central_body: earth,
+               sun_direction: {1.0, 0.0, 0.0}
+             )
+
+    assert {:error, {:invalid_state, :before_state}} =
+             Eclipses.refine_eclipse_boundary(
+               %{before_state | velocity_km_s: {0.0, 1.0e16, 0.0}},
+               after_state,
+               central_body: earth,
+               sun_direction: {1.0, 0.0, 0.0}
+             )
+
+    assert {:error, {:container_limit_exceeded, :opts}} =
+             Eclipses.refine_eclipse_boundary(before_state, after_state,
+               central_body: earth,
+               sun_direction: {1.0, 0.0, 0.0},
+               audit_payload: wide_map(129)
+             )
+  end
+
+  test "provider-backed eclipse detection rejects bad callbacks and product shapes" do
+    earth = CentralBody.earth()
+    trajectory = trajectory([anti_sunward_inside_shadow(earth, 0.0)])
+
+    assert {:error,
+            {:environment_provider_callback_failed, RaisingSunCapabilityProvider, :capabilities}} =
+             Eclipses.detect(trajectory,
+               central_body: earth,
+               sun_direction_provider: RaisingSunCapabilityProvider
+             )
+
+    assert {:error, {:environment_provider_callback_failed, RaisingSunFetchProvider, :fetch}} =
+             Eclipses.detect(trajectory,
+               central_body: earth,
+               sun_direction_provider: RaisingSunFetchProvider
+             )
+
+    assert {:error, {:atom_string_alias_collision, "provider_id"}} =
+             Eclipses.detect(trajectory,
+               central_body: earth,
+               sun_direction_provider: CollidingSunProductProvider
+             )
+
+    assert {:error, {:invalid_environment_product, "provenance"}} =
+             Eclipses.detect(trajectory,
+               central_body: earth,
+               sun_direction_provider: BadSunProductProvider
+             )
+  end
+
   defp trajectory(states) do
     %Trajectory{
       scenario_id: :eclipse_test,
@@ -223,5 +487,42 @@ defmodule OrbitalDynamics.EventDetectors.EclipsesTest do
       Epoch.new!(seconds_since_j2000, :tdb),
       Frame.earth_inertial_j2000()
     )
+  end
+
+  defp deep_value(depth) do
+    Enum.reduce(1..depth, "leaf", fn index, acc -> %{"level_#{index}" => acc} end)
+  end
+
+  defp wide_map(count) do
+    Map.new(1..count, fn index -> {"k#{index}", index} end)
+  end
+
+  defp hostile_option_values(callback_probe) do
+    [
+      {"struct", %StructProbe{value: :nested}},
+      {"pid", self()},
+      {"reference", make_ref()},
+      {"function", callback_probe},
+      {"tuple", {:tuple, :not_json}}
+    ] ++ port_probe_values()
+  end
+
+  defp port_probe_values do
+    case Port.list() do
+      [port | _rest] -> [{"port", port}]
+      [] -> []
+    end
+  end
+
+  defp huge_integer, do: :erlang.bsl(1, 1_000_000)
+
+  defp nonfinite_float_values do
+    [
+      {"nan", :erlang.binary_to_term(<<131, 70, 127, 248, 0, 0, 0, 0, 0, 1>>, [:safe])},
+      {"positive infinity",
+       :erlang.binary_to_term(<<131, 70, 127, 240, 0, 0, 0, 0, 0, 0>>, [:safe])},
+      {"negative infinity",
+       :erlang.binary_to_term(<<131, 70, 255, 240, 0, 0, 0, 0, 0, 0>>, [:safe])}
+    ]
   end
 end

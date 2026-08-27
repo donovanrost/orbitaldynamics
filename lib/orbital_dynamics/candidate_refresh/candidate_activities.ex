@@ -4,6 +4,7 @@ defmodule OrbitalDynamics.CandidateRefresh.CandidateActivities do
   alias OrbitalDynamics.CandidateRefresh.BuildContext
   alias OrbitalDynamics.CandidateRefresh.DownlinkCandidate
   alias OrbitalDynamics.CandidateRefresh.ObservationCandidate
+  alias OrbitalDynamics.CandidateRefresh.RefreshedWindows
   alias OrbitalDynamics.CandidateRefresh.ValueEncoding
 
   def build(
@@ -15,6 +16,31 @@ defmodule OrbitalDynamics.CandidateRefresh.CandidateActivities do
         refresh_objectives_fun,
         refresh_ground_network_fun
       ) do
+    build(
+      event_results,
+      refresh,
+      constraints,
+      policy,
+      operational_feedback_fun,
+      refresh_objectives_fun,
+      refresh_ground_network_fun,
+      RefreshedWindows.empty_invalid_observation_lighting()
+    )
+  end
+
+  def build(
+        event_results,
+        refresh,
+        constraints,
+        policy,
+        operational_feedback_fun,
+        refresh_objectives_fun,
+        refresh_ground_network_fun,
+        inherited_invalid_observation_lighting
+      ) do
+    {event_results, invalid_observation_lighting} =
+      admit_event_results(event_results, inherited_invalid_observation_lighting)
+
     eclipse_intervals_by_scenario = eclipse_intervals_by_scenario(event_results)
 
     min_duration_s =
@@ -27,32 +53,42 @@ defmodule OrbitalDynamics.CandidateRefresh.CandidateActivities do
     event_results
     |> Enum.flat_map(fn
       %{event_type: :target_visibility} = result ->
-        eclipse_intervals =
-          Map.get(
-            eclipse_intervals_by_scenario,
-            encode_value(result.scenario_id),
-            []
-          )
+        if RefreshedWindows.invalid_observation_lighting_scenario?(
+             invalid_observation_lighting,
+             result.scenario_id
+           ) do
+          []
+        else
+          eclipse_intervals =
+            Map.get(
+              eclipse_intervals_by_scenario,
+              encode_value(result.scenario_id),
+              []
+            )
 
-        result.events
-        |> Enum.with_index(1)
-        |> Enum.map(fn event_with_index ->
-          ObservationCandidate.build(
-            result,
-            event_with_index,
-            refresh,
-            eclipse_intervals,
-            policy,
-            operational_feedback_fun,
-            &ValueEncoding.numeric_value/1,
-            refresh_objectives_fun
-          )
-        end)
-        |> Enum.reject(fn activity ->
-          activity["duration_s"] < min_duration_s or
-            not within_horizon?(activity, horizon) or
-            (avoid_eclipse? and activity["eclipse_overlap_s"] > 0.0)
-        end)
+          result.events
+          |> Enum.with_index(1)
+          |> Enum.flat_map(fn event_with_index ->
+            case ObservationCandidate.build(
+                   result,
+                   event_with_index,
+                   refresh,
+                   eclipse_intervals,
+                   policy,
+                   operational_feedback_fun,
+                   &ValueEncoding.numeric_value/1,
+                   refresh_objectives_fun
+                 ) do
+              {:error, {:invalid_observation_lighting, _reason}} -> []
+              %{} = activity -> [activity]
+            end
+          end)
+          |> Enum.reject(fn activity ->
+            activity["duration_s"] < min_duration_s or
+              not within_horizon?(activity, horizon) or
+              (avoid_eclipse? and activity["eclipse_overlap_s"] > 0.0)
+          end)
+        end
 
       %{event_type: :ground_station_access} = result ->
         result.events
@@ -77,6 +113,22 @@ defmodule OrbitalDynamics.CandidateRefresh.CandidateActivities do
     end)
   end
 
+  defp admit_event_results(event_results, inherited_invalid_observation_lighting) do
+    case RefreshedWindows.admit_event_results(event_results) do
+      {:ok, event_results, invalid_observation_lighting} ->
+        {
+          event_results,
+          RefreshedWindows.merge_invalid_observation_lighting(
+            inherited_invalid_observation_lighting,
+            invalid_observation_lighting
+          )
+        }
+
+      {:error, {:invalid_observation_lighting, _reason}} ->
+        {[], inherited_invalid_observation_lighting}
+    end
+  end
+
   defp constraint_boolean(constraints, key, default) do
     case boolean_value(Map.get(constraints, key)) do
       value when is_boolean(value) -> value
@@ -93,20 +145,25 @@ defmodule OrbitalDynamics.CandidateRefresh.CandidateActivities do
 
   defp eclipse_intervals_by_scenario(event_results) do
     event_results
-    |> Enum.filter(&(&1.event_type == :eclipse))
-    |> Enum.group_by(
-      &encode_value(&1.scenario_id),
-      fn result ->
-        Enum.map(result.events, fn event ->
-          {
+    |> Enum.reduce(%{}, fn
+      %{event_type: :eclipse, events: events, scenario_id: scenario_id}, intervals_by_scenario ->
+        scenario_id = encode_value(scenario_id)
+
+        events
+        |> Enum.reduce(intervals_by_scenario, fn event, intervals_by_scenario ->
+          interval = {
             epoch_seconds(event.starts_at),
             epoch_seconds(event.ends_at)
           }
+
+          Map.update(intervals_by_scenario, scenario_id, [interval], &[interval | &1])
         end)
-      end
-    )
-    |> Map.new(fn {scenario_id, grouped_intervals} ->
-      {scenario_id, List.flatten(grouped_intervals)}
+
+      _result, intervals_by_scenario ->
+        intervals_by_scenario
+    end)
+    |> Map.new(fn {scenario_id, intervals} ->
+      {scenario_id, Enum.reverse(intervals)}
     end)
   end
 
