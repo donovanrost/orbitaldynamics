@@ -162,6 +162,9 @@ defmodule OrbitalDynamics.Environment.ConstantEarthRotationProvider do
     {:error, {:container_depth_exceeded, field}}
   end
 
+  defp preflight_container([{%{__struct__: _struct}, _depth} | _rest], _visited, field),
+    do: {:error, {:invalid_container, field}}
+
   defp preflight_container([{tuple, _depth} | _rest], _visited, field) when is_tuple(tuple),
     do: {:error, {:invalid_container, field}}
 

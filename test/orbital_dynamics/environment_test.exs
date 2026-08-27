@@ -1118,7 +1118,7 @@ defmodule OrbitalDynamics.EnvironmentTest do
                seconds_since_j2000: 0.0,
                earth_rotation_angle_rad: 0.0
              }
-           ], {:invalid_option, :samples}},
+           ], {:atom_string_alias_collision, "seconds_since_j2000"}},
           {"sample alias collision",
            [%{seconds_since_j2000: 0.0, epoch_s: 0.0, earth_rotation_angle_rad: 0.0}],
            {:invalid_option, :samples}},

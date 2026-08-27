@@ -832,11 +832,11 @@ defmodule OrbitalDynamics.CandidateRefresh.LightingSummaryConsumerTotalityTest d
          target_visibility_result([target_visibility_event(120.0, 180.0)])
        ), target_visibility_event(120.0, 180.0), [], zero_overlap_duration(),
        {:invalid_option, :source}},
-      {"struct source map",
+      {"struct target source id",
        struct_target_source_result(
          target_visibility_result([target_visibility_event(120.0, 180.0)])
        ), target_visibility_event(120.0, 180.0), [], zero_overlap_duration(),
-       {:invalid_container, :source}},
+       {:invalid_option, :source}},
       {"deep metadata map", target_visibility_result([target_visibility_event(120.0, 180.0)]),
        deep_metadata_event(target_visibility_event(120.0, 180.0)), [], zero_overlap_duration(),
        {:container_limit_exceeded, :metadata}},
