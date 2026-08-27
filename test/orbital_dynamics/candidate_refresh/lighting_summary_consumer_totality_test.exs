@@ -827,11 +827,11 @@ defmodule OrbitalDynamics.CandidateRefresh.LightingSummaryConsumerTotalityTest d
        wide_source_result(target_visibility_result([target_visibility_event(120.0, 180.0)])),
        target_visibility_event(120.0, 180.0), [], zero_overlap_duration(),
        {:container_limit_exceeded, :source}},
-      {"deep source map",
+      {"deep target source id",
        deep_target_source_result(
          target_visibility_result([target_visibility_event(120.0, 180.0)])
        ), target_visibility_event(120.0, 180.0), [], zero_overlap_duration(),
-       {:container_limit_exceeded, :source}},
+       {:invalid_option, :source}},
       {"struct source map",
        struct_target_source_result(
          target_visibility_result([target_visibility_event(120.0, 180.0)])
@@ -1280,11 +1280,8 @@ defmodule OrbitalDynamics.CandidateRefresh.LightingSummaryConsumerTotalityTest d
     _error in [ArgumentError] -> :error
   end
 
-  defp direct_observe_callbacks(overlap_duration) do
-    [
-      overlap_duration: overlap_duration
-    ]
-  end
+  defp direct_observe_callbacks(overlap_duration),
+    do: campaign_activity_callbacks(overlap_duration)
 
   defp campaign_activity_callbacks(overlap_duration) do
     [

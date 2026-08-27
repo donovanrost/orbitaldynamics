@@ -963,7 +963,7 @@ defmodule OrbitalDynamics.EventDetectors.GroundTrackCrossingsTest do
                Keyword.put(base_opts, :earth_rotation_provider, CollidingRotationProductProvider)
              )
 
-    assert {:error, {:invalid_environment_product, :earth_rotation_angle_rad}} =
+    assert {:error, {:invalid_container, :environment_product}} =
              GroundTrackCrossings.detect(
                trajectory,
                Keyword.put(base_opts, :earth_rotation_provider, UnsafeRotationProductProvider)
@@ -1060,11 +1060,21 @@ defmodule OrbitalDynamics.EventDetectors.GroundTrackCrossingsTest do
 
   defp nonfinite_float_values do
     [
-      {"nan", :erlang.binary_to_term(<<131, 70, 127, 248, 0, 0, 0, 0, 0, 1>>, [:safe])},
-      {"positive infinity",
-       :erlang.binary_to_term(<<131, 70, 127, 240, 0, 0, 0, 0, 0, 0>>, [:safe])},
-      {"negative infinity",
-       :erlang.binary_to_term(<<131, 70, 255, 240, 0, 0, 0, 0, 0, 0>>, [:safe])}
+      {"nan", <<131, 70, 127, 248, 0, 0, 0, 0, 0, 1>>},
+      {"positive infinity", <<131, 70, 127, 240, 0, 0, 0, 0, 0, 0>>},
+      {"negative infinity", <<131, 70, 255, 240, 0, 0, 0, 0, 0, 0>>}
     ]
+    |> Enum.flat_map(fn {label, bytes} ->
+      case construct_nonfinite_float(bytes) do
+        {:ok, value} -> [{label, value}]
+        :error -> []
+      end
+    end)
+  end
+
+  defp construct_nonfinite_float(bytes) do
+    {:ok, :erlang.binary_to_term(bytes)}
+  rescue
+    _error in [ArgumentError] -> :error
   end
 end

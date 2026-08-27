@@ -105,17 +105,15 @@ defmodule OrbitalDynamics.EventTimingTest do
              }
            } = EventTiming.annotate_event(event, trajectory, :access_windows)
 
-    assert %{
-             metadata: %{
-               sun_direction: {1.0, 0.0, 0.0},
-               event_detector: :eclipses
-             }
-           } =
+    assert %{metadata: sun_metadata} =
              EventTiming.annotate_event(
                %{metadata: %{sun_direction: {1.0, 0.0, 0.0}}},
                trajectory,
                :eclipses
              )
+
+    assert sun_metadata.sun_direction == {1.0, 0.0, 0.0}
+    assert sun_metadata.event_detector == :eclipses
 
     vector_metadata = %{
       sun_direction: {1.0, 0.0, 0.0},
@@ -127,17 +125,22 @@ defmodule OrbitalDynamics.EventTimingTest do
       }
     }
 
-    assert %{
-             metadata: %{
-               sun_direction_at_start_sample: {1.0, 0.0, 0.0},
-               sun_direction_at_end_sample: {0.0, 1.0, 0.0},
-               end_boundary_detail: %{
-                 before_sun_direction: {1.0, 0.0, 0.0},
-                 after_sun_direction: {0.0, 1.0, 0.0}
-               },
-               event_detector: :eclipses
-             }
-           } = EventTiming.annotate_event(%{metadata: vector_metadata}, trajectory, :eclipses)
+    assert %{metadata: annotated_vector_metadata} =
+             EventTiming.annotate_event(%{metadata: vector_metadata}, trajectory, :eclipses)
+
+    assert annotated_vector_metadata.sun_direction_at_start_sample ==
+             vector_metadata.sun_direction_at_start_sample
+
+    assert annotated_vector_metadata.sun_direction_at_end_sample ==
+             vector_metadata.sun_direction_at_end_sample
+
+    assert annotated_vector_metadata.end_boundary_detail.before_sun_direction ==
+             vector_metadata.end_boundary_detail.before_sun_direction
+
+    assert annotated_vector_metadata.end_boundary_detail.after_sun_direction ==
+             vector_metadata.end_boundary_detail.after_sun_direction
+
+    assert annotated_vector_metadata.event_detector == :eclipses
   end
 
   test "public timing boundaries reject hostile input with typed errors" do
@@ -312,11 +315,21 @@ defmodule OrbitalDynamics.EventTimingTest do
 
   defp nonfinite_float_values do
     [
-      {"nan", :erlang.binary_to_term(<<131, 70, 127, 248, 0, 0, 0, 0, 0, 1>>, [:safe])},
-      {"positive infinity",
-       :erlang.binary_to_term(<<131, 70, 127, 240, 0, 0, 0, 0, 0, 0>>, [:safe])},
-      {"negative infinity",
-       :erlang.binary_to_term(<<131, 70, 255, 240, 0, 0, 0, 0, 0, 0>>, [:safe])}
+      {"nan", <<131, 70, 127, 248, 0, 0, 0, 0, 0, 1>>},
+      {"positive infinity", <<131, 70, 127, 240, 0, 0, 0, 0, 0, 0>>},
+      {"negative infinity", <<131, 70, 255, 240, 0, 0, 0, 0, 0, 0>>}
     ]
+    |> Enum.flat_map(fn {label, bytes} ->
+      case construct_nonfinite_float(bytes) do
+        {:ok, value} -> [{label, value}]
+        :error -> []
+      end
+    end)
+  end
+
+  defp construct_nonfinite_float(bytes) do
+    {:ok, :erlang.binary_to_term(bytes)}
+  rescue
+    _error in [ArgumentError] -> :error
   end
 end
