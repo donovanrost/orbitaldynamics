@@ -98,16 +98,11 @@ defmodule Mix.Tasks.OrbitalDynamics.Policy.Export do
   end
 
   defp write_bundle!(bundle, path) do
-    path
-    |> Path.dirname()
-    |> File.mkdir_p!()
-
     json =
       bundle
       |> :json.encode()
       |> IO.iodata_to_binary()
 
-    File.write!(path, json <> "\n")
-    path
+    OrbitalDynamics.Release.SafeOutput.write!(path, json <> "\n")
   end
 end

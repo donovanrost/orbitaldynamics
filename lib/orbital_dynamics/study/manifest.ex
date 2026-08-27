@@ -296,17 +296,12 @@ defmodule OrbitalDynamics.Study.Manifest do
   Writes the exported study manifest JSON Schema document to disk.
   """
   def write_json_schema!(path) when is_binary(path) do
-    path
-    |> Path.dirname()
-    |> File.mkdir_p!()
-
     json =
       json_schema()
       |> :json.encode()
       |> IO.iodata_to_binary()
 
-    File.write!(path, json <> "\n")
-    path
+    OrbitalDynamics.Release.SafeOutput.write!(path, json <> "\n")
   end
 
   @doc """

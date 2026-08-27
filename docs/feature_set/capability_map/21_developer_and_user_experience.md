@@ -88,6 +88,34 @@ The `study_manifest.v1` JSON Schema export includes nested coverage for:
 - prior candidates,
 - and mission-plan activity provider-shaped `target`, `station`, `ground_station`, `spacecraft`, and `satellite` identity objects.
 
+### Schema and policy export output
+
+- `mix orbital_dynamics.schema.export`, `mix orbital_dynamics.manifest.schema.export`,
+  and `mix orbital_dynamics.policy.export` preserve caller-selected output paths
+  and canonical JSON bytes while publishing each output file through a
+  same-directory temp file and rename under a cooperative local-filesystem,
+  single-writer envelope. This path does not hold anchored directory handles and
+  does not claim protection against hostile concurrent ancestor or target swaps.
+- Existing regular-file outputs can be replaced. Symlink targets or ancestors,
+  broken symlink targets or ancestors, directory/device/special targets,
+  malformed paths, and path/content resource bounds fail closed before
+  destination writes. The only ancestor-symlink admission path is a closed
+  root-level system directory alias rule: the alias and resolved directory chain
+  must be root-owned, not group/world-writable, exist, and match the expected
+  directory target. The direct root-alias readlink target is checked for path
+  bounds and relative escapes, normalized lexically, and must equal the expected
+  target before any target path is lstat/stat checked. No intermediate alias
+  hops are followed. The concrete checked regression is the macOS `/var` to
+  `/private/var` `System.tmp_dir` alias; pathname `/var` alone is not
+  authority. Alias readlink/lstat/stat errors, relative escapes, target
+  mismatches, mutable aliases, and caller-owned aliases fail closed.
+- Failed parent creation, temp open/write, or rename leaves the destination
+  unchanged. Owned-temp cleanup is attempted; a cleanup failure is reported as a
+  typed `temporary_cleanup_failed` result and may leave residue.
+- Invalid or unsafe export destinations deliberately raise `ArgumentError` from
+  the CLI exporters, replacing prior raw filesystem exception surfacing for this
+  hardened path.
+
 ### Schema lint tasks and reports
 
 - **`Schema.validation_report/2`** and **`mix orbital_dynamics.schema.lint --format json`** — provide schema-validated artifact lint reports with stable path/message issue rows.

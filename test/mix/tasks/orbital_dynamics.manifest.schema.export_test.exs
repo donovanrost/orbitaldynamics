@@ -3,13 +3,19 @@ defmodule Mix.Tasks.OrbitalDynamics.Manifest.Schema.ExportTest do
 
   import ExUnit.CaptureIO
 
-  alias OrbitalDynamics.Schema
+  alias OrbitalDynamics.{Schema, Study.Manifest}
 
   test "exports the study manifest JSON Schema" do
-    output_path = Path.join(System.tmp_dir!(), "study_manifest.v1.schema.json")
+    output_root =
+      Path.join(
+        System.tmp_dir!(),
+        "orbital_dynamics_manifest_schema_export_#{System.unique_integer([:positive])}"
+      )
+
+    output_path = Path.join([output_root, "nested", "study_manifest.v1.schema.json"])
 
     on_exit(fn ->
-      File.rm(output_path)
+      File.rm_rf(output_root)
       Mix.Task.reenable("orbital_dynamics.manifest.schema.export")
     end)
 
@@ -20,6 +26,9 @@ defmodule Mix.Tasks.OrbitalDynamics.Manifest.Schema.ExportTest do
 
     assert output =~ "OrbitalDynamics manifest schema export"
     assert output =~ "wrote: #{output_path}"
+
+    assert File.read!(output_path) == json_bytes(Manifest.json_schema())
+    assert_no_temp_residue!(Path.dirname(output_path))
 
     schema = output_path |> File.read!() |> :json.decode()
 
@@ -227,11 +236,47 @@ defmodule Mix.Tasks.OrbitalDynamics.Manifest.Schema.ExportTest do
     assert search_objectives == monte_carlo_objectives
   end
 
+  test "rejects a directory output target without temp residue" do
+    output_root =
+      Path.join(
+        System.tmp_dir!(),
+        "orbital_dynamics_manifest_schema_directory_target_#{System.unique_integer([:positive])}"
+      )
+
+    output_path = Path.join(output_root, "study_manifest.v1.schema.json")
+
+    on_exit(fn ->
+      File.rm_rf(output_root)
+      Mix.Task.reenable("orbital_dynamics.manifest.schema.export")
+    end)
+
+    File.mkdir_p!(output_path)
+
+    assert_raise ArgumentError, ~r/unsupported_target.*directory/, fn ->
+      capture_io(fn ->
+        Mix.Task.run("orbital_dynamics.manifest.schema.export", ["--output", output_path])
+      end)
+    end
+
+    assert_no_temp_residue!(output_root)
+  end
+
   test "requires an output path" do
     on_exit(fn -> Mix.Task.reenable("orbital_dynamics.manifest.schema.export") end)
 
     assert_raise Mix.Error, ~r/--output is required/, fn ->
       Mix.Task.run("orbital_dynamics.manifest.schema.export", [])
     end
+  end
+
+  defp json_bytes(value) do
+    value
+    |> :json.encode()
+    |> IO.iodata_to_binary()
+    |> Kernel.<>("\n")
+  end
+
+  defp assert_no_temp_residue!(directory) do
+    assert Path.wildcard(Path.join(directory, ".orbital_dynamics-safe-output-*.tmp")) == []
   end
 end

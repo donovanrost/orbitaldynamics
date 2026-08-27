@@ -48,16 +48,11 @@ defmodule OrbitalDynamics.Schema.JsonExport do
   end
 
   defp write_json!(artifact, path) do
-    path
-    |> Path.dirname()
-    |> File.mkdir_p!()
-
     json =
       artifact
       |> :json.encode()
       |> IO.iodata_to_binary()
 
-    File.write!(path, json <> "\n")
-    path
+    OrbitalDynamics.Release.SafeOutput.write!(path, json <> "\n")
   end
 end
