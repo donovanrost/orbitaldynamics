@@ -172,7 +172,7 @@ defmodule OrbitalDynamics.FrameTransform do
       ) do
     with :ok <- validate_state(state),
          :ok <- validate_central_body(central_body),
-         :ok <- validate_epoch(state),
+         :ok <- validate_epoch_scale(state.epoch.scale),
          :ok <- validate_source_frame(state.frame),
          :ok <- validate_target_frame(target_frame),
          {:ok, direction} <- transform_direction(state.frame, target_frame),
@@ -266,15 +266,21 @@ defmodule OrbitalDynamics.FrameTransform do
          epoch: %Epoch{seconds_since_j2000: seconds_since_j2000},
          frame: %Frame{}
        }) do
+    position_status =
+      vector_components_status(position_km, @maximum_position_component_km)
+
+    velocity_status =
+      vector_components_status(velocity_km_s, @maximum_velocity_component_km_s)
+
     cond do
-      not Vector3.valid?(position_km) or not Vector3.valid?(velocity_km_s) or
+      position_status == :invalid or velocity_status == :invalid or
           not number?(seconds_since_j2000) ->
         {:error, {:invalid_state, :state_vector}}
 
-      not vector_components_within?(position_km, @maximum_position_component_km) ->
+      position_status == :out_of_range ->
         {:error, {:unsupported_state, :position_km}}
 
-      not vector_components_within?(velocity_km_s, @maximum_velocity_component_km_s) ->
+      velocity_status == :out_of_range ->
         {:error, {:unsupported_state, :velocity_km_s}}
 
       not number_in_symmetric_range?(seconds_since_j2000, @maximum_epoch_magnitude_s) ->
@@ -363,12 +369,9 @@ defmodule OrbitalDynamics.FrameTransform do
     end
   end
 
-  defp validate_epoch(%StateVector{epoch: %Epoch{scale: :tdb}}), do: :ok
+  defp validate_epoch_scale(:tdb), do: :ok
 
-  defp validate_epoch(%StateVector{epoch: %Epoch{scale: scale}}),
-    do: {:error, {:unsupported_time_scale, scale}}
-
-  defp validate_epoch(_state), do: {:error, {:invalid_state, :state_vector}}
+  defp validate_epoch_scale(scale), do: {:error, {:unsupported_time_scale, scale}}
 
   defp transform_direction(source_frame, target_frame) do
     inertial = Frame.earth_inertial_j2000()
@@ -731,13 +734,22 @@ defmodule OrbitalDynamics.FrameTransform do
     |> Base.encode16(case: :lower)
   end
 
-  defp vector_components_within?({x, y, z}, maximum_magnitude) do
-    number_in_symmetric_range?(x, maximum_magnitude) and
-      number_in_symmetric_range?(y, maximum_magnitude) and
-      number_in_symmetric_range?(z, maximum_magnitude)
+  defp vector_components_status({x, y, z} = vector, maximum_magnitude) do
+    cond do
+      not Vector3.valid?(vector) ->
+        :invalid
+
+      number_in_symmetric_range?(x, maximum_magnitude) and
+        number_in_symmetric_range?(y, maximum_magnitude) and
+          number_in_symmetric_range?(z, maximum_magnitude) ->
+        :within_range
+
+      true ->
+        :out_of_range
+    end
   end
 
-  defp vector_components_within?(_vector, _maximum_magnitude), do: false
+  defp vector_components_status(_vector, _maximum_magnitude), do: :invalid
 
   defp number_in_symmetric_range?(value, maximum_magnitude) when is_integer(value),
     do: value >= -maximum_magnitude and value <= maximum_magnitude

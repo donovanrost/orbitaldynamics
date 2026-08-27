@@ -311,6 +311,40 @@ defmodule OrbitalDynamics.FrameTransformTest do
              FrameTransform.transform(invalid_scale_state, target, earth, policy)
   end
 
+  test "preserves state shape envelope and time-scale error precedence" do
+    policy = bounded_policy(test_pid: self())
+    earth = CentralBody.earth()
+    target = Frame.earth_fixed()
+    base = nominal_inertial_state()
+
+    out_of_range_position =
+      {next_up(@maximum_position_component_km), 0.0, 0.0}
+
+    cases = [
+      {%{base | position_km: out_of_range_position, velocity_km_s: [0.0, 7.5, 0.0]},
+       {:error, {:invalid_state, :state_vector}}},
+      {%{
+         base
+         | position_km: out_of_range_position,
+           epoch: %{scale: :tdb, seconds_since_j2000: 0.0}
+       }, {:error, {:invalid_state, :state_vector}}},
+      {%{
+         base
+         | epoch: %{
+             base.epoch
+             | scale: :ut1,
+               seconds_since_j2000: next_up(@maximum_epoch_magnitude_s)
+           }
+       }, {:error, {:unsupported_time, :seconds_since_j2000}}}
+    ]
+
+    Enum.each(cases, fn {state, expected} ->
+      assert ^expected = FrameTransform.transform(state, target, earth, policy)
+    end)
+
+    refute_receive {:bounded_earth_rotation_fetched, _angle_rad, _rate_rad_s}
+  end
+
   test "totalizes malformed tagged frames and central bodies before provider fetch" do
     policy = bounded_policy(test_pid: self())
     state = nominal_inertial_state()
