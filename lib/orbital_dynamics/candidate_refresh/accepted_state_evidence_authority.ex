@@ -807,7 +807,7 @@ defmodule OrbitalDynamics.CandidateRefresh.AcceptedStateEvidenceAuthority do
     }
   end
 
-  def analyze_refresh_wrapper(refresh) do
+  def analyze_refresh_wrapper(_refresh) do
     summary =
       base_summary(0, 0)
       |> Map.put("state_evidence_scope", "accepted_planning_state.spacecraft_states")
@@ -1292,7 +1292,7 @@ defmodule OrbitalDynamics.CandidateRefresh.AcceptedStateEvidenceAuthority do
           is_binary(covariance_epoch_text) and is_binary(direct_epoch) and
             covariance_epoch_text != direct_epoch,
           "covariance_epoch_mismatch",
-          binding_path <> ".covariance_epoch"
+          path <> ".covariance_epoch"
         )
     else
       []
@@ -1775,7 +1775,7 @@ defmodule OrbitalDynamics.CandidateRefresh.AcceptedStateEvidenceAuthority do
          path,
          field
        ) do
-    Enum.flat_map(signatures, fn {index, name, signature} ->
+    Enum.flat_map(signatures, fn {_index, name, signature} ->
       if signature == source_signature do
         []
       else
@@ -4947,8 +4947,6 @@ defmodule OrbitalDynamics.CandidateRefresh.AcceptedStateEvidenceAuthority do
       propagation_status_supported?(field(quality, "covariance_propagation_status"))
   end
 
-  defp complete_quality_covariance?(_quality), do: false
-
   defp covariance_status_supported?(status),
     do: normalized_value(status) in @allowed_covariance_statuses
 
@@ -5602,8 +5600,6 @@ defmodule OrbitalDynamics.CandidateRefresh.AcceptedStateEvidenceAuthority do
     end
   end
 
-  defp embedded_issues(_summary), do: []
-
   defp embedded_review_reasons(%{} = summary) do
     case fetch_public_field(summary, "review_reasons") do
       {:ok, reasons} ->
@@ -5624,8 +5620,6 @@ defmodule OrbitalDynamics.CandidateRefresh.AcceptedStateEvidenceAuthority do
         {[], []}
     end
   end
-
-  defp embedded_review_reasons(_summary), do: {[], []}
 
   defp embedded_projection_paths(%{} = summary) do
     case fetch_public_field(summary, "accepted_state_encoding_projection_paths") do
@@ -5648,8 +5642,6 @@ defmodule OrbitalDynamics.CandidateRefresh.AcceptedStateEvidenceAuthority do
     end
   end
 
-  defp embedded_projection_paths(_summary), do: {[], []}
-
   defp embedded_projection_actions(%{} = summary) do
     case fetch_public_field(summary, "build_encoding_projection_actions") do
       {:ok, actions} ->
@@ -5670,8 +5662,6 @@ defmodule OrbitalDynamics.CandidateRefresh.AcceptedStateEvidenceAuthority do
         {[], []}
     end
   end
-
-  defp embedded_projection_actions(_summary), do: {[], []}
 
   defp embedded_projection_required(%{} = summary, incoming_projection_paths) do
     field_path = "$.evidence_authority.accepted_state_encoding_projection_required"
@@ -5709,9 +5699,6 @@ defmodule OrbitalDynamics.CandidateRefresh.AcceptedStateEvidenceAuthority do
         {incoming_projection_paths != [], []}
     end
   end
-
-  defp embedded_projection_required(_summary, incoming_projection_paths),
-    do: {incoming_projection_paths != [], []}
 
   defp projection_summary_invariant_issues(
          review_reasons,
@@ -6303,8 +6290,6 @@ defmodule OrbitalDynamics.CandidateRefresh.AcceptedStateEvidenceAuthority do
     |> elem(0)
   end
 
-  defp accepted_state_public_preflight_issues(_accepted_state), do: []
-
   defp accepted_state_public_preflight_result(%{} = accepted_state, nodes) do
     {root_issues, nodes} = accepted_state_root_public_preflight_result(accepted_state, nodes)
 
@@ -6583,7 +6568,7 @@ defmodule OrbitalDynamics.CandidateRefresh.AcceptedStateEvidenceAuthority do
     end
   end
 
-  defp map_size_issue(map, path, projection_action \\ nil) do
+  defp map_size_issue(map, path, projection_action) do
     if map_size(map) > @max_map_entries do
       [
         issue(
@@ -6598,7 +6583,7 @@ defmodule OrbitalDynamics.CandidateRefresh.AcceptedStateEvidenceAuthority do
     end
   end
 
-  defp key_shape_issues(entries, path, projection_action \\ nil) do
+  defp key_shape_issues(entries, path, projection_action) do
     Enum.flat_map(entries, fn {key, _value} ->
       case key_token(key) do
         {:ok, _key} -> []
@@ -6607,7 +6592,7 @@ defmodule OrbitalDynamics.CandidateRefresh.AcceptedStateEvidenceAuthority do
     end)
   end
 
-  defp alias_collision_issues(entries, path, projection_action \\ nil) do
+  defp alias_collision_issues(entries, path, projection_action) do
     entries
     |> Enum.flat_map(fn {key, _value} ->
       case alias_key_token(key) do
@@ -6653,7 +6638,7 @@ defmodule OrbitalDynamics.CandidateRefresh.AcceptedStateEvidenceAuthority do
     Enum.flat_map(fields, fn field ->
       atom_key = encoding_projection_atom_for_key(field)
 
-      if is_atom(atom_key) and Map.has_key?(map, field) and Map.has_key?(map, atom_key) do
+      if not is_nil(atom_key) and Map.has_key?(map, field) and Map.has_key?(map, atom_key) do
         [
           issue(
             "atom_string_alias_collision",
@@ -6953,18 +6938,6 @@ defmodule OrbitalDynamics.CandidateRefresh.AcceptedStateEvidenceAuthority do
     |> maybe_put("_encoding_projection_action", projection_action)
   end
 
-  defp issue_matches?(%{"reason" => actual_reason, "path" => actual_path}, reason, path),
-    do: actual_reason == reason and actual_path == path
-
-  defp issue_matches?(_issue, _reason, _path), do: false
-
-  defp covariance_epoch_binding_seconds_path?(path) when is_binary(path) do
-    String.starts_with?(path, "$.accepted_planning_state.spacecraft_states[") and
-      String.ends_with?(path, ".covariance_epoch_binding.seconds_since_j2000")
-  end
-
-  defp covariance_epoch_binding_seconds_path?(_path), do: false
-
   defp maybe_put(map, _key, nil), do: map
   defp maybe_put(map, key, value), do: Map.put(map, key, value)
 
@@ -7128,7 +7101,6 @@ defmodule OrbitalDynamics.CandidateRefresh.AcceptedStateEvidenceAuthority do
   defp field(_map, _key, default), do: default
 
   defp field_present?(%{} = map, key), do: match?({:ok, _value}, fetch_public_field(map, key))
-  defp field_present?(_map, _key), do: false
 
   defp fetch_public_field(%{} = map, key) do
     matches =
@@ -7194,7 +7166,7 @@ defmodule OrbitalDynamics.CandidateRefresh.AcceptedStateEvidenceAuthority do
         end
 
       atom_entries =
-        if is_atom(atom_key) and Map.has_key?(map, atom_key) do
+        if not is_nil(atom_key) and Map.has_key?(map, atom_key) do
           [{atom_key, Map.fetch!(map, atom_key)}]
         else
           []
@@ -7293,8 +7265,6 @@ defmodule OrbitalDynamics.CandidateRefresh.AcceptedStateEvidenceAuthority do
   defp bounded_number?(value) when is_float(value),
     do: value == value and value <= @max_abs_float and value >= -@max_abs_float
 
-  defp bounded_number?(_value), do: false
-
   defp exact_bounded_text(value) when is_binary(value) do
     case bounded_binary(value) do
       {:ok, value} -> value
@@ -7360,9 +7330,6 @@ defmodule OrbitalDynamics.CandidateRefresh.AcceptedStateEvidenceAuthority do
       token -> token
     end
   end
-
-  defp encoded_value(false), do: "false"
-  defp encoded_value(true), do: "true"
 
   defp encoded_value(value) when is_integer(value),
     do: if(bounded_integer?(value), do: "integer", else: "oversize_integer")

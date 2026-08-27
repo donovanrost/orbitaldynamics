@@ -901,20 +901,21 @@ defmodule OrbitalDynamics.CandidateRefresh.AcceptedStateEvidenceAuthorityTest do
       |> put_state_epoch_seconds([2 | "tail"])
       |> add_oversize_binary_evidence_noise(55)
 
-    raw_summary = AcceptedStateEvidenceAuthority.from_accepted_state(accepted_state)
+    refresh = refresh_with_accepted_state(accepted_state)
+
+    raw_summary =
+      AcceptedStateEvidenceAuthority.analyze_refresh_wrapper(refresh).evidence_authority
 
     assert raw_summary["issue_count"] > 50
     assert "accepted_state_evidence_improper_list_shape" in raw_summary["review_reasons"]
+    assert state_seconds_path in raw_summary["accepted_state_encoding_projection_paths"]
 
     refute Enum.any?(raw_summary["issues"], fn issue ->
              issue["reason"] == "accepted_state_evidence_improper_list_shape" and
                issue["path"] == state_seconds_path
            end)
 
-    artifact =
-      accepted_state
-      |> refresh_with_accepted_state()
-      |> build_artifact()
+    artifact = build_artifact(refresh)
 
     summary = get_in(artifact, ["accepted_planning_state", "evidence_authority"])
 
@@ -1327,7 +1328,7 @@ defmodule OrbitalDynamics.CandidateRefresh.AcceptedStateEvidenceAuthorityTest do
     end
   end
 
-  test "whole-state projection preserves consumer surface under root depth and node noise" do
+  test "whole-state projection preserves consumer surface under root and depth noise and redacts node overflow" do
     clean_state =
       valid_covariance_quality()
       |> accepted_state_with_quality()
@@ -1344,11 +1345,6 @@ defmodule OrbitalDynamics.CandidateRefresh.AcceptedStateEvidenceAuthorityTest do
         "depth",
         Map.put(clean_state, "aaa_depth_noise", deep_map(10)),
         "accepted_state_evidence_shape_deep"
-      },
-      {
-        "node",
-        Map.put(clean_state, "aaa_node_noise", node_budget_noise()),
-        "accepted_state_evidence_node_budget_exceeded"
       }
     ]
 
@@ -1380,9 +1376,40 @@ defmodule OrbitalDynamics.CandidateRefresh.AcceptedStateEvidenceAuthorityTest do
 
       assert decision_surface(artifact) == decision_surface(clean_artifact)
     end
+
+    node_refresh =
+      clean_state
+      |> Map.put("aaa_node_noise", node_budget_noise())
+      |> refresh_with_only_accepted_state_inputs()
+
+    node_analysis = AcceptedStateEvidenceAuthority.analyze_refresh_wrapper(node_refresh)
+    node_summary = node_analysis.evidence_authority
+    node_artifact = build_artifact(node_refresh)
+
+    redaction_artifact =
+      refresh_encoding_redaction()
+      |> build_artifact()
+
+    assert node_analysis.analysis_cursor == %{nodes: 512, overflow: true}
+    assert node_analysis.build_encoding_outcome == :whole_refresh_redaction
+    assert node_analysis.refresh == refresh_encoding_redaction()
+    assert node_summary["status"] == "review_required"
+    assert "accepted_state_evidence_node_budget_exceeded" in node_summary["review_reasons"]
+    assert node_artifact["refresh_id"] == redaction_artifact["refresh_id"]
+    assert node_artifact["current_epoch_s"] == redaction_artifact["current_epoch_s"]
+    assert node_artifact["remaining_horizon"] == redaction_artifact["remaining_horizon"]
+    assert node_artifact["resource_summaries"] == redaction_artifact["resource_summaries"]
+    assert node_artifact["candidate_activities"] == redaction_artifact["candidate_activities"]
+    assert node_artifact["contact_filter_report"] == redaction_artifact["contact_filter_report"]
+    assert node_artifact["operational_feedback"] == redaction_artifact["operational_feedback"]
+
+    assert get_in(node_artifact, ["provenance", "source_reports"]) ==
+             get_in(redaction_artifact, ["provenance", "source_reports"])
+
+    assert decision_surface(node_artifact) == decision_surface(redaction_artifact)
   end
 
-  test "refresh projection preserves wrapper consumer surface under root depth and node noise" do
+  test "refresh projection preserves wrapper consumer surface under root and depth noise and redacts node overflow" do
     clean_state =
       valid_covariance_quality()
       |> accepted_state_with_quality()
@@ -1404,11 +1431,6 @@ defmodule OrbitalDynamics.CandidateRefresh.AcceptedStateEvidenceAuthorityTest do
         "depth",
         Map.put(clean_refresh, "aaa_depth_noise", deep_map(10)),
         "accepted_state_evidence_shape_deep"
-      },
-      {
-        "node",
-        Map.put(clean_refresh, "aaa_node_noise", node_budget_noise()),
-        "accepted_state_evidence_node_budget_exceeded"
       }
     ]
 
@@ -1447,6 +1469,49 @@ defmodule OrbitalDynamics.CandidateRefresh.AcceptedStateEvidenceAuthorityTest do
 
       assert decision_surface(artifact) == decision_surface(clean_artifact)
     end
+
+    node_refresh = Map.put(clean_refresh, "aaa_node_noise", node_budget_noise())
+    node_analysis = AcceptedStateEvidenceAuthority.analyze_refresh_wrapper(node_refresh)
+    node_summary = node_analysis.evidence_authority
+    node_artifact = build_artifact(node_refresh)
+
+    redaction_artifact =
+      refresh_encoding_redaction()
+      |> build_artifact()
+
+    assert node_analysis.analysis_cursor == %{nodes: 512, overflow: true}
+    assert node_analysis.build_encoding_outcome == :whole_refresh_redaction
+    assert node_analysis.refresh == refresh_encoding_redaction()
+    assert node_summary["status"] == "review_required"
+    assert "accepted_state_evidence_node_budget_exceeded" in node_summary["review_reasons"]
+
+    node_accepted_state_ref =
+      Map.delete(node_artifact["accepted_planning_state"], "evidence_authority")
+
+    redaction_accepted_state_ref =
+      Map.delete(redaction_artifact["accepted_planning_state"], "evidence_authority")
+
+    node_accepted_state_provenance =
+      node_artifact
+      |> get_in(["provenance", "accepted_planning_state"])
+      |> Map.delete("evidence_authority")
+
+    redaction_accepted_state_provenance =
+      redaction_artifact
+      |> get_in(["provenance", "accepted_planning_state"])
+      |> Map.delete("evidence_authority")
+
+    assert node_accepted_state_ref == redaction_accepted_state_ref
+    assert node_accepted_state_provenance == redaction_accepted_state_provenance
+    assert node_artifact["refresh_id"] == redaction_artifact["refresh_id"]
+
+    assert get_in(node_artifact, ["provenance", "operational_feedback"]) ==
+             get_in(redaction_artifact, ["provenance", "operational_feedback"])
+
+    assert get_in(node_artifact, ["provenance", "source_reports"]) ==
+             get_in(redaction_artifact, ["provenance", "source_reports"])
+
+    assert decision_surface(node_artifact) == decision_surface(redaction_artifact)
   end
 
   test "refresh projection preserves closed atom keys and drops unrelated atom noise" do
@@ -1736,9 +1801,9 @@ defmodule OrbitalDynamics.CandidateRefresh.AcceptedStateEvidenceAuthorityTest do
       },
       {
         "atom string alias",
-        %{"x_km" => 1.0, x_km: 2.0},
+        %{"position_km" => 1.0, position_km: 2.0},
         "atom_string_alias_collision",
-        ".x_km"
+        ".position_km"
       }
     ]
 
@@ -1810,9 +1875,9 @@ defmodule OrbitalDynamics.CandidateRefresh.AcceptedStateEvidenceAuthorityTest do
       },
       {
         "atom string alias",
-        %{"x_km" => 1.0, x_km: 2.0},
+        %{"position_km" => 1.0, position_km: 2.0},
         "atom_string_alias_collision",
-        ".x_km"
+        ".position_km"
       }
     ]
 
@@ -1925,9 +1990,9 @@ defmodule OrbitalDynamics.CandidateRefresh.AcceptedStateEvidenceAuthorityTest do
       },
       {
         "alias collision",
-        %{"x_km" => 1.0, x_km: 2.0},
+        %{"position_km" => 1.0, position_km: 2.0},
         "atom_string_alias_collision",
-        base_path <> ".x_km"
+        base_path <> ".position_km"
       },
       {
         "depth",
@@ -2122,7 +2187,7 @@ defmodule OrbitalDynamics.CandidateRefresh.AcceptedStateEvidenceAuthorityTest do
 
   test "build validates present spacecraft state lists before accepted-state counts" do
     state = accepted_state_with_quality(%{})
-    state_row = state |> Map.fetch!("spacecraft_states") |> List.first()
+    state_row = %{"spacecraft_id" => "leo_1", "scenario_id" => "scenario_1"}
 
     cases = [
       {"missing", Map.delete(state, "spacecraft_states"), nil, 0, nil},
@@ -3357,8 +3422,13 @@ defmodule OrbitalDynamics.CandidateRefresh.AcceptedStateEvidenceAuthorityTest do
     assert %{"scope" => scope, "action" => action, "segments" => segments} in actions
   end
 
-  defp assert_carrier_attack_removed(projected_refresh, carrier_path, raw_refresh, ".x_km") do
-    refute get_in(projected_refresh, carrier_path ++ ["x_km"])
+  defp assert_carrier_attack_removed(
+         projected_refresh,
+         carrier_path,
+         raw_refresh,
+         ".position_km"
+       ) do
+    refute get_in(projected_refresh, carrier_path ++ ["position_km"])
     assert projected_refresh != raw_refresh
   end
 

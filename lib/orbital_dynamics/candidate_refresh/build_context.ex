@@ -152,8 +152,6 @@ defmodule OrbitalDynamics.CandidateRefresh.BuildContext do
     end
   end
 
-  defp accepted_state_list_count(_accepted_state, _key), do: 0
-
   defp normalize_remaining_horizon(horizon, numeric_value) do
     horizon
     |> Map.take(["starts_at_s", "ends_at_s", "duration_s", "output_step_s"])
@@ -195,8 +193,6 @@ defmodule OrbitalDynamics.CandidateRefresh.BuildContext do
       {{:ok, _string_value}, {:ok, _atom_value}} -> {:alias_collision, key}
     end
   end
-
-  defp fetch_encoding_field(_map, _key), do: :missing
 
   defp bounded_list_items(values, max_items) when is_list(values),
     do: bounded_list_items(values, max_items, [])
