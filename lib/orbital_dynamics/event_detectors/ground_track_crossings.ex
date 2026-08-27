@@ -499,8 +499,6 @@ defmodule OrbitalDynamics.EventDetectors.GroundTrackCrossings do
     end
   end
 
-  defp preflight_provider_request_numeric_bounds(%{__struct__: _struct}), do: :ok
-
   defp preflight_provider_request_numeric_bounds(%{} = request) do
     Enum.reduce_while(request, :ok, fn {key, value}, :ok ->
       case request_field_name(key) do
