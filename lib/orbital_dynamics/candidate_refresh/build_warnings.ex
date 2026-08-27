@@ -1,6 +1,8 @@
 defmodule OrbitalDynamics.CandidateRefresh.BuildWarnings do
   @moduledoc false
 
+  alias OrbitalDynamics.CandidateRefresh.AcceptedStateEvidenceAuthority
+  alias OrbitalDynamics.CandidateRefresh.BuildContext
   alias OrbitalDynamics.CandidateRefresh.OperationalFeedback
 
   alias OrbitalDynamics.CandidateRefresh.OperationalFeedback.Assembly,
@@ -44,6 +46,13 @@ defmodule OrbitalDynamics.CandidateRefresh.BuildWarnings do
     resource_filter_report = Map.fetch!(context, :resource_filter_report)
     refresh_budget_report = Map.fetch!(context, :refresh_budget_report)
     freshness_report = Map.fetch!(context, :freshness_report)
+
+    accepted_state_evidence_authority =
+      case Map.fetch(context, :accepted_state_evidence_authority) do
+        {:ok, summary} -> summary
+        :error -> BuildContext.accepted_state_evidence_authority(refresh)
+      end
+
     invalid_operational_feedback_input? = Input.invalid?(refresh)
     invalid_operational_feedback_sections = Input.invalid_sections(refresh)
 
@@ -126,6 +135,10 @@ defmodule OrbitalDynamics.CandidateRefresh.BuildWarnings do
     |> maybe_warn(
       Map.get(freshness_report, "status") == "unknown",
       "candidate refresh freshness could not be fully evaluated"
+    )
+    |> maybe_warn(
+      AcceptedStateEvidenceAuthority.review_required?(accepted_state_evidence_authority),
+      AcceptedStateEvidenceAuthority.warning_message()
     )
     |> maybe_warn(
       invalid_operational_feedback_input?,

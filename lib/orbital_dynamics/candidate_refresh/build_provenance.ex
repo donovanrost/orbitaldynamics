@@ -8,13 +8,18 @@ defmodule OrbitalDynamics.CandidateRefresh.BuildProvenance do
         refresh,
         result_set_metadata,
         operational_feedback_provenance,
-        source_report_input_provenance
+        source_report_input_provenance,
+        accepted_state_evidence_authority \\ nil
       ) do
     run = metadata_value(result_set_metadata, :run, :atom_first) || %{}
     run_metadata = metadata_value(run, :metadata) || %{}
 
     %{
-      "accepted_planning_state" => BuildContext.accepted_planning_state_provenance(refresh),
+      "accepted_planning_state" =>
+        BuildContext.accepted_planning_state_provenance(
+          refresh,
+          accepted_state_evidence_authority
+        ),
       "operational_feedback" => operational_feedback_provenance.(refresh),
       "prior_candidate_count" => length(Map.get(refresh, "prior_candidate_activities", [])),
       "run_id" => encode_value(metadata_value(run, :id)),

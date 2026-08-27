@@ -26,6 +26,15 @@
   preserves deterministic verification evidence in accepted-state provenance.
   Existing map/binary import paths remain unchanged and do not require an
   identity.
+- The current CandidateRefresh source candidate classifies accepted-state
+  covariance and content-identity evidence with
+  `accepted_state_evidence_authority.v1` before atom/string key normalization can
+  collapse aliases. The summary is carried in CandidateRefresh accepted-state
+  reference and provenance as metadata-only review evidence: covariance remains
+  `metadata_only_not_consumed`, content identity remains
+  `byte_identity_not_authenticated`, and decision authority remains
+  `no_decision_authority`. Generated artifact/schema convergence remains
+  deferred to final convergence.
 
 ### CCSDS OPM KVN import/export
 
@@ -178,8 +187,9 @@ explicit no-network-access marker.
 - **OPM/OEM imports** now reject duplicate single-value KVN fields.
 - The project does **not** yet cover broader spacecraft metadata, multi-object or
   multi-segment OEM interpolation, covariance interpolation/propagation, external
-  covariance truth validation, executable SGP4/OMM propagation, frame/time
-  conversion, or extrapolation.
+  covariance truth validation, signature/source-authority authentication,
+  Cadence authorization, executable SGP4/OMM propagation, frame/time conversion,
+  or extrapolation.
 
 ## Status: **near-term**
 

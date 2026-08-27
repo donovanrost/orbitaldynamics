@@ -20,6 +20,15 @@ From those inputs the pipeline:
 - Filters resource- and ground-network-unavailable candidates.
 - Marks stale prior candidates.
 - Emits freshness metadata for accepted snapshot age and horizon alignment.
+- The current source candidate emits `accepted_state_evidence_authority.v1`
+  metadata on the accepted-state reference and provenance. Unsafe-looking
+  accepted-state evidence such as claimed authentication/authority, partial or
+  unsupported covariance status, stale or mismatched covariance epoch/frame
+  binding, malformed bounded shapes, or atom/string aliases becomes
+  review-visible but does not filter candidates, reorder branches, change
+  recommendations, alter execution policy, or produce a covariance
+  propagation/truth claim. Missing covariance remains clean; generated
+  artifact/schema convergence is deferred.
 
 ### Opt-in executable Level 5 bundle
 
@@ -162,6 +171,13 @@ fingerprint, detector digests, and both refresh-ID surfaces are recomputed.
 - Preserves source-window lineage.
 - Classifies standalone operational-feedback trust boundaries in candidate-refresh provenance as `declared` or `missing`.
 - Warns when scoring/filtering feedback is applied without a declared trust boundary, while preserving that warning's structured feedback trust context in operator-review and Cadence import rows.
+- Warns when accepted-state covariance/source-identity evidence requires review,
+  while keeping that evidence metadata-only and non-authoritative for
+  CandidateRefresh decisions.
+- Uses a bounded CandidateRefresh-owned encoding projection for review-required
+  accepted-state evidence. The projection is limited to the shared
+  build/provenance/warning/source-report consumer field contract in source; it is
+  not a generated schema/catalog convergence claim.
 
 ### Malformed and invalid feedback handling
 

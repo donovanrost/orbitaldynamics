@@ -38,7 +38,16 @@ defmodule OrbitalDynamics.CandidateRefresh.Build do
   @schema_version 1
 
   def build(%ResultSet{} = result_set, opts \\ []) do
-    refresh = ValueEncoding.stringify_keys(Keyword.fetch!(opts, :candidate_refresh))
+    raw_refresh = Keyword.fetch!(opts, :candidate_refresh)
+
+    prepared_refresh = BuildContext.prepare_refresh_for_build(raw_refresh)
+    accepted_state_evidence_authority = Map.fetch!(prepared_refresh, :evidence_authority)
+
+    refresh =
+      prepared_refresh
+      |> Map.fetch!(:refresh)
+      |> ValueEncoding.stringify_keys()
+
     generated_at = Keyword.get_lazy(opts, :generated_at, &DateTime.utc_now/0)
     policy = Map.get(refresh, "scoring_policy", %{})
     constraints = Map.get(refresh, "constraints", %{})
@@ -175,7 +184,8 @@ defmodule OrbitalDynamics.CandidateRefresh.Build do
       "current_epoch_s" => BuildContext.current_epoch_s(refresh, &ValueEncoding.numeric_value/1),
       "remaining_horizon" =>
         BuildContext.remaining_horizon(refresh, &ValueEncoding.numeric_value/1),
-      "accepted_planning_state" => BuildContext.accepted_planning_state_ref(refresh),
+      "accepted_planning_state" =>
+        BuildContext.accepted_planning_state_ref(refresh, accepted_state_evidence_authority),
       "refreshed_windows" => windows,
       "candidate_activities" => candidates,
       "contact_intents" =>
@@ -208,7 +218,8 @@ defmodule OrbitalDynamics.CandidateRefresh.Build do
           allocation_dropped_candidates: allocation_dropped_candidates,
           resource_filter_report: resource_filter_report,
           refresh_budget_report: refresh_budget_report,
-          freshness_report: freshness_report
+          freshness_report: freshness_report,
+          accepted_state_evidence_authority: accepted_state_evidence_authority
         }),
       "model_limits" => model_limits(),
       "assumptions" =>
@@ -221,7 +232,8 @@ defmodule OrbitalDynamics.CandidateRefresh.Build do
           refresh,
           result_set.metadata,
           &OperationalFeedbackProvenance.build/1,
-          &InputProvenance.build/1
+          &InputProvenance.build/1,
+          accepted_state_evidence_authority
         ),
       "source_window_lineage" => SourceWindowLineage.build(candidates)
     }

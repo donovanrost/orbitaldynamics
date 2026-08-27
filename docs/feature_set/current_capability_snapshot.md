@@ -130,6 +130,12 @@ Implemented or partially implemented modules and artifacts include:
   paths, with replay-derived pressure feeding explainable V3 score terms for
   branch-local contact, resource, station-calendar, timeline, readiness,
   quality-gate, import-readiness, validation, and storage/downlink tradeoffs.
+  The current CandidateRefresh source candidate carries an explicit
+  accepted-state covariance/source-identity authority summary so unsafe metadata
+  is review-visible while remaining non-authoritative for candidate selection,
+  branch ordering, recommendation, execution policy, covariance propagation,
+  external truth, and Cadence authorization; generated artifact/schema
+  convergence remains deferred.
   Explicit unavailable-resource contact IDs from canonical operational
   readiness evidence, the compact quality-gate summary, or row-derived
   canonical contact-allocation resource suppressions now also affect
