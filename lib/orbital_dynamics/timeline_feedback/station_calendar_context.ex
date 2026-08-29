@@ -7,7 +7,7 @@ defmodule OrbitalDynamics.TimelineFeedback.StationCalendarContext do
     RealizedIdentity
   }
 
-  @stable_id_pattern ~r/^[A-Za-z0-9][A-Za-z0-9._:@-]*$/
+  @stable_id_validation OrbitalDynamics.Schema.StableIdValidation
 
   @station_capacity_fraction_paths [
     ["capacity_pack_capacity_fraction"],
@@ -263,7 +263,7 @@ defmodule OrbitalDynamics.TimelineFeedback.StationCalendarContext do
   end
 
   defp first_identifier(map, keys),
-    do: RealizedIdentity.first_identifier(map, keys, @stable_id_pattern)
+    do: RealizedIdentity.first_identifier(map, keys, @stable_id_validation)
 
   defp numeric_value(value), do: ExecutionUncertainty.numeric_value(value)
 end

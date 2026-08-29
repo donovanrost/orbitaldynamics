@@ -3,7 +3,7 @@ defmodule OrbitalDynamics.TimelineFeedback.FeedbackAggregation do
 
   alias OrbitalDynamics.TimelineFeedback.{ArtifactValue, OutcomeValue, RealizedIdentity}
 
-  @stable_id_pattern ~r/^[A-Za-z0-9][A-Za-z0-9._:@-]*$/
+  @stable_id_validation OrbitalDynamics.Schema.StableIdValidation
   @identity_fields ~w(activity_id ground_station_id target_id spacecraft_id resource_id)
 
   def excluded?(%{"operational_feedback_excluded" => true}), do: true
@@ -13,7 +13,7 @@ defmodule OrbitalDynamics.TimelineFeedback.FeedbackAggregation do
   def stable_identifier(value) do
     value
     |> ArtifactValue.stringify_scalar()
-    |> RealizedIdentity.stable_value(@stable_id_pattern)
+    |> RealizedIdentity.stable_value(@stable_id_validation)
   end
 
   def average_by(rows, key_fun, value_fun) do

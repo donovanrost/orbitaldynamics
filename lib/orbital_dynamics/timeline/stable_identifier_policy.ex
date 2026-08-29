@@ -1,6 +1,6 @@
 defmodule OrbitalDynamics.Timeline.StableIdentifierPolicy do
   @moduledoc false
 
-  def valid?(id, stable_id_pattern) when is_binary(id),
-    do: Regex.match?(stable_id_pattern, id)
+  def valid?(id, stable_id_validation) when is_binary(id),
+    do: stable_id_validation.valid?(id)
 end

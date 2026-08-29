@@ -3,7 +3,7 @@ defmodule OrbitalDynamics.TimelineFeedback.ThermalContext do
 
   alias OrbitalDynamics.TimelineFeedback.{ArtifactValue, RealizedIdentity, Throughput}
 
-  @stable_id_pattern ~r/^[A-Za-z0-9][A-Za-z0-9._:@-]*$/
+  @stable_id_validation OrbitalDynamics.Schema.StableIdValidation
 
   def build(activity) do
     planned_temperature_c = planned_temperature_c(activity)
@@ -17,7 +17,7 @@ defmodule OrbitalDynamics.TimelineFeedback.ThermalContext do
         RealizedIdentity.first_identifier(
           activity,
           ["thermal_zone_id", "thermal_component_id", "thermal_node_id"],
-          @stable_id_pattern
+          @stable_id_validation
         ),
       "temperature_c" => temperature_c(activity),
       "planned_temperature_c" => planned_temperature_c,

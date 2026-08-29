@@ -37,7 +37,7 @@ defmodule OrbitalDynamics.TimelineFeedback do
     "cancel" => "canceled"
   }
   @command_contact_directions ~w(command uplink)
-  @stable_id_pattern ~r/^[A-Za-z0-9][A-Za-z0-9._:@-]*$/
+  @stable_id_validation OrbitalDynamics.Schema.StableIdValidation
   @provider_result_map_value_keys ~w(result results outcome outcomes status state disposition provider_result provider_results provider_outcome provider_outcomes provider_status provider_state provider_code code reason reasons message messages error errors details metadata provider diagnostics)
   @realized_status_policy {
     @realized_terminal_statuses,
@@ -1000,7 +1000,8 @@ defmodule OrbitalDynamics.TimelineFeedback do
     ])
   end
 
-  defp operational_context(activity), do: OperationalContext.build(activity, @stable_id_pattern)
+  defp operational_context(activity),
+    do: OperationalContext.build(activity, @stable_id_validation)
 
   defp thermal_context(activity), do: ThermalContext.build(activity)
 
@@ -1413,10 +1414,10 @@ defmodule OrbitalDynamics.TimelineFeedback do
   defp provider_result_artifact_value(result),
     do: ProviderResult.artifact_value(result, @provider_result_map_value_keys)
 
-  defp identifier(map, key), do: RealizedIdentity.identifier(map, key, @stable_id_pattern)
+  defp identifier(map, key), do: RealizedIdentity.identifier(map, key, @stable_id_validation)
 
   defp realized_input_identity_issue(activity),
-    do: RealizedIdentity.input_issue(activity, @stable_id_pattern)
+    do: RealizedIdentity.input_issue(activity, @stable_id_validation)
 
   defp realized_status_supported?(activity),
     do: RealizedStatus.supported?(activity, @realized_status_policy)
@@ -1428,13 +1429,13 @@ defmodule OrbitalDynamics.TimelineFeedback do
     do: RealizedStatus.feedback_value(activity, @realized_status_policy)
 
   defp source_realized_activity_id(source_activity),
-    do: RealizedIdentity.source_id(source_activity, @stable_id_pattern)
+    do: RealizedIdentity.source_id(source_activity, @stable_id_validation)
 
   defp invalid_realized_planned_activity_id(source_activity),
-    do: RealizedIdentity.invalid_planned_id(source_activity, @stable_id_pattern)
+    do: RealizedIdentity.invalid_planned_id(source_activity, @stable_id_validation)
 
   defp invalid_realized_timeline_id(source_activity),
-    do: RealizedIdentity.invalid_timeline_id(source_activity, @stable_id_pattern)
+    do: RealizedIdentity.invalid_timeline_id(source_activity, @stable_id_validation)
 
   defp invalid_realized_status_reason(activity) do
     RealizedStatus.invalid_reason(activity, @realized_status_policy)
@@ -1443,7 +1444,7 @@ defmodule OrbitalDynamics.TimelineFeedback do
   defp unsupported_realized_status(source_activity, reason),
     do: RealizedStatus.unsupported_value(source_activity, reason, @realized_status_policy)
 
-  defp realized_id!(activity), do: RealizedIdentity.id!(activity, @stable_id_pattern)
+  defp realized_id!(activity), do: RealizedIdentity.id!(activity, @stable_id_validation)
 
   defp first_number(map, keys), do: Throughput.first_number(map, keys)
   defp planned_data_volume_mb(activity), do: Throughput.planned_data_volume_mb(activity)
@@ -1529,12 +1530,12 @@ defmodule OrbitalDynamics.TimelineFeedback do
   defp present_string?(value), do: ArtifactValue.present_string?(value)
 
   defp first_identifier(map, keys),
-    do: RealizedIdentity.first_identifier(map, keys, @stable_id_pattern)
+    do: RealizedIdentity.first_identifier(map, keys, @stable_id_validation)
 
   defp first_value(map, keys), do: RealizedIdentity.first_value(map, keys)
 
   defp normalize_id_list(value, map_keys),
-    do: RealizedIdentity.normalize_list(value, map_keys, @stable_id_pattern)
+    do: RealizedIdentity.normalize_list(value, map_keys, @stable_id_validation)
 
   defp required_id!(map, key), do: RealizedIdentity.required_id!(map, key)
 

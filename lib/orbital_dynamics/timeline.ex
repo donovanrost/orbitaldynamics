@@ -255,7 +255,7 @@ defmodule OrbitalDynamics.Timeline do
   @command_health_activity_types ~w(command health_check)
   @command_contact_directions OrbitalDynamics.Timeline.OperationalRowClassificationPolicy.command_contact_directions()
   @operational_kinds ~w(activity attitude coast command contact health_check maneuver observation)
-  @stable_id_pattern ~r/^[A-Za-z0-9][A-Za-z0-9._:@-]*$/
+  @stable_id_validation OrbitalDynamics.Schema.StableIdValidation
   @provider_result_map_value_keys ~w(result results outcome outcomes status state disposition provider_result provider_results provider_outcome provider_outcomes provider_status provider_state provider_code code reason reasons message messages error errors details metadata provider diagnostics)
   @activity_lighting_field_aliases [
     {"lighting_condition", ["lighting_condition", "lighting_status"]},
@@ -2108,7 +2108,7 @@ defmodule OrbitalDynamics.Timeline do
   end
 
   defp stable_activity_id?(id) do
-    OrbitalDynamics.Timeline.StableIdentifierPolicy.valid?(id, @stable_id_pattern)
+    OrbitalDynamics.Timeline.StableIdentifierPolicy.valid?(id, @stable_id_validation)
   end
 
   defp invalid_activity_input_rows(rows) do
@@ -2482,7 +2482,7 @@ defmodule OrbitalDynamics.Timeline do
   end
 
   defp activity_dependency_context(activity) do
-    OrbitalDynamics.Timeline.ActivityRelationshipContext.build(activity, @stable_id_pattern)
+    OrbitalDynamics.Timeline.ActivityRelationshipContext.build(activity, @stable_id_validation)
   end
 
   defp activity_feedback_context(activity) do
@@ -2493,7 +2493,7 @@ defmodule OrbitalDynamics.Timeline do
   end
 
   defp activity_product_context(activity) do
-    OrbitalDynamics.Timeline.ActivityProductDeliveryContext.build(activity, @stable_id_pattern)
+    OrbitalDynamics.Timeline.ActivityProductDeliveryContext.build(activity, @stable_id_validation)
   end
 
   defp activity_observation_quality_context(activity) do
@@ -2501,15 +2501,15 @@ defmodule OrbitalDynamics.Timeline do
   end
 
   defp activity_pointing_context(activity) do
-    OrbitalDynamics.Timeline.ActivityOrientationContext.pointing(activity, @stable_id_pattern)
+    OrbitalDynamics.Timeline.ActivityOrientationContext.pointing(activity, @stable_id_validation)
   end
 
   defp activity_attitude_context(activity) do
-    OrbitalDynamics.Timeline.ActivityOrientationContext.attitude(activity, @stable_id_pattern)
+    OrbitalDynamics.Timeline.ActivityOrientationContext.attitude(activity, @stable_id_validation)
   end
 
   defp activity_thermal_context(activity) do
-    OrbitalDynamics.Timeline.ActivityThermalContext.build(activity, @stable_id_pattern)
+    OrbitalDynamics.Timeline.ActivityThermalContext.build(activity, @stable_id_validation)
   end
 
   defp activity_lighting_context(activity) do
@@ -4862,56 +4862,56 @@ defmodule OrbitalDynamics.Timeline do
   defp dependency_activity_ids(activity) do
     OrbitalDynamics.Timeline.ActivityRelationshipContext.dependency_activity_ids(
       activity,
-      @stable_id_pattern
+      @stable_id_validation
     )
   end
 
   defp duplicate_dependency_activity_ids(activity) do
     OrbitalDynamics.Timeline.ActivityRelationshipContext.duplicate_dependency_activity_ids(
       activity,
-      @stable_id_pattern
+      @stable_id_validation
     )
   end
 
   defp dependency_timeline_ids(activity) do
     OrbitalDynamics.Timeline.ActivityRelationshipContext.dependency_timeline_ids(
       activity,
-      @stable_id_pattern
+      @stable_id_validation
     )
   end
 
   defp duplicate_dependency_timeline_ids(activity) do
     OrbitalDynamics.Timeline.ActivityRelationshipContext.duplicate_dependency_timeline_ids(
       activity,
-      @stable_id_pattern
+      @stable_id_validation
     )
   end
 
   defp exclusive_with_activity_ids(activity) do
     OrbitalDynamics.Timeline.ActivityRelationshipContext.exclusive_with_activity_ids(
       activity,
-      @stable_id_pattern
+      @stable_id_validation
     )
   end
 
   defp duplicate_exclusivity_activity_ids(activity) do
     OrbitalDynamics.Timeline.ActivityRelationshipContext.duplicate_exclusivity_activity_ids(
       activity,
-      @stable_id_pattern
+      @stable_id_validation
     )
   end
 
   defp exclusive_with_timeline_ids(activity) do
     OrbitalDynamics.Timeline.ActivityRelationshipContext.exclusive_with_timeline_ids(
       activity,
-      @stable_id_pattern
+      @stable_id_validation
     )
   end
 
   defp duplicate_exclusivity_timeline_ids(activity) do
     OrbitalDynamics.Timeline.ActivityRelationshipContext.duplicate_exclusivity_timeline_ids(
       activity,
-      @stable_id_pattern
+      @stable_id_validation
     )
   end
 

@@ -3,27 +3,27 @@ defmodule OrbitalDynamics.TimelineFeedback.RealizedIdentity do
 
   @identity_keys ~w(id realized_activity_id planned_activity_id activity_id timeline_id)
 
-  def identifier(map, key, stable_id_pattern) do
+  def identifier(map, key, stable_id_validation) do
     case Map.get(map, key) do
       nil ->
         nil
 
       value when is_binary(value) and value != "" ->
-        if(stable?(value, stable_id_pattern), do: value)
+        if(stable?(value, stable_id_validation), do: value)
 
       value when is_atom(value) ->
-        value |> Atom.to_string() |> stable_value(stable_id_pattern)
+        value |> Atom.to_string() |> stable_value(stable_id_validation)
 
       _value ->
         nil
     end
   end
 
-  def input_identity(activity, stable_id_pattern) do
-    Enum.find_value(@identity_keys, &identifier(activity, &1, stable_id_pattern))
+  def input_identity(activity, stable_id_validation) do
+    Enum.find_value(@identity_keys, &identifier(activity, &1, stable_id_validation))
   end
 
-  def input_issue(activity, stable_id_pattern) do
+  def input_issue(activity, stable_id_validation) do
     raw_identities =
       @identity_keys
       |> Enum.map(&raw_identifier(activity, &1))
@@ -32,10 +32,10 @@ defmodule OrbitalDynamics.TimelineFeedback.RealizedIdentity do
       |> Enum.reject(&is_nil/1)
 
     cond do
-      Enum.any?(raw_identities, &(not stable?(&1, stable_id_pattern))) ->
+      Enum.any?(raw_identities, &(not stable?(&1, stable_id_validation))) ->
         "invalid_realized_feedback_id"
 
-      input_identity(activity, stable_id_pattern) in [nil, ""] ->
+      input_identity(activity, stable_id_validation) in [nil, ""] ->
         "missing_realized_feedback_id"
 
       true ->
@@ -43,47 +43,56 @@ defmodule OrbitalDynamics.TimelineFeedback.RealizedIdentity do
     end
   end
 
-  def source_id(source_activity, stable_id_pattern) do
-    identifier(source_activity, "id", stable_id_pattern) ||
-      identifier(source_activity, "realized_activity_id", stable_id_pattern)
+  def source_id(source_activity, stable_id_validation) do
+    identifier(source_activity, "id", stable_id_validation) ||
+      identifier(source_activity, "realized_activity_id", stable_id_validation)
   end
 
-  def invalid_planned_id(source_activity, stable_id_pattern) do
-    identifier(source_activity, "planned_activity_id", stable_id_pattern) ||
-      identifier(source_activity, "activity_id", stable_id_pattern) ||
-      source_id(source_activity, stable_id_pattern)
+  def invalid_planned_id(source_activity, stable_id_validation) do
+    identifier(source_activity, "planned_activity_id", stable_id_validation) ||
+      identifier(source_activity, "activity_id", stable_id_validation) ||
+      source_id(source_activity, stable_id_validation)
   end
 
-  def invalid_timeline_id(source_activity, stable_id_pattern) do
-    identifier(source_activity, "timeline_id", stable_id_pattern) ||
-      stable_value(get_in(source_activity, ["metadata", "timeline_id"]), stable_id_pattern)
+  def invalid_timeline_id(source_activity, stable_id_validation) do
+    identifier(source_activity, "timeline_id", stable_id_validation) ||
+      stable_value(get_in(source_activity, ["metadata", "timeline_id"]), stable_id_validation)
   end
 
-  def id!(activity, stable_id_pattern) do
-    input_identity(activity, stable_id_pattern) || raise(ArgumentError, "id is required")
+  def id!(activity, stable_id_validation) do
+    input_identity(activity, stable_id_validation) || raise(ArgumentError, "id is required")
   end
 
-  def stable_value(value, stable_id_pattern) when is_binary(value) do
-    if stable?(value, stable_id_pattern), do: value
+  def stable_value(value, stable_id_validation) when is_binary(value) do
+    if stable?(value, stable_id_validation), do: value
   end
 
-  def stable_value(_value, _stable_id_pattern), do: nil
+  def stable_value(_value, _stable_id_validation), do: nil
 
-  def stable?(value, stable_id_pattern) when is_binary(value),
-    do: Regex.match?(stable_id_pattern, value)
+  def stable?(value, stable_id_validation) when is_binary(value),
+    do: stable_id_validation.valid?(value)
 
-  def stable?(_value, _stable_id_pattern), do: false
+  def stable?(_value, _stable_id_validation), do: false
 
-  def first_identifier(map, keys, stable_id_pattern) do
+  def first_identifier(map, keys, stable_id_validation) do
     Enum.find_value(keys, fn key ->
       value = first_value(map, [key])
 
       case value do
-        nil -> nil
-        value when is_binary(value) and value != "" -> stable_value(value, stable_id_pattern)
-        value when is_atom(value) -> value |> Atom.to_string() |> stable_value(stable_id_pattern)
-        %{} = nested -> identifier(nested, "id", stable_id_pattern)
-        _value -> nil
+        nil ->
+          nil
+
+        value when is_binary(value) and value != "" ->
+          stable_value(value, stable_id_validation)
+
+        value when is_atom(value) ->
+          value |> Atom.to_string() |> stable_value(stable_id_validation)
+
+        %{} = nested ->
+          identifier(nested, "id", stable_id_validation)
+
+        _value ->
+          nil
       end
     end)
   end
@@ -100,18 +109,18 @@ defmodule OrbitalDynamics.TimelineFeedback.RealizedIdentity do
     end)
   end
 
-  def normalize_list(nil, _map_keys, _stable_id_pattern), do: nil
+  def normalize_list(nil, _map_keys, _stable_id_validation), do: nil
 
-  def normalize_list(values, map_keys, stable_id_pattern) when is_list(values) do
+  def normalize_list(values, map_keys, stable_id_validation) when is_list(values) do
     values
     |> Enum.flat_map(&id_values(&1, map_keys))
-    |> normalize_scalar_ids(stable_id_pattern)
+    |> normalize_scalar_ids(stable_id_validation)
   end
 
-  def normalize_list(value, map_keys, stable_id_pattern) do
+  def normalize_list(value, map_keys, stable_id_validation) do
     value
     |> id_values(map_keys)
-    |> normalize_scalar_ids(stable_id_pattern)
+    |> normalize_scalar_ids(stable_id_validation)
   end
 
   def required_id!(map, key) do
@@ -204,9 +213,9 @@ defmodule OrbitalDynamics.TimelineFeedback.RealizedIdentity do
 
   defp id_values(value, _map_keys), do: [value]
 
-  defp normalize_scalar_ids(values, stable_id_pattern) do
+  defp normalize_scalar_ids(values, stable_id_validation) do
     values
-    |> Enum.flat_map(&stable_id_values(&1, stable_id_pattern))
+    |> Enum.flat_map(&stable_id_values(&1, stable_id_validation))
     |> Enum.uniq()
     |> Enum.sort()
     |> case do
@@ -215,26 +224,26 @@ defmodule OrbitalDynamics.TimelineFeedback.RealizedIdentity do
     end
   end
 
-  defp stable_id_values(nil, _stable_id_pattern), do: []
-  defp stable_id_values(value, _stable_id_pattern) when is_boolean(value), do: []
+  defp stable_id_values(nil, _stable_id_validation), do: []
+  defp stable_id_values(value, _stable_id_validation) when is_boolean(value), do: []
 
-  defp stable_id_values(value, stable_id_pattern) when is_atom(value) do
+  defp stable_id_values(value, stable_id_validation) when is_atom(value) do
     value
     |> Atom.to_string()
-    |> stable_id_values(stable_id_pattern)
+    |> stable_id_values(stable_id_validation)
   end
 
-  defp stable_id_values("nil", _stable_id_pattern), do: []
+  defp stable_id_values("nil", _stable_id_validation), do: []
 
-  defp stable_id_values(value, stable_id_pattern) when is_binary(value) and value != "" do
-    if stable?(value, stable_id_pattern), do: [value], else: []
+  defp stable_id_values(value, stable_id_validation) when is_binary(value) and value != "" do
+    if stable?(value, stable_id_validation), do: [value], else: []
   end
 
-  defp stable_id_values(value, stable_id_pattern) when is_integer(value) do
+  defp stable_id_values(value, stable_id_validation) when is_integer(value) do
     value
     |> Integer.to_string()
-    |> stable_id_values(stable_id_pattern)
+    |> stable_id_values(stable_id_validation)
   end
 
-  defp stable_id_values(_value, _stable_id_pattern), do: []
+  defp stable_id_values(_value, _stable_id_validation), do: []
 end

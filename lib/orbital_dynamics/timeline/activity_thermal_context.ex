@@ -1,7 +1,7 @@
 defmodule OrbitalDynamics.Timeline.ActivityThermalContext do
   @moduledoc false
 
-  def build(activity, stable_id_pattern) do
+  def build(activity, stable_id_validation) do
     planned_temperature_c = planned_temperature_c(activity)
     actual_temperature_c = actual_temperature_c(activity)
 
@@ -13,7 +13,7 @@ defmodule OrbitalDynamics.Timeline.ActivityThermalContext do
         first_stable_identifier(
           activity,
           ["thermal_zone_id", "thermal_component_id", "thermal_node_id"],
-          stable_id_pattern
+          stable_id_validation
         ),
       "temperature_c" => temperature_c(activity),
       "planned_temperature_c" => planned_temperature_c,
@@ -74,11 +74,11 @@ defmodule OrbitalDynamics.Timeline.ActivityThermalContext do
     )
   end
 
-  defp first_stable_identifier(activity, keys, stable_id_pattern) do
+  defp first_stable_identifier(activity, keys, stable_id_validation) do
     OrbitalDynamics.Timeline.ActivityFieldValuePolicy.first_stable_identifier(
       activity,
       keys,
-      &OrbitalDynamics.Timeline.StableIdentifierPolicy.valid?(&1, stable_id_pattern)
+      &OrbitalDynamics.Timeline.StableIdentifierPolicy.valid?(&1, stable_id_validation)
     )
   end
 

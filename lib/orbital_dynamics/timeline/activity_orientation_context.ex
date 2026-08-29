@@ -1,14 +1,14 @@
 defmodule OrbitalDynamics.Timeline.ActivityOrientationContext do
   @moduledoc false
 
-  def pointing(activity, stable_id_pattern) do
+  def pointing(activity, stable_id_validation) do
     %{
       "pointing_mode" => first_scalar_string(activity, ["pointing_mode", "attitude_mode"]),
       "pointing_target_id" =>
         first_stable_identifier(
           activity,
           ["pointing_target_id", "attitude_target_id"],
-          stable_id_pattern
+          stable_id_validation
         ),
       "boresight_axis" => first_scalar_string(activity, ["boresight_axis", "sensor_axis"]),
       "off_nadir_angle_deg" => first_number(activity, ["off_nadir_angle_deg", "look_angle_deg"]),
@@ -25,11 +25,11 @@ defmodule OrbitalDynamics.Timeline.ActivityOrientationContext do
     |> compact_map()
   end
 
-  def attitude(activity, stable_id_pattern) do
+  def attitude(activity, stable_id_validation) do
     %{
       "attitude_mode" => first_scalar_string(activity, ["attitude_mode"]),
       "attitude_target_id" =>
-        first_stable_identifier(activity, ["attitude_target_id"], stable_id_pattern),
+        first_stable_identifier(activity, ["attitude_target_id"], stable_id_validation),
       "roll_deg" => first_number(activity, ["roll_deg"]),
       "pitch_deg" => first_number(activity, ["pitch_deg"]),
       "yaw_deg" => first_number(activity, ["yaw_deg"]),
@@ -42,11 +42,11 @@ defmodule OrbitalDynamics.Timeline.ActivityOrientationContext do
     |> compact_map()
   end
 
-  defp first_stable_identifier(activity, keys, stable_id_pattern) do
+  defp first_stable_identifier(activity, keys, stable_id_validation) do
     OrbitalDynamics.Timeline.ActivityFieldValuePolicy.first_stable_identifier(
       activity,
       keys,
-      &OrbitalDynamics.Timeline.StableIdentifierPolicy.valid?(&1, stable_id_pattern)
+      &OrbitalDynamics.Timeline.StableIdentifierPolicy.valid?(&1, stable_id_validation)
     )
   end
 

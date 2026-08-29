@@ -4,6 +4,28 @@ defmodule OrbitalDynamics.TimelineFeedbackTest do
   alias OrbitalDynamics.MissionPlan.Activity
   alias OrbitalDynamics.{Schema, Timeline, TimelineFeedback}
 
+  defmodule RejectingStableIdValidation do
+    @moduledoc false
+
+    def valid?(_value), do: false
+  end
+
+  test "routes Timeline leaf Stable-ID validation through the supplied authority" do
+    valid_id = "timeline:activity-1"
+
+    assert OrbitalDynamics.Schema.StableIdValidation.valid?(valid_id)
+
+    refute OrbitalDynamics.Timeline.StableIdentifierPolicy.valid?(
+             valid_id,
+             RejectingStableIdValidation
+           )
+
+    refute OrbitalDynamics.TimelineFeedback.RealizedIdentity.stable?(
+             valid_id,
+             RejectingStableIdValidation
+           )
+  end
+
   test "declares feedback reconciliation capabilities" do
     assert %{
              artifact_contract: "timeline_feedback_report.v1",
@@ -278,10 +300,10 @@ defmodule OrbitalDynamics.TimelineFeedbackTest do
     assert %{"required" => ["trust_boundary"]} in trust_boundary_options
 
     assert get_in(realized_schema, ["properties", "target", "properties", "id", "pattern"]) ==
-             "^[A-Za-z0-9][A-Za-z0-9._:@-]*$"
+             stable_pattern
 
     assert get_in(realized_schema, ["properties", "resource_id", "pattern"]) ==
-             "^[A-Za-z0-9][A-Za-z0-9._:@-]*$"
+             stable_pattern
 
     assert get_in(realized_schema, ["properties", "battery_state_of_charge", "type"]) == "number"
     assert get_in(realized_schema, ["properties", "payload_available", "type"]) == "boolean"
@@ -297,19 +319,19 @@ defmodule OrbitalDynamics.TimelineFeedbackTest do
            ]) == "string"
 
     assert get_in(realized_schema, ["properties", "collection_id", "pattern"]) ==
-             "^[A-Za-z0-9][A-Za-z0-9._:@-]*$"
+             stable_pattern
 
     assert get_in(realized_schema, ["properties", "product_id", "pattern"]) ==
-             "^[A-Za-z0-9][A-Za-z0-9._:@-]*$"
+             stable_pattern
 
     assert get_in(realized_schema, ["properties", "product_ids", "items", "pattern"]) ==
-             "^[A-Za-z0-9][A-Za-z0-9._:@-]*$"
+             stable_pattern
 
     assert get_in(realized_schema, ["properties", "payload_id", "pattern"]) ==
-             "^[A-Za-z0-9][A-Za-z0-9._:@-]*$"
+             stable_pattern
 
     assert get_in(realized_schema, ["properties", "instrument_id", "pattern"]) ==
-             "^[A-Za-z0-9][A-Za-z0-9._:@-]*$"
+             stable_pattern
 
     assert get_in(realized_schema, ["properties", "actual_data_volume_mb", "type"]) == "number"
     assert get_in(realized_schema, ["properties", "estimated_downlink_mb", "type"]) == "number"
@@ -336,28 +358,28 @@ defmodule OrbitalDynamics.TimelineFeedbackTest do
     assert get_in(
              realized_schema,
              ["properties", "station", "properties", "station_id", "pattern"]
-           ) == "^[A-Za-z0-9][A-Za-z0-9._:@-]*$"
+           ) == stable_pattern
 
     assert get_in(
              realized_schema,
              ["properties", "ground_station", "properties", "ground_station_id", "pattern"]
-           ) == "^[A-Za-z0-9][A-Za-z0-9._:@-]*$"
+           ) == stable_pattern
 
     assert get_in(
              realized_schema,
              ["properties", "spacecraft", "properties", "spacecraft_id", "pattern"]
-           ) == "^[A-Za-z0-9][A-Za-z0-9._:@-]*$"
+           ) == stable_pattern
 
     assert get_in(
              realized_schema,
              ["properties", "satellite", "properties", "satellite_id", "pattern"]
-           ) == "^[A-Za-z0-9][A-Za-z0-9._:@-]*$"
+           ) == stable_pattern
 
     assert get_in(realized_schema, ["properties", "attitude_target_id", "pattern"]) ==
-             "^[A-Za-z0-9][A-Za-z0-9._:@-]*$"
+             stable_pattern
 
     assert get_in(realized_schema, ["properties", "pointing_target_id", "pattern"]) ==
-             "^[A-Za-z0-9][A-Za-z0-9._:@-]*$"
+             stable_pattern
 
     assert get_in(realized_schema, ["properties", "pointing_mode", "type"]) == "string"
     assert get_in(realized_schema, ["properties", "boresight_axis", "type"]) == "string"
@@ -381,7 +403,7 @@ defmodule OrbitalDynamics.TimelineFeedbackTest do
     assert get_in(realized_schema, ["properties", "attitude_confidence", "type"]) == "number"
 
     assert get_in(realized_schema, ["properties", "thermal_zone_id", "pattern"]) ==
-             "^[A-Za-z0-9][A-Za-z0-9._:@-]*$"
+             stable_pattern
 
     assert get_in(realized_schema, ["properties", "temperature_c", "type"]) == "number"
     assert get_in(realized_schema, ["properties", "planned_temperature_c", "type"]) == "number"

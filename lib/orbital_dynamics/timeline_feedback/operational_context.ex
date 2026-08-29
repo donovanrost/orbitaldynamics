@@ -8,11 +8,11 @@ defmodule OrbitalDynamics.TimelineFeedback.OperationalContext do
     Throughput
   }
 
-  def build(activity, stable_id_pattern) do
+  def build(activity, stable_id_validation) do
     activity
     |> resource_context()
-    |> Map.merge(pointing_context(activity, stable_id_pattern))
-    |> Map.merge(attitude_context(activity, stable_id_pattern))
+    |> Map.merge(pointing_context(activity, stable_id_validation))
+    |> Map.merge(attitude_context(activity, stable_id_validation))
     |> Map.merge(command_authority_context(activity))
     |> Map.merge(lighting_context(activity))
     |> Map.merge(observation_quality_context(activity))
@@ -68,14 +68,14 @@ defmodule OrbitalDynamics.TimelineFeedback.OperationalContext do
     |> compact_map()
   end
 
-  defp pointing_context(activity, stable_id_pattern) do
+  defp pointing_context(activity, stable_id_validation) do
     %{
       "pointing_mode" => first_string(activity, ["pointing_mode", "attitude_mode"]),
       "pointing_target_id" =>
         first_identifier(
           activity,
           ["pointing_target_id", "attitude_target_id"],
-          stable_id_pattern
+          stable_id_validation
         ),
       "boresight_axis" => first_string(activity, ["boresight_axis", "sensor_axis"]),
       "off_nadir_angle_deg" => first_number(activity, ["off_nadir_angle_deg", "look_angle_deg"]),
@@ -92,11 +92,11 @@ defmodule OrbitalDynamics.TimelineFeedback.OperationalContext do
     |> compact_map()
   end
 
-  defp attitude_context(activity, stable_id_pattern) do
+  defp attitude_context(activity, stable_id_validation) do
     %{
       "attitude_mode" => first_string(activity, ["attitude_mode"]),
       "attitude_target_id" =>
-        first_identifier(activity, ["attitude_target_id"], stable_id_pattern),
+        first_identifier(activity, ["attitude_target_id"], stable_id_validation),
       "roll_deg" => first_number(activity, ["roll_deg"]),
       "pitch_deg" => first_number(activity, ["pitch_deg"]),
       "yaw_deg" => first_number(activity, ["yaw_deg"]),
@@ -282,8 +282,8 @@ defmodule OrbitalDynamics.TimelineFeedback.OperationalContext do
 
   defp normalize_string_list(value), do: normalize_string_list([value])
 
-  defp first_identifier(map, keys, stable_id_pattern),
-    do: RealizedIdentity.first_identifier(map, keys, stable_id_pattern)
+  defp first_identifier(map, keys, stable_id_validation),
+    do: RealizedIdentity.first_identifier(map, keys, stable_id_validation)
 
   defp first_value(map, keys), do: RealizedIdentity.first_value(map, keys)
   defp first_number(map, keys), do: Throughput.first_number(map, keys)

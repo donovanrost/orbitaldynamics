@@ -1,7 +1,7 @@
 defmodule OrbitalDynamics.Timeline.ActivityProductDeliveryContext do
   @moduledoc false
 
-  def build(activity, stable_id_pattern) do
+  def build(activity, stable_id_validation) do
     collection_ends_at_s = collection_ends_at_s(activity)
     planned_delivery_at_s = planned_delivery_at_s(activity)
     actual_delivery_at_s = actual_delivery_at_s(activity)
@@ -14,7 +14,7 @@ defmodule OrbitalDynamics.Timeline.ActivityProductDeliveryContext do
       "product_id" => first_value(activity, ["product_id", "data_product_id"]),
       "product_ids" =>
         first_value(activity, ["product_ids", "data_product_ids"])
-        |> normalize_id_list(["id", "product_id", "data_product_id"], stable_id_pattern),
+        |> normalize_id_list(["id", "product_id", "data_product_id"], stable_id_validation),
       "payload_id" => first_value(activity, ["payload_id", "payload"]),
       "instrument_id" => first_value(activity, ["instrument_id", "instrument"]),
       "data_volume_mb" =>
@@ -57,7 +57,7 @@ defmodule OrbitalDynamics.Timeline.ActivityProductDeliveryContext do
       "target_priority_source" => first_scalar_string(activity, ["target_priority_source"]),
       "target_priority_objective_ids" =>
         first_value(activity, ["target_priority_objective_ids", "observation_objective_ids"])
-        |> normalize_id_list(["id", "objective_id"], stable_id_pattern),
+        |> normalize_id_list(["id", "objective_id"], stable_id_validation),
       "target_priority_objective_type" =>
         first_scalar_string(activity, [
           "target_priority_objective_type",
@@ -151,11 +151,11 @@ defmodule OrbitalDynamics.Timeline.ActivityProductDeliveryContext do
     OrbitalDynamics.Timeline.ActivityFieldValuePolicy.first_scalar_string(activity, keys)
   end
 
-  defp normalize_id_list(value, map_keys, stable_id_pattern) do
+  defp normalize_id_list(value, map_keys, stable_id_validation) do
     OrbitalDynamics.Timeline.ActivityReferenceIdPolicy.normalize(
       value,
       map_keys,
-      &OrbitalDynamics.Timeline.StableIdentifierPolicy.valid?(&1, stable_id_pattern)
+      &OrbitalDynamics.Timeline.StableIdentifierPolicy.valid?(&1, stable_id_validation)
     )
   end
 
