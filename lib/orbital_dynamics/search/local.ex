@@ -11,6 +11,8 @@ defmodule OrbitalDynamics.Search.Local do
   @max_step_parameters 32
   @max_alternatives_limit 65
 
+  alias OrbitalDynamics.Schema.StableIdValidation
+
   @doc """
   Declares the neighborhood model, deterministic ordering, and known limits.
   """
@@ -227,8 +229,8 @@ defmodule OrbitalDynamics.Search.Local do
       not MapSet.subset?(bound_names, parameter_names) ->
         raise ArgumentError, "bounds keys must identify seed parameters"
 
-      not is_binary(id_prefix) or id_prefix == "" ->
-        raise ArgumentError, "id_prefix must be a non-empty string"
+      not StableIdValidation.valid?(id_prefix) ->
+        raise ArgumentError, "id_prefix must be a valid stable ID"
 
       not is_integer(max_alternatives) or max_alternatives <= 0 or
           max_alternatives > @max_alternatives_limit ->

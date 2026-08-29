@@ -4,6 +4,26 @@ defmodule OrbitalDynamics.Search.GridTest do
   alias OrbitalDynamics.Search.Grid
   alias OrbitalDynamics.{CentralBody, Epoch, Frame, Scenario, Spacecraft, StateVector}
 
+  @id_prefix_error "id_prefix must be a valid stable ID"
+  @invalid_id_prefixes [
+    nil,
+    :invalid,
+    0,
+    [],
+    %{},
+    "",
+    " ",
+    "\n",
+    "prefix\n",
+    "_leading",
+    "-leading",
+    ".leading",
+    ":leading",
+    "contains/slash",
+    "contains\tcontrol",
+    <<0xFF>>
+  ]
+
   test "declares generator capabilities" do
     assert %{
              generator: :impulsive_burn_grid,
@@ -40,6 +60,25 @@ defmodule OrbitalDynamics.Search.GridTest do
     assert burn.id == "raise_apogee_1_1_burn"
     assert burn.epoch.seconds_since_j2000 == 55.0
     assert burn.delta_v_km_s == {0.0, 0.005, 0.0}
+  end
+
+  test "preserves a canonical id prefix and rejects every invalid prefix before output" do
+    opts = [burn_epoch_s: [55.0], delta_v_km_s: [{0.0, 0.005, 0.0}]]
+
+    assert [%{id: "Mission.1:@-x_1_1", maneuvers: [%{id: "Mission.1:@-x_1_1_burn"}]}] =
+             Grid.impulsive_burn_grid(
+               base_scenario(),
+               Keyword.put(opts, :id_prefix, "Mission.1:@-x")
+             )
+
+    Enum.each(@invalid_id_prefixes, fn invalid_id_prefix ->
+      assert_raise ArgumentError, @id_prefix_error, fn ->
+        Grid.impulsive_burn_grid(
+          base_scenario(),
+          Keyword.put(opts, :id_prefix, invalid_id_prefix)
+        )
+      end
+    end)
   end
 
   defp base_scenario do

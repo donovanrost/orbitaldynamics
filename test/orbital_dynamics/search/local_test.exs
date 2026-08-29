@@ -3,6 +3,26 @@ defmodule OrbitalDynamics.Search.LocalTest do
 
   alias OrbitalDynamics.Search.Local
 
+  @id_prefix_error "id_prefix must be a valid stable ID"
+  @invalid_id_prefixes [
+    nil,
+    :invalid,
+    0,
+    [],
+    %{},
+    "",
+    " ",
+    "\n",
+    "prefix\n",
+    "_leading",
+    "-leading",
+    ".leading",
+    ":leading",
+    "contains/slash",
+    "contains\tcontrol",
+    <<0xFF>>
+  ]
+
   test "declares a deterministic bounded neighborhood and honest model limits" do
     assert %{
              generator: :numeric_parameter_local_neighborhood,
@@ -96,6 +116,29 @@ defmodule OrbitalDynamics.Search.LocalTest do
     assert_raise ArgumentError, "missing required :steps option", fn ->
       Local.neighborhood(%{x: 1.0}, bounds: %{x: {0.0, 2.0}})
     end
+  end
+
+  test "preserves a canonical id prefix and rejects every invalid prefix before output" do
+    opts = [steps: %{x: 0.5}]
+
+    assert %{
+             "seed_id" => "Mission.1:@-x:seed",
+             "alternatives" => [
+               %{"id" => "Mission.1:@-x:seed"},
+               %{"id" => "Mission.1:@-x:x:decrease"},
+               %{"id" => "Mission.1:@-x:x:increase"}
+             ]
+           } =
+             Local.neighborhood(
+               %{x: 1.0},
+               Keyword.put(opts, :id_prefix, "Mission.1:@-x")
+             )
+
+    Enum.each(@invalid_id_prefixes, fn invalid_id_prefix ->
+      assert_raise ArgumentError, @id_prefix_error, fn ->
+        Local.neighborhood(%{x: 1.0}, Keyword.put(opts, :id_prefix, invalid_id_prefix))
+      end
+    end)
   end
 
   test "repeats byte-for-byte equivalent neighborhood data" do

@@ -4,6 +4,7 @@ defmodule OrbitalDynamics.Search.Grid do
   """
 
   alias OrbitalDynamics.Maneuver.ImpulsiveBurn
+  alias OrbitalDynamics.Schema.StableIdValidation
   alias OrbitalDynamics.{Epoch, Scenario, Vector3}
 
   @doc """
@@ -65,8 +66,8 @@ defmodule OrbitalDynamics.Search.Grid do
       not non_empty_vectors?(delta_v_km_s_values) ->
         raise ArgumentError, "delta_v_km_s must be a non-empty list of numeric {x, y, z} vectors"
 
-      not is_binary(id_prefix) or id_prefix == "" ->
-        raise ArgumentError, "id_prefix must be a non-empty string"
+      not StableIdValidation.valid?(id_prefix) ->
+        raise ArgumentError, "id_prefix must be a valid stable ID"
 
       true ->
         :ok

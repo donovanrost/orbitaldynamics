@@ -4,6 +4,26 @@ defmodule OrbitalDynamics.Search.MonteCarloTest do
   alias OrbitalDynamics.Search.MonteCarlo
   alias OrbitalDynamics.{CentralBody, Epoch, Frame, Scenario, Spacecraft, StateVector}
 
+  @id_prefix_error "id_prefix must be a valid stable ID"
+  @invalid_id_prefixes [
+    nil,
+    :invalid,
+    0,
+    [],
+    %{},
+    "",
+    " ",
+    "\n",
+    "prefix\n",
+    "_leading",
+    "-leading",
+    ".leading",
+    ":leading",
+    "contains/slash",
+    "contains\tcontrol",
+    <<0xFF>>
+  ]
+
   test "declares generator capabilities" do
     assert %{
              generator: :state_vector_dispersion,
@@ -49,6 +69,30 @@ defmodule OrbitalDynamics.Search.MonteCarloTest do
              scenario.initial_state.position_km == base_scenario().initial_state.position_km and
                scenario.initial_state.velocity_km_s == base_scenario().initial_state.velocity_km_s
            end)
+  end
+
+  test "preserves a canonical id prefix and rejects every invalid prefix before output" do
+    opts = [
+      count: 1,
+      seed: 1,
+      position_sigma_km: {0.0, 0.0, 0.0},
+      velocity_sigma_km_s: {0.0, 0.0, 0.0}
+    ]
+
+    assert [%{id: "Mission.1:@-x_1"}] =
+             MonteCarlo.state_vector_dispersion(
+               base_scenario(),
+               Keyword.put(opts, :id_prefix, "Mission.1:@-x")
+             )
+
+    Enum.each(@invalid_id_prefixes, fn invalid_id_prefix ->
+      assert_raise ArgumentError, @id_prefix_error, fn ->
+        MonteCarlo.state_vector_dispersion(
+          base_scenario(),
+          Keyword.put(opts, :id_prefix, invalid_id_prefix)
+        )
+      end
+    end)
   end
 
   defp base_scenario do

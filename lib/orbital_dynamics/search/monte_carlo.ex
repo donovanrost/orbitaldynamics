@@ -6,6 +6,7 @@ defmodule OrbitalDynamics.Search.MonteCarlo do
   independent normal dispersions and preserves all other scenario assumptions.
   """
 
+  alias OrbitalDynamics.Schema.StableIdValidation
   alias OrbitalDynamics.{Scenario, StateVector, Vector3}
 
   @doc """
@@ -83,8 +84,8 @@ defmodule OrbitalDynamics.Search.MonteCarlo do
         raise ArgumentError,
               "velocity_sigma_km_s must be a non-negative numeric {x, y, z} vector"
 
-      not is_binary(id_prefix) or id_prefix == "" ->
-        raise ArgumentError, "id_prefix must be a non-empty string"
+      not StableIdValidation.valid?(id_prefix) ->
+        raise ArgumentError, "id_prefix must be a valid stable ID"
 
       true ->
         :ok
