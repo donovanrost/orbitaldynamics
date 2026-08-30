@@ -2,6 +2,7 @@ defmodule OrbitalDynamics.ManeuverReviewTest do
   use ExUnit.Case, async: true
 
   alias OrbitalDynamics.{CadenceImport, ManeuverReview, OperatorReview, Schema}
+  alias OrbitalDynamics.Schema.JsonSafety
 
   test "declares artifact-only maneuver review capabilities" do
     assert %{
@@ -515,6 +516,230 @@ defmodule OrbitalDynamics.ManeuverReviewTest do
     assert [%{"maneuver_id" => "burn"}] = report["rows"]
   end
 
+  test "admits the same maneuver id in distinct scenario identity scopes" do
+    report =
+      ManeuverReview.report([
+        valid_recommendation("burn", "leo_1"),
+        valid_recommendation("burn", "leo_2")
+      ])
+
+    assert Enum.map(report["rows"], & &1["id"]) == [
+             "maneuver_review:leo_1:burn",
+             "maneuver_review:leo_2:burn"
+           ]
+
+    assert {:ok, %{"schema_contract" => "maneuver_review_report.v1"}} =
+             Schema.validate_artifact(report)
+  end
+
+  test "preserves legacy public IDs for non-colliding colon-bearing identities" do
+    report =
+      ManeuverReview.report([
+        valid_recommendation("c", "a:b"),
+        valid_recommendation("b:c", "x")
+      ])
+
+    assert Enum.map(report["rows"], & &1["id"]) == [
+             "maneuver_review:a:b:c",
+             "maneuver_review:x:b:c"
+           ]
+
+    assert {:ok, %{"schema_contract" => "maneuver_review_report.v1"}} =
+             Schema.validate_artifact(report)
+  end
+
+  test "rejects duplicate maneuver identities before publishing colliding stable row ids" do
+    recommendation = valid_recommendation("burn", "leo_1")
+
+    assert_raise ArgumentError,
+                 ~r/maneuver recommendations contain duplicate semantic identities: \[\{"leo_1", "burn"\}\]/,
+                 fn ->
+                   ManeuverReview.report([recommendation, recommendation])
+                 end
+  end
+
+  test "rejects distinct colon-partition identities with the same public row ID" do
+    assert_raise ArgumentError,
+                 "maneuver recommendations contain distinct semantic identities that collide on public row IDs: [{\"maneuver_review:a:b:c\", [{\"a\", \"b:c\"}, {\"a:b\", \"c\"}]}]",
+                 fn ->
+                   ManeuverReview.report([
+                     valid_recommendation("b:c", "a"),
+                     valid_recommendation("c", "a:b")
+                   ])
+                 end
+  end
+
+  test "rejects malformed fallback and valid colon-partition projection collisions" do
+    assert_raise ArgumentError,
+                 "maneuver recommendations contain distinct semantic identities that collide on public row IDs: [{\"maneuver_review:unknown_scenario:invalid_maneuver:1\", [{\"unknown_scenario\", \"invalid_maneuver:1\"}, {\"unknown_scenario:invalid_maneuver\", \"1\"}]}]",
+                 fn ->
+                   ManeuverReview.report([
+                     :bad_recommendation,
+                     valid_recommendation("1", "unknown_scenario:invalid_maneuver")
+                   ])
+                 end
+  end
+
+  test "applies the absolute stable-ID grammar before constructing public row IDs" do
+    report = ManeuverReview.report([valid_recommendation("burn\n", "leo_1\n")])
+
+    assert [
+             %{
+               "id" => "maneuver_review:unknown_scenario:invalid_maneuver:1",
+               "maneuver_id" => "invalid_maneuver:1",
+               "scenario_id" => "unknown_scenario",
+               "invalid_maneuver_recommendation_reasons" => [
+                 "invalid_id",
+                 "invalid_scenario_id"
+               ]
+             }
+           ] = report["rows"]
+
+    assert {:ok, %{"schema_contract" => "maneuver_review_report.v1"}} =
+             Schema.validate_artifact(report)
+  end
+
+  test "retains canonical explicit nulls and nil caller compatibility" do
+    Enum.each([nil, :null], fn caller_null ->
+      recommendation =
+        valid_recommendation("burn", "leo_1")
+        |> Map.merge(%{
+          "epoch_scale" => caller_null,
+          "delta_v_magnitude_km_s" => caller_null,
+          "maneuver_success_factor" => caller_null,
+          "maneuver_success_factor_source" => caller_null,
+          "execution_uncertainty" => caller_null
+        })
+        |> put_in(
+          ["assumptions", "maneuver_execution_uncertainty"],
+          %{"timing_3sigma_s" => 1.5}
+        )
+
+      report = ManeuverReview.report([recommendation])
+      row = List.first(report["rows"])
+
+      assert row["epoch_scale"] == :null
+      assert row["delta_v_magnitude_km_s"] == 0.01
+      assert row["maneuver_success_factor"] == :null
+      assert row["maneuver_success_factor_source"] == :null
+      assert row["execution_uncertainty_status"] == "declared"
+      assert row["timing_3sigma_s"] == 1.5
+
+      assert get_in(row, ["source_recommendation", "epoch_scale"]) == :null
+      assert get_in(row, ["source_recommendation", "maneuver_success_factor"]) == :null
+
+      assert get_in(row, ["source_recommendation", "maneuver_success_factor_source"]) ==
+               :null
+
+      assert get_in(row, ["source_recommendation", "execution_uncertainty"]) == :null
+
+      assert {:ok, %{"schema_contract" => "maneuver_review_report.v1"}} =
+               Schema.validate_artifact(report)
+
+      assert JsonSafety.errors(report) == []
+    end)
+
+    nil_option_report =
+      ManeuverReview.report([valid_recommendation("burn", "leo_1")],
+        source_artifact_id: nil
+      )
+
+    refute Map.has_key?(nil_option_report, "source_artifact_id")
+    assert JsonSafety.errors(nil_option_report) == []
+
+    explicit_null_option_report =
+      ManeuverReview.report([valid_recommendation("burn", "leo_1")],
+        source_artifact_id: :null
+      )
+
+    assert explicit_null_option_report["source_artifact_id"] == :null
+    assert JsonSafety.errors(explicit_null_option_report) == []
+  end
+
+  test "bounds and JSON-normalizes recommendation input before report enumeration" do
+    recommendation = valid_recommendation("burn", "leo_1")
+
+    assert_raise ArgumentError,
+                 ~r/maneuver recommendations exceeds JSON safety limits at \$: exceeds maximum JSON collection size of 2048/,
+                 fn ->
+                   ManeuverReview.report(List.duplicate(:entry, 2_049))
+                 end
+
+    assert_raise ArgumentError,
+                 ~r/maneuver recommendations exceeds JSON safety limits at \$: improper lists are not JSON arrays/,
+                 fn ->
+                   ManeuverReview.report([recommendation | :improper_tail])
+                 end
+
+    assert_raise ArgumentError,
+                 ~r/maneuver recommendations\[0\] contains duplicate atom\/string keys after normalization/,
+                 fn ->
+                   ManeuverReview.report([
+                     recommendation
+                     |> Map.put(:id, "atom_id")
+                     |> Map.put("id", "string_id")
+                   ])
+                 end
+
+    assert_raise ArgumentError,
+                 ~r/maneuver recommendations\[0\]\.source_metadata contains unsupported tuple content/,
+                 fn ->
+                   ManeuverReview.report([
+                     Map.put(recommendation, "source_metadata", {:unsafe, :tuple})
+                   ])
+                 end
+  end
+
+  test "rejects an input-safe recommendation whose expanded report exceeds JSON limits" do
+    maximum_aggregate_bytes = JsonSafety.limits()["max_aggregate_bytes"]
+    target_input_bytes = maximum_aggregate_bytes - 512
+
+    recommendation =
+      valid_recommendation("burn", "leo_1")
+      |> Map.put("source_metadata", "")
+
+    recommendation =
+      Map.put(
+        recommendation,
+        "source_metadata",
+        String.duplicate(
+          "x",
+          target_input_bytes - aggregate_json_string_bytes([recommendation])
+        )
+      )
+
+    assert aggregate_json_string_bytes([recommendation]) == target_input_bytes
+    assert JsonSafety.errors([recommendation]) == []
+
+    assert {:ok, %{"schema_contract" => "maneuver_recommendation.v1"}} =
+             Schema.validate_artifact(recommendation)
+
+    assert_raise ArgumentError,
+                 "maneuver review report is not recursively JSON-safe at $.rows[0].source_recommendation.source_metadata: exceeds maximum aggregate JSON string byte budget of #{maximum_aggregate_bytes}",
+                 fn ->
+                   ManeuverReview.report([recommendation])
+                 end
+  end
+
+  test "keeps a policy-expanded near-normal report schema-valid and JSON-safe" do
+    recommendation =
+      valid_recommendation("burn", "leo_1")
+      |> Map.put("source_metadata", String.duplicate("x", 4_096))
+
+    report =
+      ManeuverReview.report([recommendation],
+        approval_policy: %{policy_bundle_id: "maneuver_authority_v1"}
+      )
+
+    assert get_in(report, ["rows", Access.at(0), "source_recommendation", "source_metadata"]) ==
+             recommendation["source_metadata"]
+
+    assert JsonSafety.errors(report) == []
+
+    assert {:ok, %{"schema_contract" => "maneuver_review_report.v1"}} =
+             Schema.validate_artifact(report)
+  end
+
   test "review gates malformed maneuver recommendation rows instead of raising" do
     report =
       ManeuverReview.report(
@@ -592,4 +817,37 @@ defmodule OrbitalDynamics.ManeuverReviewTest do
       ManeuverReview.report(%{})
     end
   end
+
+  defp valid_recommendation(id, scenario_id) do
+    %{
+      "schema_contract" => "maneuver_recommendation.v1",
+      "id" => id,
+      "scenario_id" => scenario_id,
+      "type" => "impulsive_burn",
+      "epoch_s" => 120.0,
+      "frame" => "eci_j2000",
+      "delta_v_km_s" => [0.0, 0.01, 0.0],
+      "delta_v_magnitude_km_s" => 0.01,
+      "maneuver_model" => "impulsive_burns",
+      "assumptions" => %{
+        "execution_boundary" => "recommendation_only_no_command_execution"
+      }
+    }
+  end
+
+  defp aggregate_json_string_bytes(value) when is_binary(value), do: byte_size(value)
+
+  defp aggregate_json_string_bytes(value) when is_atom(value),
+    do: value |> Atom.to_string() |> byte_size()
+
+  defp aggregate_json_string_bytes(value) when is_list(value),
+    do: Enum.reduce(value, 0, &(&2 + aggregate_json_string_bytes(&1)))
+
+  defp aggregate_json_string_bytes(%{} = value) do
+    Enum.reduce(value, 0, fn {key, nested}, total ->
+      total + aggregate_json_string_bytes(key) + aggregate_json_string_bytes(nested)
+    end)
+  end
+
+  defp aggregate_json_string_bytes(_value), do: 0
 end

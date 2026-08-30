@@ -152,6 +152,137 @@ defmodule OrbitalDynamics.Schema.ManeuverContractsTest do
            )
   end
 
+  test "rejects duplicate maneuver review row and semantic identities" do
+    report = OrbitalDynamics.ManeuverReview.report([valid_recommendation()])
+    row = List.first(report["rows"])
+
+    duplicate_report =
+      report
+      |> Map.put("rows", [row, row])
+      |> Map.put("maneuver_count", 2)
+      |> Map.put("review_required_count", 2)
+      |> Map.put("invalid_maneuver_recommendation_count", 0)
+      |> Map.put("invalid_maneuver_recommendation_ids", [])
+      |> Map.put("execution_uncertainty_declared_count", 0)
+      |> Map.put("execution_uncertainty_missing_count", 2)
+      |> Map.put("total_delta_v_km_s", 0.02)
+
+    assert {:error, validation_report} = Schema.validate_artifact(duplicate_report)
+
+    assert Enum.any?(
+             validation_report["errors"],
+             &(&1["path"] == "$.rows" and
+                 &1["message"] ==
+                   "must not contain duplicate IDs: [\"maneuver_review:leo_1:burn\"]")
+           )
+
+    assert Enum.any?(
+             validation_report["errors"],
+             &(&1["path"] == "$.rows" and
+                 &1["message"] ==
+                   "must not contain duplicate maneuver identities: [{\"leo_1\", \"burn\"}]")
+           )
+  end
+
+  test "rejects colliding semantic projections and public row IDs unbound from their identity" do
+    report = OrbitalDynamics.ManeuverReview.report([valid_recommendation()])
+    row = List.first(report["rows"])
+
+    collision_report =
+      report
+      |> Map.put("rows", [
+        Map.merge(row, %{
+          "id" => "maneuver_review:a:b:c",
+          "scenario_id" => "a",
+          "maneuver_id" => "b:c"
+        }),
+        Map.merge(row, %{
+          "id" => "maneuver_review:alternate",
+          "rank" => 2,
+          "scenario_id" => "a:b",
+          "maneuver_id" => "c"
+        })
+      ])
+      |> Map.put("maneuver_count", 2)
+      |> Map.put("review_required_count", 2)
+      |> Map.put("invalid_maneuver_recommendation_count", 0)
+      |> Map.put("invalid_maneuver_recommendation_ids", [])
+      |> Map.put("execution_uncertainty_declared_count", 0)
+      |> Map.put("execution_uncertainty_missing_count", 2)
+      |> Map.put("total_delta_v_km_s", 0.02)
+
+    assert {:error, validation_report} = Schema.validate_artifact(collision_report)
+
+    assert Enum.any?(
+             validation_report["errors"],
+             &(&1["path"] == "$.rows" and
+                 &1["message"] ==
+                   "must not contain distinct maneuver identities that project to the same public row ID: [{\"maneuver_review:a:b:c\", [{\"a\", \"b:c\"}, {\"a:b\", \"c\"}]}]")
+           )
+
+    assert Enum.any?(
+             validation_report["errors"],
+             &(&1["path"] == "$.rows[1].id" and
+                 &1["message"] ==
+                   "must equal the public row ID projected from scenario_id and maneuver_id: \"maneuver_review:a:b:c\"")
+           )
+
+    refute Enum.any?(
+             validation_report["errors"],
+             &(&1["path"] == "$.rows" and
+                 String.starts_with?(&1["message"], "must not contain duplicate IDs:"))
+           )
+  end
+
+  test "rejects external maneuver review artifacts at the JSON boundary before row traversal" do
+    report = OrbitalDynamics.ManeuverReview.report([valid_recommendation()])
+
+    repeated_identity = %{
+      "id" => "maneuver_review:external:duplicate",
+      "scenario_id" => "external",
+      "maneuver_id" => "duplicate"
+    }
+
+    maximum_collection_items =
+      OrbitalDynamics.Schema.JsonSafety.limits()["max_collection_items"]
+
+    oversized_report =
+      Map.put(
+        report,
+        "rows",
+        List.duplicate(repeated_identity, maximum_collection_items + 1)
+      )
+
+    assert {:error, oversized_validation_report} =
+             Schema.validate_artifact(oversized_report)
+
+    assert oversized_validation_report["errors"] == [
+             %{
+               "path" => "$.rows",
+               "message" => "exceeds maximum JSON collection size of #{maximum_collection_items}",
+               "severity" => "error"
+             }
+           ]
+
+    noncanonical_report =
+      put_in(
+        report,
+        ["rows", Access.at(0), "source_recommendation", "external_nil"],
+        nil
+      )
+
+    assert {:error, noncanonical_validation_report} =
+             Schema.validate_artifact(noncanonical_report)
+
+    assert noncanonical_validation_report["errors"] == [
+             %{
+               "path" => "$.rows[0].source_recommendation.external_nil",
+               "message" => "nil is not a JSON value",
+               "severity" => "error"
+             }
+           ]
+  end
+
   defp read_json!(path) do
     path
     |> File.read!()
@@ -162,5 +293,22 @@ defmodule OrbitalDynamics.Schema.ManeuverContractsTest do
     OrbitalDynamics.ManeuverReview.capabilities()
     |> Map.fetch!(:known_limits)
     |> Enum.map(&Atom.to_string/1)
+  end
+
+  defp valid_recommendation do
+    %{
+      "schema_contract" => "maneuver_recommendation.v1",
+      "id" => "burn",
+      "scenario_id" => "leo_1",
+      "type" => "impulsive_burn",
+      "epoch_s" => 120.0,
+      "frame" => "eci_j2000",
+      "delta_v_km_s" => [0.0, 0.01, 0.0],
+      "delta_v_magnitude_km_s" => 0.01,
+      "maneuver_model" => "impulsive_burns",
+      "assumptions" => %{
+        "execution_boundary" => "recommendation_only_no_command_execution"
+      }
+    }
   end
 end

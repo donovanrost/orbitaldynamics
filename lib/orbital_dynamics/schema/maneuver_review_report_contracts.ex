@@ -6,6 +6,7 @@ defmodule OrbitalDynamics.Schema.ManeuverReviewReportContracts do
 
   import OrbitalDynamics.Schema.PrimitiveValidation,
     only: [
+      error: 2,
       expect_equal: 5,
       expect_field_equals: 6,
       expect_non_negative_integer: 4,
@@ -21,10 +22,31 @@ defmodule OrbitalDynamics.Schema.ManeuverReviewReportContracts do
     ]
 
   import OrbitalDynamics.Schema.StableIdValidation,
-    only: [validate_optional_stable_id_list: 4, validate_stable_ids: 4]
+    only: [
+      reject_duplicate_ids: 3,
+      validate_optional_stable_id_list: 4,
+      validate_stable_ids: 4
+    ]
+
+  alias OrbitalDynamics.Schema.JsonSafety
 
   def validate(issues, path, report, maneuver_review_report_model_limits)
       when is_list(maneuver_review_report_model_limits) do
+    case JsonSafety.errors(report, path) do
+      [] ->
+        validate_json_safe(
+          issues,
+          path,
+          report,
+          maneuver_review_report_model_limits
+        )
+
+      safety_issues ->
+        safety_issues ++ issues
+    end
+  end
+
+  defp validate_json_safe(issues, path, report, maneuver_review_report_model_limits) do
     issues
     |> expect_equal(path, report, "schema_contract", "maneuver_review_report.v1")
     |> expect_equal(path, report, "model", "artifact_only_maneuver_review_report")
@@ -62,12 +84,77 @@ defmodule OrbitalDynamics.Schema.ManeuverReviewReportContracts do
     |> expect_type(path, report, "rows", :list)
     |> expect_type(path, report, "assumptions", :map)
     |> validate_counts(path, report)
+    |> validate_unique_row_identities(path, Map.get(report, "rows", []))
     |> validate_rows(
       path <> ".rows",
       Map.get(report, "rows", []),
       &validate_row/3
     )
   end
+
+  defp validate_unique_row_identities(issues, path, rows) when is_list(rows) do
+    report_ids =
+      rows
+      |> Enum.filter(&is_map/1)
+      |> Enum.map(&Map.get(&1, "id"))
+      |> Enum.filter(&is_binary/1)
+
+    maneuver_identities =
+      rows
+      |> Enum.filter(&is_map/1)
+      |> Enum.map(&{Map.get(&1, "scenario_id"), Map.get(&1, "maneuver_id")})
+      |> Enum.filter(fn {scenario_id, maneuver_id} ->
+        is_binary(scenario_id) and is_binary(maneuver_id)
+      end)
+
+    duplicate_maneuver_identities =
+      maneuver_identities
+      |> Enum.frequencies()
+      |> Enum.filter(fn {_identity, count} -> count > 1 end)
+      |> Enum.map(fn {identity, _count} -> identity end)
+      |> Enum.sort()
+
+    colliding_public_row_ids =
+      maneuver_identities
+      |> Enum.uniq()
+      |> Enum.group_by(&maneuver_review_row_id/1)
+      |> Enum.filter(fn {_public_row_id, semantic_identities} ->
+        length(semantic_identities) > 1
+      end)
+      |> Enum.map(fn {public_row_id, semantic_identities} ->
+        {public_row_id, Enum.sort(semantic_identities)}
+      end)
+      |> Enum.sort()
+
+    issues = reject_duplicate_ids(issues, path <> ".rows", report_ids)
+
+    issues =
+      if duplicate_maneuver_identities == [] do
+        issues
+      else
+        [
+          error(
+            path <> ".rows",
+            "must not contain duplicate maneuver identities: #{inspect(duplicate_maneuver_identities)}"
+          )
+          | issues
+        ]
+      end
+
+    if colliding_public_row_ids == [] do
+      issues
+    else
+      [
+        error(
+          path <> ".rows",
+          "must not contain distinct maneuver identities that project to the same public row ID: #{inspect(colliding_public_row_ids)}"
+        )
+        | issues
+      ]
+    end
+  end
+
+  defp validate_unique_row_identities(issues, _path, _rows), do: issues
 
   defp validate_counts(issues, path, report) do
     rows =
@@ -174,6 +261,7 @@ defmodule OrbitalDynamics.Schema.ManeuverReviewReportContracts do
       "source_recommendation"
     ])
     |> validate_stable_ids(path, row, ["id", "maneuver_id", "scenario_id"])
+    |> validate_public_row_id_binding(path, row)
     |> expect_number(path, row, "rank")
     |> expect_type(path, row, "maneuver_type", :binary)
     |> expect_number(path, row, "epoch_s")
@@ -193,4 +281,33 @@ defmodule OrbitalDynamics.Schema.ManeuverReviewReportContracts do
     |> expect_type(path, row, "execution_boundary", :binary)
     |> expect_type(path, row, "source_recommendation", :map)
   end
+
+  defp validate_public_row_id_binding(issues, path, row) do
+    case {Map.get(row, "id"), Map.get(row, "scenario_id"), Map.get(row, "maneuver_id")} do
+      {public_row_id, scenario_id, maneuver_id}
+      when is_binary(public_row_id) and is_binary(scenario_id) and is_binary(maneuver_id) ->
+        expected_public_row_id = maneuver_review_row_id(scenario_id, maneuver_id)
+
+        if public_row_id == expected_public_row_id do
+          issues
+        else
+          [
+            error(
+              path <> ".id",
+              "must equal the public row ID projected from scenario_id and maneuver_id: #{inspect(expected_public_row_id)}"
+            )
+            | issues
+          ]
+        end
+
+      _identity ->
+        issues
+    end
+  end
+
+  defp maneuver_review_row_id({scenario_id, maneuver_id}),
+    do: maneuver_review_row_id(scenario_id, maneuver_id)
+
+  defp maneuver_review_row_id(scenario_id, maneuver_id),
+    do: "maneuver_review:#{scenario_id}:#{maneuver_id}"
 end

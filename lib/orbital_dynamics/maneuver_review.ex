@@ -9,8 +9,7 @@ defmodule OrbitalDynamics.ManeuverReview do
 
   @schema_contract "maneuver_review_report.v1"
   alias OrbitalDynamics.Policy
-
-  @stable_id_regex ~r/^[A-Za-z0-9][A-Za-z0-9._:@-]*$/
+  alias OrbitalDynamics.Schema.{JsonSafety, StableIdValidation}
 
   @doc """
   Declares the maneuver-review report model and known limits.
@@ -58,6 +57,11 @@ defmodule OrbitalDynamics.ManeuverReview do
   def report(recommendations, opts \\ [])
 
   def report(recommendations, opts) when is_list(recommendations) do
+    recommendations =
+      JsonSafety.normalize_input!(recommendations, "maneuver recommendations")
+
+    reject_duplicate_maneuver_identities!(recommendations)
+
     source = opts |> Keyword.get(:source, "maneuver_recommendations") |> to_string()
     source_artifact_id = Keyword.get(opts, :source_artifact_id)
 
@@ -97,10 +101,65 @@ defmodule OrbitalDynamics.ManeuverReview do
     }
     |> Map.merge(execution_uncertainty_summary_fields(rows))
     |> compact_map()
+    |> JsonSafety.validate_artifact!("maneuver review report")
   end
 
   def report(_recommendations, _opts),
     do: raise(ArgumentError, "maneuver recommendations must be a list")
+
+  defp reject_duplicate_maneuver_identities!(recommendations) do
+    identities =
+      recommendations
+      |> Enum.with_index(1)
+      |> Enum.map(fn {recommendation, index} ->
+        normalized_maneuver_identity(recommendation, index)
+      end)
+
+    duplicate_identities =
+      identities
+      |> Enum.frequencies()
+      |> Enum.filter(fn {_identity, count} -> count > 1 end)
+      |> Enum.map(fn {identity, _count} -> identity end)
+      |> Enum.sort()
+
+    if duplicate_identities != [] do
+      raise ArgumentError,
+            "maneuver recommendations contain duplicate semantic identities: #{inspect(duplicate_identities)}"
+    end
+
+    colliding_public_row_ids =
+      identities
+      |> Enum.uniq()
+      |> Enum.group_by(&maneuver_review_row_id/1)
+      |> Enum.filter(fn {_public_row_id, semantic_identities} ->
+        length(semantic_identities) > 1
+      end)
+      |> Enum.map(fn {public_row_id, semantic_identities} ->
+        {public_row_id, Enum.sort(semantic_identities)}
+      end)
+      |> Enum.sort()
+
+    if colliding_public_row_ids != [] do
+      raise ArgumentError,
+            "maneuver recommendations contain distinct semantic identities that collide on public row IDs: #{inspect(colliding_public_row_ids)}"
+    end
+  end
+
+  defp normalized_maneuver_identity(%{} = recommendation, index) do
+    {
+      valid_stable_id_or_default(recommendation["scenario_id"], "unknown_scenario"),
+      valid_stable_id_or_default(recommendation["id"], "invalid_maneuver:#{index}")
+    }
+  end
+
+  defp normalized_maneuver_identity(_recommendation, index),
+    do: {"unknown_scenario", "invalid_maneuver:#{index}"}
+
+  defp maneuver_review_row_id({scenario_id, maneuver_id}),
+    do: maneuver_review_row_id(scenario_id, maneuver_id)
+
+  defp maneuver_review_row_id(scenario_id, maneuver_id),
+    do: "maneuver_review:#{scenario_id}:#{maneuver_id}"
 
   defp normalize_recommendation_input(recommendation, index) when is_map(recommendation) do
     recommendation = stringify_keys(recommendation)
@@ -141,7 +200,7 @@ defmodule OrbitalDynamics.ManeuverReview do
   defp invalid_stable_field_reason(recommendation, field, missing_reason) do
     case Map.get(recommendation, field) |> encode_value() do
       value when is_binary(value) ->
-        if Regex.match?(@stable_id_regex, value), do: nil, else: "invalid_#{field}"
+        if StableIdValidation.valid?(value), do: nil, else: "invalid_#{field}"
 
       _value ->
         missing_reason
@@ -182,7 +241,7 @@ defmodule OrbitalDynamics.ManeuverReview do
 
   defp invalid_string_optional_field_reason(recommendation, field) do
     case Map.get(recommendation, field) |> encode_optional_value() do
-      nil -> nil
+      value when value in [nil, :null] -> nil
       value when is_binary(value) and value != "" -> nil
       _value -> "invalid_#{field}"
     end
@@ -197,10 +256,12 @@ defmodule OrbitalDynamics.ManeuverReview do
 
   defp invalid_execution_uncertainty_reason(recommendation) do
     uncertainty =
-      Map.get(recommendation, "execution_uncertainty") ||
-        Map.get(recommendation, "maneuver_execution_uncertainty") ||
-        get_in(recommendation, ["assumptions", "execution_uncertainty"]) ||
+      first_non_null_value([
+        Map.get(recommendation, "execution_uncertainty"),
+        Map.get(recommendation, "maneuver_execution_uncertainty"),
+        get_in(recommendation, ["assumptions", "execution_uncertainty"]),
         get_in(recommendation, ["assumptions", "maneuver_execution_uncertainty"])
+      ])
 
     case uncertainty do
       nil ->
@@ -231,14 +292,16 @@ defmodule OrbitalDynamics.ManeuverReview do
     end
   end
 
-  defp invalid_optional_number?(nil), do: false
+  defp invalid_optional_number?(value) when value in [nil, :null], do: false
   defp invalid_optional_number?(value), do: is_nil(numeric_value(value))
 
-  defp invalid_optional_numeric_triplet?(nil), do: false
+  defp invalid_optional_numeric_triplet?(value) when value in [nil, :null], do: false
   defp invalid_optional_numeric_triplet?(value), do: is_nil(numeric_triplet(value))
 
-  defp invalid_optional_string?(nil), do: false
+  defp invalid_optional_string?(value) when value in [nil, :null], do: false
   defp invalid_optional_string?(value), do: not (is_binary(value) and value != "")
+
+  defp first_non_null_value(values), do: Enum.find(values, &(&1 not in [nil, :null]))
 
   defp invalid_recommendation_input(source_recommendation, index, reasons) do
     maneuver_id =
@@ -271,7 +334,7 @@ defmodule OrbitalDynamics.ManeuverReview do
   defp valid_stable_id_or_default(value, default) do
     case encode_optional_value(value) do
       value when is_binary(value) ->
-        if Regex.match?(@stable_id_regex, value), do: value, else: default
+        if StableIdValidation.valid?(value), do: value, else: default
 
       _value ->
         default
@@ -311,7 +374,7 @@ defmodule OrbitalDynamics.ManeuverReview do
 
   defp normalize_optional_unit_interval(recommendation, field) do
     case Map.get(recommendation, field) do
-      nil -> recommendation
+      value when value in [nil, :null] -> recommendation
       value -> Map.put(recommendation, field, numeric_value(value))
     end
   end
@@ -379,7 +442,7 @@ defmodule OrbitalDynamics.ManeuverReview do
     end
   end
 
-  defp encode_optional_value(nil), do: nil
+  defp encode_optional_value(value) when value in [nil, :null], do: value
   defp encode_optional_value(value), do: encode_value(value)
 
   defp maneuver_sort_key(%{"invalid_maneuver_recommendation" => true} = recommendation) do
@@ -402,7 +465,7 @@ defmodule OrbitalDynamics.ManeuverReview do
 
     row =
       %{
-        "id" => "maneuver_review:#{recommendation["scenario_id"]}:#{recommendation["id"]}",
+        "id" => maneuver_review_row_id(recommendation["scenario_id"], recommendation["id"]),
         "rank" => rank,
         "maneuver_id" => recommendation["id"],
         "scenario_id" => recommendation["scenario_id"],
@@ -551,10 +614,12 @@ defmodule OrbitalDynamics.ManeuverReview do
 
   defp maneuver_execution_uncertainty(recommendation) do
     uncertainty =
-      Map.get(recommendation, "execution_uncertainty") ||
-        Map.get(recommendation, "maneuver_execution_uncertainty") ||
-        get_in(recommendation, ["assumptions", "execution_uncertainty"]) ||
+      first_non_null_value([
+        Map.get(recommendation, "execution_uncertainty"),
+        Map.get(recommendation, "maneuver_execution_uncertainty"),
+        get_in(recommendation, ["assumptions", "execution_uncertainty"]),
         get_in(recommendation, ["assumptions", "maneuver_execution_uncertainty"])
+      ])
 
     case uncertainty do
       %{} = uncertainty -> normalize_execution_uncertainty(uncertainty)
@@ -650,6 +715,7 @@ defmodule OrbitalDynamics.ManeuverReview do
   defp encode_key(key) when is_atom(key), do: Atom.to_string(key)
   defp encode_key(key), do: key
 
+  defp encode_value(value) when value in [nil, :null], do: value
   defp encode_value(value) when is_boolean(value), do: value
   defp encode_value(value) when is_atom(value), do: Atom.to_string(value)
   defp encode_value(value), do: value
