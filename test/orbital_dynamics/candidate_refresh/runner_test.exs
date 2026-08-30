@@ -2,7 +2,14 @@ defmodule OrbitalDynamics.CandidateRefresh.RunnerTest do
   use ExUnit.Case, async: false
 
   alias OrbitalDynamics.CandidateRefresh
-  alias OrbitalDynamics.CandidateRefresh.{Build, ExecutionPolicy}
+
+  alias OrbitalDynamics.CandidateRefresh.{
+    Build,
+    BuildGroundNetwork,
+    BuildRefreshId,
+    ExecutionPolicy,
+    SourceObjectives
+  }
 
   alias OrbitalDynamics.Environment.ExponentialAtmosphereProvider
 
@@ -15,7 +22,10 @@ defmodule OrbitalDynamics.CandidateRefresh.RunnerTest do
   @generated_at ~U[2026-05-14 00:00:00Z]
 
   test "runs the fixed offline bundle and binds its captured policy into identity" do
-    assert {:ok, artifact} = CandidateRefresh.run(refresh(), generated_at: @generated_at)
+    input = refresh()
+    accepted_state = input["accepted_planning_state"]
+
+    assert {:ok, artifact} = CandidateRefresh.run(input, generated_at: @generated_at)
 
     policy =
       get_in(artifact, ["assumptions", "model_assumptions", ExecutionPolicy.reserved_key()])
@@ -28,6 +38,20 @@ defmodule OrbitalDynamics.CandidateRefresh.RunnerTest do
     assert report["execution_mode"] == "offline_deterministic"
     assert report["snapshot_id"] == artifact["snapshot_id"]
     assert report["model_limits"] == ExecutionPolicy.model_limits()
+
+    assert artifact["accepted_planning_state"]["accepted_at"] == accepted_state["accepted_at"]
+    assert artifact["accepted_planning_state"]["snapshot_id"] == accepted_state["snapshot_id"]
+
+    assert get_in(artifact, ["provenance", "accepted_planning_state", "accepted_at"]) ==
+             accepted_state["accepted_at"]
+
+    assert get_in(artifact, ["provenance", "accepted_planning_state", "snapshot_id"]) ==
+             accepted_state["snapshot_id"]
+
+    assert get_in(artifact, ["provenance", "accepted_planning_state", "provenance"]) ==
+             accepted_state["provenance"]
+
+    assert artifact["freshness_report"]["accepted_at"] == accepted_state["accepted_at"]
 
     assert report["external_validation"] == %{
              "case_id" => "orekit_13_1_7_leo_j2_drag_access_eclipse",
@@ -117,6 +141,38 @@ defmodule OrbitalDynamics.CandidateRefresh.RunnerTest do
       refute fingerprint(artifact) == fingerprint(base)
       refute artifact["refresh_id"] == base["refresh_id"]
     end
+  end
+
+  test "accepted_at binds captured refresh, freshness, and executable identity" do
+    accepted_at = "2026-05-13T23:59:59Z"
+    changed_input = put_in(refresh(), ["accepted_planning_state", "accepted_at"], accepted_at)
+
+    assert {:ok, base} = CandidateRefresh.run(refresh(), generated_at: @generated_at)
+    assert {:ok, changed} = CandidateRefresh.run(changed_input, generated_at: @generated_at)
+
+    base_policy = execution_policy(base)
+    changed_policy = execution_policy(changed)
+
+    assert changed["snapshot_id"] == base["snapshot_id"]
+
+    assert get_in(changed_policy, [
+             "refresh_identity_input",
+             "accepted_planning_state",
+             "accepted_at"
+           ]) ==
+             accepted_at
+
+    assert changed["accepted_planning_state"]["accepted_at"] == accepted_at
+
+    assert get_in(changed, ["provenance", "accepted_planning_state", "accepted_at"]) ==
+             accepted_at
+
+    assert changed["freshness_report"]["accepted_at"] == accepted_at
+    assert changed["freshness_report"]["accepted_snapshot_age_s"] == 1.0
+
+    refute changed_policy["policy_fingerprint"] == base_policy["policy_fingerprint"]
+    refute changed["refresh_id"] == base["refresh_id"]
+    assert changed["candidate_refresh_execution"]["refresh_id"] == changed["refresh_id"]
   end
 
   test "provider or detector drift changes canonical material and is rejected as a captured policy" do
@@ -693,24 +749,17 @@ defmodule OrbitalDynamics.CandidateRefresh.RunnerTest do
   defp fingerprint(artifact), do: execution_policy(artifact)["policy_fingerprint"]
 
   defp refresh_id_for_policy(policy) do
-    result_set =
-      ResultSet.new!(%{
-        study_id: :identity_probe,
-        trajectory_results: [],
-        event_results: [],
-        errors: [],
-        assumptions: %{},
-        metadata: %{}
-      })
-
     refresh =
       Map.put(legacy_refresh(), "model_assumptions", %{
         ExecutionPolicy.reserved_key() => policy
       })
 
-    result_set
-    |> CandidateRefresh.build(candidate_refresh: refresh, generated_at: @generated_at)
-    |> Map.fetch!("refresh_id")
+    BuildRefreshId.build(
+      refresh,
+      :identity_probe,
+      &BuildGroundNetwork.build/1,
+      &SourceObjectives.objectives/1
+    )
   end
 
   defp with_hot_reloaded_module(module, changed_body, fun) do

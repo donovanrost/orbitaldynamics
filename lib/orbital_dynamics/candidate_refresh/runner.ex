@@ -925,21 +925,21 @@ defmodule OrbitalDynamics.CandidateRefresh.Runner do
       })
 
     with {:ok, evidence} <- execution_evidence(result_set, trajectory, policy),
-         refresh =
+         artifact =
+           Build.build(result_set,
+             candidate_refresh: context.refresh,
+             generated_at: context.generated_at
+           ),
+         enriched_refresh =
            update_in(context.refresh, [Access.key("model_assumptions", %{})], fn assumptions ->
              assumptions
              |> Map.put(ExecutionPolicy.reserved_key(), serialized_policy)
              |> Map.put(ExecutionPolicy.evidence_key(), evidence)
            end),
          artifact =
-           Build.build(result_set,
-             candidate_refresh: refresh,
-             generated_at: context.generated_at
-           ),
-         artifact =
            artifact
            |> restore_captured_execution_inputs(serialized_policy, evidence)
-           |> Map.put("refresh_id", executable_refresh_id(refresh, context.study_id)) do
+           |> Map.put("refresh_id", executable_refresh_id(enriched_refresh, context.study_id)) do
       {:ok,
        Map.put(
          artifact,
