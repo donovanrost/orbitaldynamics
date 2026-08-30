@@ -343,7 +343,6 @@ defmodule OrbitalDynamics.Environment.CampaignEnvironmentProvider do
              samples: earth_rotation_samples(dataset.samples),
              provider_id: dataset.provider_id,
              source: dataset.table_id,
-             source_revision: dataset.dataset_revision,
              body: dataset.body,
              frame: dataset.earth_fixed_frame,
              time_scale: dataset.time_scale,

@@ -58,6 +58,8 @@ defmodule OrbitalDynamics.CampaignEnvironmentProviderTest do
 
   test "interpolates both products only within the declared adjacent bracket" do
     assert {:ok, dataset} = Provider.load(Provider.checked_in_options())
+    assert {:ok, capability} = Provider.configured_capability(dataset: dataset)
+    %{} = provenance = Provider.provenance(dataset)
     midpoint_s = @coverage_start_s + 43_200.0
 
     assert {:ok, sun_before} =
@@ -92,6 +94,25 @@ defmodule OrbitalDynamics.CampaignEnvironmentProviderTest do
 
     assert rotation_midpoint["interpolation"] == "linear_declared_rotation_sample"
     assert rotation_midpoint["earth_orientation_interpolation"] == "linear_sample_bracket"
+
+    assert rotation_midpoint["dataset_revision"] ==
+             "jpl_de441__iers_finals2000a_2026-08-13.v2"
+
+    assert rotation_midpoint["provenance"]["dataset_revision"] ==
+             "jpl_de441__iers_finals2000a_2026-08-13.v2"
+
+    assert rotation_midpoint["provenance"] == provenance
+
+    for key <- [
+          "provider_revision",
+          "dataset_revision",
+          "dataset_semantic_sha256",
+          "content_sha256"
+        ] do
+      assert rotation_midpoint[key] == provenance[key]
+    end
+
+    assert :ok = Provider.validate_product_binding(rotation_midpoint, capability, provenance)
 
     assert_in_delta rotation_midpoint["earth_rotation_angle_rad"],
                     (rotation_before["earth_rotation_angle_rad"] +
