@@ -1,6 +1,15 @@
 defmodule OrbitalDynamics.Validation.ReferenceFixtures.Level5ContractArtifacts do
   @moduledoc false
 
+  alias OrbitalDynamics.CandidateRefresh.{
+    BuildGroundNetwork,
+    BuildRefreshId,
+    ExecutionPolicy,
+    SourceObjectives
+  }
+
+  @candidate_refresh_execution_fixture_id "fixture.artifact.candidate_refresh_execution.v1"
+
   @fixtures %{
     "fixture.artifact.authority_context.v1" => %{
       "id" => "fixture.artifact.authority_context.v1",
@@ -174,9 +183,6 @@ defmodule OrbitalDynamics.Validation.ReferenceFixtures.Level5ContractArtifacts d
         "schema_contract" => "candidate_refresh_execution.v1",
         "bundle_id" => "candidate_refresh.earth_j2_drag_access_eclipse.v1",
         "execution_mode" => "offline_deterministic",
-        "policy_fingerprint" =>
-          "fd5b00bbd6163ce8acb45053e70c9f48bbcde6e9825f7edf78d8c9868ce4738e",
-        "refresh_id" => "candidate_refresh:scenario_a:31c1487694c2fff8",
         "study_id" => "scenario_a",
         "snapshot_id" => "snapshot_a",
         "spacecraft_id" => "sat_a",
@@ -376,5 +382,135 @@ defmodule OrbitalDynamics.Validation.ReferenceFixtures.Level5ContractArtifacts d
     }
   }
 
-  def all, do: @fixtures
+  def all do
+    update_in(
+      @fixtures,
+      [@candidate_refresh_execution_fixture_id, "expected"],
+      &Map.merge(&1, candidate_refresh_execution_identities(&1))
+    )
+  end
+
+  defp candidate_refresh_execution_identities(expected) do
+    refresh = candidate_refresh_execution_refresh()
+
+    policy =
+      case ExecutionPolicy.capture(candidate_refresh_execution_policy_input(refresh)) do
+        {:ok, policy} ->
+          policy
+
+        {:error, reason} ->
+          raise ArgumentError,
+                "candidate refresh execution reference policy derivation failed: #{inspect(reason)}"
+      end
+
+    enriched_refresh =
+      update_in(refresh, ["model_assumptions"], fn assumptions ->
+        assumptions
+        |> Map.put(ExecutionPolicy.reserved_key(), ExecutionPolicy.serialize(policy))
+        |> Map.put(ExecutionPolicy.evidence_key(), candidate_refresh_execution_evidence(expected))
+      end)
+
+    %{
+      "policy_fingerprint" => ExecutionPolicy.fingerprint(policy),
+      "refresh_id" =>
+        BuildRefreshId.build(
+          enriched_refresh,
+          "scenario_a",
+          &BuildGroundNetwork.build/1,
+          &SourceObjectives.objectives/1
+        )
+    }
+  end
+
+  defp candidate_refresh_execution_policy_input(refresh) do
+    %{
+      "bundle_id" => ExecutionPolicy.bundle_id(),
+      "spacecraft" => %{
+        "spacecraft_id" => "sat_a",
+        "scenario_id" => "scenario_a",
+        "dry_mass_kg" => 100.0,
+        "propellant_mass_kg" => 5.0,
+        "drag_area_m2" => 2.0,
+        "drag_coefficient" => 2.2
+      },
+      "ground_station" => %{
+        "ground_station_id" => "station_a",
+        "latitude_deg" => 0.0,
+        "longitude_deg" => 0.0,
+        "altitude_km" => 0.0,
+        "minimum_elevation_deg" => 5.0
+      },
+      "initial_state" => %{
+        "snapshot_id" => "snapshot_a",
+        "spacecraft_id" => "sat_a",
+        "scenario_id" => "scenario_a",
+        "body" => "earth",
+        "frame" => "earth_inertial_j2000",
+        "time_scale" => "tdb",
+        "epoch_s" => 0.0,
+        "position_km" => [7_000.0, 0.0, 0.0],
+        "velocity_km_s" => [0.0, 7.5, 0.0]
+      },
+      "coverage" => %{
+        "starts_at_s" => 0.0,
+        "ends_at_s" => 600.0,
+        "output_step_s" => 10.0
+      },
+      "refresh_identity_input" => refresh
+    }
+  end
+
+  defp candidate_refresh_execution_refresh do
+    %{
+      "accepted_planning_state" => %{
+        "schema_version" => 1,
+        "schema_contract" => "accepted_planning_state.v1",
+        "artifact_type" => "accepted_planning_state",
+        "snapshot_id" => "snapshot_a",
+        "accepted_at" => "2026-05-14T00:00:00Z",
+        "spacecraft_states" => [
+          %{
+            "spacecraft_id" => "sat_a",
+            "scenario_id" => "scenario_a",
+            "epoch" => %{"seconds_since_j2000" => 0.0, "time_scale" => "tdb"},
+            "frame" => "earth_inertial_j2000",
+            "state_vector" => %{
+              "position_km" => [7_000.0, 0.0, 0.0],
+              "velocity_km_s" => [0.0, 7.5, 0.0]
+            },
+            "source" => %{"system" => "operator_import", "source_id" => "state_a"},
+            "provenance" => %{"trust_boundary" => "operator_supplied"},
+            "quality" => %{"level" => "accepted"}
+          }
+        ],
+        "maneuver_execution_deltas" => [],
+        "source" => %{"system" => "cadence_snapshot", "source_id" => "snapshot_a"},
+        "quality" => %{"level" => "planning_accepted"},
+        "provenance" => %{"created_by" => "validation_reference_fixture"}
+      },
+      "current_epoch_s" => 0.0,
+      "remaining_horizon" => %{
+        "starts_at_s" => 0.0,
+        "ends_at_s" => 600.0,
+        "output_step_s" => 10.0
+      },
+      "constraints" => %{"avoid_eclipse" => true},
+      "scoring_policy" => %{
+        "contact_value_weight" => 0.5,
+        "downlink_rate_mb_s" => 3.0
+      },
+      "model_assumptions" => %{}
+    }
+  end
+
+  defp candidate_refresh_execution_evidence(expected) do
+    %{
+      "scenario_id" => "scenario_a",
+      "ground_station_id" => "station_a",
+      "trajectory_sample_count" => Map.fetch!(expected, "trajectory_sample_count"),
+      "access_windows_sha256" => Map.fetch!(expected, "access_windows_sha256"),
+      "eclipse_intervals_sha256" => Map.fetch!(expected, "eclipse_intervals_sha256"),
+      "candidate_source_windows_sha256" => Map.fetch!(expected, "candidate_source_windows_sha256")
+    }
+  end
 end

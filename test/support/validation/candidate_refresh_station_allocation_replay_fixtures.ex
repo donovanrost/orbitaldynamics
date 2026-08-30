@@ -231,6 +231,7 @@ defmodule OrbitalDynamics.Validation.CandidateRefreshStationAllocationReplayFixt
     |> Map.put("provenance", %{
       "trust_boundary" => "generated_contact_allocation_resource_selection_challenge"
     })
+    |> normalize_resource_selection_report()
   end
 
   def candidate_refresh_contact_allocation_contradiction_fixture do
@@ -262,14 +263,202 @@ defmodule OrbitalDynamics.Validation.CandidateRefreshStationAllocationReplayFixt
       "scoring_policy" => %{},
       "model_assumptions" => %{"refresh_level" => "sampled_v1"},
       "source_station_calendar_report" =>
-        read_json!("study_results/station_calendar_report_v1.json"),
+        "study_results/station_calendar_report_v1.json"
+        |> read_json!()
+        |> normalize_station_calendar_report(),
       "source_contact_allocation_reservation_conflict_summary" =>
-        read_json!("study_results/contact_allocation_reservation_conflict_summary_v1.json"),
+        "study_results/contact_allocation_reservation_conflict_summary_v1.json"
+        |> read_json!()
+        |> normalize_reservation_conflict_summary(),
       "source_contact_allocation_provider_reservation_request_summary" =>
-        read_json!(
-          "study_results/contact_allocation_provider_reservation_request_summary_v1.json"
-        )
+        "study_results/contact_allocation_provider_reservation_request_summary_v1.json"
+        |> read_json!()
+        |> normalize_provider_reservation_request_summary()
     }
+  end
+
+  defp normalize_resource_selection_report(report) do
+    report
+    |> Map.take([
+      "schema_contract",
+      "model",
+      "source",
+      "input_contact_count",
+      "allocated_contact_count",
+      "deferred_contact_count",
+      "blocked_contact_count",
+      "rows",
+      "station_calendar_report",
+      "contact_filter_report",
+      "contact_contention_report",
+      "contact_contention_resolution_report",
+      "assumptions",
+      "source_artifact_id",
+      "report_id",
+      "resource_blocked_contact_ids_by_spacecraft_id",
+      "provenance"
+    ])
+    |> Map.merge(minimal_resource_selection_nested_reports())
+    |> update_in(["rows"], fn rows -> Enum.map(rows, &normalize_resource_selection_row/1) end)
+  end
+
+  defp minimal_resource_selection_nested_reports do
+    %{
+      "station_calendar_report" => %{
+        "schema_contract" => "station_calendar_report.v1",
+        "model" => "campaign_ground_network_interval_overlay",
+        "input_contact_count" => 0,
+        "calendar_entry_count" => 0,
+        "affected_contact_count" => 0,
+        "affected_contacts" => [],
+        "assumptions" => %{}
+      },
+      "contact_filter_report" => %{
+        "schema_contract" => "contact_filter_report.v1",
+        "model" => "thin_ground_network_availability_filter",
+        "input_candidate_count" => 0,
+        "kept_candidate_count" => 0,
+        "suppressed_candidate_count" => 0,
+        "suppressed_candidates" => []
+      },
+      "contact_contention_report" => %{
+        "schema_contract" => "contact_contention_report.v1",
+        "model" => "single_station_interval_overlap",
+        "input_contact_count" => 0,
+        "conflicted_contact_count" => 0,
+        "conflict_group_count" => 0,
+        "conflict_groups" => []
+      },
+      "contact_contention_resolution_report" => %{
+        "schema_contract" => "contact_contention_resolution_report.v1",
+        "model" => "deterministic_contact_contention_recommendation",
+        "policy" => %{},
+        "conflict_group_count" => 0,
+        "recommendation_count" => 0,
+        "recommendations" => []
+      }
+    }
+  end
+
+  defp normalize_resource_selection_row(row) do
+    row
+    |> Map.take([
+      "id",
+      "contact_id",
+      "allocation_status",
+      "effective_allocation_status",
+      "spacecraft_id",
+      "resource_blocking_dimension",
+      "source_resource_suppression"
+    ])
+    |> update_in(["source_resource_suppression"], fn suppression ->
+      Map.take(suppression, ["resource_blocking_dimension", "resource_provenance"])
+    end)
+  end
+
+  defp normalize_station_calendar_report(report) do
+    report
+    |> Map.take([
+      "schema_contract",
+      "model",
+      "affected_contacts",
+      "provider_calendar_contention_groups"
+    ])
+    |> update_in(["affected_contacts"], fn rows ->
+      Enum.map(rows, fn row ->
+        Map.take(row, [
+          "id",
+          "contact_id",
+          "direction",
+          "ground_station_id",
+          "station_calendar_entry_id",
+          "station_calendar_status",
+          "station_availability",
+          "status",
+          "capacity_fraction"
+        ])
+      end)
+    end)
+    |> update_in(["provider_calendar_contention_groups"], fn groups ->
+      Enum.map(groups, &normalize_provider_contention_group/1)
+    end)
+  end
+
+  defp normalize_provider_contention_group(group) do
+    group
+    |> Map.take([
+      "id",
+      "provider_ids",
+      "provider_entry_ids",
+      "ground_station_id",
+      "source_station_calendar_entries"
+    ])
+    |> update_in(["source_station_calendar_entries"], fn entries ->
+      Enum.map(entries, &Map.take(&1, ["id", "capacity_fraction"]))
+    end)
+  end
+
+  defp normalize_reservation_conflict_summary(summary) do
+    summary
+    |> Map.take([
+      "schema_contract",
+      "model",
+      "source",
+      "source_artifact_type",
+      "rows",
+      "reservation_conflict_contact_count",
+      "reservation_conflict_contact_ids",
+      "reservation_conflict_match_status_counts",
+      "reservation_conflict_contact_ids_by_match_status",
+      "reservation_conflict_reservation_ids_by_match_status",
+      "reservation_conflict_contact_ids_by_direction",
+      "reservation_conflict_contact_ids_by_direction_and_ground_station_id",
+      "station_reservation_expiration_now_s",
+      "station_reservation_expiration_status_counts"
+    ])
+    |> update_in(["rows"], &Enum.map(&1, fn row -> normalize_reservation_row(row) end))
+  end
+
+  defp normalize_provider_reservation_request_summary(summary) do
+    summary
+    |> Map.take([
+      "schema_contract",
+      "model",
+      "source",
+      "source_artifact_type",
+      "rows",
+      "provider_reservation_candidate_contact_count",
+      "provider_reservation_request_contact_count",
+      "provider_reservation_review_contact_count",
+      "provider_reservation_no_request_contact_count",
+      "provider_reservation_request_status",
+      "provider_reservation_request_status_counts",
+      "provider_reservation_request_contact_ids",
+      "provider_reservation_review_contact_ids",
+      "provider_reservation_no_request_contact_ids",
+      "provider_reservation_request_contact_ids_by_direction",
+      "provider_reservation_review_contact_ids_by_direction",
+      "provider_reservation_no_request_contact_ids_by_direction",
+      "provider_reservation_request_contact_ids_by_direction_and_ground_station_id",
+      "provider_reservation_review_contact_ids_by_direction_and_ground_station_id",
+      "provider_reservation_no_request_contact_ids_by_direction_and_ground_station_id"
+    ])
+    |> update_in(["rows"], &Enum.map(&1, fn row -> normalize_reservation_row(row) end))
+  end
+
+  defp normalize_reservation_row(row) do
+    Map.take(row, [
+      "id",
+      "contact_id",
+      "direction",
+      "ground_station_id",
+      "allocation_status",
+      "effective_allocation_status",
+      "review_status",
+      "station_reservation_match_status",
+      "station_reservation_expires_at_s",
+      "station_reservation_id"
+    ])
   end
 
   defp contact_allocation_resource_selection_result_set do

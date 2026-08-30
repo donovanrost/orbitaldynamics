@@ -119,6 +119,38 @@ defmodule OrbitalDynamics.Validation.CandidateRefreshTimelineReplayFixtures do
     |> Map.put("provenance", %{
       "trust_boundary" => "generated_timeline_lifecycle_fixture"
     })
+    |> normalize_timeline_lifecycle_state_summary()
+  end
+
+  defp normalize_timeline_lifecycle_state_summary(summary) do
+    summary
+    |> Map.take([
+      "schema_contract",
+      "model",
+      "source",
+      "planned_activity_count",
+      "realized_activity_count",
+      "rows",
+      "provenance"
+    ])
+    |> update_in(["rows"], fn rows ->
+      Enum.map(rows, fn row ->
+        Map.take(row, [
+          "activity_id",
+          "planned_activity_id",
+          "realized_activity_id",
+          "planned_activity_ids",
+          "realized_activity_ids",
+          "timeline_id",
+          "transition_decision",
+          "required_operator_action",
+          "import_action",
+          "review_required",
+          "timeline_identity_collision",
+          "invalid_activity_input"
+        ])
+      end)
+    end)
   end
 
   def candidate_refresh_timeline_activity_lifecycle_fixture_observations do

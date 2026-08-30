@@ -1,18 +1,115 @@
 defmodule OrbitalDynamics.Validation.CandidateRefreshStationAllocationReplayFixtureTest do
   use ExUnit.Case, async: true
 
+  alias OrbitalDynamics.CandidateRefresh.AcceptedStateEvidenceAuthority
   alias OrbitalDynamics.{Schema, Validation}
 
   import OrbitalDynamics.Validation.CandidateRefreshStationAllocationReplayFixtures,
     only: [
       candidate_refresh_contact_allocation_contradiction_fixture: 0,
       candidate_refresh_contact_allocation_contradiction_fixture_observations: 0,
+      candidate_refresh_contact_allocation_contradiction_request: 0,
       candidate_refresh_contact_allocation_resource_selection_challenge_fixture: 0,
       candidate_refresh_contact_allocation_resource_selection_challenge_fixture_observations: 0,
       candidate_refresh_contact_allocation_resource_selection_challenge_request: 0,
       candidate_refresh_station_calendar_fixture: 0,
       candidate_refresh_station_calendar_fixture_observations: 0
     ]
+
+  test "admits normalized contact-allocation contradiction input with replay semantics retained" do
+    request = candidate_refresh_contact_allocation_contradiction_request()
+    analysis = AcceptedStateEvidenceAuthority.analyze_refresh_wrapper(request)
+    station_report = request["source_station_calendar_report"]
+    conflict_summary = request["source_contact_allocation_reservation_conflict_summary"]
+
+    provider_summary =
+      request["source_contact_allocation_provider_reservation_request_summary"]
+
+    assert input_node_count(request) == 194
+    assert analysis.refresh == request
+    assert analysis.build_encoding_outcome == :byte_preserve_raw_refresh
+
+    assert analysis.analysis_cursor == %{
+             nodes: input_node_count(request),
+             overflow: false
+           }
+
+    assert analysis.analysis_cursor.nodes <
+             AcceptedStateEvidenceAuthority.max_encoding_projection_nodes()
+
+    assert Enum.map(station_report["affected_contacts"], & &1["station_calendar_status"]) == [
+             "available",
+             "reserved"
+           ]
+
+    assert [
+             %{
+               "id" => "station_calendar_provider_contention:equator_prime:1",
+               "provider_ids" => ["ops_calendar"],
+               "provider_entry_ids" => ["equator_capacity", "equator_reserved"]
+             }
+           ] = station_report["provider_calendar_contention_groups"]
+
+    assert Enum.map(
+             conflict_summary["rows"],
+             &{&1["contact_id"], &1["station_reservation_match_status"]}
+           ) == [
+             {"dl_reserved_owner", "matched"},
+             {"dl_reserved_intruder", "overlap"}
+           ]
+
+    assert Enum.map(
+             provider_summary["rows"],
+             &{&1["contact_id"], &1["direction"], &1["station_reservation_match_status"]}
+           ) == [
+             {"dl_reserved_intruder", "tracking", "overlap"},
+             {"dl_reserved_owner", "downlink", "matched"},
+             {"dl_review_overlap", "command", "overlap"},
+             {"dl_unreserved", "uplink", nil}
+           ]
+  end
+
+  test "admits normalized allocation resource-selection input with row authority retained" do
+    request = candidate_refresh_contact_allocation_resource_selection_challenge_request()
+    analysis = AcceptedStateEvidenceAuthority.analyze_refresh_wrapper(request)
+    source_report = request["source_contact_allocation_report"]
+
+    assert input_node_count(request) == 119
+    assert analysis.refresh == request
+    assert analysis.build_encoding_outcome == :byte_preserve_raw_refresh
+
+    assert analysis.analysis_cursor == %{
+             nodes: input_node_count(request),
+             overflow: false
+           }
+
+    assert analysis.analysis_cursor.nodes <
+             AcceptedStateEvidenceAuthority.max_encoding_projection_nodes()
+
+    assert source_report["resource_blocked_contact_ids_by_spacecraft_id"] == %{
+             "sat_2" => ["leo_2_downlink_dss_43_1"],
+             "stale_spacecraft" => ["leo_1_downlink_equator_prime_1"]
+           }
+
+    assert Enum.map(source_report["rows"], fn row ->
+             {
+               row["contact_id"],
+               row["spacecraft_id"],
+               row["resource_blocking_dimension"],
+               row["effective_allocation_status"],
+               get_in(row, [
+                 "source_resource_suppression",
+                 "resource_provenance",
+                 "trust_boundary"
+               ])
+             }
+           end) == [
+             {"leo_2_downlink_dss_43_1", "sat_1", "antenna", "blocked",
+              "allocation_resource_challenge"},
+             {"leo_1_downlink_equator_prime_1", "sat_1", "antenna", "blocked",
+              "allocation_resource_challenge"}
+           ]
+  end
 
   test "verifies candidate refresh station-calendar replay fixtures" do
     fixture_id = "fixture.artifact.candidate_refresh.station_calendar_replay"
@@ -311,4 +408,14 @@ defmodule OrbitalDynamics.Validation.CandidateRefreshStationAllocationReplayFixt
     assert {:ok, %{"schema_contract" => "candidate_refresh.v1"}} =
              Schema.validate_artifact(artifact)
   end
+
+  defp input_node_count(%{} = map) do
+    1 + Enum.sum(Enum.map(Map.values(map), &input_node_count/1))
+  end
+
+  defp input_node_count(values) when is_list(values) do
+    1 + Enum.sum(Enum.map(values, &input_node_count/1))
+  end
+
+  defp input_node_count(_value), do: 1
 end

@@ -1,6 +1,7 @@
 defmodule OrbitalDynamics.Validation.CandidateRefreshTimelineReplayFixtureTest do
   use ExUnit.Case, async: true
 
+  alias OrbitalDynamics.CandidateRefresh.AcceptedStateEvidenceAuthority
   alias OrbitalDynamics.{Schema, Validation}
 
   import OrbitalDynamics.Validation.CandidateRefreshTimelineReplayFixtures,
@@ -11,9 +12,61 @@ defmodule OrbitalDynamics.Validation.CandidateRefreshTimelineReplayFixtureTest d
       candidate_refresh_timeline_activity_precondition_fixture_observations: 0,
       candidate_refresh_timeline_lifecycle_state_fixture: 0,
       candidate_refresh_timeline_lifecycle_state_fixture_observations: 0,
+      candidate_refresh_timeline_lifecycle_state_request: 0,
       candidate_refresh_timeline_transition_application_fixture: 0,
       candidate_refresh_timeline_transition_application_fixture_observations: 0
     ]
+
+  test "admits normalized timeline lifecycle input with row-derived replay semantics retained" do
+    request = candidate_refresh_timeline_lifecycle_state_request()
+    analysis = AcceptedStateEvidenceAuthority.analyze_refresh_wrapper(request)
+    summary = request["source_timeline_lifecycle_state_summary"]
+
+    assert input_node_count(request) == 71
+    assert analysis.refresh == request
+    assert analysis.build_encoding_outcome == :byte_preserve_raw_refresh
+
+    assert analysis.analysis_cursor == %{
+             nodes: input_node_count(request),
+             overflow: false
+           }
+
+    assert analysis.analysis_cursor.nodes <
+             AcceptedStateEvidenceAuthority.max_encoding_projection_nodes()
+
+    assert Map.take(summary, ["planned_activity_count", "realized_activity_count"]) == %{
+             "planned_activity_count" => 5,
+             "realized_activity_count" => 3
+           }
+
+    assert Enum.map(summary["rows"], fn row ->
+             {
+               row["timeline_id"],
+               row["transition_decision"],
+               row["required_operator_action"],
+               row["import_action"],
+               row["review_required"]
+             }
+           end) == [
+             {"timeline:cmd_provider", "review", "review_activity_approval",
+              "review_timeline_diff", true},
+             {"timeline:done_keep", "none", "none", "record_preserved_activity", false},
+             {"timeline:dup", "review", "review_duplicate_timeline_identity",
+              "review_timeline_diff", true},
+             {"timeline:obs_record", "record", "record_timeline_change",
+              "import_replacement_activity", false}
+           ]
+
+    assert summary["rows"]
+           |> Enum.flat_map(fn row ->
+             [row["activity_id"]] ++
+               Map.get(row, "planned_activity_ids", []) ++
+               Map.get(row, "realized_activity_ids", [])
+           end)
+           |> Enum.reject(&is_nil/1)
+           |> Enum.uniq()
+           |> Enum.sort() == ["cmd_provider", "done_keep", "dup_a", "dup_b", "obs_record"]
+  end
 
   test "verifies candidate refresh timeline activity precondition replay fixtures" do
     fixture_id = "fixture.artifact.candidate_refresh.timeline_activity_precondition_replay"
@@ -364,4 +417,14 @@ defmodule OrbitalDynamics.Validation.CandidateRefreshTimelineReplayFixtureTest d
     assert {:ok, _validated_artifact} =
              Schema.validate_artifact(artifact, schema_contract: "candidate_refresh.v1")
   end
+
+  defp input_node_count(%{} = map) do
+    1 + Enum.sum(Enum.map(Map.values(map), &input_node_count/1))
+  end
+
+  defp input_node_count(values) when is_list(values) do
+    1 + Enum.sum(Enum.map(values, &input_node_count/1))
+  end
+
+  defp input_node_count(_value), do: 1
 end
