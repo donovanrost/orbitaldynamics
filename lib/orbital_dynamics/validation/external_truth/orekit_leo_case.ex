@@ -16,6 +16,7 @@ defmodule OrbitalDynamics.Validation.ExternalTruth.OrekitLeoCase do
   alias OrbitalDynamics.{
     CentralBody,
     Epoch,
+    EventTiming,
     Frame,
     GroundStation,
     Scenario,
@@ -80,11 +81,50 @@ defmodule OrbitalDynamics.Validation.ExternalTruth.OrekitLeoCase do
   @access_root_tolerance_s 1.0e-6
   @access_root_max_iterations 64
   @sun_direction {1.0, 0.0, 0.0}
+  @max_comparison_opts_length 8
+  @max_bundle_path_bytes 4_096
+  @max_observation_depth 12
+  @max_observation_entries 50_000
+  @max_observation_list_length 3_000
+  @max_observation_map_size 128
+  @max_observation_binary_bytes 16_384
+  @max_observation_key_bytes 256
+  @safe_observation_number_limit 1.0e15
   @state_epochs_s Enum.map(0..2_160, &(&1 * @output_step_s))
   @position_tolerance_m 0.01
   @velocity_tolerance_m_s 0.00001
   @access_tolerance_s 0.001
   @eclipse_tolerance_s 0.05
+  @access_convergence_fields [
+    :boundary,
+    :edge,
+    :interpolation,
+    :refinement_model,
+    :root_solver,
+    :root_function,
+    :root_scope,
+    :root_solved,
+    :validation_level,
+    :confidence,
+    :convergence,
+    :requested_root_tolerance_s,
+    :event_time_tolerance_s,
+    :event_time_bracket_s,
+    :input_event_time_bracket_s,
+    :before_epoch_s,
+    :after_epoch_s,
+    :before_sample_index,
+    :after_sample_index,
+    :root_bracket_before_epoch_s,
+    :root_bracket_after_epoch_s,
+    :root_bracket_before_margin_deg,
+    :root_bracket_after_margin_deg,
+    :root_estimate_margin_deg,
+    :root_iterations,
+    :root_function_evaluations,
+    :root_max_iterations,
+    :model_limits
+  ]
 
   @expected_config %{
     "atmosphere_model" => "SimpleExponentialAtmosphere",
@@ -433,6 +473,7 @@ defmodule OrbitalDynamics.Validation.ExternalTruth.OrekitLeoCase do
   def observations do
     try do
       body = CentralBody.earth()
+      station = access_station()
 
       scenario =
         Scenario.new!(
@@ -454,7 +495,7 @@ defmodule OrbitalDynamics.Validation.ExternalTruth.OrekitLeoCase do
         )
 
       with {:ok, trajectory} <- J2Drag.propagate(scenario, max_step_s: @max_step_s),
-           {:ok, access_events} <- detect_access(trajectory, body),
+           {:ok, access_events} <- detect_access(trajectory, body, station),
            {:ok, eclipse_events} <- detect_eclipses(trajectory, body) do
         {:ok,
          %{
@@ -463,7 +504,14 @@ defmodule OrbitalDynamics.Validation.ExternalTruth.OrekitLeoCase do
            eclipse: observed_eclipse_boundaries(eclipse_events),
            path_identity: path_identity(trajectory, access_events, eclipse_events),
            runtime_semantics:
-             runtime_semantics(scenario, body, trajectory, access_events, eclipse_events),
+             runtime_semantics(
+               scenario,
+               body,
+               station,
+               trajectory,
+               access_events,
+               eclipse_events
+             ),
            horizon: observed_horizon(trajectory)
          }}
       end
@@ -477,17 +525,206 @@ defmodule OrbitalDynamics.Validation.ExternalTruth.OrekitLeoCase do
   @doc false
   def compare_observations(observations, opts \\ [])
 
-  def compare_observations(observations, opts) when is_map(observations) and is_list(opts) do
-    root = Keyword.get(opts, :bundle_path, bundle_path())
+  def compare_observations(observations, opts) when is_map(observations) do
+    with {:ok, opts} <- preflight_comparison_opts(opts),
+         :ok <- preflight_observations(observations) do
+      root = Keyword.get(opts, :bundle_path, bundle_path())
 
-    case StrictBundle.load(root, expectations()) do
-      {:ok, bundle} -> compare_loaded_bundle(bundle, observations)
+      case StrictBundle.load(root, expectations()) do
+        {:ok, bundle} -> compare_preflighted_bundle(bundle, observations)
+        {:error, reason} -> {:error, failure_report(reason)}
+      end
+    else
       {:error, reason} -> {:error, failure_report(reason)}
     end
   end
 
   def compare_observations(_observations, _opts),
     do: {:error, failure_report(:invalid_observations)}
+
+  defp preflight_comparison_opts(opts) do
+    with {:ok, items} <- bounded_comparison_option_items(opts, [], 0),
+         true <- Enum.all?(items, &comparison_option_entry?/1) do
+      validate_comparison_option_schema(items)
+    else
+      false -> {:error, {:invalid_comparison_options, :not_keyword}}
+      {:error, reason} -> {:error, reason}
+    end
+  end
+
+  defp bounded_comparison_option_items(_opts, _items, count)
+       when count > @max_comparison_opts_length,
+       do: {:error, {:invalid_comparison_options, :list_size_limit}}
+
+  defp bounded_comparison_option_items([], items, _count), do: {:ok, Enum.reverse(items)}
+
+  defp bounded_comparison_option_items([head | tail], items, count),
+    do: bounded_comparison_option_items(tail, [head | items], count + 1)
+
+  defp bounded_comparison_option_items(_improper_tail, _items, _count),
+    do: {:error, {:invalid_comparison_options, :improper_list}}
+
+  defp comparison_option_entry?({key, _value}) when is_atom(key), do: true
+  defp comparison_option_entry?(_entry), do: false
+
+  defp validate_comparison_option_schema([]), do: {:ok, []}
+
+  defp validate_comparison_option_schema([{:bundle_path, path}] = opts) do
+    if valid_bundle_path?(path) do
+      {:ok, opts}
+    else
+      {:error, {:invalid_comparison_options, :invalid_bundle_path}}
+    end
+  end
+
+  defp validate_comparison_option_schema(items) do
+    keys = Enum.map(items, &elem(&1, 0))
+
+    cond do
+      Enum.any?(keys, &(&1 != :bundle_path)) ->
+        {:error, {:invalid_comparison_options, :unknown_key}}
+
+      length(keys) > 1 ->
+        {:error, {:invalid_comparison_options, :duplicate_bundle_path}}
+
+      true ->
+        {:error, {:invalid_comparison_options, :invalid_schema}}
+    end
+  end
+
+  defp valid_bundle_path?(path) when is_binary(path) do
+    byte_size(path) > 0 and byte_size(path) <= @max_bundle_path_bytes and
+      String.valid?(path) and :binary.match(path, <<0>>) == :nomatch
+  end
+
+  defp valid_bundle_path?(_path), do: false
+
+  defp preflight_observations(observations) do
+    preflight_observation_nodes([{observations, 0}], 0)
+  end
+
+  defp preflight_observation_nodes(_stack, visited)
+       when visited > @max_observation_entries,
+       do: {:error, {:invalid_observations, :cardinality_limit}}
+
+  defp preflight_observation_nodes([], _visited), do: :ok
+
+  defp preflight_observation_nodes([{_value, depth} | _rest], _visited)
+       when depth > @max_observation_depth,
+       do: {:error, {:invalid_observations, :depth_limit}}
+
+  defp preflight_observation_nodes([{%{__struct__: _module}, _depth} | _rest], _visited),
+    do: {:error, {:invalid_observations, :non_json_safe_leaf}}
+
+  defp preflight_observation_nodes([{value, _depth} | _rest], _visited)
+       when is_tuple(value),
+       do: {:error, {:invalid_observations, :non_json_safe_leaf}}
+
+  defp preflight_observation_nodes([{%{} = map, depth} | rest], visited) do
+    cond do
+      map_size(map) > @max_observation_map_size ->
+        {:error, {:invalid_observations, :map_size_limit}}
+
+      true ->
+        with :ok <- preflight_observation_keys(map) do
+          children = Enum.map(Map.values(map), &{&1, depth + 1})
+          preflight_observation_nodes(children ++ rest, visited + map_size(map))
+        end
+    end
+  end
+
+  defp preflight_observation_nodes([{list, depth} | rest], visited) when is_list(list) do
+    case bounded_observation_list_items(list, @max_observation_list_length) do
+      {:ok, items} ->
+        children = Enum.map(items, &{&1, depth + 1})
+        preflight_observation_nodes(children ++ rest, visited + length(items))
+
+      {:error, reason} ->
+        {:error, reason}
+    end
+  end
+
+  defp preflight_observation_nodes([{value, _depth} | rest], visited)
+       when is_nil(value) or is_boolean(value) or is_atom(value),
+       do: preflight_observation_nodes(rest, visited + 1)
+
+  defp preflight_observation_nodes([{value, _depth} | rest], visited)
+       when is_binary(value) do
+    if byte_size(value) <= @max_observation_binary_bytes and String.valid?(value) do
+      preflight_observation_nodes(rest, visited + 1)
+    else
+      {:error, {:invalid_observations, :non_json_safe_leaf}}
+    end
+  end
+
+  defp preflight_observation_nodes([{value, _depth} | rest], visited)
+       when is_integer(value) or is_float(value) do
+    if safe_observation_number?(value) do
+      preflight_observation_nodes(rest, visited + 1)
+    else
+      {:error, {:invalid_observations, :non_json_safe_number}}
+    end
+  end
+
+  defp preflight_observation_nodes([_value | _rest], _visited),
+    do: {:error, {:invalid_observations, :non_json_safe_leaf}}
+
+  defp preflight_observation_keys(map) do
+    keys = Map.keys(map)
+
+    cond do
+      Enum.any?(keys, &(not (is_atom(&1) or is_binary(&1)))) ->
+        {:error, {:invalid_observations, :non_json_safe_key}}
+
+      Enum.any?(keys, &(observation_key_bytes(&1) > @max_observation_key_bytes)) ->
+        {:error, {:invalid_observations, :key_size_limit}}
+
+      Enum.any?(keys, &(is_binary(&1) and not String.valid?(&1))) ->
+        {:error, {:invalid_observations, :non_json_safe_key}}
+
+      true ->
+        reject_observation_key_aliases(keys)
+    end
+  end
+
+  defp observation_key_bytes(key) when is_atom(key), do: key |> Atom.to_string() |> byte_size()
+  defp observation_key_bytes(key) when is_binary(key), do: byte_size(key)
+
+  defp reject_observation_key_aliases(keys) do
+    atom_names =
+      keys
+      |> Enum.filter(&is_atom/1)
+      |> Enum.map(&Atom.to_string/1)
+      |> MapSet.new()
+
+    case Enum.find(keys, &(is_binary(&1) and MapSet.member?(atom_names, &1))) do
+      nil -> :ok
+      key -> {:error, {:invalid_observations, {:atom_string_alias_collision, key}}}
+    end
+  end
+
+  defp bounded_observation_list_items(list, limit) when is_list(list),
+    do: bounded_observation_list_items(list, [], 0, limit)
+
+  defp bounded_observation_list_items(_list, _items, count, limit) when count > limit,
+    do: {:error, {:invalid_observations, :list_size_limit}}
+
+  defp bounded_observation_list_items([], items, _count, _limit),
+    do: {:ok, Enum.reverse(items)}
+
+  defp bounded_observation_list_items([head | tail], items, count, limit),
+    do: bounded_observation_list_items(tail, [head | items], count + 1, limit)
+
+  defp bounded_observation_list_items(_improper_tail, _items, _count, _limit),
+    do: {:error, {:invalid_observations, :improper_list}}
+
+  defp safe_observation_number?(value) when is_integer(value),
+    do: abs(value) <= @safe_observation_number_limit
+
+  defp safe_observation_number?(value) when is_float(value),
+    do:
+      value == value and value - value == 0.0 and
+        abs(value) <= @safe_observation_number_limit
 
   defp expectations do
     %{
@@ -504,15 +741,16 @@ defmodule OrbitalDynamics.Validation.ExternalTruth.OrekitLeoCase do
 
   defp verify_loaded_bundle(bundle) do
     with {:ok, _semantic_checks} <- validate_bundle_semantics(bundle),
-         {:ok, observed} <- observations() do
-      compare_loaded_bundle(bundle, observed)
+         {:ok, observed} <- observations(),
+         :ok <- preflight_observations(observed) do
+      compare_preflighted_bundle(bundle, observed)
     else
       {:error, %{} = report} -> {:error, report}
       {:error, reason} -> {:error, failure_report(reason)}
     end
   end
 
-  defp compare_loaded_bundle(bundle, observations) do
+  defp compare_preflighted_bundle(bundle, observations) do
     case validate_bundle_semantics(bundle) do
       {:ok, semantic_checks} ->
         checks =
@@ -1028,8 +1266,10 @@ defmodule OrbitalDynamics.Validation.ExternalTruth.OrekitLeoCase do
         "orbital_dynamics.horizon_coverage",
         %{starts_at_s: 0.0, ends_at_s: @horizon_s, sample_count: 2_161},
         Map.get(observations, :horizon)
-      )
+      ),
+      access_timing_contract_authority_check(reference, manifest, observations)
     ] ++
+      [access_timing_error_contract_check(reference, manifest, observations)] ++
       state_checks(reference["states"], Map.get(observations, :states)) ++
       event_checks(
         "access",
@@ -1045,12 +1285,197 @@ defmodule OrbitalDynamics.Validation.ExternalTruth.OrekitLeoCase do
       )
   end
 
+  defp access_timing_contract_authority_check(reference, manifest, observations) do
+    input = access_timing_error_contract_input(reference, manifest, observations)
+    expected = EventTiming.orekit_access_contract_authority()
+
+    observed = %{
+      input: Map.delete(input, :observed_boundaries),
+      error_tolerance_s: @access_tolerance_s,
+      convergence_keys: @access_convergence_fields,
+      root_model_limits: observed_access_root_model_limits(input.observed_boundaries)
+    }
+
+    exact_check(
+      "orbital_dynamics.access_timing_contract_authority",
+      Map.take(expected, [:input, :error_tolerance_s, :convergence_keys, :root_model_limits]),
+      observed
+    )
+  end
+
+  defp access_timing_error_contract_check(reference, manifest, observations) do
+    input = access_timing_error_contract_input(reference, manifest, observations)
+
+    contract_result =
+      if valid_observation_row_containers?(observations) do
+        EventTiming.propagator_coupled_access_error_contract(input)
+      else
+        {:error, {:invalid_observations, :malformed_nested_container}}
+      end
+
+    case contract_result do
+      {:ok, evidence} ->
+        observed_error_s = evidence.tolerance.observed_maximum_s
+
+        %{
+          "field" => "access_timing.propagator_coupled_error_contract",
+          "status" => "pass",
+          "expected" => 0.0,
+          "observed" => observed_error_s,
+          "error" => observed_error_s,
+          "evidence" => json_safe(evidence),
+          "tolerance" => @access_tolerance_s
+        }
+
+      {:error, {:access_timing_error_exceeds_tolerance, evidence}} ->
+        observed_error_s = evidence.tolerance.observed_maximum_s
+
+        %{
+          "field" => "access_timing.propagator_coupled_error_contract",
+          "status" => "fail",
+          "expected" => 0.0,
+          "observed" => observed_error_s,
+          "error" => observed_error_s,
+          "evidence" => json_safe(evidence),
+          "tolerance" => @access_tolerance_s
+        }
+
+      {:error, reason} ->
+        %{
+          "field" => "access_timing.propagator_coupled_error_contract",
+          "status" => "fail",
+          "expected" => "pass",
+          "observed" => "fail",
+          "evidence" => json_safe(%{reason: reason}),
+          "tolerance" => "exact"
+        }
+    end
+  end
+
+  defp access_timing_error_contract_input(reference, manifest, observations) do
+    runtime_semantics = observations |> Map.get(:runtime_semantics) |> map_or_empty()
+    reference_model = runtime_semantics |> Map.get("reference_model") |> map_or_empty()
+    state_output_grid = reference_model |> Map.get("state_output_grid") |> map_or_empty()
+    access_model = runtime_semantics |> Map.get("access_model") |> map_or_empty()
+    data_sources = runtime_semantics |> Map.get("data_sources") |> map_or_empty()
+    reference_tool = manifest |> Map.get("reference_tool") |> map_or_empty()
+    path_identity = observations |> Map.get(:path_identity) |> map_or_empty()
+
+    %{
+      case_id: @case_id,
+      bundle_identity: %{
+        manifest_sha256: @manifest_sha256,
+        source_manifest_sha256: @source_manifest_sha256,
+        result_sha256: @result_sha256
+      },
+      case_input: %{
+        reference_tool: %{
+          name: Map.get(reference_tool, "name"),
+          version: Map.get(reference_tool, "version")
+        },
+        frame: Map.get(reference_model, "frame"),
+        epoch: Map.get(reference_model, "epoch"),
+        time_scale: Map.get(reference_model, "time_scale"),
+        horizon_s: Map.get(reference_model, "horizon_ends_at_s"),
+        output_step_s: Map.get(state_output_grid, "step_s"),
+        initial_position_m: Map.get(reference_model, "initial_position_m"),
+        initial_velocity_m_s: Map.get(reference_model, "initial_velocity_m_s"),
+        mu_m3_s2: Map.get(reference_model, "mu_m3_s2"),
+        equatorial_radius_m: Map.get(reference_model, "equatorial_radius_m"),
+        j2: Map.get(reference_model, "j2"),
+        atmosphere_model: Map.get(reference_model, "atmosphere_model"),
+        atmosphere_reference_altitude_m:
+          Map.get(reference_model, "atmosphere_reference_altitude_m"),
+        atmosphere_reference_density_kg_m3:
+          Map.get(reference_model, "atmosphere_reference_density_kg_m3"),
+        atmosphere_scale_height_m: Map.get(reference_model, "atmosphere_scale_height_m"),
+        body_flattening: Map.get(access_model, "body_flattening"),
+        earth_orientation_model: Map.get(data_sources, "earth_orientation_model"),
+        earth_rotation_rate_rad_s: Map.get(access_model, "earth_rotation_rate_rad_s"),
+        earth_rotation_angle_at_epoch_rad:
+          Map.get(access_model, "earth_rotation_angle_at_epoch_rad"),
+        eop_source: Map.get(data_sources, "eop_source"),
+        station_latitude_deg: Map.get(access_model, "station_latitude_deg"),
+        station_longitude_deg: Map.get(access_model, "station_longitude_deg"),
+        station_altitude_m: Map.get(access_model, "station_altitude_m"),
+        minimum_elevation_deg: Map.get(access_model, "minimum_elevation_deg"),
+        atmospheric_refraction: Map.get(access_model, "atmospheric_refraction"),
+        terrain_mask: Map.get(access_model, "terrain_mask"),
+        reference_root_threshold_s: Map.get(access_model, "root_threshold_s"),
+        reference_root_max_iterations: Map.get(access_model, "max_iterations")
+      },
+      path_identity:
+        Map.take(path_identity, [
+          :propagator,
+          :force_model,
+          :force_models,
+          :force_composition,
+          :numerical_method,
+          :frame,
+          :epoch_scale,
+          :output_step_s,
+          :max_step_s,
+          :atmosphere_provider_id,
+          :atmosphere_source_revision,
+          :earth_rotation_provider_id,
+          :earth_rotation_source_revision,
+          :earth_rotation_rate_rad_s,
+          :spacecraft_mass_kg,
+          :drag_area_m2,
+          :drag_coefficient,
+          :access_detector,
+          :access_root_tolerance_s,
+          :access_root_max_iterations,
+          :access_boundaries
+        ]),
+      coverage: Map.get(observations, :horizon),
+      reference_boundaries:
+        reference
+        |> get_in(["events", "access"])
+        |> normalize_access_reference_boundaries(),
+      observed_boundaries: Map.get(observations, :access)
+    }
+  end
+
+  defp normalize_access_reference_boundaries(rows) when is_list(rows) do
+    Enum.map(rows, fn row ->
+      %{type: Map.get(row, "type"), epoch_s: Map.get(row, "epoch_s")}
+    end)
+  end
+
+  defp normalize_access_reference_boundaries(rows), do: rows
+
+  defp observed_access_root_model_limits(rows) when is_list(rows) do
+    limits =
+      Enum.map(rows, fn
+        %{convergence: %{} = convergence} -> Map.get(convergence, :model_limits)
+        _row -> :invalid_observed_access_boundary
+      end)
+
+    case Enum.uniq(limits) do
+      [model_limits] -> model_limits
+      observed_limits -> observed_limits
+    end
+  end
+
+  defp observed_access_root_model_limits(_rows), do: :invalid_observed_access_boundaries
+
+  defp valid_observation_row_containers?(observations) do
+    Enum.all?([:states, :access, :eclipse], fn key ->
+      case Map.get(observations, key) do
+        rows when is_list(rows) -> Enum.all?(rows, &is_map/1)
+        _other -> false
+      end
+    end)
+  end
+
   defp state_checks(reference_states, observed_states)
        when is_list(reference_states) and is_list(observed_states) do
     reference_states
     |> Enum.zip(observed_states)
     |> Enum.flat_map(fn {expected, observed} ->
       epoch = expected["epoch_s"]
+      observed = map_or_empty(observed)
 
       [
         numeric_check(
@@ -1092,6 +1517,8 @@ defmodule OrbitalDynamics.Validation.ExternalTruth.OrekitLeoCase do
       |> Enum.zip(observed_rows)
       |> Enum.with_index(1)
       |> Enum.flat_map(fn {{expected, observed}, index} ->
+        observed = map_or_empty(observed)
+
         [
           exact_check("#{prefix}.#{index}.type", expected["type"], Map.get(observed, :type)),
           numeric_check(
@@ -1116,16 +1543,17 @@ defmodule OrbitalDynamics.Validation.ExternalTruth.OrekitLeoCase do
   defp event_checks(prefix, expected_rows, observed_rows, _tolerance),
     do: [exact_check("#{prefix}.rows", expected_rows, observed_rows)]
 
-  defp detect_access(trajectory, body) do
-    station =
-      GroundStation.new!(
-        :orekit_external_truth_station,
-        @station_latitude_deg,
-        @station_longitude_deg,
-        altitude_km: @station_altitude_km,
-        minimum_elevation_deg: @station_minimum_elevation_deg
-      )
+  defp access_station do
+    GroundStation.new!(
+      :orekit_external_truth_station,
+      @station_latitude_deg,
+      @station_longitude_deg,
+      altitude_km: @station_altitude_km,
+      minimum_elevation_deg: @station_minimum_elevation_deg
+    )
+  end
 
+  defp detect_access(trajectory, body, station) do
     AccessWindows.detect(trajectory,
       ground_station: station,
       central_body: body,
@@ -1164,10 +1592,26 @@ defmodule OrbitalDynamics.Validation.ExternalTruth.OrekitLeoCase do
   defp observed_access_boundaries(events) do
     Enum.flat_map(events, fn event ->
       [
-        %{type: "aos", epoch_s: event.starts_at.seconds_since_j2000},
-        %{type: "los", epoch_s: event.ends_at.seconds_since_j2000}
+        observed_access_boundary(
+          "aos",
+          event.starts_at.seconds_since_j2000,
+          event.metadata.start_boundary_detail
+        ),
+        observed_access_boundary(
+          "los",
+          event.ends_at.seconds_since_j2000,
+          event.metadata.end_boundary_detail
+        )
       ]
     end)
+  end
+
+  defp observed_access_boundary(type, epoch_s, boundary_detail) do
+    %{
+      type: type,
+      epoch_s: epoch_s,
+      convergence: Map.take(boundary_detail, @access_convergence_fields)
+    }
   end
 
   defp observed_eclipse_boundaries(events) do
@@ -1255,7 +1699,14 @@ defmodule OrbitalDynamics.Validation.ExternalTruth.OrekitLeoCase do
     }
   end
 
-  defp runtime_semantics(scenario, body, trajectory, access_events, eclipse_events) do
+  defp runtime_semantics(
+         scenario,
+         body,
+         station,
+         trajectory,
+         access_events,
+         eclipse_events
+       ) do
     path = path_identity(trajectory, access_events, eclipse_events)
     spacecraft = scenario.spacecraft
     initial_state = scenario.initial_state
@@ -1282,6 +1733,12 @@ defmodule OrbitalDynamics.Validation.ExternalTruth.OrekitLeoCase do
         "spacecraft_mass_kg" => spacecraft.dry_mass_kg + spacecraft.propellant_mass_kg,
         "spacecraft_drag_area_m2" => spacecraft.area_m2,
         "spacecraft_drag_coefficient" => spacecraft.drag_coefficient,
+        "atmosphere_model" => "SimpleExponentialAtmosphere",
+        "atmosphere_reference_altitude_m" =>
+          path.atmosphere_parameters["reference_altitude_km"] * 1_000.0,
+        "atmosphere_reference_density_kg_m3" =>
+          path.atmosphere_parameters["reference_density_kg_m3"],
+        "atmosphere_scale_height_m" => path.atmosphere_parameters["scale_height_km"] * 1_000.0,
         "integrator_step_s" => path.max_step_s
       },
       "data_sources" => %{
@@ -1293,7 +1750,7 @@ defmodule OrbitalDynamics.Validation.ExternalTruth.OrekitLeoCase do
         "sun_provider_distance_m" => 100_000_000_000.0,
         "network_data_used_during_propagation" => false
       },
-      "access_model" => @expected_access_model,
+      "access_model" => observed_access_model(scenario, station, access_events, path),
       "eclipse_model" =>
         Map.put(
           @expected_eclipse_model,
@@ -1304,6 +1761,69 @@ defmodule OrbitalDynamics.Validation.ExternalTruth.OrekitLeoCase do
       "tolerances" => @expected_tolerances
     }
   end
+
+  defp observed_access_model(scenario, station, access_events, path) do
+    geometry_model =
+      boundary_metadata(
+        access_events,
+        :geometry_model,
+        :simplified_spherical_earth_rotation
+      )
+
+    earth_rotation_rate_rad_s =
+      boundary_metadata(access_events, :earth_rotation_rate_rad_s, 7.292115e-5)
+
+    reference_solver_fields =
+      Map.take(@expected_access_model, ["max_check_s", "root_threshold_s", "max_iterations"])
+
+    Map.merge(reference_solver_fields, %{
+      "detector" => access_detector_reference_name(path.access_detector),
+      "body_shape" => access_geometry_reference_shape(geometry_model),
+      "body_flattening" => access_geometry_flattening(geometry_model),
+      "earth_rotation_rate_rad_s" => earth_rotation_rate_rad_s,
+      "earth_rotation_angle_at_epoch_rad" =>
+        earth_rotation_rate_rad_s * scenario.initial_state.epoch.seconds_since_j2000,
+      "station_latitude_deg" => station.latitude_deg,
+      "station_longitude_deg" => station.longitude_deg,
+      "station_altitude_m" => station.altitude_km * 1_000.0,
+      "minimum_elevation_deg" => station.minimum_elevation_deg,
+      "atmospheric_refraction" =>
+        access_none_model_name(
+          boundary_metadata(access_events, :refraction, :none),
+          :refraction
+        ),
+      "terrain_mask" =>
+        access_none_model_name(
+          boundary_metadata(access_events, :terrain_mask, :none),
+          :terrain_mask
+        ),
+      "event_definition" =>
+        access_event_definition(path.access_boundaries, station.minimum_elevation_deg)
+    })
+  end
+
+  defp access_detector_reference_name("OrbitalDynamics.EventDetectors.AccessWindows"),
+    do: "ElevationDetector"
+
+  defp access_detector_reference_name(value), do: {:unexpected_access_detector, value}
+
+  defp access_geometry_reference_shape(:simplified_spherical_earth_rotation),
+    do: "OneAxisEllipsoid_sphere"
+
+  defp access_geometry_reference_shape(value), do: {:unexpected_access_geometry, value}
+
+  defp access_geometry_flattening(:simplified_spherical_earth_rotation), do: 0.0
+  defp access_geometry_flattening(value), do: {:unexpected_access_geometry, value}
+
+  defp access_none_model_name(:none, _field), do: "none"
+  defp access_none_model_name(value, field), do: {:unexpected_access_model, field, value}
+
+  defp access_event_definition(:aos_los_bracketed_bisection, 5.0) do
+    "aos_is_increasing_zero_of_geometric_elevation_minus_5_deg;los_is_decreasing_zero"
+  end
+
+  defp access_event_definition(boundaries, minimum_elevation_deg),
+    do: {:unexpected_access_event_definition, boundaries, minimum_elevation_deg}
 
   defp runtime_manifest_projection(manifest) do
     reference_model = Map.get(manifest, "reference_model", %{})
@@ -1325,6 +1845,10 @@ defmodule OrbitalDynamics.Validation.ExternalTruth.OrekitLeoCase do
           "spacecraft_mass_kg",
           "spacecraft_drag_area_m2",
           "spacecraft_drag_coefficient",
+          "atmosphere_model",
+          "atmosphere_reference_altitude_m",
+          "atmosphere_reference_density_kg_m3",
+          "atmosphere_scale_height_m",
           "integrator_step_s"
         ]),
       "data_sources" => Map.get(manifest, "data_sources"),
@@ -1412,6 +1936,9 @@ defmodule OrbitalDynamics.Validation.ExternalTruth.OrekitLeoCase do
   end
 
   defp exact_keys(_map, expected_keys), do: {:error, {:object_keys, expected_keys, :not_object}}
+
+  defp map_or_empty(value) when is_map(value), do: value
+  defp map_or_empty(_value), do: %{}
 
   defp validate_rows(rows, validator) do
     rows
@@ -1548,10 +2075,14 @@ defmodule OrbitalDynamics.Validation.ExternalTruth.OrekitLeoCase do
   defp json_safe(value) when is_list(value), do: Enum.map(value, &json_safe/1)
 
   defp json_safe(value) when is_map(value) do
-    Map.new(value, fn {key, nested_value} -> {to_string(key), json_safe(nested_value)} end)
+    Map.new(value, fn {key, nested_value} -> {json_safe_key(key), json_safe(nested_value)} end)
   end
 
   defp json_safe(value), do: value
+
+  defp json_safe_key(key) when is_binary(key), do: key
+  defp json_safe_key(key) when is_atom(key) or is_number(key), do: to_string(key)
+  defp json_safe_key(key), do: inspect(key)
 
   defp format_epoch(epoch_s), do: epoch_s |> trunc() |> Integer.to_string()
   defp sha256(bytes), do: :crypto.hash(:sha256, bytes) |> Base.encode16(case: :lower)

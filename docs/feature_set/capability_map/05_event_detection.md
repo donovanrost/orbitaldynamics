@@ -103,6 +103,65 @@ sample path. It is not dense propagator output, does not resolve multiple
 crossings hidden inside one sample interval, and adds no terrain, refraction,
 authoritative Earth-orientation, external-validation, or flight-fidelity claim.
 
+### Exact-case propagator-coupled access timing error
+
+`EventTiming.propagator_coupled_access_error_contract/1` separately binds the
+already checked Orekit 13.1.7 six-hour J2-drag case to the actual propagated
+`AccessWindows` results. Admission is fail-closed and exact-case-only: the
+contract requires the checked manifest/source/result SHA-256 identities, pinned
+physical and numerical inputs, internal propagator/provider/detector path,
+0--21,600 TDB-second coverage with all 2,161 ten-second states, and the exact
+`aos, los, aos, los` reference sequence.
+
+Each observed boundary must also retain its AccessWindows solver identity,
+cubic-Hermite scope, original adjacent sample indices and ten-second bracket
+epochs, requested 1 microsecond root tolerance, and model limits. For
+time-bracket convergence, the iteration count must reproduce the solver's
+binary64 first-stop recurrence from the original width to the exact dyadic
+final width. In this exact case that means iteration 23, final width
+`10 / 2^23 = 1.1920928955078125e-6` seconds, half-width
+`5.9604644775390625e-7` seconds, and 26 function evaluations. The final
+absolute-epoch bracket must have strict AOS/LOS signs, contain the reported
+midpoint, and reproduce that dyadic width within one binary64 ULP at the
+21,600-second horizon. Exact-sample convergence is admitted only at an original
+endpoint with exact zero-width evidence, zero iterations, and two endpoint
+evaluations. Exact-interpolated-root work counts are not admitted because the
+current metadata does not retain the penultimate bracket needed to prove them.
+Only after those gates pass does the contract compare all four boundaries with
+the existing 1 millisecond Orekit absolute-error bound. The content-bound
+external-truth verifier keeps the executable check numeric and schema-comparable
+while archiving full input provenance, coverage, convergence, tolerance,
+per-boundary errors, and bounded-claim evidence in the check's additional
+`evidence` field.
+
+The verifier also compares the contract's centralized exact-case authority with
+the content-bound bundle, runtime path/station semantics, observed boundary
+model limits, and convergence-field set. Runtime access semantics derive the
+station coordinates, elevation mask, detector/refinement identity, spherical
+geometry, rotation rate, terrain, and refraction declarations from the actual
+constructed station, path, and emitted access metadata so copied constants
+cannot silently drift together.
+
+Before any authority, state, or event comparison enumerates observations or
+converts them for report JSON, the verifier walks the complete observation tree
+with bounded proper-list, map-size, depth, total-cardinality, key-alias,
+finite-number, valid-UTF-8, and JSON-safe-leaf admission. A rejected tree returns
+the same schema-valid failure-report shape rather than raising. Comparison
+options likewise require a bounded proper keyword list before `Keyword.get/3`;
+the only admitted entry is one nonempty, bounded, valid-UTF-8 `:bundle_path`
+binary, with no duplicate or unknown keys.
+
+This source change defines one propagator-coupled error contract, not general
+access timing.
+Detector-local metadata remains `validation_level: :analysis` outside this exact
+case. There is no new claim for other initial states, stations, cadences,
+providers, terrain/refraction models, EOP sources, hidden crossings, or
+continuous parameter combinations.
+
+This page records the current source contract. Formatter, compilation, schema
+execution, focused tests, and numerical residuals for an exact source revision
+remain separate runtime gates and are not established by this source text.
+
 ### Refinement evidence and lineage
 
 - Access, target-visibility, and eclipse events now preserve boundary-refinement details on detected windows.
@@ -116,8 +175,10 @@ Status: **partial**.
 - **Boundary refinement** — AOS/LOS boundaries can optionally be root-refined on
   a cubic-Hermite interpolated sample path. The default AOS/LOS path, target
   visibility, cylindrical eclipse, and sampled latitude/longitude ground-track
-  boundaries remain linearly refined; no detector has dense-output propagation
-  or externally validated physical event-time guarantees.
+  boundaries remain linearly refined. The exact J2-drag/Orekit access case has
+  the narrowly scoped source contract above, subject to its separate focused
+  runtime gate; no detector has a general dense-output or externally validated
+  event-time guarantee.
 - **Lighting tags** — now distinguish overlap-fraction bands, but are still based on sampled cylindrical eclipse intervals, not penumbra or sensor illumination geometry.
 - **Latitude/longitude crossings** — are geocentric; body-fixed mode uses declared constant rotation assumptions or provider-supplied rotation angles rather than a built-in authoritative Earth orientation data set.
 - **Elevation masks** — are scalar minimum elevations; terrain, refraction, and refined physical illumination categories are not modeled.
@@ -128,9 +189,9 @@ Status: **near-term**.
 
 - Refined lighting condition tags.
 - Earth-orientation provider adapters beyond the internal constant-rate provider.
-- Dense-output or propagator-coupled event evaluation for physical root timing,
-  followed by external reference comparison before any tighter validation
-  level is claimed.
+- Dense-output event evaluation and a multi-cadence, multi-case external timing
+  envelope before any claim broader than the exact propagator-coupled access
+  case above.
 
 ## Later
 

@@ -65,6 +65,9 @@ defmodule OrbitalDynamics.Validation.ExternalTruthTest do
     assert check(report, "orbital_dynamics.manifest_runtime_semantics")["status"] ==
              "pass"
 
+    assert check(report, "orbital_dynamics.access_timing_contract_authority")["status"] ==
+             "pass"
+
     assert max_residual(report, "state.", "max_abs_error", ".position_m") < 0.001
     assert max_residual(report, "state.", "max_abs_error", ".velocity_m_s") < 1.0e-6
     assert max_residual(report, "access.", "error", ".epoch_s") < 0.001
@@ -78,6 +81,51 @@ defmodule OrbitalDynamics.Validation.ExternalTruthTest do
              "ends_at_s" => 21_600.0,
              "sample_count" => 2_161
            }
+
+    contract_check = check(report, "access_timing.propagator_coupled_error_contract")
+    assert contract_check["status"] == "pass"
+    assert contract_check["expected"] == 0.0
+    assert contract_check["observed"] < 0.001
+    assert contract_check["error"] == contract_check["observed"]
+    assert contract_check["tolerance"] == 0.001
+    assert contract_check["evidence"]["status"] == "pass"
+    assert contract_check["evidence"]["validation_level"] == "validated"
+
+    assert contract_check["evidence"]["bundle_identity"]["result_sha256"] ==
+             "88f0ab20bd24a78bda74cfa8091f9e0546e85eee0e2c4719bde988ad2c66649f"
+
+    assert contract_check["evidence"]["coverage"]["sample_count"] == 2_161
+    assert contract_check["evidence"]["coverage"]["reference_boundary_count"] == 4
+    assert contract_check["evidence"]["coverage"]["observed_boundary_count"] == 4
+    assert contract_check["evidence"]["convergence"]["converged_boundary_count"] == 4
+
+    assert contract_check["evidence"]["convergence"][
+             "maximum_achieved_root_error_bound_s"
+           ] <= 1.0e-6
+
+    convergence_rows = contract_check["evidence"]["convergence"]["boundaries"]
+    first_convergence = List.first(convergence_rows)
+    assert first_convergence["after_sample_index"] == first_convergence["before_sample_index"] + 1
+    assert first_convergence["after_epoch_s"] - first_convergence["before_epoch_s"] == 10.0
+
+    assert Enum.all?(convergence_rows, fn convergence ->
+             convergence["convergence"] == "time_bracket" and
+               convergence["root_iterations"] == 23 and
+               convergence["root_function_evaluations"] == 26 and
+               convergence["event_time_bracket_s"] == 1.1920928955078125e-6 and
+               convergence["event_time_tolerance_s"] == 5.9604644775390625e-7
+           end)
+
+    assert contract_check["evidence"]["tolerance"]["observed_maximum_s"] < 0.001
+
+    assert "no_continuous_combination_claim" in contract_check["evidence"]["known_limits"]
+
+    assert "exact_interpolated_root_work_counts_not_admitted" in contract_check["evidence"][
+             "known_limits"
+           ]
+
+    assert "no_terrain_mask" in contract_check["evidence"]["known_limits"]
+    assert "no_refraction_model" in contract_check["evidence"]["known_limits"]
   end
 
   test "rejects perturbed propagated state and access and eclipse truth", %{
@@ -86,7 +134,19 @@ defmodule OrbitalDynamics.Validation.ExternalTruthTest do
     perturbed =
       observations
       |> update_in([:states, Access.at(1_234), :position_m, Access.at(0)], &(&1 + 0.02))
-      |> update_in([:access, Access.at(0), :epoch_s], &(&1 + 0.002))
+      |> update_in([:access, Access.at(0)], fn boundary ->
+        %{
+          boundary
+          | epoch_s: boundary.epoch_s + 0.002,
+            convergence: %{
+              boundary.convergence
+              | root_bracket_before_epoch_s:
+                  boundary.convergence.root_bracket_before_epoch_s + 0.002,
+                root_bracket_after_epoch_s:
+                  boundary.convergence.root_bracket_after_epoch_s + 0.002
+            }
+        }
+      end)
       |> update_in([:eclipse, Access.at(0), :epoch_s], &(&1 + 0.1))
 
     assert {:error, report} = OrekitLeoCase.compare_observations(perturbed)
@@ -94,6 +154,172 @@ defmodule OrbitalDynamics.Validation.ExternalTruthTest do
     assert check(report, "state.12340.position_m")["status"] == "fail"
     assert check(report, "access.1.epoch_s")["status"] == "fail"
     assert check(report, "eclipse.1.epoch_s")["status"] == "fail"
+
+    contract_check = check(report, "access_timing.propagator_coupled_error_contract")
+    assert contract_check["status"] == "fail"
+    assert contract_check["observed"] > contract_check["tolerance"]
+    assert contract_check["evidence"]["status"] == "fail"
+    assert contract_check["evidence"]["tolerance"]["observed_maximum_s"] > 0.001
+    assert {:ok, _schema_report} = OrbitalDynamics.Schema.validate_artifact(report)
+  end
+
+  test "normalizes malformed nested observation containers into failure reports", %{
+    observations: observations
+  } do
+    malformed_observations = [
+      Map.delete(observations, :runtime_semantics),
+      Map.delete(observations, :path_identity),
+      Map.put(observations, :runtime_semantics, nil),
+      put_in(observations, [:runtime_semantics, "reference_model"], nil),
+      put_in(observations, [:runtime_semantics, "access_model"], :invalid),
+      put_in(observations, [:runtime_semantics, "data_sources"], []),
+      Map.put(observations, :path_identity, :invalid),
+      Map.put(observations, :horizon, nil),
+      put_in(observations, [:access, Access.at(0), :convergence], nil),
+      put_in(observations, [:access, Access.at(0)], nil),
+      put_in(observations, [:states, Access.at(0)], nil),
+      put_in(observations, [:eclipse, Access.at(0)], nil)
+    ]
+
+    for malformed <- malformed_observations do
+      assert {:error, report} = OrekitLeoCase.compare_observations(malformed)
+      assert report["status"] == "fail"
+
+      assert check(report, "access_timing.propagator_coupled_error_contract")["status"] ==
+               "fail"
+
+      assert {:ok, _schema_report} = OrbitalDynamics.Schema.validate_artifact(report)
+    end
+  end
+
+  test "preflights improper nested observation lists into schema-valid failure reports", %{
+    observations: observations
+  } do
+    malformed =
+      put_in(
+        observations,
+        [:access, Access.at(0), :convergence, :model_limits],
+        [:not_flight_fidelity | :improper_tail]
+      )
+
+    assert {:error, report} = OrekitLeoCase.compare_observations(malformed)
+    assert report["status"] == "fail"
+    failure_check = List.first(report["checks"])
+    assert failure_check["field"] == "bundle.verification"
+    assert failure_check["observed"] == ["invalid_observations", "improper_list"]
+    assert {:ok, _schema_report} = OrbitalDynamics.Schema.validate_artifact(report)
+  end
+
+  test "preflights malformed comparison options before keyword traversal", %{
+    observations: observations
+  } do
+    malformed_options = [
+      {
+        [{:bundle_path, OrekitLeoCase.bundle_path()} | :improper_tail],
+        ["invalid_comparison_options", "improper_list"]
+      },
+      {
+        [{:bundle_path, OrekitLeoCase.bundle_path()}, :not_a_keyword_entry],
+        ["invalid_comparison_options", "not_keyword"]
+      },
+      {
+        List.duplicate({:bundle_path, OrekitLeoCase.bundle_path()}, 9),
+        ["invalid_comparison_options", "list_size_limit"]
+      },
+      {
+        [unexpected: true],
+        ["invalid_comparison_options", "unknown_key"]
+      },
+      {
+        [bundle_path: OrekitLeoCase.bundle_path(), bundle_path: OrekitLeoCase.bundle_path()],
+        ["invalid_comparison_options", "duplicate_bundle_path"]
+      },
+      {
+        [bundle_path: self()],
+        ["invalid_comparison_options", "invalid_bundle_path"]
+      },
+      {
+        [bundle_path: <<255>>],
+        ["invalid_comparison_options", "invalid_bundle_path"]
+      },
+      {
+        [bundle_path: String.duplicate("a", 4_097)],
+        ["invalid_comparison_options", "invalid_bundle_path"]
+      }
+    ]
+
+    for {opts, expected_reason} <- malformed_options do
+      assert {:error, report} = OrekitLeoCase.compare_observations(observations, opts)
+      assert report["status"] == "fail"
+      assert List.first(report["checks"])["observed"] == expected_reason
+      assert {:ok, _schema_report} = OrbitalDynamics.Schema.validate_artifact(report)
+    end
+  end
+
+  test "preflights unused excessive and non-JSON-safe observation branches", %{
+    observations: observations
+  } do
+    excessive_depth = Enum.reduce(1..14, :leaf, fn _level, nested -> [nested] end)
+
+    malformed_observations = [
+      Map.put(observations, :unused, List.duplicate(:leaf, 3_001)),
+      Map.put(observations, :unused, excessive_depth),
+      Map.put(observations, :unused, self()),
+      Map.put(observations, :unused, <<255>>),
+      Map.put(observations, :unused, :erlang.bsl(1, 1_000)),
+      observations
+      |> Map.put(:unused, 1)
+      |> Map.put("unused", 2)
+    ]
+
+    for malformed <- malformed_observations do
+      assert {:error, report} = OrekitLeoCase.compare_observations(malformed)
+      assert report["status"] == "fail"
+      assert {:ok, _schema_report} = OrbitalDynamics.Schema.validate_artifact(report)
+    end
+  end
+
+  test "admits exactly 50,000 observation visits before typed comparison" do
+    twelve_leaves = List.duplicate(:leaf, 12)
+
+    outer =
+      List.duplicate(twelve_leaves, 1_998) ++
+        [List.duplicate(:leaf, 24)]
+
+    inner_list_entries = Enum.reduce(outer, 0, fn inner, count -> count + length(inner) end)
+    total_visits = 1 + length(outer) + inner_list_entries + inner_list_entries
+
+    assert length(outer) == 1_999
+    assert inner_list_entries == 24_000
+    assert total_visits == 50_000
+
+    assert {:error, report} = OrekitLeoCase.compare_observations(%{unused: outer})
+    assert report["status"] == "fail"
+    assert check(report, "orbital_dynamics.path_identity")["status"] == "fail"
+
+    refute Enum.any?(report["checks"], fn row ->
+             row["observed"] == ["invalid_observations", "cardinality_limit"]
+           end)
+
+    assert {:ok, _schema_report} = OrbitalDynamics.Schema.validate_artifact(report)
+  end
+
+  test "rejects exactly 50,001 observation visits at public preflight" do
+    twelve_leaves = List.duplicate(:leaf, 12)
+    outer = List.duplicate(twelve_leaves, 2_000)
+    inner_list_entries = Enum.reduce(outer, 0, fn inner, count -> count + length(inner) end)
+    total_visits = 1 + length(outer) + inner_list_entries + inner_list_entries
+
+    assert length(outer) == 2_000
+    assert inner_list_entries == 24_000
+    assert total_visits == 50_001
+
+    assert {:error, report} = OrekitLeoCase.compare_observations(%{unused: outer})
+    assert report["status"] == "fail"
+    failure_check = List.first(report["checks"])
+    assert failure_check["field"] == "bundle.verification"
+    assert failure_check["observed"] == ["invalid_observations", "cardinality_limit"]
+    assert {:ok, _schema_report} = OrbitalDynamics.Schema.validate_artifact(report)
   end
 
   test "rejects frame, time-scale, and horizon coverage mismatches", %{
