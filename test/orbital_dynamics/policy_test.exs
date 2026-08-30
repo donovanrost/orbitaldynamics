@@ -525,6 +525,30 @@ defmodule OrbitalDynamics.PolicyTest do
   end
 
   test "rejects malformed runtime action rule fields before classification" do
+    assert_raise ArgumentError, ~r/approval policy action_rules must be a list/, fn ->
+      Policy.normalize_approval_policy(%{
+        action_rules: %{
+          id: "single_rule_map",
+          requirement_types: ["contact_schedule_change"],
+          classification: "blocked_by_policy"
+        }
+      })
+    end
+
+    assert_raise ArgumentError, ~r/policy bundle action_rules must be a list/, fn ->
+      Policy.normalize_approval_policy(%{
+        policy_bundle: %{
+          id: "inline_bundle",
+          approval_policy: %{
+            action_rules: %{
+              id: "single_bundle_rule_map",
+              classification: "blocked_by_policy"
+            }
+          }
+        }
+      })
+    end
+
     assert_raise ArgumentError, ~r/policy action rule 1 must be a map/, fn ->
       Policy.normalize_approval_policy(%{action_rules: [:bad_rule]})
     end

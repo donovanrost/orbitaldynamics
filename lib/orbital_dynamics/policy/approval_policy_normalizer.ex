@@ -200,9 +200,20 @@ defmodule OrbitalDynamics.Policy.ApprovalPolicyNormalizer do
     policy = stringify_keys(policy || %{})
     bundle = policy_bundle(policy, bundle_resolver)
     bundle_policy = Map.get(bundle || %{}, "approval_policy", %{})
-    explicit_rules = Map.get(policy, "action_rules")
+
+    bundle_rules =
+      bundle_policy
+      |> Map.get("action_rules", [])
+      |> normalize_action_rule_container!("policy bundle")
+
+    explicit_rules =
+      case Map.fetch(policy, "action_rules") do
+        {:ok, rules} -> normalize_action_rule_container!(rules, "approval policy")
+        :error -> []
+      end
+
     policy = Map.merge(bundle_policy, Map.drop(policy, ["bundle", "policy_bundle_id"]))
-    action_rules = Map.get(bundle_policy, "action_rules", []) ++ List.wrap(explicit_rules || [])
+    action_rules = bundle_rules ++ explicit_rules
 
     %{
       "policy_bundle_id" => Map.get(bundle || %{}, "id"),
@@ -217,6 +228,12 @@ defmodule OrbitalDynamics.Policy.ApprovalPolicyNormalizer do
       "action_rules" => normalize_action_rules(action_rules)
     }
     |> validate_approval_policy!()
+  end
+
+  defp normalize_action_rule_container!(rules, _source) when is_list(rules), do: rules
+
+  defp normalize_action_rule_container!(_rules, source) do
+    raise ArgumentError, "#{source} action_rules must be a list"
   end
 
   defp policy_bundle(%{"policy_bundle" => %{} = bundle}, _bundle_resolver) do
@@ -282,8 +299,6 @@ defmodule OrbitalDynamics.Policy.ApprovalPolicyNormalizer do
     |> validate_unique_action_rule_ids!()
     |> Enum.sort_by(& &1["id"])
   end
-
-  defp normalize_action_rules(_rules), do: []
 
   defp validate_unique_action_rule_ids!(rules) do
     duplicate_ids =
