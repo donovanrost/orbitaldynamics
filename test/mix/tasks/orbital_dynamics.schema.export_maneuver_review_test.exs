@@ -1,6 +1,8 @@
 defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportManeuverReviewTest do
   use ExUnit.Case, async: false
 
+  @moduletag :integration
+
   import ExUnit.CaptureIO
 
   test "exports maneuver review contract" do
@@ -16,10 +18,20 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportManeuverReviewTest do
     end)
 
     capture_io(fn ->
-      Mix.Task.run("orbital_dynamics.schema.export", ["--all", "--output", output_path])
+      Mix.Task.run("orbital_dynamics.schema.export", [
+        "--contract",
+        "maneuver_review_report.v1",
+        "--output",
+        output_path
+      ])
     end)
 
-    assert %{"schemas" => schemas} = output_path |> File.read!() |> :json.decode()
+    schema = output_path |> File.read!() |> :json.decode()
+
+    assert get_in(schema, ["x-orbital-dynamics", "schema_contract"]) ==
+             "maneuver_review_report.v1"
+
+    schemas = %{"maneuver_review_report.v1" => schema}
 
     assert get_in(schemas, [
              "maneuver_review_report.v1",

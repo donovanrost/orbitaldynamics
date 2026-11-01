@@ -2500,7 +2500,7 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshResourceProvenanceContractsTest
              "additionalProperties",
              "items",
              "pattern"
-           ]) == "^[A-Za-z0-9][A-Za-z0-9._:@-]*$"
+           ]) == ~S"^[A-Za-z0-9][A-Za-z0-9._:@-]*(?![\s\S])"
 
     invalid_quality_gate_count =
       put_in(

@@ -149,7 +149,7 @@ defmodule OrbitalDynamics.Schema.Report do
       "schema_contract" => Keyword.fetch!(opts, :schema_contract),
       "model" => "executable_artifact_contract_validation",
       "validation_mode" => validation_mode,
-      "validated_contract" => Map.get(report, "schema_contract") || "unknown",
+      "validated_contract" => validated_contract(report),
       "validated_artifact_family" => Map.get(report, "artifact_family"),
       "validated_schema_version" => Map.get(report, "schema_version"),
       "status" => if(errors == [], do: "pass", else: "fail"),
@@ -167,6 +167,13 @@ defmodule OrbitalDynamics.Schema.Report do
       }
     }
     |> maybe_put("artifact_path", artifact_path)
+  end
+
+  defp validated_contract(report) do
+    case Map.get(report, "schema_contract") do
+      name when is_binary(name) -> name
+      _missing -> "unknown"
+    end
   end
 
   defp validation_remediation(report, errors) do

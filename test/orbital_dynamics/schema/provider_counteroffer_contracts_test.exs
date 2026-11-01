@@ -112,7 +112,7 @@ defmodule OrbitalDynamics.Schema.ProviderCounterofferContractsTest do
     row_schema = get_in(schema, ["properties", "rows", "items"])
 
     assert get_in(row_schema, ["properties", "provider_counteroffer_id", "pattern"]) ==
-             "^[A-Za-z0-9][A-Za-z0-9._:@-]*$"
+             ~S"^[A-Za-z0-9][A-Za-z0-9._:@-]*(?![\s\S])"
 
     assert get_in(row_schema, ["properties", "provider_counteroffer_cost_delta", "type"]) ==
              "number"

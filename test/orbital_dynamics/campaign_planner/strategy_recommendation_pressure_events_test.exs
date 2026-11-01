@@ -1,9 +1,6 @@
 Code.require_file("support.exs", __DIR__)
 
-Code.require_file(
-  "../../support/campaign_planner/strategy_recommendation_pressure_events_fixture.ex",
-  __DIR__
-)
+Code.ensure_loaded!(OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureEventsFixture)
 
 defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureEventsTest do
   use ExUnit.Case, async: true

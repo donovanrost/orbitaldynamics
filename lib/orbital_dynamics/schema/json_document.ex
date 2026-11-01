@@ -46,10 +46,18 @@ defmodule OrbitalDynamics.Schema.JsonDocument do
   end
 
   def build(name, contract, opts) do
+    build(name, contract, opts, true)
+  end
+
+  defp build(name, contract, opts, include_definitions?) do
     required_fields = contract["required_fields"]
     optional_fields = Map.get(contract, "optional_fields", [])
     property_fields = Enum.uniq(required_fields ++ optional_fields)
-    nested_defs = nested_schema_definitions(contract["nested_contracts"], opts)
+
+    nested_defs =
+      if include_definitions?,
+        do: nested_schema_definitions(contract["nested_contracts"], opts),
+        else: %{}
 
     %{
       "$schema" => Keyword.fetch!(opts, :json_schema_draft),
@@ -302,8 +310,10 @@ defmodule OrbitalDynamics.Schema.JsonDocument do
           [
             {name,
              name
-             |> build(contract, opts)
-             |> Map.delete("$defs")
+             # Nested definitions expose only the direct declared contract.
+             # Building transitive definitions here and then deleting them
+             # repeatedly expands the same dependency graph for no output.
+             |> build(contract, opts, false)
              |> scrub_nested_schema_metadata()}
           ]
 

@@ -1,6 +1,8 @@
 defmodule Mix.Tasks.OrbitalDynamics.Study.BenchmarkTest do
   use ExUnit.Case, async: false
 
+  @moduletag :integration
+
   import ExUnit.CaptureIO
 
   test "runs a study benchmark and writes an artifact" do

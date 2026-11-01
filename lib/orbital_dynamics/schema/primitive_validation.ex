@@ -246,7 +246,7 @@ defmodule OrbitalDynamics.Schema.PrimitiveValidation do
 
   def expect_field_equals(issues, path, map, field, expected, message) do
     if Map.has_key?(map, field) and Map.get(map, field) != expected do
-      [error("#{path}.#{field}", message) | issues]
+      [error("#{path}.#{field}", message || "must equal #{inspect(expected)}") | issues]
     else
       issues
     end

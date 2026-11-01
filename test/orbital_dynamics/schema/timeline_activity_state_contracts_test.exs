@@ -146,7 +146,7 @@ defmodule OrbitalDynamics.Schema.TimelineActivityStateContractsTest do
 
     assert row_properties["activity_id"] == %{
              "type" => "string",
-             "pattern" => "^[A-Za-z0-9][A-Za-z0-9._:@-]*$"
+             "pattern" => ~S"^[A-Za-z0-9][A-Za-z0-9._:@-]*(?![\s\S])"
            }
 
     assert row_properties["timeline_identity"] ==

@@ -1,10 +1,10 @@
-Code.require_file(
-  "../../support/candidate_refresh/source_report_input_provenance_fixture.ex",
-  __DIR__
-)
+Code.ensure_loaded!(OrbitalDynamics.CandidateRefresh.SourceReportInputProvenanceFixture)
 
 defmodule OrbitalDynamics.CandidateRefresh.AcceptedStateEvidenceAuthorityTest do
   use ExUnit.Case, async: true
+
+  @scan_node_budget 8_192
+  @scan_depth_budget 16
 
   alias OrbitalDynamics.CampaignPlanner.{
     PlanBranch,
@@ -279,7 +279,7 @@ defmodule OrbitalDynamics.CandidateRefresh.AcceptedStateEvidenceAuthorityTest do
     base_surface = build_artifact() |> decision_surface()
 
     hostile_values = [
-      {deep_map(10), "accepted_state_evidence_shape_deep"},
+      {deep_map(@scan_depth_budget + 2), "accepted_state_evidence_shape_deep"},
       {List.duplicate("component", 129), "accepted_state_evidence_shape_oversize"},
       {self(), "unsupported_accepted_state_evidence_value"},
       {make_ref(), "unsupported_accepted_state_evidence_value"},
@@ -775,7 +775,7 @@ defmodule OrbitalDynamics.CandidateRefresh.AcceptedStateEvidenceAuthorityTest do
       make_ref(),
       fn -> :ok end,
       ["component" | "tail"],
-      deep_map(10)
+      deep_map(@scan_depth_budget + 2)
     ]
 
     for value <- invalid_values do
@@ -1089,7 +1089,7 @@ defmodule OrbitalDynamics.CandidateRefresh.AcceptedStateEvidenceAuthorityTest do
       |> accepted_state_with_quality()
       |> put_accepted_state_decision_fields()
 
-    oversized_state = add_root_noise(clean_state, 70)
+    oversized_state = add_root_noise(clean_state, 134)
 
     artifact =
       oversized_state
@@ -1299,14 +1299,14 @@ defmodule OrbitalDynamics.CandidateRefresh.AcceptedStateEvidenceAuthorityTest do
         |> put_refresh_consumer_surface()
         |> Map.put("source_resource_projection_reports", source_reports)
         |> Map.put(:source_resource_projection_reports, atom_source_reports)
-        |> add_root_noise(70)
+        |> add_root_noise(134)
 
       both_absent_refresh =
         refresh_request()
         |> put_refresh_consumer_surface()
         |> Map.delete("source_resource_projection_reports")
         |> Map.delete(:source_resource_projection_reports)
-        |> add_root_noise(70)
+        |> add_root_noise(134)
 
       artifact = build_artifact(refresh)
       both_absent_artifact = build_artifact(both_absent_refresh)
@@ -1338,12 +1338,12 @@ defmodule OrbitalDynamics.CandidateRefresh.AcceptedStateEvidenceAuthorityTest do
     cases = [
       {
         "root",
-        add_root_noise(clean_state, 70),
+        add_root_noise(clean_state, 134),
         "accepted_state_evidence_shape_oversize"
       },
       {
         "depth",
-        Map.put(clean_state, "aaa_depth_noise", deep_map(10)),
+        Map.put(clean_state, "aaa_depth_noise", deep_map(@scan_depth_budget + 2)),
         "accepted_state_evidence_shape_deep"
       }
     ]
@@ -1390,7 +1390,7 @@ defmodule OrbitalDynamics.CandidateRefresh.AcceptedStateEvidenceAuthorityTest do
       refresh_encoding_redaction()
       |> build_artifact()
 
-    assert node_analysis.analysis_cursor == %{nodes: 512, overflow: true}
+    assert node_analysis.analysis_cursor == %{nodes: @scan_node_budget, overflow: true}
     assert node_analysis.build_encoding_outcome == :whole_refresh_redaction
     assert node_analysis.refresh == refresh_encoding_redaction()
     assert node_summary["status"] == "review_required"
@@ -1424,12 +1424,12 @@ defmodule OrbitalDynamics.CandidateRefresh.AcceptedStateEvidenceAuthorityTest do
     cases = [
       {
         "root",
-        add_root_noise(clean_refresh, 70),
+        add_root_noise(clean_refresh, 134),
         "accepted_state_evidence_shape_oversize"
       },
       {
         "depth",
-        Map.put(clean_refresh, "aaa_depth_noise", deep_map(10)),
+        Map.put(clean_refresh, "aaa_depth_noise", deep_map(@scan_depth_budget + 2)),
         "accepted_state_evidence_shape_deep"
       }
     ]
@@ -1479,7 +1479,7 @@ defmodule OrbitalDynamics.CandidateRefresh.AcceptedStateEvidenceAuthorityTest do
       refresh_encoding_redaction()
       |> build_artifact()
 
-    assert node_analysis.analysis_cursor == %{nodes: 512, overflow: true}
+    assert node_analysis.analysis_cursor == %{nodes: @scan_node_budget, overflow: true}
     assert node_analysis.build_encoding_outcome == :whole_refresh_redaction
     assert node_analysis.refresh == refresh_encoding_redaction()
     assert node_summary["status"] == "review_required"
@@ -1557,14 +1557,14 @@ defmodule OrbitalDynamics.CandidateRefresh.AcceptedStateEvidenceAuthorityTest do
       "operational_feedback" => operational_feedback
     }
 
-    ceiling_refresh = add_root_noise(ceiling_expected_projection, 70)
+    ceiling_refresh = add_root_noise(ceiling_expected_projection, 134)
 
     overflow_refresh =
       %{
         "accepted_planning_state" => Map.put(ceiling_state, "source", %{}),
         "operational_feedback" => operational_feedback
       }
-      |> add_root_noise(70)
+      |> add_root_noise(134)
 
     redaction = refresh_encoding_redaction()
     ceiling_artifact = build_artifact(ceiling_refresh)
@@ -1631,7 +1631,7 @@ defmodule OrbitalDynamics.CandidateRefresh.AcceptedStateEvidenceAuthorityTest do
       "operational_feedback" => operational_feedback
     }
 
-    ceiling_refresh = add_root_noise(ceiling_projection, 70)
+    ceiling_refresh = add_root_noise(ceiling_projection, 134)
     ceiling_analysis = AcceptedStateEvidenceAuthority.analyze_refresh_wrapper(ceiling_refresh)
     ceiling_summary = ceiling_analysis.evidence_authority
 
@@ -1652,7 +1652,7 @@ defmodule OrbitalDynamics.CandidateRefresh.AcceptedStateEvidenceAuthorityTest do
         "accepted_planning_state" => Map.put(ceiling_state, "source", %{}),
         "operational_feedback" => operational_feedback
       }
-      |> add_root_noise(70)
+      |> add_root_noise(134)
 
     overflow_analysis = AcceptedStateEvidenceAuthority.analyze_refresh_wrapper(overflow_refresh)
     overflow_summary = overflow_analysis.evidence_authority
@@ -1674,7 +1674,7 @@ defmodule OrbitalDynamics.CandidateRefresh.AcceptedStateEvidenceAuthorityTest do
           }
         }
       }
-      |> add_alphabetic_root_noise(70)
+      |> add_alphabetic_root_noise(134)
 
     analysis = AcceptedStateEvidenceAuthority.analyze_refresh_wrapper(refresh)
     summary = analysis.evidence_authority
@@ -1705,7 +1705,7 @@ defmodule OrbitalDynamics.CandidateRefresh.AcceptedStateEvidenceAuthorityTest do
           }
         }
       }
-      |> add_root_noise(70)
+      |> add_root_noise(134)
 
     analysis = AcceptedStateEvidenceAuthority.analyze_refresh_wrapper(refresh)
     summary = analysis.evidence_authority
@@ -1742,7 +1742,7 @@ defmodule OrbitalDynamics.CandidateRefresh.AcceptedStateEvidenceAuthorityTest do
 
     base_refresh =
       %{"accepted_planning_state" => minimal_budget_accepted_state()}
-      |> add_root_noise(70)
+      |> add_root_noise(134)
 
     absent_analysis = AcceptedStateEvidenceAuthority.analyze_refresh_wrapper(base_refresh)
 
@@ -1789,13 +1789,13 @@ defmodule OrbitalDynamics.CandidateRefresh.AcceptedStateEvidenceAuthorityTest do
       },
       {
         "deep map",
-        deep_map(10),
+        deep_map(@scan_depth_budget + 2),
         "accepted_state_evidence_shape_deep",
         :nested
       },
       {
         "oversized map",
-        add_root_noise(%{}, 65),
+        add_root_noise(%{}, 129),
         "accepted_state_evidence_shape_oversize",
         :base
       },
@@ -1863,13 +1863,13 @@ defmodule OrbitalDynamics.CandidateRefresh.AcceptedStateEvidenceAuthorityTest do
       },
       {
         "deep map",
-        deep_map(10),
+        deep_map(@scan_depth_budget + 2),
         "accepted_state_evidence_shape_deep",
         :nested
       },
       {
         "oversized map",
-        add_root_noise(%{}, 65),
+        add_root_noise(%{}, 129),
         "accepted_state_evidence_shape_oversize",
         :base
       },
@@ -1996,13 +1996,13 @@ defmodule OrbitalDynamics.CandidateRefresh.AcceptedStateEvidenceAuthorityTest do
       },
       {
         "depth",
-        deep_map(10),
+        deep_map(@scan_depth_budget + 2),
         "accepted_state_evidence_shape_deep",
-        base_path <> ".nested.nested.nested.nested.nested"
+        base_path <> String.duplicate(".nested", @scan_depth_budget - 3)
       },
       {
         "width",
-        add_root_noise(%{}, 65),
+        add_root_noise(%{}, 129),
         "accepted_state_evidence_shape_oversize",
         base_path
       },
@@ -2095,7 +2095,7 @@ defmodule OrbitalDynamics.CandidateRefresh.AcceptedStateEvidenceAuthorityTest do
         "accepted_planning_state" => accepted_state,
         "operational_feedback" => operational_feedback
       }
-      |> add_root_noise(70)
+      |> add_root_noise(134)
 
     ceiling_projection = %{
       "accepted_planning_state" => accepted_state,
@@ -2105,7 +2105,7 @@ defmodule OrbitalDynamics.CandidateRefresh.AcceptedStateEvidenceAuthorityTest do
     ceiling_analysis = AcceptedStateEvidenceAuthority.analyze_refresh_wrapper(ceiling_refresh)
     ceiling_summary = ceiling_analysis.evidence_authority
 
-    assert ceiling_analysis.analysis_cursor == %{nodes: 512, overflow: false}
+    assert ceiling_analysis.analysis_cursor == %{nodes: @scan_node_budget, overflow: false}
     assert ceiling_analysis.build_encoding_outcome == :complete_projected_refresh
     assert ceiling_analysis.refresh == ceiling_projection
 
@@ -2120,12 +2120,12 @@ defmodule OrbitalDynamics.CandidateRefresh.AcceptedStateEvidenceAuthorityTest do
         "accepted_planning_state" => Map.put(accepted_state, "source", %{}),
         "operational_feedback" => operational_feedback
       }
-      |> add_root_noise(70)
+      |> add_root_noise(134)
 
     overflow_analysis = AcceptedStateEvidenceAuthority.analyze_refresh_wrapper(overflow_refresh)
     overflow_summary = overflow_analysis.evidence_authority
 
-    assert overflow_analysis.analysis_cursor == %{nodes: 512, overflow: true}
+    assert overflow_analysis.analysis_cursor == %{nodes: @scan_node_budget, overflow: true}
     assert overflow_analysis.build_encoding_outcome == :whole_refresh_redaction
     assert overflow_analysis.refresh == refresh_encoding_redaction()
     assert "accepted_state_evidence_node_budget_exceeded" in overflow_summary["review_reasons"]
@@ -2168,7 +2168,7 @@ defmodule OrbitalDynamics.CandidateRefresh.AcceptedStateEvidenceAuthorityTest do
       |> refresh_with_only_accepted_state_inputs()
       |> put_refresh_consumer_surface()
 
-    noisy_refresh = add_root_noise(clean_refresh, 70)
+    noisy_refresh = add_root_noise(clean_refresh, 134)
     clean_artifact = build_artifact(clean_refresh)
     noisy_artifact = build_artifact(noisy_refresh)
     summary = get_in(noisy_artifact, ["accepted_planning_state", "evidence_authority"])
@@ -2280,12 +2280,28 @@ defmodule OrbitalDynamics.CandidateRefresh.AcceptedStateEvidenceAuthorityTest do
     end
   end
 
+  test "retains reports at the depth limit and projects deeper inputs" do
+    refresh = %{"source_reports" => deep_map(@scan_depth_budget - 1)}
+    analysis = AcceptedStateEvidenceAuthority.analyze_refresh_wrapper(refresh)
+
+    assert analysis.build_encoding_outcome == :byte_preserve_raw_refresh
+    assert analysis.refresh == refresh
+    assert analysis.evidence_authority["status"] == "clean"
+
+    deeper = %{"source_reports" => deep_map(@scan_depth_budget)}
+    analysis = AcceptedStateEvidenceAuthority.analyze_refresh_wrapper(deeper)
+
+    assert analysis.build_encoding_outcome == :complete_projected_refresh
+    refute analysis.analysis_cursor.overflow
+    assert "accepted_state_evidence_shape_deep" in analysis.evidence_authority["review_reasons"]
+  end
+
   test "classifies hostile terms within bounded public preflight" do
     cases = [
       {"pid", self(), "unsupported_accepted_state_evidence_value"},
       {"reference", make_ref(), "unsupported_accepted_state_evidence_value"},
       {"function", fn -> :ok end, "unsupported_accepted_state_evidence_value"},
-      {"deep", deep_map(10), "accepted_state_evidence_shape_deep"},
+      {"deep", deep_map(@scan_depth_budget + 2), "accepted_state_evidence_shape_deep"},
       {"oversize", List.duplicate("component", 129), "accepted_state_evidence_shape_oversize"},
       {"invalid utf8", <<255>>, "accepted_state_evidence_invalid_utf8"},
       {"huge binary", :binary.copy("a", 257), "accepted_state_evidence_binary_oversize"},
@@ -2866,7 +2882,7 @@ defmodule OrbitalDynamics.CandidateRefresh.AcceptedStateEvidenceAuthorityTest do
           nil,
           "not_a_summary",
           ["not_a_summary" | "tail"],
-          clean_evidence_summary() |> add_root_noise(70)
+          clean_evidence_summary() |> add_root_noise(134)
         ] do
       projected_refresh = BuildContext.refresh_for_build_encoding(unsafe_refresh, authority)
       refute unsafe_epoch_seconds_present?(projected_refresh)
@@ -2880,7 +2896,7 @@ defmodule OrbitalDynamics.CandidateRefresh.AcceptedStateEvidenceAuthorityTest do
       assert @review_warning in artifact["warnings"]
     end
 
-    oversized_refresh = refresh_request() |> add_root_noise(70)
+    oversized_refresh = refresh_request() |> add_root_noise(134)
     oversized_artifact = build_artifact(oversized_refresh)
 
     oversized_summary =
@@ -3574,9 +3590,7 @@ defmodule OrbitalDynamics.CandidateRefresh.AcceptedStateEvidenceAuthorityTest do
   defp deep_map(depth), do: %{"nested" => deep_map(depth - 1)}
 
   defp node_budget_noise do
-    Enum.reduce(1..64, %{}, fn index, acc ->
-      Map.put(acc, "node_#{index}", List.duplicate(%{"leaf" => "value"}, 8))
-    end)
+    bounded_node_tree(@scan_node_budget + 1)
   end
 
   defp cursor_consuming_approval_policy do
@@ -3612,17 +3626,20 @@ defmodule OrbitalDynamics.CandidateRefresh.AcceptedStateEvidenceAuthorityTest do
       "observation_success_rate" => dynamic_feedback_values("target_observation", 63, 0.9)
     }
 
-    case edge_count do
-      nil ->
-        tree
+    tree =
+      case edge_count do
+        nil ->
+          tree
 
-      count ->
-        Map.put(
-          tree,
-          "station_throughput_factor",
-          dynamic_feedback_values("equator_prime_edge", count, 0.96)
-        )
-    end
+        count ->
+          Map.put(
+            tree,
+            "station_throughput_factor",
+            dynamic_feedback_values("equator_prime_edge", count, 0.96)
+          )
+      end
+
+    pad_feedback_budget(tree)
   end
 
   defp dynamic_feedback_values(prefix, count, value) do
@@ -3648,5 +3665,24 @@ defmodule OrbitalDynamics.CandidateRefresh.AcceptedStateEvidenceAuthorityTest do
     |> Enum.reduce(%{}, fn {field, count}, acc ->
       Map.put(acc, field, dynamic_feedback_values(field, count, 0.5))
     end)
+    |> pad_feedback_budget()
+  end
+
+  # Retain the original 512-node boundary cases while exercising the actual
+  # production ceiling. Each generated map stays within the 64-entry limit.
+  defp pad_feedback_budget(tree) do
+    key = tree["blur_score"] |> Map.keys() |> Enum.sort() |> hd()
+    put_in(tree, ["blur_score", key], bounded_node_tree(@scan_node_budget - 512 + 1))
+  end
+
+  defp bounded_node_tree(1), do: 0.5
+
+  defp bounded_node_tree(nodes) do
+    child_size = max(div(nodes - 1 + 63, 64), 1)
+
+    1..(nodes - 1)
+    |> Enum.chunk_every(child_size)
+    |> Enum.with_index()
+    |> Map.new(fn {chunk, index} -> {"padding_#{index}", bounded_node_tree(length(chunk))} end)
   end
 end

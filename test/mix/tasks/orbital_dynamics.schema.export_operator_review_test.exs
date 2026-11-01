@@ -1,6 +1,8 @@
 defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportOperatorReviewTest do
   use ExUnit.Case, async: false
 
+  @moduletag :integration
+
   import ExUnit.CaptureIO
 
   test "exports operator review model and priority evidence contract" do
@@ -16,10 +18,20 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportOperatorReviewTest do
     end)
 
     capture_io(fn ->
-      Mix.Task.run("orbital_dynamics.schema.export", ["--all", "--output", output_path])
+      Mix.Task.run("orbital_dynamics.schema.export", [
+        "--contract",
+        "operator_review_package.v1",
+        "--output",
+        output_path
+      ])
     end)
 
-    assert %{"schemas" => schemas} = output_path |> File.read!() |> :json.decode()
+    schema = output_path |> File.read!() |> :json.decode()
+
+    assert get_in(schema, ["x-orbital-dynamics", "schema_contract"]) ==
+             "operator_review_package.v1"
+
+    schemas = %{"operator_review_package.v1" => schema}
 
     assert get_in(schemas, [
              "operator_review_package.v1",

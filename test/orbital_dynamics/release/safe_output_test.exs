@@ -4,6 +4,7 @@ defmodule OrbitalDynamics.Release.SafeOutputTest do
   alias OrbitalDynamics.Release.SafeOutput
 
   test "exposes only seam-free production write arities" do
+    assert Code.ensure_loaded?(SafeOutput)
     assert function_exported?(SafeOutput, :write, 2)
     assert function_exported?(SafeOutput, :write!, 2)
     refute function_exported?(SafeOutput, :write, 3)

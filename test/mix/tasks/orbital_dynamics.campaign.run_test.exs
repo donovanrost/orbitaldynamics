@@ -1,6 +1,8 @@
 defmodule Mix.Tasks.OrbitalDynamics.Campaign.RunTest do
   use ExUnit.Case, async: false
 
+  @moduletag :integration
+
   import ExUnit.CaptureIO
 
   alias OrbitalDynamics.Schema

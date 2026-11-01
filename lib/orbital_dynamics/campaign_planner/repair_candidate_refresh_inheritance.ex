@@ -9,6 +9,11 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshInheritance do
   }
 
   def inherit(request, approval_policy, mission_state, prior_plan) do
+    # Normalization fills optional report fields with nil. They are not inputs
+    # and must not consume the bounded refresh projection's map-entry budget.
+    mission_state =
+      if is_map(mission_state), do: ValueEncoding.compact_map(mission_state), else: mission_state
+
     request
     |> inherit_approval_policy(approval_policy)
     |> inherit_mission_state(mission_state, prior_plan)

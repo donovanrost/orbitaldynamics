@@ -219,7 +219,7 @@ defmodule OrbitalDynamics.CandidateRefresh.BuildFallbackTest do
              Schema.validate_artifact(artifact)
   end
 
-  test "uses accepted planning-state spacecraft epoch when request and mission-state omit it" do
+  test "uses numeric accepted planning-state spacecraft epoch when request and mission-state omit it" do
     refresh =
       refresh_request()
       |> Map.delete("current_epoch_s")
@@ -228,7 +228,7 @@ defmodule OrbitalDynamics.CandidateRefresh.BuildFallbackTest do
         %{
           "spacecraft_id" => "sat_1",
           "scenario_id" => "leo_1",
-          "epoch" => %{"seconds_since_j2000" => "120.0"}
+          "epoch" => %{"seconds_since_j2000" => 120.0}
         }
       ])
 

@@ -1,6 +1,8 @@
 defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportOperationalTimelineTest do
   use ExUnit.Case, async: false
 
+  @moduletag :integration
+
   import ExUnit.CaptureIO
 
   test "exports operational timeline contract" do
@@ -16,10 +18,20 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportOperationalTimelineTest do
     end)
 
     capture_io(fn ->
-      Mix.Task.run("orbital_dynamics.schema.export", ["--all", "--output", output_path])
+      Mix.Task.run("orbital_dynamics.schema.export", [
+        "--contract",
+        "operational_timeline_report.v1",
+        "--output",
+        output_path
+      ])
     end)
 
-    assert %{"schemas" => schemas} = output_path |> File.read!() |> :json.decode()
+    schema = output_path |> File.read!() |> :json.decode()
+
+    assert get_in(schema, ["x-orbital-dynamics", "schema_contract"]) ==
+             "operational_timeline_report.v1"
+
+    schemas = %{"operational_timeline_report.v1" => schema}
 
     assert Map.has_key?(schemas, "operational_timeline_report.v1")
 
@@ -148,6 +160,6 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportOperationalTimelineTest do
              "properties",
              "timeline_id",
              "pattern"
-           ]) == "^[A-Za-z0-9][A-Za-z0-9._:@-]*$"
+           ]) == ~S"^[A-Za-z0-9][A-Za-z0-9._:@-]*(?![\s\S])"
   end
 end

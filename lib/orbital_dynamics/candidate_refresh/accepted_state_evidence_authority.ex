@@ -4,9 +4,15 @@ defmodule OrbitalDynamics.CandidateRefresh.AcceptedStateEvidenceAuthority do
   @schema_contract "accepted_state_evidence_authority.v1"
   @warning_message "accepted-state OrbitData evidence requires operator review but has no CandidateRefresh decision authority"
 
-  @max_scan_depth 8
-  @max_scan_nodes 512
-  @max_map_entries 64
+  # Canonical feedback nested in a mission-state result artifact reaches depth
+  # 12. Leave room for that supported composition while bounding traversal.
+  @max_scan_depth 16
+  # A refresh includes mission-state reports as well as spacecraft evidence.
+  # Even the three-report capacity-pack fixture needs 738 nodes. Keep a finite
+  # whole-wrapper budget large enough for ordinary composed planning inputs.
+  @max_scan_nodes 8_192
+  # Canonical operator-review packages currently carry up to 76 root fields.
+  @max_map_entries 128
   @max_list_entries 128
   @max_binary_bytes 256
   @max_abs_integer 9_007_199_254_740_991
@@ -329,6 +335,16 @@ defmodule OrbitalDynamics.CandidateRefresh.AcceptedStateEvidenceAuthority do
 	  )
 
   @candidate_refresh_nested_consumer_fields ~w(
+      antenna_available
+      antenna_available?
+      degraded
+      degraded?
+      incompatible_activity_types
+      payload_available
+      payload_available?
+      power_margin
+      source_quality
+      suppressed_activity_types
 	    _source_report_trust_boundary
 	    access
 	    access_windows
@@ -2949,6 +2965,21 @@ defmodule OrbitalDynamics.CandidateRefresh.AcceptedStateEvidenceAuthority do
       {:overflow, nodes, issues} ->
         {:overflow, nodes, issues, stats}
     end
+  end
+
+  # Planning inputs accept atom-valued identifiers and enums. Their own typed
+  # validators must still see invalid values so they can retain review evidence.
+  # Accepted-state evidence keeps its stricter, closed atom vocabulary.
+  defp transaction_scalar_value(value, path, "candidate_refresh", segments, nodes, stats)
+       when is_atom(value) and not is_boolean(value) and not is_nil(value) do
+    transaction_scalar_value(
+      Atom.to_string(value),
+      path,
+      "candidate_refresh",
+      segments,
+      nodes,
+      stats
+    )
   end
 
   defp transaction_scalar_value(value, path, scope, segments, nodes, stats) do

@@ -1,6 +1,8 @@
 defmodule OrbitalDynamics.GoldenArtifactTest do
   use ExUnit.Case, async: false
 
+  @moduletag :integration
+
   test "checked-in campaign artifact preserves the V1 planning surface" do
     campaign =
       "study_results/leo_constellation_campaign.json"
@@ -494,7 +496,7 @@ defmodule OrbitalDynamics.GoldenArtifactTest do
              "schema_version" => 3,
              "planner" => "OrbitalDynamics.CampaignPlanner.V3",
              "source_plan_id" => "campaign_plan:leo_constellation_campaign:2026-05-14T00:00:00Z",
-             "strategy_id" => "f1551dff11d98e6f008b7f4a2c75db9194cd24289ebea02117eab052bc194bf9",
+             "strategy_id" => "7a419cd058eca38e422d70c6b0e263b8fcc65451686764856d93e362198f5550",
              "recommended_branch_id" => "derived_urgent_target_target_hot",
              "approval_status" => "operator_review_required",
              "recommendation_status" => "pass"
@@ -634,7 +636,7 @@ defmodule OrbitalDynamics.GoldenArtifactTest do
              "score_term_review_count",
              "objective_tradeoff_review_count"
            ]) == %{
-             "review_count" => 2359,
+             "review_count" => 2362,
              "contact_allocation_review_count" => 25,
              "score_term_review_count" => 1805,
              "objective_tradeoff_review_count" => 54
@@ -646,8 +648,8 @@ defmodule OrbitalDynamics.GoldenArtifactTest do
              "review_required_count",
              "contact_allocation_import_count"
            ]) == %{
-             "row_count" => 2385,
-             "review_required_count" => 2359,
+             "row_count" => 2388,
+             "review_required_count" => 2362,
              "contact_allocation_import_count" => 25
            }
   end

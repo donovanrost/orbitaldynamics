@@ -1,6 +1,8 @@
 defmodule Mix.Tasks.OrbitalDynamics.Test.ShardTest do
   use ExUnit.Case, async: false
 
+  @moduletag :integration
+
   import ExUnit.CaptureIO
 
   test "writes a machine-readable manifest for an exactly covered suite" do

@@ -4,6 +4,8 @@ Code.require_file("../../orbital_dynamics/campaign_planner/local_search_support.
 defmodule Mix.Tasks.OrbitalDynamics.Level5WorkflowTest do
   use ExUnit.Case, async: false
 
+  @moduletag :integration
+
   import ExUnit.CaptureIO
 
   alias OrbitalDynamics.CadenceImport

@@ -1,7 +1,4 @@
-Code.require_file(
-  "../../support/candidate_refresh/source_report_input_provenance_fixture.ex",
-  __DIR__
-)
+Code.ensure_loaded!(OrbitalDynamics.CandidateRefresh.SourceReportInputProvenanceFixture)
 
 defmodule OrbitalDynamics.CandidateRefresh.SourceReportInputProvenanceTest do
   use ExUnit.Case, async: true

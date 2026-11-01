@@ -1,6 +1,8 @@
 defmodule Mix.Tasks.OrbitalDynamics.CapabilitiesTest do
   use ExUnit.Case, async: false
 
+  @moduletag :integration
+
   import ExUnit.CaptureIO
 
   alias OrbitalDynamics.Schema

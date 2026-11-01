@@ -187,17 +187,26 @@ defmodule OrbitalDynamics.Schema.OperationalTimelineContractsTest do
 
     assert row_properties["self_dependency_activity_ids"] == %{
              "type" => "array",
-             "items" => %{"type" => "string", "pattern" => "^[A-Za-z0-9][A-Za-z0-9._:@-]*$"}
+             "items" => %{
+               "type" => "string",
+               "pattern" => ~S"^[A-Za-z0-9][A-Za-z0-9._:@-]*(?![\s\S])"
+             }
            }
 
     assert row_properties["self_dependency_timeline_ids"] == %{
              "type" => "array",
-             "items" => %{"type" => "string", "pattern" => "^[A-Za-z0-9][A-Za-z0-9._:@-]*$"}
+             "items" => %{
+               "type" => "string",
+               "pattern" => ~S"^[A-Za-z0-9][A-Za-z0-9._:@-]*(?![\s\S])"
+             }
            }
 
     assert row_properties["station_calendar_reservation_ids"] == %{
              "type" => "array",
-             "items" => %{"type" => "string", "pattern" => "^[A-Za-z0-9][A-Za-z0-9._:@-]*$"}
+             "items" => %{
+               "type" => "string",
+               "pattern" => ~S"^[A-Za-z0-9][A-Za-z0-9._:@-]*(?![\s\S])"
+             }
            }
 
     assert row_properties["station_calendar_reservation_expires_at_s"] == %{
@@ -207,7 +216,7 @@ defmodule OrbitalDynamics.Schema.OperationalTimelineContractsTest do
 
     assert row_properties["station_reservation_id"] == %{
              "type" => "string",
-             "pattern" => "^[A-Za-z0-9][A-Za-z0-9._:@-]*$"
+             "pattern" => ~S"^[A-Za-z0-9][A-Za-z0-9._:@-]*(?![\s\S])"
            }
 
     assert row_properties["station_reservation_expires_at_s"] == %{"type" => "number"}

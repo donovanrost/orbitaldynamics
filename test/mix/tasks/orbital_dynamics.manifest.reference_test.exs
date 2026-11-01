@@ -1,6 +1,8 @@
 defmodule Mix.Tasks.OrbitalDynamics.Manifest.ReferenceTest do
   use ExUnit.Case, async: false
 
+  @moduletag :integration
+
   import ExUnit.CaptureIO
 
   alias OrbitalDynamics.Schema
@@ -31,8 +33,11 @@ defmodule Mix.Tasks.OrbitalDynamics.Manifest.ReferenceTest do
     assert output =~ "$.candidate_refresh.orbit_data object optional"
     assert output =~ "$.candidate_refresh.remaining_horizon object required"
     assert output =~ "requiredChildren=output_step_s"
-    assert output =~ "$.study_id string required stableIdPattern=^[A-Za-z0-9][A-Za-z0-9._:@-]*$"
-    assert output =~ "stable ID pattern: ^[A-Za-z0-9][A-Za-z0-9._:@-]*$"
+
+    assert output =~
+             "$.study_id string required stableIdPattern=^[A-Za-z0-9][A-Za-z0-9._:@-]*(?![\\s\\S])"
+
+    assert output =~ "stable ID pattern: ^[A-Za-z0-9][A-Za-z0-9._:@-]*(?![\\s\\S])"
 
     assert output =~
              "$.candidate_refresh.operational_feedback.downlink_demand_mb object optional additionalProperties=number"

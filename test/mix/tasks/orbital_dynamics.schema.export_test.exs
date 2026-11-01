@@ -1,6 +1,8 @@
 defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
   use ExUnit.Case, async: false
 
+  @moduletag :integration
+
   import ExUnit.CaptureIO
 
   alias OrbitalDynamics.{Schema, Validation}
@@ -139,7 +141,7 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
              "additionalProperties",
              "items",
              "pattern"
-           ]) == "^[A-Za-z0-9][A-Za-z0-9._:@-]*$"
+           ]) == ~S"^[A-Za-z0-9][A-Za-z0-9._:@-]*(?![\s\S])"
 
     candidate_refresh_contact_intent_source_report =
       get_in(schemas, [
@@ -160,7 +162,7 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
              "contact_ids",
              "items",
              "pattern"
-           ]) == "^[A-Za-z0-9][A-Za-z0-9._:@-]*$"
+           ]) == ~S"^[A-Za-z0-9][A-Za-z0-9._:@-]*(?![\s\S])"
 
     assert get_in(candidate_refresh_contact_intent_source_report, [
              "capacity_pack_required_capacity_fraction_by_direction",
@@ -219,7 +221,7 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
                  "additionalProperties",
                  "items",
                  "pattern"
-               ]) == "^[A-Za-z0-9][A-Za-z0-9._:@-]*$"
+               ]) == ~S"^[A-Za-z0-9][A-Za-z0-9._:@-]*(?![\s\S])"
       end
     )
 
@@ -229,7 +231,7 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
              "additionalProperties",
              "items",
              "pattern"
-           ]) == "^[A-Za-z0-9][A-Za-z0-9._:@-]*$"
+           ]) == ~S"^[A-Za-z0-9][A-Za-z0-9._:@-]*(?![\s\S])"
 
     candidate_refresh_station_calendar_source_report =
       get_in(schemas, [
@@ -250,7 +252,7 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
              "provider_contention_provider_entry_ids",
              "items",
              "pattern"
-           ]) == "^[A-Za-z0-9][A-Za-z0-9._:@-]*$"
+           ]) == ~S"^[A-Za-z0-9][A-Za-z0-9._:@-]*(?![\s\S])"
 
     assert get_in(candidate_refresh_station_calendar_source_report, [
              "provider_calendar_contention_capacity_fractions_by_direction",
@@ -293,7 +295,7 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
                  field,
                  "items",
                  "pattern"
-               ]) == "^[A-Za-z0-9][A-Za-z0-9._:@-]*$"
+               ]) == ~S"^[A-Za-z0-9][A-Za-z0-9._:@-]*(?![\s\S])"
       end
     )
 
@@ -375,7 +377,7 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
                  field,
                  "items",
                  "pattern"
-               ]) == "^[A-Za-z0-9][A-Za-z0-9._:@-]*$"
+               ]) == ~S"^[A-Za-z0-9][A-Za-z0-9._:@-]*(?![\s\S])"
       end
     )
 
@@ -446,7 +448,7 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
       ],
       fn path ->
         assert get_in(candidate_refresh_contact_contention_source_report, path ++ ["pattern"]) ==
-                 "^[A-Za-z0-9][A-Za-z0-9._:@-]*$"
+                 ~S"^[A-Za-z0-9][A-Za-z0-9._:@-]*(?![\s\S])"
       end
     )
 
@@ -557,7 +559,7 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
                    [
                      "pattern"
                    ]
-               ) == "^[A-Za-z0-9][A-Za-z0-9._:@-]*$"
+               ) == ~S"^[A-Za-z0-9][A-Za-z0-9._:@-]*(?![\s\S])"
       end
     )
 
@@ -740,7 +742,7 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
       ],
       fn path ->
         assert get_in(candidate_refresh_link_capacity_source_report, path ++ ["pattern"]) ==
-                 "^[A-Za-z0-9][A-Za-z0-9._:@-]*$"
+                 ~S"^[A-Za-z0-9][A-Za-z0-9._:@-]*(?![\s\S])"
       end
     )
 
@@ -839,7 +841,7 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
                  field,
                  "items",
                  "pattern"
-               ]) == "^[A-Za-z0-9][A-Za-z0-9._:@-]*$"
+               ]) == ~S"^[A-Za-z0-9][A-Za-z0-9._:@-]*(?![\s\S])"
       end
     )
 
@@ -857,7 +859,7 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
                  "additionalProperties",
                  "items",
                  "pattern"
-               ]) == "^[A-Za-z0-9][A-Za-z0-9._:@-]*$"
+               ]) == ~S"^[A-Za-z0-9][A-Za-z0-9._:@-]*(?![\s\S])"
       end
     )
 
@@ -876,7 +878,7 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
              "activity_ids",
              "items",
              "pattern"
-           ]) == "^[A-Za-z0-9][A-Za-z0-9._:@-]*$"
+           ]) == ~S"^[A-Za-z0-9][A-Za-z0-9._:@-]*(?![\s\S])"
 
     candidate_refresh_command_window_source_report =
       get_in(schemas, [
@@ -947,7 +949,7 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
       ],
       fn path ->
         assert get_in(candidate_refresh_command_window_source_report, path ++ ["pattern"]) ==
-                 "^[A-Za-z0-9][A-Za-z0-9._:@-]*$"
+                 ~S"^[A-Za-z0-9][A-Za-z0-9._:@-]*(?![\s\S])"
       end
     )
 
@@ -1245,7 +1247,7 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
              "additionalProperties",
              "items",
              "pattern"
-           ]) == "^[A-Za-z0-9][A-Za-z0-9._:@-]*$"
+           ]) == ~S"^[A-Za-z0-9][A-Za-z0-9._:@-]*(?![\s\S])"
 
     candidate_refresh_freshness_source_report =
       get_in(schemas, [
@@ -1419,7 +1421,7 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
                field,
                "items",
                "pattern"
-             ]) == "^[A-Za-z0-9][A-Za-z0-9._:@-]*$"
+             ]) == ~S"^[A-Za-z0-9][A-Za-z0-9._:@-]*(?![\s\S])"
     end)
 
     candidate_refresh_validation_safety_case_source_report =
@@ -1727,7 +1729,7 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
                  "additionalProperties",
                  "items",
                  "pattern"
-               ]) == "^[A-Za-z0-9][A-Za-z0-9._:@-]*$"
+               ]) == ~S"^[A-Za-z0-9][A-Za-z0-9._:@-]*(?![\s\S])"
       end
     )
 
@@ -1982,7 +1984,7 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
                  field,
                  "items",
                  "pattern"
-               ]) == "^[A-Za-z0-9][A-Za-z0-9._:@-]*$"
+               ]) == ~S"^[A-Za-z0-9][A-Za-z0-9._:@-]*(?![\s\S])"
       end
     )
 
@@ -1991,7 +1993,7 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
              "additionalProperties",
              "items",
              "pattern"
-           ]) == "^[A-Za-z0-9][A-Za-z0-9._:@-]*$"
+           ]) == ~S"^[A-Za-z0-9][A-Za-z0-9._:@-]*(?![\s\S])"
 
     candidate_refresh_timeline_dependency_impact_source_report =
       get_in(schemas, [
@@ -2365,7 +2367,7 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
         assert get_in(
                  candidate_refresh_timeline_activity_state_source_report,
                  path ++ ["pattern"]
-               ) == "^[A-Za-z0-9][A-Za-z0-9._:@-]*$"
+               ) == ~S"^[A-Za-z0-9][A-Za-z0-9._:@-]*(?![\s\S])"
       end
     )
 
@@ -2525,7 +2527,7 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
       ],
       fn path ->
         assert get_in(candidate_refresh_contact_filter_source_report, path ++ ["pattern"]) ==
-                 "^[A-Za-z0-9][A-Za-z0-9._:@-]*$"
+                 ~S"^[A-Za-z0-9][A-Za-z0-9._:@-]*(?![\s\S])"
       end
     )
 
@@ -2614,7 +2616,7 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
       ],
       fn path ->
         assert get_in(candidate_refresh_resource_filter_source_report, path ++ ["pattern"]) ==
-                 "^[A-Za-z0-9][A-Za-z0-9._:@-]*$"
+                 ~S"^[A-Za-z0-9][A-Za-z0-9._:@-]*(?![\s\S])"
       end
     )
 
@@ -2741,7 +2743,7 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
                  "additionalProperties",
                  "items",
                  "pattern"
-               ]) == "^[A-Za-z0-9][A-Za-z0-9._:@-]*$"
+               ]) == ~S"^[A-Za-z0-9][A-Za-z0-9._:@-]*(?![\s\S])"
 
         refute field in provider_reservation_request_schema["required"]
       end
@@ -2875,7 +2877,7 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
              "analysis_only_quality_gate_row_ids",
              "items",
              "pattern"
-           ]) == "^[A-Za-z0-9][A-Za-z0-9._:@-]*$"
+           ]) == ~S"^[A-Za-z0-9][A-Za-z0-9._:@-]*(?![\s\S])"
 
     assert get_in(import_readiness_schema, ["properties", "model_limits", "const"]) ==
              quality_gate_import_readiness_summary_model_limits()
@@ -2931,7 +2933,7 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
              "additionalProperties",
              "items",
              "pattern"
-           ]) == "^[A-Za-z0-9][A-Za-z0-9._:@-]*$"
+           ]) == ~S"^[A-Za-z0-9][A-Za-z0-9._:@-]*(?![\s\S])"
 
     assert get_in(timeline_diff_summary_schema, [
              "properties",
@@ -2987,7 +2989,7 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
              "selected_activity_ids",
              "items",
              "pattern"
-           ]) == "^[A-Za-z0-9][A-Za-z0-9._:@-]*$"
+           ]) == ~S"^[A-Za-z0-9][A-Za-z0-9._:@-]*(?![\s\S])"
 
     assert get_in(transition_application_summary_schema, [
              "properties",
@@ -2995,7 +2997,7 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
              "additionalProperties",
              "items",
              "pattern"
-           ]) == "^[A-Za-z0-9][A-Za-z0-9._:@-]*$"
+           ]) == ~S"^[A-Za-z0-9][A-Za-z0-9._:@-]*(?![\s\S])"
 
     assert get_in(transition_application_summary_schema, [
              "properties",
@@ -3003,7 +3005,7 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
              "additionalProperties",
              "items",
              "pattern"
-           ]) == "^[A-Za-z0-9][A-Za-z0-9._:@-]*$"
+           ]) == ~S"^[A-Za-z0-9][A-Za-z0-9._:@-]*(?![\s\S])"
 
     assert get_in(transition_application_summary_schema, [
              "properties",
@@ -3011,7 +3013,7 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
              "additionalProperties",
              "items",
              "pattern"
-           ]) == "^[A-Za-z0-9][A-Za-z0-9._:@-]*$"
+           ]) == ~S"^[A-Za-z0-9][A-Za-z0-9._:@-]*(?![\s\S])"
 
     assert get_in(transition_application_summary_schema, [
              "properties",
@@ -3144,7 +3146,7 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
              "additionalProperties",
              "items",
              "pattern"
-           ]) == "^[A-Za-z0-9][A-Za-z0-9._:@-]*$"
+           ]) == ~S"^[A-Za-z0-9][A-Za-z0-9._:@-]*(?![\s\S])"
 
     assert get_in(timeline_integrity_schema, ["properties", "rows", "items", "required"]) == [
              "id",
@@ -3183,7 +3185,7 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
              "impacted_exclusive_with_timeline_ids",
              "items",
              "pattern"
-           ]) == "^[A-Za-z0-9][A-Za-z0-9._:@-]*$"
+           ]) == ~S"^[A-Za-z0-9][A-Za-z0-9._:@-]*(?![\s\S])"
 
     assert get_in(dependency_impact_schema, [
              "properties",
@@ -3291,28 +3293,28 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
              "dependency_activity_ids",
              "items",
              "pattern"
-           ]) == "^[A-Za-z0-9][A-Za-z0-9._:@-]*$"
+           ]) == ~S"^[A-Za-z0-9][A-Za-z0-9._:@-]*(?![\s\S])"
 
     assert get_in(precondition_summary_schema, [
              "properties",
              "dependency_timeline_ids",
              "items",
              "pattern"
-           ]) == "^[A-Za-z0-9][A-Za-z0-9._:@-]*$"
+           ]) == ~S"^[A-Za-z0-9][A-Za-z0-9._:@-]*(?![\s\S])"
 
     assert get_in(precondition_summary_schema, [
              "properties",
              "exclusive_with_activity_ids",
              "items",
              "pattern"
-           ]) == "^[A-Za-z0-9][A-Za-z0-9._:@-]*$"
+           ]) == ~S"^[A-Za-z0-9][A-Za-z0-9._:@-]*(?![\s\S])"
 
     assert get_in(precondition_summary_schema, [
              "properties",
              "exclusive_with_timeline_ids",
              "items",
              "pattern"
-           ]) == "^[A-Za-z0-9][A-Za-z0-9._:@-]*$"
+           ]) == ~S"^[A-Za-z0-9][A-Za-z0-9._:@-]*(?![\s\S])"
 
     assert get_in(precondition_summary_schema, ["properties", "allow_overlap", "type"]) ==
              "boolean"
@@ -3396,7 +3398,7 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
              "properties",
              "timeline_id",
              "pattern"
-           ]) == "^[A-Za-z0-9][A-Za-z0-9._:@-]*$"
+           ]) == ~S"^[A-Za-z0-9][A-Za-z0-9._:@-]*(?![\s\S])"
 
     assert Map.has_key?(schemas, "timeline_lifecycle_state_summary.v1")
 
@@ -3430,7 +3432,7 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
              "additionalProperties",
              "items",
              "pattern"
-           ]) == "^[A-Za-z0-9][A-Za-z0-9._:@-]*$"
+           ]) == ~S"^[A-Za-z0-9][A-Za-z0-9._:@-]*(?![\s\S])"
 
     assert Map.has_key?(schemas, "timeline_preservation_report.v1")
     assert Map.has_key?(schemas, "timeline_preservation_status.v1")
@@ -3601,7 +3603,7 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
              "properties",
              "scenario_id",
              "pattern"
-           ]) == "^[A-Za-z0-9][A-Za-z0-9._:@-]*$"
+           ]) == ~S"^[A-Za-z0-9][A-Za-z0-9._:@-]*(?![\s\S])"
 
     assert get_in(schemas, [
              "result_artifact.v1",
@@ -3636,7 +3638,7 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
              "x-orbital-dynamics",
              "identity_policy",
              "stable_id_pattern"
-           ]) == "^[A-Za-z0-9][A-Za-z0-9._:@-]*$"
+           ]) == ~S"^[A-Za-z0-9][A-Za-z0-9._:@-]*(?![\s\S])"
 
     publication_id_scope =
       schemas
@@ -3898,7 +3900,7 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
              "properties",
              "rule_id",
              "pattern"
-           ]) == "^[A-Za-z0-9][A-Za-z0-9._:@-]*$"
+           ]) == ~S"^[A-Za-z0-9][A-Za-z0-9._:@-]*(?![\s\S])"
 
     assert get_in(schemas, ["station_calendar_provider.v1", "properties", "entries", "type"]) ==
              "array"
@@ -3911,7 +3913,7 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
              "properties",
              "ground_station_id",
              "pattern"
-           ]) == "^[A-Za-z0-9][A-Za-z0-9._:@-]*$"
+           ]) == ~S"^[A-Za-z0-9][A-Za-z0-9._:@-]*(?![\s\S])"
 
     availability_schema =
       get_in(schemas, [
@@ -3959,7 +3961,7 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
              "properties",
              "reservation_id",
              "pattern"
-           ]) == "^[A-Za-z0-9][A-Za-z0-9._:@-]*$"
+           ]) == ~S"^[A-Za-z0-9][A-Za-z0-9._:@-]*(?![\s\S])"
 
     assert get_in(schemas, [
              "station_calendar_provider.v1",
@@ -5208,7 +5210,7 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
              "properties",
              "scenario_id",
              "pattern"
-           ]) == "^[A-Za-z0-9][A-Za-z0-9._:@-]*$"
+           ]) == ~S"^[A-Za-z0-9][A-Za-z0-9._:@-]*(?![\s\S])"
 
     assert get_in(schemas, [
              "objective_tradeoff_report.v1",
@@ -5274,7 +5276,7 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
              "selected_activity_ids",
              "items",
              "pattern"
-           ]) == "^[A-Za-z0-9][A-Za-z0-9._:@-]*$"
+           ]) == ~S"^[A-Za-z0-9][A-Za-z0-9._:@-]*(?![\s\S])"
 
     assert get_in(schemas, [
              "optimizer_contract.v1",
@@ -5419,7 +5421,7 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
              "properties",
              "route_id",
              "pattern"
-           ]) == "^[A-Za-z0-9][A-Za-z0-9._:@-]*$"
+           ]) == ~S"^[A-Za-z0-9][A-Za-z0-9._:@-]*(?![\s\S])"
 
     assert get_in(schemas, [
              "relay_data_path_summary.v1",
@@ -5454,7 +5456,7 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
              "properties",
              "ground_station_id",
              "pattern"
-           ]) == "^[A-Za-z0-9][A-Za-z0-9._:@-]*$"
+           ]) == ~S"^[A-Za-z0-9][A-Za-z0-9._:@-]*(?![\s\S])"
 
     assert get_in(schemas, [
              "link_capacity_report.v1",
@@ -5512,7 +5514,7 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
              "properties",
              "spacecraft_id",
              "pattern"
-           ]) == "^[A-Za-z0-9][A-Za-z0-9._:@-]*$"
+           ]) == ~S"^[A-Za-z0-9][A-Za-z0-9._:@-]*(?![\s\S])"
 
     assert get_in(schemas, [
              "resource_projection_report.v1",
@@ -5652,7 +5654,7 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
                  field,
                  "items",
                  "pattern"
-               ]) == "^[A-Za-z0-9][A-Za-z0-9._:@-]*$"
+               ]) == ~S"^[A-Za-z0-9][A-Za-z0-9._:@-]*(?![\s\S])"
       end
     )
 
@@ -5761,7 +5763,7 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
              "properties",
              "source_window_id",
              "pattern"
-           ]) == "^[A-Za-z0-9][A-Za-z0-9._:@-]*$"
+           ]) == ~S"^[A-Za-z0-9][A-Za-z0-9._:@-]*(?![\s\S])"
 
     assert get_in(schemas, [
              "candidate_refresh.v1",
@@ -5784,7 +5786,7 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
              "properties",
              "replacement_candidate_id",
              "pattern"
-           ]) == "^[A-Za-z0-9][A-Za-z0-9._:@-]*$"
+           ]) == ~S"^[A-Za-z0-9][A-Za-z0-9._:@-]*(?![\s\S])"
 
     assert get_in(schemas, [
              "candidate_refresh.v1",
@@ -5817,7 +5819,7 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
              "properties",
              "source_window_id",
              "pattern"
-           ]) == "^[A-Za-z0-9][A-Za-z0-9._:@-]*$"
+           ]) == ~S"^[A-Za-z0-9][A-Za-z0-9._:@-]*(?![\s\S])"
 
     assert "source_window" in get_in(schemas, [
              "candidate_refresh.v1",
@@ -5892,7 +5894,7 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
              "properties",
              "spacecraft_id",
              "pattern"
-           ]) == "^[A-Za-z0-9][A-Za-z0-9._:@-]*$"
+           ]) == ~S"^[A-Za-z0-9][A-Za-z0-9._:@-]*(?![\s\S])"
 
     assert get_in(schemas, [
              "campaign_plan.v1",
@@ -5910,7 +5912,7 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
              "properties",
              "source_window_id",
              "pattern"
-           ]) == "^[A-Za-z0-9][A-Za-z0-9._:@-]*$"
+           ]) == ~S"^[A-Za-z0-9][A-Za-z0-9._:@-]*(?![\s\S])"
 
     assert get_in(schemas, [
              "campaign_plan.v1",
@@ -5935,7 +5937,7 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
              "properties",
              "id",
              "pattern"
-           ]) == "^[A-Za-z0-9][A-Za-z0-9._:@-]*$"
+           ]) == ~S"^[A-Za-z0-9][A-Za-z0-9._:@-]*(?![\s\S])"
 
     assert get_in(schemas, [
              "campaign_plan.v1",
@@ -5993,7 +5995,7 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
              "ranked_branch_ids",
              "items",
              "pattern"
-           ]) == "^[A-Za-z0-9][A-Za-z0-9._:@-]*$"
+           ]) == ~S"^[A-Za-z0-9][A-Za-z0-9._:@-]*(?![\s\S])"
 
     assert get_in(schemas, [
              "campaign_strategy.v3",
@@ -6003,7 +6005,7 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
              "ranked_branch_ids",
              "items",
              "pattern"
-           ]) == "^[A-Za-z0-9][A-Za-z0-9._:@-]*$"
+           ]) == ~S"^[A-Za-z0-9][A-Za-z0-9._:@-]*(?![\s\S])"
 
     assert get_in(schemas, [
              "campaign_strategy.v3",
@@ -6514,7 +6516,7 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
                schemas,
                [contract_name | path] ++
                  ["source_operational_readiness_report", "properties", "report_id", "pattern"]
-             ) == "^[A-Za-z0-9][A-Za-z0-9._:@-]*$"
+             ) == ~S"^[A-Za-z0-9][A-Za-z0-9._:@-]*(?![\s\S])"
 
       assert get_in(
                schemas,
@@ -6536,7 +6538,7 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
                    "source_artifact_id",
                    "pattern"
                  ]
-             ) == "^[A-Za-z0-9][A-Za-z0-9._:@-]*$"
+             ) == ~S"^[A-Za-z0-9][A-Za-z0-9._:@-]*(?![\s\S])"
 
       assert get_in(
                schemas,
@@ -6576,7 +6578,7 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
                schemas,
                [contract_name | path] ++
                  ["source_quality_gate_report", "properties", "report_id", "pattern"]
-             ) == "^[A-Za-z0-9][A-Za-z0-9._:@-]*$"
+             ) == ~S"^[A-Za-z0-9][A-Za-z0-9._:@-]*(?![\s\S])"
 
       assert get_in(
                schemas,
@@ -6588,7 +6590,7 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
                schemas,
                [contract_name | path] ++
                  ["source_quality_gate_report", "properties", "source_artifact_id", "pattern"]
-             ) == "^[A-Za-z0-9][A-Za-z0-9._:@-]*$"
+             ) == ~S"^[A-Za-z0-9][A-Za-z0-9._:@-]*(?![\s\S])"
 
       assert get_in(
                schemas,
@@ -6743,7 +6745,7 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
              schemas,
              ["candidate_refresh.v1" | timeline_lifecycle_state_source_report_summary_path] ++
                ["review_timeline_ids", "items", "pattern"]
-           ) == "^[A-Za-z0-9][A-Za-z0-9._:@-]*$"
+           ) == ~S"^[A-Za-z0-9][A-Za-z0-9._:@-]*(?![\s\S])"
 
     assert get_in(
              schemas,
@@ -6754,7 +6756,7 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
                  "items",
                  "pattern"
                ]
-           ) == "^[A-Za-z0-9][A-Za-z0-9._:@-]*$"
+           ) == ~S"^[A-Za-z0-9][A-Za-z0-9._:@-]*(?![\s\S])"
 
     assert get_in(
              schemas,
@@ -6767,7 +6769,7 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
                  "items",
                  "pattern"
                ]
-           ) == "^[A-Za-z0-9][A-Za-z0-9._:@-]*$"
+           ) == ~S"^[A-Za-z0-9][A-Za-z0-9._:@-]*(?![\s\S])"
 
     assert get_in(
              schemas,
@@ -6798,7 +6800,7 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
                  "items",
                  "pattern"
                ]
-           ) == "^[A-Za-z0-9][A-Za-z0-9._:@-]*$"
+           ) == ~S"^[A-Za-z0-9][A-Za-z0-9._:@-]*(?![\s\S])"
 
     assert get_in(
              schemas,
@@ -6993,7 +6995,7 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
                  schemas,
                  ["candidate_refresh.v1" | candidate_refresh_source_report_summary_path] ++
                    [field, "items", "pattern"]
-               ) == "^[A-Za-z0-9][A-Za-z0-9._:@-]*$"
+               ) == ~S"^[A-Za-z0-9][A-Za-z0-9._:@-]*(?![\s\S])"
       end
     )
 
@@ -7030,7 +7032,7 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
                      "items",
                      "pattern"
                    ]
-               ) == "^[A-Za-z0-9][A-Za-z0-9._:@-]*$"
+               ) == ~S"^[A-Za-z0-9][A-Za-z0-9._:@-]*(?![\s\S])"
       end
     )
 
@@ -7057,7 +7059,7 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
                  "items",
                  "pattern"
                ]
-           ) == "^[A-Za-z0-9][A-Za-z0-9._:@-]*$"
+           ) == ~S"^[A-Za-z0-9][A-Za-z0-9._:@-]*(?![\s\S])"
 
     Enum.each(
       [
@@ -7303,7 +7305,7 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
              "properties",
              "source_window_id",
              "pattern"
-           ]) == "^[A-Za-z0-9][A-Za-z0-9._:@-]*$"
+           ]) == ~S"^[A-Za-z0-9][A-Za-z0-9._:@-]*(?![\s\S])"
 
     assert get_in(schemas, [
              "campaign_repair.v2",
@@ -7390,7 +7392,7 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
              "generated_scenario_ids",
              "items",
              "pattern"
-           ]) == "^[A-Za-z0-9][A-Za-z0-9._:@-]*$"
+           ]) == ~S"^[A-Za-z0-9][A-Za-z0-9._:@-]*(?![\s\S])"
 
     assert get_in(schemas, [
              "monte_carlo_reproducibility_report.v1",
@@ -7443,7 +7445,7 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
              "properties",
              "scenario_id",
              "pattern"
-           ]) == "^[A-Za-z0-9][A-Za-z0-9._:@-]*$"
+           ]) == ~S"^[A-Za-z0-9][A-Za-z0-9._:@-]*(?![\s\S])"
 
     assert get_in(schemas, [
              "realized_activity.v1",

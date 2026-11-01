@@ -1,6 +1,8 @@
 defmodule Mix.Tasks.OrbitalDynamics.Schema.LintTest do
   use ExUnit.Case, async: false
 
+  @moduletag :integration
+
   import ExUnit.CaptureIO
 
   test "prints a passing schema lint report" do

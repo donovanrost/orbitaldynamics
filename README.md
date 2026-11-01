@@ -250,7 +250,38 @@ Project docs live under [`docs/`](docs/README.md) as a navigable document base.
 
 ## Verification
 
-Run:
+For the local edit/test loop, run a file or a single test by its line number:
+
+```bash
+mix test test/orbital_dynamics/frame_test.exs
+mix test test/orbital_dynamics/frame_test.exs:6
+```
+
+After a broader run, use Mix's dependency tracking and failure history:
+
+```bash
+mix test --stale
+mix test --failed
+```
+
+For broader feedback during development, `mix test.fast` runs unit and contract
+tests, excluding CLI, end-to-end golden-artifact, and remote-node integration
+tests (`:integration`) and the two exhaustive strategy/handoff mutation matrices
+(`:exhaustive`). All remain enabled by default in `mix test`; no tests are skipped
+in the complete run. Use `mix test.fast --stale` to combine this selection with
+dependency tracking. The first `--stale` invocation initializes its tracking
+manifest and can run the entire selected suite. Run just the complementary
+checks with `mix test --only integration --only exhaustive`.
+
+`--stale` runs test files affected by changed source or test files. It is an
+iteration aid; run the full suite before handing off a change, especially when
+changing JSON fixtures, provider data, or documentation that tests read at
+runtime. Test helpers under `test/support` compile once in `MIX_ENV=test`, so
+focused runs do not recompile the validation helper collection on every launch.
+The first run after checkout or changing compiler configuration still pays the
+initial compilation cost.
+
+Run the complete suite, including numerical, integration, and CLI checks:
 
 ```bash
 mix test

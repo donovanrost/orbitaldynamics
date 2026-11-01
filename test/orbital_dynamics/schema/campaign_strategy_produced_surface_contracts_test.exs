@@ -1,6 +1,9 @@
 defmodule OrbitalDynamics.Schema.CampaignStrategyProducedSurfaceContractsTest do
   use ExUnit.Case, async: true
 
+  # Full-artifact mutation matrices belong to the complete regression run.
+  @moduletag :exhaustive
+
   alias OrbitalDynamics.CadenceImport
   alias OrbitalDynamics.CampaignPlanner.BranchComparisonReport
   alias OrbitalDynamics.OperatorReview

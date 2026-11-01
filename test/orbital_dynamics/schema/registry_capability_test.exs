@@ -7,7 +7,7 @@ defmodule OrbitalDynamics.Schema.RegistryCapabilityTest do
     policy = Schema.identity_policy()
 
     assert policy["policy_version"] == 1
-    assert policy["stable_id_pattern"] == "^[A-Za-z0-9][A-Za-z0-9._:@-]*$"
+    assert policy["stable_id_pattern"] == ~S"^[A-Za-z0-9][A-Za-z0-9._:@-]*(?![\s\S])"
     assert "emit_identifier_with_whitespace" in policy["breaking_changes"]
 
     assert %{

@@ -1,6 +1,8 @@
 defmodule Mix.Tasks.OrbitalDynamics.Campaign.LintTest do
   use ExUnit.Case, async: false
 
+  @moduletag :integration
+
   import ExUnit.CaptureIO
 
   test "prints a passing repair request lint report without running repair" do

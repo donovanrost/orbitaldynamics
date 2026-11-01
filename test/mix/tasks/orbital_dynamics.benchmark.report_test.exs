@@ -1,6 +1,8 @@
 defmodule Mix.Tasks.OrbitalDynamics.Benchmark.ReportTest do
   use ExUnit.Case, async: false
 
+  @moduletag :integration
+
   import ExUnit.CaptureIO
 
   test "prints a saved benchmark report with operational scale comparisons" do

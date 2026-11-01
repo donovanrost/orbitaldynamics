@@ -1,6 +1,8 @@
 defmodule OrbitalDynamics.CampaignPlanner.StrategyRiskIndicators do
   @moduledoc false
 
+  alias OrbitalDynamics.CandidateRefresh.AcceptedStateEvidenceAuthority
+
   alias OrbitalDynamics.CampaignPlanner.{
     CandidateSourceReplayRisk,
     DownlinkActivityNormalization,
@@ -51,6 +53,10 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyRiskIndicators do
     warning_risks =
       repair_result
       |> Map.get("warnings", [])
+      # This metadata review warning explicitly carries no planning authority.
+      # Keep it visible in branch warnings without turning it into a score or
+      # approval input through the generic repair-warning risk path.
+      |> Enum.reject(&(&1 == AcceptedStateEvidenceAuthority.warning_message()))
       |> Enum.map(fn warning ->
         %{"type" => "repair_warning", "severity" => "medium", "reason" => warning}
       end)

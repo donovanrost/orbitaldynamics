@@ -205,7 +205,7 @@ defmodule OrbitalDynamics.Schema.CandidateRejectionContractsTest do
              "additionalProperties",
              "items",
              "pattern"
-           ]) == "^[A-Za-z0-9][A-Za-z0-9._:@-]*$"
+           ]) == ~S"^[A-Za-z0-9][A-Za-z0-9._:@-]*(?![\s\S])"
 
     assert get_in(schema, [
              "properties",

@@ -1,9 +1,6 @@
 Code.require_file("support.exs", __DIR__)
 
-Code.require_file(
-  "../../support/campaign_planner/contact_allocation_pressure_fixtures.ex",
-  __DIR__
-)
+Code.ensure_loaded!(OrbitalDynamics.CampaignPlanner.ContactAllocationPressureFixtures)
 
 defmodule OrbitalDynamics.CampaignPlanner.StrategyContactAllocationPressureTest do
   use ExUnit.Case, async: true

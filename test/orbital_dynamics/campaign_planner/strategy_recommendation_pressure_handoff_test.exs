@@ -1,17 +1,16 @@
 Code.require_file("support.exs", __DIR__)
 
-Code.require_file(
-  "../../support/campaign_planner/strategy_recommendation_pressure_events_fixture.ex",
-  __DIR__
-)
+Code.ensure_loaded!(OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureEventsFixture)
 
-Code.require_file(
-  "../../support/campaign_planner/strategy_recommendation_pressure_expected_handoff_fixture.ex",
-  __DIR__
+Code.ensure_loaded!(
+  OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureExpectedHandoffFixture
 )
 
 defmodule OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureHandoffTest do
   use ExUnit.Case, async: true
+
+  # The full suite exercises every source-exact handoff field independently.
+  @moduletag :exhaustive
 
   alias OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureEventsFixture
   alias OrbitalDynamics.CampaignPlanner.StrategyRecommendationPressureExpectedHandoffFixture

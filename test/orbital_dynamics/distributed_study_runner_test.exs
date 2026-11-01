@@ -1,6 +1,8 @@
 defmodule OrbitalDynamics.DistributedStudyRunnerTest do
   use ExUnit.Case, async: false
 
+  @moduletag :integration
+
   alias OrbitalDynamics.{CentralBody, Epoch, Frame, Scenario, Spacecraft, StateVector, Study}
 
   test "can run a study through a remote task supervisor when distribution is available" do
