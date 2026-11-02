@@ -77,6 +77,7 @@ defmodule OrbitalDynamics.MissionAnalysis.Attitude.Report do
       "\n\n" <>
       Enum.join(reasons, "\n") <>
       path_markdown(report) <>
+      horizon_markdown(report) <>
       "\n\n[report.json](report.json) includes exact assumptions, sampled quaternions, angular velocity/acceleration, all tested-start decisions, " <>
       "and ideal transition phases. Missing initial state or pointing evidence stays unknown. Start-grid rejection is not a global infeasibility proof.\n"
   end
@@ -145,9 +146,32 @@ defmodule OrbitalDynamics.MissionAnalysis.Attitude.Report do
         "\n\nFirst recorded path rejection per opportunity (times are absolute epoch seconds):\n\n" <>
         Enum.join(failures, "\n") <>
         "\n\nPossible cone overlap is a conservative exclusion guard, not a delivered-irradiance prediction. " <>
-        "Mode behavior and instantaneous switches are declared assumptions. No path after the last scheduled activity is supplied."
+        "Mode behavior and instantaneous switches are declared assumptions. Full-horizon coverage requires an explicit horizon; see its separate evidence."
     else
       ""
+    end
+  end
+
+  defp horizon_markdown(report) do
+    case get_in(report, ["attitude_planning", "horizon_coverage"]) do
+      h when is_map(h) ->
+        rows =
+          Enum.map(Enum.sort(h["assets"]), fn {id, a} ->
+            "| #{id} | #{a["starts_at_s"]} | #{a["ends_at_s"]} | #{a["status"]} | #{length(a["uncovered_intervals"])} |"
+          end)
+
+        "\n\n## Full-horizon evidence\n\nStatus: #{h["status"]} at tested epochs. Includes idle assets, terminal braking/slew/settling and the terminal hold.\n\n" <>
+          Enum.join(
+            [
+              "| Asset | Start s | End s | Status | Unsupported intervals |",
+              "| --- | --- | --- | --- | --- |"
+            ] ++ rows,
+            "\n"
+          ) <>
+          "\n\nExact terminal modes, phases, path failures and uncovered intervals are in report.json. A declared park or off mode does not establish safety."
+
+      _ ->
+        ""
     end
   end
 end

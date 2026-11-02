@@ -165,11 +165,13 @@ Preparation runs once per asset/rule and captures JSON-safe assumptions separate
 from the opaque runtime session. Model callbacks and state sources must remain
 consistent under those captured assumptions.
 
-Path coverage starts at the declared initial attitude and ends with the last
-scheduled activity. There is no inferred pre-initial path, terminal braking/idle
-orientation, or path for an asset with no selected activity. `no_scheduled_path`
-is not a clearance result. Constraints not declared in the policy—such as real
-communications requirements, collision avoidance or terminal safing—are not assessed.
+Without an explicit horizon, path coverage starts at the declared initial
+attitude and ends with the last scheduled activity. In that scope there is no
+terminal or idle-asset path, and `no_scheduled_path` is not a clearance result.
+The optional [full planning horizon](planning_horizon.md) adds declared terminal
+braking, acquisition and hold paths and assesses idle assets. No pre-initial path
+is inferred. Constraints absent from the policy, such as real communications
+requirements or collision avoidance, remain unassessed.
 
 ## Extension and verification boundary
 

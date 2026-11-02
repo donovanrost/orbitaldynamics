@@ -10,6 +10,9 @@ after selecting a mission-planning slice.
 
 ## Documents
 
+- [planning_horizon.md](planning_horizon.md) — explicit terminal attitudes and modes,
+  terminal acquisition time, idle assets and coverage through the horizon end.
+
 - [verification_baseline.md](verification_baseline.md) — frozen physical cases,
   independent library/ODE comparisons, discrepancies and evidence boundaries.
 

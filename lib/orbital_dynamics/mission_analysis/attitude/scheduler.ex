@@ -2,7 +2,7 @@ defmodule OrbitalDynamics.MissionAnalysis.Attitude.Scheduler do
   @moduledoc false
   alias OrbitalDynamics.Frame
   alias OrbitalDynamics.MissionAnalysis.Path.Runner, as: PathRunner
-  alias OrbitalDynamics.MissionAnalysis.Attitude.{Motion, Profile}
+  alias OrbitalDynamics.MissionAnalysis.Attitude.{Motion, Profile, Horizon}
 
   def schedule(
         assets,
@@ -18,6 +18,7 @@ defmodule OrbitalDynamics.MissionAnalysis.Attitude.Scheduler do
     assets = Map.new(assets, &{&1.id, &1})
     requests = Map.new(requests, &{&1.id, &1})
     validate_frames!(assets, policy)
+    Horizon.validate!(assets, policy)
     balances = Map.new(assets, fn {id, a} -> {id, a.resource_budgets} end)
 
     cache = %{
@@ -134,13 +135,16 @@ defmodule OrbitalDynamics.MissionAnalysis.Attitude.Scheduler do
         activities = Enum.sort_by(activities, &{&1["starts_at_s"], &1["id"]})
 
         with {:ok, transitions, cache} <-
-               final_transitions(activities, policy, assets, state_at, cache) do
+               final_transitions(activities, policy, assets, state_at, cache),
+             {:ok, horizon, cache} <- Horizon.finish(assets, activities, policy, state_at, cache) do
           {:ok, activities, Enum.reverse(decisions), balances,
            %{
+             "horizon_coverage" => horizon,
              "model_evaluation_count" => cache.evaluations,
              "path_constraints" => PathRunner.describe(cache.path),
              "path_status" =>
                cond do
+                 horizon != :null -> horizon["status"]
                  cache.path == nil -> "not_enabled"
                  activities == [] -> "no_scheduled_path"
                  true -> "supported_at_tested_epochs"
@@ -202,6 +206,9 @@ defmodule OrbitalDynamics.MissionAnalysis.Attitude.Scheduler do
       limits.initial == :unknown ->
         unknown("initial_attitude_unknown", cache)
 
+      policy.horizon != nil and Horizon.readiness(asset, policy) != nil ->
+        unknown(Atom.to_string(Horizon.readiness(asset, policy)), cache)
+
       not Map.has_key?(limits.pointing_configurations, request.model) ->
         unknown("pointing_configuration_missing", cache)
 
@@ -210,8 +217,19 @@ defmodule OrbitalDynamics.MissionAnalysis.Attitude.Scheduler do
 
       true ->
         config = limits.pointing_configurations[request.model]
-        start = opportunity["starts_at_s"]
-        stop = opportunity["ends_at_s"] - request.duration_s
+
+        start =
+          if policy.horizon,
+            do: max(opportunity["starts_at_s"], policy.horizon.start.seconds_since_j2000),
+            else: opportunity["starts_at_s"]
+
+        stop =
+          if policy.horizon,
+            do:
+              min(opportunity["ends_at_s"], policy.horizon.stop.seconds_since_j2000) -
+                request.duration_s,
+            else: opportunity["ends_at_s"] - request.duration_s
+
         count = trunc(:math.floor(max(0, stop - start) / policy.search_step_s))
         truncated = count + 1 > policy.max_candidate_starts
 
@@ -234,6 +252,8 @@ defmodule OrbitalDynamics.MissionAnalysis.Attitude.Scheduler do
           activities
           |> Enum.filter(&(&1["asset_id"] == asset.id))
           |> Enum.sort_by(& &1["starts_at_s"])
+
+        times = if stop < start, do: [], else: times
 
         Enum.reduce_while(times, {:search, [], cache}, fn t, {:search, attempts, cache} ->
           result =
@@ -343,10 +363,16 @@ defmodule OrbitalDynamics.MissionAnalysis.Attitude.Scheduler do
         incoming = Motion.transition(source, first, policy.assets[asset.id])
 
         outgoing =
-          if following,
-            do:
-              Motion.transition(last, hd(following["attitude_profile"]), policy.assets[asset.id]),
-            else: {:ok, %{"status" => "no_successor"}}
+          cond do
+            following ->
+              Motion.transition(last, hd(following["attitude_profile"]), policy.assets[asset.id])
+
+            policy.horizon ->
+              Horizon.transition(asset, last, policy)
+
+            true ->
+              {:ok, %{"status" => "no_successor"}}
+          end
 
         details = %{"incoming" => brief(incoming), "outgoing" => brief(outgoing)}
 
@@ -446,7 +472,16 @@ defmodule OrbitalDynamics.MissionAnalysis.Attitude.Scheduler do
                  PathRunner.transition(asset, outgoing, "outgoing_transition", state_at, cache)
                end}
             ],
-        else: checks
+        else:
+          if(policy.horizon,
+            do:
+              checks ++
+                [
+                  {"terminal",
+                   fn cache -> Horizon.check(asset, outgoing, policy, state_at, cache) end}
+                ],
+            else: checks
+          )
 
     Enum.reduce_while(checks, {:ok, %{}, cache}, fn {scope, check}, {:ok, evidence, cache} ->
       case check.(cache) do

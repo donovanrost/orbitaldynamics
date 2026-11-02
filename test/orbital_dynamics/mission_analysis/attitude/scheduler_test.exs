@@ -8,6 +8,17 @@ defmodule OrbitalDynamics.MissionAnalysis.Attitude.SchedulerTest do
   defmodule Model do
     @behaviour OrbitalDynamics.MissionAnalysis.Model
     def capabilities, do: %{"id" => "analytic-attitude"}
+
+    def activity_mode(_, _),
+      do:
+        {:ok,
+         OrbitalDynamics.MissionAnalysis.Path.Result.new!(
+           [
+             %{"id" => "service", "status" => "supported"}
+           ],
+           %{}
+         )}
+
     def prepare(r, _, _), do: {:ok, r.parameters, %{}}
 
     def evaluate(_, _, _),
@@ -90,7 +101,9 @@ defmodule OrbitalDynamics.MissionAnalysis.Attitude.SchedulerTest do
       derivative_step_s: 0.1,
       search_step_s: 1,
       max_candidate_starts: Keyword.get(opts, :max_starts, 128),
-      max_evaluations: Keyword.get(opts, :budget, 10000)
+      max_evaluations: Keyword.get(opts, :budget, 10000),
+      path_constraints: Keyword.get(opts, :path),
+      horizon: Keyword.get(opts, :horizon)
     )
   end
 
@@ -222,5 +235,198 @@ defmodule OrbitalDynamics.MissionAnalysis.Attitude.SchedulerTest do
     assert {:ok, report} = run([request("r")], resource_budget: 0)
     assert hd(report["selection_decisions"])["reason"] == "insufficient_resource_budget"
     assert report["attitude_planning"]["model_evaluation_count"] == 0
+  end
+
+  defmodule HorizonCheck do
+    @behaviour OrbitalDynamics.MissionAnalysis.Path.Check
+    alias OrbitalDynamics.MissionAnalysis.Path.Result
+    def prepare(_, _, config), do: {:ok, config, %{}}
+
+    def evaluate(state, _, mode, config) do
+      status =
+        cond do
+          mode["parameters"]["behavior"] == "unknown" -> "unknown"
+          state.epoch.seconds_since_j2000 >= Map.get(config, "violate_after", 10000) -> "violated"
+          true -> "supported"
+        end
+
+      {:ok, Result.new!([%{"id" => "test_guard", "status" => status}], %{})}
+    end
+  end
+
+  defp horizon(stop, terminal \\ :default) do
+    terminal =
+      if terminal == :default,
+        do: %{frame: frame(), quaternion: {1, 0, 0, 0}, mode: "terminal"},
+        else: terminal
+
+    %{start: Epoch.new!(0, :tai), stop: Epoch.new!(stop, :tai), terminals: %{"a" => terminal}}
+  end
+
+  defp path(ids, config \\ %{}, behavior \\ "known") do
+    OrbitalDynamics.MissionAnalysis.Path.Policy.new!(
+      %{
+        "a" => %{
+          activity_modes: Map.new(ids, &{&1, "active"}),
+          transition_mode: "active",
+          modes: %{"active" => %{"behavior" => "known"}, "terminal" => %{"behavior" => behavior}},
+          rules: [%{id: "guard", module: HorizonCheck, configuration: config}]
+        }
+      },
+      sample_steps_s: [5, 1],
+      max_evaluations: 50000,
+      max_samples_per_segment: 1000
+    )
+  end
+
+  test "horizon reserves terminal acquisition and checks the hold through the end" do
+    r = request("r", start: 20, stop: 30, angle: 90)
+    assert {:ok, rejected} = run([r], horizon: horizon(35), path: path(["r"]))
+    assert rejected["activities"] == []
+    attempts = hd(rejected["selection_decisions"])["attitude_assessment"]["attempts"]
+    assert Enum.all?(attempts, &(&1["reason"] == ":outgoing_transition"))
+
+    assert {:ok, report} = run([r], horizon: horizon(50), path: path(["r"]))
+    assert length(report["activities"]) == 1
+    h = report["attitude_planning"]["horizon_coverage"]
+    assert h["status"] == "supported"
+    assert h["assets"]["a"]["uncovered_intervals"] == []
+    plan = h["assets"]["a"]["terminal_motion"]
+    assert List.last(plan["phases"])["kind"] == "hold"
+    assert_in_delta List.last(plan["phases"])["starts_after_s"], 11, 1.0e-9
+    pose = OrbitalDynamics.MissionAnalysis.Attitude.Motion.at(plan, 20)
+    assert Quaternion.distance_deg(pose.quaternion, {1, 0, 0, 0}) < 1.0e-9
+    assert OrbitalDynamics.Vector3.norm(pose.angular_velocity_deg_s) < 1.0e-9
+    evidence = h["assets"]["a"]["terminal_path_evidence"]
+    assert evidence["mode"] == "terminal"
+    assert evidence["ends_at_s"] == 50
+    assert Enum.all?(evidence["levels"], &(&1["status"] == "supported"))
+  end
+
+  test "terminal braking retains the final tracking angular velocity" do
+    r = request("r", start: 20, stop: 30, rate: 2)
+    assert {:ok, report} = run([r], horizon: horizon(60), path: path(["r"]))
+    assert length(report["activities"]) == 1
+    plan = report["attitude_planning"]["horizon_coverage"]["assets"]["a"]["terminal_motion"]
+    assert_in_delta plan["brake_s"], 0.4, 1.0e-8
+    assert hd(plan["phases"])["angular_velocity_inertial_deg_s"] |> List.last() > 1.99
+    assert plan["terminal_rate_residual_deg_s"] < 1.0e-8
+  end
+
+  test "idle assets are screened and a late hold violation cannot pass vacuously" do
+    assert {:ok, report} = run([], horizon: horizon(50), path: path([], %{"violate_after" => 45}))
+    h = report["attitude_planning"]["horizon_coverage"]
+    assert h["status"] == "violated"
+    assert report["attitude_planning"]["path_status"] == "violated"
+    assert h["assets"]["a"]["scheduled_activity_count"] == 0
+    assert h["assets"]["a"]["uncovered_intervals"] != []
+    assert h["assets"]["a"]["terminal_path_evidence"]["status"] == "violated"
+
+    assert {:ok, report} =
+             run([request("r", start: 20, stop: 30)],
+               horizon: horizon(50),
+               path: path(["r"], %{"violate_after" => 45})
+             )
+
+    assert report["activities"] == []
+    assert report["attitude_planning"]["horizon_coverage"]["status"] == "violated"
+  end
+
+  test "idle braking and missing horizon evidence remain explicit" do
+    moving = %{initial() | angular_velocity_deg_s: {0, 0, 2}}
+    assert {:ok, report} = run([], initial: moving, horizon: horizon(50), path: path([]))
+    assert report["attitude_planning"]["horizon_coverage"]["status"] == "supported"
+
+    assert report["attitude_planning"]["horizon_coverage"]["assets"]["a"]["terminal_motion"][
+             "brake_s"
+           ] == 0.4
+
+    for opts <- [
+          [initial: :unknown, horizon: horizon(50), path: path([])],
+          [initial: initial({1, 0, 0, 0}, -1), horizon: horizon(50), path: path([])],
+          [horizon: horizon(50, :unknown), path: path([])],
+          [horizon: horizon(50), path: path([], %{}, "unknown")],
+          [horizon: horizon(201), path: path([])],
+          [horizon: horizon(50)]
+        ] do
+      assert {:ok, report} = run([], opts)
+      h = report["attitude_planning"]["horizon_coverage"]
+      assert h["status"] == "unknown"
+      assert h["assets"]["a"]["uncovered_intervals"] != []
+    end
+  end
+
+  test "horizon clipping and inserted predecessors retain the terminal successor" do
+    future = request("future", start: 80, stop: 100, value: 100)
+    earlier = request("earlier", start: 20, stop: 35, angle: 45)
+
+    assert {:ok, report} =
+             run([future, earlier], horizon: horizon(130), path: path(["future", "earlier"]))
+
+    assert Enum.map(report["activities"], & &1["request_id"]) == ["earlier", "future"]
+    h = report["attitude_planning"]["horizon_coverage"]
+    assert h["status"] == "supported"
+    assert h["assets"]["a"]["terminal_motion"]["source_epoch_s"] == 90
+
+    assert {:ok, report} =
+             run([request("r", start: 60, stop: 100)], horizon: horizon(50), path: path(["r"]))
+
+    assert report["activities"] == []
+    assert report["attitude_planning"]["horizon_coverage"]["status"] == "supported"
+  end
+
+  test "an unconfigured idle fleet member keeps an otherwise supported horizon unknown" do
+    b = %{asset() | id: "b"}
+
+    refinement =
+      WindowRefinement.new!(
+        state_at: fn _, t -> {:ok, state(t)} end,
+        tracking_lookback_s: 1,
+        time_tolerance_s: 0.01,
+        max_extra_evaluations: 128
+      )
+
+    p = policy(horizon: horizon(50), path: path([]))
+
+    assert {:ok, report} =
+             MissionAnalysis.run([asset(), b], [], nil,
+               max_sample_gap_s: 5,
+               asset_separation_s: 0,
+               window_refinement: refinement,
+               attitude: p
+             )
+
+    h = report["attitude_planning"]["horizon_coverage"]
+    assert h["status"] == "unknown"
+    assert h["assets"]["a"]["status"] == "supported"
+    assert h["assets"]["b"]["status"] == "unknown"
+
+    assert h["assets"]["b"]["terminal_path_evidence"]["reason"] ==
+             "attitude_configuration_missing"
+
+    assert h["assets"]["b"]["uncovered_intervals"] == [
+             %{
+               "starts_at_s" => 0,
+               "ends_at_s" => 50,
+               "reason" => "not_fully_supported",
+               "status" => "unknown"
+             }
+           ]
+  end
+
+  test "terminal declarations validate frames, scales and modes without inferring an off state" do
+    bad = %{frame: Frame.earth_inertial_j2000(), quaternion: {1, 0, 0, 0}, mode: "terminal"}
+
+    assert {:error, {:invalid_mission_analysis, _}} =
+             run([], horizon: horizon(50, bad), path: path([]))
+
+    h = %{horizon(50) | stop: Epoch.new!(50, :utc)}
+    assert_raise ArgumentError, fn -> policy(horizon: h) end
+
+    for mode <- [:unknown, "undeclared-off"] do
+      t = %{frame: frame(), quaternion: {1, 0, 0, 0}, mode: mode}
+      assert {:ok, report} = run([], horizon: horizon(50, t), path: path([]))
+      assert report["attitude_planning"]["horizon_coverage"]["status"] == "unknown"
+    end
   end
 end

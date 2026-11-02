@@ -37,4 +37,38 @@ defmodule Mix.Tasks.OrbitalDynamics.Mission.PathTest do
     assert hd(r["activities"])["path_evidence"]["mode"] == "reflecting"
     assert File.stat!(Path.join(out, "README.md")).size > 0
   end
+
+  test "full-horizon CLI reports terminal phases and keeps a missing terminal unknown" do
+    dir = Path.join(System.tmp_dir!(), "horizon-cli-#{System.unique_integer([:positive])}")
+
+    on_exit(fn ->
+      File.rm_rf!(dir)
+      Mix.Task.reenable("orbital_dynamics.mission.attitude")
+    end)
+
+    capture_io(fn ->
+      Mix.Task.run("orbital_dynamics.mission.attitude", [
+        "--study",
+        "studies/illumination_horizon.json",
+        "--output-dir",
+        dir
+      ])
+    end)
+
+    report = dir |> Path.join("report.json") |> File.read!() |> :json.decode()
+    h = report["attitude_planning"]["horizon_coverage"]
+    assert h["status"] == "supported"
+    assert h["assets"]["demo-1"]["terminal_path_evidence"]["ends_at_s"] == 820_497_850
+    assert List.last(h["assets"]["demo-1"]["terminal_motion"]["phases"])["kind"] == "hold"
+    assert File.read!(Path.join(dir, "README.md")) =~ "Full-horizon evidence"
+
+    study =
+      ReferenceMission.load!("studies/illumination_horizon.json")
+      |> put_in(["horizon", "terminals", "demo-1"], :null)
+
+    mission = ReferenceMission.load!("studies/reference_horizon.json")
+    report = OrbitalDynamics.MissionAnalysis.Attitude.Reference.run!(mission, study)
+    assert report["activities"] == []
+    assert report["attitude_planning"]["horizon_coverage"]["status"] == "unknown"
+  end
 end

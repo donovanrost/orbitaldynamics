@@ -3,7 +3,7 @@ defmodule OrbitalDynamics.MissionAnalysis.Attitude.Motion do
   alias OrbitalDynamics.Vector3, as: V
   alias OrbitalDynamics.MissionAnalysis.Attitude.Quaternion, as: Q
 
-  def transition(source, destination, limits) do
+  def transition(source, destination, limits, hold_position \\ :before_slew) do
     q0 = Q.new!(source["quaternion_wxyz"])
     q1 = Q.new!(destination["quaternion_wxyz"])
 
@@ -18,6 +18,12 @@ defmodule OrbitalDynamics.MissionAnalysis.Attitude.Motion do
         destination["angular_velocity_inertial_deg_s"],
         "target angular velocity"
       )
+
+    unless hold_position in [:before_slew, :terminal],
+      do: raise(ArgumentError, "invalid transition hold position")
+
+    if hold_position == :terminal and V.norm(w1) != 0,
+      do: raise(ArgumentError, "terminal hold requires zero destination angular velocity")
 
     speed0 = V.norm(w0)
     speed1 = V.norm(w1)
@@ -71,6 +77,14 @@ defmodule OrbitalDynamics.MissionAnalysis.Attitude.Motion do
           {ramp, if(speed1 > 0, do: V.scale(w1, accel / speed1), else: {0.0, 0.0, 0.0}),
            "ramp_to_tracking"}
         ]
+
+        commands =
+          if hold_position == :terminal do
+            [brake, hold | rest] = commands
+            [brake | rest] ++ [hold]
+          else
+            commands
+          end
 
         {phases, {_, q, w}} =
           Enum.map_reduce(commands, {0.0, q0, w0}, fn {d, a, kind}, {t, q, w} ->

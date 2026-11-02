@@ -13,14 +13,14 @@ defmodule OrbitalDynamics.MissionAnalysis.Attitude.Policy do
     :max_candidate_starts,
     :max_evaluations
   ]
-  defstruct @enforce_keys ++ [path_constraints: nil]
+  defstruct @enforce_keys ++ [path_constraints: nil, horizon: nil]
 
   def new!(assets, opts) when is_map(assets) do
     keys =
       ~w(profile_step_s derivative_step_s search_step_s max_candidate_starts max_evaluations)a
 
     unless Keyword.keyword?(opts) and
-             Enum.sort(Keyword.keys(opts) -- [:path_constraints]) == Enum.sort(keys) and
+             Enum.sort(Keyword.keys(opts) -- [:path_constraints, :horizon]) == Enum.sort(keys) and
              length(Keyword.keys(opts)) == length(Enum.uniq(Keyword.keys(opts))),
            do: raise(ArgumentError, "explicit attitude sampling and search options required")
 
@@ -104,6 +104,7 @@ defmodule OrbitalDynamics.MissionAnalysis.Attitude.Policy do
     %__MODULE__{
       assets: assets,
       path_constraints: path,
+      horizon: OrbitalDynamics.MissionAnalysis.Attitude.Horizon.new!(Keyword.get(opts, :horizon)),
       profile_step_s: Input.positive!(opts[:profile_step_s], "profile_step_s"),
       derivative_step_s: derivative,
       search_step_s: Input.positive!(opts[:search_step_s], "search_step_s"),
@@ -120,7 +121,8 @@ defmodule OrbitalDynamics.MissionAnalysis.Attitude.Policy do
         search_step_s: p.search_step_s,
         max_candidate_starts: p.max_candidate_starts,
         max_evaluations: p.max_evaluations,
-        path_constraints: p.path_constraints
+        path_constraints: p.path_constraints,
+        horizon: p.horizon
       )
 
   defp integer!(x, label, upper) do
@@ -132,6 +134,7 @@ defmodule OrbitalDynamics.MissionAnalysis.Attitude.Policy do
 
   def describe(p) do
     %{
+      "horizon" => OrbitalDynamics.MissionAnalysis.Attitude.Horizon.describe(p.horizon),
       "model" => "three_axis_sampled_kinematics_and_constructive_transitions",
       "quaternion_convention" => "Hamilton_wxyz_active_body_to_inertial",
       "angular_velocity_convention" => "inertial_components_deg_s",

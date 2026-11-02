@@ -118,4 +118,27 @@ defmodule OrbitalDynamics.MissionAnalysis.Attitude.MotionTest do
     tiny = Quaternion.increment({0, 0, 1.0e-13})
     assert Quaternion.distance_deg({1, 0, 0, 0}, tiny) > 0
   end
+
+  test "terminal holds stay at rest and reject incompatible target rates" do
+    source = pose(0, Quaternion.increment({20, 10, 0}), {1, 2, 0})
+    destination = pose(30, Quaternion.increment({0, 0, 90}))
+    assert {:ok, plan} = Motion.transition(source, destination, limits(), :terminal)
+    hold = List.last(plan["phases"])
+    assert hold["kind"] == "hold"
+    assert hold["ends_after_s"] > hold["starts_after_s"]
+
+    for t <- [hold["starts_after_s"], (hold["starts_after_s"] + 30) / 2, 30] do
+      state = Motion.at(plan, t)
+      assert Quaternion.distance_deg(state.quaternion, Quaternion.increment({0, 0, 90})) < 1.0e-10
+      assert V.norm(state.angular_velocity_deg_s) < 1.0e-10
+    end
+
+    assert_raise ArgumentError, fn ->
+      Motion.transition(source, pose(30, {1, 0, 0, 0}, {0, 0, 1}), limits(), :terminal)
+    end
+
+    assert_raise ArgumentError, fn ->
+      apply(Motion, :transition, [source, destination, limits(), :unsupported])
+    end
+  end
 end

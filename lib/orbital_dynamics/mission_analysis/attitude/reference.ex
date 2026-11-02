@@ -10,7 +10,7 @@ defmodule OrbitalDynamics.MissionAnalysis.Attitude.Reference do
     SurfaceSupport.fields!(
       study,
       ~w(study_id mission_manifest resolution_level refinement attitude) ++
-        if(Map.has_key?(study, "path_constraints"), do: ["path_constraints"], else: []),
+        Enum.filter(~w(path_constraints horizon), &Map.has_key?(study, &1)),
       "attitude study"
     )
 
@@ -99,6 +99,7 @@ defmodule OrbitalDynamics.MissionAnalysis.Attitude.Reference do
         search_step_s: config["search_step_s"],
         max_candidate_starts: config["max_candidate_starts"],
         max_evaluations: config["max_evaluations"],
+        horizon: horizon!(study["horizon"]),
         path_constraints:
           if(Map.has_key?(study, "path_constraints"),
             do: OrbitalDynamics.MissionAnalysis.Path.Reference.policy!(study["path_constraints"]),
@@ -121,6 +122,43 @@ defmodule OrbitalDynamics.MissionAnalysis.Attitude.Reference do
       {:error, reason} ->
         raise ArgumentError, "attitude analysis failed: #{inspect(reason)}"
     end
+  end
+
+  defp horizon!(nil), do: nil
+
+  defp horizon!(h) do
+    SurfaceSupport.fields!(h, ~w(starts_at_s ends_at_s time_scale terminals), "horizon")
+    unless h["time_scale"] == "utc", do: raise(ArgumentError, "reference horizon requires UTC")
+
+    terminals =
+      Map.new(h["terminals"], fn {id, t} ->
+        value =
+          case t do
+            :null ->
+              :unknown
+
+            _ ->
+              SurfaceSupport.fields!(t, ~w(strategy frame quaternion_wxyz mode), "terminal")
+
+              unless t["strategy"] == "fixed_inertial" and t["frame"] == "eci_j2000",
+                do:
+                  raise(ArgumentError, "reference terminal requires fixed_inertial in eci_j2000")
+
+              %{
+                frame: Frame.earth_inertial_j2000(),
+                quaternion: t["quaternion_wxyz"],
+                mode: if(t["mode"] == :null, do: :unknown, else: t["mode"])
+              }
+          end
+
+        {id, value}
+      end)
+
+    %{
+      start: Epoch.new!(h["starts_at_s"], :utc),
+      stop: Epoch.new!(h["ends_at_s"], :utc),
+      terminals: terminals
+    }
   end
 
   defp model!("illumination"), do: Illumination

@@ -87,6 +87,10 @@ Sun/limb/pointing constraints, reflected-beam exclusions and explicit payload mo
 mix orbital_dynamics.mission.attitude --study studies/illumination_path.json --output-dir tmp/illumination_path
 ```
 
+An optional [full planning horizon](docs/mission_planning/planning_horizon.md)
+reserves terminal braking/acquisition time and checks terminal holds and idle
+assets, with explicit terminal attitudes, payload modes and coverage status.
+
 A [frozen numerical baseline](docs/mission_planning/verification_baseline.md)
 compares orbit, attitude and beam calculations against independent library
 results and keeps end-to-end regression evidence separate:

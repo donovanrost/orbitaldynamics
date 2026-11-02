@@ -131,7 +131,7 @@ defmodule OrbitalDynamics.MissionAnalysis.Path.Policy do
         "only declared rules at tested epochs; continuous violations may remain undetected",
         "all tested cadences gate selection; a violation on any tested grid vetoes the candidate",
         "payload mode switches are instantaneous declared assumptions, not validated mechanisms or switch latency",
-        "coverage ends with the last scheduled activity; no pre-initial or terminal idle attitude is synthesized"
+        "coverage is segment-local; terminal and idle coverage requires an explicit attitude horizon and is reported separately"
       ]
     }
 end

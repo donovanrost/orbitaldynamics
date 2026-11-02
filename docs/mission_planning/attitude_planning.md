@@ -207,3 +207,11 @@ a tagged-error regression. Full integration/exhaustive suites were not rerun.
 The [frozen numerical baseline](verification_baseline.md) adds separately scoped
 independent attitude/beam comparisons and frozen internal planner scenarios.
 Its finite cases do not promote these results to continuous or flight validation.
+
+## Full-horizon extension
+
+An optional [planning horizon](planning_horizon.md) reserves terminal maneuver
+time, checks terminal acquisition and hold through the end, and assesses idle
+assets. It requires an explicit fixed inertial terminal attitude and payload
+mode; missing declarations remain unknown. Existing studies retain their prior
+initial-through-last-activity scope.

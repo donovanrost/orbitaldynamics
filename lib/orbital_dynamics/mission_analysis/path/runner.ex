@@ -144,6 +144,10 @@ defmodule OrbitalDynamics.MissionAnalysis.Path.Runner do
         runtime -> get_in(runtime.policy.assets, [asset.id, :transition_mode])
       end
 
+    transition_in_mode(asset, plan, scope, mode, state_at, cache)
+  end
+
+  def transition_in_mode(asset, plan, scope, mode, state_at, cache) do
     origin = plan["source_epoch_s"]
 
     boundaries =
@@ -451,6 +455,6 @@ defmodule OrbitalDynamics.MissionAnalysis.Path.Runner do
           %{"asset_id" => a, "rule_id" => r, "assumptions" => s.assumptions}
         end),
       "coverage" =>
-        "declared initial attitude through last scheduled activity only; no terminal idle or unselected asset path"
+        "segment evidence only; see horizon_coverage for full-horizon status, otherwise initial through last activity only"
     }
 end

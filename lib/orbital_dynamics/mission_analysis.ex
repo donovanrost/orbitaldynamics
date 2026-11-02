@@ -32,7 +32,7 @@ defmodule OrbitalDynamics.MissionAnalysis do
   def run(assets, requests, context, opts) do
     try do
       {gap, separation, include_samples?, refinement, attitude} = options!(opts)
-      validate_inputs!(assets, requests)
+      validate_inputs!(assets, requests, attitude)
       pairs = for asset <- assets, request <- requests, do: {asset, request}
 
       with {:ok, reports, sessions} <-
@@ -85,7 +85,13 @@ defmodule OrbitalDynamics.MissionAnalysis do
              "execution_boundary" => "analysis_only_no_command_execution",
              "time_system" => %{
                "epoch_origin" => "J2000",
-               "scale" => Atom.to_string(hd(requests).time_scale)
+               "scale" =>
+                 Atom.to_string(
+                   if(requests == [],
+                     do: attitude.horizon.start.scale,
+                     else: hd(requests).time_scale
+                   )
+                 )
              },
              "assumptions" =>
                Map.merge(
@@ -275,14 +281,19 @@ defmodule OrbitalDynamics.MissionAnalysis do
     {gap, separation, include, refinement, attitude}
   end
 
-  defp validate_inputs!(assets, requests) do
-    unless is_list(assets) and assets != [] and is_list(requests) and requests != [],
-      do: raise(ArgumentError, "nonempty asset and request lists required")
+  defp validate_inputs!(assets, requests, attitude) do
+    unless is_list(assets) and assets != [] and is_list(requests) and
+             (requests != [] or (attitude != nil and attitude.horizon != nil)),
+           do:
+             raise(
+               ArgumentError,
+               "nonempty assets and requests required; empty requests require an explicit attitude horizon"
+             )
 
     unique_ids!(assets)
     unique_ids!(requests)
 
-    unless length(Enum.uniq(Enum.map(requests, & &1.time_scale))) == 1,
+    unless length(Enum.uniq(Enum.map(requests, & &1.time_scale))) <= 1,
       do: raise(ArgumentError, "requests must share one explicit time scale")
 
     Enum.each(requests, fn %Request{} = r ->
@@ -312,7 +323,11 @@ defmodule OrbitalDynamics.MissionAnalysis do
         Input.vector!(state.velocity_km_s, "velocity_km_s")
         t = Input.number!(state.epoch.seconds_since_j2000, "sample epoch", -1.0e12, 1.0e12)
 
-        unless state.epoch.scale == hd(requests).time_scale and
+        unless state.epoch.scale ==
+                 if(requests == [],
+                   do: attitude.horizon.start.scale,
+                   else: hd(requests).time_scale
+                 ) and
                  Frame.compatible?(first.frame, state.frame),
                do:
                  raise(
