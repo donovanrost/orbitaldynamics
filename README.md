@@ -41,6 +41,60 @@ The propagator intentionally exposes its assumptions in each trajectory:
 `force_model`, `numerical_method`, `max_step_s`, units, frame, epoch scale, and
 central-body `mu_km3_s2`.
 
+## Configurable reference missions
+
+An opt-in, mission-independent analysis runner now supports flat-mirror
+illumination and optical imaging reference cases with explicit payload assumptions.
+Run either case and inspect its sampled checks, opportunities, and schedule:
+
+```sh
+mix orbital_dynamics.mission.run --manifest studies/reference_illumination.json --output tmp/illumination.json
+mix orbital_dynamics.mission.run --manifest studies/reference_imaging.json --output tmp/imaging.json
+mix test test/orbital_dynamics/mission_analysis
+```
+
+These are unvalidated analytic estimates and analysis-only schedules. See
+[reference missions](docs/mission_planning/reference_missions.md) for assumptions,
+extension interfaces, units, and operational limits.
+
+A [trade-study runner](docs/mission_planning/trade_studies.md) compares a configurable
+parameter grid and includes a pinned, offline Orekit baseline check:
+
+```sh
+mix orbital_dynamics.mission.check_baseline --output tmp/baseline_check.json
+mix orbital_dynamics.mission.sweep --study studies/illumination_trade.json --output-dir tmp/illumination_trade
+```
+
+Sampling and integration can also be compared independently with
+[refined service-window evidence](docs/mission_planning/resolution_studies.md):
+
+```sh
+mix orbital_dynamics.mission.resolution --study studies/illumination_resolution.json --output-dir tmp/illumination_resolution
+```
+
+An opt-in [attitude-planning example](docs/mission_planning/attitude_planning.md)
+adds declared initial orientation, full pointing profiles, and acquisition/slew
+checks to scheduling:
+
+```sh
+mix orbital_dynamics.mission.attitude --study studies/illumination_attitude.json --output-dir tmp/illumination_attitude
+```
+
+Optional [path checks](docs/mission_planning/path_constraints.md) add declared
+Sun/limb/pointing constraints, reflected-beam exclusions and explicit payload modes:
+
+```sh
+mix orbital_dynamics.mission.attitude --study studies/illumination_path.json --output-dir tmp/illumination_path
+```
+
+A [frozen numerical baseline](docs/mission_planning/verification_baseline.md)
+compares orbit, attitude and beam calculations against independent library
+results and keeps end-to-end regression evidence separate:
+
+```sh
+mix orbital_dynamics.mission.verify --output-dir tmp/verification_baseline
+```
+
 ## Example
 
 ```elixir

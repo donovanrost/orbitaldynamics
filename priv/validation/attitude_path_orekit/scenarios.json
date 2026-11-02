@@ -1,0 +1,38 @@
+[
+  {
+    "id": "acquisition-and-tracking",
+    "study": "attitude-study.json",
+    "request_ids": [
+      "illumination-primary",
+      "illumination-north"
+    ],
+    "starts_after_s": [
+      91,
+      163
+    ],
+    "ends_after_s": [
+      131,
+      183
+    ]
+  },
+  {
+    "id": "path-rejected-transition",
+    "study": "path-study.json",
+    "request_ids": [
+      "illumination-north"
+    ],
+    "starts_after_s": [
+      61
+    ],
+    "ends_after_s": [
+      81
+    ]
+  },
+  {
+    "id": "unknown-optics",
+    "study": "unknown-study.json",
+    "request_ids": [],
+    "starts_after_s": [],
+    "ends_after_s": []
+  }
+]

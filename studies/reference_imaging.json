@@ -1,0 +1,57 @@
+{
+  "mission_id": "reference_imaging",
+  "epoch_s": 820497600,
+  "duration_s": 6000,
+  "sample_step_s": 20,
+  "max_step_s": 10,
+  "solar_year_s": 31556925.216,
+  "max_sample_gap_s": 20,
+  "asset_separation_s": 30,
+  "assets": [
+    {
+      "id": "demo-1",
+      "altitude_km": 600,
+      "local_time_ascending_node_h": 18,
+      "initial_argument_of_latitude_deg": 0,
+      "dry_mass_kg": 250,
+      "payloads": {
+        "imaging": {
+          "field_of_view_deg": 5,
+          "pixels_across": 4096,
+          "max_off_nadir_deg": 70,
+          "max_tracking_rate_deg_s": 2
+        }
+      },
+      "resource_budgets": {
+        "energy_wh": 100
+      }
+    }
+  ],
+  "requests": [
+    {
+      "id": "imaging-demo",
+      "model": "imaging",
+      "activity_type": "image",
+      "target": {
+        "id": "synthetic-imaging-site",
+        "latitude_deg": 0,
+        "longitude_deg": -99.222322111382,
+        "altitude_km": 0,
+        "minimum_elevation_deg": 10
+      },
+      "starts_at_s": 820497600,
+      "ends_at_s": 820503600,
+      "duration_s": 20,
+      "value": 10,
+      "parameters": {
+        "minimum_elevation_deg": 10,
+        "minimum_target_sun_elevation_deg": 5,
+        "maximum_gsd_m": 100,
+        "target_radius_km": 1
+      },
+      "resource_costs": {
+        "energy_wh": 2
+      }
+    }
+  ]
+}

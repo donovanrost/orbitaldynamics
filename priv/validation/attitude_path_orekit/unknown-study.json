@@ -1,0 +1,143 @@
+{
+  "study_id": "frozen-unknown-optics",
+  "mission_manifest": "mission.json",
+  "resolution_level": {
+    "sample_step_s": 1,
+    "max_step_s": 1
+  },
+  "refinement": {
+    "tracking_lookback_s": 1,
+    "time_tolerance_s": 0.01,
+    "max_extra_evaluations": 512
+  },
+  "attitude": {
+    "profile_step_s": 1,
+    "derivative_step_s": 0.25,
+    "search_step_s": 2,
+    "max_candidate_starts": 128,
+    "max_evaluations": 20000,
+    "assets": {
+      "demo-1": {
+        "max_rate_deg_s": 2,
+        "max_accel_deg_s2": 0.2,
+        "settling_s": 2,
+        "initial": {
+          "epoch_s": 820497600,
+          "time_scale": "utc",
+          "frame": "eci_j2000",
+          "quaternion_wxyz": [
+            1,
+            0,
+            0,
+            0
+          ],
+          "angular_velocity_inertial_deg_s": [
+            0,
+            0,
+            0
+          ]
+        },
+        "pointing_configurations": {
+          "illumination": {
+            "body_to_payload_quaternion": [
+              1,
+              0,
+              0,
+              0
+            ],
+            "roll_reference_inertial": [
+              0,
+              0,
+              1
+            ]
+          }
+        }
+      }
+    }
+  },
+  "path_constraints": {
+    "sample_steps_s": [
+      5,
+      1,
+      0.25
+    ],
+    "max_evaluations": 50000,
+    "max_samples_per_segment": 5000,
+    "assets": {
+      "demo-1": {
+        "activity_modes": {
+          "illumination-primary": "reflecting",
+          "illumination-north": "reflecting"
+        },
+        "transition_mode": "off",
+        "modes": {
+          "reflecting": {
+            "optical_behavior": "reflecting"
+          },
+          "off": {
+            "optical_behavior": "unknown"
+          },
+          "blocked": {
+            "optical_behavior": "blocked_by_assumption"
+          }
+        },
+        "rules": [
+          {
+            "id": "sun_axis",
+            "model": "angular",
+            "configuration": {
+              "body_axis": [
+                0,
+                0,
+                1
+              ],
+              "reference": {
+                "kind": "sun"
+              },
+              "minimum_angle_deg": 5,
+              "maximum_angle_deg": 180
+            }
+          },
+          {
+            "id": "limb_axis",
+            "model": "angular",
+            "configuration": {
+              "body_axis": [
+                1,
+                0,
+                0
+              ],
+              "reference": {
+                "kind": "body_limb"
+              },
+              "minimum_angle_deg": 0,
+              "maximum_angle_deg": 180
+            }
+          },
+          {
+            "id": "reflected_beam",
+            "model": "reflected_beam",
+            "configuration": {
+              "mirror_normal_body": [
+                0,
+                0,
+                1
+              ],
+              "back_face_behavior": "two_sided_reflecting_by_assumption",
+              "solar_angular_radius_deg": 0.265,
+              "beam_padding_deg": 0.02,
+              "exclusion_regions": [
+                {
+                  "id": "synthetic_polar_exclusion",
+                  "latitude_deg": 80,
+                  "longitude_deg": 0,
+                  "radius_km": 25
+                }
+              ]
+            }
+          }
+        ]
+      }
+    }
+  }
+}

@@ -10,6 +10,24 @@ after selecting a mission-planning slice.
 
 ## Documents
 
+- [verification_baseline.md](verification_baseline.md) — frozen physical cases,
+  independent library/ODE comparisons, discrepancies and evidence boundaries.
+
+- [path_constraints.md](path_constraints.md) — sampled activity/transition checks,
+  payload modes, reflected-beam exclusion envelopes and path-cadence comparisons.
+
+- [attitude_planning.md](attitude_planning.md) — explicit initial state, full
+  pointing profiles and kinematic acquisition/transition checks during scheduling.
+
+- [resolution_studies.md](resolution_studies.md) — independent numerical controls,
+  refined transition brackets, sampled margins and schedule stability reports.
+
+- [trade_studies.md](trade_studies.md) — configurable parameter sweeps, compact
+  comparison reports and an independently checked reference baseline.
+
+- [reference_missions.md](reference_missions.md) — runnable configurable illumination
+  and imaging examples using the opt-in mission-independent analysis API.
+
 - [leo_campaign_planner/](leo_campaign_planner/README.md) — the LEO
   constellation campaign planner spec. V1 campaign plan generation, V2
   rolling operations planner, V3 mission orchestration, implementation

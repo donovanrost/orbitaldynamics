@@ -1,0 +1,256 @@
+{
+  "study_id": "illumination_trade",
+  "baseline_manifest": "reference_illumination.json",
+  "max_cases": 128,
+  "axes": [
+    {
+      "id": "altitude",
+      "cases": [
+        {
+          "id": "500km",
+          "updates": [
+            {
+              "path": [
+                "assets",
+                0,
+                "altitude_km"
+              ],
+              "value": 500
+            }
+          ]
+        },
+        {
+          "id": "600km",
+          "updates": [
+            {
+              "path": [
+                "assets",
+                0,
+                "altitude_km"
+              ],
+              "value": 600
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "node",
+      "cases": [
+        {
+          "id": "17h",
+          "updates": [
+            {
+              "path": [
+                "assets",
+                0,
+                "local_time_ascending_node_h"
+              ],
+              "value": 17
+            }
+          ]
+        },
+        {
+          "id": "18h",
+          "updates": [
+            {
+              "path": [
+                "assets",
+                0,
+                "local_time_ascending_node_h"
+              ],
+              "value": 18
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "mirror",
+      "cases": [
+        {
+          "id": "100m2",
+          "updates": [
+            {
+              "path": [
+                "assets",
+                0,
+                "payloads",
+                "illumination",
+                "mirror_area_m2"
+              ],
+              "value": 100
+            },
+            {
+              "path": [
+                "assets",
+                0,
+                "payloads",
+                "illumination",
+                "mirror_max_dimension_m"
+              ],
+              "value": 10
+            }
+          ]
+        },
+        {
+          "id": "400m2",
+          "updates": [
+            {
+              "path": [
+                "assets",
+                0,
+                "payloads",
+                "illumination",
+                "mirror_area_m2"
+              ],
+              "value": 400
+            },
+            {
+              "path": [
+                "assets",
+                0,
+                "payloads",
+                "illumination",
+                "mirror_max_dimension_m"
+              ],
+              "value": 20
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "tracking",
+      "cases": [
+        {
+          "id": "0.01deg_s",
+          "updates": [
+            {
+              "path": [
+                "assets",
+                0,
+                "payloads",
+                "illumination",
+                "max_tracking_rate_deg_s"
+              ],
+              "value": 0.01
+            }
+          ]
+        },
+        {
+          "id": "2deg_s",
+          "updates": [
+            {
+              "path": [
+                "assets",
+                0,
+                "payloads",
+                "illumination",
+                "max_tracking_rate_deg_s"
+              ],
+              "value": 2
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "target",
+      "cases": [
+        {
+          "id": "equator",
+          "updates": [
+            {
+              "path": [
+                "requests",
+                0,
+                "target",
+                "latitude_deg"
+              ],
+              "value": 0
+            }
+          ]
+        },
+        {
+          "id": "10deg_north",
+          "updates": [
+            {
+              "path": [
+                "requests",
+                0,
+                "target",
+                "latitude_deg"
+              ],
+              "value": 10
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "duration",
+      "cases": [
+        {
+          "id": "20s",
+          "updates": [
+            {
+              "path": [
+                "requests",
+                0,
+                "duration_s"
+              ],
+              "value": 20
+            }
+          ]
+        },
+        {
+          "id": "60s",
+          "updates": [
+            {
+              "path": [
+                "requests",
+                0,
+                "duration_s"
+              ],
+              "value": 60
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "irradiance",
+      "cases": [
+        {
+          "id": "0.0001w_m2",
+          "updates": [
+            {
+              "path": [
+                "requests",
+                0,
+                "parameters",
+                "minimum_irradiance_w_m2"
+              ],
+              "value": 0.0001
+            }
+          ]
+        },
+        {
+          "id": "0.001w_m2",
+          "updates": [
+            {
+              "path": [
+                "requests",
+                0,
+                "parameters",
+                "minimum_irradiance_w_m2"
+              ],
+              "value": 0.001
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,64 @@
+{
+  "study_id": "illumination_resolution",
+  "baseline_manifest": "reference_illumination.json",
+  "levels": [
+    {
+      "id": "reference-1s",
+      "dimension": "reference",
+      "sample_step_s": 1,
+      "max_step_s": 1
+    },
+    {
+      "id": "sampling-20s",
+      "dimension": "sampling",
+      "sample_step_s": 20,
+      "max_step_s": 1
+    },
+    {
+      "id": "sampling-10s",
+      "dimension": "sampling",
+      "sample_step_s": 10,
+      "max_step_s": 1
+    },
+    {
+      "id": "sampling-5s",
+      "dimension": "sampling",
+      "sample_step_s": 5,
+      "max_step_s": 1
+    },
+    {
+      "id": "integration-10s",
+      "dimension": "integration",
+      "sample_step_s": 1,
+      "max_step_s": 10
+    },
+    {
+      "id": "integration-5s",
+      "dimension": "integration",
+      "sample_step_s": 1,
+      "max_step_s": 5
+    }
+  ],
+  "reference_level_id": "reference-1s",
+  "refinement": {
+    "tracking_lookback_s": 1,
+    "time_tolerance_s": 0.01,
+    "max_extra_evaluations": 512
+  },
+  "window_time_tolerance_s": 0.1,
+  "schedule_time_tolerance_s": 0.1,
+  "margin_thresholds": {
+    "minimum_elevation_deg": {
+      "unit": "deg",
+      "minimum_headroom": 0.5
+    },
+    "minimum_nominal_irradiance_w_m2": {
+      "unit": "W/m2",
+      "minimum_headroom": 1e-05
+    },
+    "maximum_tracking_rate_deg_s": {
+      "unit": "deg/s",
+      "minimum_headroom": 0.01
+    }
+  }
+}
