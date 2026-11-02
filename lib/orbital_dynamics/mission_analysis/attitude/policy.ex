@@ -13,14 +13,15 @@ defmodule OrbitalDynamics.MissionAnalysis.Attitude.Policy do
     :max_candidate_starts,
     :max_evaluations
   ]
-  defstruct @enforce_keys ++ [path_constraints: nil, horizon: nil]
+  defstruct @enforce_keys ++ [path_constraints: nil, horizon: nil, resources: nil]
 
   def new!(assets, opts) when is_map(assets) do
     keys =
       ~w(profile_step_s derivative_step_s search_step_s max_candidate_starts max_evaluations)a
 
     unless Keyword.keyword?(opts) and
-             Enum.sort(Keyword.keys(opts) -- [:path_constraints, :horizon]) == Enum.sort(keys) and
+             Enum.sort(Keyword.keys(opts) -- [:path_constraints, :horizon, :resources]) ==
+               Enum.sort(keys) and
              length(Keyword.keys(opts)) == length(Enum.uniq(Keyword.keys(opts))),
            do: raise(ArgumentError, "explicit attitude sampling and search options required")
 
@@ -35,6 +36,21 @@ defmodule OrbitalDynamics.MissionAnalysis.Attitude.Policy do
         _ ->
           raise ArgumentError, "path_constraints must be a Path.Policy"
       end
+
+    resources =
+      case Keyword.get(opts, :resources) do
+        nil ->
+          nil
+
+        %OrbitalDynamics.MissionAnalysis.Resource.Policy{} = p ->
+          OrbitalDynamics.MissionAnalysis.Resource.Policy.validate!(p)
+
+        _ ->
+          raise ArgumentError, "resources must be a Resource.Policy"
+      end
+
+    if resources != nil and Keyword.get(opts, :horizon) == nil,
+      do: raise(ArgumentError, "dynamic resources require an explicit full planning horizon")
 
     derivative = Input.positive!(opts[:derivative_step_s], "derivative_step_s")
 
@@ -104,6 +120,7 @@ defmodule OrbitalDynamics.MissionAnalysis.Attitude.Policy do
     %__MODULE__{
       assets: assets,
       path_constraints: path,
+      resources: resources,
       horizon: OrbitalDynamics.MissionAnalysis.Attitude.Horizon.new!(Keyword.get(opts, :horizon)),
       profile_step_s: Input.positive!(opts[:profile_step_s], "profile_step_s"),
       derivative_step_s: derivative,
@@ -122,7 +139,8 @@ defmodule OrbitalDynamics.MissionAnalysis.Attitude.Policy do
         max_candidate_starts: p.max_candidate_starts,
         max_evaluations: p.max_evaluations,
         path_constraints: p.path_constraints,
-        horizon: p.horizon
+        horizon: p.horizon,
+        resources: p.resources
       )
 
   defp integer!(x, label, upper) do
@@ -134,6 +152,7 @@ defmodule OrbitalDynamics.MissionAnalysis.Attitude.Policy do
 
   def describe(p) do
     %{
+      "resources" => OrbitalDynamics.MissionAnalysis.Resource.Policy.describe(p.resources),
       "horizon" => OrbitalDynamics.MissionAnalysis.Attitude.Horizon.describe(p.horizon),
       "model" => "three_axis_sampled_kinematics_and_constructive_transitions",
       "quaternion_convention" => "Hamilton_wxyz_active_body_to_inertial",

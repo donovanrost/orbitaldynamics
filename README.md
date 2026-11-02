@@ -91,6 +91,11 @@ An optional [full planning horizon](docs/mission_planning/planning_horizon.md)
 reserves terminal braking/acquisition time and checks terminal holds and idle
 assets, with explicit terminal attitudes, payload modes and coverage status.
 
+Optional [dynamic resource checks](docs/mission_planning/resource_feasibility.md)
+replay each full candidate timeline, including successors and terminal holds.
+The first model tracks ideal battery energy with declared charging, mode/phase
+loads, efficiencies, capacity and reserve.
+
 A [frozen numerical baseline](docs/mission_planning/verification_baseline.md)
 compares orbit, attitude and beam calculations against independent library
 results and keeps end-to-end regression evidence separate:

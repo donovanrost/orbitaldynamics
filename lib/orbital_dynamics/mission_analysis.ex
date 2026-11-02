@@ -133,12 +133,23 @@ defmodule OrbitalDynamics.MissionAnalysis do
         ],
         else: @limits
 
-    if attitude,
+    limits =
+      if attitude,
+        do: [
+          "sampled kinematic attitude support; no actuator, disturbance, or achieved attitude validation"
+          | List.delete(
+              limits,
+              "declared asset separation; no initial-attitude acquisition or slew simulation"
+            )
+        ],
+        else: limits
+
+    if attitude && attitude.resources,
       do: [
-        "sampled kinematic attitude support; no actuator, disturbance, or achieved attitude validation"
+        "declared dynamic resource models at tested integration cadences; no hardware validation"
         | List.delete(
             limits,
-            "declared asset separation; no initial-attitude acquisition or slew simulation"
+            "declared non-replenishing resource budgets; no subsystem simulation"
           )
       ],
       else: limits

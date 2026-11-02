@@ -1,5 +1,6 @@
 defmodule OrbitalDynamics.MissionAnalysis.Attitude.Scheduler do
   @moduledoc false
+  alias OrbitalDynamics.MissionAnalysis.Resource.Runner, as: ResourceRunner
   alias OrbitalDynamics.Frame
   alias OrbitalDynamics.MissionAnalysis.Path.Runner, as: PathRunner
   alias OrbitalDynamics.MissionAnalysis.Attitude.{Motion, Profile, Horizon}
@@ -24,6 +25,7 @@ defmodule OrbitalDynamics.MissionAnalysis.Attitude.Scheduler do
     cache = %{
       values: %{},
       evaluations: 0,
+      resource: ResourceRunner.prepare(policy.resources, assets, requests, sessions, context),
       path: PathRunner.prepare(policy.path_constraints, assets, Map.values(requests), context)
     }
 
@@ -136,9 +138,13 @@ defmodule OrbitalDynamics.MissionAnalysis.Attitude.Scheduler do
 
         with {:ok, transitions, cache} <-
                final_transitions(activities, policy, assets, state_at, cache),
-             {:ok, horizon, cache} <- Horizon.finish(assets, activities, policy, state_at, cache) do
+             {:ok, horizon, cache} <- Horizon.finish(assets, activities, policy, state_at, cache),
+             {:ok, resources, cache} <-
+               ResourceRunner.finish(assets, activities, policy, state_at, cache) do
           {:ok, activities, Enum.reverse(decisions), balances,
            %{
+             "resource_feasibility" => resources,
+             "planning_status" => planning_status(horizon, resources),
              "horizon_coverage" => horizon,
              "model_evaluation_count" => cache.evaluations,
              "path_constraints" => PathRunner.describe(cache.path),
@@ -162,8 +168,23 @@ defmodule OrbitalDynamics.MissionAnalysis.Attitude.Scheduler do
         error
     end
   catch
+    {:resource_preparation_failed, asset, model, reason} ->
+      {:error, {:resource_preparation_failed, asset, model, reason}}
+
     {:path_preparation_failed, asset, rule, reason} ->
       {:error, {:path_preparation_failed, asset, rule, reason}}
+  end
+
+  defp planning_status(:null, _), do: :null
+
+  defp planning_status(horizon, resources) do
+    statuses = [horizon["status"]] ++ if(resources == :null, do: [], else: [resources["status"]])
+
+    cond do
+      "violated" in statuses -> "violated"
+      "unknown" in statuses -> "unknown"
+      true -> "supported"
+    end
   end
 
   defp validate_frames!(assets, policy) do
@@ -271,6 +292,38 @@ defmodule OrbitalDynamics.MissionAnalysis.Attitude.Scheduler do
               cache
             )
 
+          result =
+            case result do
+              {:ok, profile, details, cache} ->
+                candidate = %{
+                  "asset_id" => asset.id,
+                  "request_id" => request.id,
+                  "starts_at_s" => t,
+                  "ends_at_s" => t + request.duration_s,
+                  "attitude_profile" => profile
+                }
+
+                timeline = Enum.sort_by([candidate | timeline], & &1["starts_at_s"])
+
+                case ResourceRunner.assess(asset, timeline, policy, state_at, cache) do
+                  {:ok, evidence, cache} ->
+                    details = Map.put(details, "resource_checks", ResourceRunner.brief(evidence))
+
+                    case evidence["status"] do
+                      "supported" -> {:ok, profile, details, cache}
+                      "not_enabled" -> {:ok, profile, details, cache}
+                      "violated" -> {:infeasible, :resource_feasibility_violated, details, cache}
+                      "unknown" -> {:unknown, :resource_feasibility_unknown, details, cache}
+                    end
+
+                  error ->
+                    error
+                end
+
+              other ->
+                other
+            end
+
           case result do
             {:ok, profile, details, cache} ->
               attempt =
@@ -309,8 +362,16 @@ defmodule OrbitalDynamics.MissionAnalysis.Attitude.Scheduler do
 
             {:rejected,
              if(unknown,
-               do: "attitude_feasibility_unknown",
-               else: "attitude_start_grid_infeasible"
+               do:
+                 if(policy.resources,
+                   do: "planning_feasibility_unknown",
+                   else: "attitude_feasibility_unknown"
+                 ),
+               else:
+                 if(policy.resources,
+                   do: "planning_start_grid_infeasible",
+                   else: "attitude_start_grid_infeasible"
+                 )
              ),
              %{
                "status" => if(unknown, do: "unknown", else: "infeasible_on_tested_start_grid"),

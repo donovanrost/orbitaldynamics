@@ -10,6 +10,9 @@ after selecting a mission-planning slice.
 
 ## Documents
 
+- [resource_feasibility.md](resource_feasibility.md) — complete resource timelines,
+  ideal battery energy, charging/loads, reserve gating and unknown coverage.
+
 - [planning_horizon.md](planning_horizon.md) — explicit terminal attitudes and modes,
   terminal acquisition time, idle assets and coverage through the horizon end.
 

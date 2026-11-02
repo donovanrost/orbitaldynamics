@@ -10,7 +10,7 @@ defmodule OrbitalDynamics.MissionAnalysis.Attitude.Reference do
     SurfaceSupport.fields!(
       study,
       ~w(study_id mission_manifest resolution_level refinement attitude) ++
-        Enum.filter(~w(path_constraints horizon), &Map.has_key?(study, &1)),
+        Enum.filter(~w(path_constraints horizon resources), &Map.has_key?(study, &1)),
       "attitude study"
     )
 
@@ -99,6 +99,11 @@ defmodule OrbitalDynamics.MissionAnalysis.Attitude.Reference do
         search_step_s: config["search_step_s"],
         max_candidate_starts: config["max_candidate_starts"],
         max_evaluations: config["max_evaluations"],
+        resources:
+          if(Map.has_key?(study, "resources"),
+            do: OrbitalDynamics.MissionAnalysis.Resource.Reference.policy!(study["resources"]),
+            else: nil
+          ),
         horizon: horizon!(study["horizon"]),
         path_constraints:
           if(Map.has_key?(study, "path_constraints"),

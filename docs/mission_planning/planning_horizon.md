@@ -101,3 +101,10 @@ tracking, the actual terminal hold, late idle-path failures, absent declarations
 coverage limits, idle fleet members, horizon clipping and predecessor insertion.
 Independent review found no remaining blocker. Formatting and diff whitespace
 checks pass. Full integration/exhaustive suites were not rerun.
+
+## Dynamic resources
+
+Optional [resource feasibility](resource_feasibility.md) replays the complete
+horizon for candidate and final plans. Path and resource evidence remain separate;
+combined planning support requires both. The first resource model tracks ideal
+battery energy under explicitly declared power and charging assumptions.

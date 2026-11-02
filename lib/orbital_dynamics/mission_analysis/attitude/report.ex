@@ -78,6 +78,7 @@ defmodule OrbitalDynamics.MissionAnalysis.Attitude.Report do
       Enum.join(reasons, "\n") <>
       path_markdown(report) <>
       horizon_markdown(report) <>
+      resource_markdown(report) <>
       "\n\n[report.json](report.json) includes exact assumptions, sampled quaternions, angular velocity/acceleration, all tested-start decisions, " <>
       "and ideal transition phases. Missing initial state or pointing evidence stays unknown. Start-grid rejection is not a global infeasibility proof.\n"
   end
@@ -169,6 +170,62 @@ defmodule OrbitalDynamics.MissionAnalysis.Attitude.Report do
             "\n"
           ) <>
           "\n\nExact terminal modes, phases, path failures and uncovered intervals are in report.json. A declared park or off mode does not establish safety."
+
+      _ ->
+        ""
+    end
+  end
+
+  defp resource_markdown(report) do
+    case get_in(report, ["attitude_planning", "resource_feasibility"]) do
+      resources when is_map(resources) ->
+        rows =
+          Enum.flat_map(Enum.sort(resources["assets"]), fn {asset, r} ->
+            case Map.get(r, "models", []) do
+              [] ->
+                [
+                  "| #{asset} | — | — | #{r["status"]} | — | — | — | #{Map.get(r, "reason", "")} |"
+                ]
+
+              models ->
+                Enum.flat_map(models, fn m ->
+                  Enum.map(m["levels"], fn level ->
+                    battery? = get_in(m, ["assumptions", "model"]) == "ideal_energy_balance_v1"
+
+                    minimum =
+                      if battery?,
+                        do: get_in(level, ["state_extrema", "energy_wh", "min"]) || "—",
+                        else: "—"
+
+                    final =
+                      if battery? and is_map(level["final_state"]),
+                        do: Map.get(level["final_state"], "energy_wh", "—"),
+                        else: "—"
+
+                    margin =
+                      get_in(level, ["minimum_margins", "battery_reserve", "margin"]) || "—"
+
+                    issue =
+                      if is_map(level["first_issue"]),
+                        do:
+                          "#{level["first_issue"]["starts_at_s"]}–#{level["first_issue"]["ends_at_s"]}",
+                        else: Map.get(level, "reason", "—")
+
+                    "| #{asset} | #{m["id"]} | #{level["sample_step_s"]} | #{level["status"]} | #{minimum} | #{final} | #{margin} | #{issue} |"
+                  end)
+                end)
+            end
+          end)
+
+        "\n\n## Resource feasibility\n\nStatus: #{resources["status"]}. Combined planning status: #{report["attitude_planning"]["planning_status"]}.\n\n" <>
+          Enum.join(
+            [
+              "| Asset | Resource | Step s | Status | Min battery Wh | Final battery Wh | Min reserve margin Wh | First issue interval s |",
+              "| --- | --- | --- | --- | --- | --- | --- | --- |"
+            ] ++ rows,
+            "\n"
+          ) <>
+          "\n\nEach cadence replays the complete timeline from the declared initial state, including idle and terminal behavior. Battery columns apply to the ideal battery model; report.json contains all model states, margins and uncovered intervals. Charging and loads are declared assumptions."
 
       _ ->
         ""
