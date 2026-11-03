@@ -79,6 +79,7 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshExecutionContracts do
   @earth_rotation_provider_fields ~w(module source_revision capability)
   @sun_direction_fields ~w(source_revision vector_eci_j2000 capability)
   @access_fields ~w(
+    evaluation_api
     module
     source_revision
     geometry
@@ -89,6 +90,7 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshExecutionContracts do
     capability
   )
   @eclipse_fields ~w(
+    evaluation_api
     module
     source_revision
     shadow_model
@@ -135,16 +137,18 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshExecutionContracts do
     {~w(environment earth_rotation_provider source_revision), "constant-earth-rotation.v1"},
     {~w(environment sun_direction source_revision), "fixed-sun-plus-x.v1"},
     {~w(environment sun_direction vector_eci_j2000), [1.0, 0.0, 0.0]},
-    {~w(access module), "OrbitalDynamics.EventDetectors.AccessWindows"},
-    {~w(access source_revision), "access-windows-bracketed-bisection-1e-6-64.v1"},
-    {~w(access boundary_refinement), "bracketed_bisection"},
+    {~w(access evaluation_api), "access/2"},
+    {~w(access module), "OrbitalDynamics.EventSearch.Products"},
+    {~w(access source_revision), "shared-event-search-hermite-access-1e-6-64.v1"},
+    {~w(access boundary_refinement), "shared_scalar_bisection"},
     {~w(access root_solver), "bisection"},
     {~w(access root_tolerance_s), 1.0e-6},
     {~w(access root_max_iterations), 64},
-    {~w(eclipse module), "OrbitalDynamics.EventDetectors.Eclipses"},
-    {~w(eclipse source_revision), "eclipses-cylindrical-linear-interpolation.v1"},
+    {~w(eclipse evaluation_api), "eclipse/2"},
+    {~w(eclipse module), "OrbitalDynamics.EventSearch.Products"},
+    {~w(eclipse source_revision), "shared-event-search-hermite-cylindrical.v1"},
     {~w(eclipse shadow_model), "cylindrical_central_body_shadow"},
-    {~w(eclipse interpolation), "linear_sample_crossing"},
+    {~w(eclipse interpolation), "cubic_hermite"},
     {~w(eclipse candidate_source), false},
     {~w(eclipse archive_only), true}
   ]

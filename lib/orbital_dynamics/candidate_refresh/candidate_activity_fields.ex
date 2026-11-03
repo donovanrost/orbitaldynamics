@@ -14,7 +14,8 @@ defmodule OrbitalDynamics.CandidateRefresh.CandidateActivityFields do
     :event_detector,
     :event_time_tolerance_s,
     :max_sample_step_s,
-    :confidence
+    :confidence,
+    :event_search
   ]
 
   def event_timing_keys, do: @event_timing_keys

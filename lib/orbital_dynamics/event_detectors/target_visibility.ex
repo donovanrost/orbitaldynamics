@@ -1,5 +1,9 @@
 defmodule OrbitalDynamics.EventDetectors.TargetVisibility do
   @moduledoc """
+  Use search/5 for the canonical shared search engine with explicit source and scene.
+  Existing detect/refinement methods retain the historical reference algorithm;
+  the algorithm descriptions below refer to those paths.
+
   Surface-target visibility window detection.
 
   The detector evaluates each propagated sample against a target-local horizon
@@ -691,5 +695,19 @@ defmodule OrbitalDynamics.EventDetectors.TargetVisibility do
       before_margin == 0.0 -> :sampled_boundary
       after_margin == 0.0 -> :sampled_boundary
     end
+  end
+
+  @doc "Recommended shared search path; returns estimated condition windows with explicit root brackets."
+  def search(source, scene, %Target{} = target, value_tolerance, controls) do
+    function =
+      OrbitalDynamics.EventDetectors.Geometry.access(
+        "target_visibility",
+        scene,
+        target,
+        target.minimum_elevation_deg,
+        value_tolerance: value_tolerance
+      )
+
+    OrbitalDynamics.EventDetector.search(source, [function], controls)
   end
 end

@@ -10,6 +10,18 @@ after selecting a mission-planning slice.
 
 ## Documents
 
+- [conservative_opportunities.md](conservative_opportunities.md) — constraint-window
+  composition, numerical inside bounds, declared timing margins and scheduling evidence.
+
+- [event_verification.md](event_verification.md) — independent Orekit checks of
+  migrated event products, finite-Sun contacts/fractions and solar power.
+
+- [orbital_events.md](orbital_events.md) — bounded standard-event catalog, shared
+  source-based search, finite-source contacts, timing and discovery evidence.
+
+- [solar_generation.md](solar_generation.md) — body-mounted panel incidence,
+  sampled eclipses, replaceable generation providers and cadence comparisons.
+
 - [resource_feasibility.md](resource_feasibility.md) — complete resource timelines,
   ideal battery energy, charging/loads, reserve gating and unknown coverage.
 

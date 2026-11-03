@@ -31,12 +31,14 @@ defmodule OrbitalDynamics.MissionAnalysis do
   @doc "Analyzes model opportunities and builds an explainable analysis-only schedule."
   def run(assets, requests, context, opts) do
     try do
-      {gap, separation, include_samples?, refinement, attitude} = options!(opts)
+      {gap, separation, include_samples?, refinement, attitude, opportunity_search} =
+        options!(opts)
+
       validate_inputs!(assets, requests, attitude)
       pairs = for asset <- assets, request <- requests, do: {asset, request}
 
       with {:ok, reports, sessions} <-
-             analyze_pairs(pairs, context, gap, include_samples?, refinement),
+             analyze_pairs(pairs, context, gap, include_samples?, refinement, opportunity_search),
            {:ok, activities, decisions, balances, attitude_report} <-
              schedule_selected(
                assets,
@@ -48,10 +50,11 @@ defmodule OrbitalDynamics.MissionAnalysis do
                separation,
                context
              ) do
-        opportunities = Enum.flat_map(reports, & &1["opportunities"])
-
         with {:ok, activities} <-
                verify_activity_endpoints(activities, assets, requests, sessions, refinement) do
+          opportunities = Enum.flat_map(reports, & &1["opportunities"])
+          activities = attach_opportunity_evidence(activities, opportunities, opportunity_search)
+          decisions = attach_opportunity_evidence(decisions, opportunities, opportunity_search)
           scheduled = Map.new(activities, &{&1["request_id"], &1["id"]})
 
           request_reports =
@@ -97,15 +100,31 @@ defmodule OrbitalDynamics.MissionAnalysis do
                Map.merge(
                  %{"max_sample_gap_s" => gap, "asset_separation_s" => separation},
                  if(refinement,
-                   do: %{"window_refinement" => WindowRefinement.describe(refinement)},
+                   do: %{
+                     "window_refinement" =>
+                       if(opportunity_search,
+                         do: %{
+                           "usage" => "checked_state_sampler_and_fixed_lookback_only",
+                           "tracking_lookback_s" => refinement.tracking_lookback_s
+                         },
+                         else: WindowRefinement.describe(refinement)
+                       )
+                   },
                    else: %{}
                  )
                )
                |> Map.merge(
                  if(attitude, do: %{"attitude" => Policy.describe(attitude)}, else: %{})
                ),
+             "opportunity_search" =>
+               if(opportunity_search,
+                 do:
+                   OrbitalDynamics.MissionAnalysis.Opportunity.Policy.describe(opportunity_search),
+                 else: :null
+               ),
              "attitude_planning" => attitude_report || :null,
-             "model_limits" => limits_for(refinement, attitude),
+             "model_limits" =>
+               opportunity_limits(limits_for(refinement, attitude), opportunity_search),
              "analyses" => reports,
              "requests" => request_reports,
              "opportunities" => opportunities,
@@ -244,6 +263,7 @@ defmodule OrbitalDynamics.MissionAnalysis do
                  :asset_separation_s,
                  :include_samples,
                  :window_refinement,
+                 :opportunity_search,
                  :attitude
                ] ==
                [] do
@@ -289,7 +309,29 @@ defmodule OrbitalDynamics.MissionAnalysis do
           "attitude planning requires an explicit window refinement/state sampling policy"
         )
 
-    {gap, separation, include, refinement, attitude}
+    opportunity_search =
+      case Keyword.get(opts, :opportunity_search) do
+        nil ->
+          nil
+
+        %OrbitalDynamics.MissionAnalysis.Opportunity.Policy{} = p ->
+          OrbitalDynamics.MissionAnalysis.Opportunity.Policy.new!(
+            Map.from_struct(p)
+            |> Map.to_list()
+          )
+
+        _ ->
+          raise ArgumentError, "opportunity_search must be an Opportunity.Policy"
+      end
+
+    if opportunity_search && refinement == nil,
+      do:
+        raise(
+          ArgumentError,
+          "opportunity search requires an explicit checked state sampling/refinement policy"
+        )
+
+    {gap, separation, include, refinement, attitude, opportunity_search}
   end
 
   defp validate_inputs!(assets, requests, attitude) do
@@ -362,9 +404,9 @@ defmodule OrbitalDynamics.MissionAnalysis do
     if length(ids) != length(Enum.uniq(ids)), do: raise(ArgumentError, "duplicate mission IDs")
   end
 
-  defp analyze_pairs(pairs, context, gap, include?, refinement) do
+  defp analyze_pairs(pairs, context, gap, include?, refinement, opportunity_search) do
     Enum.reduce_while(pairs, {:ok, [], %{}}, fn {asset, request}, {:ok, reports, sessions} ->
-      case analyze_pair(asset, request, context, gap, include?, refinement) do
+      case analyze_pair(asset, request, context, gap, include?, refinement, opportunity_search) do
         {:ok, report, session} ->
           {:cont, {:ok, [report | reports], Map.put(sessions, {asset.id, request.id}, session)}}
 
@@ -378,7 +420,7 @@ defmodule OrbitalDynamics.MissionAnalysis do
     end
   end
 
-  defp analyze_pair(asset, request, context, gap, include?, refinement) do
+  defp analyze_pair(asset, request, context, gap, include?, refinement, opportunity_search) do
     model = request.model
 
     unless Code.ensure_loaded?(model) and function_exported?(model, :prepare, 3) and
@@ -405,9 +447,8 @@ defmodule OrbitalDynamics.MissionAnalysis do
 
       {:ok, config} ->
         with {:ok, session, assumptions} <- prepare_model(model, request, config, context),
-             {:ok, samples} <- evaluate_samples(asset, request, session, gap, refinement),
-             {:ok, windows, samples, extra_count} <-
-               analyze_windows(asset, request, session, samples, gap, refinement) do
+             {:ok, windows, samples, extra_count, event_evidence} <-
+               pair_windows(asset, request, session, gap, refinement, opportunity_search) do
           opportunities =
             windows
             |> Enum.filter(&(&1["ends_at_s"] - &1["starts_at_s"] >= request.duration_s))
@@ -423,6 +464,7 @@ defmodule OrbitalDynamics.MissionAnalysis do
                 "ends_at_s" => window["ends_at_s"],
                 "sample_count" => window["sample_count"]
               }
+              |> Map.merge(if(event_evidence, do: %{"window_evidence" => window}, else: %{}))
             end)
 
           failures =
@@ -433,9 +475,30 @@ defmodule OrbitalDynamics.MissionAnalysis do
 
           status =
             cond do
-              samples == [] -> "no_ephemeris_samples_in_request_window"
-              opportunities == [] -> "no_sample_supported_opportunity"
-              true -> "opportunities_found"
+              event_evidence &&
+                  event_evidence["status"] in [
+                    "no_state_coverage",
+                    "model_opportunity_constraints_unavailable"
+                  ] ->
+                event_evidence["status"]
+
+              event_evidence && opportunities == [] && event_evidence["windows"] != [] ->
+                "no_conservative_opportunity"
+
+              event_evidence && opportunities == [] && event_evidence["status"] == "unknown" ->
+                "opportunity_search_incomplete"
+
+              event_evidence && opportunities == [] ->
+                "no_conservative_opportunity"
+
+              samples == [] ->
+                "no_ephemeris_samples_in_request_window"
+
+              opportunities == [] ->
+                "no_sample_supported_opportunity"
+
+              true ->
+                "opportunities_found"
             end
 
           report =
@@ -449,7 +512,7 @@ defmodule OrbitalDynamics.MissionAnalysis do
             })
 
           report =
-            if refinement,
+            if refinement && opportunity_search == nil,
               do:
                 Map.merge(report, %{
                   "window_evidence" => windows,
@@ -457,9 +520,60 @@ defmodule OrbitalDynamics.MissionAnalysis do
                 }),
               else: report
 
+          report =
+            if event_evidence,
+              do: Map.put(report, "opportunity_evidence", event_evidence),
+              else: report
+
           {:ok, if(include?, do: Map.put(report, "samples", samples), else: report), session}
         end
     end
+  end
+
+  defp pair_windows(asset, request, session, gap, refinement, nil) do
+    with {:ok, samples} <- evaluate_samples(asset, request, session, gap, refinement),
+         {:ok, windows, samples, count} <-
+           analyze_windows(asset, request, session, samples, gap, refinement),
+         do: {:ok, windows, samples, count, nil}
+  end
+
+  defp pair_windows(asset, request, session, _gap, refinement, policy) do
+    with {:ok, windows, samples, evidence} <-
+           OrbitalDynamics.MissionAnalysis.Opportunity.Runner.run(
+             asset,
+             request,
+             session,
+             refinement,
+             policy
+           ),
+         do: {:ok, windows, samples, 0, evidence}
+  end
+
+  defp attach_opportunity_evidence(rows, _opportunities, nil), do: rows
+
+  defp attach_opportunity_evidence(rows, opportunities, _) do
+    by_id = Map.new(opportunities, &{&1["id"], &1["window_evidence"]})
+
+    Enum.map(
+      rows,
+      &Map.put(&1, "opportunity_evidence", Map.get(by_id, &1["opportunity_id"], :null))
+    )
+  end
+
+  defp opportunity_limits(limits, nil), do: limits
+
+  defp opportunity_limits(limits, _) do
+    [
+      "constraint intersections use conservative numerical bounds and explicit mission timing margins; neither bounds physical uncertainty",
+      "shared scalar search has finite discovery coverage; unknown spans are excluded; no continuous feasibility proof"
+      | Enum.reject(
+          limits,
+          &(&1 in [
+              "opportunities end at observed eligible samples; no extrapolation or root finding",
+              "eligible-side brackets refine observed transitions; no guarantee of continuous feasibility"
+            ])
+        )
+    ]
   end
 
   defp prepare_model(model, request, config, context) do
@@ -692,7 +806,17 @@ defmodule OrbitalDynamics.MissionAnalysis do
 
   defp request_reasons(request, reports, decisions, count) do
     if count == 0 do
-      Enum.map(reports, & &1["status"]) |> Enum.uniq() |> Enum.sort()
+      statuses = Enum.map(reports, & &1["status"])
+
+      rejected =
+        for report <- reports,
+            e = report["opportunity_evidence"],
+            is_map(e),
+            w <- Map.get(e, "windows", []),
+            w["status"] == "rejected",
+            do: w["reason"]
+
+      (statuses ++ rejected) |> Enum.uniq() |> Enum.sort()
     else
       decisions
       |> Enum.filter(&(&1["request_id"] == request.id))

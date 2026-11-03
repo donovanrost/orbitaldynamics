@@ -96,7 +96,7 @@ defmodule OrbitalDynamics.EventDetectors.AccessWindowsTest do
   test "public API detects access windows" do
     earth = CentralBody.earth()
     station = GroundStation.new!(:equator, 0.0, 0.0)
-    trajectory = trajectory([above_station(earth, 0.0)])
+    trajectory = trajectory([above_station(earth, 0.0), above_station(earth, 60.0)])
 
     assert {:ok, [%{type: :ground_station_access}]} =
              OrbitalDynamics.access_windows(trajectory, station, central_body: earth)

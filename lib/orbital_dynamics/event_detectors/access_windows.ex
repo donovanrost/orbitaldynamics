@@ -1,5 +1,9 @@
 defmodule OrbitalDynamics.EventDetectors.AccessWindows do
   @moduledoc """
+  Use search/5 for the canonical shared search engine with explicit source and scene.
+  Existing detect/refinement methods retain the historical reference algorithm;
+  the algorithm descriptions below refer to those paths.
+
   Ground-station access window detection.
 
   This detector evaluates each trajectory state independently and merges
@@ -1253,5 +1257,25 @@ defmodule OrbitalDynamics.EventDetectors.AccessWindows do
       before_margin == 0.0 -> :sampled_boundary
       after_margin == 0.0 -> :sampled_boundary
     end
+  end
+
+  @doc "Recommended shared search path with explicit state source, spherical scene and station."
+  def search(source, scene, %GroundStation{} = station, value_tolerance, controls) do
+    target =
+      OrbitalDynamics.Target.new!(station.id, station.latitude_deg, station.longitude_deg,
+        altitude_km: station.altitude_km,
+        minimum_elevation_deg: station.minimum_elevation_deg
+      )
+
+    function =
+      OrbitalDynamics.EventDetectors.Geometry.access(
+        "station_access",
+        scene,
+        target,
+        station.minimum_elevation_deg,
+        value_tolerance: value_tolerance
+      )
+
+    OrbitalDynamics.EventDetector.search(source, [function], controls)
   end
 end

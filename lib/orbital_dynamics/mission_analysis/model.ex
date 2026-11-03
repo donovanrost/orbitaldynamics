@@ -24,7 +24,9 @@ defmodule OrbitalDynamics.MissionAnalysis.Model do
               | {:error, term()}
   @callback activity_mode(map(), term()) ::
               {:ok, OrbitalDynamics.MissionAnalysis.Path.Result.t()} | {:error, term()}
-  @optional_callbacks pointing: 3, activity_mode: 2
+  @doc "Optional complete named scalar conditions for conservative opportunity search on the supplied source."
+  @callback opportunity_functions(term(), term(), number()) :: {:ok, [term()]} | {:error, term()}
+  @optional_callbacks pointing: 3, activity_mode: 2, opportunity_functions: 3
 
   @callback evaluate(StateVector.t(), StateVector.t() | nil, term()) ::
               {:ok, Evaluation.t()} | {:error, term()}

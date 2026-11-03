@@ -1,6 +1,18 @@
 # 5. Event Detection
 
-## Implemented
+## Shared search catalog
+
+The canonical standalone analysis path is now `EventDetector.search/3`, with
+explicit state sources, shared discovery/refinement budgets, unknown coverage
+and numerical target brackets. The [catalog and evidence boundaries](../../mission_planning/orbital_events.md)
+cover nodes/apsides, thresholds/coordinates, ground and instrument geometry,
+relative geometry and finite-source partial/umbral/antumbral contacts.
+Existing detector namespaces expose `search` methods using that engine.
+The study/artifact pipeline described below retains its current detect contracts;
+new event-search reports do not automatically receive those scoped validation
+claims or artifact admission.
+
+## Implemented study/artifact surface
 
 Status: **implemented**.
 

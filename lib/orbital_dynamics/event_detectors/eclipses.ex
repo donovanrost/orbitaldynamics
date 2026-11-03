@@ -1,5 +1,9 @@
 defmodule OrbitalDynamics.EventDetectors.Eclipses do
   @moduledoc """
+  Use search/7 for shared finite-source contacts, or search_cylindrical/4 for the point-Sun approximation.
+  Existing detect/refinement methods retain the historical reference algorithm;
+  the algorithm descriptions below refer to those paths.
+
   Cylindrical central-body eclipse detection.
 
   The detector treats `:sun_direction` as an inertial vector from the central
@@ -74,6 +78,29 @@ defmodule OrbitalDynamics.EventDetectors.Eclipses do
         :no_penumbra_model
       ]
     }
+  end
+
+  @doc false
+  def search_sun_geometry(opts) do
+    body = Keyword.get(opts, :central_body, CentralBody.earth())
+
+    case Keyword.fetch(opts, :sun_direction_provider) do
+      :error ->
+        with {:ok, sun} <-
+               normalize_sun_direction(Keyword.get(opts, :sun_direction, @default_sun_direction)) do
+          {:ok, fn _ -> {:ok, sun, %{}} end}
+        end
+
+      {:ok, provider} ->
+        with {:ok, model} <- provider_sun_model(provider) do
+          {:ok,
+           fn state ->
+             with {:ok, sample} <- provider_sun_sample(state, 0, body, model) do
+               {:ok, sample.sun_direction, sample.sun_product}
+             end
+           end}
+        end
+    end
   end
 
   @impl OrbitalDynamics.EventDetector
@@ -1169,4 +1196,37 @@ defmodule OrbitalDynamics.EventDetectors.Eclipses do
   defp lighting_condition_detail(fraction) when fraction < 0.75, do: "mixed_lighting"
   defp lighting_condition_detail(fraction) when fraction < 1.0, do: "mostly_eclipsed"
   defp lighting_condition_detail(_fraction), do: "eclipsed"
+
+  @doc "Shared finite-source search: partial, umbral and antumbral contacts, with explicit body states and radii."
+  def search(
+        source,
+        luminary_source,
+        luminary_radius_km,
+        occulter_source,
+        occulter_radius_km,
+        value_tolerance,
+        controls
+      ) do
+    functions =
+      OrbitalDynamics.EventDetectors.Occultations.functions(
+        "eclipse",
+        luminary_source,
+        luminary_radius_km,
+        occulter_source,
+        occulter_radius_km,
+        value_tolerance: value_tolerance
+      )
+
+    OrbitalDynamics.EventDetector.search(source, functions, controls)
+  end
+
+  @doc "Shared search engine with the legacy cylindrical point-Sun geometry, using an explicit scene."
+  def search_cylindrical(source, scene, value_tolerance, controls) do
+    function =
+      OrbitalDynamics.EventDetectors.Geometry.cylindrical_shadow("cylindrical_eclipse", scene,
+        value_tolerance: value_tolerance
+      )
+
+    OrbitalDynamics.EventDetector.search(source, [function], controls)
+  end
 end

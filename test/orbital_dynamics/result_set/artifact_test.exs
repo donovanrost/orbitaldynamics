@@ -156,44 +156,43 @@ defmodule OrbitalDynamics.ResultSet.ArtifactTest do
                scenario_id: "artifact_1",
                ground_station_id: "equator",
                sample_count: sample_count,
-               event_detector: "access_windows",
-               event_model: "sampled_ground_station_access",
+               event_detector: "shared_event_search",
+               event_model: "spherical_ground_access",
                validation_level: "analysis",
-               timing_policy: "sampled_state_linear_boundary",
-               interpolation: "linear_sample_crossing",
-               boundary_refinement: "aos_los_linear_margin_interpolation",
+               timing_policy: "bounded_root_on_explicit_state_source",
+               interpolation: "cubic_hermite",
+               boundary_refinement: "shared_scalar_bisection",
                model_limits: access_model_limits,
                assumptions: %{
                  "geometry_model" => "simplified_spherical_earth_rotation",
-                 "event_timing_policy" => "sampled_state_linear_boundary",
-                 "event_time_tolerance_s" => 60.0
+                 "event_timing_policy" => "bounded_root_on_explicit_state_source",
+                 "event_time_tolerance_s" => +0.0
                }
              }
            ] = artifact.access_windows
 
     assert_in_delta hd(artifact.access_windows).starts_at_s, 0.0, 0.0
     assert sample_count > 0
-    assert "sample_cadence_limited" in access_model_limits
-    assert "refinement_not_root_solved" in access_model_limits
+    assert "interpolated_state_source" in access_model_limits
+    refute "refinement_not_root_solved" in access_model_limits
 
-    assert access_model_limits ==
-             OrbitalDynamics.ResultSet.Artifact.event_detector_model_limits(:access_windows)
+    assert "search_policy_limited" in access_model_limits
 
     assert [
              %{
                scenario_id: "artifact_1",
                sample_count: eclipse_sample_count,
-               event_detector: "eclipses",
+               event_detector: "shared_event_search",
                event_model: "cylindrical_central_body_shadow",
                validation_level: "analysis",
-               timing_policy: "sampled_state_linear_boundary",
-               interpolation: "linear_sample_crossing",
-               boundary_refinement: "eclipse_linear_shadow_margin_interpolation",
+               timing_policy: "bounded_root_on_explicit_state_source",
+               interpolation: "cubic_hermite",
+               boundary_refinement: "shared_scalar_bisection",
                model_limits: eclipse_model_limits,
                assumptions: %{
                  "shadow_model" => "cylindrical_central_body_shadow",
-                 "event_detector" => "eclipses",
-                 "event_time_tolerance_s" => 60.0
+                 "event_detector" => "shared_event_search",
+                 "event_time_tolerance_s" => +0.0
                }
              }
            ] = artifact.eclipse_intervals
@@ -202,8 +201,7 @@ defmodule OrbitalDynamics.ResultSet.ArtifactTest do
     assert "cylindrical_shadow" in eclipse_model_limits
     assert "no_penumbra_model" in eclipse_model_limits
 
-    assert eclipse_model_limits ==
-             OrbitalDynamics.ResultSet.Artifact.event_detector_model_limits("eclipses")
+    assert "search_policy_limited" in eclipse_model_limits
 
     assert hd(artifact.eclipse_intervals).sun_direction == [-1.0, 0.0, 0.0]
 
@@ -370,7 +368,7 @@ defmodule OrbitalDynamics.ResultSet.ArtifactTest do
           refined_events =
             Enum.map(events, fn event ->
               metadata =
-                Map.merge(event.metadata, %{
+                Map.merge(Map.delete(event.metadata, :event_search), %{
                   root_refinement_requested: true,
                   interpolation: :cubic_hermite_state,
                   boundary_refinement: :aos_los_bracketed_bisection,
@@ -504,19 +502,18 @@ defmodule OrbitalDynamics.ResultSet.ArtifactTest do
                target_deg: target_deg,
                frame: "inertial",
                starts_at_s: starts_at_s,
-               crossing_direction: "sampled_exact",
-               sample_index: 0,
-               event_detector: "ground_track_crossings",
-               event_model: "sampled_geocentric_ground_track_crossing",
+               crossing_direction: "boundary",
+               event_detector: "shared_event_search",
+               event_model: "geocentric_spherical_ground_track_crossing",
                validation_level: "analysis",
-               timing_policy: "sampled_state_linear_boundary",
-               interpolation: "linear_sample_crossing",
+               timing_policy: "bounded_root_on_explicit_state_source",
+               interpolation: "cubic_hermite",
                model_limits: model_limits,
                assumptions: %{
                  "coordinate_model" => "geocentric_spherical_inertial",
-                 "event_detector" => "ground_track_crossings",
-                 "event_timing_policy" => "sampled_state_linear_boundary",
-                 "event_time_tolerance_s" => 60.0
+                 "event_detector" => "shared_event_search",
+                 "event_timing_policy" => "bounded_root_on_explicit_state_source",
+                 "event_time_tolerance_s" => +0.0
                }
              }
              | _

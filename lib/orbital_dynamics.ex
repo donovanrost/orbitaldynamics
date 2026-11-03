@@ -163,10 +163,12 @@ defmodule OrbitalDynamics do
           two_body_exla_cpu: TwoBodyExlaCpu.capabilities(),
           j2_exla_cpu: J2ExlaCpu.capabilities()
         },
-        access_windows: AccessWindows.capabilities(),
-        eclipses: Eclipses.capabilities(),
-        ground_track_crossings: GroundTrackCrossings.capabilities(),
-        target_visibility: TargetVisibility.capabilities(),
+        access_windows: OrbitalDynamics.EventSearch.Products.capabilities(:ground_station_access),
+        eclipses:
+          OrbitalDynamics.EventSearch.Products.capabilities(:cylindrical_central_body_shadow),
+        ground_track_crossings:
+          OrbitalDynamics.EventSearch.Products.capabilities(:ground_track_crossing),
+        target_visibility: OrbitalDynamics.EventSearch.Products.capabilities(:target_visibility),
         frame_transform: FrameTransform.capabilities(),
         orbit_elements: OrbitElements.capabilities(),
         orbit_data: OrbitData.capabilities()
@@ -3000,12 +3002,16 @@ defmodule OrbitalDynamics do
   @doc """
   Detects ground-station access windows for a trajectory.
 
-  Linear boundary placement remains the default. Pass
-  `boundary_refinement: :bracketed_bisection` to opt into bounded AOS/LOS
-  refinement on the detector's cubic-Hermite state interpolant.
+  Uses shared scalar search on an explicitly declared cubic-Hermite trajectory
+  interpolant. Returned products retain search controls, root brackets and
+  source provenance. Incomplete searches return an error; root precision does
+  not establish propagation accuracy. At least two ordered anchors are required.
   """
   def access_windows(trajectory, ground_station, opts \\ []) do
-    AccessWindows.detect(trajectory, Keyword.put(opts, :ground_station, ground_station))
+    OrbitalDynamics.EventSearch.Products.access(
+      trajectory,
+      Keyword.put(opts, :ground_station, ground_station)
+    )
   end
 
   @doc """
@@ -3024,7 +3030,7 @@ defmodule OrbitalDynamics do
   Detects cylindrical central-body eclipse intervals for a trajectory.
   """
   def eclipse_intervals(trajectory, opts \\ []) do
-    Eclipses.detect(trajectory, opts)
+    OrbitalDynamics.EventSearch.Products.eclipse(trajectory, opts)
   end
 
   @doc """
@@ -3038,7 +3044,10 @@ defmodule OrbitalDynamics do
   Detects target visibility windows for a trajectory.
   """
   def target_visibility_windows(trajectory, target, opts \\ []) do
-    TargetVisibility.detect(trajectory, Keyword.put(opts, :target, target))
+    OrbitalDynamics.EventSearch.Products.visibility(
+      trajectory,
+      Keyword.put(opts, :target, target)
+    )
   end
 
   @doc """
@@ -3056,20 +3065,20 @@ defmodule OrbitalDynamics do
   end
 
   @doc """
-  Detects sampled geocentric latitude crossings for a trajectory.
+  Finds geocentric latitude crossings with shared search on a Hermite state source.
   """
   def latitude_crossings(trajectory, latitude_deg, opts \\ []) do
-    GroundTrackCrossings.detect(
+    OrbitalDynamics.EventSearch.Products.crossing(
       trajectory,
       opts |> Keyword.put(:crossing, :latitude) |> Keyword.put(:latitude_deg, latitude_deg)
     )
   end
 
   @doc """
-  Detects sampled geocentric longitude crossings for a trajectory.
+  Finds geocentric longitude crossings with shared search on a Hermite state source.
   """
   def longitude_crossings(trajectory, longitude_deg, opts \\ []) do
-    GroundTrackCrossings.detect(
+    OrbitalDynamics.EventSearch.Products.crossing(
       trajectory,
       opts |> Keyword.put(:crossing, :longitude) |> Keyword.put(:longitude_deg, longitude_deg)
     )

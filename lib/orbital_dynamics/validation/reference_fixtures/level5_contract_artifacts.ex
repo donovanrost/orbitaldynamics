@@ -194,13 +194,13 @@ defmodule OrbitalDynamics.Validation.ReferenceFixtures.Level5ContractArtifacts d
         "candidate_activity_count" => 1,
         "downlink_candidate_count" => 1,
         "access_windows_sha256" =>
-          "b9c0a7bb58af006d8da5aaffa358c5d0ad91b597bbf75584fb0fcd9094f237f3",
+          "6156bce4158fb37fdb25787be1b2f86be73a37b2073e7af5f7cb2df92a280942",
         "eclipse_intervals_sha256" =>
           "df071894cd939bc2281c5ca0325b880152b9717dd0fc0a3ce971847e02fb76e2",
         "candidate_source_windows_sha256" =>
-          "5113bee9ada1793f4868eb59c5077d2d8567f0530376457e16452e7d17207198",
+          "97047d2995617b782845ced54d320f43e6a87c42634da31e053e2b1687d4d47f",
         "propagation_max_step_s" => 10.0,
-        "access_boundary_refinement" => "bracketed_bisection",
+        "access_boundary_refinement" => "shared_scalar_bisection",
         "external_validation_case_id" => "orekit_13_1_7_leo_j2_drag_access_eclipse",
         "external_validation_status" => "referenced_not_evaluated_by_runner",
         "model_limit_count" => 14

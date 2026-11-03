@@ -202,6 +202,64 @@ defmodule OrbitalDynamics.MissionAnalysis.Models.Illumination do
     end
   end
 
+  @impl true
+  def opportunity_functions(session, source, lookback) do
+    specs = [
+      {"solar_image_above_tangent_horizon", "deg", 1.0e-9, true},
+      {"minimum_elevation_deg", "deg", 1.0e-9},
+      {"maximum_target_sun_elevation_deg", "deg", 1.0e-9},
+      {"spacecraft_sunlit", "km", 1.0e-8},
+      {"specular_geometry", "1", 1.0e-14},
+      {"maximum_mirror_incidence_deg", "deg", 1.0e-9},
+      {"tracking_rate_known", "1", 0},
+      {"maximum_tracking_rate_deg_s", "deg/s", 1.0e-9},
+      {"small_mirror_approximation", "ratio", 1.0e-12},
+      {"target_contained_in_nominal_footprint", "km", 1.0e-9},
+      {"minimum_nominal_irradiance_w_m2", "W/m2", 1.0e-12}
+    ]
+
+    overrides = %{
+      "spacecraft_sunlit" => fn state, _, _ ->
+        with {:ok, environment} <- SphericalScene.environment_at(session.scene, state) do
+          axial = Vector3.dot(state.position_km, environment.sun_direction)
+
+          perpendicular =
+            Vector3.norm(
+              Vector3.subtract(state.position_km, Vector3.scale(environment.sun_direction, axial))
+            )
+
+          {:ok, max(axial, perpendicular - session.scene.body.equatorial_radius_km), nil,
+           %{"model" => "point_sun_cylindrical_shadow_margin"}}
+        end
+      end,
+      "specular_geometry" => fn state, _, _ ->
+        with {:ok, g} <- SphericalScene.at(session.scene, state, session.target) do
+          {:ok, Vector3.norm(Vector3.add(g.sun_direction, g.target_direction)) - 1.0e-12, nil,
+           %{}}
+        end
+      end,
+      "minimum_nominal_irradiance_w_m2" => fn _, sample, check ->
+        # The existing service model switches power off in shadow. Treat that
+        # branch as outside this scalar's known domain; the separate continuous
+        # sunlight constraint handles its boundary without inventing a zero of
+        # a discontinuous irradiance margin.
+        if sample["metrics"]["spacecraft_sunlit"],
+          do: {:ok, check["margin"], nil, %{}},
+          else: {:unknown, :irradiance_shadow_branch}
+      end
+    }
+
+    {:ok,
+     OrbitalDynamics.MissionAnalysis.Opportunity.Functions.from_evaluation(
+       __MODULE__,
+       session,
+       source,
+       lookback,
+       specs,
+       overrides
+     )}
+  end
+
   def normal(scene) do
     vector = Vector3.add(scene.sun_direction, scene.target_direction)
     norm = Vector3.norm(vector)

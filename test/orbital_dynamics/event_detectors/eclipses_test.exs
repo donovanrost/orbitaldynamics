@@ -136,7 +136,12 @@ defmodule OrbitalDynamics.EventDetectors.EclipsesTest do
 
   test "public API detects eclipse intervals" do
     earth = CentralBody.earth()
-    trajectory = trajectory([anti_sunward_inside_shadow(earth, 0.0)])
+
+    trajectory =
+      trajectory([
+        anti_sunward_inside_shadow(earth, 0.0),
+        anti_sunward_inside_shadow(earth, 60.0)
+      ])
 
     assert {:ok, [%{type: :eclipse}]} =
              OrbitalDynamics.eclipse_intervals(trajectory,

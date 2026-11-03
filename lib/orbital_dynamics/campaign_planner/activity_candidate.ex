@@ -22,7 +22,8 @@ defmodule OrbitalDynamics.CampaignPlanner.ActivityCandidate do
     :event_detector,
     :event_time_tolerance_s,
     :max_sample_step_s,
-    :confidence
+    :confidence,
+    :event_search
   ]
 
   @max_eclipse_intervals 10_000

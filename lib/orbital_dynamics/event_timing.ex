@@ -2,7 +2,11 @@ defmodule OrbitalDynamics.EventTiming do
   @moduledoc """
   Detector-wide event timing tolerance metadata.
 
-  Current event detectors are sampled detectors with linear boundary
+  Canonical standalone analysis searches use `OrbitalDynamics.EventSearch`,
+  with explicit source fidelity, discovery controls and per-target root brackets.
+  The metadata below belongs to the existing study/artifact pipeline.
+
+  Those event detectors are sampled detectors with linear boundary
   interpolation as the compatibility default. Access-window callers may opt
   into detector-local root refinement on an interpolated state path. This
   module retains the conservative default policy; the access detector adds its

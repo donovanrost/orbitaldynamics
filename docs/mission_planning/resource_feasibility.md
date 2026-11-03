@@ -7,6 +7,9 @@ phases, terminal acquisition and terminal hold. It accepts that candidate only
 when every declared resource model supports every tested integration cadence.
 The final report assesses all assets, including idle assets.
 
+Optional [solar generation](solar_generation.md) derives source power from panel
+pointing and spherical shadow geometry; declared time profiles remain available.
+
 The first built-in model is ideal battery energy. Configuration is synthetic;
 no Reflect Orbital hardware specifications or validated power model are implied.
 
@@ -66,7 +69,8 @@ model and path checks see the same descriptor. Battery configuration supplies:
 - `charge_efficiency`, `discharge_efficiency` in `(0, 1]`;
 - `phase_load_w`, with explicit values for the phases that occur;
 - `generation`, either constant `power_w` or ordered, nonoverlapping
-  `piecewise_constant` intervals with `starts_at_s`, `ends_at_s`, `power_w`.
+  `piecewise_constant` intervals with `starts_at_s`, `ends_at_s`, `power_w`, or an
+  explicit [solar-array provider](solar_generation.md).
 
 Phase names are `activity`, `brake`, `hold`, `slew_accelerate`, `slew_cruise`,
 `slew_decelerate`, `settle`, `ramp_to_tracking`. Phase demand is additional to the
@@ -87,7 +91,9 @@ use physical headroom and the reported margins rather than relying on equality.
 
 This is not a voltage/current, cell-temperature, battery-aging, maximum
 charge/discharge-power or regulator model. No solar array or shadow model is
-inferred. More detailed models must supply those relationships explicitly.
+inferred by storage dynamics. The optional solar provider explicitly supplies
+panel projection and a declared shadow approximation; other detailed models
+must supply their own relationships.
 
 ## Generic extension interface
 

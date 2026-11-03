@@ -14,7 +14,10 @@ defmodule OrbitalDynamics.AccessEventResultAdmission do
     :event_detector,
     :event_time_tolerance_s,
     :max_sample_step_s,
-    :confidence
+    :confidence,
+    :event_search,
+    :known_limits,
+    :validation_level
   ]
 
   @precondition_keys [
@@ -210,6 +213,7 @@ defmodule OrbitalDynamics.AccessEventResultAdmission do
     :known_limits
   ]
   @metadata_json_map_keys [
+    :event_search,
     :activity_context,
     :campaign_environment,
     :sun_direction_provider_coverage
@@ -221,6 +225,12 @@ defmodule OrbitalDynamics.AccessEventResultAdmission do
   ]
   @metadata_boundary_detail_keys [:start_boundary_detail, :end_boundary_detail]
   @boundary_detail_keys [
+    :kind,
+    :estimate_s,
+    :bracket_start_s,
+    :bracket_end_s,
+    :midpoint_time_bound_s,
+    :timing_target,
     :boundary,
     :interpolation,
     :interpolation_fraction,
@@ -272,6 +282,10 @@ defmodule OrbitalDynamics.AccessEventResultAdmission do
     :model_limits
   ]
   @boundary_numeric_keys [
+    :estimate_s,
+    :bracket_start_s,
+    :bracket_end_s,
+    :midpoint_time_bound_s,
     :interpolation_fraction,
     :sample_index,
     :event_time_tolerance_s,
@@ -310,6 +324,8 @@ defmodule OrbitalDynamics.AccessEventResultAdmission do
     :sun_direction_time_varying
   ]
   @boundary_token_keys [
+    :kind,
+    :timing_target,
     :boundary,
     :interpolation,
     :confidence,

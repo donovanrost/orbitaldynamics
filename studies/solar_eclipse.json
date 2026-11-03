@@ -1,0 +1,191 @@
+{
+  "study_id": "solar_eclipse",
+  "mission_manifest": "reference_solar_eclipse.json",
+  "resolution_level": {
+    "sample_step_s": 1,
+    "max_step_s": 1
+  },
+  "refinement": {
+    "tracking_lookback_s": 1,
+    "time_tolerance_s": 0.01,
+    "max_extra_evaluations": 512
+  },
+  "attitude": {
+    "profile_step_s": 1,
+    "derivative_step_s": 0.25,
+    "search_step_s": 2,
+    "max_candidate_starts": 128,
+    "max_evaluations": 20000,
+    "assets": {
+      "demo-1": {
+        "max_rate_deg_s": 2,
+        "max_accel_deg_s2": 0.2,
+        "settling_s": 2,
+        "initial": {
+          "epoch_s": 820497600,
+          "time_scale": "utc",
+          "frame": "eci_j2000",
+          "quaternion_wxyz": [
+            1,
+            0,
+            0,
+            0
+          ],
+          "angular_velocity_inertial_deg_s": [
+            0,
+            0,
+            0
+          ]
+        },
+        "pointing_configurations": {
+          "illumination": {
+            "body_to_payload_quaternion": [
+              1,
+              0,
+              0,
+              0
+            ],
+            "roll_reference_inertial": [
+              0,
+              0,
+              1
+            ]
+          }
+        }
+      }
+    }
+  },
+  "path_constraints": {
+    "sample_steps_s": [
+      60,
+      20,
+      5
+    ],
+    "max_evaluations": 50000,
+    "max_samples_per_segment": 5000,
+    "assets": {
+      "demo-1": {
+        "activity_modes": {
+          "illumination-primary": "reflecting",
+          "illumination-north": "reflecting"
+        },
+        "transition_mode": "maneuver",
+        "modes": {
+          "reflecting": {
+            "optical_behavior": "reflecting",
+            "power_load_w": 500
+          },
+          "maneuver": {
+            "optical_behavior": "reflecting",
+            "power_load_w": 100
+          },
+          "standby": {
+            "optical_behavior": "reflecting",
+            "power_load_w": 20
+          }
+        },
+        "rules": [
+          {
+            "id": "declared_inertial_envelope",
+            "model": "angular",
+            "configuration": {
+              "body_axis": [
+                0,
+                0,
+                1
+              ],
+              "reference": {
+                "kind": "inertial",
+                "direction": [
+                  1,
+                  0,
+                  0
+                ]
+              },
+              "minimum_angle_deg": 0,
+              "maximum_angle_deg": 180
+            }
+          }
+        ]
+      }
+    }
+  },
+  "horizon": {
+    "starts_at_s": 820497600,
+    "ends_at_s": 820503600,
+    "time_scale": "utc",
+    "terminals": {
+      "demo-1": {
+        "strategy": "fixed_inertial",
+        "frame": "eci_j2000",
+        "quaternion_wxyz": [
+          1,
+          0,
+          0,
+          0
+        ],
+        "mode": "standby"
+      }
+    }
+  },
+  "resources": {
+    "sample_steps_s": [
+      60,
+      20,
+      5
+    ],
+    "max_intervals_per_asset": 5000,
+    "max_evaluations": 100000,
+    "assets": {
+      "demo-1": [
+        {
+          "id": "battery",
+          "model": "battery",
+          "configuration": {
+            "initial_wh": 1000,
+            "capacity_wh": 1200,
+            "reserve_wh": 100,
+            "charge_efficiency": 0.9,
+            "discharge_efficiency": 0.9,
+            "phase_load_w": {
+              "activity": 0,
+              "brake": 200,
+              "hold": 0,
+              "slew_accelerate": 200,
+              "slew_cruise": 200,
+              "slew_decelerate": 200,
+              "settle": 0,
+              "ramp_to_tracking": 200
+            },
+            "generation": {
+              "kind": "solar_array",
+              "solar_irradiance_w_m2": 1361,
+              "bus_efficiency": 0.9,
+              "shadow_model": "finite_sun",
+              "panels": [
+                {
+                  "id": "synthetic-array",
+                  "area_m2": 2,
+                  "efficiency": 0.3,
+                  "normal_body": [
+                    1,
+                    0,
+                    0
+                  ]
+                }
+              ],
+              "solar_radius_km": 695700,
+              "solar_distance_km": 149597870.7,
+              "event_search": {
+                "max_check_step_s": 20,
+                "time_tolerance_s": 0.01,
+                "max_iterations": 64,
+                "max_evaluations": 100000
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

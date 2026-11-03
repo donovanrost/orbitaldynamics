@@ -167,6 +167,29 @@ defmodule OrbitalDynamics.MissionAnalysis.Models.Imaging do
   end
 
   @impl true
+  def opportunity_functions(session, source, lookback) do
+    specs = [
+      {"field_of_view_above_tangent_horizon", "deg", 1.0e-9, true},
+      {"minimum_elevation_deg", "deg", 1.0e-9},
+      {"minimum_target_sun_elevation_deg", "deg", 1.0e-9},
+      {"maximum_off_nadir_deg", "deg", 1.0e-9},
+      {"tracking_rate_known", "1", 0},
+      {"maximum_tracking_rate_deg_s", "deg/s", 1.0e-9},
+      {"target_contained_in_nominal_footprint", "km", 1.0e-9},
+      {"maximum_nominal_center_gsd_m", "m", 1.0e-9}
+    ]
+
+    {:ok,
+     OrbitalDynamics.MissionAnalysis.Opportunity.Functions.from_evaluation(
+       __MODULE__,
+       session,
+       source,
+       lookback,
+       specs
+     )}
+  end
+
+  @impl true
   def pointing(state, session, configuration) do
     with {:ok, scene} <- SphericalScene.at(session.scene, state, session.target) do
       direction = scene.target_direction

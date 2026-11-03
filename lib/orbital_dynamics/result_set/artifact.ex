@@ -47,7 +47,8 @@ defmodule OrbitalDynamics.ResultSet.Artifact do
     :event_detector,
     :event_time_tolerance_s,
     :max_sample_step_s,
-    :confidence
+    :confidence,
+    :event_search
   ]
   @derived_numeric_trajectory_fields [
     :final_radius_km,
@@ -386,6 +387,9 @@ defmodule OrbitalDynamics.ResultSet.Artifact do
     end)
   end
 
+  defp access_window_model_limits(%{metadata: %{event_search: _}} = event),
+    do: ground_track_model_limits(event)
+
   defp access_window_model_limits(event) do
     event
     |> access_window_refinement()
@@ -396,7 +400,7 @@ defmodule OrbitalDynamics.ResultSet.Artifact do
   defp access_window_capability_fields(event) do
     event_metadata = event.metadata
 
-    detector_capability_fields(AccessWindows)
+    product_capability_fields(AccessWindows, event)
     |> Map.merge(%{
       interpolation: Map.get(event_metadata, :interpolation),
       boundary_refinement: Map.get(event_metadata, :boundary_refinement),
@@ -450,13 +454,13 @@ defmodule OrbitalDynamics.ResultSet.Artifact do
               )
             )
         }
-        |> Map.merge(detector_capability_fields(Eclipses))
+        |> Map.merge(product_capability_fields(Eclipses, event))
       end)
     end)
   end
 
   defp eclipse_model_limits(%{metadata: %{known_limits: limits}}) when is_list(limits) do
-    Enum.map(limits, &Atom.to_string/1)
+    Enum.map(limits, &to_string/1)
   end
 
   defp eclipse_model_limits(_event), do: model_limits(Eclipses)
@@ -489,7 +493,7 @@ defmodule OrbitalDynamics.ResultSet.Artifact do
               )
             )
         }
-        |> Map.merge(detector_capability_fields(TargetVisibility))
+        |> Map.merge(product_capability_fields(TargetVisibility, event))
       end)
     end)
   end
@@ -545,7 +549,7 @@ defmodule OrbitalDynamics.ResultSet.Artifact do
               |> Map.new()
             )
         }
-        |> Map.merge(detector_capability_fields(GroundTrackCrossings))
+        |> Map.merge(product_capability_fields(GroundTrackCrossings, event))
         |> Enum.reject(fn {_key, value} -> is_nil(value) end)
         |> Map.new()
       end)
@@ -568,7 +572,37 @@ defmodule OrbitalDynamics.ResultSet.Artifact do
     |> encode_model_limits()
   end
 
-  defp encode_model_limits(limits), do: Enum.map(limits, &Atom.to_string/1)
+  defp encode_model_limits(limits), do: Enum.map(limits, &to_string/1)
+
+  defp product_capability_fields(module, %{metadata: %{event_search: _} = metadata}) do
+    detector_capability_fields(module)
+    |> Map.merge(
+      Map.new([:interpolation, :boundary_refinement, :validation_level], fn key ->
+        {key, encode_value(metadata[key])}
+      end)
+    )
+    |> Map.put(
+      :event_model,
+      encode_value(
+        if(module == Eclipses,
+          do: :cylindrical_central_body_shadow,
+          else:
+            if(module == AccessWindows,
+              do: :spherical_ground_access,
+              else:
+                if(module == TargetVisibility,
+                  do: :spherical_target_visibility,
+                  else: :geocentric_spherical_ground_track_crossing
+                )
+            )
+        )
+      )
+    )
+    |> Map.put(:timing_policy, encode_value(metadata.event_timing_policy))
+    |> Map.put(:event_detector, "shared_event_search")
+  end
+
+  defp product_capability_fields(module, _event), do: detector_capability_fields(module)
 
   defp detector_capability_fields(module) do
     capabilities = module.capabilities()

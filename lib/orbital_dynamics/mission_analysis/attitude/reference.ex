@@ -10,7 +10,10 @@ defmodule OrbitalDynamics.MissionAnalysis.Attitude.Reference do
     SurfaceSupport.fields!(
       study,
       ~w(study_id mission_manifest resolution_level refinement attitude) ++
-        Enum.filter(~w(path_constraints horizon resources), &Map.has_key?(study, &1)),
+        Enum.filter(
+          ~w(path_constraints horizon resources opportunity_search),
+          &Map.has_key?(study, &1)
+        ),
       "attitude study"
     )
 
@@ -116,18 +119,35 @@ defmodule OrbitalDynamics.MissionAnalysis.Attitude.Reference do
            p.assets,
            p.requests,
            p.context,
-           Keyword.put(p.options, :attitude, policy)
+           p.options |> Keyword.put(:attitude, policy) |> opportunity_options(study)
          ) do
       {:ok, report} ->
         Map.merge(report, %{
           "attitude_study_configuration" => study,
           "baseline_configuration" => mission
         })
+        |> OrbitalDynamics.MissionAnalysis.Resource.SolarDiagnostics.annotate()
 
       {:error, reason} ->
         raise ArgumentError, "attitude analysis failed: #{inspect(reason)}"
     end
   end
+
+  defp opportunity_options(options, %{"opportunity_search" => config}) do
+    keys =
+      ~w(max_check_step_s time_tolerance_s max_iterations max_evaluations entry_margin_s exit_margin_s)a
+
+    SurfaceSupport.fields!(config, Enum.map(keys, &Atom.to_string/1), "opportunity search")
+
+    policy =
+      OrbitalDynamics.MissionAnalysis.Opportunity.Policy.new!(
+        Enum.map(keys, fn key -> {key, Map.fetch!(config, Atom.to_string(key))} end)
+      )
+
+    Keyword.put(options, :opportunity_search, policy)
+  end
+
+  defp opportunity_options(options, _), do: options
 
   defp horizon!(nil), do: nil
 

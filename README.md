@@ -96,6 +96,25 @@ replay each full candidate timeline, including successors and terminal holds.
 The first model tracks ideal battery energy with declared charging, mode/phase
 loads, efficiencies, capacity and reserve.
 
+Optional [solar generation](docs/mission_planning/solar_generation.md) uses full
+panel pointing and sampled shadow geometry, with explicit hardware assumptions,
+observed eclipse brackets and energy comparisons across integration cadences.
+
+[Conservative opportunities](docs/mission_planning/conservative_opportunities.md)
+connect mission constraint windows to the attitude/battery scheduler, with
+explicit numerical bounds, timing margins and limiting-constraint evidence.
+Run `MIX_ENV=test mix orbital_dynamics.mission.attitude --study studies/illumination_opportunities.json --output-dir tmp/illumination_opportunities`.
+
+A [shared orbital-event search](docs/mission_planning/orbital_events.md) provides
+a bounded standard catalog with explicit state sources, root brackets, finite-Sun
+occultations, geometry windows and discovery limits. Run the synthetic catalog
+with `MIX_ENV=test mix orbital_dynamics.events.demo --output-dir tmp/events`.
+
+[Independent event checks](docs/mission_planning/event_verification.md) compare
+production access/eclipse searches and finite-Sun solar power against frozen
+Orekit references. Run `MIX_ENV=test mix orbital_dynamics.events.verify --output-dir tmp/event_verification`,
+or add `--group finite-sun` for the fast geometry/power comparison.
+
 A [frozen numerical baseline](docs/mission_planning/verification_baseline.md)
 compares orbit, attitude and beam calculations against independent library
 results and keeps end-to-end regression evidence separate:

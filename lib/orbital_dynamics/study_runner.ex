@@ -8,12 +8,7 @@ defmodule OrbitalDynamics.StudyRunner do
   straightforward.
   """
 
-  alias OrbitalDynamics.EventDetectors.{
-    AccessWindows,
-    Eclipses,
-    GroundTrackCrossings,
-    TargetVisibility
-  }
+  alias OrbitalDynamics.EventDetectors.GroundTrackCrossings
 
   alias OrbitalDynamics.Environment.CampaignEnvironmentProvider
   alias OrbitalDynamics.Schema.CollectionValidation
@@ -1094,7 +1089,7 @@ defmodule OrbitalDynamics.StudyRunner do
     trajectory_results
     |> Enum.flat_map(fn trajectory_result ->
       Enum.map(ground_stations, fn station ->
-        case AccessWindows.detect(trajectory_result.trajectory,
+        case OrbitalDynamics.EventSearch.Products.access(trajectory_result.trajectory,
                ground_station: station,
                central_body: central_body
              ) do
@@ -1123,7 +1118,7 @@ defmodule OrbitalDynamics.StudyRunner do
 
   defp eclipse_results(trajectory_results, central_body, sun_direction, campaign_environment) do
     Enum.map(trajectory_results, fn trajectory_result ->
-      case Eclipses.detect(
+      case OrbitalDynamics.EventSearch.Products.eclipse(
              trajectory_result.trajectory,
              eclipse_detector_opts(central_body, sun_direction, campaign_environment)
            ) do
@@ -1174,7 +1169,7 @@ defmodule OrbitalDynamics.StudyRunner do
     trajectory_results
     |> Enum.flat_map(fn trajectory_result ->
       Enum.map(targets, fn target ->
-        case TargetVisibility.detect(trajectory_result.trajectory,
+        case OrbitalDynamics.EventSearch.Products.visibility(trajectory_result.trajectory,
                target: target,
                central_body: central_body
              ) do
@@ -1218,7 +1213,7 @@ defmodule OrbitalDynamics.StudyRunner do
     trajectory_results
     |> Enum.flat_map(fn trajectory_result ->
       Enum.map(ground_track_crossings, fn request ->
-        case GroundTrackCrossings.detect(
+        case OrbitalDynamics.EventSearch.Products.crossing(
                trajectory_result.trajectory,
                ground_track_detector_opts(request)
              ) do

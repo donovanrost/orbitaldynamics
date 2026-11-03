@@ -1,5 +1,9 @@
 defmodule OrbitalDynamics.EventDetectors.GroundTrackCrossings do
   @moduledoc """
+  Use search/6 for the canonical shared search engine and rotating-scene geometry.
+  Existing detect/refinement methods retain the historical reference algorithm;
+  the algorithm descriptions below refer to those paths.
+
   Sampled latitude and longitude crossing detection.
 
   This detector uses geocentric spherical coordinates from the trajectory's
@@ -158,6 +162,35 @@ defmodule OrbitalDynamics.EventDetectors.GroundTrackCrossings do
 
   def validate_earth_rotation_provider(_provider, _request),
     do: {:error, {:invalid_option, :earth_rotation_provider}}
+
+  @doc false
+  def search_geometry(opts) do
+    frame = Keyword.get(opts, :frame, :inertial)
+
+    with {:ok, rotation} <- rotation_model(frame, opts) do
+      {:ok,
+       fn state ->
+         with {:ok, lat, lon, m} <-
+                geocentric_lat_lon(
+                  state.position_km,
+                  state.epoch.seconds_since_j2000,
+                  frame,
+                  rotation
+                ) do
+           sample = %{rotation_metadata: m}
+
+           {:ok, lat, lon,
+            Map.merge(
+              rotation_assumptions(frame, rotation, sample, sample),
+              %{
+                coordinate_model: coordinate_model(frame, rotation),
+                known_limits: ground_track_known_limits(rotation) || capabilities().known_limits
+              }
+            )}
+         end
+       end}
+    end
+  end
 
   @impl OrbitalDynamics.EventDetector
   def detect(trajectory, opts \\ [])
@@ -1612,4 +1645,25 @@ defmodule OrbitalDynamics.EventDetectors.GroundTrackCrossings do
   end
 
   defp radians_to_degrees(radians), do: radians * 180.0 / :math.pi()
+
+  @doc "Recommended shared search path for explicit rotating-scene latitude or longitude crossings."
+  def search(source, scene, coordinate, threshold_deg, value_tolerance, controls) do
+    function =
+      case coordinate do
+        :latitude ->
+          OrbitalDynamics.EventDetectors.Geometry.latitude("latitude", scene, threshold_deg,
+            value_tolerance: value_tolerance
+          )
+
+        :longitude ->
+          OrbitalDynamics.EventDetectors.Geometry.longitude("longitude", scene, threshold_deg,
+            value_tolerance: value_tolerance
+          )
+
+        _ ->
+          raise ArgumentError, "coordinate must be :latitude or :longitude"
+      end
+
+    OrbitalDynamics.EventDetector.search(source, [function], controls)
+  end
 end

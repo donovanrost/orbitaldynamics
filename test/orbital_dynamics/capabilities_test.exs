@@ -2,7 +2,6 @@ defmodule OrbitalDynamics.CapabilitiesTest do
   use ExUnit.Case, async: true
 
   alias OrbitalDynamics.Communications.{ContactAllocation, ContactFilter}
-  alias OrbitalDynamics.EventDetectors.AccessWindows
 
   alias OrbitalDynamics.Propagators.{
     J2,
@@ -31,7 +30,10 @@ defmodule OrbitalDynamics.CapabilitiesTest do
     assert catalog.analysis.propagators.two_body_nx_compiled == TwoBodyNxCompiled.capabilities()
     assert catalog.analysis.propagators.two_body_exla_cpu == TwoBodyExlaCpu.capabilities()
     assert catalog.analysis.propagators.j2_exla_cpu == J2ExlaCpu.capabilities()
-    assert catalog.analysis.access_windows == AccessWindows.capabilities()
+
+    assert catalog.analysis.access_windows ==
+             OrbitalDynamics.EventSearch.Products.capabilities(:ground_station_access)
+
     assert catalog.analysis.frame_transform == OrbitalDynamics.FrameTransform.capabilities()
     assert catalog.analysis.orbit_data == OrbitalDynamics.OrbitData.capabilities()
     assert catalog.planning.activity_templates.artifact_contract == "activity_template.v1"

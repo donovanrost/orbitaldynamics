@@ -455,6 +455,28 @@ defmodule OrbitalDynamics.Validation.ExternalTruth.OrekitLeoCase do
     Application.app_dir(:orbital_dynamics, @bundle_relative_path)
   end
 
+  @doc """
+  Loads content- and semantics-verified reference inputs without running the
+  historical detector path. Consumers must state their own comparison scope.
+  """
+  def reference_bundle(opts \\ []) do
+    with {:ok, opts} <- preflight_comparison_opts(opts),
+         {:ok, bundle} <-
+           StrictBundle.load(Keyword.get(opts, :bundle_path, bundle_path()), expectations()),
+         {:ok, _checks} <- validate_bundle_semantics(bundle) do
+      {:ok,
+       %{
+         reference: bundle.reference,
+         config: bundle.config,
+         identity: %{
+           "manifest_sha256" => @manifest_sha256,
+           "source_manifest_sha256" => @source_manifest_sha256,
+           "result_sha256" => @result_sha256
+         }
+       }}
+    end
+  end
+
   @doc "Verifies the checked-in bundle and independently executes the exact project path."
   def verify(opts \\ [])
 

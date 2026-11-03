@@ -255,7 +255,7 @@ defmodule OrbitalDynamics.MissionAnalysis.Resource.Runner do
 
   defp evaluate(asset, segments, policy, state_at, cache) do
     cache = Map.put(cache, :resource_state_at, state_at)
-    models = cache.resource.prepared[asset.id]
+    {models, cache} = search_boundaries(asset, policy, state_at, cache)
     boundaries = Enum.flat_map(models, & &1.boundaries)
 
     grids =
@@ -267,6 +267,11 @@ defmodule OrbitalDynamics.MissionAnalysis.Resource.Runner do
       Enum.map_reduce(models, cache, fn model, cache ->
         {levels, cache} =
           Enum.map_reduce(grids, cache, fn {step, grid}, cache ->
+            grid =
+              if model.boundary_status != :complete,
+                do: {:unknown, :resource_contact_search_incomplete},
+                else: grid
+
             case grid do
               {:unknown, reason} -> {unknown_level(step, policy, reason), cache}
               {:ok, intervals} -> level(asset, model, intervals, step, policy, state_at, cache)
@@ -279,6 +284,8 @@ defmodule OrbitalDynamics.MissionAnalysis.Resource.Runner do
            "id" => model.id,
            "status" => status(statuses),
            "assumptions" => model.assumptions,
+           "state_comparison" =>
+             OrbitalDynamics.MissionAnalysis.Resource.Comparison.summarize(levels),
            "resolution_status" =>
              if(length(Enum.uniq(statuses)) == 1,
                do: "agrees_across_tested_steps",
@@ -290,6 +297,84 @@ defmodule OrbitalDynamics.MissionAnalysis.Resource.Runner do
 
     {:ok, %{"status" => status(Enum.map(reports, & &1["status"])), "models" => reports},
      Map.delete(cache, :resource_state_at)}
+  end
+
+  defp search_boundaries(asset, policy, state_at, cache) do
+    source =
+      OrbitalDynamics.EventSearch.Source.new!(
+        fn t -> state_at.(asset, t) end,
+        policy.horizon.start,
+        policy.horizon.stop,
+        hd(asset.trajectory.states).frame,
+        %{"evaluation" => "planning_runtime_state_sampler", "asset_id" => asset.id}
+      )
+
+    Enum.map_reduce(cache.resource.prepared[asset.id], cache, fn model, cache ->
+      key = {asset.id, model.id, source.start, source.stop, state_at}
+      searches = Map.get(cache, :resource_boundary_searches, %{})
+
+      result =
+        case Map.fetch(searches, key) do
+          {:ok, result} ->
+            result
+
+          :error ->
+            if function_exported?(model.module, :search_boundaries, 2),
+              do: model.module.search_boundaries(model.session, source),
+              else: {:ok, [], :null}
+        end
+
+      cache = Map.put(cache, :resource_boundary_searches, Map.put(searches, key, result))
+
+      case result do
+        {:ok, boundaries, evidence} ->
+          unless is_list(boundaries) and length(boundaries) <= 10000,
+            do: raise(ArgumentError, "bounded resource contact list required")
+
+          Enum.each(
+            boundaries,
+            &Input.number!(
+              &1,
+              "resource contact",
+              source.start.seconds_since_j2000,
+              source.stop.seconds_since_j2000
+            )
+          )
+
+          assumptions =
+            Map.put(
+              model.assumptions,
+              "contact_search",
+              JsonSafety.normalize_input!(evidence, "resource contact search")
+            )
+
+          {Map.merge(model, %{
+             boundaries: model.boundaries ++ boundaries,
+             boundary_status: :complete,
+             assumptions: assumptions
+           }), cache}
+
+        {:error, reason} ->
+          throw({:resource_evaluation_failed, reason, cache})
+
+        {:unknown, evidence} ->
+          # Unknown geometry/budget exhaustion cannot be silently integrated as sunlight.
+          assumptions =
+            Map.put(model.assumptions, "contact_search", %{
+              "status" => "unknown",
+              "evidence" =>
+                if(is_map(evidence),
+                  do: JsonSafety.normalize_input!(evidence, "incomplete resource contact search"),
+                  else: inspect(evidence, limit: 20)
+                )
+            })
+
+          {Map.merge(model, %{boundary_status: :unknown, assumptions: assumptions}), cache}
+
+        _ ->
+          raise ArgumentError, "invalid resource contact search result"
+      end
+    end)
   end
 
   defp intervals(segments, boundaries, step, limit) do

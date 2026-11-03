@@ -74,25 +74,23 @@ defmodule OrbitalDynamics.CandidateRefresh.RunnerTest do
     assert {:ok, %{"status" => "pass"}} = Schema.validate_artifact(artifact)
   end
 
-  test "preserves bracketed-bisection refinement metadata on regenerated access" do
+  test "preserves shared-search brackets and state-source provenance on regenerated access" do
     assert {:ok, artifact} = CandidateRefresh.run(refresh(), generated_at: @generated_at)
-    assert [window | _rest] = artifact["refreshed_windows"]["access_windows"]
-
+    assert [window | _] = artifact["refreshed_windows"]["access_windows"]
     assumptions = window["assumptions"]
-    assert assumptions["boundary_refinement"] == "aos_los_bracketed_bisection"
-    assert is_map(assumptions["start_boundary_detail"])
-    assert is_map(assumptions["end_boundary_detail"])
+    assert assumptions["boundary_refinement"] == "shared_scalar_bisection"
+    search = assumptions["event_search"]
+    assert search["status"] == "complete_under_search_policy"
+    assert search["controls"]["time_tolerance_s"] == 1.0e-6
+    assert search["source"]["provenance"]["evaluation"] == "cubic_hermite_sample_interpolant"
 
-    root_detail =
-      Enum.find(
-        [assumptions["start_boundary_detail"], assumptions["end_boundary_detail"]],
-        &(&1["root_solved"] == true)
-      )
+    for edge <- ["start_boundary", "end_boundary"],
+        boundary = search["product"][edge],
+        boundary["kind"] == "estimated_event" do
+      assert boundary["bracket_end_s"] - boundary["bracket_start_s"] <= 1.0e-6
+    end
 
-    assert root_detail["root_solver"] == "bisection"
-    assert root_detail["requested_root_tolerance_s"] == 1.0e-6
-    assert root_detail["root_max_iterations"] == 64
-    assert assumptions["confidence"] == "mixed_root_refined_and_sample_clipped"
+    assert assumptions["confidence"] == "estimated_condition_window"
   end
 
   test "is deterministic for the same input and generated_at and invariant to declared list order" do
@@ -497,6 +495,13 @@ defmodule OrbitalDynamics.CandidateRefresh.RunnerTest do
                OrbitalDynamics.EventDetectors.AccessWindows
                OrbitalDynamics.EventDetectors.Eclipses
                OrbitalDynamics.EventTiming
+               OrbitalDynamics.EventSearch
+               OrbitalDynamics.EventSearch.Products
+               OrbitalDynamics.EventSearch.Source
+               OrbitalDynamics.EventSearch.Function
+               OrbitalDynamics.EventSearch.Context
+               OrbitalDynamics.MissionAnalysis.Input
+               OrbitalDynamics.Schema.JsonSafety
                OrbitalDynamics.ForceModels.AtmosphericDrag
                OrbitalDynamics.Frame
                OrbitalDynamics.GroundStation
@@ -571,7 +576,7 @@ defmodule OrbitalDynamics.CandidateRefresh.RunnerTest do
       end)
 
     on_exit(fn ->
-      :erlang.trace_pattern({AccessWindows, :detect, 2}, false, [:local])
+      :erlang.trace_pattern({OrbitalDynamics.EventSearch.Products, :access, 2}, false, [:local])
 
       if Process.alive?(runner_pid) do
         :erlang.trace(runner_pid, false, [:all])
@@ -580,11 +585,17 @@ defmodule OrbitalDynamics.CandidateRefresh.RunnerTest do
       end
     end)
 
-    assert :erlang.trace_pattern({AccessWindows, :detect, 2}, true, [:local]) >= 1
+    assert :erlang.trace_pattern({OrbitalDynamics.EventSearch.Products, :access, 2}, true, [
+             :local
+           ]) >= 1
+
     assert 1 = :erlang.trace(runner_pid, true, [:call])
     send(runner_pid, :run)
 
-    assert_receive {:trace, ^runner_pid, :call, {AccessWindows, :detect, _arguments}}, 5_000
+    assert_receive {:trace, ^runner_pid, :call,
+                    {OrbitalDynamics.EventSearch.Products, :access, _arguments}},
+                   5_000
+
     assert true = :erlang.suspend_process(runner_pid)
 
     module_name = "OrbitalDynamics.AccessGeometry"

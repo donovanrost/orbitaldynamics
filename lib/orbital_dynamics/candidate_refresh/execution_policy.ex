@@ -57,8 +57,8 @@ defmodule OrbitalDynamics.CandidateRefresh.ExecutionPolicy do
   @earth_rotation_revision "constant-earth-rotation.v1"
   @sun_revision "fixed-sun-plus-x.v1"
   @propagator_revision "j2-drag-rk4-10s.v1"
-  @access_revision "access-windows-bracketed-bisection-1e-6-64.v1"
-  @eclipse_revision "eclipses-cylindrical-linear-interpolation.v1"
+  @access_revision "shared-event-search-hermite-access-1e-6-64.v1"
+  @eclipse_revision "shared-event-search-hermite-cylindrical.v1"
 
   @atmosphere_capability ExponentialAtmosphereProvider.capabilities()
   @earth_rotation_capability ConstantEarthRotationProvider.capabilities()
@@ -67,8 +67,10 @@ defmodule OrbitalDynamics.CandidateRefresh.ExecutionPolicy do
                           source: "candidate_refresh_execution_policy"
                         )
   @propagator_capability J2Drag.capabilities()
-  @access_capability AccessWindows.capabilities()
-  @eclipse_capability Eclipses.capabilities()
+  @access_capability OrbitalDynamics.EventSearch.Products.capabilities(:ground_station_access)
+  @eclipse_capability OrbitalDynamics.EventSearch.Products.capabilities(
+                        :cylindrical_central_body_shadow
+                      )
   @access_geometry AccessGeometry.assumptions()
   @central_body CentralBody.earth()
   @state_numeric_envelope @propagator_capability.supported_numeric_envelope.state
@@ -77,6 +79,13 @@ defmodule OrbitalDynamics.CandidateRefresh.ExecutionPolicy do
   @initial_altitude_envelope @propagator_capability.initial_altitude_envelope_km
 
   @executable_modules [
+    {"OrbitalDynamics.EventSearch.Products", OrbitalDynamics.EventSearch.Products},
+    {"OrbitalDynamics.EventSearch", OrbitalDynamics.EventSearch},
+    {"OrbitalDynamics.EventSearch.Source", OrbitalDynamics.EventSearch.Source},
+    {"OrbitalDynamics.EventSearch.Function", OrbitalDynamics.EventSearch.Function},
+    {"OrbitalDynamics.EventSearch.Context", OrbitalDynamics.EventSearch.Context},
+    {"OrbitalDynamics.MissionAnalysis.Input", OrbitalDynamics.MissionAnalysis.Input},
+    {"OrbitalDynamics.Schema.JsonSafety", OrbitalDynamics.Schema.JsonSafety},
     {"OrbitalDynamics.Environment", Environment},
     {"OrbitalDynamics.Environment.Provider", Provider},
     {"OrbitalDynamics.Environment.ExponentialAtmosphereProvider", ExponentialAtmosphereProvider},
@@ -105,8 +114,8 @@ defmodule OrbitalDynamics.CandidateRefresh.ExecutionPolicy do
     {"atmosphere_provider", "OrbitalDynamics.Environment.ExponentialAtmosphereProvider"},
     {"earth_rotation_provider", "OrbitalDynamics.Environment.ConstantEarthRotationProvider"},
     {"sun_direction_provider", "OrbitalDynamics.Environment.FixedSunProvider"},
-    {"access_detector", "OrbitalDynamics.EventDetectors.AccessWindows"},
-    {"eclipse_detector", "OrbitalDynamics.EventDetectors.Eclipses"}
+    {"access_detector", "OrbitalDynamics.EventSearch.Products"},
+    {"eclipse_detector", "OrbitalDynamics.EventSearch.Products"}
   ]
   @structured_provider_aliases ~w(atmosphere_provider earth_rotation_provider)
 
@@ -117,8 +126,8 @@ defmodule OrbitalDynamics.CandidateRefresh.ExecutionPolicy do
     {~w(environment atmosphere_provider evaluation_api), "fetch_captured/3"},
     {~w(environment earth_rotation_provider module),
      "OrbitalDynamics.Environment.ConstantEarthRotationProvider"},
-    {~w(access module), "OrbitalDynamics.EventDetectors.AccessWindows"},
-    {~w(eclipse module), "OrbitalDynamics.EventDetectors.Eclipses"}
+    {~w(access module), "OrbitalDynamics.EventSearch.Products"},
+    {~w(eclipse module), "OrbitalDynamics.EventSearch.Products"}
   ]
 
   @model_limits [
@@ -715,20 +724,22 @@ defmodule OrbitalDynamics.CandidateRefresh.ExecutionPolicy do
         }
       },
       "access" => %{
-        "module" => "OrbitalDynamics.EventDetectors.AccessWindows",
+        "module" => "OrbitalDynamics.EventSearch.Products",
+        "evaluation_api" => "access/2",
         "source_revision" => @access_revision,
         "geometry" => @access_geometry,
-        "boundary_refinement" => "bracketed_bisection",
+        "boundary_refinement" => "shared_scalar_bisection",
         "root_solver" => "bisection",
         "root_tolerance_s" => @root_tolerance_s,
         "root_max_iterations" => @root_max_iterations,
         "capability" => access_capability
       },
       "eclipse" => %{
-        "module" => "OrbitalDynamics.EventDetectors.Eclipses",
+        "module" => "OrbitalDynamics.EventSearch.Products",
+        "evaluation_api" => "eclipse/2",
         "source_revision" => @eclipse_revision,
         "shadow_model" => "cylindrical_central_body_shadow",
-        "interpolation" => "linear_sample_crossing",
+        "interpolation" => "cubic_hermite",
         "candidate_source" => false,
         "archive_only" => true,
         "capability" => eclipse_capability
@@ -1214,7 +1225,16 @@ defmodule OrbitalDynamics.CandidateRefresh.ExecutionPolicy do
     aliases =
       if String.ends_with?(path, ".capability"),
         do: [],
-        else: @execution_module_aliases ++ [{"evaluation_api", "fetch_captured/3"}]
+        else:
+          @execution_module_aliases ++
+            [
+              {"evaluation_api",
+               cond do
+                 String.ends_with?(path, ".access") -> "access/2"
+                 String.ends_with?(path, ".eclipse") -> "eclipse/2"
+                 true -> "fetch_captured/3"
+               end}
+            ]
 
     Enum.reduce_while(aliases, :ok, fn {field, expected}, :ok ->
       case Map.fetch(map, field) do

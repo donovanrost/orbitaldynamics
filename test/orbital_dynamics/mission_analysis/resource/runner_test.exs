@@ -57,6 +57,7 @@ defmodule OrbitalDynamics.MissionAnalysis.Resource.RunnerTest do
        %{
          token: token,
          fail: c["fail"],
+         contact: c["contact"],
          context: context,
          nonlinear: c["nonlinear"],
          reserve: Map.get(c, "reserve", 0),
@@ -67,6 +68,16 @@ defmodule OrbitalDynamics.MissionAnalysis.Resource.RunnerTest do
 
     def initial(_), do: %{"fuel_kg" => 100.0}
     def boundaries(_), do: []
+
+    def search_boundaries(session, source) do
+      send(self(), {:contact_source, source.provenance})
+
+      case session.contact do
+        "unknown" -> {:unknown, %{"reason" => "missing_geometry"}}
+        "error" -> {:error, :contact_provider_down}
+        _ -> {:ok, [], :null}
+      end
+    end
 
     def step(state, input, dt, session) do
       send(self(), {:stepped, session.token})
@@ -450,5 +461,25 @@ defmodule OrbitalDynamics.MissionAnalysis.Resource.RunnerTest do
       assert l["uncovered_intervals"] != []
       assert l["evaluated_through_s"] == 0
     end
+  end
+
+  test "contact callback failures abort while unknown sources preserve independent resource violations" do
+    assert {:error, :contact_provider_down} =
+             run([], module: Fuel, configuration: %{"contact" => "error"})
+
+    assert {:ok, report} = run([], module: Fuel, configuration: %{"contact" => "unknown"})
+    assert energy(report)["status"] == "unknown"
+
+    assert_receive {:contact_source,
+                    %{"evaluation" => "planning_runtime_state_sampler", "asset_id" => "a"}}
+
+    p = policy([], module: Fuel, configuration: %{"contact" => "unknown"})
+    [first] = p.resources.assets["a"]
+    second = %{first | id: "independent", configuration: %{"reserve" => 200}}
+    resources = %{p.resources | assets: %{"a" => [first, second]}}
+    assert {:ok, report} = run([], policy: %{p | resources: resources})
+    assert energy(report)["status"] == "violated"
+    models = energy(report)["assets"]["a"]["models"]
+    assert Enum.map(models, & &1["status"]) == ["unknown", "violated"]
   end
 end

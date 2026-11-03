@@ -76,7 +76,7 @@ defmodule OrbitalDynamics.EventDetectors.TargetVisibilityTest do
   test "public API detects target visibility windows" do
     earth = CentralBody.earth()
     target = Target.new!(:target_a, 0.0, 0.0)
-    trajectory = trajectory([above_target(earth, 0.0)])
+    trajectory = trajectory([above_target(earth, 0.0), above_target(earth, 60.0)])
 
     assert {:ok, [%{type: :target_visibility}]} =
              OrbitalDynamics.target_visibility_windows(trajectory, target, central_body: earth)

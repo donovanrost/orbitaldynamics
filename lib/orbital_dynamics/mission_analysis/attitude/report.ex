@@ -58,6 +58,7 @@ defmodule OrbitalDynamics.MissionAnalysis.Attitude.Report do
         ] ++ rows,
         "\n"
       ) <>
+      opportunity_markdown(report) <>
       "\n\nActivity times are absolute seconds since J2000 in the declared scale.\n\n" <>
       Enum.join(
         [
@@ -79,8 +80,48 @@ defmodule OrbitalDynamics.MissionAnalysis.Attitude.Report do
       path_markdown(report) <>
       horizon_markdown(report) <>
       resource_markdown(report) <>
+      solar_markdown(report) <>
       "\n\n[report.json](report.json) includes exact assumptions, sampled quaternions, angular velocity/acceleration, all tested-start decisions, " <>
       "and ideal transition phases. Missing initial state or pointing evidence stays unknown. Start-grid rejection is not a global infeasibility proof.\n"
+  end
+
+  defp opportunity_markdown(report) do
+    if is_map(report["opportunity_search"]) do
+      config = report["opportunity_search"]
+
+      rows =
+        for a <- report["analyses"],
+            e = a["opportunity_evidence"],
+            is_map(e),
+            w <- Map.get(e, "windows", []) do
+          entry = Enum.join(w["limiting_constraints"]["entry"], ", ")
+          exit = Enum.join(w["limiting_constraints"]["exit"], ", ")
+
+          "| #{a["request_id"]} | #{w["starts_at_s"]} | #{w["ends_at_s"]} | #{w["status"]}: #{w["reason"]} | #{entry} | #{exit} |"
+        end
+
+      unknowns =
+        for a <- report["analyses"], e = a["opportunity_evidence"], is_map(e) do
+          "- #{a["request_id"]}: search #{e["status"]}; excluded unknown/open-contact intervals #{length(Map.get(e, "excluded_unknown_intervals", []))}; total charged search/endpoint evaluations #{Map.get(e, "total_evaluation_count", 0)}."
+        end
+
+      "\n\n## Conservative opportunities\n\n" <>
+        "Constraint windows use inward numerical bracket bounds plus one solver tolerance (#{config["time_tolerance_s"]} s). " <>
+        "Declared mission margins apply once after intersection: +#{config["entry_margin_s"]} s at entry and -#{config["exit_margin_s"]} s at exit. " <>
+        "These margins are assumptions, not derived spacecraft uncertainty. Unknown spans and strict contacts are excluded; finite scans do not prove continuous feasibility.\n\n" <>
+        Enum.join(
+          [
+            "| Request | Conservative start s | Conservative end s | Window decision | Entry limiter | Exit limiter |",
+            "| --- | --- | --- | --- | --- | --- |"
+          ] ++ rows,
+          "\n"
+        ) <>
+        "\n\n" <>
+        Enum.join(unknowns, "\n") <>
+        "\n\nWindow acceptance precedes attitude, transition, terminal and battery checks; their scheduling decisions follow below. Root brackets, removed-window evidence and endpoint checks remain in report.json.\n"
+    else
+      ""
+    end
   end
 
   defp path_markdown(report) do
@@ -231,4 +272,64 @@ defmodule OrbitalDynamics.MissionAnalysis.Attitude.Report do
         ""
     end
   end
+
+  defp solar_markdown(report) do
+    case report["solar_generation_diagnostics"] do
+      %{"models" => models} ->
+        rows =
+          Enum.flat_map(models, fn m ->
+            Enum.map(m["levels"], fn l ->
+              power =
+                if is_map(l["observed_power_range_w"]),
+                  do:
+                    "#{l["observed_power_range_w"]["min"]}–#{l["observed_power_range_w"]["max"]}",
+                  else: "unknown"
+
+              brackets =
+                Enum.map_join(l["shadow_transition_brackets"], "; ", fn b ->
+                  kind = if b["to_sunlit"], do: "exit", else: "entry"
+                  "#{kind}: #{b["earlier_sample_s"]}–#{b["later_sample_s"]}"
+                end)
+
+              "| #{m["asset_id"]} | #{m["resource_id"]} | #{l["sample_step_s"]} | #{l["status"]} | #{power} | #{brackets} |"
+            end)
+          end)
+
+        comparisons =
+          Enum.flat_map(
+            Enum.sort(report["attitude_planning"]["resource_feasibility"]["assets"]),
+            fn {id, a} ->
+              for m <- Map.get(a, "models", []),
+                  match?(
+                    %{"generation_assumptions" => %{"model" => "body_fixed_solar_array_v1"}},
+                    m["assumptions"]
+                  ) do
+                c = m["state_comparison"]
+                final = energy_spread(c["final_state_range"])
+                minimum = energy_spread(c["minimum_state_range"])
+
+                "- #{id}/#{m["id"]}: cadence comparison #{c["status"]}; final battery spread #{if is_number(final), do: final, else: "unknown"} Wh; minimum battery spread #{if is_number(minimum), do: minimum, else: "unknown"} Wh."
+              end
+            end
+          )
+
+        "\n\n## Solar generation\n\n" <>
+          Enum.join(
+            [
+              "| Asset | Resource | Step s | Status | Observed bus W | Shadow-change brackets s |",
+              "| --- | --- | --- | --- | --- | --- |"
+            ] ++ rows,
+            "\n"
+          ) <>
+          "\n\n" <>
+          Enum.join(comparisons, "\n") <>
+          "\n\nShadow brackets use actual midpoint evaluation times. They are not exact roots or evidence that no other crossing occurred. Cadence spreads are numerical comparisons, not physical error bounds. Fixed panels, Sun range and efficiencies are declared assumptions; finite-Sun disk-area fractions multiply the center-ray panel cosine. Self-shadowing and deployment are not modeled. Contact search brackets and state-source provenance are retained in the JSON report; discovery remains bounded by the declared search policy."
+
+      _ ->
+        ""
+    end
+  end
+
+  defp energy_spread(%{"energy_wh" => %{"spread" => value}}), do: value
+  defp energy_spread(_), do: nil
 end

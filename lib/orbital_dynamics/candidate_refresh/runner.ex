@@ -11,7 +11,6 @@ defmodule OrbitalDynamics.CandidateRefresh.Runner do
     SourceObjectives
   }
 
-  alias OrbitalDynamics.EventDetectors.{AccessWindows, Eclipses}
   alias OrbitalDynamics.Environment.ExponentialAtmosphereProvider
   alias OrbitalDynamics.Propagators.J2Drag
 
@@ -855,10 +854,9 @@ defmodule OrbitalDynamics.CandidateRefresh.Runner do
         minimum_elevation_deg: station_policy["minimum_elevation_deg"]
       )
 
-    AccessWindows.detect(trajectory,
+    OrbitalDynamics.EventSearch.Products.access(trajectory,
       ground_station: station,
       central_body: central_body(policy),
-      boundary_refinement: :bracketed_bisection,
       root_tolerance_s: access_policy["root_tolerance_s"],
       root_max_iterations: access_policy["root_max_iterations"]
     )
@@ -871,7 +869,7 @@ defmodule OrbitalDynamics.CandidateRefresh.Runner do
       |> get_in(["environment", "sun_direction", "vector_eci_j2000"])
       |> List.to_tuple()
 
-    Eclipses.detect(trajectory,
+    OrbitalDynamics.EventSearch.Products.eclipse(trajectory,
       central_body: central_body(policy),
       sun_direction: sun_direction
     )
