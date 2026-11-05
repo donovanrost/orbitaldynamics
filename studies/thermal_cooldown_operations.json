@@ -1,0 +1,59 @@
+{
+  "scenario_id": "thermal_cooldown",
+  "mission_manifest": "thermal_cooldown_reference.json",
+  "planning_study": "thermal_cooldown_planning.json",
+  "steps": [
+    {
+      "id": "inside_cooldown",
+      "kind": "advance",
+      "expected_status": "ready_for_review",
+      "as_of_s": 820497625,
+      "not_executed_request_ids": [],
+      "energy_losses_wh": {},
+      "protect_request_ids": [],
+      "scheduling": {
+        "strategy": "greedy",
+        "max_trials": 1
+      }
+    },
+    {
+      "id": "finish_cooldown",
+      "kind": "advance",
+      "expected_status": "ready_for_review",
+      "as_of_s": 820497640,
+      "not_executed_request_ids": [],
+      "energy_losses_wh": {},
+      "protect_request_ids": [],
+      "scheduling": {
+        "strategy": "greedy",
+        "max_trials": 1
+      }
+    },
+    {
+      "id": "inside_service",
+      "kind": "advance",
+      "expected_status": "ready_for_review",
+      "as_of_s": 820497675,
+      "not_executed_request_ids": [],
+      "energy_losses_wh": {},
+      "protect_request_ids": [],
+      "scheduling": {
+        "strategy": "greedy",
+        "max_trials": 1
+      }
+    },
+    {
+      "id": "completed",
+      "kind": "advance",
+      "expected_status": "ready_for_review",
+      "as_of_s": 820497690,
+      "not_executed_request_ids": [],
+      "energy_losses_wh": {},
+      "protect_request_ids": [],
+      "scheduling": {
+        "strategy": "greedy",
+        "max_trials": 1
+      }
+    }
+  ]
+}

@@ -1,0 +1,410 @@
+{
+  "format": "moving_resource_validation_observation.v1",
+  "validation_scope": "Declared sampled wheel momentum/motor balance and exact constant-generation phase-load battery accounting; no independent pointing/orbit geometry, continuous feasibility, hardware or telemetry-truth validation.",
+  "examples": [
+    {
+      "scenario": "studies/motion_checkpoint_operations.json",
+      "native_status": "passed",
+      "run_status": "completed",
+      "independent_status": "passed",
+      "independent_issue_count": 0,
+      "step_count": 11,
+      "execution_summary": {
+        "accepted_completion_count": 1,
+        "accepted_expired_count": 0,
+        "scripted_skip_count": 0,
+        "simulated_completed_value": 10.0,
+        "simulated_completion_count": 1
+      },
+      "baseline_snapshot_id": "mission_plan_snapshot:da1b8ba6970e9b371587a4418cc09afeb34d1b4735984a1cba2e84dbaeb17f7f",
+      "baseline_expected_battery": {
+        "demo-3": {
+          "battery": {
+            "curtailed_wh": 0.0,
+            "energy_wh": 9.740555555555556,
+            "minimum_energy_wh": 9.740555555555556,
+            "unserved_wh": 0.0
+          }
+        }
+      },
+      "baseline_expected_wheels": {
+        "demo-3": {
+          "wheels": {
+            "final_momentum_nms": [
+              0.0,
+              0.0,
+              0.1400000000000001
+            ],
+            "levels": [
+              {
+                "final_momentum_nms": [
+                  0.0,
+                  0.0,
+                  0.1400000000000001
+                ],
+                "maximum_absolute_momentum_nms": [
+                  0.0,
+                  0.0,
+                  1.8453292519943296
+                ],
+                "maximum_absolute_motor_torque_nm": [
+                  0.0,
+                  0.0,
+                  0.17553292519943295
+                ],
+                "sample_step_s": 1.0
+              },
+              {
+                "final_momentum_nms": [
+                  0.0,
+                  0.0,
+                  0.1400000000000001
+                ],
+                "maximum_absolute_momentum_nms": [
+                  0.0,
+                  0.0,
+                  1.8453292519943296
+                ],
+                "maximum_absolute_motor_torque_nm": [
+                  0.0,
+                  0.0,
+                  0.17553292519943295
+                ],
+                "sample_step_s": 0.25
+              }
+            ],
+            "maximum_absolute_momentum_nms": [
+              0.0,
+              0.0,
+              1.8453292519943296
+            ],
+            "maximum_absolute_motor_torque_nm": [
+              0.0,
+              0.0,
+              0.17553292519943295
+            ],
+            "sample_step_s": 0.25,
+            "scope": "sampled_global_momentum_balance_on_declared_kinematics"
+          }
+        }
+      }
+    },
+    {
+      "scenario": "studies/execution_checkpoint_retry_operations.json",
+      "native_status": "passed",
+      "run_status": "completed",
+      "independent_status": "passed",
+      "independent_issue_count": 0,
+      "step_count": 5,
+      "execution_summary": {
+        "accepted_completion_count": 6,
+        "accepted_expired_count": 0,
+        "scripted_skip_count": 0,
+        "simulated_completed_value": 150.0,
+        "simulated_completion_count": 6
+      },
+      "baseline_snapshot_id": "mission_plan_snapshot:fcb72ee8e951568ecd2ceea5bf3ad779fe210a5ba2e45b6276c37cbee21e0996",
+      "baseline_expected_battery": {
+        "demo-1": {
+          "battery": {
+            "curtailed_wh": 0.0,
+            "energy_wh": 8.0,
+            "minimum_energy_wh": 8.0,
+            "unserved_wh": 0.0
+          }
+        },
+        "demo-2": {
+          "battery": {
+            "curtailed_wh": 0.0,
+            "energy_wh": 8.0,
+            "minimum_energy_wh": 8.0,
+            "unserved_wh": 0.0
+          }
+        },
+        "demo-3": {
+          "battery": {
+            "curtailed_wh": 0.0,
+            "energy_wh": 8.0,
+            "minimum_energy_wh": 8.0,
+            "unserved_wh": 0.0
+          }
+        }
+      },
+      "baseline_expected_wheels": {
+        "demo-1": {
+          "wheels": {
+            "final_momentum_nms": [
+              -0.05537178406217677,
+              -0.04743635737813908,
+              0.2625956770385573
+            ],
+            "levels": [
+              {
+                "final_momentum_nms": [
+                  -0.05536978710521631,
+                  -0.04743672506147855,
+                  0.2625949868040494
+                ],
+                "maximum_absolute_momentum_nms": [
+                  0.5971541526845023,
+                  1.4640455719399734,
+                  0.9369320835087589
+                ],
+                "maximum_absolute_motor_torque_nm": [
+                  0.12322297174435601,
+                  0.14305413503491107,
+                  0.09611883965115488
+                ],
+                "sample_step_s": 5.0
+              },
+              {
+                "final_momentum_nms": [
+                  -0.05537178406217677,
+                  -0.04743635737813908,
+                  0.2625956770385573
+                ],
+                "maximum_absolute_momentum_nms": [
+                  0.5971820405288591,
+                  1.4640337952820703,
+                  0.9369423683145625
+                ],
+                "maximum_absolute_motor_torque_nm": [
+                  0.123222973674725,
+                  0.14305368331882337,
+                  0.09611883965115488
+                ],
+                "sample_step_s": 1.0
+              }
+            ],
+            "maximum_absolute_momentum_nms": [
+              0.5971820405288591,
+              1.4640337952820703,
+              0.9369423683145625
+            ],
+            "maximum_absolute_motor_torque_nm": [
+              0.123222973674725,
+              0.14305368331882337,
+              0.09611883965115488
+            ],
+            "sample_step_s": 1.0,
+            "scope": "sampled_global_momentum_balance_on_declared_kinematics"
+          }
+        },
+        "demo-2": {
+          "wheels": {
+            "final_momentum_nms": [
+              -0.06322748459565007,
+              -0.04575792616590795,
+              0.2562830597222607
+            ],
+            "levels": [
+              {
+                "final_momentum_nms": [
+                  -0.06322634185897497,
+                  -0.04575865562397908,
+                  0.2562820930497184
+                ],
+                "maximum_absolute_momentum_nms": [
+                  0.5620308111853216,
+                  1.5531177335386408,
+                  0.8083975015408172
+                ],
+                "maximum_absolute_motor_torque_nm": [
+                  0.11410251167686393,
+                  0.15203880746620124,
+                  0.08353050594769156
+                ],
+                "sample_step_s": 5.0
+              },
+              {
+                "final_momentum_nms": [
+                  -0.06322748459565007,
+                  -0.04575792616590795,
+                  0.2562830597222607
+                ],
+                "maximum_absolute_momentum_nms": [
+                  0.5620594914655814,
+                  1.5531065072130805,
+                  0.808397285782801
+                ],
+                "maximum_absolute_motor_torque_nm": [
+                  0.11410251308752918,
+                  0.15203839924847729,
+                  0.08353050594769156
+                ],
+                "sample_step_s": 1.0
+              }
+            ],
+            "maximum_absolute_momentum_nms": [
+              0.5620594914655814,
+              1.5531065072130805,
+              0.808397285782801
+            ],
+            "maximum_absolute_motor_torque_nm": [
+              0.11410251308752918,
+              0.15203839924847729,
+              0.08353050594769156
+            ],
+            "sample_step_s": 1.0,
+            "scope": "sampled_global_momentum_balance_on_declared_kinematics"
+          }
+        },
+        "demo-3": {
+          "wheels": {
+            "final_momentum_nms": [
+              -0.07668848317263705,
+              -0.04309717146672518,
+              0.24279634196903005
+            ],
+            "levels": [
+              {
+                "final_momentum_nms": [
+                  -0.0766866899186291,
+                  -0.04309712368728049,
+                  0.24279573855868955
+                ],
+                "maximum_absolute_momentum_nms": [
+                  0.5015114248359169,
+                  1.6507758963325012,
+                  0.614323671679421
+                ],
+                "maximum_absolute_motor_torque_nm": [
+                  0.09686218183153489,
+                  0.16185665461825816,
+                  0.06386302970773214
+                ],
+                "sample_step_s": 5.0
+              },
+              {
+                "final_momentum_nms": [
+                  -0.07668848317263705,
+                  -0.04309717146672518,
+                  0.24279634196903005
+                ],
+                "maximum_absolute_momentum_nms": [
+                  0.5015424486098718,
+                  1.6507669071994684,
+                  0.6143234298346238
+                ],
+                "maximum_absolute_motor_torque_nm": [
+                  0.09686219297004477,
+                  0.16185635584586805,
+                  0.06386302970773214
+                ],
+                "sample_step_s": 1.0
+              }
+            ],
+            "maximum_absolute_momentum_nms": [
+              0.5015424486098718,
+              1.6507669071994684,
+              0.6143234298346238
+            ],
+            "maximum_absolute_motor_torque_nm": [
+              0.09686219297004477,
+              0.16185635584586805,
+              0.06386302970773214
+            ],
+            "sample_step_s": 1.0,
+            "scope": "sampled_global_momentum_balance_on_declared_kinematics"
+          }
+        }
+      },
+      "retry": {
+        "status": "planning_failed",
+        "accepted_execution_epoch_s": 820497800,
+        "accepted_plan_epoch_s": 820497600,
+        "execution_checkpoint_id": "mission_execution_checkpoint:71f0fa8877eda9b8a6afb7d7c87f22c84f2bb2298a8ecba54e3ddd07b4666429",
+        "replacement_status": "ready_for_review",
+        "execution_epoch_unchanged": true,
+        "additional_executed_services": []
+      }
+    }
+  ],
+  "numerical_reference": {
+    "bundle": "priv/validation/reaction_wheels",
+    "cases": 8,
+    "interval_s": 0.25,
+    "absolute_comparison_tolerance_nms_nm": 1e-05,
+    "integration_contract": "Midpoint external angular impulse; independent global momentum balance and explicit direction-cosine matrix. Frozen reference integrates the body-frame gyrostat by RK4."
+  },
+  "tests": {
+    "new_tests": 6,
+    "focused_validation_checkpoint_retry_tests": {
+      "passed": 33,
+      "elapsed_s": 48.1
+    },
+    "full_fast_suite": {
+      "passed": 5466,
+      "excluded": 1148,
+      "elapsed_s": 336.1,
+      "note": "Run concurrently with the five-case assessment. Final initial-frame/quaternion-normalization and cadence guards were verified by the subsequent focused checks."
+    },
+    "final_mutation_checks": {
+      "passed": 6,
+      "elapsed_s": 16.4
+    }
+  },
+  "assessment": {
+    "config": "studies/constellation_assessment.json",
+    "status": "expectations_met",
+    "cases": [
+      {
+        "id": "reflect_outage_recovery",
+        "expectation_met": true,
+        "native_verification": "passed",
+        "independent_validation": "passed",
+        "independent_issue_counts": {},
+        "run_status": "completed",
+        "completed_service_count": 6,
+        "completed_service_value": 150,
+        "plan_readiness": "supported_at_declared_boundary"
+      },
+      {
+        "id": "reflect_earlier_checkpoint",
+        "expectation_met": true,
+        "native_verification": "passed",
+        "independent_validation": "passed",
+        "independent_issue_counts": {},
+        "run_status": "completed",
+        "completed_service_count": 6,
+        "completed_service_value": 150,
+        "plan_readiness": "supported_at_declared_boundary"
+      },
+      {
+        "id": "fixed_repeated_service",
+        "expectation_met": true,
+        "native_verification": "passed",
+        "independent_validation": "passed",
+        "independent_issue_counts": {},
+        "run_status": "completed",
+        "completed_service_count": 4,
+        "completed_service_value": 40,
+        "plan_readiness": "supported_at_declared_boundary"
+      },
+      {
+        "id": "fixed_hot_limit",
+        "expectation_met": true,
+        "native_verification": "passed",
+        "independent_validation": "passed",
+        "independent_issue_counts": {},
+        "run_status": "completed",
+        "completed_service_count": 0,
+        "completed_service_value": 0,
+        "plan_readiness": "supported_at_declared_boundary"
+      },
+      {
+        "id": "reflect_work_cap",
+        "expectation_met": true,
+        "native_verification": "passed",
+        "independent_validation": "partial",
+        "independent_issue_counts": {
+          "stopped_operations": 1
+        },
+        "run_status": "stopped_for_review",
+        "completed_service_count": 3,
+        "completed_service_value": 84,
+        "plan_readiness": "stale_pending_replan"
+      }
+    ]
+  }
+}

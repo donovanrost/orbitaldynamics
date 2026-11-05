@@ -1,0 +1,89 @@
+{
+  "scenario_id": "scripted_operations_loop",
+  "mission_manifest": "operations_loop_reference.json",
+  "planning_study": "operations_loop_planning.json",
+  "steps": [
+    {
+      "id": "commit_services",
+      "kind": "revise",
+      "expected_status": "ready_for_review",
+      "change": {
+        "revision_id": "commit_services",
+        "protect_request_ids": [
+          "early-1",
+          "late-2"
+        ],
+        "add_requests": [],
+        "unavailable_asset_ids": [],
+        "scheduling": {
+          "strategy": "greedy",
+          "max_trials": 1
+        }
+      }
+    },
+    {
+      "id": "first_execution_cycle",
+      "kind": "advance",
+      "expected_status": "ready_for_review",
+      "as_of_s": 820497800,
+      "not_executed_request_ids": [
+        "early-3"
+      ],
+      "energy_losses_wh": {
+        "demo-3": {
+          "battery": 7.5
+        }
+      },
+      "protect_request_ids": [],
+      "scheduling": {
+        "strategy": "greedy",
+        "max_trials": 1
+      }
+    },
+    {
+      "id": "service_outage",
+      "kind": "revise",
+      "expected_status": "ready_for_review",
+      "change": {
+        "revision_id": "service_outage",
+        "protect_request_ids": [],
+        "add_requests": [],
+        "unavailable_asset_ids": [
+          "demo-1"
+        ],
+        "scheduling": {
+          "strategy": "greedy",
+          "max_trials": 1
+        }
+      }
+    },
+    {
+      "id": "service_restored",
+      "kind": "revise",
+      "expected_status": "ready_for_review",
+      "change": {
+        "revision_id": "service_restored",
+        "protect_request_ids": [],
+        "add_requests": [],
+        "unavailable_asset_ids": [],
+        "scheduling": {
+          "strategy": "greedy",
+          "max_trials": 1
+        }
+      }
+    },
+    {
+      "id": "second_execution_cycle",
+      "kind": "advance",
+      "expected_status": "ready_for_review",
+      "as_of_s": 820498190,
+      "not_executed_request_ids": [],
+      "energy_losses_wh": {},
+      "protect_request_ids": [],
+      "scheduling": {
+        "strategy": "greedy",
+        "max_trials": 1
+      }
+    }
+  ]
+}

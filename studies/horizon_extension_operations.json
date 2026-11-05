@@ -1,0 +1,77 @@
+{
+  "scenario_id": "horizon_extension",
+  "mission_manifest": "horizon_extension_reference.json",
+  "planning_study": "horizon_extension_planning.json",
+  "steps": [
+    {
+      "id": "before_extension",
+      "kind": "advance",
+      "expected_status": "ready_for_review",
+      "as_of_s": 820497660,
+      "not_executed_request_ids": [],
+      "energy_losses_wh": {},
+      "protect_request_ids": [],
+      "scheduling": {
+        "strategy": "greedy",
+        "max_trials": 1
+      }
+    },
+    {
+      "id": "extend",
+      "kind": "advance",
+      "expected_status": "ready_for_review",
+      "as_of_s": 820497690,
+      "not_executed_request_ids": [],
+      "energy_losses_wh": {},
+      "protect_request_ids": [],
+      "scheduling": {
+        "strategy": "greedy",
+        "max_trials": 1
+      },
+      "horizon_extension": {
+        "provider": "reference_j2",
+        "ends_at_s": 820497800,
+        "coverage_ends_at_s": 820497820,
+        "add_requests": [
+          {
+            "request": {
+              "id": "new",
+              "model": "fixed_attitude",
+              "activity_type": "service",
+              "target": null,
+              "starts_at_s": 820497770,
+              "ends_at_s": 820497790,
+              "duration_s": 10,
+              "value": 3,
+              "parameters": {
+                "quaternion_wxyz": [
+                  1,
+                  0,
+                  0,
+                  0
+                ]
+              },
+              "resource_costs": {}
+            },
+            "activity_modes": {
+              "demo-3": "work"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "past_original_end",
+      "kind": "advance",
+      "expected_status": "ready_for_review",
+      "as_of_s": 820497795,
+      "not_executed_request_ids": [],
+      "energy_losses_wh": {},
+      "protect_request_ids": [],
+      "scheduling": {
+        "strategy": "greedy",
+        "max_trials": 1
+      }
+    }
+  ]
+}

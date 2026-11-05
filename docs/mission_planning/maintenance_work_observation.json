@@ -1,0 +1,373 @@
+{
+  "format": "maintenance_work_benchmark.v1",
+  "limits": "synthetic one/two-spacecraft fixed-attitude missions; no general scaling law, flight validation or wall-clock guarantee",
+  "rows": [
+    {
+      "artifact": "fleet_1.json",
+      "asset_count": 1,
+      "cap": null,
+      "elapsed_ms_observation": 444.926,
+      "maintenance_trials": 2,
+      "passed": true,
+      "planning_status": "supported",
+      "service_value": 10.0,
+      "work_accounting": {
+        "budget_exhausted": false,
+        "counts": {
+          "attitude": 1658,
+          "endpoint": 4,
+          "path": 886,
+          "resource": 5020
+        },
+        "max_evaluations": null,
+        "scope": "uncached attitude, resource-step and path-rule callbacks during service trials; endpoint callbacks are separately counted; opportunity generation, propagation and model preparation excluded",
+        "total_evaluations": 7568,
+        "trials": [
+          {
+            "counts": {
+              "attitude": 416,
+              "endpoint": 0,
+              "path": 442,
+              "resource": 2008
+            },
+            "failure": null,
+            "opportunity_ids": [
+              "opportunity:7:wheel-1:9:service-1:1"
+            ],
+            "outcome": "returned",
+            "reservations": [],
+            "total_evaluations_after": 2866,
+            "trial": 1
+          },
+          {
+            "counts": {
+              "attitude": 1242,
+              "endpoint": 0,
+              "path": 444,
+              "resource": 3012
+            },
+            "failure": null,
+            "opportunity_ids": [
+              "opportunity:7:wheel-1:9:service-1:1"
+            ],
+            "outcome": "returned",
+            "reservations": [
+              {
+                "asset_id": "wheel-1",
+                "ends_at_s": 820497640.0,
+                "request_id": "unload-1",
+                "starts_at_s": 820497620.0
+              }
+            ],
+            "total_evaluations_after": 7564,
+            "trial": 2
+          }
+        ]
+      }
+    },
+    {
+      "artifact": "fleet_1_limited.json",
+      "asset_count": 1,
+      "cap": 1000,
+      "elapsed_ms_observation": 65.113,
+      "maintenance_trials": 0,
+      "passed": true,
+      "planning_status": "no_verified_plan",
+      "service_value": 0,
+      "work_accounting": {
+        "budget_exhausted": true,
+        "counts": {
+          "attitude": 136,
+          "endpoint": 0,
+          "path": 403,
+          "resource": 461
+        },
+        "max_evaluations": 1000,
+        "scope": "uncached attitude, resource-step and path-rule callbacks during service trials; endpoint callbacks are separately counted; opportunity generation, propagation and model preparation excluded",
+        "total_evaluations": 1000,
+        "trials": [
+          {
+            "counts": {
+              "attitude": 136,
+              "endpoint": 0,
+              "path": 403,
+              "resource": 461
+            },
+            "failure": ":planning_work_budget_exhausted",
+            "opportunity_ids": [
+              "opportunity:7:wheel-1:9:service-1:1"
+            ],
+            "outcome": "failed",
+            "reservations": [],
+            "total_evaluations_after": 1000,
+            "trial": 1
+          }
+        ]
+      }
+    },
+    {
+      "artifact": "fleet_2.json",
+      "asset_count": 2,
+      "cap": null,
+      "elapsed_ms_observation": 3029.379,
+      "maintenance_trials": 9,
+      "passed": true,
+      "planning_status": "supported",
+      "service_value": 20.0,
+      "work_accounting": {
+        "budget_exhausted": false,
+        "counts": {
+          "attitude": 14096,
+          "endpoint": 32,
+          "path": 6204,
+          "resource": 40160
+        },
+        "max_evaluations": null,
+        "scope": "uncached attitude, resource-step and path-rule callbacks during service trials; endpoint callbacks are separately counted; opportunity generation, propagation and model preparation excluded",
+        "total_evaluations": 60492,
+        "trials": [
+          {
+            "counts": {
+              "attitude": 1664,
+              "endpoint": 0,
+              "path": 884,
+              "resource": 6024
+            },
+            "failure": null,
+            "opportunity_ids": [
+              "opportunity:7:wheel-1:9:service-1:1",
+              "opportunity:7:wheel-1:9:service-2:1",
+              "opportunity:7:wheel-2:9:service-1:1",
+              "opportunity:7:wheel-2:9:service-2:1"
+            ],
+            "outcome": "returned",
+            "reservations": [],
+            "total_evaluations_after": 8572,
+            "trial": 1
+          },
+          {
+            "counts": {
+              "attitude": 1658,
+              "endpoint": 0,
+              "path": 886,
+              "resource": 5020
+            },
+            "failure": null,
+            "opportunity_ids": [
+              "opportunity:7:wheel-1:9:service-1:1",
+              "opportunity:7:wheel-1:9:service-2:1",
+              "opportunity:7:wheel-2:9:service-1:1",
+              "opportunity:7:wheel-2:9:service-2:1"
+            ],
+            "outcome": "returned",
+            "reservations": [
+              {
+                "asset_id": "wheel-1",
+                "ends_at_s": 820497640.0,
+                "request_id": "unload-1",
+                "starts_at_s": 820497620.0
+              }
+            ],
+            "total_evaluations_after": 16136,
+            "trial": 2
+          },
+          {
+            "counts": {
+              "attitude": 1658,
+              "endpoint": 0,
+              "path": 886,
+              "resource": 5020
+            },
+            "failure": null,
+            "opportunity_ids": [
+              "opportunity:7:wheel-1:9:service-1:1",
+              "opportunity:7:wheel-1:9:service-2:1",
+              "opportunity:7:wheel-2:9:service-1:1",
+              "opportunity:7:wheel-2:9:service-2:1"
+            ],
+            "outcome": "returned",
+            "reservations": [
+              {
+                "asset_id": "wheel-1",
+                "ends_at_s": 820497640.0,
+                "request_id": "unload-2",
+                "starts_at_s": 820497620.0
+              }
+            ],
+            "total_evaluations_after": 23704,
+            "trial": 3
+          },
+          {
+            "counts": {
+              "attitude": 2074,
+              "endpoint": 0,
+              "path": 886,
+              "resource": 6024
+            },
+            "failure": null,
+            "opportunity_ids": [
+              "opportunity:7:wheel-1:9:service-1:1",
+              "opportunity:7:wheel-1:9:service-2:1",
+              "opportunity:7:wheel-2:9:service-1:1",
+              "opportunity:7:wheel-2:9:service-2:1"
+            ],
+            "outcome": "returned",
+            "reservations": [
+              {
+                "asset_id": "wheel-2",
+                "ends_at_s": 820497640.0,
+                "request_id": "unload-1",
+                "starts_at_s": 820497620.0
+              }
+            ],
+            "total_evaluations_after": 32692,
+            "trial": 4
+          },
+          {
+            "counts": {
+              "attitude": 2074,
+              "endpoint": 0,
+              "path": 886,
+              "resource": 6024
+            },
+            "failure": null,
+            "opportunity_ids": [
+              "opportunity:7:wheel-1:9:service-1:1",
+              "opportunity:7:wheel-1:9:service-2:1",
+              "opportunity:7:wheel-2:9:service-1:1",
+              "opportunity:7:wheel-2:9:service-2:1"
+            ],
+            "outcome": "returned",
+            "reservations": [
+              {
+                "asset_id": "wheel-2",
+                "ends_at_s": 820497640.0,
+                "request_id": "unload-2",
+                "starts_at_s": 820497620.0
+              }
+            ],
+            "total_evaluations_after": 41680,
+            "trial": 5
+          },
+          {
+            "counts": {
+              "attitude": 2484,
+              "endpoint": 0,
+              "path": 888,
+              "resource": 6024
+            },
+            "failure": null,
+            "opportunity_ids": [
+              "opportunity:7:wheel-1:9:service-1:1",
+              "opportunity:7:wheel-1:9:service-2:1",
+              "opportunity:7:wheel-2:9:service-1:1",
+              "opportunity:7:wheel-2:9:service-2:1"
+            ],
+            "outcome": "returned",
+            "reservations": [
+              {
+                "asset_id": "wheel-1",
+                "ends_at_s": 820497640.0,
+                "request_id": "unload-1",
+                "starts_at_s": 820497620.0
+              },
+              {
+                "asset_id": "wheel-2",
+                "ends_at_s": 820497640.0,
+                "request_id": "unload-2",
+                "starts_at_s": 820497620.0
+              }
+            ],
+            "total_evaluations_after": 51080,
+            "trial": 6
+          },
+          {
+            "counts": {
+              "attitude": 2484,
+              "endpoint": 0,
+              "path": 888,
+              "resource": 6024
+            },
+            "failure": null,
+            "opportunity_ids": [
+              "opportunity:7:wheel-1:9:service-1:1",
+              "opportunity:7:wheel-1:9:service-2:1",
+              "opportunity:7:wheel-2:9:service-1:1",
+              "opportunity:7:wheel-2:9:service-2:1"
+            ],
+            "outcome": "returned",
+            "reservations": [
+              {
+                "asset_id": "wheel-1",
+                "ends_at_s": 820497640.0,
+                "request_id": "unload-2",
+                "starts_at_s": 820497620.0
+              },
+              {
+                "asset_id": "wheel-2",
+                "ends_at_s": 820497640.0,
+                "request_id": "unload-1",
+                "starts_at_s": 820497620.0
+              }
+            ],
+            "total_evaluations_after": 60484,
+            "trial": 7
+          }
+        ]
+      }
+    },
+    {
+      "artifact": "fleet_2_limited.json",
+      "asset_count": 2,
+      "cap": 1000,
+      "elapsed_ms_observation": 65.771,
+      "maintenance_trials": 0,
+      "passed": true,
+      "planning_status": "no_verified_plan",
+      "service_value": 0,
+      "work_accounting": {
+        "budget_exhausted": true,
+        "counts": {
+          "attitude": 136,
+          "endpoint": 0,
+          "path": 403,
+          "resource": 461
+        },
+        "max_evaluations": 1000,
+        "scope": "uncached attitude, resource-step and path-rule callbacks during service trials; endpoint callbacks are separately counted; opportunity generation, propagation and model preparation excluded",
+        "total_evaluations": 1000,
+        "trials": [
+          {
+            "counts": {
+              "attitude": 136,
+              "endpoint": 0,
+              "path": 403,
+              "resource": 461
+            },
+            "failure": ":planning_work_budget_exhausted",
+            "opportunity_ids": [
+              "opportunity:7:wheel-1:9:service-1:1",
+              "opportunity:7:wheel-1:9:service-2:1",
+              "opportunity:7:wheel-2:9:service-1:1",
+              "opportunity:7:wheel-2:9:service-2:1"
+            ],
+            "outcome": "failed",
+            "reservations": [],
+            "total_evaluations_after": 1000,
+            "trial": 1
+          }
+        ]
+      }
+    }
+  ],
+  "status": "passed",
+  "verification": {
+    "default_report": "unchanged",
+    "fast_suite": {
+      "elapsed_s": 239.6,
+      "excluded": 1148,
+      "passed": 5399
+    },
+    "final_focused_after_endpoint_review_fix": "12 passed"
+  }
+}

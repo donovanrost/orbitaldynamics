@@ -1,0 +1,48 @@
+{
+  "scenario_id": "execution_checkpoint_stationary_retry",
+  "mission_manifest": "thermal_cooldown_reference.json",
+  "planning_study": "thermal_cooldown_planning.json",
+  "steps": [
+    {
+      "id": "accept_running_service",
+      "kind": "advance",
+      "expected_status": "planning_failed",
+      "as_of_s": 820497675,
+      "not_executed_request_ids": [],
+      "energy_losses_wh": {},
+      "protect_request_ids": [],
+      "scheduling": {
+        "strategy": "greedy",
+        "max_trials": 1,
+        "work_budget": {
+          "max_evaluations": 1
+        }
+      }
+    },
+    {
+      "id": "retry_larger_budget",
+      "kind": "retry",
+      "expected_status": "ready_for_review",
+      "scheduling": {
+        "strategy": "greedy",
+        "max_trials": 1,
+        "work_budget": {
+          "max_evaluations": 100000
+        }
+      }
+    },
+    {
+      "id": "completed",
+      "kind": "advance",
+      "expected_status": "ready_for_review",
+      "as_of_s": 820497690,
+      "not_executed_request_ids": [],
+      "energy_losses_wh": {},
+      "protect_request_ids": [],
+      "scheduling": {
+        "strategy": "greedy",
+        "max_trials": 1
+      }
+    }
+  ]
+}

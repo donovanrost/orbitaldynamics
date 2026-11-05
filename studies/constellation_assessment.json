@@ -1,0 +1,30 @@
+{
+  "assessment_id": "configurable_reference_missions",
+  "cases": [
+    {
+      "id": "reflect_outage_recovery",
+      "scenario": "reflect_like_assessment_operations.json",
+      "expected_independent_status": "passed"
+    },
+    {
+      "id": "reflect_earlier_checkpoint",
+      "scenario": "reflect_like_earlier_checkpoint_operations.json",
+      "expected_independent_status": "passed"
+    },
+    {
+      "id": "fixed_repeated_service",
+      "scenario": "non_illumination_assessment_operations.json",
+      "expected_independent_status": "passed"
+    },
+    {
+      "id": "fixed_hot_limit",
+      "scenario": "non_illumination_hot_limit_operations.json",
+      "expected_independent_status": "passed"
+    },
+    {
+      "id": "reflect_work_cap",
+      "scenario": "reflect_like_work_cap_operations.json",
+      "expected_independent_status": "partial"
+    }
+  ]
+}

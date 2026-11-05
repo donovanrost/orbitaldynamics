@@ -16,14 +16,27 @@ defmodule OrbitalDynamics.MissionAnalysis.Resource.Reference do
          Enum.map(models, fn m ->
            S.fields!(m, ~w(id model configuration), "reference resource model")
 
-           unless m["model"] == "battery",
-             do: raise(ArgumentError, "unsupported reference resource model")
+           {module, keys} =
+             case m["model"] do
+               "battery" ->
+                 {Battery, ["energy_wh"]}
+
+               "thermal" ->
+                 {OrbitalDynamics.MissionAnalysis.Resource.Thermal, ["temperature_k"]}
+
+               "reaction_wheels" ->
+                 {OrbitalDynamics.MissionAnalysis.Resource.ReactionWheels,
+                  ~w(wheel_momentum_nms wheel_1_momentum_nms wheel_2_momentum_nms wheel_3_momentum_nms)}
+
+               _ ->
+                 raise ArgumentError, "unsupported reference resource model"
+             end
 
            %{
              id: m["id"],
-             module: Battery,
+             module: module,
              configuration: m["configuration"],
-             exclusive_cost_keys: ["energy_wh"]
+             exclusive_cost_keys: keys
            }
          end)}
       end)

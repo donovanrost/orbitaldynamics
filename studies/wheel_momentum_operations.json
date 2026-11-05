@@ -1,0 +1,35 @@
+{
+  "scenario_id": "wheel_momentum_operations",
+  "mission_manifest": "wheel_momentum_reference.json",
+  "planning_study": "wheel_momentum_planning.json",
+  "steps": [
+    {
+      "id": "execute_unload",
+      "kind": "advance",
+      "expected_status": "ready_for_review",
+      "as_of_s": 820497660,
+      "not_executed_request_ids": [],
+      "energy_losses_wh": {},
+      "protect_request_ids": [
+        "service"
+      ],
+      "scheduling": {
+        "strategy": "greedy",
+        "max_trials": 1
+      }
+    },
+    {
+      "id": "execute_service",
+      "kind": "advance",
+      "expected_status": "ready_for_review",
+      "as_of_s": 820497690,
+      "not_executed_request_ids": [],
+      "energy_losses_wh": {},
+      "protect_request_ids": [],
+      "scheduling": {
+        "strategy": "greedy",
+        "max_trials": 1
+      }
+    }
+  ]
+}

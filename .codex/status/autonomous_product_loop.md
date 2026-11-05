@@ -131,3 +131,169 @@ decisions remain outstanding.
 Notes:
 This closeout changes documentation/status only. It does not merge, push,
 modify generated/runtime artifacts, or activate V4.
+
+## Configurable reference mission queue 2026-11-04
+
+The user authorized progressing through the ten slices in
+[development_queue.md](../../docs/mission_planning/development_queue.md) until
+feedback is needed. This is a separate development lane from the historical
+Level 5 closeout and does not change its external-acceptance status.
+
+Current slice: complete — all ten configurable reference-mission slices.
+Review: parent performs bounded local review; no delegation requested.
+Publication: preserve existing uncommitted work; no remote publication requested.
+
+Reference-mission slice 1 complete: independent wheel RK4 bundle and offline
+comparison command; 16/16 numerical rows and focused content/conservation checks
+passed. Local review fixed unknown-status classification. Starting slice 2,
+independent wheel accounting for saved plans. Historical closeout is unchanged.
+
+Reference-mission slice 2 complete: stationary independent wheel accounting and
+execution handoff, including coherent semantic mutation rejection; 29 focused
+tests pass. Local review added frame/epoch and array-count checks. Moving paths
+remain unsupported by this checker. Starting slice 3, whole-search work budgets.
+
+Reference-mission slice 3 complete: scoped whole-search callback counters and
+shared hard cap, failure accounting, incumbent retention and one/two-spacecraft
+benchmark. Full fast suite 5,399 passed/1,148 excluded; endpoint duplicate-work
+review fix then passed 12 focused tests and preserved the full battery-only
+report. No context leaks or unverified adoption on cap exhaustion. Starting
+slice 4, time-bounded activity/mode availability.
+
+Reference-mission slice 4 complete: interval/type/mode outages and restoration,
+protected conflicts and independent calendar checking. Seven focused tests and
+four-step operations/independent checks pass. Full fast suite 5,406 passed/1,148
+excluded. Starting slice 5, offline observed-state quality and provenance.
+
+Reference-mission slice 5 complete: quality policy, provenance/freshness/bounds
+gates, synthetic-role stamping and independent quality checking. Seven focused
+tests and 5,413 fast-suite tests pass (1,148 excluded). Local review verified
+missing quality rejects safely, observed-only policy never promotes synthetic
+state, and uncertainty screening is not a robust-feasibility claim. Starting
+slice 6: preserve in-progress activity prefixes and non-abortive continuations.
+
+Reference-mission slice 6 complete: explicit original-profile continuation,
+executed prefixes, exact protected tails and single-charge/single-completion
+history. Eleven focused tests and full fast suite 5,424 passed/1,148 excluded.
+Native five-cycle and independent checks pass; motion/wheel references pass.
+Local review fixed UTC boundary cancellation and a fictitious terminal roundoff
+slew. Starting slice 7, explicit rolling-horizon extension and coverage.
+
+Reference-mission slice 7 complete: explicit finite provider coverage, saved
+overlap predictions, new demand, actual-deadline expiry and preserved lineage.
+Three extension cases and 57 lifecycle/validation tests pass; full fast suite
+5,427 passed/1,148 excluded in 264.4 s. Three-cycle native/independent example
+executes past the original end. Local review added independent extension guards.
+Starting slice 8, bridge existing communications artifacts into service planning.
+
+Reference-mission slice 8 complete: reuse station calendar/contact allocation/
+command window contracts, screen deadlines/lead time and station/spacecraft
+contention, retain explicit observed/synthetic receipts. Seven focused tests,
+three-cycle native/independent replay and 5,434 fast-suite tests pass (1,148
+excluded, 258.2 s). Local review added contact busy intervals and original-start
+checks. Starting slice 9, declared lumped thermal evolution and cooldown.
+
+Reference-mission slice 9 complete: linear lumped thermal resource, analytic
+interval extrema, cooldown, temperature packets/quality and independent history
+checks. Eight thermal tests and full fast suite 5,442 passed/1,148 excluded in
+274.9 s; final advance/thermal regression 12 passed. Four-cycle replay/independent
+validation pass. Local review fixed epoch numeric equivalence and resource-state
+invariant coverage. Starting slice 10, integrated constellation assessment.
+
+Reference-mission slice 10 complete: five-case multi-spacecraft assessment,
+operator report, preserved artifacts and compact durable observations. All native
+expectations met; independent fixed-attitude checks passed and moving/stopped
+cases remain partial. Full fast suite 5,445 passed/1,148 excluded (275.2 s);
+final 11 focused tests pass after null-row and work-category reporting fixes.
+Local review distinguished simulated execution from the accepted ledger on a
+failed advance and retained complete structured failed-search work. All ten
+selected slices are complete. No remote publication, commit or historical maturity
+acceptance status changed. See the queue and integrated assessment for explicit
+assumptions, checkpoint sensitivity and remaining engineering/validation gaps.
+
+## Checkpoint-faithful replay follow-up complete
+
+User authorized implementing the next recommended slice. Unchanged execution now
+follows source-bound saved motion through arbitrary phase checkpoints, preserves
+original clocks/modes and carries exact modeled boundary state into replanning.
+Contiguous acquisition already underway retains its exact destination activity;
+braking separated by a later idle hold does not lock that future activity.
+Synthetic prediction/execution provide explicit parent-motion confirmation;
+unconfirmed/mismatched state or conflicting protected work cannot silently abort
+the maneuver. Declared skips retain a labeled counterfactual policy.
+
+Independent reconstruction uses no producer motion/history helpers; quaternion
+boundary tolerance is 1e-12 per component. Coherent source-phase mutation fails
+chain validation. New 11-checkpoint example passes native checks; independent
+physics remains partial for moving wheels and varying-phase battery loads. Both
+illumination checkpoint scenarios now deliver six services/value 150.
+
+Validation: seven new motion tests; 62 targeted lifecycle/validation tests;
+18 focused rigid/motion tests; final seven motion tests; full fast suite
+5,452 passed/1,148 excluded in 292.4 s. Frozen numerical motion baseline passes;
+latest independent illumination chains have no error issues and retain their
+explicit wheel-dynamics gap. Formatting and whitespace checks pass.
+
+Parent local review covered source binding, exact destination pins, repeated
+clipping, one-sided original-clock torque checks, phase/mode loads, idle hold
+freedom and compact bounded records. No subagents, rig, commits or pushes used.
+Artifacts and limitations: docs/mission_planning/checkpoint_replay.md and
+checkpoint_replay_observation.json. Historical maturity acceptance is unchanged.
+
+## Independent execution acceptance follow-up complete
+
+User authorized separating execution-state acceptance from replacement planning.
+Validated execution checkpoints are persisted before planning, preserve finite
+declared state even when future planning fails, and bind to the original parent.
+Algorithm-only retries preserve ledger, budgets, receipts, continuations and motion
+without another execution replay. Failed plans are stale_pending_replan; the
+offline scenario driver blocks further execution until an explicit retry produces
+a replacement. Separate disk accept/plan commands and operations v2 distinguish
+accepted execution epoch/history from the stored plan boundary/history.
+
+Independent validation reconstructs checkpoint state and controls without producer
+acceptance helpers and rejects coherently rehashed state changes. Stationary
+accept/fail/retry/finish passes native and independent checks. Three-spacecraft
+example accepts three completions at +200 s despite a 1,000-callback planning
+failure, retries from that checkpoint, then closes all six services/value 150.
+No independent error issues; moving-wheel physics remains partial.
+
+Validation: full fast suite 5,460 passed/1,148 excluded (263.9 s), before final
+format marker/schema refinements; final focused 20 passed (11.6 s). Parent local
+review covered checkpoint persistence, immutable retry constraints, finite state
+outside operating limits, rejected quality, command receipt/motion preservation,
+no double costs/completions, pending-state guards and independent reporting.
+No subagents, rig, commits or pushes used. Historical maturity acceptance unchanged.
+Evidence: docs/mission_planning/execution_checkpoints.md and
+execution_checkpoint_observation.json.
+
+## Independent moving-resource validation follow-up complete
+
+User authorized the recommended independent moving-wheel and changing-phase
+battery validation slice. Resource evidence saves exact wheel kinematics. An
+independent explicit rotation-matrix/global impulse checker validates rotor and
+body momentum, Euler motor demand, all cadences, samples, limits, margins and
+execution handoffs. Original-clock phase reconstruction handles clipped maneuvers.
+Fixed inputs and matching tracking profile epochs bind poses; intermediate
+tracking poses remain declared evidence. No orbit/pointing/continuous-feasibility
+claim is made. Battery accounting independently integrates mode plus phase loads
+with efficiency, capacity clipping, curtailment/unmet demand, sample coverage and
+reserve checks. Earlier moving artifacts lacking kinematics remain partial.
+
+Validation: full fast suite 5,466 passed/1,148 excluded (336.1 s, assessment ran
+concurrently). Final focused 33 tests passed; six final new mutation/reference
+tests passed after initial-frame, quaternion and cadence refinements. Eleven-step
+motion and constellation retry artifacts pass independent checks. Five-case
+assessment expectations are met: four completed cases independently pass; stopped
+work-cap case stays partial with three accepted completions and a stale plan.
+Both illumination cases finish six services/value 150. Independent checker
+equations agree with all eight frozen body-frame RK4 cases within 1e-5 Nms/Nm
+at 0.25-second intervals. Formatting and whitespace checks pass.
+
+Parent local review covered no producer imports, distinct global momentum
+accumulation, phase/profile/initial-state bindings, sign-equivalent quaternions,
+one-sided accelerations, complete cadences and intervals, diagnostic mutations,
+state handoff and no replay/debit on retry. No delegation, rig, commits or pushes.
+Historical maturity acceptance is unchanged. Durable evidence:
+docs/mission_planning/moving_resource_validation.md and
+moving_resource_validation_observation.json.

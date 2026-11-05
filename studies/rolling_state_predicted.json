@@ -1,0 +1,40 @@
+{
+  "as_of_s": 820497680.5,
+  "assets": {
+    "demo-3": {
+      "angular_velocity_inertial_deg_s": [
+        0.18134566224708004,
+        -0.2298464882676978,
+        -0.22864573028614102
+      ],
+      "battery_energy_wh": {
+        "battery": 8.000000000000007
+      },
+      "quaternion_wxyz": [
+        0.7538601646610801,
+        0.19758237918689384,
+        -0.5694113970726751,
+        0.26158500808677887
+      ],
+      "resource_budgets": {
+        "service_tokens": 1.0
+      }
+    }
+  },
+  "completed_request_ids": [
+    "early-3"
+  ],
+  "expected_baseline_id": "mission_plan_snapshot:37b473efac171616df95fa5bbc9924219cab57aed8efc4ce2938107e601915e6",
+  "frame": "eci_j2000",
+  "not_executed_request_ids": [],
+  "protect_request_ids": [
+    "late-1"
+  ],
+  "revision_id": "predicted_roll_forward",
+  "scheduling": {
+    "max_trials": 1,
+    "strategy": "greedy"
+  },
+  "source_id": "synthetic_baseline_prediction",
+  "time_scale": "utc"
+}

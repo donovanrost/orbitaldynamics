@@ -1,0 +1,549 @@
+{
+  "cases": [
+    {
+      "accel_deg_s2": [
+        0,
+        0,
+        0
+      ],
+      "axes": [
+        [
+          1,
+          0,
+          0
+        ],
+        [
+          0,
+          1,
+          0
+        ],
+        [
+          0,
+          0,
+          1
+        ]
+      ],
+      "disturbance": [
+        0,
+        0,
+        0
+      ],
+      "duration_s": 8,
+      "expected_status": "supported",
+      "id": "stationary_zero",
+      "inertia": [
+        2,
+        3,
+        4
+      ],
+      "initial_momentum": [
+        0,
+        0,
+        0
+      ],
+      "initial_quaternion": [
+        1,
+        0,
+        0,
+        0
+      ],
+      "momentum_capacity": [
+        10,
+        10,
+        10
+      ],
+      "motor_capacity": [
+        10,
+        10,
+        10
+      ],
+      "rate_deg_s": [
+        0,
+        0,
+        0
+      ],
+      "unload": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "accel_deg_s2": [
+        0,
+        0,
+        0
+      ],
+      "axes": [
+        [
+          1,
+          0,
+          0
+        ],
+        [
+          0,
+          1,
+          0
+        ],
+        [
+          0,
+          0,
+          1
+        ]
+      ],
+      "disturbance": [
+        0.012,
+        -0.015,
+        0.02
+      ],
+      "duration_s": 8,
+      "expected_status": "supported",
+      "id": "stationary_disturbance",
+      "inertia": [
+        2,
+        3,
+        4
+      ],
+      "initial_momentum": [
+        0.1,
+        -0.2,
+        0.3
+      ],
+      "initial_quaternion": [
+        1,
+        0,
+        0,
+        0
+      ],
+      "momentum_capacity": [
+        10,
+        10,
+        10
+      ],
+      "motor_capacity": [
+        10,
+        10,
+        10
+      ],
+      "rate_deg_s": [
+        0,
+        0,
+        0
+      ],
+      "unload": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "accel_deg_s2": [
+        0,
+        0,
+        0
+      ],
+      "axes": [
+        [
+          1,
+          0,
+          0
+        ],
+        [
+          0,
+          1,
+          0
+        ],
+        [
+          0,
+          0,
+          1
+        ]
+      ],
+      "disturbance": [
+        0,
+        0,
+        0.02
+      ],
+      "duration_s": 20,
+      "expected_status": "supported",
+      "id": "external_unloading",
+      "inertia": [
+        2,
+        3,
+        4
+      ],
+      "initial_momentum": [
+        0,
+        0,
+        0.4
+      ],
+      "initial_quaternion": [
+        1,
+        0,
+        0,
+        0
+      ],
+      "momentum_capacity": [
+        10,
+        10,
+        10
+      ],
+      "motor_capacity": [
+        10,
+        10,
+        10
+      ],
+      "rate_deg_s": [
+        0,
+        0,
+        0
+      ],
+      "unload": [
+        0,
+        0,
+        -0.055
+      ]
+    },
+    {
+      "accel_deg_s2": [
+        0,
+        0,
+        0.5
+      ],
+      "axes": [
+        [
+          1,
+          0,
+          0
+        ],
+        [
+          0,
+          1,
+          0
+        ],
+        [
+          0,
+          0,
+          1
+        ]
+      ],
+      "disturbance": [
+        0,
+        0,
+        0
+      ],
+      "duration_s": 8,
+      "expected_status": "supported",
+      "id": "principal_acceleration",
+      "inertia": [
+        2,
+        3,
+        4
+      ],
+      "initial_momentum": [
+        0,
+        0,
+        0
+      ],
+      "initial_quaternion": [
+        1,
+        0,
+        0,
+        0
+      ],
+      "momentum_capacity": [
+        10,
+        10,
+        10
+      ],
+      "motor_capacity": [
+        10,
+        10,
+        10
+      ],
+      "rate_deg_s": [
+        0,
+        0,
+        0
+      ],
+      "unload": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "accel_deg_s2": [
+        0,
+        0,
+        0
+      ],
+      "axes": [
+        [
+          1,
+          0,
+          0
+        ],
+        [
+          0,
+          1,
+          0
+        ],
+        [
+          0,
+          0,
+          1
+        ]
+      ],
+      "disturbance": [
+        0,
+        0,
+        0
+      ],
+      "duration_s": 8,
+      "expected_status": "supported",
+      "id": "unequal_inertia_rotating_body",
+      "inertia": [
+        2,
+        3,
+        4
+      ],
+      "initial_momentum": [
+        0.2,
+        0.1,
+        -0.3
+      ],
+      "initial_quaternion": [
+        0.7071067811865476,
+        0.7071067811865476,
+        0,
+        0
+      ],
+      "momentum_capacity": [
+        10,
+        10,
+        10
+      ],
+      "motor_capacity": [
+        10,
+        10,
+        10
+      ],
+      "rate_deg_s": [
+        4,
+        2,
+        -3
+      ],
+      "unload": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "accel_deg_s2": [
+        0.25,
+        0.1,
+        -0.15
+      ],
+      "axes": [
+        [
+          0.7071067811865476,
+          0.7071067811865476,
+          0
+        ],
+        [
+          -0.7071067811865476,
+          0.7071067811865476,
+          0
+        ],
+        [
+          0,
+          0,
+          -1
+        ]
+      ],
+      "disturbance": [
+        0.002,
+        -0.003,
+        0.001
+      ],
+      "duration_s": 8,
+      "expected_status": "supported",
+      "id": "changing_axis_disturbance",
+      "inertia": [
+        2,
+        3,
+        4
+      ],
+      "initial_momentum": [
+        0.2,
+        -0.1,
+        0.3
+      ],
+      "initial_quaternion": [
+        1,
+        0,
+        0,
+        0
+      ],
+      "momentum_capacity": [
+        10,
+        10,
+        10
+      ],
+      "motor_capacity": [
+        10,
+        10,
+        10
+      ],
+      "rate_deg_s": [
+        2,
+        -3,
+        4
+      ],
+      "unload": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "accel_deg_s2": [
+        0,
+        0,
+        0
+      ],
+      "axes": [
+        [
+          1,
+          0,
+          0
+        ],
+        [
+          0,
+          1,
+          0
+        ],
+        [
+          0,
+          0,
+          1
+        ]
+      ],
+      "disturbance": [
+        0,
+        0,
+        0.2
+      ],
+      "duration_s": 8,
+      "expected_status": "violated",
+      "id": "momentum_saturation",
+      "inertia": [
+        2,
+        3,
+        4
+      ],
+      "initial_momentum": [
+        0,
+        0,
+        0
+      ],
+      "initial_quaternion": [
+        1,
+        0,
+        0,
+        0
+      ],
+      "momentum_capacity": [
+        1,
+        1,
+        1
+      ],
+      "motor_capacity": [
+        10,
+        10,
+        10
+      ],
+      "rate_deg_s": [
+        0,
+        0,
+        0
+      ],
+      "unload": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "accel_deg_s2": [
+        0,
+        0,
+        0
+      ],
+      "axes": [
+        [
+          1,
+          0,
+          0
+        ],
+        [
+          0,
+          1,
+          0
+        ],
+        [
+          0,
+          0,
+          1
+        ]
+      ],
+      "disturbance": [
+        0,
+        0,
+        0
+      ],
+      "duration_s": 8,
+      "expected_status": "violated",
+      "id": "gyroscopic_motor_saturation",
+      "inertia": [
+        2,
+        3,
+        4
+      ],
+      "initial_momentum": [
+        0.5,
+        0.1,
+        0.3
+      ],
+      "initial_quaternion": [
+        1,
+        0,
+        0,
+        0
+      ],
+      "momentum_capacity": [
+        100,
+        100,
+        100
+      ],
+      "motor_capacity": [
+        0.1,
+        0.1,
+        0.1
+      ],
+      "rate_deg_s": [
+        57.29577951308232,
+        57.29577951308232,
+        0
+      ],
+      "unload": [
+        0,
+        0,
+        0
+      ]
+    }
+  ],
+  "format": "wheel_reference_inputs.v1"
+}

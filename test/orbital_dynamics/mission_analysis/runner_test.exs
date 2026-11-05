@@ -73,6 +73,23 @@ defmodule OrbitalDynamics.MissionAnalysis.RunnerTest do
     assert reordered["activities"] == report["activities"]
   end
 
+  test "profiling preserves deterministic evidence and errors" do
+    assets = [asset([0, 10, 20])]
+    requests = [request("r")]
+    opts = [max_sample_gap_s: 10, asset_separation_s: 0]
+    assert {:ok, report} = MissionAnalysis.run(assets, requests, %{}, opts)
+    assert {:ok, ^report, timings} = MissionAnalysis.run_profiled(assets, requests, %{}, opts)
+
+    assert Enum.sort(Map.keys(timings)) ==
+             ~w(endpoint_verification_ms opportunity_generation_ms scheduling_ms)
+
+    assert Enum.all?(timings, fn {_, ms} -> is_number(ms) and ms >= 0 end)
+    broken = [request("r", subject: :broken)]
+
+    assert MissionAnalysis.run(assets, broken, %{}, opts) ==
+             MissionAnalysis.run_profiled(assets, broken, %{}, opts)
+  end
+
   test "cannot bridge missing samples or failed samples and cannot extrapolate" do
     {:ok, report} = run([asset([0, 10, 40, 50])], [request("r")])
     assert report["opportunities"] == []

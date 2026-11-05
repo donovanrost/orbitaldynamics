@@ -1,0 +1,94 @@
+{
+  "mission_id": "horizon_extension_reference",
+  "epoch_s": 820497600,
+  "duration_s": 120,
+  "sample_step_s": 1,
+  "max_step_s": 1,
+  "solar_year_s": 31556925.216,
+  "max_sample_gap_s": 1,
+  "asset_separation_s": 0,
+  "assets": [
+    {
+      "id": "demo-3",
+      "altitude_km": 600,
+      "local_time_ascending_node_h": 18.04,
+      "initial_argument_of_latitude_deg": 0.0,
+      "dry_mass_kg": 250,
+      "payloads": {
+        "fixed_attitude": {
+          "activity_types": [
+            "service",
+            "momentum_unload"
+          ]
+        }
+      },
+      "resource_budgets": {
+        "service_tokens": 1,
+        "unload_tokens": 1
+      }
+    }
+  ],
+  "requests": [
+    {
+      "id": "unload",
+      "model": "fixed_attitude",
+      "activity_type": "momentum_unload",
+      "target": null,
+      "starts_at_s": 820497620,
+      "ends_at_s": 820497660,
+      "duration_s": 20,
+      "value": 0,
+      "parameters": {
+        "quaternion_wxyz": [
+          1,
+          0,
+          0,
+          0
+        ]
+      },
+      "resource_costs": {
+        "unload_tokens": 1
+      }
+    },
+    {
+      "id": "service",
+      "model": "fixed_attitude",
+      "activity_type": "service",
+      "target": null,
+      "starts_at_s": 820497670,
+      "ends_at_s": 820497680,
+      "duration_s": 10,
+      "value": 10,
+      "parameters": {
+        "quaternion_wxyz": [
+          1,
+          0,
+          0,
+          0
+        ]
+      },
+      "resource_costs": {
+        "service_tokens": 1
+      }
+    },
+    {
+      "id": "future",
+      "model": "fixed_attitude",
+      "activity_type": "service",
+      "target": null,
+      "starts_at_s": 820497740,
+      "ends_at_s": 820497760,
+      "duration_s": 10,
+      "value": 2,
+      "parameters": {
+        "quaternion_wxyz": [
+          1,
+          0,
+          0,
+          0
+        ]
+      },
+      "resource_costs": {}
+    }
+  ]
+}

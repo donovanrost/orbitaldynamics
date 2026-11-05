@@ -1,0 +1,24 @@
+{
+  "format": "command_delivery_observation.v1",
+  "scenario": "studies/command_delivery_operations.json",
+  "native_status": "passed",
+  "independent_status": "passed",
+  "execution_summary": {
+    "accepted_completion_count": 2,
+    "accepted_expired_count": 0,
+    "scripted_skip_count": 0,
+    "simulated_completed_value": 10.0,
+    "simulated_completion_count": 2
+  },
+  "focused_tests_passed": 7,
+  "fast_suite": {
+    "passed": 5434,
+    "excluded": 1148,
+    "seconds": 258.2
+  },
+  "limitations": [
+    "Declared contact assumptions; no RF/pointing/radio-power validation",
+    "Contacts allocated before service search; no joint optimality claim",
+    "Observed receipt source is declared, not authenticated; simulation roles remain explicit"
+  ]
+}

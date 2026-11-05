@@ -25,6 +25,22 @@ defmodule OrbitalDynamics.MissionAnalysis.Attitude.Horizon do
             :unknown ->
               :unknown
 
+            %{
+              frame: %Frame{},
+              quaternion: q,
+              mode: mode,
+              angular_velocity_deg_s: w,
+              boundary: true
+            } = t
+            when map_size(t) == 5 ->
+              Input.id!(mode)
+
+              %{
+                t
+                | quaternion: Quaternion.new!(q),
+                  angular_velocity_deg_s: Input.vector!(w, "boundary angular velocity")
+              }
+
             %{frame: %Frame{}, quaternion: q, mode: mode} = t when map_size(t) == 3 ->
               unless mode == :unknown or is_binary(mode),
                 do: raise(ArgumentError, "terminal mode must be declared or :unknown")
@@ -52,19 +68,34 @@ defmodule OrbitalDynamics.MissionAnalysis.Attitude.Horizon do
       "starts_at_s" => h.start.seconds_since_j2000,
       "ends_at_s" => h.stop.seconds_since_j2000,
       "time_scale" => Atom.to_string(h.start.scale),
-      "terminal_strategy" => "brake_slew_settle_then_fixed_inertial_hold_at_zero_rate",
+      "terminal_strategy" =>
+        if(Enum.any?(h.terminals, fn {_, t} -> is_map(t) and t[:boundary] == true end),
+          do: "explicit_activity_boundary_and_fixed_inertial_terminals",
+          else: "brake_slew_settle_then_fixed_inertial_hold_at_zero_rate"
+        ),
       "terminals" =>
         Map.new(h.terminals, fn {id, t} ->
           {id,
            if(t == :unknown,
              do: %{"status" => "unknown"},
-             else: %{
-               "quaternion_wxyz" => Tuple.to_list(t.quaternion),
-               "frame" => Atom.to_string(t.frame.name),
-               "frame_center" => Atom.to_string(t.frame.center),
-               "frame_orientation" => Atom.to_string(t.frame.orientation),
-               "mode" => if(t.mode == :unknown, do: :null, else: t.mode)
-             }
+             else:
+               %{
+                 "quaternion_wxyz" => Tuple.to_list(t.quaternion),
+                 "frame" => Atom.to_string(t.frame.name),
+                 "frame_center" => Atom.to_string(t.frame.center),
+                 "frame_orientation" => Atom.to_string(t.frame.orientation),
+                 "mode" => if(t.mode == :unknown, do: :null, else: t.mode)
+               }
+               |> then(fn row ->
+                 if t[:boundary],
+                   do:
+                     Map.put(
+                       row,
+                       "angular_velocity_inertial_deg_s",
+                       Tuple.to_list(t.angular_velocity_deg_s)
+                     ),
+                   else: row
+               end)
            )}
         end)
     }
@@ -132,10 +163,20 @@ defmodule OrbitalDynamics.MissionAnalysis.Attitude.Horizon do
     destination = %{
       "epoch_s" => h.stop.seconds_since_j2000,
       "quaternion_wxyz" => Tuple.to_list(t.quaternion),
-      "angular_velocity_inertial_deg_s" => [0, 0, 0]
+      "angular_velocity_inertial_deg_s" =>
+        if(t[:boundary], do: Tuple.to_list(t.angular_velocity_deg_s), else: [0, 0, 0])
     }
 
-    Motion.transition(source, destination, policy.assets[asset.id], :terminal)
+    OrbitalDynamics.MissionAnalysis.Attitude.SavedMotion.terminal(
+      source,
+      destination,
+      policy.assets[asset.id],
+      fn ->
+        if t[:boundary],
+          do: Motion.continuity(source, destination, policy.assets[asset.id]),
+          else: Motion.transition(source, destination, policy.assets[asset.id], :terminal)
+      end
+    )
   end
 
   def check(asset, plan, policy, state_at, cache) do

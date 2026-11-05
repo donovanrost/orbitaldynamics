@@ -1,0 +1,25 @@
+{
+  "format": "thermal_observation.v1",
+  "scenario": "studies/thermal_cooldown_operations.json",
+  "native_status": "passed",
+  "independent_status": "passed",
+  "execution_summary": {
+    "accepted_completion_count": 2,
+    "accepted_expired_count": 0,
+    "scripted_skip_count": 0,
+    "simulated_completed_value": 10.0,
+    "simulated_completion_count": 2
+  },
+  "focused_thermal_tests_passed": 8,
+  "fast_suite": {
+    "passed": 5442,
+    "excluded": 1148,
+    "seconds": 274.9
+  },
+  "final_temperature_k": 304.558191354306,
+  "limitations": [
+    "Invented coefficients/limits; no company thermal calibration",
+    "One isothermal node, linear effective rejection and fixed sink",
+    "Independent checker requires equal complete phase heat; no robust uncertainty propagation"
+  ]
+}

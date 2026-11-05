@@ -1,0 +1,467 @@
+{
+  "format": "checkpoint_replay_observation.v1",
+  "previous_assessment_observation": "constellation_assessment_observation.json",
+  "motion_example": {
+    "scenario": "studies/motion_checkpoint_operations.json",
+    "native_status": "passed",
+    "run_status": "completed",
+    "execution_summary": {
+      "accepted_completion_count": 1,
+      "accepted_expired_count": 0,
+      "scripted_skip_count": 0,
+      "simulated_completed_value": 10.0,
+      "simulated_completion_count": 1
+    },
+    "independent_status": "partial",
+    "independent_issue_counts": {
+      "battery_model_unsupported": 23,
+      "wheel_dynamics_unsupported": 18
+    },
+    "checkpoints": [
+      {
+        "as_of_s": 820497620,
+        "replay_policy": "follow_saved_parent_motion",
+        "completed_request_ids": [],
+        "asset_state": {
+          "angular_velocity_inertial_deg_s": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery_energy_wh": {
+            "battery": 9.983333333333348
+          },
+          "quaternion_wxyz": [
+            1.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "resource_budgets": {
+            "service_tokens": 1,
+            "unload_tokens": 1
+          },
+          "wheel_momentum_nms": {
+            "wheels": [
+              0.0,
+              0.0,
+              0.020000000000000014
+            ]
+          }
+        }
+      },
+      {
+        "as_of_s": 820497642,
+        "replay_policy": "follow_saved_parent_motion",
+        "completed_request_ids": [],
+        "asset_state": {
+          "angular_velocity_inertial_deg_s": [
+            0.0,
+            0.0,
+            0.8
+          ],
+          "battery_energy_wh": {
+            "battery": 9.951666666666682
+          },
+          "quaternion_wxyz": [
+            0.9999025240093042,
+            0.0,
+            0.0,
+            0.013962180339145272
+          ],
+          "resource_budgets": {
+            "service_tokens": 1,
+            "unload_tokens": 1
+          },
+          "wheel_momentum_nms": {
+            "wheels": [
+              0.0,
+              0.0,
+              -0.656131700797732
+            ]
+          }
+        }
+      },
+      {
+        "as_of_s": 820497653,
+        "replay_policy": "follow_saved_parent_motion",
+        "completed_request_ids": [],
+        "asset_state": {
+          "angular_velocity_inertial_deg_s": [
+            0.0,
+            0.0,
+            2.0
+          ],
+          "battery_energy_wh": {
+            "battery": 9.91555555555555
+          },
+          "quaternion_wxyz": [
+            0.9848077530122081,
+            0.0,
+            0.0,
+            0.17364817766693033
+          ],
+          "resource_budgets": {
+            "service_tokens": 1,
+            "unload_tokens": 1
+          },
+          "wheel_momentum_nms": {
+            "wheels": [
+              0.0,
+              0.0,
+              -1.692329251994327
+            ]
+          }
+        }
+      },
+      {
+        "as_of_s": 820497663,
+        "replay_policy": "follow_saved_parent_motion",
+        "completed_request_ids": [],
+        "asset_state": {
+          "angular_velocity_inertial_deg_s": [
+            0.0,
+            0.0,
+            1.0
+          ],
+          "battery_energy_wh": {
+            "battery": 9.891944444444448
+          },
+          "quaternion_wxyz": [
+            0.9469301294951057,
+            0.0,
+            0.0,
+            0.32143946530316164
+          ],
+          "resource_budgets": {
+            "service_tokens": 1,
+            "unload_tokens": 1
+          },
+          "wheel_momentum_nms": {
+            "wheels": [
+              0.0,
+              0.0,
+              -0.8096646259971594
+            ]
+          }
+        }
+      },
+      {
+        "as_of_s": 820497669,
+        "replay_policy": "follow_saved_parent_motion",
+        "completed_request_ids": [],
+        "asset_state": {
+          "angular_velocity_inertial_deg_s": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery_energy_wh": {
+            "battery": 9.878333333333352
+          },
+          "quaternion_wxyz": [
+            0.9396926207859084,
+            0.0,
+            0.0,
+            0.34202014332566877
+          ],
+          "resource_budgets": {
+            "service_tokens": 1,
+            "unload_tokens": 1
+          },
+          "wheel_momentum_nms": {
+            "wheels": [
+              0.0,
+              0.0,
+              0.06900000000000517
+            ]
+          }
+        }
+      },
+      {
+        "as_of_s": 820497675,
+        "replay_policy": "follow_saved_parent_motion",
+        "completed_request_ids": [],
+        "asset_state": {
+          "angular_velocity_inertial_deg_s": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery_energy_wh": {
+            "battery": 9.866111111111131
+          },
+          "quaternion_wxyz": [
+            0.9396926207859084,
+            0.0,
+            0.0,
+            0.3420201433256687
+          ],
+          "resource_budgets": {
+            "service_tokens": 0.0,
+            "unload_tokens": 1
+          },
+          "wheel_momentum_nms": {
+            "wheels": [
+              0.0,
+              0.0,
+              0.07500000000000517
+            ]
+          }
+        }
+      },
+      {
+        "as_of_s": 820497683,
+        "replay_policy": "follow_saved_parent_motion",
+        "completed_request_ids": [
+          "service"
+        ],
+        "asset_state": {
+          "angular_velocity_inertial_deg_s": [
+            0.0,
+            0.0,
+            -0.6000000000000001
+          ],
+          "battery_energy_wh": {
+            "battery": 9.842500000000008
+          },
+          "quaternion_wxyz": [
+            0.9423498307599323,
+            0.0,
+            0.0,
+            0.33462934190941324
+          ],
+          "resource_budgets": {
+            "service_tokens": 0.0,
+            "unload_tokens": 1
+          },
+          "wheel_momentum_nms": {
+            "wheels": [
+              0.0,
+              0.0,
+              0.6065987755983041
+            ]
+          }
+        }
+      },
+      {
+        "as_of_s": 820497695,
+        "replay_policy": "follow_saved_parent_motion",
+        "completed_request_ids": [],
+        "asset_state": {
+          "angular_velocity_inertial_deg_s": [
+            0.0,
+            0.0,
+            -2.0
+          ],
+          "battery_energy_wh": {
+            "battery": 9.802222222222206
+          },
+          "quaternion_wxyz": [
+            0.984807753012208,
+            0.0,
+            0.0,
+            0.17364817766693033
+          ],
+          "resource_budgets": {
+            "service_tokens": 0.0,
+            "unload_tokens": 1
+          },
+          "wheel_momentum_nms": {
+            "wheels": [
+              0.0,
+              0.0,
+              1.8403292519943375
+            ]
+          }
+        }
+      },
+      {
+        "as_of_s": 820497705,
+        "replay_policy": "follow_saved_parent_motion",
+        "completed_request_ids": [],
+        "asset_state": {
+          "angular_velocity_inertial_deg_s": [
+            0.0,
+            0.0,
+            -1.0
+          ],
+          "battery_energy_wh": {
+            "battery": 9.778611111111104
+          },
+          "quaternion_wxyz": [
+            0.9997620270799091,
+            0.0,
+            0.0,
+            0.021814885034561055
+          ],
+          "resource_budgets": {
+            "service_tokens": 0.0,
+            "unload_tokens": 1
+          },
+          "wheel_momentum_nms": {
+            "wheels": [
+              0.0,
+              0.0,
+              0.9776646259971757
+            ]
+          }
+        }
+      },
+      {
+        "as_of_s": 820497711,
+        "replay_policy": "follow_saved_parent_motion",
+        "completed_request_ids": [],
+        "asset_state": {
+          "angular_velocity_inertial_deg_s": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery_energy_wh": {
+            "battery": 9.765000000000008
+          },
+          "quaternion_wxyz": [
+            1.0,
+            0.0,
+            0.0,
+            -5.551115123125783e-17
+          ],
+          "resource_budgets": {
+            "service_tokens": 0.0,
+            "unload_tokens": 1
+          },
+          "wheel_momentum_nms": {
+            "wheels": [
+              0.0,
+              0.0,
+              0.11100000000001078
+            ]
+          }
+        }
+      },
+      {
+        "as_of_s": 820497725,
+        "replay_policy": "follow_saved_parent_motion",
+        "completed_request_ids": [],
+        "asset_state": {
+          "angular_velocity_inertial_deg_s": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery_energy_wh": {
+            "battery": 9.753055555555576
+          },
+          "quaternion_wxyz": [
+            1.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "resource_budgets": {
+            "service_tokens": 0.0,
+            "unload_tokens": 1
+          },
+          "wheel_momentum_nms": {
+            "wheels": [
+              0.0,
+              0.0,
+              0.1250000000000108
+            ]
+          }
+        }
+      }
+    ]
+  },
+  "integrated_assessment_status": "expectations_met",
+  "integrated_cases": [
+    {
+      "id": "reflect_outage_recovery",
+      "native_verification": "passed",
+      "independent_validation": "partial",
+      "completed_service_count": 6,
+      "completed_service_value": 150,
+      "simulated_completed_service_count": 6,
+      "simulated_completed_service_value": 150.0,
+      "planning_callback_total": 43108
+    },
+    {
+      "id": "reflect_earlier_checkpoint",
+      "native_verification": "passed",
+      "independent_validation": "partial",
+      "completed_service_count": 6,
+      "completed_service_value": 150,
+      "simulated_completed_service_count": 6,
+      "simulated_completed_service_value": 150.0,
+      "planning_callback_total": 43735
+    },
+    {
+      "id": "fixed_repeated_service",
+      "native_verification": "passed",
+      "independent_validation": "passed",
+      "completed_service_count": 4,
+      "completed_service_value": 40,
+      "simulated_completed_service_count": 4,
+      "simulated_completed_service_value": 40.0,
+      "planning_callback_total": 201934
+    },
+    {
+      "id": "fixed_hot_limit",
+      "native_verification": "passed",
+      "independent_validation": "passed",
+      "completed_service_count": 0,
+      "completed_service_value": 0,
+      "simulated_completed_service_count": 0,
+      "simulated_completed_service_value": 0,
+      "planning_callback_total": 184786
+    },
+    {
+      "id": "reflect_work_cap",
+      "native_verification": "passed",
+      "independent_validation": "partial",
+      "completed_service_count": 0,
+      "completed_service_value": 0,
+      "simulated_completed_service_count": 3,
+      "simulated_completed_service_value": 84.0,
+      "planning_callback_total": 10808
+    }
+  ],
+  "latest_independent_illumination_checks": {
+    "late": {
+      "status": "partial",
+      "issues": {
+        "wheel_dynamics_unsupported": 20
+      }
+    },
+    "early": {
+      "status": "partial",
+      "issues": {
+        "wheel_dynamics_unsupported": 20
+      }
+    }
+  },
+  "checks": {
+    "new_motion_tests_passed": 7,
+    "focused_rigid_and_motion_tests_passed": 18,
+    "fast_suite": {
+      "passed": 5452,
+      "excluded": 1148,
+      "seconds": 292.4
+    },
+    "frozen_motion_numerical_baseline": "pass",
+    "test_tolerances": {
+      "attitude_deg": 1e-07,
+      "angular_rate_deg_s": 1e-08,
+      "battery_wh": 1e-08,
+      "wheel_momentum_nms": 1e-06,
+      "independent_quaternion_component": 1e-12
+    }
+  },
+  "limits": [
+    "Synthetic confirmation and hardware assumptions, not authenticated execution or calibrated flight models",
+    "Resource quadrature can differ when intervals split; tested numerical tolerances are not continuous certification",
+    "Independent moving-wheel and varying-phase-load battery physics remain explicitly unsupported",
+    "No implicit abort, controller recovery, partial-service credit or command execution"
+  ]
+}

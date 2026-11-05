@@ -204,6 +204,9 @@ defmodule OrbitalDynamics.MissionAnalysis.Attitude.SchedulerTest do
   test "profile unknowns are distinct from provider errors and evaluation budget failures" do
     assert {:ok, report} = run([request("r", pointing_status: "unknown")])
     assert hd(report["selection_decisions"])["reason"] == "attitude_feasibility_unknown"
+    e = OrbitalDynamics.MissionAnalysis.Scheduling.Explanation.from_report!(report, "r")
+    assert hd(e["placements"])["coverage"] == "unknown_feasibility"
+    assert e["summary"]["attempt_reasons"]["profile_undefined"] > 0
 
     assert {:error, {:attitude_analysis_failed, "a", "r", :provider_down}} =
              run([request("r", pointing_status: "error")])
@@ -217,6 +220,10 @@ defmodule OrbitalDynamics.MissionAnalysis.Attitude.SchedulerTest do
                max_starts: 1
              )
 
+    e = OrbitalDynamics.MissionAnalysis.Scheduling.Explanation.from_report!(report, "r")
+    assert hd(e["placements"])["coverage"] == "start_limit_reached"
+    assert e["summary"]["tested_start_count"] == 1
+    assert e["summary"]["evaluation_limits"] == []
     assert hd(report["selection_decisions"])["attitude_assessment"]["search_truncated"]
     assert hd(report["selection_decisions"])["reason"] == "attitude_feasibility_unknown"
   end

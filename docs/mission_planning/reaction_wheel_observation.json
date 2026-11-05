@@ -1,0 +1,756 @@
+{
+  "date": "2026-11-03",
+  "format": "reaction_wheel_observation.v1",
+  "independent_validation": {
+    "issues": [
+      {
+        "code": "resource_model_unsupported",
+        "location": "baseline_snapshot.json/demo-3/wheels",
+        "message": "only the declared ideal battery is checked",
+        "severity": "unsupported"
+      },
+      {
+        "code": "resource_model_unsupported",
+        "location": "step-01-execution_snapshot.json/demo-3/wheels",
+        "message": "only the declared ideal battery is checked",
+        "severity": "unsupported"
+      },
+      {
+        "code": "resource_model_unsupported",
+        "location": "step-01-revised_snapshot.json/demo-3/wheels",
+        "message": "only the declared ideal battery is checked",
+        "severity": "unsupported"
+      },
+      {
+        "code": "resource_model_unsupported",
+        "location": "step-02-execution_snapshot.json/demo-3/wheels",
+        "message": "only the declared ideal battery is checked",
+        "severity": "unsupported"
+      },
+      {
+        "code": "resource_model_unsupported",
+        "location": "step-02-revised_snapshot.json/demo-3/wheels",
+        "message": "only the declared ideal battery is checked",
+        "severity": "unsupported"
+      }
+    ],
+    "status": "partial"
+  },
+  "input_sha256": {
+    "studies/wheel_momentum_operations.json": "98f2594148fbff267089ae347010caf3987e325b9023252788c03e5c153bb960",
+    "studies/wheel_momentum_planning.json": "a13e60e211b660243d7204a3840678b82467798ac3fb2469fe22869d8d1b5ead",
+    "studies/wheel_momentum_reference.json": "da49aea3f84c46a58a3a3989b22efdf1e77b347a04200b92a511726a47fd37f2"
+  },
+  "limits": "Synthetic prescribed-path model. Independent wheel physics validation remains unsupported. Raw evidence was generated in tmp/wheel_quality_verified and tmp/wheel_operations_verified; rerun documented commands for complete reports.",
+  "operations": {
+    "baseline_snapshot_id": "mission_plan_snapshot:3fc04c8a31db4b379c393a032b823408408d355e8fea1ead264a187a6eefa2f1",
+    "execution_summary": {
+      "accepted_completion_count": 2,
+      "accepted_expired_count": 0,
+      "scripted_skip_count": 0,
+      "simulated_completed_value": 10.0,
+      "simulated_completion_count": 2
+    },
+    "final_snapshot_id": "mission_plan_snapshot:f22c0d09cccb4c4190ebbda05cfc5b5f6d4cb13e4f37e5452e68da22622d114d",
+    "run_status": "completed",
+    "scenario_id": "wheel_momentum_operations",
+    "steps": [
+      {
+        "accepted_snapshot_id": "mission_plan_snapshot:b1b8fcee54b574b04b08a9b217e4cb37708a6b1867fab4644a3cb6046515f40d",
+        "adopted": true,
+        "id": "execute_unload",
+        "invariant_status": "passed",
+        "state_update": {
+          "as_of_s": 820497660,
+          "assets": {
+            "demo-3": {
+              "angular_velocity_inertial_deg_s": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "battery_energy_wh": {
+                "battery": 9.933333333333394
+              },
+              "quaternion_wxyz": [
+                1.0,
+                0.0,
+                0.0,
+                0.0
+              ],
+              "resource_budgets": {
+                "service_tokens": 1,
+                "unload_tokens": 0.0
+              },
+              "wheel_momentum_nms": {
+                "wheels": [
+                  0.0,
+                  0.0,
+                  0.10000000000000056
+                ]
+              }
+            }
+          },
+          "completed_request_ids": [
+            "unload"
+          ],
+          "expected_baseline_id": "mission_plan_snapshot:3fc04c8a31db4b379c393a032b823408408d355e8fea1ead264a187a6eefa2f1",
+          "frame": "eci_j2000",
+          "not_executed_request_ids": [],
+          "protect_request_ids": [
+            "service"
+          ],
+          "revision_id": "execute_unload",
+          "scheduling": {
+            "max_trials": 1,
+            "strategy": "greedy"
+          },
+          "source_id": "scripted_execution_and_declared_energy_loss",
+          "time_scale": "utc"
+        },
+        "status": "ready_for_review"
+      },
+      {
+        "accepted_snapshot_id": "mission_plan_snapshot:f22c0d09cccb4c4190ebbda05cfc5b5f6d4cb13e4f37e5452e68da22622d114d",
+        "adopted": true,
+        "id": "execute_service",
+        "invariant_status": "passed",
+        "state_update": {
+          "as_of_s": 820497690,
+          "assets": {
+            "demo-3": {
+              "angular_velocity_inertial_deg_s": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "battery_energy_wh": {
+                "battery": 9.92777777777782
+              },
+              "quaternion_wxyz": [
+                1.0,
+                0.0,
+                0.0,
+                0.0
+              ],
+              "resource_budgets": {
+                "service_tokens": 0.0,
+                "unload_tokens": 0.0
+              },
+              "wheel_momentum_nms": {
+                "wheels": [
+                  0.0,
+                  0.0,
+                  0.7000000000000011
+                ]
+              }
+            }
+          },
+          "completed_request_ids": [
+            "service"
+          ],
+          "expected_baseline_id": "mission_plan_snapshot:b1b8fcee54b574b04b08a9b217e4cb37708a6b1867fab4644a3cb6046515f40d",
+          "frame": "eci_j2000",
+          "not_executed_request_ids": [],
+          "protect_request_ids": [],
+          "revision_id": "execute_service",
+          "scheduling": {
+            "max_trials": 1,
+            "strategy": "greedy"
+          },
+          "source_id": "scripted_execution_and_declared_energy_loss",
+          "time_scale": "utc"
+        },
+        "status": "ready_for_review"
+      }
+    ],
+    "verification_status": "passed"
+  },
+  "quality_cases": {
+    "cases": [
+      {
+        "expected_final_wheel_3_nms": 0,
+        "id": "feasible_slew",
+        "passed": true,
+        "planning_status": "supported",
+        "report_file": "feasible_slew.json",
+        "scheduled_request_ids": [
+          "service"
+        ],
+        "wheel_levels": [
+          {
+            "evaluated_through_s": 820497800,
+            "final_state": {
+              "wheel_1_momentum_nms": 0.0,
+              "wheel_2_momentum_nms": 0.0,
+              "wheel_3_momentum_nms": -7.750818884463626e-16
+            },
+            "first_issue": null,
+            "initial_state": {
+              "wheel_1_momentum_nms": 0.0,
+              "wheel_2_momentum_nms": 0.0,
+              "wheel_3_momentum_nms": 0.0
+            },
+            "maximum_requested_interval_s": 1.0,
+            "minimum_margins": {
+              "wheel_1_momentum": {
+                "margin": 2.0,
+                "margin_unit": "Nms"
+              },
+              "wheel_1_motor_torque": {
+                "margin": 0.3,
+                "margin_unit": "Nm"
+              },
+              "wheel_2_momentum": {
+                "margin": 2.0,
+                "margin_unit": "Nms"
+              },
+              "wheel_2_motor_torque": {
+                "margin": 0.3,
+                "margin_unit": "Nm"
+              },
+              "wheel_3_momentum": {
+                "margin": 0.25467074800567047,
+                "margin_unit": "Nms"
+              },
+              "wheel_3_motor_torque": {
+                "margin": 0.12546707480056704,
+                "margin_unit": "Nm"
+              }
+            },
+            "propagated_interval_count": 200,
+            "requested_interval_count": 200,
+            "sample_step_s": 1.0,
+            "state_extrema": {
+              "wheel_1_momentum_nms": {
+                "max": 0.0,
+                "min": 0.0
+              },
+              "wheel_2_momentum_nms": {
+                "max": 0.0,
+                "min": 0.0
+              },
+              "wheel_3_momentum_nms": {
+                "max": 1.7453292519943295,
+                "min": -1.7453292519943295
+              }
+            },
+            "status": "supported",
+            "uncovered_intervals": []
+          },
+          {
+            "evaluated_through_s": 820497800,
+            "final_state": {
+              "wheel_1_momentum_nms": 0.0,
+              "wheel_2_momentum_nms": 0.0,
+              "wheel_3_momentum_nms": -7.750818884463626e-16
+            },
+            "first_issue": null,
+            "initial_state": {
+              "wheel_1_momentum_nms": 0.0,
+              "wheel_2_momentum_nms": 0.0,
+              "wheel_3_momentum_nms": 0.0
+            },
+            "maximum_requested_interval_s": 0.25,
+            "minimum_margins": {
+              "wheel_1_momentum": {
+                "margin": 2.0,
+                "margin_unit": "Nms"
+              },
+              "wheel_1_motor_torque": {
+                "margin": 0.3,
+                "margin_unit": "Nm"
+              },
+              "wheel_2_momentum": {
+                "margin": 2.0,
+                "margin_unit": "Nms"
+              },
+              "wheel_2_motor_torque": {
+                "margin": 0.3,
+                "margin_unit": "Nm"
+              },
+              "wheel_3_momentum": {
+                "margin": 0.25467074800567047,
+                "margin_unit": "Nms"
+              },
+              "wheel_3_motor_torque": {
+                "margin": 0.12546707480056704,
+                "margin_unit": "Nm"
+              }
+            },
+            "propagated_interval_count": 800,
+            "requested_interval_count": 800,
+            "sample_step_s": 0.25,
+            "state_extrema": {
+              "wheel_1_momentum_nms": {
+                "max": 0.0,
+                "min": 0.0
+              },
+              "wheel_2_momentum_nms": {
+                "max": 0.0,
+                "min": 0.0
+              },
+              "wheel_3_momentum_nms": {
+                "max": 1.7453292519943295,
+                "min": -1.7453292519943295
+              }
+            },
+            "status": "supported",
+            "uncovered_intervals": []
+          }
+        ]
+      },
+      {
+        "expected_final_wheel_3_nms": 2,
+        "id": "saturated",
+        "passed": true,
+        "planning_status": "violated",
+        "report_file": "saturated.json",
+        "scheduled_request_ids": [],
+        "wheel_levels": [
+          {
+            "evaluated_through_s": 820497700,
+            "final_state": {
+              "wheel_1_momentum_nms": 0.0,
+              "wheel_2_momentum_nms": 0.0,
+              "wheel_3_momentum_nms": 2.0000000000000013
+            },
+            "first_issue": {
+              "checks": [
+                {
+                  "id": "wheel_1_momentum",
+                  "margin": 1.0,
+                  "margin_unit": "Nms",
+                  "status": "supported"
+                },
+                {
+                  "id": "wheel_1_motor_torque",
+                  "margin": 0.3,
+                  "margin_unit": "Nm",
+                  "status": "supported"
+                },
+                {
+                  "id": "wheel_2_momentum",
+                  "margin": 1.0,
+                  "margin_unit": "Nms",
+                  "status": "supported"
+                },
+                {
+                  "id": "wheel_2_motor_torque",
+                  "margin": 0.3,
+                  "margin_unit": "Nm",
+                  "status": "supported"
+                },
+                {
+                  "id": "wheel_3_momentum",
+                  "margin": -0.020000000000000462,
+                  "margin_unit": "Nms",
+                  "status": "violated"
+                },
+                {
+                  "id": "wheel_3_motor_torque",
+                  "margin": 0.27999999999999997,
+                  "margin_unit": "Nm",
+                  "status": "supported"
+                },
+                {
+                  "id": "unload_mode_declared",
+                  "status": "supported"
+                },
+                {
+                  "id": "unload_stationary_body",
+                  "status": "supported"
+                }
+              ],
+              "ends_at_s": 820497651.0,
+              "evaluated_at_s": 820497650.5,
+              "metrics": {
+                "applied_unload_torque_body_nm": [
+                  0,
+                  0,
+                  0
+                ],
+                "disturbance_torque_body_nm": [
+                  0.0,
+                  0.0,
+                  0.02
+                ],
+                "motor_torque_mid_nm": [
+                  0.0,
+                  0.0,
+                  0.02
+                ],
+                "rotor_momentum_mid_nms": [
+                  0.0,
+                  0.0,
+                  1.0100000000000005
+                ],
+                "total_inertial_angular_momentum_nms": [
+                  0.0,
+                  0.0,
+                  1.0200000000000005
+                ]
+              },
+              "mode": {
+                "name": "idle",
+                "parameters": {
+                  "optical_behavior": "stowed",
+                  "power_load_w": 0
+                }
+              },
+              "phase": "hold",
+              "scope": "terminal",
+              "starts_at_s": 820497650.0
+            },
+            "initial_state": {
+              "wheel_1_momentum_nms": 0.0,
+              "wheel_2_momentum_nms": 0.0,
+              "wheel_3_momentum_nms": 0.0
+            },
+            "maximum_requested_interval_s": 1.0,
+            "minimum_margins": {
+              "wheel_1_momentum": {
+                "margin": 1.0,
+                "margin_unit": "Nms"
+              },
+              "wheel_1_motor_torque": {
+                "margin": 0.3,
+                "margin_unit": "Nm"
+              },
+              "wheel_2_momentum": {
+                "margin": 1.0,
+                "margin_unit": "Nms"
+              },
+              "wheel_2_motor_torque": {
+                "margin": 0.3,
+                "margin_unit": "Nm"
+              },
+              "wheel_3_momentum": {
+                "margin": -1.0000000000000013,
+                "margin_unit": "Nms"
+              },
+              "wheel_3_motor_torque": {
+                "margin": 0.27999999999999997,
+                "margin_unit": "Nm"
+              }
+            },
+            "propagated_interval_count": 100,
+            "requested_interval_count": 100,
+            "sample_step_s": 1.0,
+            "state_extrema": {
+              "wheel_1_momentum_nms": {
+                "max": 0.0,
+                "min": 0.0
+              },
+              "wheel_2_momentum_nms": {
+                "max": 0.0,
+                "min": 0.0
+              },
+              "wheel_3_momentum_nms": {
+                "max": 2.0000000000000013,
+                "min": 0.0
+              }
+            },
+            "status": "violated",
+            "uncovered_intervals": []
+          },
+          {
+            "evaluated_through_s": 820497700,
+            "final_state": {
+              "wheel_1_momentum_nms": 0.0,
+              "wheel_2_momentum_nms": 0.0,
+              "wheel_3_momentum_nms": 1.9999999999999793
+            },
+            "first_issue": {
+              "checks": [
+                {
+                  "id": "wheel_1_momentum",
+                  "margin": 1.0,
+                  "margin_unit": "Nms",
+                  "status": "supported"
+                },
+                {
+                  "id": "wheel_1_motor_torque",
+                  "margin": 0.3,
+                  "margin_unit": "Nm",
+                  "status": "supported"
+                },
+                {
+                  "id": "wheel_2_momentum",
+                  "margin": 1.0,
+                  "margin_unit": "Nms",
+                  "status": "supported"
+                },
+                {
+                  "id": "wheel_2_motor_torque",
+                  "margin": 0.3,
+                  "margin_unit": "Nm",
+                  "status": "supported"
+                },
+                {
+                  "id": "wheel_3_momentum",
+                  "margin": -0.0050000000000005596,
+                  "margin_unit": "Nms",
+                  "status": "violated"
+                },
+                {
+                  "id": "wheel_3_motor_torque",
+                  "margin": 0.27999999999999997,
+                  "margin_unit": "Nm",
+                  "status": "supported"
+                },
+                {
+                  "id": "unload_mode_declared",
+                  "status": "supported"
+                },
+                {
+                  "id": "unload_stationary_body",
+                  "status": "supported"
+                }
+              ],
+              "ends_at_s": 820497650.25,
+              "evaluated_at_s": 820497650.125,
+              "metrics": {
+                "applied_unload_torque_body_nm": [
+                  0,
+                  0,
+                  0
+                ],
+                "disturbance_torque_body_nm": [
+                  0.0,
+                  0.0,
+                  0.02
+                ],
+                "motor_torque_mid_nm": [
+                  0.0,
+                  0.0,
+                  0.02
+                ],
+                "rotor_momentum_mid_nms": [
+                  0.0,
+                  0.0,
+                  1.0025000000000006
+                ],
+                "total_inertial_angular_momentum_nms": [
+                  0.0,
+                  0.0,
+                  1.0050000000000006
+                ]
+              },
+              "mode": {
+                "name": "idle",
+                "parameters": {
+                  "optical_behavior": "stowed",
+                  "power_load_w": 0
+                }
+              },
+              "phase": "hold",
+              "scope": "terminal",
+              "starts_at_s": 820497650.0
+            },
+            "initial_state": {
+              "wheel_1_momentum_nms": 0.0,
+              "wheel_2_momentum_nms": 0.0,
+              "wheel_3_momentum_nms": 0.0
+            },
+            "maximum_requested_interval_s": 0.25,
+            "minimum_margins": {
+              "wheel_1_momentum": {
+                "margin": 1.0,
+                "margin_unit": "Nms"
+              },
+              "wheel_1_motor_torque": {
+                "margin": 0.3,
+                "margin_unit": "Nm"
+              },
+              "wheel_2_momentum": {
+                "margin": 1.0,
+                "margin_unit": "Nms"
+              },
+              "wheel_2_motor_torque": {
+                "margin": 0.3,
+                "margin_unit": "Nm"
+              },
+              "wheel_3_momentum": {
+                "margin": -0.9999999999999793,
+                "margin_unit": "Nms"
+              },
+              "wheel_3_motor_torque": {
+                "margin": 0.27999999999999997,
+                "margin_unit": "Nm"
+              }
+            },
+            "propagated_interval_count": 400,
+            "requested_interval_count": 400,
+            "sample_step_s": 0.25,
+            "state_extrema": {
+              "wheel_1_momentum_nms": {
+                "max": 0.0,
+                "min": 0.0
+              },
+              "wheel_2_momentum_nms": {
+                "max": 0.0,
+                "min": 0.0
+              },
+              "wheel_3_momentum_nms": {
+                "max": 1.9999999999999793,
+                "min": 0.0
+              }
+            },
+            "status": "violated",
+            "uncovered_intervals": []
+          }
+        ]
+      },
+      {
+        "expected_final_wheel_3_nms": 0.9,
+        "id": "unloaded",
+        "passed": true,
+        "planning_status": "supported",
+        "report_file": "unloaded.json",
+        "scheduled_request_ids": [
+          "unload",
+          "service"
+        ],
+        "wheel_levels": [
+          {
+            "evaluated_through_s": 820497700,
+            "final_state": {
+              "wheel_1_momentum_nms": 0.0,
+              "wheel_2_momentum_nms": 0.0,
+              "wheel_3_momentum_nms": 0.9000000000000005
+            },
+            "first_issue": null,
+            "initial_state": {
+              "wheel_1_momentum_nms": 0.0,
+              "wheel_2_momentum_nms": 0.0,
+              "wheel_3_momentum_nms": 0.0
+            },
+            "maximum_requested_interval_s": 1.0,
+            "minimum_margins": {
+              "wheel_1_momentum": {
+                "margin": 1.0,
+                "margin_unit": "Nms"
+              },
+              "wheel_1_motor_torque": {
+                "margin": 0.3,
+                "margin_unit": "Nm"
+              },
+              "wheel_2_momentum": {
+                "margin": 1.0,
+                "margin_unit": "Nms"
+              },
+              "wheel_2_motor_torque": {
+                "margin": 0.3,
+                "margin_unit": "Nm"
+              },
+              "wheel_3_momentum": {
+                "margin": 0.09999999999999953,
+                "margin_unit": "Nms"
+              },
+              "wheel_3_motor_torque": {
+                "margin": 0.265,
+                "margin_unit": "Nm"
+              }
+            },
+            "propagated_interval_count": 100,
+            "requested_interval_count": 100,
+            "sample_step_s": 1.0,
+            "state_extrema": {
+              "wheel_1_momentum_nms": {
+                "max": 0.0,
+                "min": 0.0
+              },
+              "wheel_2_momentum_nms": {
+                "max": 0.0,
+                "min": 0.0
+              },
+              "wheel_3_momentum_nms": {
+                "max": 0.9000000000000005,
+                "min": -0.30000000000000004
+              }
+            },
+            "status": "supported",
+            "uncovered_intervals": []
+          },
+          {
+            "evaluated_through_s": 820497700,
+            "final_state": {
+              "wheel_1_momentum_nms": 0.0,
+              "wheel_2_momentum_nms": 0.0,
+              "wheel_3_momentum_nms": 0.9000000000000012
+            },
+            "first_issue": null,
+            "initial_state": {
+              "wheel_1_momentum_nms": 0.0,
+              "wheel_2_momentum_nms": 0.0,
+              "wheel_3_momentum_nms": 0.0
+            },
+            "maximum_requested_interval_s": 0.25,
+            "minimum_margins": {
+              "wheel_1_momentum": {
+                "margin": 1.0,
+                "margin_unit": "Nms"
+              },
+              "wheel_1_motor_torque": {
+                "margin": 0.3,
+                "margin_unit": "Nm"
+              },
+              "wheel_2_momentum": {
+                "margin": 1.0,
+                "margin_unit": "Nms"
+              },
+              "wheel_2_motor_torque": {
+                "margin": 0.3,
+                "margin_unit": "Nm"
+              },
+              "wheel_3_momentum": {
+                "margin": 0.09999999999999876,
+                "margin_unit": "Nms"
+              },
+              "wheel_3_motor_torque": {
+                "margin": 0.265,
+                "margin_unit": "Nm"
+              }
+            },
+            "propagated_interval_count": 400,
+            "requested_interval_count": 400,
+            "sample_step_s": 0.25,
+            "state_extrema": {
+              "wheel_1_momentum_nms": {
+                "max": 0.0,
+                "min": 0.0
+              },
+              "wheel_2_momentum_nms": {
+                "max": 0.0,
+                "min": 0.0
+              },
+              "wheel_3_momentum_nms": {
+                "max": 0.9000000000000012,
+                "min": -0.29999999999999966
+              }
+            },
+            "status": "supported",
+            "uncovered_intervals": []
+          }
+        ]
+      }
+    ],
+    "format": "reaction_wheel_quality_cases.v1",
+    "limits": "scalar expectations are exact only for these prescribed principal-axis/zero-rate motions and constant declared external torques; no spacecraft validation",
+    "status": "passed"
+  },
+  "verification": {
+    "battery_only_regression": "complete report identical to saved rolling_state_baseline report",
+    "fast_suite": {
+      "command": "mix test.fast --max-cases 8",
+      "elapsed_s": 248.0,
+      "excluded": 1148,
+      "passed": 5374
+    },
+    "focused_tests": "12 passed",
+    "independent_validation": "partial; only unsupported wheel-physics issues, no failed checks",
+    "numerical_baseline": "pass",
+    "operations_checks": "12/12 invariants passed at each of two execution boundaries"
+  }
+}

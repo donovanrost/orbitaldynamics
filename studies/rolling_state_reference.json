@@ -1,0 +1,86 @@
+{
+  "mission_id": "rolling_state_reference",
+  "epoch_s": 820497600,
+  "duration_s": 600,
+  "sample_step_s": 20,
+  "max_step_s": 10,
+  "solar_year_s": 31556925.216,
+  "max_sample_gap_s": 20,
+  "asset_separation_s": 0,
+  "assets": [
+    {
+      "id": "demo-3",
+      "altitude_km": 600,
+      "local_time_ascending_node_h": 18.04,
+      "initial_argument_of_latitude_deg": 0.0,
+      "dry_mass_kg": 250,
+      "payloads": {
+        "illumination": {
+          "mirror_area_m2": 400,
+          "mirror_max_dimension_m": 20,
+          "reflectivity": 0.9,
+          "atmospheric_transmission": 0.8,
+          "solar_irradiance_w_m2": 1361,
+          "solar_angular_diameter_deg": 0.53,
+          "max_mirror_incidence_deg": 80,
+          "max_tracking_rate_deg_s": 2
+        }
+      },
+      "resource_budgets": {
+        "service_tokens": 2
+      }
+    }
+  ],
+  "requests": [
+    {
+      "id": "early-3",
+      "model": "illumination",
+      "activity_type": "illuminate",
+      "target": {
+        "id": "site-14",
+        "latitude_deg": 14,
+        "longitude_deg": -79.222322111382,
+        "altitude_km": 0,
+        "minimum_elevation_deg": 10
+      },
+      "starts_at_s": 820497640,
+      "ends_at_s": 820497790,
+      "duration_s": 20,
+      "value": 28,
+      "parameters": {
+        "minimum_elevation_deg": 10,
+        "maximum_target_sun_elevation_deg": -6,
+        "minimum_irradiance_w_m2": 0.0001,
+        "target_radius_km": 1
+      },
+      "resource_costs": {
+        "service_tokens": 1
+      }
+    },
+    {
+      "id": "late-1",
+      "model": "illumination",
+      "activity_type": "illuminate",
+      "target": {
+        "id": "site-30",
+        "latitude_deg": 30,
+        "longitude_deg": -79.222322111382,
+        "altitude_km": 0,
+        "minimum_elevation_deg": 10
+      },
+      "starts_at_s": 820497980,
+      "ends_at_s": 820498130,
+      "duration_s": 20,
+      "value": 22,
+      "parameters": {
+        "minimum_elevation_deg": 10,
+        "maximum_target_sun_elevation_deg": -6,
+        "minimum_irradiance_w_m2": 0.0001,
+        "target_radius_km": 1
+      },
+      "resource_costs": {
+        "service_tokens": 1
+      }
+    }
+  ]
+}

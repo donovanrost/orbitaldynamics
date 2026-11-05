@@ -10,12 +10,13 @@ defmodule OrbitalDynamics.MissionAnalysis do
   All times are absolute seconds since J2000 in one explicitly declared scale.
   No frame/time transformation, propagation, command execution, or legacy
   campaign-artifact adaptation is implicit. Every request asks for one continuous
-  activity; spacecraft aggregation and rolling repair are future extensions.
+  activity; lifecycle adapters can carry explicit source-bound activity segments.
   """
 
   alias OrbitalDynamics.{Frame, StateVector}
   alias OrbitalDynamics.MissionAnalysis.{Asset, Evaluation, Input, Request, WindowRefinement}
-  alias OrbitalDynamics.MissionAnalysis.Attitude.{Policy, Scheduler}
+  alias OrbitalDynamics.MissionAnalysis.Attitude.Policy
+  alias OrbitalDynamics.MissionAnalysis.Scheduling
   alias OrbitalDynamics.Schema.JsonSafety
 
   @limits [
@@ -30,30 +31,90 @@ defmodule OrbitalDynamics.MissionAnalysis do
 
   @doc "Analyzes model opportunities and builds an explainable analysis-only schedule."
   def run(assets, requests, context, opts) do
+    case run_profiled(assets, requests, context, opts) do
+      {:ok, report, _measurements} -> {:ok, report}
+      error -> error
+    end
+  end
+
+  @doc "Runs the same planner, returning monotonic wall times separately from deterministic evidence."
+  def run_profiled(assets, requests, context, opts) do
     try do
-      {gap, separation, include_samples?, refinement, attitude, opportunity_search} =
+      {gap, separation, include_samples?, refinement, attitude, opportunity_search, scheduling} =
         options!(opts)
 
       validate_inputs!(assets, requests, attitude)
       pairs = for asset <- assets, request <- requests, do: {asset, request}
 
-      with {:ok, reports, sessions} <-
-             analyze_pairs(pairs, context, gap, include_samples?, refinement, opportunity_search),
-           {:ok, activities, decisions, balances, attitude_report} <-
-             schedule_selected(
-               assets,
-               requests,
-               Enum.flat_map(reports, & &1["opportunities"]),
-               sessions,
-               attitude,
-               refinement,
-               separation,
-               context
-             ) do
-        with {:ok, activities} <-
-               verify_activity_endpoints(activities, assets, requests, sessions, refinement) do
+      with {opportunity_us, {:ok, reports, sessions}} <-
+             :timer.tc(fn ->
+               case analyze_pairs(
+                      pairs,
+                      context,
+                      gap,
+                      include_samples?,
+                      refinement,
+                      opportunity_search
+                    ) do
+                 {:ok, reports, sessions} ->
+                   reports =
+                     Scheduling.Availability.apply(
+                       reports,
+                       if(scheduling, do: scheduling.availability, else: nil),
+                       assets,
+                       requests,
+                       attitude
+                     )
+
+                   reports =
+                     Scheduling.CommandDelivery.apply(
+                       reports,
+                       if(scheduling, do: scheduling.command_delivery, else: nil),
+                       assets,
+                       requests,
+                       attitude
+                     )
+
+                   {:ok, reports, sessions}
+
+                 error ->
+                   error
+               end
+             end),
+           {scheduling_us, {:ok, activities, decisions, balances, attitude_report, search_report}} <-
+             :timer.tc(fn ->
+               schedule_selected(
+                 assets,
+                 requests,
+                 Enum.flat_map(reports, & &1["opportunities"]),
+                 sessions,
+                 attitude,
+                 refinement,
+                 separation,
+                 context,
+                 scheduling
+               )
+             end) do
+        with {verification_us, {:ok, activities}} <-
+               :timer.tc(fn ->
+                 # Configured search verifies every eligible incumbent before
+                 # returning it, inside its shared work scope. Repeating those
+                 # callbacks here would escape the cap and duplicate work.
+                 if scheduling,
+                   do: {:ok, activities},
+                   else:
+                     verify_activity_endpoints(activities, assets, requests, sessions, refinement)
+               end) do
           opportunities = Enum.flat_map(reports, & &1["opportunities"])
           activities = attach_opportunity_evidence(activities, opportunities, opportunity_search)
+          request_by_id = Map.new(requests, &{&1.id, &1})
+
+          activities =
+            Enum.map(activities, fn a ->
+              segment = Request.segment_description(request_by_id[a["request_id"]])
+              if segment, do: Map.put(a, "activity_segment", segment), else: a
+            end)
+
           decisions = attach_opportunity_evidence(decisions, opportunities, opportunity_search)
           scheduled = Map.new(activities, &{&1["request_id"], &1["id"]})
 
@@ -63,7 +124,7 @@ defmodule OrbitalDynamics.MissionAnalysis do
               count = Enum.count(opportunities, &(&1["request_id"] == request.id))
               activity_id = Map.get(scheduled, request.id)
 
-              %{
+              row = %{
                 "request_id" => request.id,
                 "activity_type" => request.activity_type,
                 "allowed_starts_at_s" => request.starts_at_s,
@@ -72,6 +133,8 @@ defmodule OrbitalDynamics.MissionAnalysis do
                 "value" => request.value,
                 "resource_costs" => request.resource_costs,
                 "opportunity_count" => count,
+                "scheduling_summary" =>
+                  Scheduling.Explanation.summary(decisions, search_report, request.id),
                 "status" => if(activity_id, do: "scheduled", else: "unfulfilled"),
                 "activity_ids" => List.wrap(activity_id),
                 "reasons" =>
@@ -80,6 +143,9 @@ defmodule OrbitalDynamics.MissionAnalysis do
                     else: request_reasons(request, pair_reports, decisions, count)
                   )
               }
+
+              segment = Request.segment_description(request)
+              if segment, do: Map.put(row, "activity_segment", segment), else: row
             end)
 
           {:ok,
@@ -131,13 +197,42 @@ defmodule OrbitalDynamics.MissionAnalysis do
              "activities" => activities,
              "selection_decisions" => decisions,
              "remaining_resource_budgets" => balances
+           }
+           |> scheduling_evidence(search_report),
+           %{
+             "opportunity_generation_ms" => opportunity_us / 1000,
+             "scheduling_ms" => scheduling_us / 1000,
+             "endpoint_verification_ms" => verification_us / 1000
            }}
+        else
+          {_elapsed, {:error, _} = error} -> error
         end
+      else
+        {_elapsed, {:error, _} = error} -> error
       end
     rescue
       error in [ArgumentError, KeyError] ->
         {:error, {:invalid_mission_analysis, Exception.message(error)}}
     end
+  end
+
+  defp scheduling_evidence(report, nil), do: report
+
+  defp scheduling_evidence(report, search) do
+    report
+    |> Map.put("scheduling_search", search)
+    |> Map.update!("model_limits", fn limits ->
+      Enum.map(limits, fn
+        "deterministic value-first greedy scheduling; no global optimality claim" ->
+          "bounded opportunity-priority search with shared feasibility evaluation; no global optimality claim"
+
+        "no automatic repair, mission-plan import, approval, or execution authority" ->
+          "no rolling operational repair, mission-plan import, approval, or execution authority"
+
+        other ->
+          other
+      end)
+    end)
   end
 
   defp limits_for(refinement, attitude) do
@@ -178,37 +273,95 @@ defmodule OrbitalDynamics.MissionAnalysis do
          assets,
          requests,
          opportunities,
-         _sessions,
-         nil,
-         _refinement,
-         separation,
-         _context
-       ) do
-    {a, d, b} = schedule(assets, requests, opportunities, separation)
-    {:ok, a, d, b, nil}
-  end
-
-  defp schedule_selected(
-         assets,
-         requests,
-         opportunities,
          sessions,
          attitude,
          refinement,
          separation,
-         context
+         context,
+         scheduling
        ) do
-    Scheduler.schedule(
-      assets,
-      requests,
-      opportunities,
-      sessions,
-      attitude,
-      refinement,
-      separation,
-      fn asset, t -> sampled_state(asset, t, refinement) end,
-      context
-    )
+    protected =
+      Scheduling.Commitments.bind!(
+        if(scheduling, do: scheduling.protected_activities, else: []),
+        opportunities,
+        requests,
+        assets,
+        separation
+      )
+
+    prepared =
+      if attitude,
+        do:
+          OrbitalDynamics.MissionAnalysis.Attitude.Evaluator.prepare(
+            assets,
+            requests,
+            sessions,
+            attitude,
+            context
+          ),
+        else: {:ok, nil}
+
+    with {:ok, runtime} <- prepared do
+      physical = fn ordered, reservations ->
+        if attitude do
+          OrbitalDynamics.MissionAnalysis.Attitude.Evaluator.evaluate(
+            runtime,
+            ordered,
+            refinement,
+            separation,
+            fn asset, t -> sampled_state(asset, t, refinement) end,
+            reservations
+          )
+        else
+          Scheduling.StaticEvaluator.evaluate(assets, requests, ordered, separation, reservations)
+        end
+      end
+
+      evaluator = fn ordered, reservations ->
+        Scheduling.Work.trial(ordered, reservations, fn -> physical.(ordered, reservations) end)
+      end
+
+      verify_endpoints = fn activities ->
+        case verify_activity_endpoints(activities, assets, requests, sessions, refinement) do
+          {:error,
+           {:activity_endpoint_verification_failed, {:scheduled_endpoint_ineligible, _}} = reason} ->
+            {:invalid, reason}
+
+          other ->
+            other
+        end
+      end
+
+      verifier = fn activities ->
+        Scheduling.Work.guard(fn -> verify_endpoints.(activities) end)
+      end
+
+      Scheduling.Work.run(
+        scheduling != nil and (scheduling.maintenance != nil or scheduling.work_budget != nil),
+        if(scheduling, do: scheduling.work_budget, else: nil),
+        fn ->
+          if scheduling && scheduling.maintenance do
+            Scheduling.Maintenance.run(
+              opportunities,
+              requests,
+              assets,
+              separation,
+              scheduling,
+              evaluator,
+              verifier
+            )
+          else
+            Scheduling.run(
+              opportunities,
+              requests,
+              &evaluator.(&1, protected),
+              scheduling,
+              verifier
+            )
+          end
+        end
+      )
+    end
   end
 
   defp verify_activity_endpoints(activities, _assets, _requests, _sessions, nil),
@@ -264,7 +417,8 @@ defmodule OrbitalDynamics.MissionAnalysis do
                  :include_samples,
                  :window_refinement,
                  :opportunity_search,
-                 :attitude
+                 :attitude,
+                 :scheduling
                ] ==
                [] do
       raise ArgumentError, "invalid mission analysis options"
@@ -331,7 +485,29 @@ defmodule OrbitalDynamics.MissionAnalysis do
           "opportunity search requires an explicit checked state sampling/refinement policy"
         )
 
-    {gap, separation, include, refinement, attitude, opportunity_search}
+    scheduling =
+      case Keyword.get(opts, :scheduling) do
+        nil -> nil
+        %Scheduling.Policy{} = p -> Scheduling.Policy.validate!(p)
+        _ -> raise ArgumentError, "scheduling must be a Scheduling.Policy"
+      end
+
+    if scheduling &&
+         (scheduling.strategy != Scheduling.Greedy or scheduling.protected_activities != [] or
+            scheduling.maintenance != nil) &&
+         attitude &&
+         attitude.horizon == nil,
+       do:
+         raise(ArgumentError, "alternative physical scheduling requires an explicit full horizon")
+
+    if scheduling && scheduling.maintenance && (attitude == nil or attitude.horizon == nil),
+      do:
+        raise(
+          ArgumentError,
+          "automatic maintenance requires physical evaluation and a full horizon"
+        )
+
+    {gap, separation, include, refinement, attitude, opportunity_search, scheduling}
   end
 
   defp validate_inputs!(assets, requests, attitude) do
@@ -346,6 +522,10 @@ defmodule OrbitalDynamics.MissionAnalysis do
     unique_ids!(assets)
     unique_ids!(requests)
 
+    if Enum.any?(requests, &(&1.segment != nil)) and (attitude == nil or attitude.horizon == nil),
+      do:
+        raise(ArgumentError, "activity segments require explicit attitude and horizon evaluation")
+
     unless length(Enum.uniq(Enum.map(requests, & &1.time_scale))) <= 1,
       do: raise(ArgumentError, "requests must share one explicit time scale")
 
@@ -358,7 +538,8 @@ defmodule OrbitalDynamics.MissionAnalysis do
         time_scale: r.time_scale,
         value: r.value,
         parameters: r.parameters,
-        resource_costs: r.resource_costs
+        resource_costs: r.resource_costs,
+        segment: r.segment
       )
     end)
 
@@ -436,7 +617,20 @@ defmodule OrbitalDynamics.MissionAnalysis do
         JsonSafety.normalize_input!(asset.trajectory.assumptions, "trajectory assumptions")
     }
 
-    case Map.fetch(asset.capabilities, model) do
+    capability =
+      if request.segment && request.segment.asset_id != asset.id,
+        do: :segment_asset_mismatch,
+        else: Map.fetch(asset.capabilities, model)
+
+    case capability do
+      :segment_asset_mismatch ->
+        {:ok,
+         Map.merge(base, %{
+           "status" => "activity_segment_asset_mismatch",
+           "opportunities" => [],
+           "failed_check_counts" => %{}
+         }), nil}
+
       :error ->
         {:ok,
          Map.merge(base, %{
@@ -448,7 +642,38 @@ defmodule OrbitalDynamics.MissionAnalysis do
       {:ok, config} ->
         with {:ok, session, assumptions} <- prepare_model(model, request, config, context),
              {:ok, windows, samples, extra_count, event_evidence} <-
-               pair_windows(asset, request, session, gap, refinement, opportunity_search) do
+               pair_windows(
+                 asset,
+                 if(request.segment, do: request.segment.request, else: request),
+                 session,
+                 gap,
+                 refinement,
+                 opportunity_search
+               ) do
+          # A segment inherits the original physical request window and its
+          # discovery margins. Reapplying those margins to a five-second prefix
+          # would erase the reserved slot or fail on a coarse discovery grid.
+          # Profiles/endpoints and complete subsystem checks still re-evaluate
+          # the exact segment against the current declared environment.
+          windows =
+            if request.segment,
+              do:
+                Enum.flat_map(windows, fn window ->
+                  a = max(window["starts_at_s"], request.starts_at_s)
+                  b = min(window["ends_at_s"], request.ends_at_s)
+
+                  if b > a,
+                    do: [
+                      window
+                      |> Map.put("starts_at_s", a)
+                      |> Map.put("ends_at_s", b)
+                      |> Map.put("segment_source_window", window)
+                      |> Map.put("sample_count_scope", "original_physical_request_window")
+                    ],
+                    else: []
+                end),
+              else: windows
+
           opportunities =
             windows
             |> Enum.filter(&(&1["ends_at_s"] - &1["starts_at_s"] >= request.duration_s))
@@ -464,7 +689,18 @@ defmodule OrbitalDynamics.MissionAnalysis do
                 "ends_at_s" => window["ends_at_s"],
                 "sample_count" => window["sample_count"]
               }
-              |> Map.merge(if(event_evidence, do: %{"window_evidence" => window}, else: %{}))
+              |> Map.merge(
+                if(event_evidence,
+                  do: %{"window_evidence" => Map.get(window, "segment_source_window", window)},
+                  else: %{}
+                )
+              )
+              |> then(fn opportunity ->
+                if request.segment,
+                  do:
+                    Map.put(opportunity, "activity_segment", Request.segment_description(request)),
+                  else: opportunity
+              end)
             end)
 
           failures =
@@ -577,7 +813,9 @@ defmodule OrbitalDynamics.MissionAnalysis do
   end
 
   defp prepare_model(model, request, config, context) do
-    case model.prepare(request, config, context) do
+    original = if request.segment, do: request.segment.request, else: request
+
+    case model.prepare(original, config, context) do
       {:ok, session, assumptions} when is_map(assumptions) -> {:ok, session, assumptions}
       {:error, reason} -> {:error, reason}
       _ -> {:error, :invalid_model_preparation}
@@ -681,6 +919,8 @@ defmodule OrbitalDynamics.MissionAnalysis do
   end
 
   defp evaluate_result(model, session, state, previous) do
+    Scheduling.Work.charge!("endpoint")
+
     case model.evaluate(state, previous, session) do
       {:ok, %Evaluation{} = result} ->
         result = Evaluation.new!(result.checks, result.metrics)
@@ -717,92 +957,6 @@ defmodule OrbitalDynamics.MissionAnalysis do
 
   defp finish([], finished), do: finished
   defp finish(current, finished), do: [Enum.reverse(current) | finished]
-
-  defp schedule(assets, requests, opportunities, separation) do
-    request_map = Map.new(requests, &{&1.id, &1})
-    balances = Map.new(assets, &{&1.id, &1.resource_budgets})
-
-    opportunities
-    |> Enum.sort_by(fn o ->
-      {-request_map[o["request_id"]].value, o["starts_at_s"], o["asset_id"], o["id"]}
-    end)
-    |> Enum.reduce({[], [], balances}, fn opportunity, {activities, decisions, balances} ->
-      r = request_map[opportunity["request_id"]]
-      asset_id = opportunity["asset_id"]
-
-      start =
-        earliest_slot(
-          opportunity["starts_at_s"],
-          r.duration_s,
-          Enum.filter(activities, &(&1["asset_id"] == asset_id)),
-          separation
-        )
-
-      available = balances[asset_id]
-
-      missing =
-        for {key, cost} <- r.resource_costs,
-            cost > 0 and not Map.has_key?(available, key),
-            do: key
-
-      insufficient =
-        for {key, cost} <- r.resource_costs, cost > Map.get(available, key, 0), do: key
-
-      reason =
-        cond do
-          Enum.any?(activities, &(&1["request_id"] == r.id)) -> "request_already_scheduled"
-          start + r.duration_s > opportunity["ends_at_s"] -> "asset_conflict"
-          missing != [] -> "undeclared_resource_budget"
-          insufficient != [] -> "insufficient_resource_budget"
-          true -> "selected"
-        end
-
-      decision = %{
-        "opportunity_id" => opportunity["id"],
-        "request_id" => r.id,
-        "asset_id" => asset_id,
-        "reason" => reason,
-        "resource_ids" => Enum.sort(Enum.uniq(missing ++ insufficient))
-      }
-
-      if reason == "selected" do
-        activity = %{
-          "id" => "activity:#{opportunity["id"]}",
-          "opportunity_id" => opportunity["id"],
-          "request_id" => r.id,
-          "asset_id" => asset_id,
-          "type" => r.activity_type,
-          "starts_at_s" => start,
-          "ends_at_s" => start + r.duration_s,
-          "value" => r.value,
-          "resource_costs" => r.resource_costs
-        }
-
-        remaining =
-          Enum.reduce(r.resource_costs, available, fn {key, cost}, acc ->
-            Map.update(acc, key, 0.0, &(&1 - cost))
-          end)
-
-        {[activity | activities], [decision | decisions], Map.put(balances, asset_id, remaining)}
-      else
-        {activities, [decision | decisions], balances}
-      end
-    end)
-    |> then(fn {a, d, b} ->
-      {Enum.sort_by(a, &{&1["starts_at_s"], &1["id"]}), Enum.reverse(d), b}
-    end)
-  end
-
-  defp earliest_slot(start, duration, activities, separation) do
-    activities
-    |> Enum.sort_by(& &1["starts_at_s"])
-    |> Enum.reduce(start, fn activity, candidate ->
-      if candidate + duration + separation <= activity["starts_at_s"] or
-           candidate >= activity["ends_at_s"] + separation,
-         do: candidate,
-         else: activity["ends_at_s"] + separation
-    end)
-  end
 
   defp request_reasons(request, reports, decisions, count) do
     if count == 0 do

@@ -1,0 +1,3118 @@
+{
+  "format": "scheduling_explanation_observation.v1",
+  "recorded_date": "2026-11-03",
+  "scope": "synthetic reference mission; configured sampled constraints only",
+  "source": {
+    "snapshot_id": "mission_plan_snapshot:15007fadf37682c19597ab04236f90920342b048b9fdf209525c8bd587ed59f7",
+    "snapshot_file_sha256": "2b3d388f267a7844a7197673517ab7b9a01804d450520f2a16ad2a20f3621305",
+    "snapshot_path": "tmp/plan_revision_urgent_explained/revised_snapshot.json"
+  },
+  "finding": "Each of four evaluated trials rejects all 24 configured urgent-request starts: one protected overlap, seven incoming-transition timing failures and sixteen sampled limb-axis path violations. No placement cap or unknown assessment is observed for this request. The outer trial cap is reached; no continuous infeasibility or global optimality is established.",
+  "physics_regression": {
+    "activities_unchanged": true,
+    "opportunities_unchanged": true,
+    "analyses_unchanged": true,
+    "attitude_path_horizon_resource_evidence_unchanged": true,
+    "resource_balances_unchanged": true,
+    "trial_decisions_and_model_evaluation_counts_unchanged": true,
+    "comparison_path": "tmp/plan_revision_urgent/revised_snapshot.json"
+  },
+  "known_answer_case": {
+    "declared_model": "fixed-time common-axis maneuver and ideal battery; independent finite enumeration",
+    "baseline_value": 15,
+    "revised_value": 25,
+    "commitment": {
+      "request_id": "committed",
+      "asset_id": "a",
+      "starts_at_s": 20,
+      "ends_at_s": 30
+    },
+    "replacement": {
+      "removed": "tentative",
+      "added": "urgent",
+      "starts_at_s": 80,
+      "ends_at_s": 90
+    },
+    "oracle_optimal_value": 25,
+    "test": "test/orbital_dynamics/mission_analysis/scheduling/explanation_test.exs"
+  },
+  "explanation": {
+    "format": "mission_request_explanation.v1",
+    "generation": [
+      {
+        "asset_id": "demo-1",
+        "constraint_searches": [
+          {
+            "constraint_id": "solar_image_above_tangent_horizon",
+            "search_status": "complete_under_search_policy",
+            "uncovered_intervals": []
+          },
+          {
+            "constraint_id": "minimum_elevation_deg",
+            "search_status": "complete_under_search_policy",
+            "uncovered_intervals": []
+          },
+          {
+            "constraint_id": "maximum_target_sun_elevation_deg",
+            "search_status": "complete_under_search_policy",
+            "uncovered_intervals": []
+          },
+          {
+            "constraint_id": "spacecraft_sunlit",
+            "search_status": "complete_under_search_policy",
+            "uncovered_intervals": []
+          },
+          {
+            "constraint_id": "specular_geometry",
+            "search_status": "complete_under_search_policy",
+            "uncovered_intervals": []
+          },
+          {
+            "constraint_id": "maximum_mirror_incidence_deg",
+            "search_status": "complete_under_search_policy",
+            "uncovered_intervals": []
+          },
+          {
+            "constraint_id": "tracking_rate_known",
+            "search_status": "complete_under_search_policy",
+            "uncovered_intervals": []
+          },
+          {
+            "constraint_id": "maximum_tracking_rate_deg_s",
+            "search_status": "complete_under_search_policy",
+            "uncovered_intervals": []
+          },
+          {
+            "constraint_id": "small_mirror_approximation",
+            "search_status": "complete_under_search_policy",
+            "uncovered_intervals": []
+          },
+          {
+            "constraint_id": "target_contained_in_nominal_footprint",
+            "search_status": "complete_under_search_policy",
+            "uncovered_intervals": []
+          },
+          {
+            "constraint_id": "minimum_nominal_irradiance_w_m2",
+            "search_status": "complete_under_search_policy",
+            "uncovered_intervals": []
+          }
+        ],
+        "excluded_unknown_intervals": [],
+        "failed_check_counts": {},
+        "opportunity_search_status": "complete_under_search_policy",
+        "rejected_window_reasons": {},
+        "status": "opportunities_found"
+      },
+      {
+        "asset_id": "demo-2",
+        "constraint_searches": [
+          {
+            "constraint_id": "solar_image_above_tangent_horizon",
+            "search_status": "complete_under_search_policy",
+            "uncovered_intervals": []
+          },
+          {
+            "constraint_id": "minimum_elevation_deg",
+            "search_status": "complete_under_search_policy",
+            "uncovered_intervals": []
+          },
+          {
+            "constraint_id": "maximum_target_sun_elevation_deg",
+            "search_status": "complete_under_search_policy",
+            "uncovered_intervals": []
+          },
+          {
+            "constraint_id": "spacecraft_sunlit",
+            "search_status": "complete_under_search_policy",
+            "uncovered_intervals": []
+          },
+          {
+            "constraint_id": "specular_geometry",
+            "search_status": "complete_under_search_policy",
+            "uncovered_intervals": []
+          },
+          {
+            "constraint_id": "maximum_mirror_incidence_deg",
+            "search_status": "complete_under_search_policy",
+            "uncovered_intervals": []
+          },
+          {
+            "constraint_id": "tracking_rate_known",
+            "search_status": "complete_under_search_policy",
+            "uncovered_intervals": []
+          },
+          {
+            "constraint_id": "maximum_tracking_rate_deg_s",
+            "search_status": "complete_under_search_policy",
+            "uncovered_intervals": []
+          },
+          {
+            "constraint_id": "small_mirror_approximation",
+            "search_status": "complete_under_search_policy",
+            "uncovered_intervals": []
+          },
+          {
+            "constraint_id": "target_contained_in_nominal_footprint",
+            "search_status": "complete_under_search_policy",
+            "uncovered_intervals": []
+          },
+          {
+            "constraint_id": "minimum_nominal_irradiance_w_m2",
+            "search_status": "complete_under_search_policy",
+            "uncovered_intervals": []
+          }
+        ],
+        "excluded_unknown_intervals": [],
+        "failed_check_counts": {},
+        "opportunity_search_status": "complete_under_search_policy",
+        "rejected_window_reasons": {},
+        "status": "opportunities_found"
+      },
+      {
+        "asset_id": "demo-3",
+        "constraint_searches": [
+          {
+            "constraint_id": "solar_image_above_tangent_horizon",
+            "search_status": "complete_under_search_policy",
+            "uncovered_intervals": []
+          },
+          {
+            "constraint_id": "minimum_elevation_deg",
+            "search_status": "complete_under_search_policy",
+            "uncovered_intervals": []
+          },
+          {
+            "constraint_id": "maximum_target_sun_elevation_deg",
+            "search_status": "complete_under_search_policy",
+            "uncovered_intervals": []
+          },
+          {
+            "constraint_id": "spacecraft_sunlit",
+            "search_status": "complete_under_search_policy",
+            "uncovered_intervals": []
+          },
+          {
+            "constraint_id": "specular_geometry",
+            "search_status": "complete_under_search_policy",
+            "uncovered_intervals": []
+          },
+          {
+            "constraint_id": "maximum_mirror_incidence_deg",
+            "search_status": "complete_under_search_policy",
+            "uncovered_intervals": []
+          },
+          {
+            "constraint_id": "tracking_rate_known",
+            "search_status": "complete_under_search_policy",
+            "uncovered_intervals": []
+          },
+          {
+            "constraint_id": "maximum_tracking_rate_deg_s",
+            "search_status": "complete_under_search_policy",
+            "uncovered_intervals": []
+          },
+          {
+            "constraint_id": "small_mirror_approximation",
+            "search_status": "complete_under_search_policy",
+            "uncovered_intervals": []
+          },
+          {
+            "constraint_id": "target_contained_in_nominal_footprint",
+            "search_status": "complete_under_search_policy",
+            "uncovered_intervals": []
+          },
+          {
+            "constraint_id": "minimum_nominal_irradiance_w_m2",
+            "search_status": "complete_under_search_policy",
+            "uncovered_intervals": []
+          }
+        ],
+        "excluded_unknown_intervals": [],
+        "failed_check_counts": {},
+        "opportunity_search_status": "complete_under_search_policy",
+        "rejected_window_reasons": {},
+        "status": "opportunities_found"
+      }
+    ],
+    "limits": [
+      "rejections describe evaluated starts in their trial timeline, not continuous infeasibility",
+      "neighboring activities are context; removing one is not proven sufficient to make a placement feasible",
+      "first failing checks are reported; later checks may not have been evaluated",
+      "a trial limit or exhausted neighborhood is not a global optimality proof"
+    ],
+    "opportunity_count": 3,
+    "placements": [
+      {
+        "assessment_reason": null,
+        "assessment_status": "infeasible_on_tested_start_grid",
+        "asset_id": "demo-1",
+        "attempt_reasons": {
+          "asset_conflict": 1,
+          "incoming_transition": 3,
+          "path_constraint_violated": 4
+        },
+        "attempts": [
+          {
+            "constraint_issues": [],
+            "evaluation_limits": [],
+            "incoming": {
+              "available_s": 40.5,
+              "destination_epoch_s": 820497640.5,
+              "reason": "insufficient_transition_time",
+              "required_s": 54.84543687093259,
+              "source_epoch_s": 820497600,
+              "status": "infeasible",
+              "time_margin_s": -14.345436870932588
+            },
+            "outgoing": {
+              "available_s": 0.0,
+              "destination_epoch_s": 820497660.5,
+              "reason": "insufficient_transition_time",
+              "required_s": 12.518316475576196,
+              "source_epoch_s": 820497660.5,
+              "status": "infeasible",
+              "time_margin_s": -12.518316475576196
+            },
+            "reason_code": "incoming_transition",
+            "start_s": 820497640.5,
+            "status": "infeasible",
+            "timeline_neighbors": {
+              "following": {
+                "asset_id": "demo-1",
+                "ends_at_s": 820497680.5,
+                "protected": true,
+                "request_id": "early-1",
+                "starts_at_s": 820497660.5
+              },
+              "previous": null
+            }
+          },
+          {
+            "conflicting_activities": [
+              {
+                "asset_id": "demo-1",
+                "ends_at_s": 820497680.5,
+                "protected": true,
+                "request_id": "early-1",
+                "starts_at_s": 820497660.5
+              }
+            ],
+            "constraint_issues": [],
+            "evaluation_limits": [],
+            "incoming": null,
+            "outgoing": null,
+            "reason_code": "asset_conflict",
+            "start_s": 820497660.5,
+            "status": "infeasible"
+          },
+          {
+            "constraint_issues": [],
+            "evaluation_limits": [],
+            "incoming": {
+              "available_s": 0.0,
+              "destination_epoch_s": 820497680.5,
+              "reason": "insufficient_transition_time",
+              "required_s": 13.162042031826267,
+              "source_epoch_s": 820497680.5,
+              "status": "infeasible",
+              "time_margin_s": -13.162042031826267
+            },
+            "outgoing": {
+              "available_s": 499.5,
+              "destination_epoch_s": 820498200,
+              "required_s": 67.39616278802188,
+              "source_epoch_s": 820497700.5,
+              "status": "ok",
+              "time_margin_s": 432.1038372119781
+            },
+            "reason_code": "incoming_transition",
+            "start_s": 820497680.5,
+            "status": "infeasible",
+            "timeline_neighbors": {
+              "following": null,
+              "previous": {
+                "asset_id": "demo-1",
+                "ends_at_s": 820497680.5,
+                "protected": true,
+                "request_id": "early-1",
+                "starts_at_s": 820497660.5
+              }
+            }
+          },
+          {
+            "constraint_issues": [],
+            "evaluation_limits": [],
+            "incoming": {
+              "available_s": 20.0,
+              "destination_epoch_s": 820497700.5,
+              "reason": "insufficient_transition_time",
+              "required_s": 21.462505213301277,
+              "source_epoch_s": 820497680.5,
+              "status": "infeasible",
+              "time_margin_s": -1.4625052133012773
+            },
+            "outgoing": {
+              "available_s": 479.5,
+              "destination_epoch_s": 820498200,
+              "required_s": 72.03730020937978,
+              "source_epoch_s": 820497720.5,
+              "status": "ok",
+              "time_margin_s": 407.4626997906202
+            },
+            "reason_code": "incoming_transition",
+            "start_s": 820497700.5,
+            "status": "infeasible",
+            "timeline_neighbors": {
+              "following": null,
+              "previous": {
+                "asset_id": "demo-1",
+                "ends_at_s": 820497680.5,
+                "protected": true,
+                "request_id": "early-1",
+                "starts_at_s": 820497660.5
+              }
+            }
+          },
+          {
+            "constraint_issues": [
+              {
+                "epoch_s": 820497735.5,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -1.8826507950031726,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "activity",
+                "status": "violated"
+              },
+              {
+                "epoch_s": 820497731.5,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -0.23620978712533258,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "activity",
+                "status": "violated"
+              }
+            ],
+            "evaluation_limits": [],
+            "incoming": {
+              "available_s": 40.0,
+              "destination_epoch_s": 820497720.5,
+              "required_s": 27.645419810462112,
+              "source_epoch_s": 820497680.5,
+              "status": "ok",
+              "time_margin_s": 12.354580189537888
+            },
+            "outgoing": {
+              "available_s": 459.5,
+              "destination_epoch_s": 820498200,
+              "required_s": 76.28622046137049,
+              "source_epoch_s": 820497740.5,
+              "status": "ok",
+              "time_margin_s": 383.2137795386295
+            },
+            "reason_code": "path_constraint_violated",
+            "start_s": 820497720.5,
+            "status": "infeasible",
+            "timeline_neighbors": {
+              "following": null,
+              "previous": {
+                "asset_id": "demo-1",
+                "ends_at_s": 820497680.5,
+                "protected": true,
+                "request_id": "early-1",
+                "starts_at_s": 820497660.5
+              }
+            }
+          },
+          {
+            "constraint_issues": [
+              {
+                "epoch_s": 820497730.5,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -0.8444851143227226,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "incoming",
+                "status": "violated"
+              }
+            ],
+            "evaluation_limits": [],
+            "incoming": {
+              "available_s": 60.0,
+              "destination_epoch_s": 820497740.5,
+              "required_s": 32.286654002402926,
+              "source_epoch_s": 820497680.5,
+              "status": "ok",
+              "time_margin_s": 27.713345997597074
+            },
+            "outgoing": {
+              "available_s": 439.5,
+              "destination_epoch_s": 820498200,
+              "required_s": 80.0161397558812,
+              "source_epoch_s": 820497760.5,
+              "status": "ok",
+              "time_margin_s": 359.4838602441188
+            },
+            "reason_code": "path_constraint_violated",
+            "start_s": 820497740.5,
+            "status": "infeasible",
+            "timeline_neighbors": {
+              "following": null,
+              "previous": {
+                "asset_id": "demo-1",
+                "ends_at_s": 820497680.5,
+                "protected": true,
+                "request_id": "early-1",
+                "starts_at_s": 820497660.5
+              }
+            }
+          },
+          {
+            "constraint_issues": [
+              {
+                "epoch_s": 820497746.540156,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -1.8511838038516544,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "incoming",
+                "status": "violated"
+              },
+              {
+                "epoch_s": 820497746.5,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -1.7757491141262705,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "incoming",
+                "status": "violated"
+              }
+            ],
+            "evaluation_limits": [],
+            "incoming": {
+              "available_s": 80.0,
+              "destination_epoch_s": 820497760.5,
+              "required_s": 36.22191228852521,
+              "source_epoch_s": 820497680.5,
+              "status": "ok",
+              "time_margin_s": 43.77808771147479
+            },
+            "outgoing": {
+              "available_s": 419.5,
+              "destination_epoch_s": 820498200,
+              "required_s": 83.23173594904152,
+              "source_epoch_s": 820497780.5,
+              "status": "ok",
+              "time_margin_s": 336.26826405095846
+            },
+            "reason_code": "path_constraint_violated",
+            "start_s": 820497760.5,
+            "status": "infeasible",
+            "timeline_neighbors": {
+              "following": null,
+              "previous": {
+                "asset_id": "demo-1",
+                "ends_at_s": 820497680.5,
+                "protected": true,
+                "request_id": "early-1",
+                "starts_at_s": 820497660.5
+              }
+            }
+          },
+          {
+            "constraint_issues": [
+              {
+                "epoch_s": 820497755.5,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -4.333161559433627,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "incoming",
+                "status": "violated"
+              },
+              {
+                "epoch_s": 820497753.5,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -0.5620552727648374,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "incoming",
+                "status": "violated"
+              }
+            ],
+            "evaluation_limits": [],
+            "incoming": {
+              "available_s": 89.0,
+              "destination_epoch_s": 820497769.5,
+              "required_s": 37.76885946083624,
+              "source_epoch_s": 820497680.5,
+              "status": "ok",
+              "time_margin_s": 51.23114053916376
+            },
+            "outgoing": {
+              "available_s": 410.5,
+              "destination_epoch_s": 820498200,
+              "required_s": 84.52741652635898,
+              "source_epoch_s": 820497789.5,
+              "status": "ok",
+              "time_margin_s": 325.972583473641
+            },
+            "reason_code": "path_constraint_violated",
+            "start_s": 820497769.5,
+            "status": "infeasible",
+            "timeline_neighbors": {
+              "following": null,
+              "previous": {
+                "asset_id": "demo-1",
+                "ends_at_s": 820497680.5,
+                "protected": true,
+                "request_id": "early-1",
+                "starts_at_s": 820497660.5
+              }
+            }
+          }
+        ],
+        "constraint_issues": [
+          {
+            "epoch_s": 820497730.5,
+            "id": "minimum_angle",
+            "kind": "path",
+            "margin": -0.8444851143227226,
+            "margin_unit": "deg",
+            "rule_id": "limb_axis",
+            "scope": "incoming",
+            "status": "violated"
+          },
+          {
+            "epoch_s": 820497731.5,
+            "id": "minimum_angle",
+            "kind": "path",
+            "margin": -0.23620978712533258,
+            "margin_unit": "deg",
+            "rule_id": "limb_axis",
+            "scope": "activity",
+            "status": "violated"
+          },
+          {
+            "epoch_s": 820497735.5,
+            "id": "minimum_angle",
+            "kind": "path",
+            "margin": -1.8826507950031726,
+            "margin_unit": "deg",
+            "rule_id": "limb_axis",
+            "scope": "activity",
+            "status": "violated"
+          },
+          {
+            "epoch_s": 820497746.5,
+            "id": "minimum_angle",
+            "kind": "path",
+            "margin": -1.7757491141262705,
+            "margin_unit": "deg",
+            "rule_id": "limb_axis",
+            "scope": "incoming",
+            "status": "violated"
+          },
+          {
+            "epoch_s": 820497746.540156,
+            "id": "minimum_angle",
+            "kind": "path",
+            "margin": -1.8511838038516544,
+            "margin_unit": "deg",
+            "rule_id": "limb_axis",
+            "scope": "incoming",
+            "status": "violated"
+          },
+          {
+            "epoch_s": 820497753.5,
+            "id": "minimum_angle",
+            "kind": "path",
+            "margin": -0.5620552727648374,
+            "margin_unit": "deg",
+            "rule_id": "limb_axis",
+            "scope": "incoming",
+            "status": "violated"
+          },
+          {
+            "epoch_s": 820497755.5,
+            "id": "minimum_angle",
+            "kind": "path",
+            "margin": -4.333161559433627,
+            "margin_unit": "deg",
+            "rule_id": "limb_axis",
+            "scope": "incoming",
+            "status": "violated"
+          }
+        ],
+        "coverage": "configured_grid_exhausted",
+        "decision": "planning_start_grid_infeasible",
+        "opportunity_id": "opportunity:6:demo-1:19:urgent-illumination:1",
+        "resource_ids": [],
+        "start_search_truncated": false,
+        "tested_start_count": 8
+      },
+      {
+        "assessment_reason": null,
+        "assessment_status": "infeasible_on_tested_start_grid",
+        "asset_id": "demo-2",
+        "attempt_reasons": {
+          "incoming_transition": 2,
+          "path_constraint_violated": 6
+        },
+        "attempts": [
+          {
+            "constraint_issues": [],
+            "evaluation_limits": [],
+            "incoming": {
+              "available_s": 40.5,
+              "destination_epoch_s": 820497640.5,
+              "reason": "insufficient_transition_time",
+              "required_s": 59.9657742827472,
+              "source_epoch_s": 820497600,
+              "status": "infeasible",
+              "time_margin_s": -19.465774282747198
+            },
+            "outgoing": {
+              "available_s": 539.5,
+              "destination_epoch_s": 820498200,
+              "required_s": 65.04988340775611,
+              "source_epoch_s": 820497660.5,
+              "status": "ok",
+              "time_margin_s": 474.4501165922439
+            },
+            "reason_code": "incoming_transition",
+            "start_s": 820497640.5,
+            "status": "infeasible",
+            "timeline_neighbors": {
+              "following": null,
+              "previous": null
+            }
+          },
+          {
+            "constraint_issues": [],
+            "evaluation_limits": [],
+            "incoming": {
+              "available_s": 60.5,
+              "destination_epoch_s": 820497660.5,
+              "reason": "insufficient_transition_time",
+              "required_s": 64.38838830337987,
+              "source_epoch_s": 820497600,
+              "status": "infeasible",
+              "time_margin_s": -3.8883883033798696
+            },
+            "outgoing": {
+              "available_s": 519.5,
+              "destination_epoch_s": 820498200,
+              "required_s": 69.78869861507877,
+              "source_epoch_s": 820497680.5,
+              "status": "ok",
+              "time_margin_s": 449.7113013849212
+            },
+            "reason_code": "incoming_transition",
+            "start_s": 820497660.5,
+            "status": "infeasible",
+            "timeline_neighbors": {
+              "following": null,
+              "previous": null
+            }
+          },
+          {
+            "constraint_issues": [
+              {
+                "epoch_s": 820497702.9627745,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -0.13816406452728813,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "terminal",
+                "status": "violated"
+              },
+              {
+                "epoch_s": 820497701.5,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -0.018436146768237904,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "terminal",
+                "status": "violated"
+              }
+            ],
+            "evaluation_limits": [],
+            "incoming": {
+              "available_s": 80.5,
+              "destination_epoch_s": 820497680.5,
+              "required_s": 69.12499940146958,
+              "source_epoch_s": 820497600,
+              "status": "ok",
+              "time_margin_s": 11.37500059853042
+            },
+            "outgoing": {
+              "available_s": 499.5,
+              "destination_epoch_s": 820498200,
+              "required_s": 74.2823884089088,
+              "source_epoch_s": 820497700.5,
+              "status": "ok",
+              "time_margin_s": 425.2176115910912
+            },
+            "reason_code": "path_constraint_violated",
+            "start_s": 820497680.5,
+            "status": "infeasible",
+            "timeline_neighbors": {
+              "following": null,
+              "previous": null
+            }
+          },
+          {
+            "constraint_issues": [
+              {
+                "epoch_s": 820497705.5,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -1.7717299332755374,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "activity",
+                "status": "violated"
+              },
+              {
+                "epoch_s": 820497701.5,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -0.11539328000684179,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "activity",
+                "status": "violated"
+              }
+            ],
+            "evaluation_limits": [],
+            "incoming": {
+              "available_s": 100.5,
+              "destination_epoch_s": 820497700.5,
+              "required_s": 73.7108204485906,
+              "source_epoch_s": 820497600,
+              "status": "ok",
+              "time_margin_s": 26.789179551409404
+            },
+            "outgoing": {
+              "available_s": 479.5,
+              "destination_epoch_s": 820498200,
+              "required_s": 78.29856948918405,
+              "source_epoch_s": 820497720.5,
+              "status": "ok",
+              "time_margin_s": 401.20143051081595
+            },
+            "reason_code": "path_constraint_violated",
+            "start_s": 820497700.5,
+            "status": "infeasible",
+            "timeline_neighbors": {
+              "following": null,
+              "previous": null
+            }
+          },
+          {
+            "constraint_issues": [
+              {
+                "epoch_s": 820497710.0,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -3.7603947146850842,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "incoming",
+                "status": "violated"
+              },
+              {
+                "epoch_s": 820497708.0,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -0.975884660344164,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "incoming",
+                "status": "violated"
+              }
+            ],
+            "evaluation_limits": [],
+            "incoming": {
+              "available_s": 120.5,
+              "destination_epoch_s": 820497720.5,
+              "required_s": 77.85558450945976,
+              "source_epoch_s": 820497600,
+              "status": "ok",
+              "time_margin_s": 42.64441549054024
+            },
+            "outgoing": {
+              "available_s": 459.5,
+              "destination_epoch_s": 820498200,
+              "required_s": 81.7822863136439,
+              "source_epoch_s": 820497740.5,
+              "status": "ok",
+              "time_margin_s": 377.7177136863561
+            },
+            "reason_code": "path_constraint_violated",
+            "start_s": 820497720.5,
+            "status": "infeasible",
+            "timeline_neighbors": {
+              "following": null,
+              "previous": null
+            }
+          },
+          {
+            "constraint_issues": [
+              {
+                "epoch_s": 820497725.0,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -1.5748985319596613,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "incoming",
+                "status": "violated"
+              }
+            ],
+            "evaluation_limits": [],
+            "incoming": {
+              "available_s": 140.5,
+              "destination_epoch_s": 820497740.5,
+              "required_s": 81.45807013565997,
+              "source_epoch_s": 820497600,
+              "status": "ok",
+              "time_margin_s": 59.041929864340034
+            },
+            "outgoing": {
+              "available_s": 439.5,
+              "destination_epoch_s": 820498200,
+              "required_s": 84.77524874359774,
+              "source_epoch_s": 820497760.5,
+              "status": "ok",
+              "time_margin_s": 354.72475125640227
+            },
+            "reason_code": "path_constraint_violated",
+            "start_s": 820497740.5,
+            "status": "infeasible",
+            "timeline_neighbors": {
+              "following": null,
+              "previous": null
+            }
+          },
+          {
+            "constraint_issues": [
+              {
+                "epoch_s": 820497745.0,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -6.435138569164877,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "incoming",
+                "status": "violated"
+              },
+              {
+                "epoch_s": 820497742.0,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -0.7048344618181517,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "incoming",
+                "status": "violated"
+              }
+            ],
+            "evaluation_limits": [],
+            "incoming": {
+              "available_s": 160.5,
+              "destination_epoch_s": 820497760.5,
+              "required_s": 84.54069636704726,
+              "source_epoch_s": 820497600,
+              "status": "ok",
+              "time_margin_s": 75.95930363295274
+            },
+            "outgoing": {
+              "available_s": 419.5,
+              "destination_epoch_s": 820498200,
+              "required_s": 87.3560047156872,
+              "source_epoch_s": 820497780.5,
+              "status": "ok",
+              "time_margin_s": 332.1439952843128
+            },
+            "reason_code": "path_constraint_violated",
+            "start_s": 820497760.5,
+            "status": "infeasible",
+            "timeline_neighbors": {
+              "following": null,
+              "previous": null
+            }
+          },
+          {
+            "constraint_issues": [
+              {
+                "epoch_s": 820497750.0,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -0.6280884673144556,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "incoming",
+                "status": "violated"
+              }
+            ],
+            "evaluation_limits": [],
+            "incoming": {
+              "available_s": 169.5,
+              "destination_epoch_s": 820497769.5,
+              "required_s": 85.7781631564722,
+              "source_epoch_s": 820497600,
+              "status": "ok",
+              "time_margin_s": 83.7218368435278
+            },
+            "outgoing": {
+              "available_s": 410.5,
+              "destination_epoch_s": 820498200,
+              "required_s": 88.40398699257476,
+              "source_epoch_s": 820497789.5,
+              "status": "ok",
+              "time_margin_s": 322.09601300742526
+            },
+            "reason_code": "path_constraint_violated",
+            "start_s": 820497769.5,
+            "status": "infeasible",
+            "timeline_neighbors": {
+              "following": null,
+              "previous": null
+            }
+          }
+        ],
+        "constraint_issues": [
+          {
+            "epoch_s": 820497701.5,
+            "id": "minimum_angle",
+            "kind": "path",
+            "margin": -0.11539328000684179,
+            "margin_unit": "deg",
+            "rule_id": "limb_axis",
+            "scope": "activity",
+            "status": "violated"
+          },
+          {
+            "epoch_s": 820497701.5,
+            "id": "minimum_angle",
+            "kind": "path",
+            "margin": -0.018436146768237904,
+            "margin_unit": "deg",
+            "rule_id": "limb_axis",
+            "scope": "terminal",
+            "status": "violated"
+          },
+          {
+            "epoch_s": 820497702.9627745,
+            "id": "minimum_angle",
+            "kind": "path",
+            "margin": -0.13816406452728813,
+            "margin_unit": "deg",
+            "rule_id": "limb_axis",
+            "scope": "terminal",
+            "status": "violated"
+          },
+          {
+            "epoch_s": 820497705.5,
+            "id": "minimum_angle",
+            "kind": "path",
+            "margin": -1.7717299332755374,
+            "margin_unit": "deg",
+            "rule_id": "limb_axis",
+            "scope": "activity",
+            "status": "violated"
+          },
+          {
+            "epoch_s": 820497708.0,
+            "id": "minimum_angle",
+            "kind": "path",
+            "margin": -0.975884660344164,
+            "margin_unit": "deg",
+            "rule_id": "limb_axis",
+            "scope": "incoming",
+            "status": "violated"
+          },
+          {
+            "epoch_s": 820497710.0,
+            "id": "minimum_angle",
+            "kind": "path",
+            "margin": -3.7603947146850842,
+            "margin_unit": "deg",
+            "rule_id": "limb_axis",
+            "scope": "incoming",
+            "status": "violated"
+          },
+          {
+            "epoch_s": 820497725.0,
+            "id": "minimum_angle",
+            "kind": "path",
+            "margin": -1.5748985319596613,
+            "margin_unit": "deg",
+            "rule_id": "limb_axis",
+            "scope": "incoming",
+            "status": "violated"
+          },
+          {
+            "epoch_s": 820497742.0,
+            "id": "minimum_angle",
+            "kind": "path",
+            "margin": -0.7048344618181517,
+            "margin_unit": "deg",
+            "rule_id": "limb_axis",
+            "scope": "incoming",
+            "status": "violated"
+          },
+          {
+            "epoch_s": 820497745.0,
+            "id": "minimum_angle",
+            "kind": "path",
+            "margin": -6.435138569164877,
+            "margin_unit": "deg",
+            "rule_id": "limb_axis",
+            "scope": "incoming",
+            "status": "violated"
+          },
+          {
+            "epoch_s": 820497750.0,
+            "id": "minimum_angle",
+            "kind": "path",
+            "margin": -0.6280884673144556,
+            "margin_unit": "deg",
+            "rule_id": "limb_axis",
+            "scope": "incoming",
+            "status": "violated"
+          }
+        ],
+        "coverage": "configured_grid_exhausted",
+        "decision": "planning_start_grid_infeasible",
+        "opportunity_id": "opportunity:6:demo-2:19:urgent-illumination:1",
+        "resource_ids": [],
+        "start_search_truncated": false,
+        "tested_start_count": 8
+      },
+      {
+        "assessment_reason": null,
+        "assessment_status": "infeasible_on_tested_start_grid",
+        "asset_id": "demo-3",
+        "attempt_reasons": {
+          "incoming_transition": 2,
+          "path_constraint_violated": 6
+        },
+        "attempts": [
+          {
+            "constraint_issues": [],
+            "evaluation_limits": [],
+            "incoming": {
+              "available_s": 40.5,
+              "destination_epoch_s": 820497640.5,
+              "reason": "insufficient_transition_time",
+              "required_s": 66.78508755742062,
+              "source_epoch_s": 820497600,
+              "status": "infeasible",
+              "time_margin_s": -26.285087557420624
+            },
+            "outgoing": {
+              "available_s": 539.5,
+              "destination_epoch_s": 820498200,
+              "required_s": 72.1420762294994,
+              "source_epoch_s": 820497660.5,
+              "status": "ok",
+              "time_margin_s": 467.35792377050063
+            },
+            "reason_code": "incoming_transition",
+            "start_s": 820497640.5,
+            "status": "infeasible",
+            "timeline_neighbors": {
+              "following": null,
+              "previous": null
+            }
+          },
+          {
+            "constraint_issues": [],
+            "evaluation_limits": [],
+            "incoming": {
+              "available_s": 60.5,
+              "destination_epoch_s": 820497660.5,
+              "reason": "insufficient_transition_time",
+              "required_s": 71.51064683781088,
+              "source_epoch_s": 820497600,
+              "status": "infeasible",
+              "time_margin_s": -11.010646837810881
+            },
+            "outgoing": {
+              "available_s": 519.5,
+              "destination_epoch_s": 820498200,
+              "required_s": 76.434905161504,
+              "source_epoch_s": 820497680.5,
+              "status": "ok",
+              "time_margin_s": 443.065094838496
+            },
+            "reason_code": "incoming_transition",
+            "start_s": 820497660.5,
+            "status": "infeasible",
+            "timeline_neighbors": {
+              "following": null,
+              "previous": null
+            }
+          },
+          {
+            "constraint_issues": [
+              {
+                "epoch_s": 820497670.0,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -0.036419064610441865,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "incoming",
+                "status": "violated"
+              }
+            ],
+            "evaluation_limits": [],
+            "incoming": {
+              "available_s": 80.5,
+              "destination_epoch_s": 820497680.5,
+              "required_s": 75.92155622978817,
+              "source_epoch_s": 820497600,
+              "status": "ok",
+              "time_margin_s": 4.578443770211834
+            },
+            "outgoing": {
+              "available_s": 499.5,
+              "destination_epoch_s": 820498200,
+              "required_s": 80.20247866084493,
+              "source_epoch_s": 820497700.5,
+              "status": "ok",
+              "time_margin_s": 419.2975213391551
+            },
+            "reason_code": "path_constraint_violated",
+            "start_s": 820497680.5,
+            "status": "infeasible",
+            "timeline_neighbors": {
+              "following": null,
+              "previous": null
+            }
+          },
+          {
+            "constraint_issues": [
+              {
+                "epoch_s": 820497686.5231383,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -1.577761132229,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "incoming",
+                "status": "violated"
+              },
+              {
+                "epoch_s": 820497686.0,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -0.5777592566401069,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "incoming",
+                "status": "violated"
+              }
+            ],
+            "evaluation_limits": [],
+            "incoming": {
+              "available_s": 100.5,
+              "destination_epoch_s": 820497700.5,
+              "required_s": 79.81844237685397,
+              "source_epoch_s": 820497600,
+              "status": "ok",
+              "time_margin_s": 20.681557623146034
+            },
+            "outgoing": {
+              "available_s": 479.5,
+              "destination_epoch_s": 820498200,
+              "required_s": 83.44548402721213,
+              "source_epoch_s": 820497720.5,
+              "status": "ok",
+              "time_margin_s": 396.05451597278784
+            },
+            "reason_code": "path_constraint_violated",
+            "start_s": 820497700.5,
+            "status": "infeasible",
+            "timeline_neighbors": {
+              "following": null,
+              "previous": null
+            }
+          },
+          {
+            "constraint_issues": [
+              {
+                "epoch_s": 820497705.0,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -4.128161161844908,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "incoming",
+                "status": "violated"
+              },
+              {
+                "epoch_s": 820497703.0,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -0.30886385379398007,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "incoming",
+                "status": "violated"
+              }
+            ],
+            "evaluation_limits": [],
+            "incoming": {
+              "available_s": 120.5,
+              "destination_epoch_s": 820497720.5,
+              "required_s": 83.16793477053949,
+              "source_epoch_s": 820497600,
+              "status": "ok",
+              "time_margin_s": 37.33206522946051
+            },
+            "outgoing": {
+              "available_s": 459.5,
+              "destination_epoch_s": 820498200,
+              "required_s": 86.23039532344583,
+              "source_epoch_s": 820497740.5,
+              "status": "ok",
+              "time_margin_s": 373.2696046765542
+            },
+            "reason_code": "path_constraint_violated",
+            "start_s": 820497720.5,
+            "status": "infeasible",
+            "timeline_neighbors": {
+              "following": null,
+              "previous": null
+            }
+          },
+          {
+            "constraint_issues": [
+              {
+                "epoch_s": 820497725.0,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -8.389384464456612,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "incoming",
+                "status": "violated"
+              },
+              {
+                "epoch_s": 820497721.0,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -0.7856793045197605,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "incoming",
+                "status": "violated"
+              }
+            ],
+            "evaluation_limits": [],
+            "incoming": {
+              "available_s": 140.5,
+              "destination_epoch_s": 820497740.5,
+              "required_s": 86.02712467086032,
+              "source_epoch_s": 820497600,
+              "status": "ok",
+              "time_margin_s": 54.47287532913968
+            },
+            "outgoing": {
+              "available_s": 439.5,
+              "destination_epoch_s": 820498200,
+              "required_s": 88.63820400330853,
+              "source_epoch_s": 820497760.5,
+              "status": "ok",
+              "time_margin_s": 350.86179599669146
+            },
+            "reason_code": "path_constraint_violated",
+            "start_s": 820497740.5,
+            "status": "infeasible",
+            "timeline_neighbors": {
+              "following": null,
+              "previous": null
+            }
+          },
+          {
+            "constraint_issues": [
+              {
+                "epoch_s": 820497740.0,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -2.1048349376784543,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "incoming",
+                "status": "violated"
+              },
+              {
+                "epoch_s": 820497739.0,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -0.2167635699354804,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "incoming",
+                "status": "violated"
+              }
+            ],
+            "evaluation_limits": [],
+            "incoming": {
+              "available_s": 160.5,
+              "destination_epoch_s": 820497760.5,
+              "required_s": 88.48076174715476,
+              "source_epoch_s": 820497600,
+              "status": "ok",
+              "time_margin_s": 72.01923825284524
+            },
+            "outgoing": {
+              "available_s": 419.5,
+              "destination_epoch_s": 820498200,
+              "required_s": 90.72885616155361,
+              "source_epoch_s": 820497780.5,
+              "status": "ok",
+              "time_margin_s": 328.7711438384464
+            },
+            "reason_code": "path_constraint_violated",
+            "start_s": 820497760.5,
+            "status": "infeasible",
+            "timeline_neighbors": {
+              "following": null,
+              "previous": null
+            }
+          },
+          {
+            "constraint_issues": [
+              {
+                "epoch_s": 820497750.0,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -5.0763526812377435,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "incoming",
+                "status": "violated"
+              },
+              {
+                "epoch_s": 820497748.0,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -1.3270610403912144,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "incoming",
+                "status": "violated"
+              }
+            ],
+            "evaluation_limits": [],
+            "incoming": {
+              "available_s": 169.5,
+              "destination_epoch_s": 820497769.5,
+              "required_s": 89.47223036078813,
+              "source_epoch_s": 820497600,
+              "status": "ok",
+              "time_margin_s": 80.02776963921187
+            },
+            "outgoing": {
+              "available_s": 410.5,
+              "destination_epoch_s": 820498200,
+              "required_s": 91.57399601152733,
+              "source_epoch_s": 820497789.5,
+              "status": "ok",
+              "time_margin_s": 318.92600398847264
+            },
+            "reason_code": "path_constraint_violated",
+            "start_s": 820497769.5,
+            "status": "infeasible",
+            "timeline_neighbors": {
+              "following": null,
+              "previous": null
+            }
+          }
+        ],
+        "constraint_issues": [
+          {
+            "epoch_s": 820497670.0,
+            "id": "minimum_angle",
+            "kind": "path",
+            "margin": -0.036419064610441865,
+            "margin_unit": "deg",
+            "rule_id": "limb_axis",
+            "scope": "incoming",
+            "status": "violated"
+          },
+          {
+            "epoch_s": 820497686.0,
+            "id": "minimum_angle",
+            "kind": "path",
+            "margin": -0.5777592566401069,
+            "margin_unit": "deg",
+            "rule_id": "limb_axis",
+            "scope": "incoming",
+            "status": "violated"
+          },
+          {
+            "epoch_s": 820497686.5231383,
+            "id": "minimum_angle",
+            "kind": "path",
+            "margin": -1.577761132229,
+            "margin_unit": "deg",
+            "rule_id": "limb_axis",
+            "scope": "incoming",
+            "status": "violated"
+          },
+          {
+            "epoch_s": 820497703.0,
+            "id": "minimum_angle",
+            "kind": "path",
+            "margin": -0.30886385379398007,
+            "margin_unit": "deg",
+            "rule_id": "limb_axis",
+            "scope": "incoming",
+            "status": "violated"
+          },
+          {
+            "epoch_s": 820497705.0,
+            "id": "minimum_angle",
+            "kind": "path",
+            "margin": -4.128161161844908,
+            "margin_unit": "deg",
+            "rule_id": "limb_axis",
+            "scope": "incoming",
+            "status": "violated"
+          },
+          {
+            "epoch_s": 820497721.0,
+            "id": "minimum_angle",
+            "kind": "path",
+            "margin": -0.7856793045197605,
+            "margin_unit": "deg",
+            "rule_id": "limb_axis",
+            "scope": "incoming",
+            "status": "violated"
+          },
+          {
+            "epoch_s": 820497725.0,
+            "id": "minimum_angle",
+            "kind": "path",
+            "margin": -8.389384464456612,
+            "margin_unit": "deg",
+            "rule_id": "limb_axis",
+            "scope": "incoming",
+            "status": "violated"
+          },
+          {
+            "epoch_s": 820497739.0,
+            "id": "minimum_angle",
+            "kind": "path",
+            "margin": -0.2167635699354804,
+            "margin_unit": "deg",
+            "rule_id": "limb_axis",
+            "scope": "incoming",
+            "status": "violated"
+          },
+          {
+            "epoch_s": 820497740.0,
+            "id": "minimum_angle",
+            "kind": "path",
+            "margin": -2.1048349376784543,
+            "margin_unit": "deg",
+            "rule_id": "limb_axis",
+            "scope": "incoming",
+            "status": "violated"
+          },
+          {
+            "epoch_s": 820497748.0,
+            "id": "minimum_angle",
+            "kind": "path",
+            "margin": -1.3270610403912144,
+            "margin_unit": "deg",
+            "rule_id": "limb_axis",
+            "scope": "incoming",
+            "status": "violated"
+          },
+          {
+            "epoch_s": 820497750.0,
+            "id": "minimum_angle",
+            "kind": "path",
+            "margin": -5.0763526812377435,
+            "margin_unit": "deg",
+            "rule_id": "limb_axis",
+            "scope": "incoming",
+            "status": "violated"
+          }
+        ],
+        "coverage": "configured_grid_exhausted",
+        "decision": "planning_start_grid_infeasible",
+        "opportunity_id": "opportunity:6:demo-3:19:urgent-illumination:1",
+        "resource_ids": [],
+        "start_search_truncated": false,
+        "tested_start_count": 8
+      }
+    ],
+    "reasons": [
+      "planning_start_grid_infeasible"
+    ],
+    "request_id": "urgent-illumination",
+    "search": {
+      "max_trials": 4,
+      "request_trial_evidence": "captured",
+      "status": "trial_limit_reached",
+      "strategy": "Elixir.OrbitalDynamics.MissionAnalysis.Scheduling.Replacement",
+      "trial_count": 4,
+      "trials": [
+        {
+          "accepted": true,
+          "reason": "greedy_baseline",
+          "request_outcome": {
+            "attempt_reasons": {
+              "asset_conflict": 1,
+              "incoming_transition": 7,
+              "path_constraint_violated": 16
+            },
+            "constraint_issues": [
+              {
+                "epoch_s": 820497670.0,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -0.036419064610441865,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "incoming",
+                "status": "violated"
+              },
+              {
+                "epoch_s": 820497686.0,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -0.5777592566401069,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "incoming",
+                "status": "violated"
+              },
+              {
+                "epoch_s": 820497686.5231383,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -1.577761132229,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "incoming",
+                "status": "violated"
+              },
+              {
+                "epoch_s": 820497701.5,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -0.11539328000684179,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "activity",
+                "status": "violated"
+              },
+              {
+                "epoch_s": 820497701.5,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -0.018436146768237904,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "terminal",
+                "status": "violated"
+              },
+              {
+                "epoch_s": 820497702.9627745,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -0.13816406452728813,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "terminal",
+                "status": "violated"
+              },
+              {
+                "epoch_s": 820497703.0,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -0.30886385379398007,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "incoming",
+                "status": "violated"
+              },
+              {
+                "epoch_s": 820497705.0,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -4.128161161844908,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "incoming",
+                "status": "violated"
+              },
+              {
+                "epoch_s": 820497705.5,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -1.7717299332755374,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "activity",
+                "status": "violated"
+              },
+              {
+                "epoch_s": 820497708.0,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -0.975884660344164,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "incoming",
+                "status": "violated"
+              },
+              {
+                "epoch_s": 820497710.0,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -3.7603947146850842,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "incoming",
+                "status": "violated"
+              },
+              {
+                "epoch_s": 820497721.0,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -0.7856793045197605,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "incoming",
+                "status": "violated"
+              },
+              {
+                "epoch_s": 820497725.0,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -8.389384464456612,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "incoming",
+                "status": "violated"
+              },
+              {
+                "epoch_s": 820497725.0,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -1.5748985319596613,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "incoming",
+                "status": "violated"
+              },
+              {
+                "epoch_s": 820497730.5,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -0.8444851143227226,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "incoming",
+                "status": "violated"
+              },
+              {
+                "epoch_s": 820497731.5,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -0.23620978712533258,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "activity",
+                "status": "violated"
+              },
+              {
+                "epoch_s": 820497735.5,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -1.8826507950031726,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "activity",
+                "status": "violated"
+              },
+              {
+                "epoch_s": 820497739.0,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -0.2167635699354804,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "incoming",
+                "status": "violated"
+              },
+              {
+                "epoch_s": 820497740.0,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -2.1048349376784543,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "incoming",
+                "status": "violated"
+              },
+              {
+                "epoch_s": 820497742.0,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -0.7048344618181517,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "incoming",
+                "status": "violated"
+              },
+              {
+                "epoch_s": 820497745.0,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -6.435138569164877,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "incoming",
+                "status": "violated"
+              },
+              {
+                "epoch_s": 820497746.5,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -1.7757491141262705,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "incoming",
+                "status": "violated"
+              },
+              {
+                "epoch_s": 820497746.540156,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -1.8511838038516544,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "incoming",
+                "status": "violated"
+              },
+              {
+                "epoch_s": 820497748.0,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -1.3270610403912144,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "incoming",
+                "status": "violated"
+              },
+              {
+                "epoch_s": 820497750.0,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -5.0763526812377435,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "incoming",
+                "status": "violated"
+              },
+              {
+                "epoch_s": 820497750.0,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -0.6280884673144556,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "incoming",
+                "status": "violated"
+              },
+              {
+                "epoch_s": 820497753.5,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -0.5620552727648374,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "incoming",
+                "status": "violated"
+              },
+              {
+                "epoch_s": 820497755.5,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -4.333161559433627,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "incoming",
+                "status": "violated"
+              }
+            ],
+            "decision_count": 3,
+            "decision_reasons": {
+              "planning_start_grid_infeasible": 3
+            },
+            "request_id": "urgent-illumination",
+            "selected": false,
+            "start_search_truncated": false,
+            "tested_start_count": 24,
+            "unknown_assessment_count": 0
+          },
+          "trial": 1
+        },
+        {
+          "accepted": false,
+          "endpoint_eligibility": "supported",
+          "proposal": {
+            "deferred_request_id": "early-2",
+            "previous_asset_id": "demo-2"
+          },
+          "reason": "no_value_improvement",
+          "request_outcome": {
+            "attempt_reasons": {
+              "asset_conflict": 1,
+              "incoming_transition": 7,
+              "path_constraint_violated": 16
+            },
+            "constraint_issues": [
+              {
+                "epoch_s": 820497670.0,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -0.036419064610441865,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "incoming",
+                "status": "violated"
+              },
+              {
+                "epoch_s": 820497686.0,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -0.5777592566401069,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "incoming",
+                "status": "violated"
+              },
+              {
+                "epoch_s": 820497686.5231383,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -1.577761132229,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "incoming",
+                "status": "violated"
+              },
+              {
+                "epoch_s": 820497701.5,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -0.11539328000684179,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "activity",
+                "status": "violated"
+              },
+              {
+                "epoch_s": 820497701.5,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -0.018436146768237904,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "terminal",
+                "status": "violated"
+              },
+              {
+                "epoch_s": 820497702.9627745,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -0.13816406452728813,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "terminal",
+                "status": "violated"
+              },
+              {
+                "epoch_s": 820497703.0,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -0.30886385379398007,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "incoming",
+                "status": "violated"
+              },
+              {
+                "epoch_s": 820497705.0,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -4.128161161844908,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "incoming",
+                "status": "violated"
+              },
+              {
+                "epoch_s": 820497705.5,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -1.7717299332755374,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "activity",
+                "status": "violated"
+              },
+              {
+                "epoch_s": 820497708.0,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -0.975884660344164,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "incoming",
+                "status": "violated"
+              },
+              {
+                "epoch_s": 820497710.0,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -3.7603947146850842,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "incoming",
+                "status": "violated"
+              },
+              {
+                "epoch_s": 820497721.0,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -0.7856793045197605,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "incoming",
+                "status": "violated"
+              },
+              {
+                "epoch_s": 820497725.0,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -8.389384464456612,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "incoming",
+                "status": "violated"
+              },
+              {
+                "epoch_s": 820497725.0,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -1.5748985319596613,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "incoming",
+                "status": "violated"
+              },
+              {
+                "epoch_s": 820497730.5,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -0.8444851143227226,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "incoming",
+                "status": "violated"
+              },
+              {
+                "epoch_s": 820497731.5,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -0.23620978712533258,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "activity",
+                "status": "violated"
+              },
+              {
+                "epoch_s": 820497735.5,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -1.8826507950031726,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "activity",
+                "status": "violated"
+              },
+              {
+                "epoch_s": 820497739.0,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -0.2167635699354804,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "incoming",
+                "status": "violated"
+              },
+              {
+                "epoch_s": 820497740.0,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -2.1048349376784543,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "incoming",
+                "status": "violated"
+              },
+              {
+                "epoch_s": 820497742.0,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -0.7048344618181517,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "incoming",
+                "status": "violated"
+              },
+              {
+                "epoch_s": 820497745.0,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -6.435138569164877,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "incoming",
+                "status": "violated"
+              },
+              {
+                "epoch_s": 820497746.5,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -1.7757491141262705,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "incoming",
+                "status": "violated"
+              },
+              {
+                "epoch_s": 820497746.540156,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -1.8511838038516544,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "incoming",
+                "status": "violated"
+              },
+              {
+                "epoch_s": 820497748.0,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -1.3270610403912144,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "incoming",
+                "status": "violated"
+              },
+              {
+                "epoch_s": 820497750.0,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -5.0763526812377435,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "incoming",
+                "status": "violated"
+              },
+              {
+                "epoch_s": 820497750.0,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -0.6280884673144556,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "incoming",
+                "status": "violated"
+              },
+              {
+                "epoch_s": 820497753.5,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -0.5620552727648374,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "incoming",
+                "status": "violated"
+              },
+              {
+                "epoch_s": 820497755.5,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -4.333161559433627,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "incoming",
+                "status": "violated"
+              }
+            ],
+            "decision_count": 3,
+            "decision_reasons": {
+              "planning_start_grid_infeasible": 3
+            },
+            "request_id": "urgent-illumination",
+            "selected": false,
+            "start_search_truncated": false,
+            "tested_start_count": 24,
+            "unknown_assessment_count": 0
+          },
+          "trial": 2
+        },
+        {
+          "accepted": false,
+          "endpoint_eligibility": "supported",
+          "proposal": {
+            "deferred_request_id": "early-3",
+            "previous_asset_id": "demo-3"
+          },
+          "reason": "no_value_improvement",
+          "request_outcome": {
+            "attempt_reasons": {
+              "asset_conflict": 1,
+              "incoming_transition": 7,
+              "path_constraint_violated": 16
+            },
+            "constraint_issues": [
+              {
+                "epoch_s": 820497670.0,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -0.036419064610441865,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "incoming",
+                "status": "violated"
+              },
+              {
+                "epoch_s": 820497686.0,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -0.5777592566401069,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "incoming",
+                "status": "violated"
+              },
+              {
+                "epoch_s": 820497686.5231383,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -1.577761132229,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "incoming",
+                "status": "violated"
+              },
+              {
+                "epoch_s": 820497701.5,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -0.11539328000684179,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "activity",
+                "status": "violated"
+              },
+              {
+                "epoch_s": 820497701.5,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -0.018436146768237904,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "terminal",
+                "status": "violated"
+              },
+              {
+                "epoch_s": 820497702.9627745,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -0.13816406452728813,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "terminal",
+                "status": "violated"
+              },
+              {
+                "epoch_s": 820497703.0,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -0.30886385379398007,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "incoming",
+                "status": "violated"
+              },
+              {
+                "epoch_s": 820497705.0,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -4.128161161844908,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "incoming",
+                "status": "violated"
+              },
+              {
+                "epoch_s": 820497705.5,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -1.7717299332755374,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "activity",
+                "status": "violated"
+              },
+              {
+                "epoch_s": 820497708.0,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -0.975884660344164,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "incoming",
+                "status": "violated"
+              },
+              {
+                "epoch_s": 820497710.0,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -3.7603947146850842,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "incoming",
+                "status": "violated"
+              },
+              {
+                "epoch_s": 820497721.0,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -0.7856793045197605,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "incoming",
+                "status": "violated"
+              },
+              {
+                "epoch_s": 820497725.0,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -8.389384464456612,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "incoming",
+                "status": "violated"
+              },
+              {
+                "epoch_s": 820497725.0,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -1.5748985319596613,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "incoming",
+                "status": "violated"
+              },
+              {
+                "epoch_s": 820497730.5,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -0.8444851143227226,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "incoming",
+                "status": "violated"
+              },
+              {
+                "epoch_s": 820497731.5,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -0.23620978712533258,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "activity",
+                "status": "violated"
+              },
+              {
+                "epoch_s": 820497735.5,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -1.8826507950031726,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "activity",
+                "status": "violated"
+              },
+              {
+                "epoch_s": 820497739.0,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -0.2167635699354804,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "incoming",
+                "status": "violated"
+              },
+              {
+                "epoch_s": 820497740.0,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -2.1048349376784543,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "incoming",
+                "status": "violated"
+              },
+              {
+                "epoch_s": 820497742.0,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -0.7048344618181517,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "incoming",
+                "status": "violated"
+              },
+              {
+                "epoch_s": 820497745.0,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -6.435138569164877,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "incoming",
+                "status": "violated"
+              },
+              {
+                "epoch_s": 820497746.5,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -1.7757491141262705,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "incoming",
+                "status": "violated"
+              },
+              {
+                "epoch_s": 820497746.540156,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -1.8511838038516544,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "incoming",
+                "status": "violated"
+              },
+              {
+                "epoch_s": 820497748.0,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -1.3270610403912144,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "incoming",
+                "status": "violated"
+              },
+              {
+                "epoch_s": 820497750.0,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -5.0763526812377435,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "incoming",
+                "status": "violated"
+              },
+              {
+                "epoch_s": 820497750.0,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -0.6280884673144556,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "incoming",
+                "status": "violated"
+              },
+              {
+                "epoch_s": 820497753.5,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -0.5620552727648374,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "incoming",
+                "status": "violated"
+              },
+              {
+                "epoch_s": 820497755.5,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -4.333161559433627,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "incoming",
+                "status": "violated"
+              }
+            ],
+            "decision_count": 3,
+            "decision_reasons": {
+              "planning_start_grid_infeasible": 3
+            },
+            "request_id": "urgent-illumination",
+            "selected": false,
+            "start_search_truncated": false,
+            "tested_start_count": 24,
+            "unknown_assessment_count": 0
+          },
+          "trial": 3
+        },
+        {
+          "accepted": false,
+          "endpoint_eligibility": "supported",
+          "proposal": {
+            "deferred_request_id": "late-1",
+            "previous_asset_id": "demo-3"
+          },
+          "reason": "no_value_improvement",
+          "request_outcome": {
+            "attempt_reasons": {
+              "asset_conflict": 1,
+              "incoming_transition": 7,
+              "path_constraint_violated": 16
+            },
+            "constraint_issues": [
+              {
+                "epoch_s": 820497670.0,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -0.036419064610441865,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "incoming",
+                "status": "violated"
+              },
+              {
+                "epoch_s": 820497686.0,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -0.5777592566401069,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "incoming",
+                "status": "violated"
+              },
+              {
+                "epoch_s": 820497686.5231383,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -1.577761132229,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "incoming",
+                "status": "violated"
+              },
+              {
+                "epoch_s": 820497701.5,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -0.11539328000684179,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "activity",
+                "status": "violated"
+              },
+              {
+                "epoch_s": 820497701.5,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -0.018436146768237904,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "terminal",
+                "status": "violated"
+              },
+              {
+                "epoch_s": 820497702.9627745,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -0.13816406452728813,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "terminal",
+                "status": "violated"
+              },
+              {
+                "epoch_s": 820497703.0,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -0.30886385379398007,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "incoming",
+                "status": "violated"
+              },
+              {
+                "epoch_s": 820497705.0,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -4.128161161844908,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "incoming",
+                "status": "violated"
+              },
+              {
+                "epoch_s": 820497705.5,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -1.7717299332755374,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "activity",
+                "status": "violated"
+              },
+              {
+                "epoch_s": 820497708.0,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -0.975884660344164,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "incoming",
+                "status": "violated"
+              },
+              {
+                "epoch_s": 820497710.0,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -3.7603947146850842,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "incoming",
+                "status": "violated"
+              },
+              {
+                "epoch_s": 820497721.0,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -0.7856793045197605,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "incoming",
+                "status": "violated"
+              },
+              {
+                "epoch_s": 820497725.0,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -8.389384464456612,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "incoming",
+                "status": "violated"
+              },
+              {
+                "epoch_s": 820497725.0,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -1.5748985319596613,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "incoming",
+                "status": "violated"
+              },
+              {
+                "epoch_s": 820497730.5,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -0.8444851143227226,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "incoming",
+                "status": "violated"
+              },
+              {
+                "epoch_s": 820497731.5,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -0.23620978712533258,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "activity",
+                "status": "violated"
+              },
+              {
+                "epoch_s": 820497735.5,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -1.8826507950031726,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "activity",
+                "status": "violated"
+              },
+              {
+                "epoch_s": 820497739.0,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -0.2167635699354804,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "incoming",
+                "status": "violated"
+              },
+              {
+                "epoch_s": 820497740.0,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -2.1048349376784543,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "incoming",
+                "status": "violated"
+              },
+              {
+                "epoch_s": 820497742.0,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -0.7048344618181517,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "incoming",
+                "status": "violated"
+              },
+              {
+                "epoch_s": 820497745.0,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -6.435138569164877,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "incoming",
+                "status": "violated"
+              },
+              {
+                "epoch_s": 820497746.5,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -1.7757491141262705,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "incoming",
+                "status": "violated"
+              },
+              {
+                "epoch_s": 820497746.540156,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -1.8511838038516544,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "incoming",
+                "status": "violated"
+              },
+              {
+                "epoch_s": 820497748.0,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -1.3270610403912144,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "incoming",
+                "status": "violated"
+              },
+              {
+                "epoch_s": 820497750.0,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -5.0763526812377435,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "incoming",
+                "status": "violated"
+              },
+              {
+                "epoch_s": 820497750.0,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -0.6280884673144556,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "incoming",
+                "status": "violated"
+              },
+              {
+                "epoch_s": 820497753.5,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -0.5620552727648374,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "incoming",
+                "status": "violated"
+              },
+              {
+                "epoch_s": 820497755.5,
+                "id": "minimum_angle",
+                "kind": "path",
+                "margin": -4.333161559433627,
+                "margin_unit": "deg",
+                "rule_id": "limb_axis",
+                "scope": "incoming",
+                "status": "violated"
+              }
+            ],
+            "decision_count": 3,
+            "decision_reasons": {
+              "planning_start_grid_infeasible": 3
+            },
+            "request_id": "urgent-illumination",
+            "selected": false,
+            "start_search_truncated": false,
+            "tested_start_count": 24,
+            "unknown_assessment_count": 0
+          },
+          "trial": 4
+        }
+      ]
+    },
+    "snapshot_id": "mission_plan_snapshot:15007fadf37682c19597ab04236f90920342b048b9fdf209525c8bd587ed59f7",
+    "status": "unfulfilled",
+    "summary": {
+      "attempt_reasons": {
+        "asset_conflict": 1,
+        "incoming_transition": 7,
+        "path_constraint_violated": 16
+      },
+      "constraint_issues": [
+        {
+          "epoch_s": 820497670.0,
+          "id": "minimum_angle",
+          "kind": "path",
+          "margin": -0.036419064610441865,
+          "margin_unit": "deg",
+          "rule_id": "limb_axis",
+          "scope": "incoming",
+          "status": "violated"
+        },
+        {
+          "epoch_s": 820497686.0,
+          "id": "minimum_angle",
+          "kind": "path",
+          "margin": -0.5777592566401069,
+          "margin_unit": "deg",
+          "rule_id": "limb_axis",
+          "scope": "incoming",
+          "status": "violated"
+        },
+        {
+          "epoch_s": 820497686.5231383,
+          "id": "minimum_angle",
+          "kind": "path",
+          "margin": -1.577761132229,
+          "margin_unit": "deg",
+          "rule_id": "limb_axis",
+          "scope": "incoming",
+          "status": "violated"
+        },
+        {
+          "epoch_s": 820497701.5,
+          "id": "minimum_angle",
+          "kind": "path",
+          "margin": -0.11539328000684179,
+          "margin_unit": "deg",
+          "rule_id": "limb_axis",
+          "scope": "activity",
+          "status": "violated"
+        },
+        {
+          "epoch_s": 820497701.5,
+          "id": "minimum_angle",
+          "kind": "path",
+          "margin": -0.018436146768237904,
+          "margin_unit": "deg",
+          "rule_id": "limb_axis",
+          "scope": "terminal",
+          "status": "violated"
+        },
+        {
+          "epoch_s": 820497702.9627745,
+          "id": "minimum_angle",
+          "kind": "path",
+          "margin": -0.13816406452728813,
+          "margin_unit": "deg",
+          "rule_id": "limb_axis",
+          "scope": "terminal",
+          "status": "violated"
+        },
+        {
+          "epoch_s": 820497703.0,
+          "id": "minimum_angle",
+          "kind": "path",
+          "margin": -0.30886385379398007,
+          "margin_unit": "deg",
+          "rule_id": "limb_axis",
+          "scope": "incoming",
+          "status": "violated"
+        },
+        {
+          "epoch_s": 820497705.0,
+          "id": "minimum_angle",
+          "kind": "path",
+          "margin": -4.128161161844908,
+          "margin_unit": "deg",
+          "rule_id": "limb_axis",
+          "scope": "incoming",
+          "status": "violated"
+        },
+        {
+          "epoch_s": 820497705.5,
+          "id": "minimum_angle",
+          "kind": "path",
+          "margin": -1.7717299332755374,
+          "margin_unit": "deg",
+          "rule_id": "limb_axis",
+          "scope": "activity",
+          "status": "violated"
+        },
+        {
+          "epoch_s": 820497708.0,
+          "id": "minimum_angle",
+          "kind": "path",
+          "margin": -0.975884660344164,
+          "margin_unit": "deg",
+          "rule_id": "limb_axis",
+          "scope": "incoming",
+          "status": "violated"
+        },
+        {
+          "epoch_s": 820497710.0,
+          "id": "minimum_angle",
+          "kind": "path",
+          "margin": -3.7603947146850842,
+          "margin_unit": "deg",
+          "rule_id": "limb_axis",
+          "scope": "incoming",
+          "status": "violated"
+        },
+        {
+          "epoch_s": 820497721.0,
+          "id": "minimum_angle",
+          "kind": "path",
+          "margin": -0.7856793045197605,
+          "margin_unit": "deg",
+          "rule_id": "limb_axis",
+          "scope": "incoming",
+          "status": "violated"
+        },
+        {
+          "epoch_s": 820497725.0,
+          "id": "minimum_angle",
+          "kind": "path",
+          "margin": -8.389384464456612,
+          "margin_unit": "deg",
+          "rule_id": "limb_axis",
+          "scope": "incoming",
+          "status": "violated"
+        },
+        {
+          "epoch_s": 820497725.0,
+          "id": "minimum_angle",
+          "kind": "path",
+          "margin": -1.5748985319596613,
+          "margin_unit": "deg",
+          "rule_id": "limb_axis",
+          "scope": "incoming",
+          "status": "violated"
+        },
+        {
+          "epoch_s": 820497730.5,
+          "id": "minimum_angle",
+          "kind": "path",
+          "margin": -0.8444851143227226,
+          "margin_unit": "deg",
+          "rule_id": "limb_axis",
+          "scope": "incoming",
+          "status": "violated"
+        },
+        {
+          "epoch_s": 820497731.5,
+          "id": "minimum_angle",
+          "kind": "path",
+          "margin": -0.23620978712533258,
+          "margin_unit": "deg",
+          "rule_id": "limb_axis",
+          "scope": "activity",
+          "status": "violated"
+        },
+        {
+          "epoch_s": 820497735.5,
+          "id": "minimum_angle",
+          "kind": "path",
+          "margin": -1.8826507950031726,
+          "margin_unit": "deg",
+          "rule_id": "limb_axis",
+          "scope": "activity",
+          "status": "violated"
+        },
+        {
+          "epoch_s": 820497739.0,
+          "id": "minimum_angle",
+          "kind": "path",
+          "margin": -0.2167635699354804,
+          "margin_unit": "deg",
+          "rule_id": "limb_axis",
+          "scope": "incoming",
+          "status": "violated"
+        },
+        {
+          "epoch_s": 820497740.0,
+          "id": "minimum_angle",
+          "kind": "path",
+          "margin": -2.1048349376784543,
+          "margin_unit": "deg",
+          "rule_id": "limb_axis",
+          "scope": "incoming",
+          "status": "violated"
+        },
+        {
+          "epoch_s": 820497742.0,
+          "id": "minimum_angle",
+          "kind": "path",
+          "margin": -0.7048344618181517,
+          "margin_unit": "deg",
+          "rule_id": "limb_axis",
+          "scope": "incoming",
+          "status": "violated"
+        },
+        {
+          "epoch_s": 820497745.0,
+          "id": "minimum_angle",
+          "kind": "path",
+          "margin": -6.435138569164877,
+          "margin_unit": "deg",
+          "rule_id": "limb_axis",
+          "scope": "incoming",
+          "status": "violated"
+        },
+        {
+          "epoch_s": 820497746.5,
+          "id": "minimum_angle",
+          "kind": "path",
+          "margin": -1.7757491141262705,
+          "margin_unit": "deg",
+          "rule_id": "limb_axis",
+          "scope": "incoming",
+          "status": "violated"
+        },
+        {
+          "epoch_s": 820497746.540156,
+          "id": "minimum_angle",
+          "kind": "path",
+          "margin": -1.8511838038516544,
+          "margin_unit": "deg",
+          "rule_id": "limb_axis",
+          "scope": "incoming",
+          "status": "violated"
+        },
+        {
+          "epoch_s": 820497748.0,
+          "id": "minimum_angle",
+          "kind": "path",
+          "margin": -1.3270610403912144,
+          "margin_unit": "deg",
+          "rule_id": "limb_axis",
+          "scope": "incoming",
+          "status": "violated"
+        },
+        {
+          "epoch_s": 820497750.0,
+          "id": "minimum_angle",
+          "kind": "path",
+          "margin": -5.0763526812377435,
+          "margin_unit": "deg",
+          "rule_id": "limb_axis",
+          "scope": "incoming",
+          "status": "violated"
+        },
+        {
+          "epoch_s": 820497750.0,
+          "id": "minimum_angle",
+          "kind": "path",
+          "margin": -0.6280884673144556,
+          "margin_unit": "deg",
+          "rule_id": "limb_axis",
+          "scope": "incoming",
+          "status": "violated"
+        },
+        {
+          "epoch_s": 820497753.5,
+          "id": "minimum_angle",
+          "kind": "path",
+          "margin": -0.5620552727648374,
+          "margin_unit": "deg",
+          "rule_id": "limb_axis",
+          "scope": "incoming",
+          "status": "violated"
+        },
+        {
+          "epoch_s": 820497755.5,
+          "id": "minimum_angle",
+          "kind": "path",
+          "margin": -4.333161559433627,
+          "margin_unit": "deg",
+          "rule_id": "limb_axis",
+          "scope": "incoming",
+          "status": "violated"
+        }
+      ],
+      "evaluation_limits": [],
+      "scope": "returned_incumbent_tested_starts_and_captured_trials_only_no_infeasibility_proof",
+      "search_status": "trial_limit_reached",
+      "selected_in_trial_ids": [],
+      "start_search_truncated": false,
+      "tested_start_count": 24,
+      "unknown_placement_count": 0
+    }
+  },
+  "validation": {
+    "fast_suite_command": "mix test.fast --max-cases 8",
+    "passed": 5323,
+    "excluded": 1148,
+    "elapsed_s": 252.9,
+    "frozen_numerical_baseline": "pass",
+    "format_check": "pass",
+    "diff_whitespace_check": "pass"
+  }
+}

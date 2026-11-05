@@ -1,0 +1,143 @@
+{
+  "scenario_id": "non_illumination_hot_limit",
+  "mission_manifest": "non_illumination_assessment_reference.json",
+  "planning_study": "non_illumination_hot_limit_planning.json",
+  "steps": [
+    {
+      "id": "continue_first_cooldown",
+      "kind": "advance",
+      "expected_status": "ready_for_review",
+      "as_of_s": 820497625,
+      "not_executed_request_ids": [],
+      "energy_losses_wh": {},
+      "protect_request_ids": [],
+      "scheduling": {
+        "strategy": "greedy",
+        "max_trials": 1
+      }
+    },
+    {
+      "id": "finish_first_cooldown",
+      "kind": "advance",
+      "expected_status": "ready_for_review",
+      "as_of_s": 820497640,
+      "not_executed_request_ids": [],
+      "energy_losses_wh": {},
+      "protect_request_ids": [],
+      "scheduling": {
+        "strategy": "greedy",
+        "max_trials": 1
+      }
+    },
+    {
+      "id": "receive_first_commands",
+      "kind": "advance",
+      "expected_status": "ready_for_review",
+      "as_of_s": 820497660,
+      "not_executed_request_ids": [],
+      "energy_losses_wh": {},
+      "protect_request_ids": [],
+      "scheduling": {
+        "strategy": "greedy",
+        "max_trials": 1
+      }
+    },
+    {
+      "id": "continue_first_service",
+      "kind": "advance",
+      "expected_status": "ready_for_review",
+      "as_of_s": 820497675,
+      "not_executed_request_ids": [],
+      "energy_losses_wh": {},
+      "protect_request_ids": [],
+      "scheduling": {
+        "strategy": "greedy",
+        "max_trials": 1
+      }
+    },
+    {
+      "id": "extend_for_second_cycle",
+      "kind": "advance",
+      "expected_status": "ready_for_review",
+      "as_of_s": 820497690,
+      "not_executed_request_ids": [],
+      "energy_losses_wh": {},
+      "protect_request_ids": [],
+      "scheduling": {
+        "strategy": "greedy",
+        "max_trials": 1
+      },
+      "horizon_extension": {
+        "provider": "reference_j2",
+        "ends_at_s": 820497800,
+        "coverage_ends_at_s": 820497820,
+        "add_requests": []
+      }
+    },
+    {
+      "id": "continue_second_cooldown",
+      "kind": "advance",
+      "expected_status": "ready_for_review",
+      "as_of_s": 820497705,
+      "not_executed_request_ids": [],
+      "energy_losses_wh": {},
+      "protect_request_ids": [],
+      "scheduling": {
+        "strategy": "greedy",
+        "max_trials": 1
+      }
+    },
+    {
+      "id": "finish_second_cooldown",
+      "kind": "advance",
+      "expected_status": "ready_for_review",
+      "as_of_s": 820497720,
+      "not_executed_request_ids": [],
+      "energy_losses_wh": {},
+      "protect_request_ids": [],
+      "scheduling": {
+        "strategy": "greedy",
+        "max_trials": 1
+      }
+    },
+    {
+      "id": "receive_second_commands",
+      "kind": "advance",
+      "expected_status": "ready_for_review",
+      "as_of_s": 820497738,
+      "not_executed_request_ids": [],
+      "energy_losses_wh": {},
+      "protect_request_ids": [],
+      "scheduling": {
+        "strategy": "greedy",
+        "max_trials": 1
+      }
+    },
+    {
+      "id": "continue_second_service",
+      "kind": "advance",
+      "expected_status": "ready_for_review",
+      "as_of_s": 820497745,
+      "not_executed_request_ids": [],
+      "energy_losses_wh": {},
+      "protect_request_ids": [],
+      "scheduling": {
+        "strategy": "greedy",
+        "max_trials": 1
+      }
+    },
+    {
+      "id": "close_second_cycle",
+      "kind": "advance",
+      "expected_status": "ready_for_review",
+      "as_of_s": 820497780,
+      "not_executed_request_ids": [],
+      "energy_losses_wh": {},
+      "protect_request_ids": [],
+      "scheduling": {
+        "strategy": "greedy",
+        "max_trials": 1
+      }
+    }
+  ]
+}

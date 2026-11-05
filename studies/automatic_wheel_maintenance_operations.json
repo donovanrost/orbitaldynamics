@@ -1,0 +1,63 @@
+{
+  "scenario_id": "automatic_wheel_maintenance_operations",
+  "mission_manifest": "automatic_wheel_maintenance.json",
+  "planning_study": "automatic_wheel_maintenance_planning.json",
+  "steps": [
+    {
+      "id": "before_unload",
+      "kind": "advance",
+      "expected_status": "ready_for_review",
+      "as_of_s": 820497610,
+      "not_executed_request_ids": [],
+      "energy_losses_wh": {},
+      "protect_request_ids": [],
+      "scheduling": {
+        "strategy": "greedy",
+        "max_trials": 1
+      }
+    },
+    {
+      "id": "review_remaining_maintenance",
+      "kind": "revise",
+      "expected_status": "ready_for_review",
+      "change": {
+        "revision_id": "review_remaining_maintenance",
+        "protect_request_ids": [],
+        "add_requests": [],
+        "unavailable_asset_ids": [],
+        "scheduling": {
+          "strategy": "greedy",
+          "max_trials": 1
+        }
+      }
+    },
+    {
+      "id": "execute_unload",
+      "kind": "advance",
+      "expected_status": "ready_for_review",
+      "as_of_s": 820497660,
+      "not_executed_request_ids": [],
+      "energy_losses_wh": {},
+      "protect_request_ids": [
+        "service"
+      ],
+      "scheduling": {
+        "strategy": "greedy",
+        "max_trials": 1
+      }
+    },
+    {
+      "id": "execute_service",
+      "kind": "advance",
+      "expected_status": "ready_for_review",
+      "as_of_s": 820497690,
+      "not_executed_request_ids": [],
+      "energy_losses_wh": {},
+      "protect_request_ids": [],
+      "scheduling": {
+        "strategy": "greedy",
+        "max_trials": 1
+      }
+    }
+  ]
+}

@@ -1,0 +1,1832 @@
+{
+  "format": "plan_revision_observation.v1",
+  "recorded_date": "2026-11-03",
+  "scope": "synthetic same-horizon reference mission; not flight validation",
+  "baseline": {
+    "snapshot_id": "mission_plan_snapshot:36e1da53a06afd3dc2b2592be0046e062cab4ff39514227ce02ff8bcac6521a2",
+    "file_sha256": "d13fe6a234d32289b6c43a8c693b82339e31fbe9b5ba81d83176ff18c4b9fa9a",
+    "raw_path": "tmp/plan_revision_baseline/baseline_snapshot.json",
+    "mission": {
+      "asset_separation_s": 0,
+      "assets": [
+        {
+          "altitude_km": 600,
+          "dry_mass_kg": 250,
+          "id": "demo-1",
+          "initial_argument_of_latitude_deg": 356.0,
+          "local_time_ascending_node_h": 18.0,
+          "payloads": {
+            "illumination": {
+              "atmospheric_transmission": 0.8,
+              "max_mirror_incidence_deg": 80,
+              "max_tracking_rate_deg_s": 2,
+              "mirror_area_m2": 400,
+              "mirror_max_dimension_m": 20,
+              "reflectivity": 0.9,
+              "solar_angular_diameter_deg": 0.53,
+              "solar_irradiance_w_m2": 1361
+            }
+          },
+          "resource_budgets": {}
+        },
+        {
+          "altitude_km": 600,
+          "dry_mass_kg": 250,
+          "id": "demo-2",
+          "initial_argument_of_latitude_deg": 358.0,
+          "local_time_ascending_node_h": 18.02,
+          "payloads": {
+            "illumination": {
+              "atmospheric_transmission": 0.8,
+              "max_mirror_incidence_deg": 80,
+              "max_tracking_rate_deg_s": 2,
+              "mirror_area_m2": 400,
+              "mirror_max_dimension_m": 20,
+              "reflectivity": 0.9,
+              "solar_angular_diameter_deg": 0.53,
+              "solar_irradiance_w_m2": 1361
+            }
+          },
+          "resource_budgets": {}
+        },
+        {
+          "altitude_km": 600,
+          "dry_mass_kg": 250,
+          "id": "demo-3",
+          "initial_argument_of_latitude_deg": 0.0,
+          "local_time_ascending_node_h": 18.04,
+          "payloads": {
+            "illumination": {
+              "atmospheric_transmission": 0.8,
+              "max_mirror_incidence_deg": 80,
+              "max_tracking_rate_deg_s": 2,
+              "mirror_area_m2": 400,
+              "mirror_max_dimension_m": 20,
+              "reflectivity": 0.9,
+              "solar_angular_diameter_deg": 0.53,
+              "solar_irradiance_w_m2": 1361
+            }
+          },
+          "resource_budgets": {}
+        }
+      ],
+      "duration_s": 600,
+      "epoch_s": 820497600,
+      "max_sample_gap_s": 20,
+      "max_step_s": 10,
+      "mission_id": "repeated_service",
+      "requests": [
+        {
+          "activity_type": "illuminate",
+          "duration_s": 20,
+          "ends_at_s": 820497790,
+          "id": "early-1",
+          "model": "illumination",
+          "parameters": {
+            "maximum_target_sun_elevation_deg": -6,
+            "minimum_elevation_deg": 10,
+            "minimum_irradiance_w_m2": 0.0001,
+            "target_radius_km": 1
+          },
+          "resource_costs": {},
+          "starts_at_s": 820497640,
+          "target": {
+            "altitude_km": 0,
+            "id": "site-6",
+            "latitude_deg": 6,
+            "longitude_deg": -79.222322111382,
+            "minimum_elevation_deg": 10
+          },
+          "value": 30
+        },
+        {
+          "activity_type": "illuminate",
+          "duration_s": 20,
+          "ends_at_s": 820497790,
+          "id": "early-2",
+          "model": "illumination",
+          "parameters": {
+            "maximum_target_sun_elevation_deg": -6,
+            "minimum_elevation_deg": 10,
+            "minimum_irradiance_w_m2": 0.0001,
+            "target_radius_km": 1
+          },
+          "resource_costs": {},
+          "starts_at_s": 820497640,
+          "target": {
+            "altitude_km": 0,
+            "id": "site-10",
+            "latitude_deg": 10,
+            "longitude_deg": -79.222322111382,
+            "minimum_elevation_deg": 10
+          },
+          "value": 29
+        },
+        {
+          "activity_type": "illuminate",
+          "duration_s": 20,
+          "ends_at_s": 820497790,
+          "id": "early-3",
+          "model": "illumination",
+          "parameters": {
+            "maximum_target_sun_elevation_deg": -6,
+            "minimum_elevation_deg": 10,
+            "minimum_irradiance_w_m2": 0.0001,
+            "target_radius_km": 1
+          },
+          "resource_costs": {},
+          "starts_at_s": 820497640,
+          "target": {
+            "altitude_km": 0,
+            "id": "site-14",
+            "latitude_deg": 14,
+            "longitude_deg": -79.222322111382,
+            "minimum_elevation_deg": 10
+          },
+          "value": 28
+        },
+        {
+          "activity_type": "illuminate",
+          "duration_s": 20,
+          "ends_at_s": 820497790,
+          "id": "early-4",
+          "model": "illumination",
+          "parameters": {
+            "maximum_target_sun_elevation_deg": -6,
+            "minimum_elevation_deg": 10,
+            "minimum_irradiance_w_m2": 0.0001,
+            "target_radius_km": 1
+          },
+          "resource_costs": {},
+          "starts_at_s": 820497640,
+          "target": {
+            "altitude_km": 0,
+            "id": "site-18",
+            "latitude_deg": 18,
+            "longitude_deg": -79.222322111382,
+            "minimum_elevation_deg": 10
+          },
+          "value": 27
+        },
+        {
+          "activity_type": "illuminate",
+          "duration_s": 20,
+          "ends_at_s": 820497960,
+          "id": "middle-1",
+          "model": "illumination",
+          "parameters": {
+            "maximum_target_sun_elevation_deg": -6,
+            "minimum_elevation_deg": 10,
+            "minimum_irradiance_w_m2": 0.0001,
+            "target_radius_km": 1
+          },
+          "resource_costs": {},
+          "starts_at_s": 820497810,
+          "target": {
+            "altitude_km": 0,
+            "id": "site-18",
+            "latitude_deg": 18,
+            "longitude_deg": -79.222322111382,
+            "minimum_elevation_deg": 10
+          },
+          "value": 26
+        },
+        {
+          "activity_type": "illuminate",
+          "duration_s": 20,
+          "ends_at_s": 820497960,
+          "id": "middle-2",
+          "model": "illumination",
+          "parameters": {
+            "maximum_target_sun_elevation_deg": -6,
+            "minimum_elevation_deg": 10,
+            "minimum_irradiance_w_m2": 0.0001,
+            "target_radius_km": 1
+          },
+          "resource_costs": {},
+          "starts_at_s": 820497810,
+          "target": {
+            "altitude_km": 0,
+            "id": "site-22",
+            "latitude_deg": 22,
+            "longitude_deg": -79.222322111382,
+            "minimum_elevation_deg": 10
+          },
+          "value": 25
+        },
+        {
+          "activity_type": "illuminate",
+          "duration_s": 20,
+          "ends_at_s": 820497960,
+          "id": "middle-3",
+          "model": "illumination",
+          "parameters": {
+            "maximum_target_sun_elevation_deg": -6,
+            "minimum_elevation_deg": 10,
+            "minimum_irradiance_w_m2": 0.0001,
+            "target_radius_km": 1
+          },
+          "resource_costs": {},
+          "starts_at_s": 820497810,
+          "target": {
+            "altitude_km": 0,
+            "id": "site-26",
+            "latitude_deg": 26,
+            "longitude_deg": -79.222322111382,
+            "minimum_elevation_deg": 10
+          },
+          "value": 24
+        },
+        {
+          "activity_type": "illuminate",
+          "duration_s": 20,
+          "ends_at_s": 820497960,
+          "id": "middle-4",
+          "model": "illumination",
+          "parameters": {
+            "maximum_target_sun_elevation_deg": -6,
+            "minimum_elevation_deg": 10,
+            "minimum_irradiance_w_m2": 0.0001,
+            "target_radius_km": 1
+          },
+          "resource_costs": {},
+          "starts_at_s": 820497810,
+          "target": {
+            "altitude_km": 0,
+            "id": "site-30",
+            "latitude_deg": 30,
+            "longitude_deg": -79.222322111382,
+            "minimum_elevation_deg": 10
+          },
+          "value": 23
+        },
+        {
+          "activity_type": "illuminate",
+          "duration_s": 20,
+          "ends_at_s": 820498130,
+          "id": "late-1",
+          "model": "illumination",
+          "parameters": {
+            "maximum_target_sun_elevation_deg": -6,
+            "minimum_elevation_deg": 10,
+            "minimum_irradiance_w_m2": 0.0001,
+            "target_radius_km": 1
+          },
+          "resource_costs": {},
+          "starts_at_s": 820497980,
+          "target": {
+            "altitude_km": 0,
+            "id": "site-30",
+            "latitude_deg": 30,
+            "longitude_deg": -79.222322111382,
+            "minimum_elevation_deg": 10
+          },
+          "value": 22
+        },
+        {
+          "activity_type": "illuminate",
+          "duration_s": 20,
+          "ends_at_s": 820498130,
+          "id": "late-2",
+          "model": "illumination",
+          "parameters": {
+            "maximum_target_sun_elevation_deg": -6,
+            "minimum_elevation_deg": 10,
+            "minimum_irradiance_w_m2": 0.0001,
+            "target_radius_km": 1
+          },
+          "resource_costs": {},
+          "starts_at_s": 820497980,
+          "target": {
+            "altitude_km": 0,
+            "id": "site-34",
+            "latitude_deg": 34,
+            "longitude_deg": -79.222322111382,
+            "minimum_elevation_deg": 10
+          },
+          "value": 21
+        },
+        {
+          "activity_type": "illuminate",
+          "duration_s": 20,
+          "ends_at_s": 820498130,
+          "id": "late-3",
+          "model": "illumination",
+          "parameters": {
+            "maximum_target_sun_elevation_deg": -6,
+            "minimum_elevation_deg": 10,
+            "minimum_irradiance_w_m2": 0.0001,
+            "target_radius_km": 1
+          },
+          "resource_costs": {},
+          "starts_at_s": 820497980,
+          "target": {
+            "altitude_km": 0,
+            "id": "site-38",
+            "latitude_deg": 38,
+            "longitude_deg": -79.222322111382,
+            "minimum_elevation_deg": 10
+          },
+          "value": 20
+        },
+        {
+          "activity_type": "illuminate",
+          "duration_s": 20,
+          "ends_at_s": 820498130,
+          "id": "late-4",
+          "model": "illumination",
+          "parameters": {
+            "maximum_target_sun_elevation_deg": -6,
+            "minimum_elevation_deg": 10,
+            "minimum_irradiance_w_m2": 0.0001,
+            "target_radius_km": 1
+          },
+          "resource_costs": {},
+          "starts_at_s": 820497980,
+          "target": {
+            "altitude_km": 0,
+            "id": "site-42",
+            "latitude_deg": 42,
+            "longitude_deg": -79.222322111382,
+            "minimum_elevation_deg": 10
+          },
+          "value": 19
+        }
+      ],
+      "sample_step_s": 20,
+      "solar_year_s": 31556925.216
+    },
+    "study": {
+      "attitude": {
+        "assets": {
+          "demo-1": {
+            "initial": {
+              "angular_velocity_inertial_deg_s": [
+                0,
+                0,
+                0
+              ],
+              "epoch_s": 820497600,
+              "frame": "eci_j2000",
+              "quaternion_wxyz": [
+                1,
+                0,
+                0,
+                0
+              ],
+              "time_scale": "utc"
+            },
+            "max_accel_deg_s2": 0.2,
+            "max_rate_deg_s": 2,
+            "pointing_configurations": {
+              "illumination": {
+                "body_to_payload_quaternion": [
+                  1,
+                  0,
+                  0,
+                  0
+                ],
+                "roll_reference_inertial": [
+                  0,
+                  0,
+                  1
+                ]
+              }
+            },
+            "settling_s": 2
+          },
+          "demo-2": {
+            "initial": {
+              "angular_velocity_inertial_deg_s": [
+                0,
+                0,
+                0
+              ],
+              "epoch_s": 820497600,
+              "frame": "eci_j2000",
+              "quaternion_wxyz": [
+                1,
+                0,
+                0,
+                0
+              ],
+              "time_scale": "utc"
+            },
+            "max_accel_deg_s2": 0.2,
+            "max_rate_deg_s": 2,
+            "pointing_configurations": {
+              "illumination": {
+                "body_to_payload_quaternion": [
+                  1,
+                  0,
+                  0,
+                  0
+                ],
+                "roll_reference_inertial": [
+                  0,
+                  0,
+                  1
+                ]
+              }
+            },
+            "settling_s": 2
+          },
+          "demo-3": {
+            "initial": {
+              "angular_velocity_inertial_deg_s": [
+                0,
+                0,
+                0
+              ],
+              "epoch_s": 820497600,
+              "frame": "eci_j2000",
+              "quaternion_wxyz": [
+                1,
+                0,
+                0,
+                0
+              ],
+              "time_scale": "utc"
+            },
+            "max_accel_deg_s2": 0.2,
+            "max_rate_deg_s": 2,
+            "pointing_configurations": {
+              "illumination": {
+                "body_to_payload_quaternion": [
+                  1,
+                  0,
+                  0,
+                  0
+                ],
+                "roll_reference_inertial": [
+                  0,
+                  0,
+                  1
+                ]
+              }
+            },
+            "settling_s": 2
+          }
+        },
+        "derivative_step_s": 0.25,
+        "max_candidate_starts": 8,
+        "max_evaluations": 20000,
+        "profile_step_s": 2,
+        "search_step_s": 20
+      },
+      "horizon": {
+        "ends_at_s": 820498200,
+        "starts_at_s": 820497600,
+        "terminals": {
+          "demo-1": {
+            "frame": "eci_j2000",
+            "mode": "standby",
+            "quaternion_wxyz": [
+              1,
+              0,
+              0,
+              0
+            ],
+            "strategy": "fixed_inertial"
+          },
+          "demo-2": {
+            "frame": "eci_j2000",
+            "mode": "standby",
+            "quaternion_wxyz": [
+              1,
+              0,
+              0,
+              0
+            ],
+            "strategy": "fixed_inertial"
+          },
+          "demo-3": {
+            "frame": "eci_j2000",
+            "mode": "standby",
+            "quaternion_wxyz": [
+              1,
+              0,
+              0,
+              0
+            ],
+            "strategy": "fixed_inertial"
+          }
+        },
+        "time_scale": "utc"
+      },
+      "mission_manifest": "repeated_service.json",
+      "opportunity_search": {
+        "entry_margin_s": 0.5,
+        "exit_margin_s": 0.5,
+        "max_check_step_s": 5,
+        "max_evaluations": 50000,
+        "max_iterations": 64,
+        "time_tolerance_s": 0.01
+      },
+      "path_constraints": {
+        "assets": {
+          "demo-1": {
+            "activity_modes": {
+              "early-1": "reflecting",
+              "early-2": "reflecting",
+              "early-3": "reflecting",
+              "early-4": "reflecting",
+              "late-1": "reflecting",
+              "late-2": "reflecting",
+              "late-3": "reflecting",
+              "late-4": "reflecting",
+              "middle-1": "reflecting",
+              "middle-2": "reflecting",
+              "middle-3": "reflecting",
+              "middle-4": "reflecting"
+            },
+            "modes": {
+              "maneuver": {
+                "optical_behavior": "reflecting",
+                "power_load_w": 100
+              },
+              "reflecting": {
+                "optical_behavior": "reflecting",
+                "power_load_w": 2000
+              },
+              "standby": {
+                "optical_behavior": "reflecting",
+                "power_load_w": 20
+              }
+            },
+            "rules": [
+              {
+                "configuration": {
+                  "body_axis": [
+                    0,
+                    0,
+                    1
+                  ],
+                  "maximum_angle_deg": 180,
+                  "minimum_angle_deg": 5,
+                  "reference": {
+                    "kind": "sun"
+                  }
+                },
+                "id": "sun_axis",
+                "model": "angular"
+              },
+              {
+                "configuration": {
+                  "body_axis": [
+                    1,
+                    0,
+                    0
+                  ],
+                  "maximum_angle_deg": 180,
+                  "minimum_angle_deg": 0,
+                  "reference": {
+                    "kind": "body_limb"
+                  }
+                },
+                "id": "limb_axis",
+                "model": "angular"
+              },
+              {
+                "configuration": {
+                  "back_face_behavior": "two_sided_reflecting_by_assumption",
+                  "beam_padding_deg": 0.02,
+                  "exclusion_regions": [
+                    {
+                      "id": "synthetic_polar_exclusion",
+                      "latitude_deg": 80,
+                      "longitude_deg": 0,
+                      "radius_km": 25
+                    }
+                  ],
+                  "mirror_normal_body": [
+                    0,
+                    0,
+                    1
+                  ],
+                  "solar_angular_radius_deg": 0.265
+                },
+                "id": "reflected_beam",
+                "model": "reflected_beam"
+              }
+            ],
+            "transition_mode": "maneuver"
+          },
+          "demo-2": {
+            "activity_modes": {
+              "early-1": "reflecting",
+              "early-2": "reflecting",
+              "early-3": "reflecting",
+              "early-4": "reflecting",
+              "late-1": "reflecting",
+              "late-2": "reflecting",
+              "late-3": "reflecting",
+              "late-4": "reflecting",
+              "middle-1": "reflecting",
+              "middle-2": "reflecting",
+              "middle-3": "reflecting",
+              "middle-4": "reflecting"
+            },
+            "modes": {
+              "maneuver": {
+                "optical_behavior": "reflecting",
+                "power_load_w": 100
+              },
+              "reflecting": {
+                "optical_behavior": "reflecting",
+                "power_load_w": 2000
+              },
+              "standby": {
+                "optical_behavior": "reflecting",
+                "power_load_w": 20
+              }
+            },
+            "rules": [
+              {
+                "configuration": {
+                  "body_axis": [
+                    0,
+                    0,
+                    1
+                  ],
+                  "maximum_angle_deg": 180,
+                  "minimum_angle_deg": 5,
+                  "reference": {
+                    "kind": "sun"
+                  }
+                },
+                "id": "sun_axis",
+                "model": "angular"
+              },
+              {
+                "configuration": {
+                  "body_axis": [
+                    1,
+                    0,
+                    0
+                  ],
+                  "maximum_angle_deg": 180,
+                  "minimum_angle_deg": 0,
+                  "reference": {
+                    "kind": "body_limb"
+                  }
+                },
+                "id": "limb_axis",
+                "model": "angular"
+              },
+              {
+                "configuration": {
+                  "back_face_behavior": "two_sided_reflecting_by_assumption",
+                  "beam_padding_deg": 0.02,
+                  "exclusion_regions": [
+                    {
+                      "id": "synthetic_polar_exclusion",
+                      "latitude_deg": 80,
+                      "longitude_deg": 0,
+                      "radius_km": 25
+                    }
+                  ],
+                  "mirror_normal_body": [
+                    0,
+                    0,
+                    1
+                  ],
+                  "solar_angular_radius_deg": 0.265
+                },
+                "id": "reflected_beam",
+                "model": "reflected_beam"
+              }
+            ],
+            "transition_mode": "maneuver"
+          },
+          "demo-3": {
+            "activity_modes": {
+              "early-1": "reflecting",
+              "early-2": "reflecting",
+              "early-3": "reflecting",
+              "early-4": "reflecting",
+              "late-1": "reflecting",
+              "late-2": "reflecting",
+              "late-3": "reflecting",
+              "late-4": "reflecting",
+              "middle-1": "reflecting",
+              "middle-2": "reflecting",
+              "middle-3": "reflecting",
+              "middle-4": "reflecting"
+            },
+            "modes": {
+              "maneuver": {
+                "optical_behavior": "reflecting",
+                "power_load_w": 100
+              },
+              "reflecting": {
+                "optical_behavior": "reflecting",
+                "power_load_w": 2000
+              },
+              "standby": {
+                "optical_behavior": "reflecting",
+                "power_load_w": 20
+              }
+            },
+            "rules": [
+              {
+                "configuration": {
+                  "body_axis": [
+                    0,
+                    0,
+                    1
+                  ],
+                  "maximum_angle_deg": 180,
+                  "minimum_angle_deg": 5,
+                  "reference": {
+                    "kind": "sun"
+                  }
+                },
+                "id": "sun_axis",
+                "model": "angular"
+              },
+              {
+                "configuration": {
+                  "body_axis": [
+                    1,
+                    0,
+                    0
+                  ],
+                  "maximum_angle_deg": 180,
+                  "minimum_angle_deg": 0,
+                  "reference": {
+                    "kind": "body_limb"
+                  }
+                },
+                "id": "limb_axis",
+                "model": "angular"
+              },
+              {
+                "configuration": {
+                  "back_face_behavior": "two_sided_reflecting_by_assumption",
+                  "beam_padding_deg": 0.02,
+                  "exclusion_regions": [
+                    {
+                      "id": "synthetic_polar_exclusion",
+                      "latitude_deg": 80,
+                      "longitude_deg": 0,
+                      "radius_km": 25
+                    }
+                  ],
+                  "mirror_normal_body": [
+                    0,
+                    0,
+                    1
+                  ],
+                  "solar_angular_radius_deg": 0.265
+                },
+                "id": "reflected_beam",
+                "model": "reflected_beam"
+              }
+            ],
+            "transition_mode": "maneuver"
+          }
+        },
+        "max_evaluations": 100000,
+        "max_samples_per_segment": 5000,
+        "sample_steps_s": [
+          5,
+          1
+        ]
+      },
+      "refinement": {
+        "max_extra_evaluations": 512,
+        "time_tolerance_s": 0.01,
+        "tracking_lookback_s": 1
+      },
+      "resolution_level": {
+        "max_step_s": 1,
+        "sample_step_s": 2
+      },
+      "resources": {
+        "assets": {
+          "demo-1": [
+            {
+              "configuration": {
+                "capacity_wh": 30,
+                "charge_efficiency": 0.9,
+                "discharge_efficiency": 0.9,
+                "generation": {
+                  "bus_efficiency": 0.9,
+                  "event_search": {
+                    "max_check_step_s": 20,
+                    "max_evaluations": 100000,
+                    "max_iterations": 64,
+                    "time_tolerance_s": 0.01
+                  },
+                  "kind": "solar_array",
+                  "panels": [
+                    {
+                      "area_m2": 0.4,
+                      "efficiency": 0.3,
+                      "id": "panel-0--1",
+                      "normal_body": [
+                        -1,
+                        0,
+                        0
+                      ]
+                    },
+                    {
+                      "area_m2": 0.4,
+                      "efficiency": 0.3,
+                      "id": "panel-0-1",
+                      "normal_body": [
+                        1,
+                        0,
+                        0
+                      ]
+                    },
+                    {
+                      "area_m2": 0.4,
+                      "efficiency": 0.3,
+                      "id": "panel-1--1",
+                      "normal_body": [
+                        0,
+                        -1,
+                        0
+                      ]
+                    },
+                    {
+                      "area_m2": 0.4,
+                      "efficiency": 0.3,
+                      "id": "panel-1-1",
+                      "normal_body": [
+                        0,
+                        1,
+                        0
+                      ]
+                    },
+                    {
+                      "area_m2": 0.4,
+                      "efficiency": 0.3,
+                      "id": "panel-2--1",
+                      "normal_body": [
+                        0,
+                        0,
+                        -1
+                      ]
+                    },
+                    {
+                      "area_m2": 0.4,
+                      "efficiency": 0.3,
+                      "id": "panel-2-1",
+                      "normal_body": [
+                        0,
+                        0,
+                        1
+                      ]
+                    }
+                  ],
+                  "shadow_model": "finite_sun",
+                  "solar_distance_km": 149597870.7,
+                  "solar_irradiance_w_m2": 1361,
+                  "solar_radius_km": 695700
+                },
+                "initial_wh": 24,
+                "phase_load_w": {
+                  "activity": 0,
+                  "brake": 200,
+                  "hold": 0,
+                  "ramp_to_tracking": 200,
+                  "settle": 0,
+                  "slew_accelerate": 200,
+                  "slew_cruise": 200,
+                  "slew_decelerate": 200
+                },
+                "reserve_wh": 8
+              },
+              "id": "battery",
+              "model": "battery"
+            }
+          ],
+          "demo-2": [
+            {
+              "configuration": {
+                "capacity_wh": 30,
+                "charge_efficiency": 0.9,
+                "discharge_efficiency": 0.9,
+                "generation": {
+                  "bus_efficiency": 0.9,
+                  "event_search": {
+                    "max_check_step_s": 20,
+                    "max_evaluations": 100000,
+                    "max_iterations": 64,
+                    "time_tolerance_s": 0.01
+                  },
+                  "kind": "solar_array",
+                  "panels": [
+                    {
+                      "area_m2": 0.4,
+                      "efficiency": 0.3,
+                      "id": "panel-0--1",
+                      "normal_body": [
+                        -1,
+                        0,
+                        0
+                      ]
+                    },
+                    {
+                      "area_m2": 0.4,
+                      "efficiency": 0.3,
+                      "id": "panel-0-1",
+                      "normal_body": [
+                        1,
+                        0,
+                        0
+                      ]
+                    },
+                    {
+                      "area_m2": 0.4,
+                      "efficiency": 0.3,
+                      "id": "panel-1--1",
+                      "normal_body": [
+                        0,
+                        -1,
+                        0
+                      ]
+                    },
+                    {
+                      "area_m2": 0.4,
+                      "efficiency": 0.3,
+                      "id": "panel-1-1",
+                      "normal_body": [
+                        0,
+                        1,
+                        0
+                      ]
+                    },
+                    {
+                      "area_m2": 0.4,
+                      "efficiency": 0.3,
+                      "id": "panel-2--1",
+                      "normal_body": [
+                        0,
+                        0,
+                        -1
+                      ]
+                    },
+                    {
+                      "area_m2": 0.4,
+                      "efficiency": 0.3,
+                      "id": "panel-2-1",
+                      "normal_body": [
+                        0,
+                        0,
+                        1
+                      ]
+                    }
+                  ],
+                  "shadow_model": "finite_sun",
+                  "solar_distance_km": 149597870.7,
+                  "solar_irradiance_w_m2": 1361,
+                  "solar_radius_km": 695700
+                },
+                "initial_wh": 24,
+                "phase_load_w": {
+                  "activity": 0,
+                  "brake": 200,
+                  "hold": 0,
+                  "ramp_to_tracking": 200,
+                  "settle": 0,
+                  "slew_accelerate": 200,
+                  "slew_cruise": 200,
+                  "slew_decelerate": 200
+                },
+                "reserve_wh": 8
+              },
+              "id": "battery",
+              "model": "battery"
+            }
+          ],
+          "demo-3": [
+            {
+              "configuration": {
+                "capacity_wh": 30,
+                "charge_efficiency": 0.9,
+                "discharge_efficiency": 0.9,
+                "generation": {
+                  "bus_efficiency": 0.9,
+                  "event_search": {
+                    "max_check_step_s": 20,
+                    "max_evaluations": 100000,
+                    "max_iterations": 64,
+                    "time_tolerance_s": 0.01
+                  },
+                  "kind": "solar_array",
+                  "panels": [
+                    {
+                      "area_m2": 0.4,
+                      "efficiency": 0.3,
+                      "id": "panel-0--1",
+                      "normal_body": [
+                        -1,
+                        0,
+                        0
+                      ]
+                    },
+                    {
+                      "area_m2": 0.4,
+                      "efficiency": 0.3,
+                      "id": "panel-0-1",
+                      "normal_body": [
+                        1,
+                        0,
+                        0
+                      ]
+                    },
+                    {
+                      "area_m2": 0.4,
+                      "efficiency": 0.3,
+                      "id": "panel-1--1",
+                      "normal_body": [
+                        0,
+                        -1,
+                        0
+                      ]
+                    },
+                    {
+                      "area_m2": 0.4,
+                      "efficiency": 0.3,
+                      "id": "panel-1-1",
+                      "normal_body": [
+                        0,
+                        1,
+                        0
+                      ]
+                    },
+                    {
+                      "area_m2": 0.4,
+                      "efficiency": 0.3,
+                      "id": "panel-2--1",
+                      "normal_body": [
+                        0,
+                        0,
+                        -1
+                      ]
+                    },
+                    {
+                      "area_m2": 0.4,
+                      "efficiency": 0.3,
+                      "id": "panel-2-1",
+                      "normal_body": [
+                        0,
+                        0,
+                        1
+                      ]
+                    }
+                  ],
+                  "shadow_model": "finite_sun",
+                  "solar_distance_km": 149597870.7,
+                  "solar_irradiance_w_m2": 1361,
+                  "solar_radius_km": 695700
+                },
+                "initial_wh": 24,
+                "phase_load_w": {
+                  "activity": 0,
+                  "brake": 200,
+                  "hold": 0,
+                  "ramp_to_tracking": 200,
+                  "settle": 0,
+                  "slew_accelerate": 200,
+                  "slew_cruise": 200,
+                  "slew_decelerate": 200
+                },
+                "reserve_wh": 8
+              },
+              "id": "battery",
+              "model": "battery"
+            }
+          ]
+        },
+        "max_evaluations": 100000,
+        "max_intervals_per_asset": 5000,
+        "sample_steps_s": [
+          5,
+          1
+        ]
+      },
+      "study_id": "repeated_service"
+    },
+    "scheduled_count": 5,
+    "fulfilled_value": 130.0
+  },
+  "revisions": {
+    "urgent": {
+      "review": {
+        "baseline_snapshot_id": "mission_plan_snapshot:36e1da53a06afd3dc2b2592be0046e062cab4ff39514227ce02ff8bcac6521a2",
+        "change_sha256": "1262bce47069f9917f17fe447404e8fb15ea9c8466e36b0f97d0ae53de46b71a",
+        "changes": {
+          "add_requests": [
+            {
+              "activity_modes": {
+                "demo-1": "reflecting",
+                "demo-2": "reflecting",
+                "demo-3": "reflecting"
+              },
+              "request": {
+                "activity_type": "illuminate",
+                "duration_s": 20,
+                "ends_at_s": 820497790,
+                "id": "urgent-illumination",
+                "model": "illumination",
+                "parameters": {
+                  "maximum_target_sun_elevation_deg": -6,
+                  "minimum_elevation_deg": 10,
+                  "minimum_irradiance_w_m2": 0.0001,
+                  "target_radius_km": 1
+                },
+                "resource_costs": {},
+                "starts_at_s": 820497640,
+                "target": {
+                  "altitude_km": 0,
+                  "id": "site-6",
+                  "latitude_deg": 6,
+                  "longitude_deg": -79.222322111382,
+                  "minimum_elevation_deg": 10
+                },
+                "value": 100
+              }
+            }
+          ],
+          "protect_request_ids": [
+            "early-1"
+          ],
+          "revision_id": "urgent_service",
+          "scheduling": {
+            "max_trials": 4,
+            "strategy": "bounded_replacement"
+          },
+          "unavailable_asset_ids": []
+        },
+        "conflicts": [],
+        "diff": {
+          "activities": [
+            {
+              "after": {
+                "asset_id": "demo-1",
+                "ends_at_s": 820497680.5,
+                "request_id": "early-1",
+                "starts_at_s": 820497660.5,
+                "value": 30.0
+              },
+              "before": {
+                "asset_id": "demo-1",
+                "ends_at_s": 820497680.5,
+                "request_id": "early-1",
+                "starts_at_s": 820497660.5,
+                "value": 30.0
+              },
+              "change": "unchanged",
+              "changed_fields": [],
+              "protected": true,
+              "request_id": "early-1",
+              "revised_request_status": "scheduled",
+              "revised_unfulfilled_reasons": []
+            },
+            {
+              "after": {
+                "asset_id": "demo-2",
+                "ends_at_s": 820497680.5,
+                "request_id": "early-2",
+                "starts_at_s": 820497660.5,
+                "value": 29.0
+              },
+              "before": {
+                "asset_id": "demo-2",
+                "ends_at_s": 820497680.5,
+                "request_id": "early-2",
+                "starts_at_s": 820497660.5,
+                "value": 29.0
+              },
+              "change": "unchanged",
+              "changed_fields": [],
+              "protected": false,
+              "request_id": "early-2",
+              "revised_request_status": "scheduled",
+              "revised_unfulfilled_reasons": []
+            },
+            {
+              "after": {
+                "asset_id": "demo-3",
+                "ends_at_s": 820497680.5,
+                "request_id": "early-3",
+                "starts_at_s": 820497660.5,
+                "value": 28.0
+              },
+              "before": {
+                "asset_id": "demo-3",
+                "ends_at_s": 820497680.5,
+                "request_id": "early-3",
+                "starts_at_s": 820497660.5,
+                "value": 28.0
+              },
+              "change": "unchanged",
+              "changed_fields": [],
+              "protected": false,
+              "request_id": "early-3",
+              "revised_request_status": "scheduled",
+              "revised_unfulfilled_reasons": []
+            },
+            {
+              "after": {
+                "asset_id": "demo-3",
+                "ends_at_s": 820498000.5,
+                "request_id": "late-1",
+                "starts_at_s": 820497980.5,
+                "value": 22.0
+              },
+              "before": {
+                "asset_id": "demo-3",
+                "ends_at_s": 820498000.5,
+                "request_id": "late-1",
+                "starts_at_s": 820497980.5,
+                "value": 22.0
+              },
+              "change": "unchanged",
+              "changed_fields": [],
+              "protected": false,
+              "request_id": "late-1",
+              "revised_request_status": "scheduled",
+              "revised_unfulfilled_reasons": []
+            },
+            {
+              "after": {
+                "asset_id": "demo-2",
+                "ends_at_s": 820498102.8049219,
+                "request_id": "late-2",
+                "starts_at_s": 820498082.8049219,
+                "value": 21.0
+              },
+              "before": {
+                "asset_id": "demo-2",
+                "ends_at_s": 820498102.8049219,
+                "request_id": "late-2",
+                "starts_at_s": 820498082.8049219,
+                "value": 21.0
+              },
+              "change": "unchanged",
+              "changed_fields": [],
+              "protected": false,
+              "request_id": "late-2",
+              "revised_request_status": "scheduled",
+              "revised_unfulfilled_reasons": []
+            }
+          ],
+          "baseline_value": 130.0,
+          "counts": {
+            "added": 0,
+            "moved": 0,
+            "removed": 0,
+            "unchanged": 5
+          },
+          "new_request_ids": [
+            "urgent-illumination"
+          ],
+          "replacement_summary": {
+            "causal_pairing": "not_inferred",
+            "newly_served_request_ids": [],
+            "removed_request_ids": []
+          },
+          "revised_value": 130.0,
+          "unfulfilled_requests": [
+            {
+              "reasons": [
+                "planning_start_grid_infeasible"
+              ],
+              "request_id": "early-4",
+              "value": 27.0
+            },
+            {
+              "reasons": [
+                "planning_start_grid_infeasible"
+              ],
+              "request_id": "middle-1",
+              "value": 26.0
+            },
+            {
+              "reasons": [
+                "planning_start_grid_infeasible"
+              ],
+              "request_id": "middle-2",
+              "value": 25.0
+            },
+            {
+              "reasons": [
+                "planning_start_grid_infeasible"
+              ],
+              "request_id": "middle-3",
+              "value": 24.0
+            },
+            {
+              "reasons": [
+                "insufficient_duration_after_bounds_and_margins",
+                "no_conservative_opportunity"
+              ],
+              "request_id": "middle-4",
+              "value": 23.0
+            },
+            {
+              "reasons": [
+                "planning_start_grid_infeasible"
+              ],
+              "request_id": "late-3",
+              "value": 20.0
+            },
+            {
+              "reasons": [
+                "no_conservative_opportunity",
+                "opportunity_search_incomplete"
+              ],
+              "request_id": "late-4",
+              "value": 19.0
+            },
+            {
+              "reasons": [
+                "planning_start_grid_infeasible"
+              ],
+              "request_id": "urgent-illumination",
+              "value": 100.0
+            }
+          ],
+          "value_delta": 0.0
+        },
+        "execution_boundary": "analysis_only_no_approval_or_command_execution",
+        "format": "mission_plan_revision.v1",
+        "horizon": {
+          "ends_at_s": 820498200,
+          "starts_at_s": 820497600,
+          "terminals": {
+            "demo-1": {
+              "frame": "eci_j2000",
+              "mode": "standby",
+              "quaternion_wxyz": [
+                1,
+                0,
+                0,
+                0
+              ],
+              "strategy": "fixed_inertial"
+            },
+            "demo-2": {
+              "frame": "eci_j2000",
+              "mode": "standby",
+              "quaternion_wxyz": [
+                1,
+                0,
+                0,
+                0
+              ],
+              "strategy": "fixed_inertial"
+            },
+            "demo-3": {
+              "frame": "eci_j2000",
+              "mode": "standby",
+              "quaternion_wxyz": [
+                1,
+                0,
+                0,
+                0
+              ],
+              "strategy": "fixed_inertial"
+            }
+          },
+          "time_scale": "utc"
+        },
+        "initial_state_policy": "recompute_from_same_declared_initial_state",
+        "planner_timings": {
+          "endpoint_verification_ms": 4.371,
+          "opportunity_generation_ms": 2489.268,
+          "preparation_ms": 676.97,
+          "scheduling_ms": 163151.246
+        },
+        "protected_activities": [
+          {
+            "asset_id": "demo-1",
+            "ends_at_s": 820497680.5,
+            "request_id": "early-1",
+            "starts_at_s": 820497660.5
+          }
+        ],
+        "revised_snapshot_id": "mission_plan_snapshot:eec9d1912d25b9ebe90e91713bae50bda466ec20ae63284758babe6b1c8e17b6",
+        "revision_id": "urgent_service",
+        "service_availability_changes": {
+          "newly_unavailable": [],
+          "restored": []
+        },
+        "status": "ready_for_review"
+      },
+      "snapshot_file_sha256": "d4cc72db38478c7bd96041d9d92473e44629c0065b497018ba6535711ae161aa",
+      "raw_directory": "tmp/plan_revision_urgent"
+    },
+    "outage": {
+      "review": {
+        "baseline_snapshot_id": "mission_plan_snapshot:36e1da53a06afd3dc2b2592be0046e062cab4ff39514227ce02ff8bcac6521a2",
+        "change_sha256": "36854808dbc45e2a4b4642643b4c700fe7502feed773bac380670ecbe70f085c",
+        "changes": {
+          "add_requests": [],
+          "protect_request_ids": [
+            "early-1"
+          ],
+          "revision_id": "service_outage",
+          "scheduling": {
+            "max_trials": 4,
+            "strategy": "bounded_replacement"
+          },
+          "unavailable_asset_ids": [
+            "demo-2"
+          ]
+        },
+        "conflicts": [],
+        "diff": {
+          "activities": [
+            {
+              "after": {
+                "asset_id": "demo-1",
+                "ends_at_s": 820497680.5,
+                "request_id": "early-1",
+                "starts_at_s": 820497660.5,
+                "value": 30.0
+              },
+              "before": {
+                "asset_id": "demo-1",
+                "ends_at_s": 820497680.5,
+                "request_id": "early-1",
+                "starts_at_s": 820497660.5,
+                "value": 30.0
+              },
+              "change": "unchanged",
+              "changed_fields": [],
+              "protected": true,
+              "request_id": "early-1",
+              "revised_request_status": "scheduled",
+              "revised_unfulfilled_reasons": []
+            },
+            {
+              "after": {
+                "asset_id": "demo-3",
+                "ends_at_s": 820497680.5,
+                "request_id": "early-2",
+                "starts_at_s": 820497660.5,
+                "value": 29.0
+              },
+              "before": {
+                "asset_id": "demo-2",
+                "ends_at_s": 820497680.5,
+                "request_id": "early-2",
+                "starts_at_s": 820497660.5,
+                "value": 29.0
+              },
+              "change": "moved",
+              "changed_fields": [
+                "asset_id"
+              ],
+              "protected": false,
+              "request_id": "early-2",
+              "revised_request_status": "scheduled",
+              "revised_unfulfilled_reasons": []
+            },
+            {
+              "after": null,
+              "before": {
+                "asset_id": "demo-3",
+                "ends_at_s": 820497680.5,
+                "request_id": "early-3",
+                "starts_at_s": 820497660.5,
+                "value": 28.0
+              },
+              "change": "removed",
+              "changed_fields": [],
+              "protected": false,
+              "request_id": "early-3",
+              "revised_request_status": "unfulfilled",
+              "revised_unfulfilled_reasons": [
+                "planning_start_grid_infeasible"
+              ]
+            },
+            {
+              "after": {
+                "asset_id": "demo-1",
+                "ends_at_s": 820498084.0744531,
+                "request_id": "late-1",
+                "starts_at_s": 820498064.0744531,
+                "value": 22.0
+              },
+              "before": {
+                "asset_id": "demo-3",
+                "ends_at_s": 820498000.5,
+                "request_id": "late-1",
+                "starts_at_s": 820497980.5,
+                "value": 22.0
+              },
+              "change": "moved",
+              "changed_fields": [
+                "asset_id",
+                "starts_at_s",
+                "ends_at_s"
+              ],
+              "protected": false,
+              "request_id": "late-1",
+              "revised_request_status": "scheduled",
+              "revised_unfulfilled_reasons": []
+            },
+            {
+              "after": {
+                "asset_id": "demo-3",
+                "ends_at_s": 820498048.713125,
+                "request_id": "late-2",
+                "starts_at_s": 820498028.713125,
+                "value": 21.0
+              },
+              "before": {
+                "asset_id": "demo-2",
+                "ends_at_s": 820498102.8049219,
+                "request_id": "late-2",
+                "starts_at_s": 820498082.8049219,
+                "value": 21.0
+              },
+              "change": "moved",
+              "changed_fields": [
+                "asset_id",
+                "starts_at_s",
+                "ends_at_s"
+              ],
+              "protected": false,
+              "request_id": "late-2",
+              "revised_request_status": "scheduled",
+              "revised_unfulfilled_reasons": []
+            }
+          ],
+          "baseline_value": 130.0,
+          "counts": {
+            "added": 0,
+            "moved": 3,
+            "removed": 1,
+            "unchanged": 1
+          },
+          "new_request_ids": [],
+          "replacement_summary": {
+            "causal_pairing": "not_inferred",
+            "newly_served_request_ids": [],
+            "removed_request_ids": [
+              "early-3"
+            ]
+          },
+          "revised_value": 102.0,
+          "unfulfilled_requests": [
+            {
+              "reasons": [
+                "planning_start_grid_infeasible"
+              ],
+              "request_id": "early-3",
+              "value": 28.0
+            },
+            {
+              "reasons": [
+                "planning_start_grid_infeasible"
+              ],
+              "request_id": "early-4",
+              "value": 27.0
+            },
+            {
+              "reasons": [
+                "planning_start_grid_infeasible"
+              ],
+              "request_id": "middle-1",
+              "value": 26.0
+            },
+            {
+              "reasons": [
+                "planning_start_grid_infeasible"
+              ],
+              "request_id": "middle-2",
+              "value": 25.0
+            },
+            {
+              "reasons": [
+                "planning_start_grid_infeasible"
+              ],
+              "request_id": "middle-3",
+              "value": 24.0
+            },
+            {
+              "reasons": [
+                "capability_unavailable",
+                "insufficient_duration_after_bounds_and_margins",
+                "no_conservative_opportunity"
+              ],
+              "request_id": "middle-4",
+              "value": 23.0
+            },
+            {
+              "reasons": [
+                "planning_start_grid_infeasible"
+              ],
+              "request_id": "late-3",
+              "value": 20.0
+            },
+            {
+              "reasons": [
+                "capability_unavailable",
+                "no_conservative_opportunity",
+                "opportunity_search_incomplete"
+              ],
+              "request_id": "late-4",
+              "value": 19.0
+            }
+          ],
+          "value_delta": -28.0
+        },
+        "execution_boundary": "analysis_only_no_approval_or_command_execution",
+        "format": "mission_plan_revision.v1",
+        "horizon": {
+          "ends_at_s": 820498200,
+          "starts_at_s": 820497600,
+          "terminals": {
+            "demo-1": {
+              "frame": "eci_j2000",
+              "mode": "standby",
+              "quaternion_wxyz": [
+                1,
+                0,
+                0,
+                0
+              ],
+              "strategy": "fixed_inertial"
+            },
+            "demo-2": {
+              "frame": "eci_j2000",
+              "mode": "standby",
+              "quaternion_wxyz": [
+                1,
+                0,
+                0,
+                0
+              ],
+              "strategy": "fixed_inertial"
+            },
+            "demo-3": {
+              "frame": "eci_j2000",
+              "mode": "standby",
+              "quaternion_wxyz": [
+                1,
+                0,
+                0,
+                0
+              ],
+              "strategy": "fixed_inertial"
+            }
+          },
+          "time_scale": "utc"
+        },
+        "initial_state_policy": "recompute_from_same_declared_initial_state",
+        "planner_timings": {
+          "endpoint_verification_ms": 35.089,
+          "opportunity_generation_ms": 2708.917,
+          "preparation_ms": 974.827,
+          "scheduling_ms": 72433.741
+        },
+        "protected_activities": [
+          {
+            "asset_id": "demo-1",
+            "ends_at_s": 820497680.5,
+            "request_id": "early-1",
+            "starts_at_s": 820497660.5
+          }
+        ],
+        "revised_snapshot_id": "mission_plan_snapshot:2dd28b6ecd9168fb7f282c72a31e250e49a236a0928c9e412d752b1b856406ad",
+        "revision_id": "service_outage",
+        "service_availability_changes": {
+          "newly_unavailable": [
+            "demo-2"
+          ],
+          "restored": []
+        },
+        "status": "ready_for_review"
+      },
+      "snapshot_file_sha256": "8c973152b1b15a19cdf28184fa1da8726b2aafb9aeb58ee123e532bc775f8ccb",
+      "raw_directory": "tmp/plan_revision_outage"
+    },
+    "conflict": {
+      "review": {
+        "baseline_snapshot_id": "mission_plan_snapshot:36e1da53a06afd3dc2b2592be0046e062cab4ff39514227ce02ff8bcac6521a2",
+        "change_sha256": "cee2aa5283f3e93de40f6bc43d88d0b253f71fde2fef2fc3787aaa9ffa2490af",
+        "changes": {
+          "add_requests": [],
+          "protect_request_ids": [
+            "early-1"
+          ],
+          "revision_id": "committed_service_outage",
+          "scheduling": {
+            "max_trials": 4,
+            "strategy": "bounded_replacement"
+          },
+          "unavailable_asset_ids": [
+            "demo-1"
+          ]
+        },
+        "conflicts": [
+          {
+            "kind": "protected_service_unavailable",
+            "placement": {
+              "asset_id": "demo-1",
+              "ends_at_s": 820497680.5,
+              "request_id": "early-1",
+              "starts_at_s": 820497660.5
+            },
+            "reason": "asset service unavailable throughout the unchanged planning horizon"
+          }
+        ],
+        "diff": null,
+        "execution_boundary": "analysis_only_no_approval_or_command_execution",
+        "format": "mission_plan_revision.v1",
+        "horizon": {
+          "ends_at_s": 820498200,
+          "starts_at_s": 820497600,
+          "terminals": {
+            "demo-1": {
+              "frame": "eci_j2000",
+              "mode": "standby",
+              "quaternion_wxyz": [
+                1,
+                0,
+                0,
+                0
+              ],
+              "strategy": "fixed_inertial"
+            },
+            "demo-2": {
+              "frame": "eci_j2000",
+              "mode": "standby",
+              "quaternion_wxyz": [
+                1,
+                0,
+                0,
+                0
+              ],
+              "strategy": "fixed_inertial"
+            },
+            "demo-3": {
+              "frame": "eci_j2000",
+              "mode": "standby",
+              "quaternion_wxyz": [
+                1,
+                0,
+                0,
+                0
+              ],
+              "strategy": "fixed_inertial"
+            }
+          },
+          "time_scale": "utc"
+        },
+        "initial_state_policy": "recompute_from_same_declared_initial_state",
+        "protected_activities": [
+          {
+            "asset_id": "demo-1",
+            "ends_at_s": 820497680.5,
+            "request_id": "early-1",
+            "starts_at_s": 820497660.5
+          }
+        ],
+        "revised_snapshot_id": null,
+        "revision_id": "committed_service_outage",
+        "service_availability_changes": {
+          "newly_unavailable": [
+            "demo-1"
+          ],
+          "restored": []
+        },
+        "status": "commitment_conflict"
+      },
+      "snapshot_file_sha256": null,
+      "raw_directory": "tmp/plan_revision_conflict"
+    }
+  },
+  "notes": [
+    "Urgent request remains unfulfilled under bounded search; ready_for_review does not imply all demand served or optimality.",
+    "Outage retains exact early-1 commitment, moves three tentative activities and removes one.",
+    "Protected spacecraft outage exits nonzero without a child snapshot.",
+    "Timings were observed alongside other local work and are not a benchmark.",
+    "CLI tests verify baseline bytes remain unchanged and saved inputs work after original files are deleted."
+  ],
+  "regression": {
+    "default_six_spacecraft_report_byte_identical": true,
+    "report_sha256": "3ba1e1e60827f5fb6b9991f58d0583063e286544e5e4dbd1e1a968f7685a56cf",
+    "frozen_numerical_baseline": "pass"
+  },
+  "validation": {
+    "command": "mix test.fast --max-cases 8",
+    "passed": 5317,
+    "excluded": 1148,
+    "elapsed_s": 203.8,
+    "focused_new_tests": 13,
+    "independent_review": "no blockers",
+    "format_check": "pass",
+    "diff_whitespace_check": "pass"
+  }
+}

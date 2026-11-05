@@ -1,0 +1,5685 @@
+{
+  "format": "protected_replacement_comparison.v1",
+  "repeated_service": {
+    "format": "repeated_service_comparison.v1",
+    "limits": [
+      "synthetic reference assumptions; not company specifications",
+      "single runtime observations; no speed gates",
+      "finite sampled physical checks, not continuous certification",
+      "fixed-time quality oracle does not bound the orbital workload's optimal value",
+      "inter-service energy deltas compare tested cadences, not physical error bounds"
+    ],
+    "max_trials": 4,
+    "mission_configuration": {
+      "asset_separation_s": 0,
+      "assets": [
+        {
+          "altitude_km": 600,
+          "dry_mass_kg": 250,
+          "id": "demo-1",
+          "initial_argument_of_latitude_deg": 356.0,
+          "local_time_ascending_node_h": 18.0,
+          "payloads": {
+            "illumination": {
+              "atmospheric_transmission": 0.8,
+              "max_mirror_incidence_deg": 80,
+              "max_tracking_rate_deg_s": 2,
+              "mirror_area_m2": 400,
+              "mirror_max_dimension_m": 20,
+              "reflectivity": 0.9,
+              "solar_angular_diameter_deg": 0.53,
+              "solar_irradiance_w_m2": 1361
+            }
+          },
+          "resource_budgets": {}
+        },
+        {
+          "altitude_km": 600,
+          "dry_mass_kg": 250,
+          "id": "demo-2",
+          "initial_argument_of_latitude_deg": 358.0,
+          "local_time_ascending_node_h": 18.02,
+          "payloads": {
+            "illumination": {
+              "atmospheric_transmission": 0.8,
+              "max_mirror_incidence_deg": 80,
+              "max_tracking_rate_deg_s": 2,
+              "mirror_area_m2": 400,
+              "mirror_max_dimension_m": 20,
+              "reflectivity": 0.9,
+              "solar_angular_diameter_deg": 0.53,
+              "solar_irradiance_w_m2": 1361
+            }
+          },
+          "resource_budgets": {}
+        },
+        {
+          "altitude_km": 600,
+          "dry_mass_kg": 250,
+          "id": "demo-3",
+          "initial_argument_of_latitude_deg": 0.0,
+          "local_time_ascending_node_h": 18.04,
+          "payloads": {
+            "illumination": {
+              "atmospheric_transmission": 0.8,
+              "max_mirror_incidence_deg": 80,
+              "max_tracking_rate_deg_s": 2,
+              "mirror_area_m2": 400,
+              "mirror_max_dimension_m": 20,
+              "reflectivity": 0.9,
+              "solar_angular_diameter_deg": 0.53,
+              "solar_irradiance_w_m2": 1361
+            }
+          },
+          "resource_budgets": {}
+        }
+      ],
+      "duration_s": 600,
+      "epoch_s": 820497600,
+      "max_sample_gap_s": 20,
+      "max_step_s": 10,
+      "mission_id": "repeated_service",
+      "requests": [
+        {
+          "activity_type": "illuminate",
+          "duration_s": 20,
+          "ends_at_s": 820497790,
+          "id": "early-1",
+          "model": "illumination",
+          "parameters": {
+            "maximum_target_sun_elevation_deg": -6,
+            "minimum_elevation_deg": 10,
+            "minimum_irradiance_w_m2": 0.0001,
+            "target_radius_km": 1
+          },
+          "resource_costs": {},
+          "starts_at_s": 820497640,
+          "target": {
+            "altitude_km": 0,
+            "id": "site-6",
+            "latitude_deg": 6,
+            "longitude_deg": -79.222322111382,
+            "minimum_elevation_deg": 10
+          },
+          "value": 30
+        },
+        {
+          "activity_type": "illuminate",
+          "duration_s": 20,
+          "ends_at_s": 820497790,
+          "id": "early-2",
+          "model": "illumination",
+          "parameters": {
+            "maximum_target_sun_elevation_deg": -6,
+            "minimum_elevation_deg": 10,
+            "minimum_irradiance_w_m2": 0.0001,
+            "target_radius_km": 1
+          },
+          "resource_costs": {},
+          "starts_at_s": 820497640,
+          "target": {
+            "altitude_km": 0,
+            "id": "site-10",
+            "latitude_deg": 10,
+            "longitude_deg": -79.222322111382,
+            "minimum_elevation_deg": 10
+          },
+          "value": 29
+        },
+        {
+          "activity_type": "illuminate",
+          "duration_s": 20,
+          "ends_at_s": 820497790,
+          "id": "early-3",
+          "model": "illumination",
+          "parameters": {
+            "maximum_target_sun_elevation_deg": -6,
+            "minimum_elevation_deg": 10,
+            "minimum_irradiance_w_m2": 0.0001,
+            "target_radius_km": 1
+          },
+          "resource_costs": {},
+          "starts_at_s": 820497640,
+          "target": {
+            "altitude_km": 0,
+            "id": "site-14",
+            "latitude_deg": 14,
+            "longitude_deg": -79.222322111382,
+            "minimum_elevation_deg": 10
+          },
+          "value": 28
+        },
+        {
+          "activity_type": "illuminate",
+          "duration_s": 20,
+          "ends_at_s": 820497790,
+          "id": "early-4",
+          "model": "illumination",
+          "parameters": {
+            "maximum_target_sun_elevation_deg": -6,
+            "minimum_elevation_deg": 10,
+            "minimum_irradiance_w_m2": 0.0001,
+            "target_radius_km": 1
+          },
+          "resource_costs": {},
+          "starts_at_s": 820497640,
+          "target": {
+            "altitude_km": 0,
+            "id": "site-18",
+            "latitude_deg": 18,
+            "longitude_deg": -79.222322111382,
+            "minimum_elevation_deg": 10
+          },
+          "value": 27
+        },
+        {
+          "activity_type": "illuminate",
+          "duration_s": 20,
+          "ends_at_s": 820497960,
+          "id": "middle-1",
+          "model": "illumination",
+          "parameters": {
+            "maximum_target_sun_elevation_deg": -6,
+            "minimum_elevation_deg": 10,
+            "minimum_irradiance_w_m2": 0.0001,
+            "target_radius_km": 1
+          },
+          "resource_costs": {},
+          "starts_at_s": 820497810,
+          "target": {
+            "altitude_km": 0,
+            "id": "site-18",
+            "latitude_deg": 18,
+            "longitude_deg": -79.222322111382,
+            "minimum_elevation_deg": 10
+          },
+          "value": 26
+        },
+        {
+          "activity_type": "illuminate",
+          "duration_s": 20,
+          "ends_at_s": 820497960,
+          "id": "middle-2",
+          "model": "illumination",
+          "parameters": {
+            "maximum_target_sun_elevation_deg": -6,
+            "minimum_elevation_deg": 10,
+            "minimum_irradiance_w_m2": 0.0001,
+            "target_radius_km": 1
+          },
+          "resource_costs": {},
+          "starts_at_s": 820497810,
+          "target": {
+            "altitude_km": 0,
+            "id": "site-22",
+            "latitude_deg": 22,
+            "longitude_deg": -79.222322111382,
+            "minimum_elevation_deg": 10
+          },
+          "value": 25
+        },
+        {
+          "activity_type": "illuminate",
+          "duration_s": 20,
+          "ends_at_s": 820497960,
+          "id": "middle-3",
+          "model": "illumination",
+          "parameters": {
+            "maximum_target_sun_elevation_deg": -6,
+            "minimum_elevation_deg": 10,
+            "minimum_irradiance_w_m2": 0.0001,
+            "target_radius_km": 1
+          },
+          "resource_costs": {},
+          "starts_at_s": 820497810,
+          "target": {
+            "altitude_km": 0,
+            "id": "site-26",
+            "latitude_deg": 26,
+            "longitude_deg": -79.222322111382,
+            "minimum_elevation_deg": 10
+          },
+          "value": 24
+        },
+        {
+          "activity_type": "illuminate",
+          "duration_s": 20,
+          "ends_at_s": 820497960,
+          "id": "middle-4",
+          "model": "illumination",
+          "parameters": {
+            "maximum_target_sun_elevation_deg": -6,
+            "minimum_elevation_deg": 10,
+            "minimum_irradiance_w_m2": 0.0001,
+            "target_radius_km": 1
+          },
+          "resource_costs": {},
+          "starts_at_s": 820497810,
+          "target": {
+            "altitude_km": 0,
+            "id": "site-30",
+            "latitude_deg": 30,
+            "longitude_deg": -79.222322111382,
+            "minimum_elevation_deg": 10
+          },
+          "value": 23
+        },
+        {
+          "activity_type": "illuminate",
+          "duration_s": 20,
+          "ends_at_s": 820498130,
+          "id": "late-1",
+          "model": "illumination",
+          "parameters": {
+            "maximum_target_sun_elevation_deg": -6,
+            "minimum_elevation_deg": 10,
+            "minimum_irradiance_w_m2": 0.0001,
+            "target_radius_km": 1
+          },
+          "resource_costs": {},
+          "starts_at_s": 820497980,
+          "target": {
+            "altitude_km": 0,
+            "id": "site-30",
+            "latitude_deg": 30,
+            "longitude_deg": -79.222322111382,
+            "minimum_elevation_deg": 10
+          },
+          "value": 22
+        },
+        {
+          "activity_type": "illuminate",
+          "duration_s": 20,
+          "ends_at_s": 820498130,
+          "id": "late-2",
+          "model": "illumination",
+          "parameters": {
+            "maximum_target_sun_elevation_deg": -6,
+            "minimum_elevation_deg": 10,
+            "minimum_irradiance_w_m2": 0.0001,
+            "target_radius_km": 1
+          },
+          "resource_costs": {},
+          "starts_at_s": 820497980,
+          "target": {
+            "altitude_km": 0,
+            "id": "site-34",
+            "latitude_deg": 34,
+            "longitude_deg": -79.222322111382,
+            "minimum_elevation_deg": 10
+          },
+          "value": 21
+        },
+        {
+          "activity_type": "illuminate",
+          "duration_s": 20,
+          "ends_at_s": 820498130,
+          "id": "late-3",
+          "model": "illumination",
+          "parameters": {
+            "maximum_target_sun_elevation_deg": -6,
+            "minimum_elevation_deg": 10,
+            "minimum_irradiance_w_m2": 0.0001,
+            "target_radius_km": 1
+          },
+          "resource_costs": {},
+          "starts_at_s": 820497980,
+          "target": {
+            "altitude_km": 0,
+            "id": "site-38",
+            "latitude_deg": 38,
+            "longitude_deg": -79.222322111382,
+            "minimum_elevation_deg": 10
+          },
+          "value": 20
+        },
+        {
+          "activity_type": "illuminate",
+          "duration_s": 20,
+          "ends_at_s": 820498130,
+          "id": "late-4",
+          "model": "illumination",
+          "parameters": {
+            "maximum_target_sun_elevation_deg": -6,
+            "minimum_elevation_deg": 10,
+            "minimum_irradiance_w_m2": 0.0001,
+            "target_radius_km": 1
+          },
+          "resource_costs": {},
+          "starts_at_s": 820497980,
+          "target": {
+            "altitude_km": 0,
+            "id": "site-42",
+            "latitude_deg": 42,
+            "longitude_deg": -79.222322111382,
+            "minimum_elevation_deg": 10
+          },
+          "value": 19
+        }
+      ],
+      "sample_step_s": 20,
+      "solar_year_s": 31556925.216
+    },
+    "planning_configuration": {
+      "attitude": {
+        "assets": {
+          "demo-1": {
+            "initial": {
+              "angular_velocity_inertial_deg_s": [
+                0,
+                0,
+                0
+              ],
+              "epoch_s": 820497600,
+              "frame": "eci_j2000",
+              "quaternion_wxyz": [
+                1,
+                0,
+                0,
+                0
+              ],
+              "time_scale": "utc"
+            },
+            "max_accel_deg_s2": 0.2,
+            "max_rate_deg_s": 2,
+            "pointing_configurations": {
+              "illumination": {
+                "body_to_payload_quaternion": [
+                  1,
+                  0,
+                  0,
+                  0
+                ],
+                "roll_reference_inertial": [
+                  0,
+                  0,
+                  1
+                ]
+              }
+            },
+            "settling_s": 2
+          },
+          "demo-2": {
+            "initial": {
+              "angular_velocity_inertial_deg_s": [
+                0,
+                0,
+                0
+              ],
+              "epoch_s": 820497600,
+              "frame": "eci_j2000",
+              "quaternion_wxyz": [
+                1,
+                0,
+                0,
+                0
+              ],
+              "time_scale": "utc"
+            },
+            "max_accel_deg_s2": 0.2,
+            "max_rate_deg_s": 2,
+            "pointing_configurations": {
+              "illumination": {
+                "body_to_payload_quaternion": [
+                  1,
+                  0,
+                  0,
+                  0
+                ],
+                "roll_reference_inertial": [
+                  0,
+                  0,
+                  1
+                ]
+              }
+            },
+            "settling_s": 2
+          },
+          "demo-3": {
+            "initial": {
+              "angular_velocity_inertial_deg_s": [
+                0,
+                0,
+                0
+              ],
+              "epoch_s": 820497600,
+              "frame": "eci_j2000",
+              "quaternion_wxyz": [
+                1,
+                0,
+                0,
+                0
+              ],
+              "time_scale": "utc"
+            },
+            "max_accel_deg_s2": 0.2,
+            "max_rate_deg_s": 2,
+            "pointing_configurations": {
+              "illumination": {
+                "body_to_payload_quaternion": [
+                  1,
+                  0,
+                  0,
+                  0
+                ],
+                "roll_reference_inertial": [
+                  0,
+                  0,
+                  1
+                ]
+              }
+            },
+            "settling_s": 2
+          }
+        },
+        "derivative_step_s": 0.25,
+        "max_candidate_starts": 8,
+        "max_evaluations": 20000,
+        "profile_step_s": 2,
+        "search_step_s": 20
+      },
+      "horizon": {
+        "ends_at_s": 820498200,
+        "starts_at_s": 820497600,
+        "terminals": {
+          "demo-1": {
+            "frame": "eci_j2000",
+            "mode": "standby",
+            "quaternion_wxyz": [
+              1,
+              0,
+              0,
+              0
+            ],
+            "strategy": "fixed_inertial"
+          },
+          "demo-2": {
+            "frame": "eci_j2000",
+            "mode": "standby",
+            "quaternion_wxyz": [
+              1,
+              0,
+              0,
+              0
+            ],
+            "strategy": "fixed_inertial"
+          },
+          "demo-3": {
+            "frame": "eci_j2000",
+            "mode": "standby",
+            "quaternion_wxyz": [
+              1,
+              0,
+              0,
+              0
+            ],
+            "strategy": "fixed_inertial"
+          }
+        },
+        "time_scale": "utc"
+      },
+      "mission_manifest": "repeated_service.json",
+      "opportunity_search": {
+        "entry_margin_s": 0.5,
+        "exit_margin_s": 0.5,
+        "max_check_step_s": 5,
+        "max_evaluations": 50000,
+        "max_iterations": 64,
+        "time_tolerance_s": 0.01
+      },
+      "path_constraints": {
+        "assets": {
+          "demo-1": {
+            "activity_modes": {
+              "early-1": "reflecting",
+              "early-2": "reflecting",
+              "early-3": "reflecting",
+              "early-4": "reflecting",
+              "late-1": "reflecting",
+              "late-2": "reflecting",
+              "late-3": "reflecting",
+              "late-4": "reflecting",
+              "middle-1": "reflecting",
+              "middle-2": "reflecting",
+              "middle-3": "reflecting",
+              "middle-4": "reflecting"
+            },
+            "modes": {
+              "maneuver": {
+                "optical_behavior": "reflecting",
+                "power_load_w": 100
+              },
+              "reflecting": {
+                "optical_behavior": "reflecting",
+                "power_load_w": 2000
+              },
+              "standby": {
+                "optical_behavior": "reflecting",
+                "power_load_w": 20
+              }
+            },
+            "rules": [
+              {
+                "configuration": {
+                  "body_axis": [
+                    0,
+                    0,
+                    1
+                  ],
+                  "maximum_angle_deg": 180,
+                  "minimum_angle_deg": 5,
+                  "reference": {
+                    "kind": "sun"
+                  }
+                },
+                "id": "sun_axis",
+                "model": "angular"
+              },
+              {
+                "configuration": {
+                  "body_axis": [
+                    1,
+                    0,
+                    0
+                  ],
+                  "maximum_angle_deg": 180,
+                  "minimum_angle_deg": 0,
+                  "reference": {
+                    "kind": "body_limb"
+                  }
+                },
+                "id": "limb_axis",
+                "model": "angular"
+              },
+              {
+                "configuration": {
+                  "back_face_behavior": "two_sided_reflecting_by_assumption",
+                  "beam_padding_deg": 0.02,
+                  "exclusion_regions": [
+                    {
+                      "id": "synthetic_polar_exclusion",
+                      "latitude_deg": 80,
+                      "longitude_deg": 0,
+                      "radius_km": 25
+                    }
+                  ],
+                  "mirror_normal_body": [
+                    0,
+                    0,
+                    1
+                  ],
+                  "solar_angular_radius_deg": 0.265
+                },
+                "id": "reflected_beam",
+                "model": "reflected_beam"
+              }
+            ],
+            "transition_mode": "maneuver"
+          },
+          "demo-2": {
+            "activity_modes": {
+              "early-1": "reflecting",
+              "early-2": "reflecting",
+              "early-3": "reflecting",
+              "early-4": "reflecting",
+              "late-1": "reflecting",
+              "late-2": "reflecting",
+              "late-3": "reflecting",
+              "late-4": "reflecting",
+              "middle-1": "reflecting",
+              "middle-2": "reflecting",
+              "middle-3": "reflecting",
+              "middle-4": "reflecting"
+            },
+            "modes": {
+              "maneuver": {
+                "optical_behavior": "reflecting",
+                "power_load_w": 100
+              },
+              "reflecting": {
+                "optical_behavior": "reflecting",
+                "power_load_w": 2000
+              },
+              "standby": {
+                "optical_behavior": "reflecting",
+                "power_load_w": 20
+              }
+            },
+            "rules": [
+              {
+                "configuration": {
+                  "body_axis": [
+                    0,
+                    0,
+                    1
+                  ],
+                  "maximum_angle_deg": 180,
+                  "minimum_angle_deg": 5,
+                  "reference": {
+                    "kind": "sun"
+                  }
+                },
+                "id": "sun_axis",
+                "model": "angular"
+              },
+              {
+                "configuration": {
+                  "body_axis": [
+                    1,
+                    0,
+                    0
+                  ],
+                  "maximum_angle_deg": 180,
+                  "minimum_angle_deg": 0,
+                  "reference": {
+                    "kind": "body_limb"
+                  }
+                },
+                "id": "limb_axis",
+                "model": "angular"
+              },
+              {
+                "configuration": {
+                  "back_face_behavior": "two_sided_reflecting_by_assumption",
+                  "beam_padding_deg": 0.02,
+                  "exclusion_regions": [
+                    {
+                      "id": "synthetic_polar_exclusion",
+                      "latitude_deg": 80,
+                      "longitude_deg": 0,
+                      "radius_km": 25
+                    }
+                  ],
+                  "mirror_normal_body": [
+                    0,
+                    0,
+                    1
+                  ],
+                  "solar_angular_radius_deg": 0.265
+                },
+                "id": "reflected_beam",
+                "model": "reflected_beam"
+              }
+            ],
+            "transition_mode": "maneuver"
+          },
+          "demo-3": {
+            "activity_modes": {
+              "early-1": "reflecting",
+              "early-2": "reflecting",
+              "early-3": "reflecting",
+              "early-4": "reflecting",
+              "late-1": "reflecting",
+              "late-2": "reflecting",
+              "late-3": "reflecting",
+              "late-4": "reflecting",
+              "middle-1": "reflecting",
+              "middle-2": "reflecting",
+              "middle-3": "reflecting",
+              "middle-4": "reflecting"
+            },
+            "modes": {
+              "maneuver": {
+                "optical_behavior": "reflecting",
+                "power_load_w": 100
+              },
+              "reflecting": {
+                "optical_behavior": "reflecting",
+                "power_load_w": 2000
+              },
+              "standby": {
+                "optical_behavior": "reflecting",
+                "power_load_w": 20
+              }
+            },
+            "rules": [
+              {
+                "configuration": {
+                  "body_axis": [
+                    0,
+                    0,
+                    1
+                  ],
+                  "maximum_angle_deg": 180,
+                  "minimum_angle_deg": 5,
+                  "reference": {
+                    "kind": "sun"
+                  }
+                },
+                "id": "sun_axis",
+                "model": "angular"
+              },
+              {
+                "configuration": {
+                  "body_axis": [
+                    1,
+                    0,
+                    0
+                  ],
+                  "maximum_angle_deg": 180,
+                  "minimum_angle_deg": 0,
+                  "reference": {
+                    "kind": "body_limb"
+                  }
+                },
+                "id": "limb_axis",
+                "model": "angular"
+              },
+              {
+                "configuration": {
+                  "back_face_behavior": "two_sided_reflecting_by_assumption",
+                  "beam_padding_deg": 0.02,
+                  "exclusion_regions": [
+                    {
+                      "id": "synthetic_polar_exclusion",
+                      "latitude_deg": 80,
+                      "longitude_deg": 0,
+                      "radius_km": 25
+                    }
+                  ],
+                  "mirror_normal_body": [
+                    0,
+                    0,
+                    1
+                  ],
+                  "solar_angular_radius_deg": 0.265
+                },
+                "id": "reflected_beam",
+                "model": "reflected_beam"
+              }
+            ],
+            "transition_mode": "maneuver"
+          }
+        },
+        "max_evaluations": 100000,
+        "max_samples_per_segment": 5000,
+        "sample_steps_s": [
+          5,
+          1
+        ]
+      },
+      "refinement": {
+        "max_extra_evaluations": 512,
+        "time_tolerance_s": 0.01,
+        "tracking_lookback_s": 1
+      },
+      "resolution_level": {
+        "max_step_s": 1,
+        "sample_step_s": 2
+      },
+      "resources": {
+        "assets": {
+          "demo-1": [
+            {
+              "configuration": {
+                "capacity_wh": 30,
+                "charge_efficiency": 0.9,
+                "discharge_efficiency": 0.9,
+                "generation": {
+                  "bus_efficiency": 0.9,
+                  "event_search": {
+                    "max_check_step_s": 20,
+                    "max_evaluations": 100000,
+                    "max_iterations": 64,
+                    "time_tolerance_s": 0.01
+                  },
+                  "kind": "solar_array",
+                  "panels": [
+                    {
+                      "area_m2": 0.4,
+                      "efficiency": 0.3,
+                      "id": "panel-0--1",
+                      "normal_body": [
+                        -1,
+                        0,
+                        0
+                      ]
+                    },
+                    {
+                      "area_m2": 0.4,
+                      "efficiency": 0.3,
+                      "id": "panel-0-1",
+                      "normal_body": [
+                        1,
+                        0,
+                        0
+                      ]
+                    },
+                    {
+                      "area_m2": 0.4,
+                      "efficiency": 0.3,
+                      "id": "panel-1--1",
+                      "normal_body": [
+                        0,
+                        -1,
+                        0
+                      ]
+                    },
+                    {
+                      "area_m2": 0.4,
+                      "efficiency": 0.3,
+                      "id": "panel-1-1",
+                      "normal_body": [
+                        0,
+                        1,
+                        0
+                      ]
+                    },
+                    {
+                      "area_m2": 0.4,
+                      "efficiency": 0.3,
+                      "id": "panel-2--1",
+                      "normal_body": [
+                        0,
+                        0,
+                        -1
+                      ]
+                    },
+                    {
+                      "area_m2": 0.4,
+                      "efficiency": 0.3,
+                      "id": "panel-2-1",
+                      "normal_body": [
+                        0,
+                        0,
+                        1
+                      ]
+                    }
+                  ],
+                  "shadow_model": "finite_sun",
+                  "solar_distance_km": 149597870.7,
+                  "solar_irradiance_w_m2": 1361,
+                  "solar_radius_km": 695700
+                },
+                "initial_wh": 24,
+                "phase_load_w": {
+                  "activity": 0,
+                  "brake": 200,
+                  "hold": 0,
+                  "ramp_to_tracking": 200,
+                  "settle": 0,
+                  "slew_accelerate": 200,
+                  "slew_cruise": 200,
+                  "slew_decelerate": 200
+                },
+                "reserve_wh": 8
+              },
+              "id": "battery",
+              "model": "battery"
+            }
+          ],
+          "demo-2": [
+            {
+              "configuration": {
+                "capacity_wh": 30,
+                "charge_efficiency": 0.9,
+                "discharge_efficiency": 0.9,
+                "generation": {
+                  "bus_efficiency": 0.9,
+                  "event_search": {
+                    "max_check_step_s": 20,
+                    "max_evaluations": 100000,
+                    "max_iterations": 64,
+                    "time_tolerance_s": 0.01
+                  },
+                  "kind": "solar_array",
+                  "panels": [
+                    {
+                      "area_m2": 0.4,
+                      "efficiency": 0.3,
+                      "id": "panel-0--1",
+                      "normal_body": [
+                        -1,
+                        0,
+                        0
+                      ]
+                    },
+                    {
+                      "area_m2": 0.4,
+                      "efficiency": 0.3,
+                      "id": "panel-0-1",
+                      "normal_body": [
+                        1,
+                        0,
+                        0
+                      ]
+                    },
+                    {
+                      "area_m2": 0.4,
+                      "efficiency": 0.3,
+                      "id": "panel-1--1",
+                      "normal_body": [
+                        0,
+                        -1,
+                        0
+                      ]
+                    },
+                    {
+                      "area_m2": 0.4,
+                      "efficiency": 0.3,
+                      "id": "panel-1-1",
+                      "normal_body": [
+                        0,
+                        1,
+                        0
+                      ]
+                    },
+                    {
+                      "area_m2": 0.4,
+                      "efficiency": 0.3,
+                      "id": "panel-2--1",
+                      "normal_body": [
+                        0,
+                        0,
+                        -1
+                      ]
+                    },
+                    {
+                      "area_m2": 0.4,
+                      "efficiency": 0.3,
+                      "id": "panel-2-1",
+                      "normal_body": [
+                        0,
+                        0,
+                        1
+                      ]
+                    }
+                  ],
+                  "shadow_model": "finite_sun",
+                  "solar_distance_km": 149597870.7,
+                  "solar_irradiance_w_m2": 1361,
+                  "solar_radius_km": 695700
+                },
+                "initial_wh": 24,
+                "phase_load_w": {
+                  "activity": 0,
+                  "brake": 200,
+                  "hold": 0,
+                  "ramp_to_tracking": 200,
+                  "settle": 0,
+                  "slew_accelerate": 200,
+                  "slew_cruise": 200,
+                  "slew_decelerate": 200
+                },
+                "reserve_wh": 8
+              },
+              "id": "battery",
+              "model": "battery"
+            }
+          ],
+          "demo-3": [
+            {
+              "configuration": {
+                "capacity_wh": 30,
+                "charge_efficiency": 0.9,
+                "discharge_efficiency": 0.9,
+                "generation": {
+                  "bus_efficiency": 0.9,
+                  "event_search": {
+                    "max_check_step_s": 20,
+                    "max_evaluations": 100000,
+                    "max_iterations": 64,
+                    "time_tolerance_s": 0.01
+                  },
+                  "kind": "solar_array",
+                  "panels": [
+                    {
+                      "area_m2": 0.4,
+                      "efficiency": 0.3,
+                      "id": "panel-0--1",
+                      "normal_body": [
+                        -1,
+                        0,
+                        0
+                      ]
+                    },
+                    {
+                      "area_m2": 0.4,
+                      "efficiency": 0.3,
+                      "id": "panel-0-1",
+                      "normal_body": [
+                        1,
+                        0,
+                        0
+                      ]
+                    },
+                    {
+                      "area_m2": 0.4,
+                      "efficiency": 0.3,
+                      "id": "panel-1--1",
+                      "normal_body": [
+                        0,
+                        -1,
+                        0
+                      ]
+                    },
+                    {
+                      "area_m2": 0.4,
+                      "efficiency": 0.3,
+                      "id": "panel-1-1",
+                      "normal_body": [
+                        0,
+                        1,
+                        0
+                      ]
+                    },
+                    {
+                      "area_m2": 0.4,
+                      "efficiency": 0.3,
+                      "id": "panel-2--1",
+                      "normal_body": [
+                        0,
+                        0,
+                        -1
+                      ]
+                    },
+                    {
+                      "area_m2": 0.4,
+                      "efficiency": 0.3,
+                      "id": "panel-2-1",
+                      "normal_body": [
+                        0,
+                        0,
+                        1
+                      ]
+                    }
+                  ],
+                  "shadow_model": "finite_sun",
+                  "solar_distance_km": 149597870.7,
+                  "solar_irradiance_w_m2": 1361,
+                  "solar_radius_km": 695700
+                },
+                "initial_wh": 24,
+                "phase_load_w": {
+                  "activity": 0,
+                  "brake": 200,
+                  "hold": 0,
+                  "ramp_to_tracking": 200,
+                  "settle": 0,
+                  "slew_accelerate": 200,
+                  "slew_cruise": 200,
+                  "slew_decelerate": 200
+                },
+                "reserve_wh": 8
+              },
+              "id": "battery",
+              "model": "battery"
+            }
+          ]
+        },
+        "max_evaluations": 100000,
+        "max_intervals_per_asset": 5000,
+        "sample_steps_s": [
+          5,
+          1
+        ]
+      },
+      "study_id": "repeated_service"
+    },
+    "protected_activities": [],
+    "quality_cases": {
+      "bounded_reassignment": [
+        {
+          "absolute_gap": 0.0,
+          "activities": [
+            {
+              "asset_id": "a",
+              "ends_at_s": 30.0,
+              "request_id": "restricted",
+              "starts_at_s": 20.0,
+              "value": 9.0
+            },
+            {
+              "asset_id": "b",
+              "ends_at_s": 30.0,
+              "request_id": "flexible",
+              "starts_at_s": 20.0,
+              "value": 10.0
+            },
+            {
+              "asset_id": "a",
+              "ends_at_s": 70.0,
+              "request_id": "followup",
+              "starts_at_s": 60.0,
+              "value": 8.0
+            }
+          ],
+          "configuration": {
+            "activity_load_w": 1080,
+            "assets": [
+              "a",
+              "b"
+            ],
+            "capacity_wh": 5.5,
+            "generation_w": 360,
+            "horizon_end_s": 100,
+            "id": "repeated_assignment",
+            "initial_wh": 4,
+            "max_accel_deg_s2": 5,
+            "max_rate_deg_s": 10,
+            "requests": [
+              {
+                "allowed_assets": [
+                  "a",
+                  "b"
+                ],
+                "angle_deg": 0,
+                "duration_s": 10,
+                "id": "flexible",
+                "start_s": 20,
+                "value": 10
+              },
+              {
+                "allowed_assets": [
+                  "a"
+                ],
+                "angle_deg": 0,
+                "duration_s": 10,
+                "id": "restricted",
+                "start_s": 20,
+                "value": 9
+              },
+              {
+                "allowed_assets": [
+                  "a"
+                ],
+                "angle_deg": 90,
+                "duration_s": 10,
+                "id": "followup",
+                "start_s": 60,
+                "value": 8
+              }
+            ],
+            "reserve_wh": 2,
+            "settling_s": 1
+          },
+          "id": "repeated_assignment",
+          "optimal_value": 27,
+          "oracle": {
+            "enumerated_count": 12,
+            "feasible_count": 10,
+            "optimal_value": 27,
+            "rejection_reasons": {
+              "overlap": 2
+            },
+            "witness": [
+              {
+                "asset_id": "b",
+                "duration_s": 10,
+                "id": "flexible",
+                "start_s": 20,
+                "value": 10
+              },
+              {
+                "asset_id": "a",
+                "duration_s": 10,
+                "id": "restricted",
+                "start_s": 20,
+                "value": 9
+              },
+              {
+                "asset_id": "a",
+                "duration_s": 10,
+                "id": "followup",
+                "start_s": 60,
+                "value": 8
+              }
+            ]
+          },
+          "planner_value": 27.0,
+          "planning_status": "supported",
+          "runtime_ms": 48.267,
+          "scheduling_search": {
+            "baseline_value": 18.0,
+            "final_value": 27.0,
+            "limits": [
+              "each trial uses the configured placement and subsystem evaluation budgets",
+              "strict value improvements retaining every incumbent served request only; no global optimum or exhaustive assignment claim",
+              "static-only evaluation does not establish attitude, path, horizon or battery feasibility"
+            ],
+            "max_trials": 4,
+            "proposal_encoding": "opportunity_priority_order",
+            "status": "neighborhood_exhausted",
+            "strategy": "Elixir.OrbitalDynamics.MissionAnalysis.Scheduling.Reassignment",
+            "total_model_evaluation_counts": {
+              "attitude_model_evaluation_count": 380,
+              "resource_model_evaluation_count": 1389
+            },
+            "trial_count": 2,
+            "trials": [
+              {
+                "accepted": true,
+                "attitude_model_evaluation_count": 152,
+                "feasibility": "supported",
+                "fulfilled_value": 18.0,
+                "reason": "greedy_baseline",
+                "resource_model_evaluation_count": 617,
+                "scheduled_count": 2,
+                "trial": 1
+              },
+              {
+                "accepted": true,
+                "added_request_ids": [
+                  "restricted"
+                ],
+                "attitude_model_evaluation_count": 228,
+                "endpoint_eligibility": "supported",
+                "feasibility": "supported",
+                "fulfilled_value": 27.0,
+                "proposal": {
+                  "from_asset_id": "a",
+                  "preferred_asset_id": "b",
+                  "preferred_opportunity_id": "opportunity:1:b:8:flexible:1",
+                  "request_id": "flexible"
+                },
+                "reason": "value_improved",
+                "removed_request_ids": [],
+                "resource_model_evaluation_count": 772,
+                "scheduled_count": 3,
+                "trial": 2
+              }
+            ]
+          },
+          "scope": "exact_for_declared_fixed_time_scalar_angle_and_ideal_battery_model_only"
+        },
+        {
+          "absolute_gap": 5.0,
+          "activities": [
+            {
+              "asset_id": "a",
+              "ends_at_s": 50.0,
+              "request_id": "middle",
+              "starts_at_s": 40.0,
+              "value": 10.0
+            }
+          ],
+          "configuration": {
+            "activity_load_w": 1080,
+            "assets": [
+              "a"
+            ],
+            "capacity_wh": 5.5,
+            "generation_w": 360,
+            "horizon_end_s": 100,
+            "id": "maneuver_gap",
+            "initial_wh": 4,
+            "max_accel_deg_s2": 5,
+            "max_rate_deg_s": 10,
+            "requests": [
+              {
+                "allowed_assets": [
+                  "a"
+                ],
+                "angle_deg": 0,
+                "duration_s": 10,
+                "id": "early",
+                "start_s": 20,
+                "value": 8
+              },
+              {
+                "allowed_assets": [
+                  "a"
+                ],
+                "angle_deg": 90,
+                "duration_s": 10,
+                "id": "middle",
+                "start_s": 40,
+                "value": 10
+              },
+              {
+                "allowed_assets": [
+                  "a"
+                ],
+                "angle_deg": 0,
+                "duration_s": 10,
+                "id": "late",
+                "start_s": 60,
+                "value": 7
+              }
+            ],
+            "reserve_wh": 2,
+            "settling_s": 1
+          },
+          "id": "maneuver_gap",
+          "optimal_value": 15,
+          "oracle": {
+            "enumerated_count": 8,
+            "feasible_count": 5,
+            "optimal_value": 15,
+            "rejection_reasons": {
+              "maneuver_gap": 3
+            },
+            "witness": [
+              {
+                "asset_id": "a",
+                "duration_s": 10,
+                "id": "early",
+                "start_s": 20,
+                "value": 8
+              },
+              {
+                "asset_id": "a",
+                "duration_s": 10,
+                "id": "late",
+                "start_s": 60,
+                "value": 7
+              }
+            ]
+          },
+          "planner_value": 10.0,
+          "planning_status": "supported",
+          "runtime_ms": 13.081,
+          "scheduling_search": {
+            "baseline_value": 10.0,
+            "final_value": 10.0,
+            "limits": [
+              "each trial uses the configured placement and subsystem evaluation budgets",
+              "strict value improvements retaining every incumbent served request only; no global optimum or exhaustive assignment claim",
+              "static-only evaluation does not establish attitude, path, horizon or battery feasibility"
+            ],
+            "max_trials": 4,
+            "proposal_encoding": "opportunity_priority_order",
+            "status": "neighborhood_exhausted",
+            "strategy": "Elixir.OrbitalDynamics.MissionAnalysis.Scheduling.Reassignment",
+            "total_model_evaluation_counts": {
+              "attitude_model_evaluation_count": 96,
+              "resource_model_evaluation_count": 308
+            },
+            "trial_count": 1,
+            "trials": [
+              {
+                "accepted": true,
+                "attitude_model_evaluation_count": 96,
+                "feasibility": "supported",
+                "fulfilled_value": 10.0,
+                "reason": "greedy_baseline",
+                "resource_model_evaluation_count": 308,
+                "scheduled_count": 1,
+                "trial": 1
+              }
+            ]
+          },
+          "scope": "exact_for_declared_fixed_time_scalar_angle_and_ideal_battery_model_only"
+        },
+        {
+          "absolute_gap": 0.0,
+          "activities": [
+            {
+              "asset_id": "a",
+              "ends_at_s": 30.0,
+              "request_id": "early",
+              "starts_at_s": 20.0,
+              "value": 8.0
+            },
+            {
+              "asset_id": "a",
+              "ends_at_s": 50.0,
+              "request_id": "middle",
+              "starts_at_s": 40.0,
+              "value": 10.0
+            }
+          ],
+          "configuration": {
+            "activity_load_w": 1080,
+            "assets": [
+              "a"
+            ],
+            "capacity_wh": 5.5,
+            "generation_w": 360,
+            "horizon_end_s": 100,
+            "id": "battery_limited",
+            "initial_wh": 4,
+            "max_accel_deg_s2": 5,
+            "max_rate_deg_s": 10,
+            "requests": [
+              {
+                "allowed_assets": [
+                  "a"
+                ],
+                "angle_deg": 0,
+                "duration_s": 10,
+                "id": "early",
+                "start_s": 20,
+                "value": 8
+              },
+              {
+                "allowed_assets": [
+                  "a"
+                ],
+                "angle_deg": 0,
+                "duration_s": 10,
+                "id": "middle",
+                "start_s": 40,
+                "value": 10
+              },
+              {
+                "allowed_assets": [
+                  "a"
+                ],
+                "angle_deg": 0,
+                "duration_s": 10,
+                "id": "late",
+                "start_s": 60,
+                "value": 7
+              }
+            ],
+            "reserve_wh": 2,
+            "settling_s": 1
+          },
+          "id": "battery_limited",
+          "optimal_value": 18,
+          "oracle": {
+            "enumerated_count": 8,
+            "feasible_count": 7,
+            "optimal_value": 18,
+            "rejection_reasons": {
+              "battery_reserve": 1
+            },
+            "witness": [
+              {
+                "asset_id": "a",
+                "duration_s": 10,
+                "id": "early",
+                "start_s": 20,
+                "value": 8
+              },
+              {
+                "asset_id": "a",
+                "duration_s": 10,
+                "id": "middle",
+                "start_s": 40,
+                "value": 10
+              }
+            ]
+          },
+          "planner_value": 18.0,
+          "planning_status": "supported",
+          "runtime_ms": 19.612,
+          "scheduling_search": {
+            "baseline_value": 18.0,
+            "final_value": 18.0,
+            "limits": [
+              "each trial uses the configured placement and subsystem evaluation budgets",
+              "strict value improvements retaining every incumbent served request only; no global optimum or exhaustive assignment claim",
+              "static-only evaluation does not establish attitude, path, horizon or battery feasibility"
+            ],
+            "max_trials": 4,
+            "proposal_encoding": "opportunity_priority_order",
+            "status": "neighborhood_exhausted",
+            "strategy": "Elixir.OrbitalDynamics.MissionAnalysis.Scheduling.Reassignment",
+            "total_model_evaluation_counts": {
+              "attitude_model_evaluation_count": 228,
+              "resource_model_evaluation_count": 620
+            },
+            "trial_count": 1,
+            "trials": [
+              {
+                "accepted": true,
+                "attitude_model_evaluation_count": 228,
+                "feasibility": "supported",
+                "fulfilled_value": 18.0,
+                "reason": "greedy_baseline",
+                "resource_model_evaluation_count": 620,
+                "scheduled_count": 2,
+                "trial": 1
+              }
+            ]
+          },
+          "scope": "exact_for_declared_fixed_time_scalar_angle_and_ideal_battery_model_only"
+        },
+        {
+          "absolute_gap": 0.0,
+          "activities": [
+            {
+              "asset_id": "a",
+              "ends_at_s": 30.0,
+              "request_id": "early",
+              "starts_at_s": 20.0,
+              "value": 8.0
+            },
+            {
+              "asset_id": "a",
+              "ends_at_s": 50.0,
+              "request_id": "middle",
+              "starts_at_s": 40.0,
+              "value": 10.0
+            },
+            {
+              "asset_id": "a",
+              "ends_at_s": 90.0,
+              "request_id": "late",
+              "starts_at_s": 80.0,
+              "value": 7.0
+            }
+          ],
+          "configuration": {
+            "activity_load_w": 1080,
+            "assets": [
+              "a"
+            ],
+            "capacity_wh": 5.5,
+            "generation_w": 360,
+            "horizon_end_s": 100,
+            "id": "battery_recovery",
+            "initial_wh": 4,
+            "max_accel_deg_s2": 5,
+            "max_rate_deg_s": 10,
+            "requests": [
+              {
+                "allowed_assets": [
+                  "a"
+                ],
+                "angle_deg": 0,
+                "duration_s": 10,
+                "id": "early",
+                "start_s": 20,
+                "value": 8
+              },
+              {
+                "allowed_assets": [
+                  "a"
+                ],
+                "angle_deg": 0,
+                "duration_s": 10,
+                "id": "middle",
+                "start_s": 40,
+                "value": 10
+              },
+              {
+                "allowed_assets": [
+                  "a"
+                ],
+                "angle_deg": 0,
+                "duration_s": 10,
+                "id": "late",
+                "start_s": 80,
+                "value": 7
+              }
+            ],
+            "reserve_wh": 2,
+            "settling_s": 1
+          },
+          "id": "battery_recovery",
+          "optimal_value": 25,
+          "oracle": {
+            "enumerated_count": 8,
+            "feasible_count": 8,
+            "optimal_value": 25,
+            "rejection_reasons": {},
+            "witness": [
+              {
+                "asset_id": "a",
+                "duration_s": 10,
+                "id": "early",
+                "start_s": 20,
+                "value": 8
+              },
+              {
+                "asset_id": "a",
+                "duration_s": 10,
+                "id": "middle",
+                "start_s": 40,
+                "value": 10
+              },
+              {
+                "asset_id": "a",
+                "duration_s": 10,
+                "id": "late",
+                "start_s": 80,
+                "value": 7
+              }
+            ]
+          },
+          "planner_value": 25.0,
+          "planning_status": "supported",
+          "runtime_ms": 17.758,
+          "scheduling_search": {
+            "baseline_value": 25.0,
+            "final_value": 25.0,
+            "limits": [
+              "each trial uses the configured placement and subsystem evaluation budgets",
+              "strict value improvements retaining every incumbent served request only; no global optimum or exhaustive assignment claim",
+              "static-only evaluation does not establish attitude, path, horizon or battery feasibility"
+            ],
+            "max_trials": 4,
+            "proposal_encoding": "opportunity_priority_order",
+            "status": "neighborhood_exhausted",
+            "strategy": "Elixir.OrbitalDynamics.MissionAnalysis.Scheduling.Reassignment",
+            "total_model_evaluation_counts": {
+              "attitude_model_evaluation_count": 228,
+              "resource_model_evaluation_count": 621
+            },
+            "trial_count": 1,
+            "trials": [
+              {
+                "accepted": true,
+                "attitude_model_evaluation_count": 228,
+                "feasibility": "supported",
+                "fulfilled_value": 25.0,
+                "reason": "greedy_baseline",
+                "resource_model_evaluation_count": 621,
+                "scheduled_count": 3,
+                "trial": 1
+              }
+            ]
+          },
+          "scope": "exact_for_declared_fixed_time_scalar_angle_and_ideal_battery_model_only"
+        }
+      ],
+      "bounded_replacement": [
+        {
+          "absolute_gap": 0.0,
+          "activities": [
+            {
+              "asset_id": "a",
+              "ends_at_s": 30.0,
+              "request_id": "restricted",
+              "starts_at_s": 20.0,
+              "value": 9.0
+            },
+            {
+              "asset_id": "b",
+              "ends_at_s": 30.0,
+              "request_id": "flexible",
+              "starts_at_s": 20.0,
+              "value": 10.0
+            },
+            {
+              "asset_id": "a",
+              "ends_at_s": 70.0,
+              "request_id": "followup",
+              "starts_at_s": 60.0,
+              "value": 8.0
+            }
+          ],
+          "configuration": {
+            "activity_load_w": 1080,
+            "assets": [
+              "a",
+              "b"
+            ],
+            "capacity_wh": 5.5,
+            "generation_w": 360,
+            "horizon_end_s": 100,
+            "id": "repeated_assignment",
+            "initial_wh": 4,
+            "max_accel_deg_s2": 5,
+            "max_rate_deg_s": 10,
+            "requests": [
+              {
+                "allowed_assets": [
+                  "a",
+                  "b"
+                ],
+                "angle_deg": 0,
+                "duration_s": 10,
+                "id": "flexible",
+                "start_s": 20,
+                "value": 10
+              },
+              {
+                "allowed_assets": [
+                  "a"
+                ],
+                "angle_deg": 0,
+                "duration_s": 10,
+                "id": "restricted",
+                "start_s": 20,
+                "value": 9
+              },
+              {
+                "allowed_assets": [
+                  "a"
+                ],
+                "angle_deg": 90,
+                "duration_s": 10,
+                "id": "followup",
+                "start_s": 60,
+                "value": 8
+              }
+            ],
+            "reserve_wh": 2,
+            "settling_s": 1
+          },
+          "id": "repeated_assignment",
+          "optimal_value": 27,
+          "oracle": {
+            "enumerated_count": 12,
+            "feasible_count": 10,
+            "optimal_value": 27,
+            "rejection_reasons": {
+              "overlap": 2
+            },
+            "witness": [
+              {
+                "asset_id": "b",
+                "duration_s": 10,
+                "id": "flexible",
+                "start_s": 20,
+                "value": 10
+              },
+              {
+                "asset_id": "a",
+                "duration_s": 10,
+                "id": "restricted",
+                "start_s": 20,
+                "value": 9
+              },
+              {
+                "asset_id": "a",
+                "duration_s": 10,
+                "id": "followup",
+                "start_s": 60,
+                "value": 8
+              }
+            ]
+          },
+          "planner_value": 27.0,
+          "planning_status": "supported",
+          "runtime_ms": 85.873,
+          "scheduling_search": {
+            "baseline_value": 18.0,
+            "final_value": 27.0,
+            "limits": [
+              "each trial uses the configured placement and subsystem evaluation budgets",
+              "strict value improvements retaining exact protected placements; tentative requests may be replaced; no global optimality claim",
+              "static-only evaluation does not establish attitude, path, horizon or battery feasibility"
+            ],
+            "max_trials": 4,
+            "proposal_encoding": "opportunity_priority_order",
+            "protected_activities": [],
+            "retention": "protected",
+            "status": "trial_limit_reached",
+            "strategy": "Elixir.OrbitalDynamics.MissionAnalysis.Scheduling.Replacement",
+            "total_model_evaluation_counts": {
+              "attitude_model_evaluation_count": 760,
+              "resource_model_evaluation_count": 2778
+            },
+            "trial_count": 4,
+            "trials": [
+              {
+                "accepted": true,
+                "attitude_model_evaluation_count": 152,
+                "feasibility": "supported",
+                "fulfilled_value": 18.0,
+                "reason": "greedy_baseline",
+                "resource_model_evaluation_count": 617,
+                "scheduled_count": 2,
+                "trial": 1
+              },
+              {
+                "accepted": true,
+                "added_request_ids": [
+                  "restricted"
+                ],
+                "attitude_model_evaluation_count": 228,
+                "endpoint_eligibility": "supported",
+                "feasibility": "supported",
+                "fulfilled_value": 27.0,
+                "proposal": {
+                  "deferred_request_id": "flexible",
+                  "previous_asset_id": "a"
+                },
+                "reason": "value_improved",
+                "removed_request_ids": [],
+                "resource_model_evaluation_count": 772,
+                "scheduled_count": 3,
+                "trial": 2
+              },
+              {
+                "accepted": false,
+                "added_request_ids": [],
+                "attitude_model_evaluation_count": 152,
+                "endpoint_eligibility": "supported",
+                "feasibility": "supported",
+                "fulfilled_value": 18.0,
+                "proposal": {
+                  "deferred_request_id": "restricted",
+                  "previous_asset_id": "a"
+                },
+                "reason": "no_value_improvement",
+                "removed_request_ids": [
+                  "restricted"
+                ],
+                "resource_model_evaluation_count": 617,
+                "scheduled_count": 2,
+                "trial": 3
+              },
+              {
+                "accepted": false,
+                "added_request_ids": [],
+                "attitude_model_evaluation_count": 228,
+                "endpoint_eligibility": "supported",
+                "feasibility": "supported",
+                "fulfilled_value": 27.0,
+                "proposal": {
+                  "deferred_request_id": "followup",
+                  "previous_asset_id": "a"
+                },
+                "reason": "no_value_improvement",
+                "removed_request_ids": [],
+                "resource_model_evaluation_count": 772,
+                "scheduled_count": 3,
+                "trial": 4
+              }
+            ]
+          },
+          "scope": "exact_for_declared_fixed_time_scalar_angle_and_ideal_battery_model_only"
+        },
+        {
+          "absolute_gap": 0.0,
+          "activities": [
+            {
+              "asset_id": "a",
+              "ends_at_s": 30.0,
+              "request_id": "early",
+              "starts_at_s": 20.0,
+              "value": 8.0
+            },
+            {
+              "asset_id": "a",
+              "ends_at_s": 70.0,
+              "request_id": "late",
+              "starts_at_s": 60.0,
+              "value": 7.0
+            }
+          ],
+          "configuration": {
+            "activity_load_w": 1080,
+            "assets": [
+              "a"
+            ],
+            "capacity_wh": 5.5,
+            "generation_w": 360,
+            "horizon_end_s": 100,
+            "id": "maneuver_gap",
+            "initial_wh": 4,
+            "max_accel_deg_s2": 5,
+            "max_rate_deg_s": 10,
+            "requests": [
+              {
+                "allowed_assets": [
+                  "a"
+                ],
+                "angle_deg": 0,
+                "duration_s": 10,
+                "id": "early",
+                "start_s": 20,
+                "value": 8
+              },
+              {
+                "allowed_assets": [
+                  "a"
+                ],
+                "angle_deg": 90,
+                "duration_s": 10,
+                "id": "middle",
+                "start_s": 40,
+                "value": 10
+              },
+              {
+                "allowed_assets": [
+                  "a"
+                ],
+                "angle_deg": 0,
+                "duration_s": 10,
+                "id": "late",
+                "start_s": 60,
+                "value": 7
+              }
+            ],
+            "reserve_wh": 2,
+            "settling_s": 1
+          },
+          "id": "maneuver_gap",
+          "optimal_value": 15,
+          "oracle": {
+            "enumerated_count": 8,
+            "feasible_count": 5,
+            "optimal_value": 15,
+            "rejection_reasons": {
+              "maneuver_gap": 3
+            },
+            "witness": [
+              {
+                "asset_id": "a",
+                "duration_s": 10,
+                "id": "early",
+                "start_s": 20,
+                "value": 8
+              },
+              {
+                "asset_id": "a",
+                "duration_s": 10,
+                "id": "late",
+                "start_s": 60,
+                "value": 7
+              }
+            ]
+          },
+          "planner_value": 15.0,
+          "planning_status": "supported",
+          "runtime_ms": 54.103,
+          "scheduling_search": {
+            "baseline_value": 10.0,
+            "final_value": 15.0,
+            "limits": [
+              "each trial uses the configured placement and subsystem evaluation budgets",
+              "strict value improvements retaining exact protected placements; tentative requests may be replaced; no global optimality claim",
+              "static-only evaluation does not establish attitude, path, horizon or battery feasibility"
+            ],
+            "max_trials": 4,
+            "proposal_encoding": "opportunity_priority_order",
+            "protected_activities": [],
+            "retention": "protected",
+            "status": "trial_limit_reached",
+            "strategy": "Elixir.OrbitalDynamics.MissionAnalysis.Scheduling.Replacement",
+            "total_model_evaluation_counts": {
+              "attitude_model_evaluation_count": 582,
+              "resource_model_evaluation_count": 1700
+            },
+            "trial_count": 4,
+            "trials": [
+              {
+                "accepted": true,
+                "attitude_model_evaluation_count": 96,
+                "feasibility": "supported",
+                "fulfilled_value": 10.0,
+                "reason": "greedy_baseline",
+                "resource_model_evaluation_count": 308,
+                "scheduled_count": 1,
+                "trial": 1
+              },
+              {
+                "accepted": true,
+                "added_request_ids": [
+                  "early",
+                  "late"
+                ],
+                "attitude_model_evaluation_count": 162,
+                "endpoint_eligibility": "supported",
+                "feasibility": "supported",
+                "fulfilled_value": 15.0,
+                "proposal": {
+                  "deferred_request_id": "middle",
+                  "previous_asset_id": "a"
+                },
+                "reason": "value_improved",
+                "removed_request_ids": [
+                  "middle"
+                ],
+                "resource_model_evaluation_count": 464,
+                "scheduled_count": 2,
+                "trial": 2
+              },
+              {
+                "accepted": false,
+                "added_request_ids": [],
+                "attitude_model_evaluation_count": 162,
+                "endpoint_eligibility": "supported",
+                "feasibility": "supported",
+                "fulfilled_value": 15.0,
+                "proposal": {
+                  "deferred_request_id": "early",
+                  "previous_asset_id": "a"
+                },
+                "reason": "no_value_improvement",
+                "removed_request_ids": [],
+                "resource_model_evaluation_count": 464,
+                "scheduled_count": 2,
+                "trial": 3
+              },
+              {
+                "accepted": false,
+                "added_request_ids": [],
+                "attitude_model_evaluation_count": 162,
+                "endpoint_eligibility": "supported",
+                "feasibility": "supported",
+                "fulfilled_value": 15.0,
+                "proposal": {
+                  "deferred_request_id": "late",
+                  "previous_asset_id": "a"
+                },
+                "reason": "no_value_improvement",
+                "removed_request_ids": [],
+                "resource_model_evaluation_count": 464,
+                "scheduled_count": 2,
+                "trial": 4
+              }
+            ]
+          },
+          "scope": "exact_for_declared_fixed_time_scalar_angle_and_ideal_battery_model_only"
+        },
+        {
+          "absolute_gap": 0.0,
+          "activities": [
+            {
+              "asset_id": "a",
+              "ends_at_s": 30.0,
+              "request_id": "early",
+              "starts_at_s": 20.0,
+              "value": 8.0
+            },
+            {
+              "asset_id": "a",
+              "ends_at_s": 50.0,
+              "request_id": "middle",
+              "starts_at_s": 40.0,
+              "value": 10.0
+            }
+          ],
+          "configuration": {
+            "activity_load_w": 1080,
+            "assets": [
+              "a"
+            ],
+            "capacity_wh": 5.5,
+            "generation_w": 360,
+            "horizon_end_s": 100,
+            "id": "battery_limited",
+            "initial_wh": 4,
+            "max_accel_deg_s2": 5,
+            "max_rate_deg_s": 10,
+            "requests": [
+              {
+                "allowed_assets": [
+                  "a"
+                ],
+                "angle_deg": 0,
+                "duration_s": 10,
+                "id": "early",
+                "start_s": 20,
+                "value": 8
+              },
+              {
+                "allowed_assets": [
+                  "a"
+                ],
+                "angle_deg": 0,
+                "duration_s": 10,
+                "id": "middle",
+                "start_s": 40,
+                "value": 10
+              },
+              {
+                "allowed_assets": [
+                  "a"
+                ],
+                "angle_deg": 0,
+                "duration_s": 10,
+                "id": "late",
+                "start_s": 60,
+                "value": 7
+              }
+            ],
+            "reserve_wh": 2,
+            "settling_s": 1
+          },
+          "id": "battery_limited",
+          "optimal_value": 18,
+          "oracle": {
+            "enumerated_count": 8,
+            "feasible_count": 7,
+            "optimal_value": 18,
+            "rejection_reasons": {
+              "battery_reserve": 1
+            },
+            "witness": [
+              {
+                "asset_id": "a",
+                "duration_s": 10,
+                "id": "early",
+                "start_s": 20,
+                "value": 8
+              },
+              {
+                "asset_id": "a",
+                "duration_s": 10,
+                "id": "middle",
+                "start_s": 40,
+                "value": 10
+              }
+            ]
+          },
+          "planner_value": 18.0,
+          "planning_status": "supported",
+          "runtime_ms": 57.996,
+          "scheduling_search": {
+            "baseline_value": 18.0,
+            "final_value": 18.0,
+            "limits": [
+              "each trial uses the configured placement and subsystem evaluation budgets",
+              "strict value improvements retaining exact protected placements; tentative requests may be replaced; no global optimality claim",
+              "static-only evaluation does not establish attitude, path, horizon or battery feasibility"
+            ],
+            "max_trials": 4,
+            "proposal_encoding": "opportunity_priority_order",
+            "protected_activities": [],
+            "retention": "protected",
+            "status": "neighborhood_exhausted",
+            "strategy": "Elixir.OrbitalDynamics.MissionAnalysis.Scheduling.Replacement",
+            "total_model_evaluation_counts": {
+              "attitude_model_evaluation_count": 684,
+              "resource_model_evaluation_count": 1860
+            },
+            "trial_count": 3,
+            "trials": [
+              {
+                "accepted": true,
+                "attitude_model_evaluation_count": 228,
+                "feasibility": "supported",
+                "fulfilled_value": 18.0,
+                "reason": "greedy_baseline",
+                "resource_model_evaluation_count": 620,
+                "scheduled_count": 2,
+                "trial": 1
+              },
+              {
+                "accepted": false,
+                "added_request_ids": [
+                  "late"
+                ],
+                "attitude_model_evaluation_count": 228,
+                "endpoint_eligibility": "supported",
+                "feasibility": "supported",
+                "fulfilled_value": 15.0,
+                "proposal": {
+                  "deferred_request_id": "middle",
+                  "previous_asset_id": "a"
+                },
+                "reason": "no_value_improvement",
+                "removed_request_ids": [
+                  "middle"
+                ],
+                "resource_model_evaluation_count": 620,
+                "scheduled_count": 2,
+                "trial": 2
+              },
+              {
+                "accepted": false,
+                "added_request_ids": [
+                  "late"
+                ],
+                "attitude_model_evaluation_count": 228,
+                "endpoint_eligibility": "supported",
+                "feasibility": "supported",
+                "fulfilled_value": 17.0,
+                "proposal": {
+                  "deferred_request_id": "early",
+                  "previous_asset_id": "a"
+                },
+                "reason": "no_value_improvement",
+                "removed_request_ids": [
+                  "early"
+                ],
+                "resource_model_evaluation_count": 620,
+                "scheduled_count": 2,
+                "trial": 3
+              }
+            ]
+          },
+          "scope": "exact_for_declared_fixed_time_scalar_angle_and_ideal_battery_model_only"
+        },
+        {
+          "absolute_gap": 0.0,
+          "activities": [
+            {
+              "asset_id": "a",
+              "ends_at_s": 30.0,
+              "request_id": "early",
+              "starts_at_s": 20.0,
+              "value": 8.0
+            },
+            {
+              "asset_id": "a",
+              "ends_at_s": 50.0,
+              "request_id": "middle",
+              "starts_at_s": 40.0,
+              "value": 10.0
+            },
+            {
+              "asset_id": "a",
+              "ends_at_s": 90.0,
+              "request_id": "late",
+              "starts_at_s": 80.0,
+              "value": 7.0
+            }
+          ],
+          "configuration": {
+            "activity_load_w": 1080,
+            "assets": [
+              "a"
+            ],
+            "capacity_wh": 5.5,
+            "generation_w": 360,
+            "horizon_end_s": 100,
+            "id": "battery_recovery",
+            "initial_wh": 4,
+            "max_accel_deg_s2": 5,
+            "max_rate_deg_s": 10,
+            "requests": [
+              {
+                "allowed_assets": [
+                  "a"
+                ],
+                "angle_deg": 0,
+                "duration_s": 10,
+                "id": "early",
+                "start_s": 20,
+                "value": 8
+              },
+              {
+                "allowed_assets": [
+                  "a"
+                ],
+                "angle_deg": 0,
+                "duration_s": 10,
+                "id": "middle",
+                "start_s": 40,
+                "value": 10
+              },
+              {
+                "allowed_assets": [
+                  "a"
+                ],
+                "angle_deg": 0,
+                "duration_s": 10,
+                "id": "late",
+                "start_s": 80,
+                "value": 7
+              }
+            ],
+            "reserve_wh": 2,
+            "settling_s": 1
+          },
+          "id": "battery_recovery",
+          "optimal_value": 25,
+          "oracle": {
+            "enumerated_count": 8,
+            "feasible_count": 8,
+            "optimal_value": 25,
+            "rejection_reasons": {},
+            "witness": [
+              {
+                "asset_id": "a",
+                "duration_s": 10,
+                "id": "early",
+                "start_s": 20,
+                "value": 8
+              },
+              {
+                "asset_id": "a",
+                "duration_s": 10,
+                "id": "middle",
+                "start_s": 40,
+                "value": 10
+              },
+              {
+                "asset_id": "a",
+                "duration_s": 10,
+                "id": "late",
+                "start_s": 80,
+                "value": 7
+              }
+            ]
+          },
+          "planner_value": 25.0,
+          "planning_status": "supported",
+          "runtime_ms": 52.19,
+          "scheduling_search": {
+            "baseline_value": 25.0,
+            "final_value": 25.0,
+            "limits": [
+              "each trial uses the configured placement and subsystem evaluation budgets",
+              "strict value improvements retaining exact protected placements; tentative requests may be replaced; no global optimality claim",
+              "static-only evaluation does not establish attitude, path, horizon or battery feasibility"
+            ],
+            "max_trials": 4,
+            "proposal_encoding": "opportunity_priority_order",
+            "protected_activities": [],
+            "retention": "protected",
+            "status": "neighborhood_exhausted",
+            "strategy": "Elixir.OrbitalDynamics.MissionAnalysis.Scheduling.Replacement",
+            "total_model_evaluation_counts": {
+              "attitude_model_evaluation_count": 684,
+              "resource_model_evaluation_count": 1863
+            },
+            "trial_count": 3,
+            "trials": [
+              {
+                "accepted": true,
+                "attitude_model_evaluation_count": 228,
+                "feasibility": "supported",
+                "fulfilled_value": 25.0,
+                "reason": "greedy_baseline",
+                "resource_model_evaluation_count": 621,
+                "scheduled_count": 3,
+                "trial": 1
+              },
+              {
+                "accepted": false,
+                "added_request_ids": [],
+                "attitude_model_evaluation_count": 228,
+                "endpoint_eligibility": "supported",
+                "feasibility": "supported",
+                "fulfilled_value": 25.0,
+                "proposal": {
+                  "deferred_request_id": "middle",
+                  "previous_asset_id": "a"
+                },
+                "reason": "no_value_improvement",
+                "removed_request_ids": [],
+                "resource_model_evaluation_count": 621,
+                "scheduled_count": 3,
+                "trial": 2
+              },
+              {
+                "accepted": false,
+                "added_request_ids": [],
+                "attitude_model_evaluation_count": 228,
+                "endpoint_eligibility": "supported",
+                "feasibility": "supported",
+                "fulfilled_value": 25.0,
+                "proposal": {
+                  "deferred_request_id": "early",
+                  "previous_asset_id": "a"
+                },
+                "reason": "no_value_improvement",
+                "removed_request_ids": [],
+                "resource_model_evaluation_count": 621,
+                "scheduled_count": 3,
+                "trial": 3
+              }
+            ]
+          },
+          "scope": "exact_for_declared_fixed_time_scalar_angle_and_ideal_battery_model_only"
+        }
+      ],
+      "greedy": [
+        {
+          "absolute_gap": 9.0,
+          "activities": [
+            {
+              "asset_id": "a",
+              "ends_at_s": 30.0,
+              "request_id": "flexible",
+              "starts_at_s": 20.0,
+              "value": 10.0
+            },
+            {
+              "asset_id": "a",
+              "ends_at_s": 70.0,
+              "request_id": "followup",
+              "starts_at_s": 60.0,
+              "value": 8.0
+            }
+          ],
+          "configuration": {
+            "activity_load_w": 1080,
+            "assets": [
+              "a",
+              "b"
+            ],
+            "capacity_wh": 5.5,
+            "generation_w": 360,
+            "horizon_end_s": 100,
+            "id": "repeated_assignment",
+            "initial_wh": 4,
+            "max_accel_deg_s2": 5,
+            "max_rate_deg_s": 10,
+            "requests": [
+              {
+                "allowed_assets": [
+                  "a",
+                  "b"
+                ],
+                "angle_deg": 0,
+                "duration_s": 10,
+                "id": "flexible",
+                "start_s": 20,
+                "value": 10
+              },
+              {
+                "allowed_assets": [
+                  "a"
+                ],
+                "angle_deg": 0,
+                "duration_s": 10,
+                "id": "restricted",
+                "start_s": 20,
+                "value": 9
+              },
+              {
+                "allowed_assets": [
+                  "a"
+                ],
+                "angle_deg": 90,
+                "duration_s": 10,
+                "id": "followup",
+                "start_s": 60,
+                "value": 8
+              }
+            ],
+            "reserve_wh": 2,
+            "settling_s": 1
+          },
+          "id": "repeated_assignment",
+          "optimal_value": 27,
+          "oracle": {
+            "enumerated_count": 12,
+            "feasible_count": 10,
+            "optimal_value": 27,
+            "rejection_reasons": {
+              "overlap": 2
+            },
+            "witness": [
+              {
+                "asset_id": "b",
+                "duration_s": 10,
+                "id": "flexible",
+                "start_s": 20,
+                "value": 10
+              },
+              {
+                "asset_id": "a",
+                "duration_s": 10,
+                "id": "restricted",
+                "start_s": 20,
+                "value": 9
+              },
+              {
+                "asset_id": "a",
+                "duration_s": 10,
+                "id": "followup",
+                "start_s": 60,
+                "value": 8
+              }
+            ]
+          },
+          "planner_value": 18.0,
+          "planning_status": "supported",
+          "runtime_ms": 46.871,
+          "scheduling_search": {
+            "baseline_value": 18.0,
+            "final_value": 18.0,
+            "limits": [
+              "each trial uses the configured placement and subsystem evaluation budgets",
+              "strict value improvements retaining every incumbent served request only; no global optimum or exhaustive assignment claim",
+              "static-only evaluation does not establish attitude, path, horizon or battery feasibility"
+            ],
+            "max_trials": 1,
+            "proposal_encoding": "opportunity_priority_order",
+            "status": "greedy_complete",
+            "strategy": "Elixir.OrbitalDynamics.MissionAnalysis.Scheduling.Greedy",
+            "total_model_evaluation_counts": {
+              "attitude_model_evaluation_count": 152,
+              "resource_model_evaluation_count": 617
+            },
+            "trial_count": 1,
+            "trials": [
+              {
+                "accepted": true,
+                "attitude_model_evaluation_count": 152,
+                "feasibility": "supported",
+                "fulfilled_value": 18.0,
+                "reason": "greedy_baseline",
+                "resource_model_evaluation_count": 617,
+                "scheduled_count": 2,
+                "trial": 1
+              }
+            ]
+          },
+          "scope": "exact_for_declared_fixed_time_scalar_angle_and_ideal_battery_model_only"
+        },
+        {
+          "absolute_gap": 5.0,
+          "activities": [
+            {
+              "asset_id": "a",
+              "ends_at_s": 50.0,
+              "request_id": "middle",
+              "starts_at_s": 40.0,
+              "value": 10.0
+            }
+          ],
+          "configuration": {
+            "activity_load_w": 1080,
+            "assets": [
+              "a"
+            ],
+            "capacity_wh": 5.5,
+            "generation_w": 360,
+            "horizon_end_s": 100,
+            "id": "maneuver_gap",
+            "initial_wh": 4,
+            "max_accel_deg_s2": 5,
+            "max_rate_deg_s": 10,
+            "requests": [
+              {
+                "allowed_assets": [
+                  "a"
+                ],
+                "angle_deg": 0,
+                "duration_s": 10,
+                "id": "early",
+                "start_s": 20,
+                "value": 8
+              },
+              {
+                "allowed_assets": [
+                  "a"
+                ],
+                "angle_deg": 90,
+                "duration_s": 10,
+                "id": "middle",
+                "start_s": 40,
+                "value": 10
+              },
+              {
+                "allowed_assets": [
+                  "a"
+                ],
+                "angle_deg": 0,
+                "duration_s": 10,
+                "id": "late",
+                "start_s": 60,
+                "value": 7
+              }
+            ],
+            "reserve_wh": 2,
+            "settling_s": 1
+          },
+          "id": "maneuver_gap",
+          "optimal_value": 15,
+          "oracle": {
+            "enumerated_count": 8,
+            "feasible_count": 5,
+            "optimal_value": 15,
+            "rejection_reasons": {
+              "maneuver_gap": 3
+            },
+            "witness": [
+              {
+                "asset_id": "a",
+                "duration_s": 10,
+                "id": "early",
+                "start_s": 20,
+                "value": 8
+              },
+              {
+                "asset_id": "a",
+                "duration_s": 10,
+                "id": "late",
+                "start_s": 60,
+                "value": 7
+              }
+            ]
+          },
+          "planner_value": 10.0,
+          "planning_status": "supported",
+          "runtime_ms": 8.841,
+          "scheduling_search": {
+            "baseline_value": 10.0,
+            "final_value": 10.0,
+            "limits": [
+              "each trial uses the configured placement and subsystem evaluation budgets",
+              "strict value improvements retaining every incumbent served request only; no global optimum or exhaustive assignment claim",
+              "static-only evaluation does not establish attitude, path, horizon or battery feasibility"
+            ],
+            "max_trials": 1,
+            "proposal_encoding": "opportunity_priority_order",
+            "status": "greedy_complete",
+            "strategy": "Elixir.OrbitalDynamics.MissionAnalysis.Scheduling.Greedy",
+            "total_model_evaluation_counts": {
+              "attitude_model_evaluation_count": 96,
+              "resource_model_evaluation_count": 308
+            },
+            "trial_count": 1,
+            "trials": [
+              {
+                "accepted": true,
+                "attitude_model_evaluation_count": 96,
+                "feasibility": "supported",
+                "fulfilled_value": 10.0,
+                "reason": "greedy_baseline",
+                "resource_model_evaluation_count": 308,
+                "scheduled_count": 1,
+                "trial": 1
+              }
+            ]
+          },
+          "scope": "exact_for_declared_fixed_time_scalar_angle_and_ideal_battery_model_only"
+        },
+        {
+          "absolute_gap": 0.0,
+          "activities": [
+            {
+              "asset_id": "a",
+              "ends_at_s": 30.0,
+              "request_id": "early",
+              "starts_at_s": 20.0,
+              "value": 8.0
+            },
+            {
+              "asset_id": "a",
+              "ends_at_s": 50.0,
+              "request_id": "middle",
+              "starts_at_s": 40.0,
+              "value": 10.0
+            }
+          ],
+          "configuration": {
+            "activity_load_w": 1080,
+            "assets": [
+              "a"
+            ],
+            "capacity_wh": 5.5,
+            "generation_w": 360,
+            "horizon_end_s": 100,
+            "id": "battery_limited",
+            "initial_wh": 4,
+            "max_accel_deg_s2": 5,
+            "max_rate_deg_s": 10,
+            "requests": [
+              {
+                "allowed_assets": [
+                  "a"
+                ],
+                "angle_deg": 0,
+                "duration_s": 10,
+                "id": "early",
+                "start_s": 20,
+                "value": 8
+              },
+              {
+                "allowed_assets": [
+                  "a"
+                ],
+                "angle_deg": 0,
+                "duration_s": 10,
+                "id": "middle",
+                "start_s": 40,
+                "value": 10
+              },
+              {
+                "allowed_assets": [
+                  "a"
+                ],
+                "angle_deg": 0,
+                "duration_s": 10,
+                "id": "late",
+                "start_s": 60,
+                "value": 7
+              }
+            ],
+            "reserve_wh": 2,
+            "settling_s": 1
+          },
+          "id": "battery_limited",
+          "optimal_value": 18,
+          "oracle": {
+            "enumerated_count": 8,
+            "feasible_count": 7,
+            "optimal_value": 18,
+            "rejection_reasons": {
+              "battery_reserve": 1
+            },
+            "witness": [
+              {
+                "asset_id": "a",
+                "duration_s": 10,
+                "id": "early",
+                "start_s": 20,
+                "value": 8
+              },
+              {
+                "asset_id": "a",
+                "duration_s": 10,
+                "id": "middle",
+                "start_s": 40,
+                "value": 10
+              }
+            ]
+          },
+          "planner_value": 18.0,
+          "planning_status": "supported",
+          "runtime_ms": 16.568,
+          "scheduling_search": {
+            "baseline_value": 18.0,
+            "final_value": 18.0,
+            "limits": [
+              "each trial uses the configured placement and subsystem evaluation budgets",
+              "strict value improvements retaining every incumbent served request only; no global optimum or exhaustive assignment claim",
+              "static-only evaluation does not establish attitude, path, horizon or battery feasibility"
+            ],
+            "max_trials": 1,
+            "proposal_encoding": "opportunity_priority_order",
+            "status": "greedy_complete",
+            "strategy": "Elixir.OrbitalDynamics.MissionAnalysis.Scheduling.Greedy",
+            "total_model_evaluation_counts": {
+              "attitude_model_evaluation_count": 228,
+              "resource_model_evaluation_count": 620
+            },
+            "trial_count": 1,
+            "trials": [
+              {
+                "accepted": true,
+                "attitude_model_evaluation_count": 228,
+                "feasibility": "supported",
+                "fulfilled_value": 18.0,
+                "reason": "greedy_baseline",
+                "resource_model_evaluation_count": 620,
+                "scheduled_count": 2,
+                "trial": 1
+              }
+            ]
+          },
+          "scope": "exact_for_declared_fixed_time_scalar_angle_and_ideal_battery_model_only"
+        },
+        {
+          "absolute_gap": 0.0,
+          "activities": [
+            {
+              "asset_id": "a",
+              "ends_at_s": 30.0,
+              "request_id": "early",
+              "starts_at_s": 20.0,
+              "value": 8.0
+            },
+            {
+              "asset_id": "a",
+              "ends_at_s": 50.0,
+              "request_id": "middle",
+              "starts_at_s": 40.0,
+              "value": 10.0
+            },
+            {
+              "asset_id": "a",
+              "ends_at_s": 90.0,
+              "request_id": "late",
+              "starts_at_s": 80.0,
+              "value": 7.0
+            }
+          ],
+          "configuration": {
+            "activity_load_w": 1080,
+            "assets": [
+              "a"
+            ],
+            "capacity_wh": 5.5,
+            "generation_w": 360,
+            "horizon_end_s": 100,
+            "id": "battery_recovery",
+            "initial_wh": 4,
+            "max_accel_deg_s2": 5,
+            "max_rate_deg_s": 10,
+            "requests": [
+              {
+                "allowed_assets": [
+                  "a"
+                ],
+                "angle_deg": 0,
+                "duration_s": 10,
+                "id": "early",
+                "start_s": 20,
+                "value": 8
+              },
+              {
+                "allowed_assets": [
+                  "a"
+                ],
+                "angle_deg": 0,
+                "duration_s": 10,
+                "id": "middle",
+                "start_s": 40,
+                "value": 10
+              },
+              {
+                "allowed_assets": [
+                  "a"
+                ],
+                "angle_deg": 0,
+                "duration_s": 10,
+                "id": "late",
+                "start_s": 80,
+                "value": 7
+              }
+            ],
+            "reserve_wh": 2,
+            "settling_s": 1
+          },
+          "id": "battery_recovery",
+          "optimal_value": 25,
+          "oracle": {
+            "enumerated_count": 8,
+            "feasible_count": 8,
+            "optimal_value": 25,
+            "rejection_reasons": {},
+            "witness": [
+              {
+                "asset_id": "a",
+                "duration_s": 10,
+                "id": "early",
+                "start_s": 20,
+                "value": 8
+              },
+              {
+                "asset_id": "a",
+                "duration_s": 10,
+                "id": "middle",
+                "start_s": 40,
+                "value": 10
+              },
+              {
+                "asset_id": "a",
+                "duration_s": 10,
+                "id": "late",
+                "start_s": 80,
+                "value": 7
+              }
+            ]
+          },
+          "planner_value": 25.0,
+          "planning_status": "supported",
+          "runtime_ms": 17.038,
+          "scheduling_search": {
+            "baseline_value": 25.0,
+            "final_value": 25.0,
+            "limits": [
+              "each trial uses the configured placement and subsystem evaluation budgets",
+              "strict value improvements retaining every incumbent served request only; no global optimum or exhaustive assignment claim",
+              "static-only evaluation does not establish attitude, path, horizon or battery feasibility"
+            ],
+            "max_trials": 1,
+            "proposal_encoding": "opportunity_priority_order",
+            "status": "greedy_complete",
+            "strategy": "Elixir.OrbitalDynamics.MissionAnalysis.Scheduling.Greedy",
+            "total_model_evaluation_counts": {
+              "attitude_model_evaluation_count": 228,
+              "resource_model_evaluation_count": 621
+            },
+            "trial_count": 1,
+            "trials": [
+              {
+                "accepted": true,
+                "attitude_model_evaluation_count": 228,
+                "feasibility": "supported",
+                "fulfilled_value": 25.0,
+                "reason": "greedy_baseline",
+                "resource_model_evaluation_count": 621,
+                "scheduled_count": 3,
+                "trial": 1
+              }
+            ]
+          },
+          "scope": "exact_for_declared_fixed_time_scalar_angle_and_ideal_battery_model_only"
+        }
+      ]
+    },
+    "runs": [
+      {
+        "activities_per_asset": {
+          "demo-1": 1,
+          "demo-2": 2,
+          "demo-3": 2
+        },
+        "asset_count": 3,
+        "asset_request_pairs": 36,
+        "assignments": [
+          {
+            "asset_id": "demo-1",
+            "ends_at_s": 820497680.5,
+            "request_id": "early-1",
+            "starts_at_s": 820497660.5,
+            "value": 30.0
+          },
+          {
+            "asset_id": "demo-2",
+            "ends_at_s": 820497680.5,
+            "request_id": "early-2",
+            "starts_at_s": 820497660.5,
+            "value": 29.0
+          },
+          {
+            "asset_id": "demo-3",
+            "ends_at_s": 820497680.5,
+            "request_id": "early-3",
+            "starts_at_s": 820497660.5,
+            "value": 28.0
+          },
+          {
+            "asset_id": "demo-3",
+            "ends_at_s": 820498000.5,
+            "request_id": "late-1",
+            "starts_at_s": 820497980.5,
+            "value": 22.0
+          },
+          {
+            "asset_id": "demo-2",
+            "ends_at_s": 820498102.8049219,
+            "request_id": "late-2",
+            "starts_at_s": 820498082.8049219,
+            "value": 21.0
+          }
+        ],
+        "attitude_model_evaluation_count": 4591,
+        "batteries": {
+          "demo-1": {
+            "final_energy_wh_range": {
+              "max": 30,
+              "min": 30,
+              "spread": 0
+            },
+            "minimum_energy_wh": 11.318441851289252,
+            "minimum_reserve_margin_wh": 3.3184418512892524,
+            "reserve_wh": 8,
+            "status": "supported"
+          },
+          "demo-2": {
+            "final_energy_wh_range": {
+              "max": 13.178669758278671,
+              "min": 13.17408484020846,
+              "spread": 0.00458491807021133
+            },
+            "minimum_energy_wh": 11.7929044887843,
+            "minimum_reserve_margin_wh": 3.7929044887843,
+            "reserve_wh": 8,
+            "status": "supported"
+          },
+          "demo-3": {
+            "final_energy_wh_range": {
+              "max": 15.564304806575029,
+              "min": 15.55845402905592,
+              "spread": 0.005850777519109229
+            },
+            "minimum_energy_wh": 9.17333973351668,
+            "minimum_reserve_margin_wh": 1.1733397335166806,
+            "reserve_wh": 8,
+            "status": "supported"
+          }
+        },
+        "decision_reasons": {
+          "planning_start_grid_infeasible": 12,
+          "request_already_scheduled": 8,
+          "selected": 5
+        },
+        "fulfilled_value": 130.0,
+        "inter_service_energy": {
+          "demo-1": [],
+          "demo-2": [
+            {
+              "after_request_id": "early-2",
+              "before_request_id": "late-2",
+              "ends_at_s": 820498082.8049219,
+              "levels": [
+                {
+                  "net_energy_change_wh": 11.427809582766962,
+                  "sample_step_s": 5.0
+                },
+                {
+                  "net_energy_change_wh": 11.427832979429954,
+                  "sample_step_s": 1.0
+                }
+              ],
+              "net_energy_change_wh_range": {
+                "max": 11.427832979429954,
+                "min": 11.427809582766962
+              },
+              "starts_at_s": 820497680.5,
+              "status": "known_at_tested_cadences"
+            }
+          ],
+          "demo-3": [
+            {
+              "after_request_id": "early-3",
+              "before_request_id": "late-1",
+              "ends_at_s": 820497980.5,
+              "levels": [
+                {
+                  "net_energy_change_wh": 8.493718194993866,
+                  "sample_step_s": 5.0
+                },
+                {
+                  "net_energy_change_wh": 8.493754539986359,
+                  "sample_step_s": 1.0
+                }
+              ],
+              "net_energy_change_wh_range": {
+                "max": 8.493754539986359,
+                "min": 8.493718194993866
+              },
+              "starts_at_s": 820497680.5,
+              "status": "known_at_tested_cadences"
+            }
+          ]
+        },
+        "minimum_transition_time_margin_s": 2.528505696598856,
+        "nonzero_slew_count": 5,
+        "opportunity_count": 25,
+        "opportunity_evaluation_count": 57014,
+        "placement_rejection_reasons": {
+          ":incoming_transition": 3,
+          ":outgoing_transition": 3,
+          ":path_constraint_violated": 15,
+          ":resource_feasibility_violated": 45
+        },
+        "planning_status": "supported",
+        "request_count": 12,
+        "requested_value": 294.0,
+        "resource_model_evaluation_count": 38945,
+        "resource_status": "supported",
+        "scheduled_count": 5,
+        "scheduling_search": {
+          "baseline_value": 130.0,
+          "final_value": 130.0,
+          "limits": [
+            "each trial uses the configured placement and subsystem evaluation budgets",
+            "strict value improvements retaining every incumbent served request only; no global optimum or exhaustive assignment claim",
+            "static-only evaluation does not establish attitude, path, horizon or battery feasibility"
+          ],
+          "max_trials": 1,
+          "proposal_encoding": "opportunity_priority_order",
+          "status": "greedy_complete",
+          "strategy": "Elixir.OrbitalDynamics.MissionAnalysis.Scheduling.Greedy",
+          "total_model_evaluation_counts": {
+            "attitude_model_evaluation_count": 4591,
+            "resource_model_evaluation_count": 38945
+          },
+          "trial_count": 1,
+          "trials": [
+            {
+              "accepted": true,
+              "attitude_model_evaluation_count": 4591,
+              "feasibility": "supported",
+              "fulfilled_value": 130.0,
+              "reason": "greedy_baseline",
+              "resource_model_evaluation_count": 38945,
+              "scheduled_count": 5,
+              "trial": 1
+            }
+          ]
+        },
+        "strategy": "greedy",
+        "timings": {
+          "endpoint_verification_ms": 4.368,
+          "opportunity_generation_ms": 2032.643,
+          "preparation_ms": 32.269,
+          "scheduling_ms": 16273.225,
+          "total_ms": 18358.034
+        },
+        "unfulfilled_requests": [
+          {
+            "reasons": [
+              "planning_start_grid_infeasible"
+            ],
+            "request_id": "early-4",
+            "value": 27.0
+          },
+          {
+            "reasons": [
+              "planning_start_grid_infeasible"
+            ],
+            "request_id": "middle-1",
+            "value": 26.0
+          },
+          {
+            "reasons": [
+              "planning_start_grid_infeasible"
+            ],
+            "request_id": "middle-2",
+            "value": 25.0
+          },
+          {
+            "reasons": [
+              "planning_start_grid_infeasible"
+            ],
+            "request_id": "middle-3",
+            "value": 24.0
+          },
+          {
+            "reasons": [
+              "insufficient_duration_after_bounds_and_margins",
+              "no_conservative_opportunity"
+            ],
+            "request_id": "middle-4",
+            "value": 23.0
+          },
+          {
+            "reasons": [
+              "planning_start_grid_infeasible"
+            ],
+            "request_id": "late-3",
+            "value": 20.0
+          },
+          {
+            "reasons": [
+              "no_conservative_opportunity",
+              "opportunity_search_incomplete"
+            ],
+            "request_id": "late-4",
+            "value": 19.0
+          }
+        ]
+      },
+      {
+        "activities_per_asset": {
+          "demo-1": 1,
+          "demo-2": 2,
+          "demo-3": 2
+        },
+        "asset_count": 3,
+        "asset_request_pairs": 36,
+        "assignments": [
+          {
+            "asset_id": "demo-1",
+            "ends_at_s": 820497680.5,
+            "request_id": "early-1",
+            "starts_at_s": 820497660.5,
+            "value": 30.0
+          },
+          {
+            "asset_id": "demo-2",
+            "ends_at_s": 820497680.5,
+            "request_id": "early-2",
+            "starts_at_s": 820497660.5,
+            "value": 29.0
+          },
+          {
+            "asset_id": "demo-3",
+            "ends_at_s": 820497680.5,
+            "request_id": "early-3",
+            "starts_at_s": 820497660.5,
+            "value": 28.0
+          },
+          {
+            "asset_id": "demo-3",
+            "ends_at_s": 820498000.5,
+            "request_id": "late-1",
+            "starts_at_s": 820497980.5,
+            "value": 22.0
+          },
+          {
+            "asset_id": "demo-2",
+            "ends_at_s": 820498102.8049219,
+            "request_id": "late-2",
+            "starts_at_s": 820498082.8049219,
+            "value": 21.0
+          }
+        ],
+        "attitude_model_evaluation_count": 4591,
+        "batteries": {
+          "demo-1": {
+            "final_energy_wh_range": {
+              "max": 30,
+              "min": 30,
+              "spread": 0
+            },
+            "minimum_energy_wh": 11.318441851289252,
+            "minimum_reserve_margin_wh": 3.3184418512892524,
+            "reserve_wh": 8,
+            "status": "supported"
+          },
+          "demo-2": {
+            "final_energy_wh_range": {
+              "max": 13.178669758278671,
+              "min": 13.17408484020846,
+              "spread": 0.00458491807021133
+            },
+            "minimum_energy_wh": 11.7929044887843,
+            "minimum_reserve_margin_wh": 3.7929044887843,
+            "reserve_wh": 8,
+            "status": "supported"
+          },
+          "demo-3": {
+            "final_energy_wh_range": {
+              "max": 15.564304806575029,
+              "min": 15.55845402905592,
+              "spread": 0.005850777519109229
+            },
+            "minimum_energy_wh": 9.17333973351668,
+            "minimum_reserve_margin_wh": 1.1733397335166806,
+            "reserve_wh": 8,
+            "status": "supported"
+          }
+        },
+        "decision_reasons": {
+          "planning_start_grid_infeasible": 12,
+          "request_already_scheduled": 8,
+          "selected": 5
+        },
+        "fulfilled_value": 130.0,
+        "inter_service_energy": {
+          "demo-1": [],
+          "demo-2": [
+            {
+              "after_request_id": "early-2",
+              "before_request_id": "late-2",
+              "ends_at_s": 820498082.8049219,
+              "levels": [
+                {
+                  "net_energy_change_wh": 11.427809582766962,
+                  "sample_step_s": 5.0
+                },
+                {
+                  "net_energy_change_wh": 11.427832979429954,
+                  "sample_step_s": 1.0
+                }
+              ],
+              "net_energy_change_wh_range": {
+                "max": 11.427832979429954,
+                "min": 11.427809582766962
+              },
+              "starts_at_s": 820497680.5,
+              "status": "known_at_tested_cadences"
+            }
+          ],
+          "demo-3": [
+            {
+              "after_request_id": "early-3",
+              "before_request_id": "late-1",
+              "ends_at_s": 820497980.5,
+              "levels": [
+                {
+                  "net_energy_change_wh": 8.493718194993866,
+                  "sample_step_s": 5.0
+                },
+                {
+                  "net_energy_change_wh": 8.493754539986359,
+                  "sample_step_s": 1.0
+                }
+              ],
+              "net_energy_change_wh_range": {
+                "max": 8.493754539986359,
+                "min": 8.493718194993866
+              },
+              "starts_at_s": 820497680.5,
+              "status": "known_at_tested_cadences"
+            }
+          ]
+        },
+        "minimum_transition_time_margin_s": 2.528505696598856,
+        "nonzero_slew_count": 5,
+        "opportunity_count": 25,
+        "opportunity_evaluation_count": 57014,
+        "placement_rejection_reasons": {
+          ":incoming_transition": 3,
+          ":outgoing_transition": 3,
+          ":path_constraint_violated": 15,
+          ":resource_feasibility_violated": 45
+        },
+        "planning_status": "supported",
+        "request_count": 12,
+        "requested_value": 294.0,
+        "resource_model_evaluation_count": 38945,
+        "resource_status": "supported",
+        "scheduled_count": 5,
+        "scheduling_search": {
+          "baseline_value": 130.0,
+          "final_value": 130.0,
+          "limits": [
+            "each trial uses the configured placement and subsystem evaluation budgets",
+            "strict value improvements retaining every incumbent served request only; no global optimum or exhaustive assignment claim",
+            "static-only evaluation does not establish attitude, path, horizon or battery feasibility"
+          ],
+          "max_trials": 4,
+          "proposal_encoding": "opportunity_priority_order",
+          "status": "trial_limit_reached",
+          "strategy": "Elixir.OrbitalDynamics.MissionAnalysis.Scheduling.Reassignment",
+          "total_model_evaluation_counts": {
+            "attitude_model_evaluation_count": 19396,
+            "resource_model_evaluation_count": 158702
+          },
+          "trial_count": 4,
+          "trials": [
+            {
+              "accepted": true,
+              "attitude_model_evaluation_count": 4591,
+              "feasibility": "supported",
+              "fulfilled_value": 130.0,
+              "reason": "greedy_baseline",
+              "resource_model_evaluation_count": 38945,
+              "scheduled_count": 5,
+              "trial": 1
+            },
+            {
+              "accepted": false,
+              "added_request_ids": [],
+              "attitude_model_evaluation_count": 4972,
+              "endpoint_eligibility": "supported",
+              "feasibility": "supported",
+              "fulfilled_value": 130.0,
+              "proposal": {
+                "from_asset_id": "demo-1",
+                "preferred_asset_id": "demo-2",
+                "preferred_opportunity_id": "opportunity:6:demo-2:7:early-1:1",
+                "request_id": "early-1"
+              },
+              "reason": "no_value_improvement",
+              "removed_request_ids": [],
+              "resource_model_evaluation_count": 38945,
+              "scheduled_count": 5,
+              "trial": 2
+            },
+            {
+              "accepted": false,
+              "added_request_ids": [],
+              "attitude_model_evaluation_count": 4960,
+              "endpoint_eligibility": "supported",
+              "feasibility": "supported",
+              "fulfilled_value": 130.0,
+              "proposal": {
+                "from_asset_id": "demo-1",
+                "preferred_asset_id": "demo-3",
+                "preferred_opportunity_id": "opportunity:6:demo-3:7:early-1:1",
+                "request_id": "early-1"
+              },
+              "reason": "no_value_improvement",
+              "removed_request_ids": [],
+              "resource_model_evaluation_count": 38945,
+              "scheduled_count": 5,
+              "trial": 3
+            },
+            {
+              "accepted": false,
+              "added_request_ids": [],
+              "attitude_model_evaluation_count": 4873,
+              "endpoint_eligibility": "supported",
+              "feasibility": "supported",
+              "fulfilled_value": 130.0,
+              "proposal": {
+                "from_asset_id": "demo-2",
+                "preferred_asset_id": "demo-3",
+                "preferred_opportunity_id": "opportunity:6:demo-3:7:early-2:1",
+                "request_id": "early-2"
+              },
+              "reason": "no_value_improvement",
+              "removed_request_ids": [],
+              "resource_model_evaluation_count": 41867,
+              "scheduled_count": 5,
+              "trial": 4
+            }
+          ]
+        },
+        "strategy": "bounded_reassignment",
+        "timings": {
+          "endpoint_verification_ms": 4.308,
+          "opportunity_generation_ms": 2069.98,
+          "preparation_ms": 6.52,
+          "scheduling_ms": 67980.853,
+          "total_ms": 70071.799
+        },
+        "unfulfilled_requests": [
+          {
+            "reasons": [
+              "planning_start_grid_infeasible"
+            ],
+            "request_id": "early-4",
+            "value": 27.0
+          },
+          {
+            "reasons": [
+              "planning_start_grid_infeasible"
+            ],
+            "request_id": "middle-1",
+            "value": 26.0
+          },
+          {
+            "reasons": [
+              "planning_start_grid_infeasible"
+            ],
+            "request_id": "middle-2",
+            "value": 25.0
+          },
+          {
+            "reasons": [
+              "planning_start_grid_infeasible"
+            ],
+            "request_id": "middle-3",
+            "value": 24.0
+          },
+          {
+            "reasons": [
+              "insufficient_duration_after_bounds_and_margins",
+              "no_conservative_opportunity"
+            ],
+            "request_id": "middle-4",
+            "value": 23.0
+          },
+          {
+            "reasons": [
+              "planning_start_grid_infeasible"
+            ],
+            "request_id": "late-3",
+            "value": 20.0
+          },
+          {
+            "reasons": [
+              "no_conservative_opportunity",
+              "opportunity_search_incomplete"
+            ],
+            "request_id": "late-4",
+            "value": 19.0
+          }
+        ]
+      },
+      {
+        "activities_per_asset": {
+          "demo-1": 1,
+          "demo-2": 2,
+          "demo-3": 2
+        },
+        "asset_count": 3,
+        "asset_request_pairs": 36,
+        "assignments": [
+          {
+            "asset_id": "demo-1",
+            "ends_at_s": 820497680.5,
+            "request_id": "early-1",
+            "starts_at_s": 820497660.5,
+            "value": 30.0
+          },
+          {
+            "asset_id": "demo-2",
+            "ends_at_s": 820497680.5,
+            "request_id": "early-2",
+            "starts_at_s": 820497660.5,
+            "value": 29.0
+          },
+          {
+            "asset_id": "demo-3",
+            "ends_at_s": 820497680.5,
+            "request_id": "early-3",
+            "starts_at_s": 820497660.5,
+            "value": 28.0
+          },
+          {
+            "asset_id": "demo-3",
+            "ends_at_s": 820498000.5,
+            "request_id": "late-1",
+            "starts_at_s": 820497980.5,
+            "value": 22.0
+          },
+          {
+            "asset_id": "demo-2",
+            "ends_at_s": 820498102.8049219,
+            "request_id": "late-2",
+            "starts_at_s": 820498082.8049219,
+            "value": 21.0
+          }
+        ],
+        "attitude_model_evaluation_count": 4591,
+        "batteries": {
+          "demo-1": {
+            "final_energy_wh_range": {
+              "max": 30,
+              "min": 30,
+              "spread": 0
+            },
+            "minimum_energy_wh": 11.318441851289252,
+            "minimum_reserve_margin_wh": 3.3184418512892524,
+            "reserve_wh": 8,
+            "status": "supported"
+          },
+          "demo-2": {
+            "final_energy_wh_range": {
+              "max": 13.178669758278671,
+              "min": 13.17408484020846,
+              "spread": 0.00458491807021133
+            },
+            "minimum_energy_wh": 11.7929044887843,
+            "minimum_reserve_margin_wh": 3.7929044887843,
+            "reserve_wh": 8,
+            "status": "supported"
+          },
+          "demo-3": {
+            "final_energy_wh_range": {
+              "max": 15.564304806575029,
+              "min": 15.55845402905592,
+              "spread": 0.005850777519109229
+            },
+            "minimum_energy_wh": 9.17333973351668,
+            "minimum_reserve_margin_wh": 1.1733397335166806,
+            "reserve_wh": 8,
+            "status": "supported"
+          }
+        },
+        "decision_reasons": {
+          "planning_start_grid_infeasible": 12,
+          "request_already_scheduled": 8,
+          "selected": 5
+        },
+        "fulfilled_value": 130.0,
+        "inter_service_energy": {
+          "demo-1": [],
+          "demo-2": [
+            {
+              "after_request_id": "early-2",
+              "before_request_id": "late-2",
+              "ends_at_s": 820498082.8049219,
+              "levels": [
+                {
+                  "net_energy_change_wh": 11.427809582766962,
+                  "sample_step_s": 5.0
+                },
+                {
+                  "net_energy_change_wh": 11.427832979429954,
+                  "sample_step_s": 1.0
+                }
+              ],
+              "net_energy_change_wh_range": {
+                "max": 11.427832979429954,
+                "min": 11.427809582766962
+              },
+              "starts_at_s": 820497680.5,
+              "status": "known_at_tested_cadences"
+            }
+          ],
+          "demo-3": [
+            {
+              "after_request_id": "early-3",
+              "before_request_id": "late-1",
+              "ends_at_s": 820497980.5,
+              "levels": [
+                {
+                  "net_energy_change_wh": 8.493718194993866,
+                  "sample_step_s": 5.0
+                },
+                {
+                  "net_energy_change_wh": 8.493754539986359,
+                  "sample_step_s": 1.0
+                }
+              ],
+              "net_energy_change_wh_range": {
+                "max": 8.493754539986359,
+                "min": 8.493718194993866
+              },
+              "starts_at_s": 820497680.5,
+              "status": "known_at_tested_cadences"
+            }
+          ]
+        },
+        "minimum_transition_time_margin_s": 2.528505696598856,
+        "nonzero_slew_count": 5,
+        "opportunity_count": 25,
+        "opportunity_evaluation_count": 57014,
+        "placement_rejection_reasons": {
+          ":incoming_transition": 3,
+          ":outgoing_transition": 3,
+          ":path_constraint_violated": 15,
+          ":resource_feasibility_violated": 45
+        },
+        "planning_status": "supported",
+        "request_count": 12,
+        "requested_value": 294.0,
+        "resource_model_evaluation_count": 38945,
+        "resource_status": "supported",
+        "scheduled_count": 5,
+        "scheduling_search": {
+          "baseline_value": 130.0,
+          "final_value": 130.0,
+          "limits": [
+            "each trial uses the configured placement and subsystem evaluation budgets",
+            "strict value improvements retaining exact protected placements; tentative requests may be replaced; no global optimality claim",
+            "static-only evaluation does not establish attitude, path, horizon or battery feasibility"
+          ],
+          "max_trials": 4,
+          "proposal_encoding": "opportunity_priority_order",
+          "protected_activities": [],
+          "retention": "protected",
+          "status": "trial_limit_reached",
+          "strategy": "Elixir.OrbitalDynamics.MissionAnalysis.Scheduling.Replacement",
+          "total_model_evaluation_counts": {
+            "attitude_model_evaluation_count": 19537,
+            "resource_model_evaluation_count": 161011
+          },
+          "trial_count": 4,
+          "trials": [
+            {
+              "accepted": true,
+              "attitude_model_evaluation_count": 4591,
+              "feasibility": "supported",
+              "fulfilled_value": 130.0,
+              "reason": "greedy_baseline",
+              "resource_model_evaluation_count": 38945,
+              "scheduled_count": 5,
+              "trial": 1
+            },
+            {
+              "accepted": false,
+              "added_request_ids": [
+                "middle-1"
+              ],
+              "attitude_model_evaluation_count": 4806,
+              "endpoint_eligibility": "supported",
+              "feasibility": "supported",
+              "fulfilled_value": 126.0,
+              "proposal": {
+                "deferred_request_id": "early-1",
+                "previous_asset_id": "demo-1"
+              },
+              "reason": "no_value_improvement",
+              "removed_request_ids": [
+                "early-1"
+              ],
+              "resource_model_evaluation_count": 37487,
+              "scheduled_count": 5,
+              "trial": 2
+            },
+            {
+              "accepted": false,
+              "added_request_ids": [
+                "early-4"
+              ],
+              "attitude_model_evaluation_count": 5235,
+              "endpoint_eligibility": "supported",
+              "feasibility": "supported",
+              "fulfilled_value": 128.0,
+              "proposal": {
+                "deferred_request_id": "early-2",
+                "previous_asset_id": "demo-2"
+              },
+              "reason": "no_value_improvement",
+              "removed_request_ids": [
+                "early-2"
+              ],
+              "resource_model_evaluation_count": 42621,
+              "scheduled_count": 5,
+              "trial": 3
+            },
+            {
+              "accepted": false,
+              "added_request_ids": [
+                "early-4"
+              ],
+              "attitude_model_evaluation_count": 4905,
+              "endpoint_eligibility": "supported",
+              "feasibility": "supported",
+              "fulfilled_value": 129.0,
+              "proposal": {
+                "deferred_request_id": "early-3",
+                "previous_asset_id": "demo-3"
+              },
+              "reason": "no_value_improvement",
+              "removed_request_ids": [
+                "early-3"
+              ],
+              "resource_model_evaluation_count": 41958,
+              "scheduled_count": 5,
+              "trial": 4
+            }
+          ]
+        },
+        "strategy": "bounded_replacement",
+        "timings": {
+          "endpoint_verification_ms": 4.486,
+          "opportunity_generation_ms": 2069.637,
+          "preparation_ms": 5.897,
+          "scheduling_ms": 66916.111,
+          "total_ms": 69017.883
+        },
+        "unfulfilled_requests": [
+          {
+            "reasons": [
+              "planning_start_grid_infeasible"
+            ],
+            "request_id": "early-4",
+            "value": 27.0
+          },
+          {
+            "reasons": [
+              "planning_start_grid_infeasible"
+            ],
+            "request_id": "middle-1",
+            "value": 26.0
+          },
+          {
+            "reasons": [
+              "planning_start_grid_infeasible"
+            ],
+            "request_id": "middle-2",
+            "value": 25.0
+          },
+          {
+            "reasons": [
+              "planning_start_grid_infeasible"
+            ],
+            "request_id": "middle-3",
+            "value": 24.0
+          },
+          {
+            "reasons": [
+              "insufficient_duration_after_bounds_and_margins",
+              "no_conservative_opportunity"
+            ],
+            "request_id": "middle-4",
+            "value": 23.0
+          },
+          {
+            "reasons": [
+              "planning_start_grid_infeasible"
+            ],
+            "request_id": "late-3",
+            "value": 20.0
+          },
+          {
+            "reasons": [
+              "no_conservative_opportunity",
+              "opportunity_search_incomplete"
+            ],
+            "request_id": "late-4",
+            "value": 19.0
+          }
+        ]
+      }
+    ],
+    "runtime": {
+      "architecture": "aarch64-apple-darwin",
+      "elixir": "1.20.4",
+      "otp": "29",
+      "schedulers_online": 8,
+      "warmup_runs": 0
+    }
+  },
+  "small_constellation": {
+    "mission_configuration": {
+      "asset_separation_s": 0,
+      "assets": [
+        {
+          "altitude_km": 600,
+          "dry_mass_kg": 250,
+          "id": "demo-1",
+          "initial_argument_of_latitude_deg": 356.0,
+          "local_time_ascending_node_h": 18.0,
+          "payloads": {
+            "illumination": {
+              "atmospheric_transmission": 0.8,
+              "max_mirror_incidence_deg": 80,
+              "max_tracking_rate_deg_s": 2,
+              "mirror_area_m2": 400,
+              "mirror_max_dimension_m": 20,
+              "reflectivity": 0.9,
+              "solar_angular_diameter_deg": 0.53,
+              "solar_irradiance_w_m2": 1361
+            }
+          },
+          "resource_budgets": {
+            "observation_tokens": 1
+          }
+        },
+        {
+          "altitude_km": 600,
+          "dry_mass_kg": 250,
+          "id": "demo-2",
+          "initial_argument_of_latitude_deg": 358.0,
+          "local_time_ascending_node_h": 18.02,
+          "payloads": {
+            "illumination": {
+              "atmospheric_transmission": 0.8,
+              "max_mirror_incidence_deg": 80,
+              "max_tracking_rate_deg_s": 2,
+              "mirror_area_m2": 400,
+              "mirror_max_dimension_m": 20,
+              "reflectivity": 0.9,
+              "solar_angular_diameter_deg": 0.53,
+              "solar_irradiance_w_m2": 1361
+            }
+          },
+          "resource_budgets": {
+            "observation_tokens": 1
+          }
+        },
+        {
+          "altitude_km": 600,
+          "dry_mass_kg": 250,
+          "id": "demo-3",
+          "initial_argument_of_latitude_deg": 0.0,
+          "local_time_ascending_node_h": 18.04,
+          "payloads": {
+            "illumination": {
+              "atmospheric_transmission": 0.8,
+              "max_mirror_incidence_deg": 80,
+              "max_tracking_rate_deg_s": 2,
+              "mirror_area_m2": 400,
+              "mirror_max_dimension_m": 20,
+              "reflectivity": 0.9,
+              "solar_angular_diameter_deg": 0.53,
+              "solar_irradiance_w_m2": 1361
+            }
+          },
+          "resource_budgets": {
+            "observation_tokens": 1
+          }
+        },
+        {
+          "altitude_km": 600,
+          "dry_mass_kg": 250,
+          "id": "demo-4",
+          "initial_argument_of_latitude_deg": 2.0,
+          "local_time_ascending_node_h": 18.06,
+          "payloads": {
+            "illumination": {
+              "atmospheric_transmission": 0.8,
+              "max_mirror_incidence_deg": 80,
+              "max_tracking_rate_deg_s": 2,
+              "mirror_area_m2": 400,
+              "mirror_max_dimension_m": 20,
+              "reflectivity": 0.9,
+              "solar_angular_diameter_deg": 0.53,
+              "solar_irradiance_w_m2": 1361
+            }
+          },
+          "resource_budgets": {
+            "observation_tokens": 1
+          }
+        },
+        {
+          "altitude_km": 600,
+          "dry_mass_kg": 250,
+          "id": "demo-5",
+          "initial_argument_of_latitude_deg": 4.0,
+          "local_time_ascending_node_h": 18.08,
+          "payloads": {
+            "illumination": {
+              "atmospheric_transmission": 0.8,
+              "max_mirror_incidence_deg": 80,
+              "max_tracking_rate_deg_s": 2,
+              "mirror_area_m2": 400,
+              "mirror_max_dimension_m": 20,
+              "reflectivity": 0.9,
+              "solar_angular_diameter_deg": 0.53,
+              "solar_irradiance_w_m2": 1361
+            }
+          },
+          "resource_budgets": {
+            "observation_tokens": 1
+          }
+        },
+        {
+          "altitude_km": 600,
+          "dry_mass_kg": 250,
+          "id": "demo-6",
+          "initial_argument_of_latitude_deg": 6.0,
+          "local_time_ascending_node_h": 18.1,
+          "payloads": {
+            "illumination": {
+              "atmospheric_transmission": 0.8,
+              "max_mirror_incidence_deg": 80,
+              "max_tracking_rate_deg_s": 2,
+              "mirror_area_m2": 400,
+              "mirror_max_dimension_m": 20,
+              "reflectivity": 0.9,
+              "solar_angular_diameter_deg": 0.53,
+              "solar_irradiance_w_m2": 1361
+            }
+          },
+          "resource_budgets": {
+            "observation_tokens": 1
+          }
+        }
+      ],
+      "duration_s": 250,
+      "epoch_s": 820497600,
+      "max_sample_gap_s": 20,
+      "max_step_s": 10,
+      "mission_id": "small_constellation",
+      "requests": [
+        {
+          "activity_type": "illuminate",
+          "duration_s": 20,
+          "ends_at_s": 820497790,
+          "id": "south-1",
+          "model": "illumination",
+          "parameters": {
+            "maximum_target_sun_elevation_deg": -6,
+            "minimum_elevation_deg": 10,
+            "minimum_irradiance_w_m2": 0.0001,
+            "target_radius_km": 1
+          },
+          "resource_costs": {
+            "observation_tokens": 1
+          },
+          "starts_at_s": 820497640,
+          "target": {
+            "altitude_km": 0,
+            "id": "south",
+            "latitude_deg": 6,
+            "longitude_deg": -79.222322111382,
+            "minimum_elevation_deg": 10
+          },
+          "value": 30
+        },
+        {
+          "activity_type": "illuminate",
+          "duration_s": 20,
+          "ends_at_s": 820497790,
+          "id": "south-2",
+          "model": "illumination",
+          "parameters": {
+            "maximum_target_sun_elevation_deg": -6,
+            "minimum_elevation_deg": 10,
+            "minimum_irradiance_w_m2": 0.0001,
+            "target_radius_km": 1
+          },
+          "resource_costs": {
+            "observation_tokens": 1
+          },
+          "starts_at_s": 820497640,
+          "target": {
+            "altitude_km": 0,
+            "id": "south",
+            "latitude_deg": 6,
+            "longitude_deg": -79.222322111382,
+            "minimum_elevation_deg": 10
+          },
+          "value": 29
+        },
+        {
+          "activity_type": "illuminate",
+          "duration_s": 20,
+          "ends_at_s": 820497790,
+          "id": "south-3",
+          "model": "illumination",
+          "parameters": {
+            "maximum_target_sun_elevation_deg": -6,
+            "minimum_elevation_deg": 10,
+            "minimum_irradiance_w_m2": 0.0001,
+            "target_radius_km": 1
+          },
+          "resource_costs": {
+            "observation_tokens": 1
+          },
+          "starts_at_s": 820497640,
+          "target": {
+            "altitude_km": 0,
+            "id": "south",
+            "latitude_deg": 6,
+            "longitude_deg": -79.222322111382,
+            "minimum_elevation_deg": 10
+          },
+          "value": 28
+        },
+        {
+          "activity_type": "illuminate",
+          "duration_s": 20,
+          "ends_at_s": 820497790,
+          "id": "central-1",
+          "model": "illumination",
+          "parameters": {
+            "maximum_target_sun_elevation_deg": -6,
+            "minimum_elevation_deg": 10,
+            "minimum_irradiance_w_m2": 0.0001,
+            "target_radius_km": 1
+          },
+          "resource_costs": {
+            "observation_tokens": 1
+          },
+          "starts_at_s": 820497640,
+          "target": {
+            "altitude_km": 0,
+            "id": "central",
+            "latitude_deg": 10,
+            "longitude_deg": -79.222322111382,
+            "minimum_elevation_deg": 10
+          },
+          "value": 27
+        },
+        {
+          "activity_type": "illuminate",
+          "duration_s": 20,
+          "ends_at_s": 820497790,
+          "id": "central-2",
+          "model": "illumination",
+          "parameters": {
+            "maximum_target_sun_elevation_deg": -6,
+            "minimum_elevation_deg": 10,
+            "minimum_irradiance_w_m2": 0.0001,
+            "target_radius_km": 1
+          },
+          "resource_costs": {
+            "observation_tokens": 1
+          },
+          "starts_at_s": 820497640,
+          "target": {
+            "altitude_km": 0,
+            "id": "central",
+            "latitude_deg": 10,
+            "longitude_deg": -79.222322111382,
+            "minimum_elevation_deg": 10
+          },
+          "value": 26
+        },
+        {
+          "activity_type": "illuminate",
+          "duration_s": 20,
+          "ends_at_s": 820497790,
+          "id": "central-3",
+          "model": "illumination",
+          "parameters": {
+            "maximum_target_sun_elevation_deg": -6,
+            "minimum_elevation_deg": 10,
+            "minimum_irradiance_w_m2": 0.0001,
+            "target_radius_km": 1
+          },
+          "resource_costs": {
+            "observation_tokens": 1
+          },
+          "starts_at_s": 820497640,
+          "target": {
+            "altitude_km": 0,
+            "id": "central",
+            "latitude_deg": 10,
+            "longitude_deg": -79.222322111382,
+            "minimum_elevation_deg": 10
+          },
+          "value": 25
+        },
+        {
+          "activity_type": "illuminate",
+          "duration_s": 20,
+          "ends_at_s": 820497790,
+          "id": "north-1",
+          "model": "illumination",
+          "parameters": {
+            "maximum_target_sun_elevation_deg": -6,
+            "minimum_elevation_deg": 10,
+            "minimum_irradiance_w_m2": 0.0001,
+            "target_radius_km": 1
+          },
+          "resource_costs": {
+            "observation_tokens": 1
+          },
+          "starts_at_s": 820497640,
+          "target": {
+            "altitude_km": 0,
+            "id": "north",
+            "latitude_deg": 14,
+            "longitude_deg": -79.222322111382,
+            "minimum_elevation_deg": 10
+          },
+          "value": 24
+        },
+        {
+          "activity_type": "illuminate",
+          "duration_s": 20,
+          "ends_at_s": 820497790,
+          "id": "north-2",
+          "model": "illumination",
+          "parameters": {
+            "maximum_target_sun_elevation_deg": -6,
+            "minimum_elevation_deg": 10,
+            "minimum_irradiance_w_m2": 0.0001,
+            "target_radius_km": 1
+          },
+          "resource_costs": {
+            "observation_tokens": 1
+          },
+          "starts_at_s": 820497640,
+          "target": {
+            "altitude_km": 0,
+            "id": "north",
+            "latitude_deg": 14,
+            "longitude_deg": -79.222322111382,
+            "minimum_elevation_deg": 10
+          },
+          "value": 23
+        },
+        {
+          "activity_type": "illuminate",
+          "duration_s": 20,
+          "ends_at_s": 820497790,
+          "id": "north-3",
+          "model": "illumination",
+          "parameters": {
+            "maximum_target_sun_elevation_deg": -6,
+            "minimum_elevation_deg": 10,
+            "minimum_irradiance_w_m2": 0.0001,
+            "target_radius_km": 1
+          },
+          "resource_costs": {
+            "observation_tokens": 1
+          },
+          "starts_at_s": 820497640,
+          "target": {
+            "altitude_km": 0,
+            "id": "north",
+            "latitude_deg": 14,
+            "longitude_deg": -79.222322111382,
+            "minimum_elevation_deg": 10
+          },
+          "value": 22
+        }
+      ],
+      "sample_step_s": 20,
+      "solar_year_s": 31556925.216
+    },
+    "planning_configuration": {
+      "attitude": {
+        "assets": {
+          "demo-1": {
+            "initial": {
+              "angular_velocity_inertial_deg_s": [
+                0,
+                0,
+                0
+              ],
+              "epoch_s": 820497600,
+              "frame": "eci_j2000",
+              "quaternion_wxyz": [
+                1,
+                0,
+                0,
+                0
+              ],
+              "time_scale": "utc"
+            },
+            "max_accel_deg_s2": 0.2,
+            "max_rate_deg_s": 2,
+            "pointing_configurations": {
+              "illumination": {
+                "body_to_payload_quaternion": [
+                  1,
+                  0,
+                  0,
+                  0
+                ],
+                "roll_reference_inertial": [
+                  0,
+                  0,
+                  1
+                ]
+              }
+            },
+            "settling_s": 2
+          },
+          "demo-2": {
+            "initial": {
+              "angular_velocity_inertial_deg_s": [
+                0,
+                0,
+                0
+              ],
+              "epoch_s": 820497600,
+              "frame": "eci_j2000",
+              "quaternion_wxyz": [
+                1,
+                0,
+                0,
+                0
+              ],
+              "time_scale": "utc"
+            },
+            "max_accel_deg_s2": 0.2,
+            "max_rate_deg_s": 2,
+            "pointing_configurations": {
+              "illumination": {
+                "body_to_payload_quaternion": [
+                  1,
+                  0,
+                  0,
+                  0
+                ],
+                "roll_reference_inertial": [
+                  0,
+                  0,
+                  1
+                ]
+              }
+            },
+            "settling_s": 2
+          },
+          "demo-3": {
+            "initial": {
+              "angular_velocity_inertial_deg_s": [
+                0,
+                0,
+                0
+              ],
+              "epoch_s": 820497600,
+              "frame": "eci_j2000",
+              "quaternion_wxyz": [
+                1,
+                0,
+                0,
+                0
+              ],
+              "time_scale": "utc"
+            },
+            "max_accel_deg_s2": 0.2,
+            "max_rate_deg_s": 2,
+            "pointing_configurations": {
+              "illumination": {
+                "body_to_payload_quaternion": [
+                  1,
+                  0,
+                  0,
+                  0
+                ],
+                "roll_reference_inertial": [
+                  0,
+                  0,
+                  1
+                ]
+              }
+            },
+            "settling_s": 2
+          },
+          "demo-4": {
+            "initial": {
+              "angular_velocity_inertial_deg_s": [
+                0,
+                0,
+                0
+              ],
+              "epoch_s": 820497600,
+              "frame": "eci_j2000",
+              "quaternion_wxyz": [
+                1,
+                0,
+                0,
+                0
+              ],
+              "time_scale": "utc"
+            },
+            "max_accel_deg_s2": 0.2,
+            "max_rate_deg_s": 2,
+            "pointing_configurations": {
+              "illumination": {
+                "body_to_payload_quaternion": [
+                  1,
+                  0,
+                  0,
+                  0
+                ],
+                "roll_reference_inertial": [
+                  0,
+                  0,
+                  1
+                ]
+              }
+            },
+            "settling_s": 2
+          },
+          "demo-5": {
+            "initial": {
+              "angular_velocity_inertial_deg_s": [
+                0,
+                0,
+                0
+              ],
+              "epoch_s": 820497600,
+              "frame": "eci_j2000",
+              "quaternion_wxyz": [
+                1,
+                0,
+                0,
+                0
+              ],
+              "time_scale": "utc"
+            },
+            "max_accel_deg_s2": 0.2,
+            "max_rate_deg_s": 2,
+            "pointing_configurations": {
+              "illumination": {
+                "body_to_payload_quaternion": [
+                  1,
+                  0,
+                  0,
+                  0
+                ],
+                "roll_reference_inertial": [
+                  0,
+                  0,
+                  1
+                ]
+              }
+            },
+            "settling_s": 2
+          },
+          "demo-6": {
+            "initial": {
+              "angular_velocity_inertial_deg_s": [
+                0,
+                0,
+                0
+              ],
+              "epoch_s": 820497600,
+              "frame": "eci_j2000",
+              "quaternion_wxyz": [
+                1,
+                0,
+                0,
+                0
+              ],
+              "time_scale": "utc"
+            },
+            "max_accel_deg_s2": 0.2,
+            "max_rate_deg_s": 2,
+            "pointing_configurations": {
+              "illumination": {
+                "body_to_payload_quaternion": [
+                  1,
+                  0,
+                  0,
+                  0
+                ],
+                "roll_reference_inertial": [
+                  0,
+                  0,
+                  1
+                ]
+              }
+            },
+            "settling_s": 2
+          }
+        },
+        "derivative_step_s": 0.25,
+        "max_candidate_starts": 32,
+        "max_evaluations": 20000,
+        "profile_step_s": 1,
+        "search_step_s": 5
+      },
+      "horizon": {
+        "ends_at_s": 820497850,
+        "starts_at_s": 820497600,
+        "terminals": {
+          "demo-1": {
+            "frame": "eci_j2000",
+            "mode": "standby",
+            "quaternion_wxyz": [
+              1,
+              0,
+              0,
+              0
+            ],
+            "strategy": "fixed_inertial"
+          },
+          "demo-2": {
+            "frame": "eci_j2000",
+            "mode": "standby",
+            "quaternion_wxyz": [
+              1,
+              0,
+              0,
+              0
+            ],
+            "strategy": "fixed_inertial"
+          },
+          "demo-3": {
+            "frame": "eci_j2000",
+            "mode": "standby",
+            "quaternion_wxyz": [
+              1,
+              0,
+              0,
+              0
+            ],
+            "strategy": "fixed_inertial"
+          },
+          "demo-4": {
+            "frame": "eci_j2000",
+            "mode": "standby",
+            "quaternion_wxyz": [
+              1,
+              0,
+              0,
+              0
+            ],
+            "strategy": "fixed_inertial"
+          },
+          "demo-5": {
+            "frame": "eci_j2000",
+            "mode": "standby",
+            "quaternion_wxyz": [
+              1,
+              0,
+              0,
+              0
+            ],
+            "strategy": "fixed_inertial"
+          },
+          "demo-6": {
+            "frame": "eci_j2000",
+            "mode": "standby",
+            "quaternion_wxyz": [
+              1,
+              0,
+              0,
+              0
+            ],
+            "strategy": "fixed_inertial"
+          }
+        },
+        "time_scale": "utc"
+      },
+      "mission_manifest": "small_constellation.json",
+      "opportunity_search": {
+        "entry_margin_s": 0.5,
+        "exit_margin_s": 0.5,
+        "max_check_step_s": 2,
+        "max_evaluations": 50000,
+        "max_iterations": 64,
+        "time_tolerance_s": 0.01
+      },
+      "path_constraints": {
+        "assets": {
+          "demo-1": {
+            "activity_modes": {
+              "central-1": "reflecting",
+              "central-2": "reflecting",
+              "central-3": "reflecting",
+              "north-1": "reflecting",
+              "north-2": "reflecting",
+              "north-3": "reflecting",
+              "south-1": "reflecting",
+              "south-2": "reflecting",
+              "south-3": "reflecting"
+            },
+            "modes": {
+              "maneuver": {
+                "optical_behavior": "reflecting",
+                "power_load_w": 100
+              },
+              "reflecting": {
+                "optical_behavior": "reflecting",
+                "power_load_w": 500
+              },
+              "standby": {
+                "optical_behavior": "reflecting",
+                "power_load_w": 20
+              }
+            },
+            "rules": [
+              {
+                "configuration": {
+                  "body_axis": [
+                    0,
+                    0,
+                    1
+                  ],
+                  "maximum_angle_deg": 180,
+                  "minimum_angle_deg": 5,
+                  "reference": {
+                    "kind": "sun"
+                  }
+                },
+                "id": "sun_axis",
+                "model": "angular"
+              },
+              {
+                "configuration": {
+                  "body_axis": [
+                    1,
+                    0,
+                    0
+                  ],
+                  "maximum_angle_deg": 180,
+                  "minimum_angle_deg": 0,
+                  "reference": {
+                    "kind": "body_limb"
+                  }
+                },
+                "id": "limb_axis",
+                "model": "angular"
+              },
+              {
+                "configuration": {
+                  "back_face_behavior": "two_sided_reflecting_by_assumption",
+                  "beam_padding_deg": 0.02,
+                  "exclusion_regions": [
+                    {
+                      "id": "synthetic_polar_exclusion",
+                      "latitude_deg": 80,
+                      "longitude_deg": 0,
+                      "radius_km": 25
+                    }
+                  ],
+                  "mirror_normal_body": [
+                    0,
+                    0,
+                    1
+                  ],
+                  "solar_angular_radius_deg": 0.265
+                },
+                "id": "reflected_beam",
+                "model": "reflected_beam"
+              }
+            ],
+            "transition_mode": "maneuver"
+          },
+          "demo-2": {
+            "activity_modes": {
+              "central-1": "reflecting",
+              "central-2": "reflecting",
+              "central-3": "reflecting",
+              "north-1": "reflecting",
+              "north-2": "reflecting",
+              "north-3": "reflecting",
+              "south-1": "reflecting",
+              "south-2": "reflecting",
+              "south-3": "reflecting"
+            },
+            "modes": {
+              "maneuver": {
+                "optical_behavior": "reflecting",
+                "power_load_w": 100
+              },
+              "reflecting": {
+                "optical_behavior": "reflecting",
+                "power_load_w": 500
+              },
+              "standby": {
+                "optical_behavior": "reflecting",
+                "power_load_w": 20
+              }
+            },
+            "rules": [
+              {
+                "configuration": {
+                  "body_axis": [
+                    0,
+                    0,
+                    1
+                  ],
+                  "maximum_angle_deg": 180,
+                  "minimum_angle_deg": 5,
+                  "reference": {
+                    "kind": "sun"
+                  }
+                },
+                "id": "sun_axis",
+                "model": "angular"
+              },
+              {
+                "configuration": {
+                  "body_axis": [
+                    1,
+                    0,
+                    0
+                  ],
+                  "maximum_angle_deg": 180,
+                  "minimum_angle_deg": 0,
+                  "reference": {
+                    "kind": "body_limb"
+                  }
+                },
+                "id": "limb_axis",
+                "model": "angular"
+              },
+              {
+                "configuration": {
+                  "back_face_behavior": "two_sided_reflecting_by_assumption",
+                  "beam_padding_deg": 0.02,
+                  "exclusion_regions": [
+                    {
+                      "id": "synthetic_polar_exclusion",
+                      "latitude_deg": 80,
+                      "longitude_deg": 0,
+                      "radius_km": 25
+                    }
+                  ],
+                  "mirror_normal_body": [
+                    0,
+                    0,
+                    1
+                  ],
+                  "solar_angular_radius_deg": 0.265
+                },
+                "id": "reflected_beam",
+                "model": "reflected_beam"
+              }
+            ],
+            "transition_mode": "maneuver"
+          },
+          "demo-3": {
+            "activity_modes": {
+              "central-1": "reflecting",
+              "central-2": "reflecting",
+              "central-3": "reflecting",
+              "north-1": "reflecting",
+              "north-2": "reflecting",
+              "north-3": "reflecting",
+              "south-1": "reflecting",
+              "south-2": "reflecting",
+              "south-3": "reflecting"
+            },
+            "modes": {
+              "maneuver": {
+                "optical_behavior": "reflecting",
+                "power_load_w": 100
+              },
+              "reflecting": {
+                "optical_behavior": "reflecting",
+                "power_load_w": 500
+              },
+              "standby": {
+                "optical_behavior": "reflecting",
+                "power_load_w": 20
+              }
+            },
+            "rules": [
+              {
+                "configuration": {
+                  "body_axis": [
+                    0,
+                    0,
+                    1
+                  ],
+                  "maximum_angle_deg": 180,
+                  "minimum_angle_deg": 5,
+                  "reference": {
+                    "kind": "sun"
+                  }
+                },
+                "id": "sun_axis",
+                "model": "angular"
+              },
+              {
+                "configuration": {
+                  "body_axis": [
+                    1,
+                    0,
+                    0
+                  ],
+                  "maximum_angle_deg": 180,
+                  "minimum_angle_deg": 0,
+                  "reference": {
+                    "kind": "body_limb"
+                  }
+                },
+                "id": "limb_axis",
+                "model": "angular"
+              },
+              {
+                "configuration": {
+                  "back_face_behavior": "two_sided_reflecting_by_assumption",
+                  "beam_padding_deg": 0.02,
+                  "exclusion_regions": [
+                    {
+                      "id": "synthetic_polar_exclusion",
+                      "latitude_deg": 80,
+                      "longitude_deg": 0,
+                      "radius_km": 25
+                    }
+                  ],
+                  "mirror_normal_body": [
+                    0,
+                    0,
+                    1
+                  ],
+                  "solar_angular_radius_deg": 0.265
+                },
+                "id": "reflected_beam",
+                "model": "reflected_beam"
+              }
+            ],
+            "transition_mode": "maneuver"
+          },
+          "demo-4": {
+            "activity_modes": {
+              "central-1": "reflecting",
+              "central-2": "reflecting",
+              "central-3": "reflecting",
+              "north-1": "reflecting",
+              "north-2": "reflecting",
+              "north-3": "reflecting",
+              "south-1": "reflecting",
+              "south-2": "reflecting",
+              "south-3": "reflecting"
+            },
+            "modes": {
+              "maneuver": {
+                "optical_behavior": "reflecting",
+                "power_load_w": 100
+              },
+              "reflecting": {
+                "optical_behavior": "reflecting",
+                "power_load_w": 500
+              },
+              "standby": {
+                "optical_behavior": "reflecting",
+                "power_load_w": 20
+              }
+            },
+            "rules": [
+              {
+                "configuration": {
+                  "body_axis": [
+                    0,
+                    0,
+                    1
+                  ],
+                  "maximum_angle_deg": 180,
+                  "minimum_angle_deg": 5,
+                  "reference": {
+                    "kind": "sun"
+                  }
+                },
+                "id": "sun_axis",
+                "model": "angular"
+              },
+              {
+                "configuration": {
+                  "body_axis": [
+                    1,
+                    0,
+                    0
+                  ],
+                  "maximum_angle_deg": 180,
+                  "minimum_angle_deg": 0,
+                  "reference": {
+                    "kind": "body_limb"
+                  }
+                },
+                "id": "limb_axis",
+                "model": "angular"
+              },
+              {
+                "configuration": {
+                  "back_face_behavior": "two_sided_reflecting_by_assumption",
+                  "beam_padding_deg": 0.02,
+                  "exclusion_regions": [
+                    {
+                      "id": "synthetic_polar_exclusion",
+                      "latitude_deg": 80,
+                      "longitude_deg": 0,
+                      "radius_km": 25
+                    }
+                  ],
+                  "mirror_normal_body": [
+                    0,
+                    0,
+                    1
+                  ],
+                  "solar_angular_radius_deg": 0.265
+                },
+                "id": "reflected_beam",
+                "model": "reflected_beam"
+              }
+            ],
+            "transition_mode": "maneuver"
+          },
+          "demo-5": {
+            "activity_modes": {
+              "central-1": "reflecting",
+              "central-2": "reflecting",
+              "central-3": "reflecting",
+              "north-1": "reflecting",
+              "north-2": "reflecting",
+              "north-3": "reflecting",
+              "south-1": "reflecting",
+              "south-2": "reflecting",
+              "south-3": "reflecting"
+            },
+            "modes": {
+              "maneuver": {
+                "optical_behavior": "reflecting",
+                "power_load_w": 100
+              },
+              "reflecting": {
+                "optical_behavior": "reflecting",
+                "power_load_w": 500
+              },
+              "standby": {
+                "optical_behavior": "reflecting",
+                "power_load_w": 20
+              }
+            },
+            "rules": [
+              {
+                "configuration": {
+                  "body_axis": [
+                    0,
+                    0,
+                    1
+                  ],
+                  "maximum_angle_deg": 180,
+                  "minimum_angle_deg": 5,
+                  "reference": {
+                    "kind": "sun"
+                  }
+                },
+                "id": "sun_axis",
+                "model": "angular"
+              },
+              {
+                "configuration": {
+                  "body_axis": [
+                    1,
+                    0,
+                    0
+                  ],
+                  "maximum_angle_deg": 180,
+                  "minimum_angle_deg": 0,
+                  "reference": {
+                    "kind": "body_limb"
+                  }
+                },
+                "id": "limb_axis",
+                "model": "angular"
+              },
+              {
+                "configuration": {
+                  "back_face_behavior": "two_sided_reflecting_by_assumption",
+                  "beam_padding_deg": 0.02,
+                  "exclusion_regions": [
+                    {
+                      "id": "synthetic_polar_exclusion",
+                      "latitude_deg": 80,
+                      "longitude_deg": 0,
+                      "radius_km": 25
+                    }
+                  ],
+                  "mirror_normal_body": [
+                    0,
+                    0,
+                    1
+                  ],
+                  "solar_angular_radius_deg": 0.265
+                },
+                "id": "reflected_beam",
+                "model": "reflected_beam"
+              }
+            ],
+            "transition_mode": "maneuver"
+          },
+          "demo-6": {
+            "activity_modes": {
+              "central-1": "reflecting",
+              "central-2": "reflecting",
+              "central-3": "reflecting",
+              "north-1": "reflecting",
+              "north-2": "reflecting",
+              "north-3": "reflecting",
+              "south-1": "reflecting",
+              "south-2": "reflecting",
+              "south-3": "reflecting"
+            },
+            "modes": {
+              "maneuver": {
+                "optical_behavior": "reflecting",
+                "power_load_w": 100
+              },
+              "reflecting": {
+                "optical_behavior": "reflecting",
+                "power_load_w": 500
+              },
+              "standby": {
+                "optical_behavior": "reflecting",
+                "power_load_w": 20
+              }
+            },
+            "rules": [
+              {
+                "configuration": {
+                  "body_axis": [
+                    0,
+                    0,
+                    1
+                  ],
+                  "maximum_angle_deg": 180,
+                  "minimum_angle_deg": 5,
+                  "reference": {
+                    "kind": "sun"
+                  }
+                },
+                "id": "sun_axis",
+                "model": "angular"
+              },
+              {
+                "configuration": {
+                  "body_axis": [
+                    1,
+                    0,
+                    0
+                  ],
+                  "maximum_angle_deg": 180,
+                  "minimum_angle_deg": 0,
+                  "reference": {
+                    "kind": "body_limb"
+                  }
+                },
+                "id": "limb_axis",
+                "model": "angular"
+              },
+              {
+                "configuration": {
+                  "back_face_behavior": "two_sided_reflecting_by_assumption",
+                  "beam_padding_deg": 0.02,
+                  "exclusion_regions": [
+                    {
+                      "id": "synthetic_polar_exclusion",
+                      "latitude_deg": 80,
+                      "longitude_deg": 0,
+                      "radius_km": 25
+                    }
+                  ],
+                  "mirror_normal_body": [
+                    0,
+                    0,
+                    1
+                  ],
+                  "solar_angular_radius_deg": 0.265
+                },
+                "id": "reflected_beam",
+                "model": "reflected_beam"
+              }
+            ],
+            "transition_mode": "maneuver"
+          }
+        },
+        "max_evaluations": 100000,
+        "max_samples_per_segment": 5000,
+        "sample_steps_s": [
+          5,
+          1,
+          0.25
+        ]
+      },
+      "refinement": {
+        "max_extra_evaluations": 512,
+        "time_tolerance_s": 0.01,
+        "tracking_lookback_s": 1
+      },
+      "resolution_level": {
+        "max_step_s": 1,
+        "sample_step_s": 1
+      },
+      "resources": {
+        "assets": {
+          "demo-1": [
+            {
+              "configuration": {
+                "capacity_wh": 50,
+                "charge_efficiency": 0.9,
+                "discharge_efficiency": 0.9,
+                "generation": {
+                  "bus_efficiency": 0.9,
+                  "event_search": {
+                    "max_check_step_s": 20,
+                    "max_evaluations": 100000,
+                    "max_iterations": 64,
+                    "time_tolerance_s": 0.01
+                  },
+                  "kind": "solar_array",
+                  "panels": [
+                    {
+                      "area_m2": 2,
+                      "efficiency": 0.3,
+                      "id": "synthetic-array",
+                      "normal_body": [
+                        1,
+                        0,
+                        0
+                      ]
+                    }
+                  ],
+                  "shadow_model": "finite_sun",
+                  "solar_distance_km": 149597870.7,
+                  "solar_irradiance_w_m2": 1361,
+                  "solar_radius_km": 695700
+                },
+                "initial_wh": 35,
+                "phase_load_w": {
+                  "activity": 0,
+                  "brake": 200,
+                  "hold": 0,
+                  "ramp_to_tracking": 200,
+                  "settle": 0,
+                  "slew_accelerate": 200,
+                  "slew_cruise": 200,
+                  "slew_decelerate": 200
+                },
+                "reserve_wh": 8
+              },
+              "id": "battery",
+              "model": "battery"
+            }
+          ],
+          "demo-2": [
+            {
+              "configuration": {
+                "capacity_wh": 50,
+                "charge_efficiency": 0.9,
+                "discharge_efficiency": 0.9,
+                "generation": {
+                  "bus_efficiency": 0.9,
+                  "event_search": {
+                    "max_check_step_s": 20,
+                    "max_evaluations": 100000,
+                    "max_iterations": 64,
+                    "time_tolerance_s": 0.01
+                  },
+                  "kind": "solar_array",
+                  "panels": [
+                    {
+                      "area_m2": 2,
+                      "efficiency": 0.3,
+                      "id": "synthetic-array",
+                      "normal_body": [
+                        1,
+                        0,
+                        0
+                      ]
+                    }
+                  ],
+                  "shadow_model": "finite_sun",
+                  "solar_distance_km": 149597870.7,
+                  "solar_irradiance_w_m2": 1361,
+                  "solar_radius_km": 695700
+                },
+                "initial_wh": 35,
+                "phase_load_w": {
+                  "activity": 0,
+                  "brake": 200,
+                  "hold": 0,
+                  "ramp_to_tracking": 200,
+                  "settle": 0,
+                  "slew_accelerate": 200,
+                  "slew_cruise": 200,
+                  "slew_decelerate": 200
+                },
+                "reserve_wh": 8
+              },
+              "id": "battery",
+              "model": "battery"
+            }
+          ],
+          "demo-3": [
+            {
+              "configuration": {
+                "capacity_wh": 50,
+                "charge_efficiency": 0.9,
+                "discharge_efficiency": 0.9,
+                "generation": {
+                  "bus_efficiency": 0.9,
+                  "event_search": {
+                    "max_check_step_s": 20,
+                    "max_evaluations": 100000,
+                    "max_iterations": 64,
+                    "time_tolerance_s": 0.01
+                  },
+                  "kind": "solar_array",
+                  "panels": [
+                    {
+                      "area_m2": 2,
+                      "efficiency": 0.3,
+                      "id": "synthetic-array",
+                      "normal_body": [
+                        1,
+                        0,
+                        0
+                      ]
+                    }
+                  ],
+                  "shadow_model": "finite_sun",
+                  "solar_distance_km": 149597870.7,
+                  "solar_irradiance_w_m2": 1361,
+                  "solar_radius_km": 695700
+                },
+                "initial_wh": 35,
+                "phase_load_w": {
+                  "activity": 0,
+                  "brake": 200,
+                  "hold": 0,
+                  "ramp_to_tracking": 200,
+                  "settle": 0,
+                  "slew_accelerate": 200,
+                  "slew_cruise": 200,
+                  "slew_decelerate": 200
+                },
+                "reserve_wh": 8
+              },
+              "id": "battery",
+              "model": "battery"
+            }
+          ],
+          "demo-4": [
+            {
+              "configuration": {
+                "capacity_wh": 50,
+                "charge_efficiency": 0.9,
+                "discharge_efficiency": 0.9,
+                "generation": {
+                  "bus_efficiency": 0.9,
+                  "event_search": {
+                    "max_check_step_s": 20,
+                    "max_evaluations": 100000,
+                    "max_iterations": 64,
+                    "time_tolerance_s": 0.01
+                  },
+                  "kind": "solar_array",
+                  "panels": [
+                    {
+                      "area_m2": 2,
+                      "efficiency": 0.3,
+                      "id": "synthetic-array",
+                      "normal_body": [
+                        1,
+                        0,
+                        0
+                      ]
+                    }
+                  ],
+                  "shadow_model": "finite_sun",
+                  "solar_distance_km": 149597870.7,
+                  "solar_irradiance_w_m2": 1361,
+                  "solar_radius_km": 695700
+                },
+                "initial_wh": 35,
+                "phase_load_w": {
+                  "activity": 0,
+                  "brake": 200,
+                  "hold": 0,
+                  "ramp_to_tracking": 200,
+                  "settle": 0,
+                  "slew_accelerate": 200,
+                  "slew_cruise": 200,
+                  "slew_decelerate": 200
+                },
+                "reserve_wh": 8
+              },
+              "id": "battery",
+              "model": "battery"
+            }
+          ],
+          "demo-5": [
+            {
+              "configuration": {
+                "capacity_wh": 50,
+                "charge_efficiency": 0.9,
+                "discharge_efficiency": 0.9,
+                "generation": {
+                  "bus_efficiency": 0.9,
+                  "event_search": {
+                    "max_check_step_s": 20,
+                    "max_evaluations": 100000,
+                    "max_iterations": 64,
+                    "time_tolerance_s": 0.01
+                  },
+                  "kind": "solar_array",
+                  "panels": [
+                    {
+                      "area_m2": 2,
+                      "efficiency": 0.3,
+                      "id": "synthetic-array",
+                      "normal_body": [
+                        1,
+                        0,
+                        0
+                      ]
+                    }
+                  ],
+                  "shadow_model": "finite_sun",
+                  "solar_distance_km": 149597870.7,
+                  "solar_irradiance_w_m2": 1361,
+                  "solar_radius_km": 695700
+                },
+                "initial_wh": 35,
+                "phase_load_w": {
+                  "activity": 0,
+                  "brake": 200,
+                  "hold": 0,
+                  "ramp_to_tracking": 200,
+                  "settle": 0,
+                  "slew_accelerate": 200,
+                  "slew_cruise": 200,
+                  "slew_decelerate": 200
+                },
+                "reserve_wh": 8
+              },
+              "id": "battery",
+              "model": "battery"
+            }
+          ],
+          "demo-6": [
+            {
+              "configuration": {
+                "capacity_wh": 50,
+                "charge_efficiency": 0.9,
+                "discharge_efficiency": 0.9,
+                "generation": {
+                  "bus_efficiency": 0.9,
+                  "event_search": {
+                    "max_check_step_s": 20,
+                    "max_evaluations": 100000,
+                    "max_iterations": 64,
+                    "time_tolerance_s": 0.01
+                  },
+                  "kind": "solar_array",
+                  "panels": [
+                    {
+                      "area_m2": 2,
+                      "efficiency": 0.3,
+                      "id": "synthetic-array",
+                      "normal_body": [
+                        1,
+                        0,
+                        0
+                      ]
+                    }
+                  ],
+                  "shadow_model": "finite_sun",
+                  "solar_distance_km": 149597870.7,
+                  "solar_irradiance_w_m2": 1361,
+                  "solar_radius_km": 695700
+                },
+                "initial_wh": 35,
+                "phase_load_w": {
+                  "activity": 0,
+                  "brake": 200,
+                  "hold": 0,
+                  "ramp_to_tracking": 200,
+                  "settle": 0,
+                  "slew_accelerate": 200,
+                  "slew_cruise": 200,
+                  "slew_decelerate": 200
+                },
+                "reserve_wh": 8
+              },
+              "id": "battery",
+              "model": "battery"
+            }
+          ]
+        },
+        "max_evaluations": 100000,
+        "max_intervals_per_asset": 5000,
+        "sample_steps_s": [
+          10,
+          2,
+          0.5
+        ]
+      },
+      "study_id": "small_constellation"
+    },
+    "greedy": {
+      "asset_count": 6,
+      "asset_request_pairs": 54,
+      "assignments": [
+        {
+          "asset_id": "demo-1",
+          "ends_at_s": 820497680.5,
+          "request_id": "south-1",
+          "starts_at_s": 820497660.5,
+          "value": 30.0
+        },
+        {
+          "asset_id": "demo-3",
+          "ends_at_s": 820497680.5,
+          "request_id": "central-1",
+          "starts_at_s": 820497660.5,
+          "value": 27.0
+        },
+        {
+          "asset_id": "demo-5",
+          "ends_at_s": 820497680.5,
+          "request_id": "north-1",
+          "starts_at_s": 820497660.5,
+          "value": 24.0
+        },
+        {
+          "asset_id": "demo-2",
+          "ends_at_s": 820497690.5,
+          "request_id": "south-2",
+          "starts_at_s": 820497670.5,
+          "value": 29.0
+        },
+        {
+          "asset_id": "demo-4",
+          "ends_at_s": 820497690.5,
+          "request_id": "central-2",
+          "starts_at_s": 820497670.5,
+          "value": 26.0
+        },
+        {
+          "asset_id": "demo-6",
+          "ends_at_s": 820497690.5,
+          "request_id": "north-2",
+          "starts_at_s": 820497670.5,
+          "value": 23.0
+        }
+      ],
+      "attitude_model_evaluation_count": 3417,
+      "batteries": {
+        "demo-1": {
+          "final_energy_wh_range": {
+            "max": 26.276246428357364,
+            "min": 26.260943692159724,
+            "spread": 0.015302736197639888
+          },
+          "minimum_energy_wh": 23.261569444086533,
+          "minimum_reserve_margin_wh": 15.261569444086533,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-2": {
+          "final_energy_wh_range": {
+            "max": 24.36731969348462,
+            "min": 24.34660092479534,
+            "spread": 0.020718768689281575
+          },
+          "minimum_energy_wh": 21.88177264637665,
+          "minimum_reserve_margin_wh": 13.88177264637665,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-3": {
+          "final_energy_wh_range": {
+            "max": 26.06493127647555,
+            "min": 26.036497771670618,
+            "spread": 0.028433504804933563
+          },
+          "minimum_energy_wh": 23.065377594412688,
+          "minimum_reserve_margin_wh": 15.065377594412688,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-4": {
+          "final_energy_wh_range": {
+            "max": 24.199180907422825,
+            "min": 24.17004988184212,
+            "spread": 0.02913102558070335
+          },
+          "minimum_energy_wh": 21.727435150253708,
+          "minimum_reserve_margin_wh": 13.727435150253708,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-5": {
+          "final_energy_wh_range": {
+            "max": 25.861022345873575,
+            "min": 25.830654084374697,
+            "spread": 0.030368261498878724
+          },
+          "minimum_energy_wh": 22.88674581768952,
+          "minimum_reserve_margin_wh": 14.886745817689519,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-6": {
+          "final_energy_wh_range": {
+            "max": 24.03585017412141,
+            "min": 23.997397441673893,
+            "spread": 0.038452732447517235
+          },
+          "minimum_energy_wh": 21.576462826824216,
+          "minimum_reserve_margin_wh": 13.576462826824216,
+          "reserve_wh": 8,
+          "status": "supported"
+        }
+      },
+      "decision_reasons": {
+        "insufficient_resource_budget": 21,
+        "planning_start_grid_infeasible": 6,
+        "request_already_scheduled": 21,
+        "selected": 6
+      },
+      "fulfilled_value": 159.0,
+      "opportunity_count": 54,
+      "opportunity_evaluation_count": 196956,
+      "planning_status": "supported",
+      "repeat": 1,
+      "report_file": "report-6-1.json.gz",
+      "request_count": 9,
+      "requested_value": 234.0,
+      "resource_model_evaluation_count": 7972,
+      "resource_status": "supported",
+      "scheduled_count": 6,
+      "timings": {
+        "endpoint_verification_ms": 5.296,
+        "opportunity_generation_ms": 6852.199,
+        "preparation_ms": 30.116,
+        "scheduling_ms": 11942.587,
+        "total_ms": 18860.656
+      }
+    },
+    "replacement": {
+      "asset_count": 6,
+      "asset_request_pairs": 54,
+      "assignments": [
+        {
+          "asset_id": "demo-1",
+          "ends_at_s": 820497680.5,
+          "request_id": "south-1",
+          "starts_at_s": 820497660.5,
+          "value": 30.0
+        },
+        {
+          "asset_id": "demo-3",
+          "ends_at_s": 820497680.5,
+          "request_id": "central-1",
+          "starts_at_s": 820497660.5,
+          "value": 27.0
+        },
+        {
+          "asset_id": "demo-5",
+          "ends_at_s": 820497680.5,
+          "request_id": "north-1",
+          "starts_at_s": 820497660.5,
+          "value": 24.0
+        },
+        {
+          "asset_id": "demo-2",
+          "ends_at_s": 820497690.5,
+          "request_id": "south-2",
+          "starts_at_s": 820497670.5,
+          "value": 29.0
+        },
+        {
+          "asset_id": "demo-4",
+          "ends_at_s": 820497690.5,
+          "request_id": "central-2",
+          "starts_at_s": 820497670.5,
+          "value": 26.0
+        },
+        {
+          "asset_id": "demo-6",
+          "ends_at_s": 820497690.5,
+          "request_id": "north-2",
+          "starts_at_s": 820497670.5,
+          "value": 23.0
+        }
+      ],
+      "attitude_model_evaluation_count": 3417,
+      "batteries": {
+        "demo-1": {
+          "final_energy_wh_range": {
+            "max": 26.276246428357364,
+            "min": 26.260943692159724,
+            "spread": 0.015302736197639888
+          },
+          "minimum_energy_wh": 23.261569444086533,
+          "minimum_reserve_margin_wh": 15.261569444086533,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-2": {
+          "final_energy_wh_range": {
+            "max": 24.36731969348462,
+            "min": 24.34660092479534,
+            "spread": 0.020718768689281575
+          },
+          "minimum_energy_wh": 21.88177264637665,
+          "minimum_reserve_margin_wh": 13.88177264637665,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-3": {
+          "final_energy_wh_range": {
+            "max": 26.06493127647555,
+            "min": 26.036497771670618,
+            "spread": 0.028433504804933563
+          },
+          "minimum_energy_wh": 23.065377594412688,
+          "minimum_reserve_margin_wh": 15.065377594412688,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-4": {
+          "final_energy_wh_range": {
+            "max": 24.199180907422825,
+            "min": 24.17004988184212,
+            "spread": 0.02913102558070335
+          },
+          "minimum_energy_wh": 21.727435150253708,
+          "minimum_reserve_margin_wh": 13.727435150253708,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-5": {
+          "final_energy_wh_range": {
+            "max": 25.861022345873575,
+            "min": 25.830654084374697,
+            "spread": 0.030368261498878724
+          },
+          "minimum_energy_wh": 22.88674581768952,
+          "minimum_reserve_margin_wh": 14.886745817689519,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-6": {
+          "final_energy_wh_range": {
+            "max": 24.03585017412141,
+            "min": 23.997397441673893,
+            "spread": 0.038452732447517235
+          },
+          "minimum_energy_wh": 21.576462826824216,
+          "minimum_reserve_margin_wh": 13.576462826824216,
+          "reserve_wh": 8,
+          "status": "supported"
+        }
+      },
+      "decision_reasons": {
+        "insufficient_resource_budget": 21,
+        "planning_start_grid_infeasible": 6,
+        "request_already_scheduled": 21,
+        "selected": 6
+      },
+      "fulfilled_value": 159.0,
+      "opportunity_count": 54,
+      "opportunity_evaluation_count": 196956,
+      "planning_status": "supported",
+      "repeat": 1,
+      "report_file": "report-6-1.json.gz",
+      "request_count": 9,
+      "requested_value": 234.0,
+      "resource_model_evaluation_count": 7972,
+      "resource_status": "supported",
+      "scheduled_count": 6,
+      "scheduling_search": {
+        "baseline_value": 159.0,
+        "final_value": 159.0,
+        "limits": [
+          "each trial uses the configured placement and subsystem evaluation budgets",
+          "strict value improvements retaining exact protected placements; tentative requests may be replaced; no global optimality claim",
+          "static-only evaluation does not establish attitude, path, horizon or battery feasibility"
+        ],
+        "max_trials": 4,
+        "proposal_encoding": "opportunity_priority_order",
+        "protected_activities": [],
+        "retention": "protected",
+        "status": "trial_limit_reached",
+        "strategy": "Elixir.OrbitalDynamics.MissionAnalysis.Scheduling.Replacement",
+        "total_model_evaluation_counts": {
+          "attitude_model_evaluation_count": 9306,
+          "resource_model_evaluation_count": 31888
+        },
+        "trial_count": 4,
+        "trials": [
+          {
+            "accepted": true,
+            "attitude_model_evaluation_count": 3417,
+            "feasibility": "supported",
+            "fulfilled_value": 159.0,
+            "reason": "greedy_baseline",
+            "resource_model_evaluation_count": 7972,
+            "scheduled_count": 6,
+            "trial": 1
+          },
+          {
+            "accepted": false,
+            "added_request_ids": [
+              "south-3"
+            ],
+            "attitude_model_evaluation_count": 1686,
+            "endpoint_eligibility": "supported",
+            "feasibility": "supported",
+            "fulfilled_value": 157.0,
+            "proposal": {
+              "deferred_request_id": "south-1",
+              "previous_asset_id": "demo-1"
+            },
+            "reason": "no_value_improvement",
+            "removed_request_ids": [
+              "south-1"
+            ],
+            "resource_model_evaluation_count": 7972,
+            "scheduled_count": 6,
+            "trial": 2
+          },
+          {
+            "accepted": false,
+            "added_request_ids": [
+              "south-3"
+            ],
+            "attitude_model_evaluation_count": 1686,
+            "endpoint_eligibility": "supported",
+            "feasibility": "supported",
+            "fulfilled_value": 158.0,
+            "proposal": {
+              "deferred_request_id": "south-2",
+              "previous_asset_id": "demo-2"
+            },
+            "reason": "no_value_improvement",
+            "removed_request_ids": [
+              "south-2"
+            ],
+            "resource_model_evaluation_count": 7972,
+            "scheduled_count": 6,
+            "trial": 3
+          },
+          {
+            "accepted": false,
+            "added_request_ids": [
+              "central-3"
+            ],
+            "attitude_model_evaluation_count": 2517,
+            "endpoint_eligibility": "supported",
+            "feasibility": "supported",
+            "fulfilled_value": 157.0,
+            "proposal": {
+              "deferred_request_id": "central-1",
+              "previous_asset_id": "demo-3"
+            },
+            "reason": "no_value_improvement",
+            "removed_request_ids": [
+              "central-1"
+            ],
+            "resource_model_evaluation_count": 7972,
+            "scheduled_count": 6,
+            "trial": 4
+          }
+        ]
+      },
+      "timings": {
+        "endpoint_verification_ms": 5.172,
+        "opportunity_generation_ms": 6873.695,
+        "preparation_ms": 33.29,
+        "scheduling_ms": 34381.096,
+        "total_ms": 41323.062
+      }
+    }
+  },
+  "verification": {
+    "default_greedy_reports_byte_identical_to_pre_change": true,
+    "selected_physical_evidence_unchanged_in_both_orbital_benchmarks": true,
+    "repeated_service_report_sha256": {
+      "greedy": "e49f8cc0034dfcedbf6e54ea0bcb07e44ae1987e5eb99f1e5b6d56e9a1c37074",
+      "bounded_reassignment": "4547b76fef70fe0991279b6ea92d05ab5ac64a0063f4f4e863276a62992c67ec",
+      "bounded_replacement": "a517a60774e9c3159fc90d8e01263b6260b63456cfa0b800987092c6f00d024a"
+    },
+    "small_constellation_report_sha256": {
+      "greedy": "3ba1e1e60827f5fb6b9991f58d0583063e286544e5e4dbd1e1a968f7685a56cf",
+      "replacement": "c2baf97768f15719cdb0fd550accd911733cea0b1877753aefbe354c4cd94902"
+    }
+  }
+}

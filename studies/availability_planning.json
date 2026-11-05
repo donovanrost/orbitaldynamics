@@ -1,0 +1,244 @@
+{
+  "study_id": "availability_reference",
+  "mission_manifest": "availability_reference.json",
+  "resolution_level": {
+    "sample_step_s": 1,
+    "max_step_s": 1
+  },
+  "refinement": {
+    "tracking_lookback_s": 1,
+    "time_tolerance_s": 0.01,
+    "max_extra_evaluations": 512
+  },
+  "attitude": {
+    "profile_step_s": 1,
+    "derivative_step_s": 0.1,
+    "search_step_s": 1,
+    "max_candidate_starts": 16,
+    "max_evaluations": 100000,
+    "assets": {
+      "demo-3": {
+        "max_rate_deg_s": 2,
+        "max_accel_deg_s2": 0.2,
+        "settling_s": 2,
+        "initial": {
+          "epoch_s": 820497600,
+          "time_scale": "utc",
+          "frame": "eci_j2000",
+          "quaternion_wxyz": [
+            1,
+            0,
+            0,
+            0
+          ],
+          "angular_velocity_inertial_deg_s": [
+            0,
+            0,
+            0
+          ]
+        },
+        "pointing_configurations": {
+          "fixed_attitude": {}
+        },
+        "rigid_body": {
+          "frame": "body_principal_axes",
+          "principal_moments_kg_m2": [
+            50,
+            50,
+            50
+          ],
+          "max_body_torque_nm": [
+            1,
+            1,
+            1
+          ]
+        }
+      }
+    }
+  },
+  "path_constraints": {
+    "sample_steps_s": [
+      1,
+      0.25
+    ],
+    "max_evaluations": 100000,
+    "max_samples_per_segment": 5000,
+    "assets": {
+      "demo-3": {
+        "activity_modes": {
+          "service": "work",
+          "unload": "desaturate"
+        },
+        "transition_mode": "idle",
+        "modes": {
+          "idle": {
+            "power_load_w": 0,
+            "optical_behavior": "stowed"
+          },
+          "work": {
+            "power_load_w": 2,
+            "optical_behavior": "stowed"
+          },
+          "desaturate": {
+            "power_load_w": 12,
+            "optical_behavior": "stowed",
+            "momentum_unloading": true
+          }
+        },
+        "rules": [
+          {
+            "id": "declared_angular_envelope",
+            "model": "angular",
+            "configuration": {
+              "reference": {
+                "kind": "sun"
+              },
+              "minimum_angle_deg": 0,
+              "maximum_angle_deg": 180,
+              "body_axis": [
+                0,
+                0,
+                1
+              ]
+            }
+          }
+        ]
+      }
+    }
+  },
+  "horizon": {
+    "starts_at_s": 820497600,
+    "ends_at_s": 820497700,
+    "time_scale": "utc",
+    "terminals": {
+      "demo-3": {
+        "strategy": "fixed_inertial",
+        "frame": "eci_j2000",
+        "quaternion_wxyz": [
+          1,
+          0,
+          0,
+          0
+        ],
+        "mode": "idle"
+      }
+    }
+  },
+  "resources": {
+    "sample_steps_s": [
+      1,
+      0.25
+    ],
+    "max_intervals_per_asset": 10000,
+    "max_evaluations": 100000,
+    "assets": {
+      "demo-3": [
+        {
+          "id": "battery",
+          "model": "battery",
+          "configuration": {
+            "initial_wh": 10,
+            "capacity_wh": 10,
+            "reserve_wh": 2,
+            "charge_efficiency": 1,
+            "discharge_efficiency": 1,
+            "phase_load_w": {
+              "activity": 0,
+              "brake": 0,
+              "hold": 0,
+              "slew_accelerate": 0,
+              "slew_cruise": 0,
+              "slew_decelerate": 0,
+              "settle": 0,
+              "ramp_to_tracking": 0
+            },
+            "generation": {
+              "kind": "constant",
+              "power_w": 0
+            }
+          }
+        },
+        {
+          "id": "wheels",
+          "model": "reaction_wheels",
+          "configuration": {
+            "frame": "body_principal_axes",
+            "wheel_axes_body": [
+              [
+                1,
+                0,
+                0
+              ],
+              [
+                0,
+                1,
+                0
+              ],
+              [
+                0,
+                0,
+                1
+              ]
+            ],
+            "principal_moments_kg_m2": [
+              50,
+              50,
+              50
+            ],
+            "initial_momentum_nms": [
+              0,
+              0,
+              0
+            ],
+            "momentum_capacity_nms": [
+              1,
+              1,
+              1
+            ],
+            "max_motor_torque_nm": [
+              0.3,
+              0.3,
+              0.3
+            ],
+            "disturbance_torque_body_nm": [
+              0,
+              0,
+              0.02
+            ],
+            "max_unload_torque_body_nm": [
+              0,
+              0,
+              0.06
+            ],
+            "unload_modes": {
+              "desaturate": {
+                "external_torque_body_nm": [
+                  0,
+                  0,
+                  -0.055
+                ]
+              }
+            }
+          }
+        }
+      ]
+    }
+  },
+  "scheduling": {
+    "strategy": "greedy",
+    "max_trials": 1,
+    "maintenance": {
+      "request_ids": [
+        "unload"
+      ],
+      "candidate_step_s": 5,
+      "max_candidates": 16,
+      "max_trials": 16,
+      "max_insertions": 1
+    },
+    "availability": {
+      "time_scale": "utc",
+      "outages": []
+    }
+  }
+}

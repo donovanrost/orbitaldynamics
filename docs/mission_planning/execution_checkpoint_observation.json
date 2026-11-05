@@ -1,0 +1,150 @@
+{
+  "format": "execution_checkpoint_observation.v1",
+  "operations_format": "mission_operations_scenario.v2",
+  "scope": "Offline declared-state acceptance and planning retries; no telemetry truth, live command execution or maturity promotion.",
+  "examples": [
+    {
+      "scenario": "studies/execution_checkpoint_stationary_retry_operations.json",
+      "verification_status": "passed",
+      "run_status": "completed",
+      "execution_summary": {
+        "accepted_completion_count": 2,
+        "accepted_expired_count": 0,
+        "scripted_skip_count": 0,
+        "simulated_completed_value": 10.0,
+        "simulated_completion_count": 2
+      },
+      "independent_status": "passed",
+      "independent_issue_counts": {},
+      "steps": [
+        {
+          "id": "accept_running_service",
+          "kind": "advance",
+          "status": "planning_failed",
+          "adopted": false,
+          "execution_checkpoint_accepted": true,
+          "execution_checkpoint_id": "mission_execution_checkpoint:74f021af5ab0ac851d318d22cc14da77bc83a37c06186bb8d5dbe5aac5bfba23",
+          "execution_epoch_s": 820497675,
+          "accepted_execution_epoch_s": 820497675,
+          "accepted_plan_epoch_s": 820497600,
+          "plan_readiness": "stale_pending_replan"
+        },
+        {
+          "id": "retry_larger_budget",
+          "kind": "retry",
+          "status": "ready_for_review",
+          "adopted": true,
+          "execution_checkpoint_accepted": false,
+          "execution_checkpoint_id": "mission_execution_checkpoint:74f021af5ab0ac851d318d22cc14da77bc83a37c06186bb8d5dbe5aac5bfba23",
+          "execution_epoch_s": 820497675,
+          "accepted_execution_epoch_s": 820497675,
+          "accepted_plan_epoch_s": 820497675,
+          "plan_readiness": "supported_at_declared_boundary"
+        },
+        {
+          "id": "completed",
+          "kind": "advance",
+          "status": "ready_for_review",
+          "adopted": true,
+          "execution_checkpoint_accepted": true,
+          "execution_checkpoint_id": "mission_execution_checkpoint:4c8446ceb780dd0067c878a9fd7088e4b7465f973a5ba0e9cbd832fc00de9c13",
+          "execution_epoch_s": 820497690,
+          "accepted_execution_epoch_s": 820497690,
+          "accepted_plan_epoch_s": 820497690,
+          "plan_readiness": "supported_at_declared_boundary"
+        }
+      ]
+    },
+    {
+      "scenario": "studies/execution_checkpoint_retry_operations.json",
+      "verification_status": "passed",
+      "run_status": "completed",
+      "execution_summary": {
+        "accepted_completion_count": 6,
+        "accepted_expired_count": 0,
+        "scripted_skip_count": 0,
+        "simulated_completed_value": 150.0,
+        "simulated_completion_count": 6
+      },
+      "independent_status": "partial",
+      "independent_issue_counts": {
+        "wheel_dynamics_unsupported": 20
+      },
+      "steps": [
+        {
+          "id": "extend_with_payload_outage",
+          "kind": "advance",
+          "status": "planning_failed",
+          "adopted": false,
+          "execution_checkpoint_accepted": true,
+          "execution_checkpoint_id": "mission_execution_checkpoint:93616f009d2831b4cbb9afd253303a6dd171499861ba7b15144612069c4b7e4e",
+          "execution_epoch_s": 820497800,
+          "accepted_execution_epoch_s": 820497800,
+          "accepted_plan_epoch_s": 820497600,
+          "plan_readiness": "stale_pending_replan"
+        },
+        {
+          "id": "retry_same_execution_checkpoint",
+          "kind": "retry",
+          "status": "ready_for_review",
+          "adopted": true,
+          "execution_checkpoint_accepted": false,
+          "execution_checkpoint_id": "mission_execution_checkpoint:93616f009d2831b4cbb9afd253303a6dd171499861ba7b15144612069c4b7e4e",
+          "execution_epoch_s": 820497800,
+          "accepted_execution_epoch_s": 820497800,
+          "accepted_plan_epoch_s": 820497800,
+          "plan_readiness": "supported_at_declared_boundary"
+        },
+        {
+          "id": "restore_payload",
+          "kind": "revise",
+          "status": "ready_for_review",
+          "adopted": true,
+          "execution_checkpoint_accepted": false,
+          "execution_checkpoint_id": "mission_execution_checkpoint:93616f009d2831b4cbb9afd253303a6dd171499861ba7b15144612069c4b7e4e",
+          "execution_epoch_s": 820497800,
+          "accepted_execution_epoch_s": 820497800,
+          "accepted_plan_epoch_s": 820497800,
+          "plan_readiness": "supported_at_declared_boundary"
+        },
+        {
+          "id": "receive_late_commands",
+          "kind": "advance",
+          "status": "ready_for_review",
+          "adopted": true,
+          "execution_checkpoint_accepted": true,
+          "execution_checkpoint_id": "mission_execution_checkpoint:668ebbe4114e6ebbcbad2702beb170375ad802fe70a4ea29b5a946a5ba062960",
+          "execution_epoch_s": 820497950,
+          "accepted_execution_epoch_s": 820497950,
+          "accepted_plan_epoch_s": 820497950,
+          "plan_readiness": "supported_at_declared_boundary"
+        },
+        {
+          "id": "complete_late_services",
+          "kind": "advance",
+          "status": "ready_for_review",
+          "adopted": true,
+          "execution_checkpoint_accepted": true,
+          "execution_checkpoint_id": "mission_execution_checkpoint:e97140b506f6801982ce29e84f26fc67d536948e0a136559f8d5869a64742d16",
+          "execution_epoch_s": 820498150,
+          "accepted_execution_epoch_s": 820498150,
+          "accepted_plan_epoch_s": 820498150,
+          "plan_readiness": "supported_at_declared_boundary"
+        }
+      ]
+    }
+  ],
+  "validation": {
+    "full_fast_suite": {
+      "passed": 5460,
+      "excluded": 1148,
+      "elapsed_s": 263.9,
+      "note": "Before final operations-format marker and independent packet-schema refinements."
+    },
+    "final_focused_tests": {
+      "passed": 20,
+      "elapsed_s": 11.6
+    },
+    "remaining_gap": "Moving-wheel independent physics is explicitly partial."
+  }
+}

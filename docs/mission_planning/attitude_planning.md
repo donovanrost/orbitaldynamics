@@ -215,3 +215,6 @@ time, checks terminal acquisition and hold through the end, and assesses idle
 assets. It requires an explicit fixed inertial terminal attitude and payload
 mode; missing declarations remain unknown. Existing studies retain their prior
 initial-through-last-activity scope.
+
+The optional [rigid-body torque model](rigid_body_torque.md) supplements kinematic
+limits with declared inertia and net body torque capacity.

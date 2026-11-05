@@ -154,19 +154,52 @@ defmodule OrbitalDynamics.MissionAnalysis.Path.Runner do
       plan["phases"]
       |> Enum.flat_map(&[origin + &1["starts_after_s"], origin + &1["ends_after_s"]])
 
-    at = fn t, cache -> {:ok, Motion.at(plan, t - origin).quaternion, cache} end
+    at = fn t, cache -> {:ok, Motion.at_epoch(plan, t).quaternion, cache} end
 
-    evaluate_path(
-      asset,
-      origin,
-      plan["destination_epoch_s"],
-      boundaries,
-      scope,
-      mode,
-      at,
-      state_at,
-      cache
-    )
+    if Enum.any?(plan["phases"], &Map.has_key?(&1, "mode_name")) do
+      Enum.reduce_while(
+        Enum.filter(plan["phases"], &(&1["ends_after_s"] > &1["starts_after_s"])),
+        {:ok, [], cache},
+        fn p, {:ok, rows, cache} ->
+          a = origin + p["starts_after_s"]
+          b = origin + p["ends_after_s"]
+
+          case evaluate_path(
+                 asset,
+                 a,
+                 b,
+                 [a, b],
+                 scope,
+                 Map.get(p, "mode_name", mode),
+                 at,
+                 state_at,
+                 cache
+               ) do
+            {:ok, e, cache} -> {:cont, {:ok, rows ++ [e], cache}}
+            other -> {:halt, other}
+          end
+        end
+      )
+      |> case do
+        {:ok, rows, cache} ->
+          {:ok, %{"status" => "supported", "saved_motion_sections" => rows}, cache}
+
+        other ->
+          other
+      end
+    else
+      evaluate_path(
+        asset,
+        origin,
+        plan["destination_epoch_s"],
+        boundaries,
+        scope,
+        mode,
+        at,
+        state_at,
+        cache
+      )
+    end
   end
 
   defp evaluate_path(
@@ -402,6 +435,8 @@ defmodule OrbitalDynamics.MissionAnalysis.Path.Runner do
           do: throw({:path_evaluation_failed, :path_evaluation_budget_exhausted, cache})
 
         captured = runtime.sessions[{asset.id, rule.id}]
+
+        OrbitalDynamics.MissionAnalysis.Scheduling.Work.charge!("path")
 
         case captured.module.evaluate(state, point, mode, captured.session) do
           {:ok, %Result{} = r} ->

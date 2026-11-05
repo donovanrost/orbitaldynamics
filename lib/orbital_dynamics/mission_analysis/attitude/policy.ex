@@ -58,7 +58,7 @@ defmodule OrbitalDynamics.MissionAnalysis.Attitude.Policy do
       Map.new(assets, fn {id, a} ->
         Input.id!(id)
 
-        unless Enum.sort(Map.keys(a)) ==
+        unless Enum.sort(Map.keys(a) -- [:rigid_body, :continuation_request_id, :saved_motion]) ==
                  Enum.sort(
                    ~w(max_rate_deg_s max_accel_deg_s2 settling_s initial pointing_configurations)a
                  ),
@@ -107,14 +107,41 @@ defmodule OrbitalDynamics.MissionAnalysis.Attitude.Policy do
               raise ArgumentError, "initial attitude must be explicit or :unknown"
           end
 
-        {id,
-         %{
-           max_rate_deg_s: rate,
-           max_accel_deg_s2: Input.positive!(a.max_accel_deg_s2, "max_accel_deg_s2"),
-           settling_s: Input.number!(a.settling_s, "settling_s", 0, 1.0e9),
-           initial: initial,
-           pointing_configurations: configs
-         }}
+        normalized = %{
+          max_rate_deg_s: rate,
+          max_accel_deg_s2: Input.positive!(a.max_accel_deg_s2, "max_accel_deg_s2"),
+          settling_s: Input.number!(a.settling_s, "settling_s", 0, 1.0e9),
+          initial: initial,
+          pointing_configurations: configs
+        }
+
+        normalized =
+          if Map.has_key?(a, :rigid_body),
+            do:
+              Map.put(
+                normalized,
+                :rigid_body,
+                OrbitalDynamics.MissionAnalysis.Attitude.RigidBody.new!(a.rigid_body)
+              ),
+            else: normalized
+
+        normalized =
+          if a[:continuation_request_id],
+            do:
+              Map.put(normalized, :continuation_request_id, Input.id!(a.continuation_request_id)),
+            else: normalized
+
+        normalized =
+          if a[:saved_motion],
+            do:
+              Map.put(
+                normalized,
+                :saved_motion,
+                OrbitalDynamics.MissionAnalysis.Attitude.SavedMotion.validate!(a.saved_motion)
+              ),
+            else: normalized
+
+        {id, normalized}
       end)
 
     %__MODULE__{
@@ -188,15 +215,31 @@ defmodule OrbitalDynamics.MissionAnalysis.Attitude.Policy do
                 }
             end
 
-          {id,
-           %{
-             "max_rate_deg_s" => a.max_rate_deg_s,
-             "max_accel_deg_s2" => a.max_accel_deg_s2,
-             "settling_s" => a.settling_s,
-             "initial" => initial,
-             "pointing_configurations" =>
-               Map.new(a.pointing_configurations, fn {m, c} -> {Atom.to_string(m), c} end)
-           }}
+          described = %{
+            "max_rate_deg_s" => a.max_rate_deg_s,
+            "max_accel_deg_s2" => a.max_accel_deg_s2,
+            "settling_s" => a.settling_s,
+            "initial" => initial,
+            "pointing_configurations" =>
+              Map.new(a.pointing_configurations, fn {m, c} -> {Atom.to_string(m), c} end)
+          }
+
+          described =
+            if a[:rigid_body],
+              do:
+                Map.put(
+                  described,
+                  "rigid_body",
+                  OrbitalDynamics.MissionAnalysis.Attitude.RigidBody.describe(a.rigid_body)
+                ),
+              else: described
+
+          described =
+            if a[:continuation_request_id],
+              do: Map.put(described, "continuation_request_id", a.continuation_request_id),
+              else: described
+
+          {id, described}
         end),
       "limits" => [
         "declared initial state and limits, not telemetry or achieved attitude",
@@ -208,6 +251,38 @@ defmodule OrbitalDynamics.MissionAnalysis.Attitude.Policy do
         "intermediate transition paths are not screened for Sun/keep-out, ground illumination, occultation or communications constraints"
       ]
     }
+    |> then(fn d ->
+      if Enum.any?(p.assets, fn {_, a} -> Map.has_key?(a, :rigid_body) end),
+        do:
+          Map.update!(d, "limits", fn xs ->
+            Enum.reject(
+              xs,
+              &String.starts_with?(&1, "inertial angular velocity convention; unlimited jerk")
+            ) ++
+              [
+                "rigid-body torque checked only for configured assets; no wheel momentum, actuator allocation, external disturbances, flexible-body or jerk model"
+              ]
+          end),
+        else: d
+    end)
+    |> then(fn d ->
+      if p.resources &&
+           Enum.any?(p.resources.assets, fn {_, models} ->
+             Enum.any?(
+               models,
+               &(&1.module == OrbitalDynamics.MissionAnalysis.Resource.ReactionWheels)
+             )
+           end) do
+        Map.update!(d, "limits", fn xs ->
+          Enum.reject(xs, &String.starts_with?(&1, "rigid-body torque checked only")) ++
+            [
+              "configured three-wheel arrays additionally check rotor momentum, motor torque and declared disturbance/unloading torque at resource samples; no redundant allocation, flexible body, jerk or real unloading-mechanism validation"
+            ]
+        end)
+      else
+        d
+      end
+    end)
     |> then(fn d ->
       if p.path_constraints,
         do:

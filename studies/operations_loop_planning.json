@@ -1,0 +1,526 @@
+{
+  "study_id": "operations_loop_reference",
+  "mission_manifest": "operations_loop_reference.json",
+  "resolution_level": {
+    "sample_step_s": 2,
+    "max_step_s": 1
+  },
+  "refinement": {
+    "tracking_lookback_s": 1,
+    "time_tolerance_s": 0.01,
+    "max_extra_evaluations": 512
+  },
+  "attitude": {
+    "profile_step_s": 2,
+    "derivative_step_s": 0.25,
+    "search_step_s": 20,
+    "max_candidate_starts": 8,
+    "max_evaluations": 20000,
+    "assets": {
+      "demo-1": {
+        "max_rate_deg_s": 2,
+        "max_accel_deg_s2": 0.2,
+        "settling_s": 2,
+        "initial": {
+          "epoch_s": 820497600,
+          "time_scale": "utc",
+          "frame": "eci_j2000",
+          "quaternion_wxyz": [
+            1,
+            0,
+            0,
+            0
+          ],
+          "angular_velocity_inertial_deg_s": [
+            0,
+            0,
+            0
+          ]
+        },
+        "pointing_configurations": {
+          "illumination": {
+            "body_to_payload_quaternion": [
+              1,
+              0,
+              0,
+              0
+            ],
+            "roll_reference_inertial": [
+              0,
+              0,
+              1
+            ]
+          }
+        }
+      },
+      "demo-2": {
+        "max_rate_deg_s": 2,
+        "max_accel_deg_s2": 0.2,
+        "settling_s": 2,
+        "initial": {
+          "epoch_s": 820497600,
+          "time_scale": "utc",
+          "frame": "eci_j2000",
+          "quaternion_wxyz": [
+            1,
+            0,
+            0,
+            0
+          ],
+          "angular_velocity_inertial_deg_s": [
+            0,
+            0,
+            0
+          ]
+        },
+        "pointing_configurations": {
+          "illumination": {
+            "body_to_payload_quaternion": [
+              1,
+              0,
+              0,
+              0
+            ],
+            "roll_reference_inertial": [
+              0,
+              0,
+              1
+            ]
+          }
+        }
+      },
+      "demo-3": {
+        "max_rate_deg_s": 2,
+        "max_accel_deg_s2": 0.2,
+        "settling_s": 2,
+        "initial": {
+          "epoch_s": 820497600,
+          "time_scale": "utc",
+          "frame": "eci_j2000",
+          "quaternion_wxyz": [
+            1,
+            0,
+            0,
+            0
+          ],
+          "angular_velocity_inertial_deg_s": [
+            0,
+            0,
+            0
+          ]
+        },
+        "pointing_configurations": {
+          "illumination": {
+            "body_to_payload_quaternion": [
+              1,
+              0,
+              0,
+              0
+            ],
+            "roll_reference_inertial": [
+              0,
+              0,
+              1
+            ]
+          }
+        }
+      }
+    }
+  },
+  "path_constraints": {
+    "sample_steps_s": [
+      5,
+      1
+    ],
+    "max_evaluations": 100000,
+    "max_samples_per_segment": 5000,
+    "assets": {
+      "demo-1": {
+        "activity_modes": {
+          "early-1": "reflecting",
+          "early-2": "reflecting",
+          "early-3": "reflecting",
+          "late-1": "reflecting",
+          "late-2": "reflecting",
+          "late-3": "reflecting"
+        },
+        "transition_mode": "maneuver",
+        "modes": {
+          "reflecting": {
+            "optical_behavior": "reflecting",
+            "power_load_w": 360
+          },
+          "maneuver": {
+            "optical_behavior": "reflecting",
+            "power_load_w": 0
+          },
+          "standby": {
+            "optical_behavior": "reflecting",
+            "power_load_w": 0
+          }
+        },
+        "rules": [
+          {
+            "id": "sun_axis",
+            "model": "angular",
+            "configuration": {
+              "body_axis": [
+                0,
+                0,
+                1
+              ],
+              "reference": {
+                "kind": "sun"
+              },
+              "minimum_angle_deg": 5,
+              "maximum_angle_deg": 180
+            }
+          },
+          {
+            "id": "limb_axis",
+            "model": "angular",
+            "configuration": {
+              "body_axis": [
+                1,
+                0,
+                0
+              ],
+              "reference": {
+                "kind": "body_limb"
+              },
+              "minimum_angle_deg": 0,
+              "maximum_angle_deg": 180
+            }
+          },
+          {
+            "id": "reflected_beam",
+            "model": "reflected_beam",
+            "configuration": {
+              "mirror_normal_body": [
+                0,
+                0,
+                1
+              ],
+              "back_face_behavior": "two_sided_reflecting_by_assumption",
+              "solar_angular_radius_deg": 0.265,
+              "beam_padding_deg": 0.02,
+              "exclusion_regions": [
+                {
+                  "id": "synthetic_polar_exclusion",
+                  "latitude_deg": 80,
+                  "longitude_deg": 0,
+                  "radius_km": 25
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "demo-2": {
+        "activity_modes": {
+          "early-1": "reflecting",
+          "early-2": "reflecting",
+          "early-3": "reflecting",
+          "late-1": "reflecting",
+          "late-2": "reflecting",
+          "late-3": "reflecting"
+        },
+        "transition_mode": "maneuver",
+        "modes": {
+          "reflecting": {
+            "optical_behavior": "reflecting",
+            "power_load_w": 360
+          },
+          "maneuver": {
+            "optical_behavior": "reflecting",
+            "power_load_w": 0
+          },
+          "standby": {
+            "optical_behavior": "reflecting",
+            "power_load_w": 0
+          }
+        },
+        "rules": [
+          {
+            "id": "sun_axis",
+            "model": "angular",
+            "configuration": {
+              "body_axis": [
+                0,
+                0,
+                1
+              ],
+              "reference": {
+                "kind": "sun"
+              },
+              "minimum_angle_deg": 5,
+              "maximum_angle_deg": 180
+            }
+          },
+          {
+            "id": "limb_axis",
+            "model": "angular",
+            "configuration": {
+              "body_axis": [
+                1,
+                0,
+                0
+              ],
+              "reference": {
+                "kind": "body_limb"
+              },
+              "minimum_angle_deg": 0,
+              "maximum_angle_deg": 180
+            }
+          },
+          {
+            "id": "reflected_beam",
+            "model": "reflected_beam",
+            "configuration": {
+              "mirror_normal_body": [
+                0,
+                0,
+                1
+              ],
+              "back_face_behavior": "two_sided_reflecting_by_assumption",
+              "solar_angular_radius_deg": 0.265,
+              "beam_padding_deg": 0.02,
+              "exclusion_regions": [
+                {
+                  "id": "synthetic_polar_exclusion",
+                  "latitude_deg": 80,
+                  "longitude_deg": 0,
+                  "radius_km": 25
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "demo-3": {
+        "activity_modes": {
+          "early-1": "reflecting",
+          "early-2": "reflecting",
+          "early-3": "reflecting",
+          "late-1": "reflecting",
+          "late-2": "reflecting",
+          "late-3": "reflecting"
+        },
+        "transition_mode": "maneuver",
+        "modes": {
+          "reflecting": {
+            "optical_behavior": "reflecting",
+            "power_load_w": 360
+          },
+          "maneuver": {
+            "optical_behavior": "reflecting",
+            "power_load_w": 0
+          },
+          "standby": {
+            "optical_behavior": "reflecting",
+            "power_load_w": 0
+          }
+        },
+        "rules": [
+          {
+            "id": "sun_axis",
+            "model": "angular",
+            "configuration": {
+              "body_axis": [
+                0,
+                0,
+                1
+              ],
+              "reference": {
+                "kind": "sun"
+              },
+              "minimum_angle_deg": 5,
+              "maximum_angle_deg": 180
+            }
+          },
+          {
+            "id": "limb_axis",
+            "model": "angular",
+            "configuration": {
+              "body_axis": [
+                1,
+                0,
+                0
+              ],
+              "reference": {
+                "kind": "body_limb"
+              },
+              "minimum_angle_deg": 0,
+              "maximum_angle_deg": 180
+            }
+          },
+          {
+            "id": "reflected_beam",
+            "model": "reflected_beam",
+            "configuration": {
+              "mirror_normal_body": [
+                0,
+                0,
+                1
+              ],
+              "back_face_behavior": "two_sided_reflecting_by_assumption",
+              "solar_angular_radius_deg": 0.265,
+              "beam_padding_deg": 0.02,
+              "exclusion_regions": [
+                {
+                  "id": "synthetic_polar_exclusion",
+                  "latitude_deg": 80,
+                  "longitude_deg": 0,
+                  "radius_km": 25
+                }
+              ]
+            }
+          }
+        ]
+      }
+    }
+  },
+  "horizon": {
+    "starts_at_s": 820497600,
+    "ends_at_s": 820498200,
+    "time_scale": "utc",
+    "terminals": {
+      "demo-1": {
+        "strategy": "fixed_inertial",
+        "frame": "eci_j2000",
+        "quaternion_wxyz": [
+          1,
+          0,
+          0,
+          0
+        ],
+        "mode": "standby"
+      },
+      "demo-2": {
+        "strategy": "fixed_inertial",
+        "frame": "eci_j2000",
+        "quaternion_wxyz": [
+          1,
+          0,
+          0,
+          0
+        ],
+        "mode": "standby"
+      },
+      "demo-3": {
+        "strategy": "fixed_inertial",
+        "frame": "eci_j2000",
+        "quaternion_wxyz": [
+          1,
+          0,
+          0,
+          0
+        ],
+        "mode": "standby"
+      }
+    }
+  },
+  "resources": {
+    "sample_steps_s": [
+      5,
+      1
+    ],
+    "max_intervals_per_asset": 5000,
+    "max_evaluations": 100000,
+    "assets": {
+      "demo-1": [
+        {
+          "id": "battery",
+          "model": "battery",
+          "configuration": {
+            "initial_wh": 10,
+            "capacity_wh": 10,
+            "reserve_wh": 2,
+            "charge_efficiency": 1,
+            "discharge_efficiency": 1,
+            "phase_load_w": {
+              "activity": 0,
+              "brake": 0,
+              "hold": 0,
+              "slew_accelerate": 0,
+              "slew_cruise": 0,
+              "slew_decelerate": 0,
+              "settle": 0,
+              "ramp_to_tracking": 0
+            },
+            "generation": {
+              "kind": "constant",
+              "power_w": 0
+            }
+          }
+        }
+      ],
+      "demo-2": [
+        {
+          "id": "battery",
+          "model": "battery",
+          "configuration": {
+            "initial_wh": 10,
+            "capacity_wh": 10,
+            "reserve_wh": 2,
+            "charge_efficiency": 1,
+            "discharge_efficiency": 1,
+            "phase_load_w": {
+              "activity": 0,
+              "brake": 0,
+              "hold": 0,
+              "slew_accelerate": 0,
+              "slew_cruise": 0,
+              "slew_decelerate": 0,
+              "settle": 0,
+              "ramp_to_tracking": 0
+            },
+            "generation": {
+              "kind": "constant",
+              "power_w": 0
+            }
+          }
+        }
+      ],
+      "demo-3": [
+        {
+          "id": "battery",
+          "model": "battery",
+          "configuration": {
+            "initial_wh": 10,
+            "capacity_wh": 10,
+            "reserve_wh": 2,
+            "charge_efficiency": 1,
+            "discharge_efficiency": 1,
+            "phase_load_w": {
+              "activity": 0,
+              "brake": 0,
+              "hold": 0,
+              "slew_accelerate": 0,
+              "slew_cruise": 0,
+              "slew_decelerate": 0,
+              "settle": 0,
+              "ramp_to_tracking": 0
+            },
+            "generation": {
+              "kind": "constant",
+              "power_w": 0
+            }
+          }
+        }
+      ]
+    }
+  },
+  "opportunity_search": {
+    "max_check_step_s": 5,
+    "time_tolerance_s": 0.01,
+    "max_iterations": 64,
+    "max_evaluations": 50000,
+    "entry_margin_s": 0.5,
+    "exit_margin_s": 0.5
+  },
+  "scheduling": {
+    "strategy": "greedy",
+    "max_trials": 1
+  }
+}

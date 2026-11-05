@@ -64,6 +64,10 @@ in `.codex/status/autonomous_product_loop.md`.
 
 ## Current Decision Queue
 
+For the user-authorized configurable reference-mission development lane, follow
+[mission_planning/development_queue.md](mission_planning/development_queue.md)
+and its progress records. The broad platform queue below remains separate.
+
 ### 1. Typed Operational Activity And Timeline Semantics
 
 Why this is first:

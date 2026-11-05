@@ -1,0 +1,46 @@
+{
+  "scenario_id": "reflect_like_work_cap",
+  "mission_manifest": "reflect_like_assessment_reference.json",
+  "planning_study": "reflect_like_assessment_planning.json",
+  "steps": [
+    {
+      "id": "extend_with_payload_outage",
+      "kind": "advance",
+      "expected_status": "planning_failed",
+      "as_of_s": 820497800,
+      "not_executed_request_ids": [],
+      "energy_losses_wh": {},
+      "protect_request_ids": [],
+      "scheduling": {
+        "strategy": "greedy",
+        "max_trials": 1,
+        "availability": {
+          "time_scale": "utc",
+          "outages": [
+            {
+              "id": "synthetic_payload_fault",
+              "asset_id": "demo-1",
+              "starts_at_s": 820497980,
+              "ends_at_s": 820498130,
+              "scope": {
+                "kind": "activity_types",
+                "ids": [
+                  "illuminate"
+                ]
+              }
+            }
+          ]
+        },
+        "work_budget": {
+          "max_evaluations": 1000
+        }
+      },
+      "horizon_extension": {
+        "provider": "reference_j2",
+        "ends_at_s": 820498200,
+        "coverage_ends_at_s": 820498240,
+        "add_requests": []
+      }
+    }
+  ]
+}

@@ -1,0 +1,46 @@
+{
+  "scenario_id": "command_delivery",
+  "mission_manifest": "automatic_wheel_maintenance.json",
+  "planning_study": "command_delivery_planning.json",
+  "steps": [
+    {
+      "id": "receive_command",
+      "kind": "advance",
+      "expected_status": "ready_for_review",
+      "as_of_s": 820497660,
+      "not_executed_request_ids": [],
+      "energy_losses_wh": {},
+      "protect_request_ids": [],
+      "scheduling": {
+        "strategy": "greedy",
+        "max_trials": 1
+      }
+    },
+    {
+      "id": "continue_service",
+      "kind": "advance",
+      "expected_status": "ready_for_review",
+      "as_of_s": 820497675,
+      "not_executed_request_ids": [],
+      "energy_losses_wh": {},
+      "protect_request_ids": [],
+      "scheduling": {
+        "strategy": "greedy",
+        "max_trials": 1
+      }
+    },
+    {
+      "id": "complete_service",
+      "kind": "advance",
+      "expected_status": "ready_for_review",
+      "as_of_s": 820497690,
+      "not_executed_request_ids": [],
+      "energy_losses_wh": {},
+      "protect_request_ids": [],
+      "scheduling": {
+        "strategy": "greedy",
+        "max_trials": 1
+      }
+    }
+  ]
+}

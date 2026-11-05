@@ -1,0 +1,14 @@
+{
+  "protect_request_ids": [
+    "early-1"
+  ],
+  "add_requests": [],
+  "unavailable_asset_ids": [
+    "demo-1"
+  ],
+  "scheduling": {
+    "strategy": "bounded_replacement",
+    "max_trials": 4
+  },
+  "revision_id": "committed_service_outage"
+}

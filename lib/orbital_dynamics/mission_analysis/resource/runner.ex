@@ -145,7 +145,12 @@ defmodule OrbitalDynamics.MissionAnalysis.Resource.Runner do
                                                                                        {:ok,
                                                                                         segments,
                                                                                         source} ->
-        case Motion.transition(source, hd(a["attitude_profile"]), policy.assets[asset.id]) do
+        case Motion.acquire(
+               source,
+               hd(a["attitude_profile"]),
+               policy.assets[asset.id],
+               a["request_id"]
+             ) do
           {:ok, plan} ->
             request = runtime.requests[a["request_id"]]
             config = policy.assets[asset.id].pointing_configurations[request.model]
@@ -174,7 +179,20 @@ defmodule OrbitalDynamics.MissionAnalysis.Resource.Runner do
                   asset.id,
                   get_in(policy.path_constraints.assets, [asset.id, :activity_modes, request.id])
                 ),
-              at: at
+              at: at,
+              activity_type: request.activity_type,
+              kinematics_at: fn t, cache ->
+                Profile.sample(
+                  asset,
+                  request,
+                  runtime.sessions[{asset.id, request.id}],
+                  t,
+                  config,
+                  policy,
+                  cache.resource_state_at,
+                  cache
+                )
+              end
             }
 
             {:cont,
@@ -183,6 +201,7 @@ defmodule OrbitalDynamics.MissionAnalysis.Resource.Runner do
                 motion_segments(
                   asset,
                   plan,
+                  policy,
                   "transition",
                   mode(
                     policy,
@@ -205,6 +224,7 @@ defmodule OrbitalDynamics.MissionAnalysis.Resource.Runner do
                motion_segments(
                  asset,
                  plan,
+                 policy,
                  "terminal",
                  mode(policy, asset.id, policy.horizon.terminals[asset.id].mode)
                )}
@@ -225,9 +245,9 @@ defmodule OrbitalDynamics.MissionAnalysis.Resource.Runner do
     end
   end
 
-  defp motion_segments(_asset, plan, scope, mode) do
+  defp motion_segments(asset, plan, policy, scope, default_mode) do
     origin = plan["source_epoch_s"]
-    at = fn t, cache -> {:ok, Motion.at(plan, t - origin).quaternion, cache} end
+    at = fn t, cache -> {:ok, Motion.at_epoch(plan, t).quaternion, cache} end
 
     segments =
       for p <- plan["phases"], p["ends_after_s"] > p["starts_after_s"] do
@@ -236,7 +256,21 @@ defmodule OrbitalDynamics.MissionAnalysis.Resource.Runner do
           stop: max(origin, min(plan["destination_epoch_s"], origin + p["ends_after_s"])),
           phase: p["kind"],
           scope: scope,
-          mode: mode,
+          mode:
+            if(p["mode_name"], do: mode(policy, asset.id, p["mode_name"]), else: default_mode),
+          activity_type: nil,
+          kinematics_at: fn t, cache ->
+            k = Motion.kinematics_at_phase(p, origin, t)
+
+            {:ok,
+             %{
+               "epoch_s" => t,
+               "quaternion_wxyz" => Tuple.to_list(k.quaternion),
+               "angular_velocity_inertial_deg_s" => Tuple.to_list(k.angular_velocity_deg_s),
+               "angular_acceleration_inertial_deg_s2" =>
+                 Tuple.to_list(k.angular_acceleration_deg_s2)
+             }, cache}
+          end,
           at: at
         }
       end
@@ -452,7 +486,7 @@ defmodule OrbitalDynamics.MissionAnalysis.Resource.Runner do
              {halt_unknown(acc, acc.last, stop, "resource_timeline_gap_or_overlap"), cache}}
 
           true ->
-            case input(asset, segment, midpoint, state_at, cache) do
+            case model_input(model, asset, segment, a, b, midpoint, state_at, cache) do
               {:ok, input, cache} ->
                 input = Map.merge(input, %{interval_start_s: a, interval_end_s: b})
                 {next, result, cache} = call(model, acc.state, input, b - a, cache)
@@ -485,6 +519,28 @@ defmodule OrbitalDynamics.MissionAnalysis.Resource.Runner do
                   {:halt, {halt_unknown(acc, a, stop, "resource_model_unknown"), cache}}
                 else
                   sample = Map.merge(evidence, %{"epoch_s" => b, "state" => next})
+
+                  sample =
+                    if Map.has_key?(input, :kinematics_start),
+                      do:
+                        Map.put(sample, "kinematics", %{
+                          "start" =>
+                            Map.take(
+                              input.kinematics_start,
+                              ~w(epoch_s quaternion_wxyz angular_velocity_inertial_deg_s angular_acceleration_inertial_deg_s2)
+                            ),
+                          "mid" =>
+                            Map.take(
+                              input.kinematics_mid,
+                              ~w(epoch_s quaternion_wxyz angular_velocity_inertial_deg_s angular_acceleration_inertial_deg_s2)
+                            ),
+                          "end" =>
+                            Map.take(
+                              input.kinematics_end,
+                              ~w(epoch_s quaternion_wxyz angular_velocity_inertial_deg_s angular_acceleration_inertial_deg_s2)
+                            )
+                        }),
+                      else: sample
 
                   {:cont,
                    {%{
@@ -529,6 +585,26 @@ defmodule OrbitalDynamics.MissionAnalysis.Resource.Runner do
      }, cache}
   end
 
+  defp model_input(model, asset, segment, a, b, t, state_at, cache) do
+    with {:ok, input, cache} <- input(asset, segment, t, state_at, cache) do
+      if model.module == OrbitalDynamics.MissionAnalysis.Resource.ReactionWheels do
+        with {:ok, first, cache} <- segment.kinematics_at.(a, cache),
+             {:ok, mid, cache} <- segment.kinematics_at.(t, cache),
+             {:ok, last, cache} <- segment.kinematics_at.(b, cache) do
+          {:ok,
+           Map.merge(input, %{
+             kinematics_start: first,
+             kinematics_mid: mid,
+             kinematics_end: last,
+             activity_type: segment.activity_type
+           }), cache}
+        end
+      else
+        {:ok, input, cache}
+      end
+    end
+  end
+
   defp input(asset, segment, t, state_at, cache) do
     if segment.mode == nil do
       {:unknown, :resource_payload_mode_unknown, cache}
@@ -562,6 +638,8 @@ defmodule OrbitalDynamics.MissionAnalysis.Resource.Runner do
       do: throw({:resource_evaluation_failed, :resource_evaluation_budget_exhausted, cache})
 
     cache = update_in(cache.resource.evaluations, &(&1 + 1))
+
+    OrbitalDynamics.MissionAnalysis.Scheduling.Work.charge!("resource")
 
     case model.module.step(state, input, dt, model.session) do
       {:ok, next, %Result{} = result} ->

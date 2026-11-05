@@ -1,0 +1,856 @@
+{
+  "coherent_cross_cycle_mutation": {
+    "case": "phantom_token_charge_on_skipped_asset",
+    "chain_result": {
+      "format": "independent_operations_validation.v1",
+      "independent_execution_summary": {
+        "accepted_completion_count": 4,
+        "accepted_expired_count": 2,
+        "scripted_skip_count": 1,
+        "simulated_completed_value": 102.0,
+        "simulated_completion_count": 4
+      },
+      "issues": [
+        {
+          "code": "execution_static_balance",
+          "location": "step-5/demo-3",
+          "message": "completed costs were charged twice, refunded or charged for skipped services",
+          "severity": "error"
+        }
+      ],
+      "scope": "accepted artifact chain and scripted constant-power accounting; no physical trajectory/path or execution-truth validation",
+      "snapshots": [
+        {
+          "expected_battery": {
+            "demo-1": {
+              "battery": {
+                "curtailed_wh": 0.0,
+                "energy_wh": 8.0,
+                "minimum_energy_wh": 8.0,
+                "unserved_wh": 0.0
+              }
+            },
+            "demo-2": {
+              "battery": {
+                "curtailed_wh": 0.0,
+                "energy_wh": 6.0,
+                "minimum_energy_wh": 6.0,
+                "unserved_wh": 0.0
+              }
+            },
+            "demo-3": {
+              "battery": {
+                "curtailed_wh": 0.0,
+                "energy_wh": 6.0,
+                "minimum_energy_wh": 6.0,
+                "unserved_wh": 0.0
+              }
+            }
+          },
+          "format": "independent_plan_validation.v1",
+          "issues": [],
+          "scope": [
+            "JSON content identity, reference input bindings, activity windows/durations/overlaps, commitments, lifecycle exclusion and static balances",
+            "analytic ideal constant-power battery accounting where explicitly supported",
+            "no orbital, pointing, path feasibility, opportunity discovery or optimality validation"
+          ],
+          "source": "baseline_snapshot.json",
+          "status": "passed"
+        },
+        {
+          "expected_battery": {
+            "demo-1": {
+              "battery": {
+                "curtailed_wh": 0.0,
+                "energy_wh": 8.0,
+                "minimum_energy_wh": 8.0,
+                "unserved_wh": 0.0
+              }
+            },
+            "demo-2": {
+              "battery": {
+                "curtailed_wh": 0.0,
+                "energy_wh": 6.0,
+                "minimum_energy_wh": 6.0,
+                "unserved_wh": 0.0
+              }
+            },
+            "demo-3": {
+              "battery": {
+                "curtailed_wh": 0.0,
+                "energy_wh": 6.0,
+                "minimum_energy_wh": 6.0,
+                "unserved_wh": 0.0
+              }
+            }
+          },
+          "format": "independent_plan_validation.v1",
+          "issues": [],
+          "scope": [
+            "JSON content identity, reference input bindings, activity windows/durations/overlaps, commitments, lifecycle exclusion and static balances",
+            "analytic ideal constant-power battery accounting where explicitly supported",
+            "no orbital, pointing, path feasibility, opportunity discovery or optimality validation"
+          ],
+          "source": "step-01-revised_snapshot.json",
+          "status": "passed"
+        },
+        {
+          "expected_battery": {
+            "demo-1": {
+              "battery": {
+                "curtailed_wh": 0.0,
+                "energy_wh": 8.0,
+                "minimum_energy_wh": 8.0,
+                "unserved_wh": 0.0
+              }
+            },
+            "demo-2": {
+              "battery": {
+                "curtailed_wh": 0.0,
+                "energy_wh": 8.0,
+                "minimum_energy_wh": 8.0,
+                "unserved_wh": 0.0
+              }
+            },
+            "demo-3": {
+              "battery": {
+                "curtailed_wh": 0.0,
+                "energy_wh": 10,
+                "minimum_energy_wh": 10,
+                "unserved_wh": 0.0
+              }
+            }
+          },
+          "format": "independent_plan_validation.v1",
+          "issues": [],
+          "scope": [
+            "JSON content identity, reference input bindings, activity windows/durations/overlaps, commitments, lifecycle exclusion and static balances",
+            "analytic ideal constant-power battery accounting where explicitly supported",
+            "no orbital, pointing, path feasibility, opportunity discovery or optimality validation"
+          ],
+          "source": "step-02-execution_snapshot.json",
+          "status": "passed"
+        },
+        {
+          "expected_battery": {
+            "demo-1": {
+              "battery": {
+                "curtailed_wh": 0.0,
+                "energy_wh": 6.000000000000007,
+                "minimum_energy_wh": 6.000000000000007,
+                "unserved_wh": 0.0
+              }
+            },
+            "demo-2": {
+              "battery": {
+                "curtailed_wh": 0.0,
+                "energy_wh": 6.000000000000007,
+                "minimum_energy_wh": 6.000000000000007,
+                "unserved_wh": 0.0
+              }
+            },
+            "demo-3": {
+              "battery": {
+                "curtailed_wh": 0.0,
+                "energy_wh": 2.5,
+                "minimum_energy_wh": 2.5,
+                "unserved_wh": 0.0
+              }
+            }
+          },
+          "format": "independent_plan_validation.v1",
+          "issues": [],
+          "scope": [
+            "JSON content identity, reference input bindings, activity windows/durations/overlaps, commitments, lifecycle exclusion and static balances",
+            "analytic ideal constant-power battery accounting where explicitly supported",
+            "no orbital, pointing, path feasibility, opportunity discovery or optimality validation"
+          ],
+          "source": "step-02-revised_snapshot.json",
+          "status": "passed"
+        },
+        {
+          "expected_battery": {
+            "demo-1": {
+              "battery": {
+                "curtailed_wh": 0.0,
+                "energy_wh": 8.000000000000007,
+                "minimum_energy_wh": 8.000000000000007,
+                "unserved_wh": 0.0
+              }
+            },
+            "demo-2": {
+              "battery": {
+                "curtailed_wh": 0.0,
+                "energy_wh": 6.000000000000007,
+                "minimum_energy_wh": 6.000000000000007,
+                "unserved_wh": 0.0
+              }
+            },
+            "demo-3": {
+              "battery": {
+                "curtailed_wh": 0.0,
+                "energy_wh": 2.5,
+                "minimum_energy_wh": 2.5,
+                "unserved_wh": 0.0
+              }
+            }
+          },
+          "format": "independent_plan_validation.v1",
+          "issues": [],
+          "scope": [
+            "JSON content identity, reference input bindings, activity windows/durations/overlaps, commitments, lifecycle exclusion and static balances",
+            "analytic ideal constant-power battery accounting where explicitly supported",
+            "no orbital, pointing, path feasibility, opportunity discovery or optimality validation"
+          ],
+          "source": "step-03-revised_snapshot.json",
+          "status": "passed"
+        },
+        {
+          "expected_battery": {
+            "demo-1": {
+              "battery": {
+                "curtailed_wh": 0.0,
+                "energy_wh": 6.000000000000007,
+                "minimum_energy_wh": 6.000000000000007,
+                "unserved_wh": 0.0
+              }
+            },
+            "demo-2": {
+              "battery": {
+                "curtailed_wh": 0.0,
+                "energy_wh": 6.000000000000007,
+                "minimum_energy_wh": 6.000000000000007,
+                "unserved_wh": 0.0
+              }
+            },
+            "demo-3": {
+              "battery": {
+                "curtailed_wh": 0.0,
+                "energy_wh": 2.5,
+                "minimum_energy_wh": 2.5,
+                "unserved_wh": 0.0
+              }
+            }
+          },
+          "format": "independent_plan_validation.v1",
+          "issues": [],
+          "scope": [
+            "JSON content identity, reference input bindings, activity windows/durations/overlaps, commitments, lifecycle exclusion and static balances",
+            "analytic ideal constant-power battery accounting where explicitly supported",
+            "no orbital, pointing, path feasibility, opportunity discovery or optimality validation"
+          ],
+          "source": "step-04-revised_snapshot.json",
+          "status": "passed"
+        },
+        {
+          "expected_battery": {
+            "demo-1": {
+              "battery": {
+                "curtailed_wh": 0.0,
+                "energy_wh": 6.000000000000007,
+                "minimum_energy_wh": 6.000000000000007,
+                "unserved_wh": 0.0
+              }
+            },
+            "demo-2": {
+              "battery": {
+                "curtailed_wh": 0.0,
+                "energy_wh": 6.000000000000007,
+                "minimum_energy_wh": 6.000000000000007,
+                "unserved_wh": 0.0
+              }
+            },
+            "demo-3": {
+              "battery": {
+                "curtailed_wh": 0.0,
+                "energy_wh": 2.5,
+                "minimum_energy_wh": 2.5,
+                "unserved_wh": 0.0
+              }
+            }
+          },
+          "format": "independent_plan_validation.v1",
+          "issues": [],
+          "scope": [
+            "JSON content identity, reference input bindings, activity windows/durations/overlaps, commitments, lifecycle exclusion and static balances",
+            "analytic ideal constant-power battery accounting where explicitly supported",
+            "no orbital, pointing, path feasibility, opportunity discovery or optimality validation"
+          ],
+          "source": "step-05-execution_snapshot.json",
+          "status": "passed"
+        },
+        {
+          "expected_battery": {
+            "demo-1": {
+              "battery": {
+                "curtailed_wh": 0.0,
+                "energy_wh": 6.000000000000014,
+                "minimum_energy_wh": 6.000000000000014,
+                "unserved_wh": 0.0
+              }
+            },
+            "demo-2": {
+              "battery": {
+                "curtailed_wh": 0.0,
+                "energy_wh": 6.000000000000014,
+                "minimum_energy_wh": 6.000000000000014,
+                "unserved_wh": 0.0
+              }
+            },
+            "demo-3": {
+              "battery": {
+                "curtailed_wh": 0.0,
+                "energy_wh": 2.5,
+                "minimum_energy_wh": 2.5,
+                "unserved_wh": 0.0
+              }
+            }
+          },
+          "format": "independent_plan_validation.v1",
+          "issues": [],
+          "scope": [
+            "JSON content identity, reference input bindings, activity windows/durations/overlaps, commitments, lifecycle exclusion and static balances",
+            "analytic ideal constant-power battery accounting where explicitly supported",
+            "no orbital, pointing, path feasibility, opportunity discovery or optimality validation"
+          ],
+          "source": "step-05-revised_snapshot.json",
+          "status": "passed"
+        }
+      ],
+      "status": "failed"
+    },
+    "standalone_status": "passed"
+  },
+  "format": "independent_plan_validation_observation.v1",
+  "notes": [
+    "Mutations use the producer's generic JSON content encoder to recompute identities; semantic rejection does not rely on stale hashes.",
+    "Checker code does not invoke scheduling, execution replay, commitment helpers or resource runners.",
+    "Generic JSON and cryptographic runtime primitives are shared.",
+    "A coherent standalone declaration can require parent/script evidence to reveal a cross-cycle inconsistency."
+  ],
+  "recorded_date": "2026-11-03",
+  "rehashed_snapshot_mutations": [
+    {
+      "case": "shifted_commitment",
+      "expected_issue": "protected_placement",
+      "mutated_snapshot_id": "mission_plan_snapshot:9e24d68c103de386a3e544b9a09eef8209c6cbe7434213fd34b5e93732a70ecc",
+      "result": {
+        "expected_battery": {
+          "demo-1": {
+            "battery": {
+              "curtailed_wh": 0.0,
+              "energy_wh": 8.0,
+              "minimum_energy_wh": 8.0,
+              "unserved_wh": 0.0
+            }
+          },
+          "demo-2": {
+            "battery": {
+              "curtailed_wh": 0.0,
+              "energy_wh": 6.0,
+              "minimum_energy_wh": 6.0,
+              "unserved_wh": 0.0
+            }
+          },
+          "demo-3": {
+            "battery": {
+              "curtailed_wh": 0.0,
+              "energy_wh": 6.0,
+              "minimum_energy_wh": 6.0,
+              "unserved_wh": 0.0
+            }
+          }
+        },
+        "format": "independent_plan_validation.v1",
+        "issues": [
+          {
+            "code": "protected_placement",
+            "location": "shifted_commitment",
+            "message": "missing or changed commitment early-1",
+            "severity": "error"
+          }
+        ],
+        "scope": [
+          "JSON content identity, reference input bindings, activity windows/durations/overlaps, commitments, lifecycle exclusion and static balances",
+          "analytic ideal constant-power battery accounting where explicitly supported",
+          "no orbital, pointing, path feasibility, opportunity discovery or optimality validation"
+        ],
+        "source": "shifted_commitment",
+        "status": "failed"
+      },
+      "valid_recomputed_content_identity": true
+    },
+    {
+      "case": "reintroduced_completed_request",
+      "expected_issue": "closed_request_reintroduced",
+      "mutated_snapshot_id": "mission_plan_snapshot:f20bcd7b9bd5777655379a0b6fbe8c6de9c8342eeb11e17da4196b548ea2846d",
+      "result": {
+        "expected_battery": {},
+        "format": "independent_plan_validation.v1",
+        "issues": [
+          {
+            "code": "closed_request_reintroduced",
+            "location": "reintroduced_completed_request",
+            "message": "completed or expired demand is active/scheduled again",
+            "severity": "error"
+          },
+          {
+            "code": "battery_model_unsupported",
+            "location": "reintroduced_completed_request/demo-1/battery",
+            "message": "known constant activity loads and equal idle/terminal loads required",
+            "severity": "unsupported"
+          },
+          {
+            "code": "battery_model_unsupported",
+            "location": "reintroduced_completed_request/demo-2/battery",
+            "message": "known constant activity loads and equal idle/terminal loads required",
+            "severity": "unsupported"
+          },
+          {
+            "code": "battery_model_unsupported",
+            "location": "reintroduced_completed_request/demo-3/battery",
+            "message": "known constant activity loads and equal idle/terminal loads required",
+            "severity": "unsupported"
+          }
+        ],
+        "scope": [
+          "JSON content identity, reference input bindings, activity windows/durations/overlaps, commitments, lifecycle exclusion and static balances",
+          "analytic ideal constant-power battery accounting where explicitly supported",
+          "no orbital, pointing, path feasibility, opportunity discovery or optimality validation"
+        ],
+        "source": "reintroduced_completed_request",
+        "status": "failed"
+      },
+      "valid_recomputed_content_identity": true
+    },
+    {
+      "case": "token_overspend",
+      "expected_issue": "static_budget_overspend",
+      "mutated_snapshot_id": "mission_plan_snapshot:81e9992e9f4924674eb4891dd958a7ea7de09ed7f9d9e4b14e4db98ee664d24e",
+      "result": {
+        "expected_battery": {
+          "demo-1": {
+            "battery": {
+              "curtailed_wh": 0.0,
+              "energy_wh": 8.0,
+              "minimum_energy_wh": 8.0,
+              "unserved_wh": 0.0
+            }
+          },
+          "demo-2": {
+            "battery": {
+              "curtailed_wh": 0.0,
+              "energy_wh": 6.0,
+              "minimum_energy_wh": 6.0,
+              "unserved_wh": 0.0
+            }
+          },
+          "demo-3": {
+            "battery": {
+              "curtailed_wh": 0.0,
+              "energy_wh": 6.0,
+              "minimum_energy_wh": 6.0,
+              "unserved_wh": 0.0
+            }
+          }
+        },
+        "format": "independent_plan_validation.v1",
+        "issues": [
+          {
+            "code": "static_budget_overspend",
+            "location": "token_overspend/demo-1",
+            "message": "selected services exceed declared static budgets",
+            "severity": "error"
+          },
+          {
+            "code": "static_balance",
+            "location": "token_overspend/demo-1",
+            "message": "reported remaining balance differs from independent accounting",
+            "severity": "error"
+          }
+        ],
+        "scope": [
+          "JSON content identity, reference input bindings, activity windows/durations/overlaps, commitments, lifecycle exclusion and static balances",
+          "analytic ideal constant-power battery accounting where explicitly supported",
+          "no orbital, pointing, path feasibility, opportunity discovery or optimality validation"
+        ],
+        "source": "token_overspend",
+        "status": "failed"
+      },
+      "valid_recomputed_content_identity": true
+    },
+    {
+      "case": "falsified_final_energy",
+      "expected_issue": "battery_final_state",
+      "mutated_snapshot_id": "mission_plan_snapshot:ebedc1ec1235d775809f3dd1e4d31774ca90d46553369f4c6c5acc8ba4120bcb",
+      "result": {
+        "expected_battery": {
+          "demo-1": {
+            "battery": {
+              "curtailed_wh": 0.0,
+              "energy_wh": 8.0,
+              "minimum_energy_wh": 8.0,
+              "unserved_wh": 0.0
+            }
+          },
+          "demo-2": {
+            "battery": {
+              "curtailed_wh": 0.0,
+              "energy_wh": 6.0,
+              "minimum_energy_wh": 6.0,
+              "unserved_wh": 0.0
+            }
+          },
+          "demo-3": {
+            "battery": {
+              "curtailed_wh": 0.0,
+              "energy_wh": 6.0,
+              "minimum_energy_wh": 6.0,
+              "unserved_wh": 0.0
+            }
+          }
+        },
+        "format": "independent_plan_validation.v1",
+        "issues": [
+          {
+            "code": "battery_final_state",
+            "location": "falsified_final_energy/demo-1/battery",
+            "message": "reported final state differs from analytic piecewise energy balance",
+            "severity": "error"
+          }
+        ],
+        "scope": [
+          "JSON content identity, reference input bindings, activity windows/durations/overlaps, commitments, lifecycle exclusion and static balances",
+          "analytic ideal constant-power battery accounting where explicitly supported",
+          "no orbital, pointing, path feasibility, opportunity discovery or optimality validation"
+        ],
+        "source": "falsified_final_energy",
+        "status": "failed"
+      },
+      "valid_recomputed_content_identity": true
+    }
+  ],
+  "scope": "independent declared-input structure and constant-power accounting; no orbit/attitude/path or execution-truth validation",
+  "valid_operations_chain": {
+    "format": "independent_operations_validation.v1",
+    "independent_execution_summary": {
+      "accepted_completion_count": 4,
+      "accepted_expired_count": 2,
+      "scripted_skip_count": 1,
+      "simulated_completed_value": 102.0,
+      "simulated_completion_count": 4
+    },
+    "issues": [],
+    "scope": "accepted artifact chain and scripted constant-power accounting; no physical trajectory/path or execution-truth validation",
+    "snapshots": [
+      {
+        "expected_battery": {
+          "demo-1": {
+            "battery": {
+              "curtailed_wh": 0.0,
+              "energy_wh": 8.0,
+              "minimum_energy_wh": 8.0,
+              "unserved_wh": 0.0
+            }
+          },
+          "demo-2": {
+            "battery": {
+              "curtailed_wh": 0.0,
+              "energy_wh": 6.0,
+              "minimum_energy_wh": 6.0,
+              "unserved_wh": 0.0
+            }
+          },
+          "demo-3": {
+            "battery": {
+              "curtailed_wh": 0.0,
+              "energy_wh": 6.0,
+              "minimum_energy_wh": 6.0,
+              "unserved_wh": 0.0
+            }
+          }
+        },
+        "format": "independent_plan_validation.v1",
+        "issues": [],
+        "scope": [
+          "JSON content identity, reference input bindings, activity windows/durations/overlaps, commitments, lifecycle exclusion and static balances",
+          "analytic ideal constant-power battery accounting where explicitly supported",
+          "no orbital, pointing, path feasibility, opportunity discovery or optimality validation"
+        ],
+        "source": "baseline_snapshot.json",
+        "status": "passed"
+      },
+      {
+        "expected_battery": {
+          "demo-1": {
+            "battery": {
+              "curtailed_wh": 0.0,
+              "energy_wh": 8.0,
+              "minimum_energy_wh": 8.0,
+              "unserved_wh": 0.0
+            }
+          },
+          "demo-2": {
+            "battery": {
+              "curtailed_wh": 0.0,
+              "energy_wh": 6.0,
+              "minimum_energy_wh": 6.0,
+              "unserved_wh": 0.0
+            }
+          },
+          "demo-3": {
+            "battery": {
+              "curtailed_wh": 0.0,
+              "energy_wh": 6.0,
+              "minimum_energy_wh": 6.0,
+              "unserved_wh": 0.0
+            }
+          }
+        },
+        "format": "independent_plan_validation.v1",
+        "issues": [],
+        "scope": [
+          "JSON content identity, reference input bindings, activity windows/durations/overlaps, commitments, lifecycle exclusion and static balances",
+          "analytic ideal constant-power battery accounting where explicitly supported",
+          "no orbital, pointing, path feasibility, opportunity discovery or optimality validation"
+        ],
+        "source": "step-01-revised_snapshot.json",
+        "status": "passed"
+      },
+      {
+        "expected_battery": {
+          "demo-1": {
+            "battery": {
+              "curtailed_wh": 0.0,
+              "energy_wh": 8.0,
+              "minimum_energy_wh": 8.0,
+              "unserved_wh": 0.0
+            }
+          },
+          "demo-2": {
+            "battery": {
+              "curtailed_wh": 0.0,
+              "energy_wh": 8.0,
+              "minimum_energy_wh": 8.0,
+              "unserved_wh": 0.0
+            }
+          },
+          "demo-3": {
+            "battery": {
+              "curtailed_wh": 0.0,
+              "energy_wh": 10,
+              "minimum_energy_wh": 10,
+              "unserved_wh": 0.0
+            }
+          }
+        },
+        "format": "independent_plan_validation.v1",
+        "issues": [],
+        "scope": [
+          "JSON content identity, reference input bindings, activity windows/durations/overlaps, commitments, lifecycle exclusion and static balances",
+          "analytic ideal constant-power battery accounting where explicitly supported",
+          "no orbital, pointing, path feasibility, opportunity discovery or optimality validation"
+        ],
+        "source": "step-02-execution_snapshot.json",
+        "status": "passed"
+      },
+      {
+        "expected_battery": {
+          "demo-1": {
+            "battery": {
+              "curtailed_wh": 0.0,
+              "energy_wh": 6.000000000000007,
+              "minimum_energy_wh": 6.000000000000007,
+              "unserved_wh": 0.0
+            }
+          },
+          "demo-2": {
+            "battery": {
+              "curtailed_wh": 0.0,
+              "energy_wh": 6.000000000000007,
+              "minimum_energy_wh": 6.000000000000007,
+              "unserved_wh": 0.0
+            }
+          },
+          "demo-3": {
+            "battery": {
+              "curtailed_wh": 0.0,
+              "energy_wh": 2.5,
+              "minimum_energy_wh": 2.5,
+              "unserved_wh": 0.0
+            }
+          }
+        },
+        "format": "independent_plan_validation.v1",
+        "issues": [],
+        "scope": [
+          "JSON content identity, reference input bindings, activity windows/durations/overlaps, commitments, lifecycle exclusion and static balances",
+          "analytic ideal constant-power battery accounting where explicitly supported",
+          "no orbital, pointing, path feasibility, opportunity discovery or optimality validation"
+        ],
+        "source": "step-02-revised_snapshot.json",
+        "status": "passed"
+      },
+      {
+        "expected_battery": {
+          "demo-1": {
+            "battery": {
+              "curtailed_wh": 0.0,
+              "energy_wh": 8.000000000000007,
+              "minimum_energy_wh": 8.000000000000007,
+              "unserved_wh": 0.0
+            }
+          },
+          "demo-2": {
+            "battery": {
+              "curtailed_wh": 0.0,
+              "energy_wh": 6.000000000000007,
+              "minimum_energy_wh": 6.000000000000007,
+              "unserved_wh": 0.0
+            }
+          },
+          "demo-3": {
+            "battery": {
+              "curtailed_wh": 0.0,
+              "energy_wh": 2.5,
+              "minimum_energy_wh": 2.5,
+              "unserved_wh": 0.0
+            }
+          }
+        },
+        "format": "independent_plan_validation.v1",
+        "issues": [],
+        "scope": [
+          "JSON content identity, reference input bindings, activity windows/durations/overlaps, commitments, lifecycle exclusion and static balances",
+          "analytic ideal constant-power battery accounting where explicitly supported",
+          "no orbital, pointing, path feasibility, opportunity discovery or optimality validation"
+        ],
+        "source": "step-03-revised_snapshot.json",
+        "status": "passed"
+      },
+      {
+        "expected_battery": {
+          "demo-1": {
+            "battery": {
+              "curtailed_wh": 0.0,
+              "energy_wh": 6.000000000000007,
+              "minimum_energy_wh": 6.000000000000007,
+              "unserved_wh": 0.0
+            }
+          },
+          "demo-2": {
+            "battery": {
+              "curtailed_wh": 0.0,
+              "energy_wh": 6.000000000000007,
+              "minimum_energy_wh": 6.000000000000007,
+              "unserved_wh": 0.0
+            }
+          },
+          "demo-3": {
+            "battery": {
+              "curtailed_wh": 0.0,
+              "energy_wh": 2.5,
+              "minimum_energy_wh": 2.5,
+              "unserved_wh": 0.0
+            }
+          }
+        },
+        "format": "independent_plan_validation.v1",
+        "issues": [],
+        "scope": [
+          "JSON content identity, reference input bindings, activity windows/durations/overlaps, commitments, lifecycle exclusion and static balances",
+          "analytic ideal constant-power battery accounting where explicitly supported",
+          "no orbital, pointing, path feasibility, opportunity discovery or optimality validation"
+        ],
+        "source": "step-04-revised_snapshot.json",
+        "status": "passed"
+      },
+      {
+        "expected_battery": {
+          "demo-1": {
+            "battery": {
+              "curtailed_wh": 0.0,
+              "energy_wh": 6.000000000000007,
+              "minimum_energy_wh": 6.000000000000007,
+              "unserved_wh": 0.0
+            }
+          },
+          "demo-2": {
+            "battery": {
+              "curtailed_wh": 0.0,
+              "energy_wh": 6.000000000000007,
+              "minimum_energy_wh": 6.000000000000007,
+              "unserved_wh": 0.0
+            }
+          },
+          "demo-3": {
+            "battery": {
+              "curtailed_wh": 0.0,
+              "energy_wh": 2.5,
+              "minimum_energy_wh": 2.5,
+              "unserved_wh": 0.0
+            }
+          }
+        },
+        "format": "independent_plan_validation.v1",
+        "issues": [],
+        "scope": [
+          "JSON content identity, reference input bindings, activity windows/durations/overlaps, commitments, lifecycle exclusion and static balances",
+          "analytic ideal constant-power battery accounting where explicitly supported",
+          "no orbital, pointing, path feasibility, opportunity discovery or optimality validation"
+        ],
+        "source": "step-05-execution_snapshot.json",
+        "status": "passed"
+      },
+      {
+        "expected_battery": {
+          "demo-1": {
+            "battery": {
+              "curtailed_wh": 0.0,
+              "energy_wh": 6.000000000000014,
+              "minimum_energy_wh": 6.000000000000014,
+              "unserved_wh": 0.0
+            }
+          },
+          "demo-2": {
+            "battery": {
+              "curtailed_wh": 0.0,
+              "energy_wh": 6.000000000000014,
+              "minimum_energy_wh": 6.000000000000014,
+              "unserved_wh": 0.0
+            }
+          },
+          "demo-3": {
+            "battery": {
+              "curtailed_wh": 0.0,
+              "energy_wh": 2.5,
+              "minimum_energy_wh": 2.5,
+              "unserved_wh": 0.0
+            }
+          }
+        },
+        "format": "independent_plan_validation.v1",
+        "issues": [],
+        "scope": [
+          "JSON content identity, reference input bindings, activity windows/durations/overlaps, commitments, lifecycle exclusion and static balances",
+          "analytic ideal constant-power battery accounting where explicitly supported",
+          "no orbital, pointing, path feasibility, opportunity discovery or optimality validation"
+        ],
+        "source": "step-05-revised_snapshot.json",
+        "status": "passed"
+      }
+    ],
+    "source": "/Users/donovanrost/projects/ex-orbital-dynamics/tmp/operations_loop_recorded/operations.json",
+    "status": "passed"
+  },
+  "validation": {
+    "fast_suite_command": "mix test.fast --max-cases 8",
+    "passed": 5351,
+    "excluded": 1148,
+    "elapsed_s": 231.0,
+    "focused_independent_validation_tests_passed": 12,
+    "frozen_numerical_baseline": "pass",
+    "format_check": "pass",
+    "diff_whitespace_check": "pass"
+  }
+}

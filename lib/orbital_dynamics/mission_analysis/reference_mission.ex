@@ -2,7 +2,7 @@ defmodule OrbitalDynamics.MissionAnalysis.ReferenceMission do
   @moduledoc """
   Runnable Earth circular-SSO examples built on the generic MissionAnalysis API.
 
-  This convenience adapter deliberately accepts only two named surface models
+  This convenience adapter deliberately accepts named surface models and fixed-attitude tasks
   and the checked-in finite Earth environment. Other bodies, trajectories, and
   models use the core API directly. It is not a flight mission definition format.
   """
@@ -60,7 +60,7 @@ defmodule OrbitalDynamics.MissionAnalysis.ReferenceMission do
     max_step = Input.number!(config["max_step_s"], "max_step_s", 0.1, step)
     if duration / step > 9999, do: raise(ArgumentError, "too many trajectory samples")
     bounded_list!(config["assets"], 20, "assets")
-    bounded_list!(config["requests"], 100, "requests")
+    bounded_list!(config["requests"], 100, "requests", 0)
     epoch = Epoch.new!(Input.number!(config["epoch_s"], "epoch_s", -1.0e12, 1.0e12), :utc)
     body = CentralBody.earth()
     frame = Frame.earth_inertial_j2000()
@@ -129,33 +129,7 @@ defmodule OrbitalDynamics.MissionAnalysis.ReferenceMission do
         {asset, %{"asset_id" => asset.id, "inclination_deg" => inclination, "raan_deg" => raan}}
       end)
 
-    requests =
-      Enum.map(config["requests"], fn spec ->
-        fields!(
-          spec,
-          ~w(id model activity_type target starts_at_s ends_at_s duration_s value parameters resource_costs)
-        )
-
-        target = spec["target"]
-        fields!(target, ~w(id latitude_deg longitude_deg altitude_km minimum_elevation_deg))
-
-        subject =
-          Target.new!(target["id"], target["latitude_deg"], target["longitude_deg"],
-            altitude_km: target["altitude_km"],
-            minimum_elevation_deg: target["minimum_elevation_deg"]
-          )
-
-        Request.new!(spec["id"], model!(spec["model"]), subject,
-          activity_type: spec["activity_type"],
-          starts_at_s: spec["starts_at_s"],
-          ends_at_s: spec["ends_at_s"],
-          duration_s: spec["duration_s"],
-          time_scale: :utc,
-          value: spec["value"],
-          parameters: spec["parameters"],
-          resource_costs: spec["resource_costs"]
-        )
-      end)
+    requests = Enum.map(config["requests"], &request!/1)
 
     %{
       assets: Enum.map(pairs, &elem(&1, 0)),
@@ -179,13 +153,49 @@ defmodule OrbitalDynamics.MissionAnalysis.ReferenceMission do
     }
   end
 
+  @doc "Parse one trusted reference request, also used to preserve original sessions for activity segments."
+  def request!(spec) do
+    fields!(
+      spec,
+      ~w(id model activity_type target starts_at_s ends_at_s duration_s value parameters resource_costs)
+    )
+
+    subject =
+      if spec["model"] == "fixed_attitude" do
+        unless spec["target"] == :null,
+          do: raise(ArgumentError, "fixed attitude requires null target")
+
+        nil
+      else
+        target = spec["target"]
+        fields!(target, ~w(id latitude_deg longitude_deg altitude_km minimum_elevation_deg))
+
+        Target.new!(target["id"], target["latitude_deg"], target["longitude_deg"],
+          altitude_km: target["altitude_km"],
+          minimum_elevation_deg: target["minimum_elevation_deg"]
+        )
+      end
+
+    Request.new!(spec["id"], model!(spec["model"]), subject,
+      activity_type: spec["activity_type"],
+      starts_at_s: spec["starts_at_s"],
+      ends_at_s: spec["ends_at_s"],
+      duration_s: spec["duration_s"],
+      time_scale: :utc,
+      value: spec["value"],
+      parameters: spec["parameters"],
+      resource_costs: spec["resource_costs"]
+    )
+  end
+
   defp model!("illumination"), do: Illumination
   defp model!("imaging"), do: Imaging
+  defp model!("fixed_attitude"), do: OrbitalDynamics.MissionAnalysis.Models.FixedAttitude
   defp model!(other), do: raise(ArgumentError, "unsupported reference model: #{inspect(other)}")
   defp fields!(map, keys), do: SurfaceSupport.fields!(map, keys, "reference configuration")
 
-  defp bounded_list!(list, limit, name) do
-    unless is_list(list) and length(list) in 1..limit,
-      do: raise(ArgumentError, "#{name} must contain 1..#{limit} entries")
+  defp bounded_list!(list, limit, name, minimum \\ 1) do
+    unless is_list(list) and length(list) in minimum..limit,
+      do: raise(ArgumentError, "#{name} must contain #{minimum}..#{limit} entries")
   end
 end

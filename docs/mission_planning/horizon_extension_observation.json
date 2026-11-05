@@ -1,0 +1,25 @@
+{
+  "format": "horizon_extension_observation.v1",
+  "scenario": "studies/horizon_extension_operations.json",
+  "native_status": "passed",
+  "independent_status": "passed",
+  "execution_summary": {
+    "accepted_completion_count": 4,
+    "accepted_expired_count": 0,
+    "scripted_skip_count": 0,
+    "simulated_completed_value": 15.0,
+    "simulated_completion_count": 4
+  },
+  "initial_planning_end_s": 820497700,
+  "final_execution_epoch_s": 820497795,
+  "fast_suite": {
+    "passed": 5427,
+    "excluded": 1148,
+    "seconds": 264.4
+  },
+  "limitations": [
+    "Finite checkpoint consistency only; no independent trajectory propagation",
+    "Original Earth/J2 orbit recipe and finite campaign environment retained",
+    "No execution inferred outside parent coverage"
+  ]
+}

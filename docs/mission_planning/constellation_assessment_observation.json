@@ -1,0 +1,1908 @@
+{
+  "format": "constellation_assessment_observation.v1",
+  "assessment": "studies/constellation_assessment.json",
+  "status": "expectations_met",
+  "cases": [
+    {
+      "id": "reflect_outage_recovery",
+      "scenario": "reflect_like_assessment_operations.json",
+      "asset_count": 3,
+      "cycle_count": 4,
+      "run_status": "completed",
+      "native_verification": "passed",
+      "independent_validation": "partial",
+      "independent_issue_counts": {
+        "wheel_dynamics_unsupported": 15
+      },
+      "completed_service_count": 5,
+      "completed_service_value": 128,
+      "simulated_completed_service_count": 5,
+      "simulated_completed_service_value": 128.0,
+      "completed_maintenance_count": 0,
+      "completed_maintenance_duration_s": 0,
+      "expired_request_count": 1,
+      "allocated_contact_count": 6,
+      "allocated_contact_duration_s": 24.0,
+      "simulated_receipt_count": 6,
+      "planning_callback_total": 43382,
+      "observed_elapsed_ms": 15645.779,
+      "remaining_static_budgets": {
+        "demo-1": {
+          "service_tokens": 0.0
+        },
+        "demo-2": {
+          "service_tokens": 0.0
+        },
+        "demo-3": {
+          "service_tokens": 1.0
+        }
+      },
+      "minimum_forecast_margins_across_accepted_plans": {
+        "demo-1/battery/battery_energy_supply": {
+          "margin": 6.000000000000007,
+          "margin_unit": "Wh"
+        },
+        "demo-1/battery/battery_reserve": {
+          "margin": 4.000000000000007,
+          "margin_unit": "Wh"
+        },
+        "demo-1/node/thermal_cold_limit": {
+          "margin": 15,
+          "margin_unit": "K"
+        },
+        "demo-1/node/thermal_hot_limit": {
+          "margin": 24.26519573144128,
+          "margin_unit": "K"
+        },
+        "demo-1/wheels/wheel_1_momentum": {
+          "margin": 999.320453494653,
+          "margin_unit": "Nms"
+        },
+        "demo-1/wheels/wheel_1_motor_torque": {
+          "margin": 9.876777026325275,
+          "margin_unit": "Nm"
+        },
+        "demo-1/wheels/wheel_2_momentum": {
+          "margin": 998.2156699931804,
+          "margin_unit": "Nms"
+        },
+        "demo-1/wheels/wheel_2_motor_torque": {
+          "margin": 9.827468994931836,
+          "margin_unit": "Nm"
+        },
+        "demo-1/wheels/wheel_3_momentum": {
+          "margin": 999.0630576316854,
+          "margin_unit": "Nms"
+        },
+        "demo-1/wheels/wheel_3_motor_torque": {
+          "margin": 9.903881160348845,
+          "margin_unit": "Nm"
+        },
+        "demo-2/battery/battery_energy_supply": {
+          "margin": 6.000000000000007,
+          "margin_unit": "Wh"
+        },
+        "demo-2/battery/battery_reserve": {
+          "margin": 4.000000000000007,
+          "margin_unit": "Wh"
+        },
+        "demo-2/node/thermal_cold_limit": {
+          "margin": 15,
+          "margin_unit": "K"
+        },
+        "demo-2/node/thermal_hot_limit": {
+          "margin": 24.265029022095064,
+          "margin_unit": "K"
+        },
+        "demo-2/wheels/wheel_1_momentum": {
+          "margin": 999.3750818813342,
+          "margin_unit": "Nms"
+        },
+        "demo-2/wheels/wheel_1_motor_torque": {
+          "margin": 9.885897486912471,
+          "margin_unit": "Nm"
+        },
+        "demo-2/wheels/wheel_2_momentum": {
+          "margin": 998.2075421505622,
+          "margin_unit": "Nms"
+        },
+        "demo-2/wheels/wheel_2_motor_torque": {
+          "margin": 9.825860162648242,
+          "margin_unit": "Nm"
+        },
+        "demo-2/wheels/wheel_3_momentum": {
+          "margin": 999.1916024984591,
+          "margin_unit": "Nms"
+        },
+        "demo-2/wheels/wheel_3_motor_torque": {
+          "margin": 9.916469494052308,
+          "margin_unit": "Nm"
+        },
+        "demo-3/battery/battery_energy_supply": {
+          "margin": 6.000000000000007,
+          "margin_unit": "Wh"
+        },
+        "demo-3/battery/battery_reserve": {
+          "margin": 4.000000000000007,
+          "margin_unit": "Wh"
+        },
+        "demo-3/node/thermal_cold_limit": {
+          "margin": 15,
+          "margin_unit": "K"
+        },
+        "demo-3/node/thermal_hot_limit": {
+          "margin": 24.265029022094893,
+          "margin_unit": "K"
+        },
+        "demo-3/wheels/wheel_1_momentum": {
+          "margin": 999.4461555382194,
+          "margin_unit": "Nms"
+        },
+        "demo-3/wheels/wheel_1_motor_torque": {
+          "margin": 9.903137807029955,
+          "margin_unit": "Nm"
+        },
+        "demo-3/wheels/wheel_2_momentum": {
+          "margin": 998.214210143044,
+          "margin_unit": "Nms"
+        },
+        "demo-3/wheels/wheel_2_motor_torque": {
+          "margin": 9.827108670960543,
+          "margin_unit": "Nm"
+        },
+        "demo-3/wheels/wheel_3_momentum": {
+          "margin": 999.3856763283205,
+          "margin_unit": "Nms"
+        },
+        "demo-3/wheels/wheel_3_motor_torque": {
+          "margin": 9.936136970292267,
+          "margin_unit": "Nm"
+        }
+      },
+      "rejected_steps": [],
+      "plans": [
+        {
+          "horizon": {
+            "ends_at_s": 820497900,
+            "starts_at_s": 820497600
+          },
+          "scheduled_value": 84.0,
+          "scheduled_request_ids": [
+            "early-2",
+            "early-3",
+            "early-1"
+          ],
+          "unfulfilled": [
+            {
+              "request_id": "late-1",
+              "reasons": [
+                "planning_start_grid_infeasible"
+              ]
+            },
+            {
+              "request_id": "late-2",
+              "reasons": [
+                "planning_start_grid_infeasible"
+              ]
+            },
+            {
+              "request_id": "late-3",
+              "reasons": [
+                "planning_start_grid_infeasible"
+              ]
+            }
+          ],
+          "work": {
+            "total_evaluations": 9808,
+            "max_evaluations": 200000,
+            "budget_exhausted": false,
+            "counts": {
+              "attitude": 328,
+              "endpoint": 6,
+              "path": 2826,
+              "resource": 6648
+            }
+          }
+        },
+        {
+          "horizon": {
+            "ends_at_s": 820498200.0,
+            "starts_at_s": 820497800
+          },
+          "scheduled_value": 44.0,
+          "scheduled_request_ids": [
+            "late-2",
+            "late-3"
+          ],
+          "unfulfilled": [
+            {
+              "request_id": "late-1",
+              "reasons": [
+                "no_available_opportunity",
+                "no_command_delivery_opportunity"
+              ]
+            }
+          ],
+          "work": {
+            "total_evaluations": 11232,
+            "max_evaluations": 200000,
+            "budget_exhausted": false,
+            "counts": {
+              "attitude": 212,
+              "endpoint": 4,
+              "path": 3687,
+              "resource": 7329
+            }
+          }
+        },
+        {
+          "horizon": {
+            "ends_at_s": 820498200.0,
+            "starts_at_s": 820497800
+          },
+          "scheduled_value": 66.0,
+          "scheduled_request_ids": [
+            "late-2",
+            "late-3",
+            "late-1"
+          ],
+          "unfulfilled": [],
+          "work": {
+            "total_evaluations": 12870,
+            "max_evaluations": 200000,
+            "budget_exhausted": false,
+            "counts": {
+              "attitude": 318,
+              "endpoint": 6,
+              "path": 3726,
+              "resource": 8820
+            }
+          }
+        },
+        {
+          "horizon": {
+            "ends_at_s": 820498200.0,
+            "starts_at_s": 820497950
+          },
+          "scheduled_value": 44.0,
+          "scheduled_request_ids": [
+            "late-1",
+            "late-2"
+          ],
+          "unfulfilled": [
+            {
+              "request_id": "late-3",
+              "reasons": [
+                "planning_start_grid_infeasible"
+              ]
+            }
+          ],
+          "work": {
+            "total_evaluations": 8446,
+            "max_evaluations": 200000,
+            "budget_exhausted": false,
+            "counts": {
+              "attitude": 573,
+              "endpoint": 4,
+              "path": 3252,
+              "resource": 4617
+            }
+          }
+        },
+        {
+          "horizon": {
+            "ends_at_s": 820498200.0,
+            "starts_at_s": 820498150
+          },
+          "scheduled_value": 0,
+          "scheduled_request_ids": [],
+          "unfulfilled": [],
+          "work": {
+            "total_evaluations": 1026,
+            "max_evaluations": 200000,
+            "budget_exhausted": false,
+            "counts": {
+              "attitude": 0,
+              "endpoint": 0,
+              "path": 459,
+              "resource": 567
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "reflect_earlier_checkpoint",
+      "scenario": "reflect_like_earlier_checkpoint_operations.json",
+      "asset_count": 3,
+      "cycle_count": 4,
+      "run_status": "completed",
+      "native_verification": "passed",
+      "independent_validation": "partial",
+      "independent_issue_counts": {
+        "wheel_dynamics_unsupported": 17
+      },
+      "completed_service_count": 6,
+      "completed_service_value": 150,
+      "simulated_completed_service_count": 6,
+      "simulated_completed_service_value": 150.0,
+      "completed_maintenance_count": 0,
+      "completed_maintenance_duration_s": 0,
+      "expired_request_count": 0,
+      "allocated_contact_count": 6,
+      "allocated_contact_duration_s": 24.0,
+      "simulated_receipt_count": 6,
+      "planning_callback_total": 43859,
+      "observed_elapsed_ms": 13729.038,
+      "remaining_static_budgets": {
+        "demo-1": {
+          "service_tokens": 0.0
+        },
+        "demo-2": {
+          "service_tokens": 0.0
+        },
+        "demo-3": {
+          "service_tokens": 0.0
+        }
+      },
+      "minimum_forecast_margins_across_accepted_plans": {
+        "demo-1/battery/battery_energy_supply": {
+          "margin": 6.000000000000007,
+          "margin_unit": "Wh"
+        },
+        "demo-1/battery/battery_reserve": {
+          "margin": 4.000000000000007,
+          "margin_unit": "Wh"
+        },
+        "demo-1/node/thermal_cold_limit": {
+          "margin": 15,
+          "margin_unit": "K"
+        },
+        "demo-1/node/thermal_hot_limit": {
+          "margin": 24.26519573144128,
+          "margin_unit": "K"
+        },
+        "demo-1/wheels/wheel_1_momentum": {
+          "margin": 999.320453494653,
+          "margin_unit": "Nms"
+        },
+        "demo-1/wheels/wheel_1_motor_torque": {
+          "margin": 9.876777026325275,
+          "margin_unit": "Nm"
+        },
+        "demo-1/wheels/wheel_2_momentum": {
+          "margin": 998.2259139517516,
+          "margin_unit": "Nms"
+        },
+        "demo-1/wheels/wheel_2_motor_torque": {
+          "margin": 9.829001512667796,
+          "margin_unit": "Nm"
+        },
+        "demo-1/wheels/wheel_3_momentum": {
+          "margin": 999.0630576316854,
+          "margin_unit": "Nms"
+        },
+        "demo-1/wheels/wheel_3_motor_torque": {
+          "margin": 9.903881160348845,
+          "margin_unit": "Nm"
+        },
+        "demo-2/battery/battery_energy_supply": {
+          "margin": 6.000000000000007,
+          "margin_unit": "Wh"
+        },
+        "demo-2/battery/battery_reserve": {
+          "margin": 4.000000000000007,
+          "margin_unit": "Wh"
+        },
+        "demo-2/node/thermal_cold_limit": {
+          "margin": 15,
+          "margin_unit": "K"
+        },
+        "demo-2/node/thermal_hot_limit": {
+          "margin": 24.265029022095064,
+          "margin_unit": "K"
+        },
+        "demo-2/wheels/wheel_1_momentum": {
+          "margin": 999.3750818813342,
+          "margin_unit": "Nms"
+        },
+        "demo-2/wheels/wheel_1_motor_torque": {
+          "margin": 9.885897486912471,
+          "margin_unit": "Nm"
+        },
+        "demo-2/wheels/wheel_2_momentum": {
+          "margin": 998.2103699517979,
+          "margin_unit": "Nms"
+        },
+        "demo-2/wheels/wheel_2_motor_torque": {
+          "margin": 9.826540062135203,
+          "margin_unit": "Nm"
+        },
+        "demo-2/wheels/wheel_3_momentum": {
+          "margin": 999.1916024984591,
+          "margin_unit": "Nms"
+        },
+        "demo-2/wheels/wheel_3_motor_torque": {
+          "margin": 9.916469494052308,
+          "margin_unit": "Nm"
+        },
+        "demo-3/battery/battery_energy_supply": {
+          "margin": 6.000000000000007,
+          "margin_unit": "Wh"
+        },
+        "demo-3/battery/battery_reserve": {
+          "margin": 4.000000000000007,
+          "margin_unit": "Wh"
+        },
+        "demo-3/node/thermal_cold_limit": {
+          "margin": 15,
+          "margin_unit": "K"
+        },
+        "demo-3/node/thermal_hot_limit": {
+          "margin": 24.265029022094893,
+          "margin_unit": "K"
+        },
+        "demo-3/wheels/wheel_1_momentum": {
+          "margin": 999.4461555382194,
+          "margin_unit": "Nms"
+        },
+        "demo-3/wheels/wheel_1_motor_torque": {
+          "margin": 9.903137807029955,
+          "margin_unit": "Nm"
+        },
+        "demo-3/wheels/wheel_2_momentum": {
+          "margin": 998.2088775988406,
+          "margin_unit": "Nms"
+        },
+        "demo-3/wheels/wheel_2_motor_torque": {
+          "margin": 9.82574459011025,
+          "margin_unit": "Nm"
+        },
+        "demo-3/wheels/wheel_3_momentum": {
+          "margin": 999.3856763283205,
+          "margin_unit": "Nms"
+        },
+        "demo-3/wheels/wheel_3_motor_torque": {
+          "margin": 9.936136970292267,
+          "margin_unit": "Nm"
+        }
+      },
+      "rejected_steps": [],
+      "plans": [
+        {
+          "horizon": {
+            "ends_at_s": 820497900,
+            "starts_at_s": 820497600
+          },
+          "scheduled_value": 84.0,
+          "scheduled_request_ids": [
+            "early-2",
+            "early-3",
+            "early-1"
+          ],
+          "unfulfilled": [
+            {
+              "request_id": "late-1",
+              "reasons": [
+                "planning_start_grid_infeasible"
+              ]
+            },
+            {
+              "request_id": "late-2",
+              "reasons": [
+                "planning_start_grid_infeasible"
+              ]
+            },
+            {
+              "request_id": "late-3",
+              "reasons": [
+                "planning_start_grid_infeasible"
+              ]
+            }
+          ],
+          "work": {
+            "total_evaluations": 9808,
+            "max_evaluations": 200000,
+            "budget_exhausted": false,
+            "counts": {
+              "attitude": 328,
+              "endpoint": 6,
+              "path": 2826,
+              "resource": 6648
+            }
+          }
+        },
+        {
+          "horizon": {
+            "ends_at_s": 820498200.0,
+            "starts_at_s": 820497800
+          },
+          "scheduled_value": 44.0,
+          "scheduled_request_ids": [
+            "late-2",
+            "late-3"
+          ],
+          "unfulfilled": [
+            {
+              "request_id": "late-1",
+              "reasons": [
+                "no_available_opportunity",
+                "no_command_delivery_opportunity"
+              ]
+            }
+          ],
+          "work": {
+            "total_evaluations": 11232,
+            "max_evaluations": 200000,
+            "budget_exhausted": false,
+            "counts": {
+              "attitude": 212,
+              "endpoint": 4,
+              "path": 3687,
+              "resource": 7329
+            }
+          }
+        },
+        {
+          "horizon": {
+            "ends_at_s": 820498200.0,
+            "starts_at_s": 820497800
+          },
+          "scheduled_value": 66.0,
+          "scheduled_request_ids": [
+            "late-2",
+            "late-3",
+            "late-1"
+          ],
+          "unfulfilled": [],
+          "work": {
+            "total_evaluations": 12870,
+            "max_evaluations": 200000,
+            "budget_exhausted": false,
+            "counts": {
+              "attitude": 318,
+              "endpoint": 6,
+              "path": 3726,
+              "resource": 8820
+            }
+          }
+        },
+        {
+          "horizon": {
+            "ends_at_s": 820498200.0,
+            "starts_at_s": 820497930
+          },
+          "scheduled_value": 66.0,
+          "scheduled_request_ids": [
+            "late-1",
+            "late-2",
+            "late-3"
+          ],
+          "unfulfilled": [],
+          "work": {
+            "total_evaluations": 8923,
+            "max_evaluations": 200000,
+            "budget_exhausted": false,
+            "counts": {
+              "attitude": 343,
+              "endpoint": 6,
+              "path": 2556,
+              "resource": 6018
+            }
+          }
+        },
+        {
+          "horizon": {
+            "ends_at_s": 820498200.0,
+            "starts_at_s": 820498150
+          },
+          "scheduled_value": 0,
+          "scheduled_request_ids": [],
+          "unfulfilled": [],
+          "work": {
+            "total_evaluations": 1026,
+            "max_evaluations": 200000,
+            "budget_exhausted": false,
+            "counts": {
+              "attitude": 0,
+              "endpoint": 0,
+              "path": 459,
+              "resource": 567
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "fixed_repeated_service",
+      "scenario": "non_illumination_assessment_operations.json",
+      "asset_count": 2,
+      "cycle_count": 10,
+      "run_status": "completed",
+      "native_verification": "passed",
+      "independent_validation": "passed",
+      "independent_issue_counts": {},
+      "completed_service_count": 4,
+      "completed_service_value": 40,
+      "simulated_completed_service_count": 4,
+      "simulated_completed_service_value": 40.0,
+      "completed_maintenance_count": 4,
+      "completed_maintenance_duration_s": 80,
+      "expired_request_count": 0,
+      "allocated_contact_count": 4,
+      "allocated_contact_duration_s": 16.0,
+      "simulated_receipt_count": 4,
+      "planning_callback_total": 201934,
+      "observed_elapsed_ms": 13530.653,
+      "remaining_static_budgets": {
+        "bus-1": {
+          "service_tokens": 0.0,
+          "unload_tokens": 0.0
+        },
+        "bus-2": {
+          "service_tokens": 0.0,
+          "unload_tokens": 0.0
+        }
+      },
+      "minimum_forecast_margins_across_accepted_plans": {
+        "bus-1/battery/battery_energy_supply": {
+          "margin": 9.855555555555586,
+          "margin_unit": "Wh"
+        },
+        "bus-1/battery/battery_reserve": {
+          "margin": 7.855555555555586,
+          "margin_unit": "Wh"
+        },
+        "bus-1/node/thermal_cold_limit": {
+          "margin": 14.802119243862819,
+          "margin_unit": "K"
+        },
+        "bus-1/node/thermal_hot_limit": {
+          "margin": 5.006063766571231,
+          "margin_unit": "K"
+        },
+        "bus-1/wheels/wheel_1_momentum": {
+          "margin": 1.0,
+          "margin_unit": "Nms"
+        },
+        "bus-1/wheels/wheel_1_motor_torque": {
+          "margin": 0.3,
+          "margin_unit": "Nm"
+        },
+        "bus-1/wheels/wheel_2_momentum": {
+          "margin": 1.0,
+          "margin_unit": "Nms"
+        },
+        "bus-1/wheels/wheel_2_motor_torque": {
+          "margin": 0.3,
+          "margin_unit": "Nm"
+        },
+        "bus-1/wheels/wheel_3_momentum": {
+          "margin": 0.7999999999999998,
+          "margin_unit": "Nms"
+        },
+        "bus-1/wheels/wheel_3_motor_torque": {
+          "margin": 0.299,
+          "margin_unit": "Nm"
+        },
+        "bus-2/battery/battery_energy_supply": {
+          "margin": 9.855555555555586,
+          "margin_unit": "Wh"
+        },
+        "bus-2/battery/battery_reserve": {
+          "margin": 7.855555555555586,
+          "margin_unit": "Wh"
+        },
+        "bus-2/node/thermal_cold_limit": {
+          "margin": 14.802119243862819,
+          "margin_unit": "K"
+        },
+        "bus-2/node/thermal_hot_limit": {
+          "margin": 5.006063766571231,
+          "margin_unit": "K"
+        },
+        "bus-2/wheels/wheel_1_momentum": {
+          "margin": 1.0,
+          "margin_unit": "Nms"
+        },
+        "bus-2/wheels/wheel_1_motor_torque": {
+          "margin": 0.3,
+          "margin_unit": "Nm"
+        },
+        "bus-2/wheels/wheel_2_momentum": {
+          "margin": 1.0,
+          "margin_unit": "Nms"
+        },
+        "bus-2/wheels/wheel_2_motor_torque": {
+          "margin": 0.3,
+          "margin_unit": "Nm"
+        },
+        "bus-2/wheels/wheel_3_momentum": {
+          "margin": 0.7999999999999998,
+          "margin_unit": "Nms"
+        },
+        "bus-2/wheels/wheel_3_motor_torque": {
+          "margin": 0.299,
+          "margin_unit": "Nm"
+        }
+      },
+      "rejected_steps": [],
+      "plans": [
+        {
+          "horizon": {
+            "ends_at_s": 820497700,
+            "starts_at_s": 820497600
+          },
+          "scheduled_value": 20.0,
+          "scheduled_request_ids": [
+            "first-cooldown-1",
+            "first-cooldown-2",
+            "first-service-1",
+            "first-service-2"
+          ],
+          "unfulfilled": [
+            {
+              "request_id": "second-cooldown-1",
+              "reasons": []
+            },
+            {
+              "request_id": "second-service-1",
+              "reasons": [
+                "no_ephemeris_samples_in_request_window"
+              ]
+            },
+            {
+              "request_id": "second-cooldown-2",
+              "reasons": []
+            },
+            {
+              "request_id": "second-service-2",
+              "reasons": [
+                "no_ephemeris_samples_in_request_window"
+              ]
+            }
+          ],
+          "work": {
+            "total_evaluations": 73388,
+            "max_evaluations": 500000,
+            "budget_exhausted": false,
+            "counts": {
+              "attitude": 12936,
+              "endpoint": 32,
+              "path": 6204,
+              "resource": 54216
+            }
+          }
+        },
+        {
+          "horizon": {
+            "ends_at_s": 820497700,
+            "starts_at_s": 820497625
+          },
+          "scheduled_value": 20.0,
+          "scheduled_request_ids": [
+            "first-cooldown-1",
+            "first-cooldown-2",
+            "first-service-1",
+            "first-service-2"
+          ],
+          "unfulfilled": [
+            {
+              "request_id": "second-cooldown-1",
+              "reasons": []
+            },
+            {
+              "request_id": "second-service-1",
+              "reasons": [
+                "no_ephemeris_samples_in_request_window"
+              ]
+            },
+            {
+              "request_id": "second-cooldown-2",
+              "reasons": []
+            },
+            {
+              "request_id": "second-service-2",
+              "reasons": [
+                "no_ephemeris_samples_in_request_window"
+              ]
+            }
+          ],
+          "work": {
+            "total_evaluations": 10708,
+            "max_evaluations": 500000,
+            "budget_exhausted": false,
+            "counts": {
+              "attitude": 3226,
+              "endpoint": 8,
+              "path": 688,
+              "resource": 6786
+            }
+          }
+        },
+        {
+          "horizon": {
+            "ends_at_s": 820497700,
+            "starts_at_s": 820497640
+          },
+          "scheduled_value": 20.0,
+          "scheduled_request_ids": [
+            "first-service-1",
+            "first-service-2"
+          ],
+          "unfulfilled": [
+            {
+              "request_id": "second-cooldown-1",
+              "reasons": []
+            },
+            {
+              "request_id": "second-service-1",
+              "reasons": [
+                "no_ephemeris_samples_in_request_window"
+              ]
+            },
+            {
+              "request_id": "second-cooldown-2",
+              "reasons": []
+            },
+            {
+              "request_id": "second-service-2",
+              "reasons": [
+                "no_ephemeris_samples_in_request_window"
+              ]
+            }
+          ],
+          "work": {
+            "total_evaluations": 4946,
+            "max_evaluations": 500000,
+            "budget_exhausted": false,
+            "counts": {
+              "attitude": 832,
+              "endpoint": 4,
+              "path": 486,
+              "resource": 3624
+            }
+          }
+        },
+        {
+          "horizon": {
+            "ends_at_s": 820497700,
+            "starts_at_s": 820497660
+          },
+          "scheduled_value": 20.0,
+          "scheduled_request_ids": [
+            "first-service-1",
+            "first-service-2"
+          ],
+          "unfulfilled": [
+            {
+              "request_id": "second-cooldown-1",
+              "reasons": []
+            },
+            {
+              "request_id": "second-service-1",
+              "reasons": [
+                "no_ephemeris_samples_in_request_window"
+              ]
+            },
+            {
+              "request_id": "second-cooldown-2",
+              "reasons": []
+            },
+            {
+              "request_id": "second-service-2",
+              "reasons": [
+                "no_ephemeris_samples_in_request_window"
+              ]
+            }
+          ],
+          "work": {
+            "total_evaluations": 3586,
+            "max_evaluations": 500000,
+            "budget_exhausted": false,
+            "counts": {
+              "attitude": 832,
+              "endpoint": 4,
+              "path": 326,
+              "resource": 2424
+            }
+          }
+        },
+        {
+          "horizon": {
+            "ends_at_s": 820497700,
+            "starts_at_s": 820497675
+          },
+          "scheduled_value": 20.0,
+          "scheduled_request_ids": [
+            "first-service-1",
+            "first-service-2"
+          ],
+          "unfulfilled": [
+            {
+              "request_id": "second-cooldown-1",
+              "reasons": []
+            },
+            {
+              "request_id": "second-service-1",
+              "reasons": [
+                "no_ephemeris_samples_in_request_window"
+              ]
+            },
+            {
+              "request_id": "second-cooldown-2",
+              "reasons": []
+            },
+            {
+              "request_id": "second-service-2",
+              "reasons": [
+                "no_ephemeris_samples_in_request_window"
+              ]
+            }
+          ],
+          "work": {
+            "total_evaluations": 2588,
+            "max_evaluations": 500000,
+            "budget_exhausted": false,
+            "counts": {
+              "attitude": 854,
+              "endpoint": 4,
+              "path": 206,
+              "resource": 1524
+            }
+          }
+        },
+        {
+          "horizon": {
+            "ends_at_s": 820497800.0,
+            "starts_at_s": 820497690
+          },
+          "scheduled_value": 20.0,
+          "scheduled_request_ids": [
+            "second-cooldown-1",
+            "second-cooldown-2",
+            "second-service-1",
+            "second-service-2"
+          ],
+          "unfulfilled": [],
+          "work": {
+            "total_evaluations": 78844,
+            "max_evaluations": 500000,
+            "budget_exhausted": false,
+            "counts": {
+              "attitude": 12432,
+              "endpoint": 32,
+              "path": 6764,
+              "resource": 59616
+            }
+          }
+        },
+        {
+          "horizon": {
+            "ends_at_s": 820497800.0,
+            "starts_at_s": 820497705
+          },
+          "scheduled_value": 20.0,
+          "scheduled_request_ids": [
+            "second-cooldown-1",
+            "second-cooldown-2",
+            "second-service-1",
+            "second-service-2"
+          ],
+          "unfulfilled": [],
+          "work": {
+            "total_evaluations": 11516,
+            "max_evaluations": 500000,
+            "budget_exhausted": false,
+            "counts": {
+              "attitude": 2074,
+              "endpoint": 8,
+              "path": 848,
+              "resource": 8586
+            }
+          }
+        },
+        {
+          "horizon": {
+            "ends_at_s": 820497800.0,
+            "starts_at_s": 820497720
+          },
+          "scheduled_value": 20.0,
+          "scheduled_request_ids": [
+            "second-service-1",
+            "second-service-2"
+          ],
+          "unfulfilled": [],
+          "work": {
+            "total_evaluations": 6306,
+            "max_evaluations": 500000,
+            "budget_exhausted": false,
+            "counts": {
+              "attitude": 832,
+              "endpoint": 4,
+              "path": 646,
+              "resource": 4824
+            }
+          }
+        },
+        {
+          "horizon": {
+            "ends_at_s": 820497800.0,
+            "starts_at_s": 820497738
+          },
+          "scheduled_value": 20.0,
+          "scheduled_request_ids": [
+            "second-service-1",
+            "second-service-2"
+          ],
+          "unfulfilled": [],
+          "work": {
+            "total_evaluations": 5082,
+            "max_evaluations": 500000,
+            "budget_exhausted": false,
+            "counts": {
+              "attitude": 832,
+              "endpoint": 4,
+              "path": 502,
+              "resource": 3744
+            }
+          }
+        },
+        {
+          "horizon": {
+            "ends_at_s": 820497800.0,
+            "starts_at_s": 820497745
+          },
+          "scheduled_value": 20.0,
+          "scheduled_request_ids": [
+            "second-service-1",
+            "second-service-2"
+          ],
+          "unfulfilled": [],
+          "work": {
+            "total_evaluations": 4196,
+            "max_evaluations": 500000,
+            "budget_exhausted": false,
+            "counts": {
+              "attitude": 422,
+              "endpoint": 4,
+              "path": 446,
+              "resource": 3324
+            }
+          }
+        },
+        {
+          "horizon": {
+            "ends_at_s": 820497800.0,
+            "starts_at_s": 820497780
+          },
+          "scheduled_value": 0,
+          "scheduled_request_ids": [],
+          "unfulfilled": [],
+          "work": {
+            "total_evaluations": 774,
+            "max_evaluations": 500000,
+            "budget_exhausted": false,
+            "counts": {
+              "attitude": 0,
+              "endpoint": 0,
+              "path": 162,
+              "resource": 612
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "fixed_hot_limit",
+      "scenario": "non_illumination_hot_limit_operations.json",
+      "asset_count": 2,
+      "cycle_count": 10,
+      "run_status": "completed",
+      "native_verification": "passed",
+      "independent_validation": "passed",
+      "independent_issue_counts": {},
+      "completed_service_count": 0,
+      "completed_service_value": 0,
+      "simulated_completed_service_count": 0,
+      "simulated_completed_service_value": 0,
+      "completed_maintenance_count": 0,
+      "completed_maintenance_duration_s": 0,
+      "expired_request_count": 8,
+      "allocated_contact_count": 4,
+      "allocated_contact_duration_s": 16.0,
+      "simulated_receipt_count": 0,
+      "planning_callback_total": 184786,
+      "observed_elapsed_ms": 12310.654,
+      "remaining_static_budgets": {
+        "bus-1": {
+          "service_tokens": 2,
+          "unload_tokens": 2
+        },
+        "bus-2": {
+          "service_tokens": 2,
+          "unload_tokens": 2
+        }
+      },
+      "minimum_forecast_margins_across_accepted_plans": {
+        "bus-1/battery/battery_energy_supply": {
+          "margin": 10,
+          "margin_unit": "Wh"
+        },
+        "bus-1/battery/battery_reserve": {
+          "margin": 8,
+          "margin_unit": "Wh"
+        },
+        "bus-1/node/thermal_cold_limit": {
+          "margin": 21.462230543096098,
+          "margin_unit": "K"
+        },
+        "bus-1/node/thermal_hot_limit": {
+          "margin": 0.19999999999998863,
+          "margin_unit": "K"
+        },
+        "bus-1/wheels/wheel_1_momentum": {
+          "margin": 1.0,
+          "margin_unit": "Nms"
+        },
+        "bus-1/wheels/wheel_1_motor_torque": {
+          "margin": 0.3,
+          "margin_unit": "Nm"
+        },
+        "bus-1/wheels/wheel_2_momentum": {
+          "margin": 1.0,
+          "margin_unit": "Nms"
+        },
+        "bus-1/wheels/wheel_2_motor_torque": {
+          "margin": 0.3,
+          "margin_unit": "Nm"
+        },
+        "bus-1/wheels/wheel_3_momentum": {
+          "margin": 0.7999999999999998,
+          "margin_unit": "Nms"
+        },
+        "bus-1/wheels/wheel_3_motor_torque": {
+          "margin": 0.299,
+          "margin_unit": "Nm"
+        },
+        "bus-2/battery/battery_energy_supply": {
+          "margin": 10,
+          "margin_unit": "Wh"
+        },
+        "bus-2/battery/battery_reserve": {
+          "margin": 8,
+          "margin_unit": "Wh"
+        },
+        "bus-2/node/thermal_cold_limit": {
+          "margin": 21.462230543096098,
+          "margin_unit": "K"
+        },
+        "bus-2/node/thermal_hot_limit": {
+          "margin": 0.19999999999998863,
+          "margin_unit": "K"
+        },
+        "bus-2/wheels/wheel_1_momentum": {
+          "margin": 1.0,
+          "margin_unit": "Nms"
+        },
+        "bus-2/wheels/wheel_1_motor_torque": {
+          "margin": 0.3,
+          "margin_unit": "Nm"
+        },
+        "bus-2/wheels/wheel_2_momentum": {
+          "margin": 1.0,
+          "margin_unit": "Nms"
+        },
+        "bus-2/wheels/wheel_2_motor_torque": {
+          "margin": 0.3,
+          "margin_unit": "Nm"
+        },
+        "bus-2/wheels/wheel_3_momentum": {
+          "margin": 0.7999999999999998,
+          "margin_unit": "Nms"
+        },
+        "bus-2/wheels/wheel_3_motor_torque": {
+          "margin": 0.299,
+          "margin_unit": "Nm"
+        }
+      },
+      "rejected_steps": [],
+      "plans": [
+        {
+          "horizon": {
+            "ends_at_s": 820497700,
+            "starts_at_s": 820497600
+          },
+          "scheduled_value": 0,
+          "scheduled_request_ids": [],
+          "unfulfilled": [
+            {
+              "request_id": "first-cooldown-1",
+              "reasons": []
+            },
+            {
+              "request_id": "first-service-1",
+              "reasons": [
+                "planning_start_grid_infeasible"
+              ]
+            },
+            {
+              "request_id": "first-cooldown-2",
+              "reasons": []
+            },
+            {
+              "request_id": "first-service-2",
+              "reasons": [
+                "planning_start_grid_infeasible"
+              ]
+            },
+            {
+              "request_id": "second-cooldown-1",
+              "reasons": []
+            },
+            {
+              "request_id": "second-service-1",
+              "reasons": [
+                "no_ephemeris_samples_in_request_window"
+              ]
+            },
+            {
+              "request_id": "second-cooldown-2",
+              "reasons": []
+            },
+            {
+              "request_id": "second-service-2",
+              "reasons": [
+                "no_ephemeris_samples_in_request_window"
+              ]
+            }
+          ],
+          "work": {
+            "total_evaluations": 73372,
+            "max_evaluations": 500000,
+            "budget_exhausted": false,
+            "counts": {
+              "attitude": 12936,
+              "endpoint": 16,
+              "path": 6204,
+              "resource": 54216
+            }
+          }
+        },
+        {
+          "horizon": {
+            "ends_at_s": 820497700,
+            "starts_at_s": 820497625
+          },
+          "scheduled_value": 0,
+          "scheduled_request_ids": [],
+          "unfulfilled": [
+            {
+              "request_id": "first-service-1",
+              "reasons": [
+                "planning_start_grid_infeasible"
+              ]
+            },
+            {
+              "request_id": "first-service-2",
+              "reasons": [
+                "planning_start_grid_infeasible"
+              ]
+            },
+            {
+              "request_id": "second-cooldown-1",
+              "reasons": []
+            },
+            {
+              "request_id": "second-service-1",
+              "reasons": [
+                "no_ephemeris_samples_in_request_window"
+              ]
+            },
+            {
+              "request_id": "second-cooldown-2",
+              "reasons": []
+            },
+            {
+              "request_id": "second-service-2",
+              "reasons": [
+                "no_ephemeris_samples_in_request_window"
+              ]
+            }
+          ],
+          "work": {
+            "total_evaluations": 6040,
+            "max_evaluations": 500000,
+            "budget_exhausted": false,
+            "counts": {
+              "attitude": 832,
+              "endpoint": 0,
+              "path": 684,
+              "resource": 4524
+            }
+          }
+        },
+        {
+          "horizon": {
+            "ends_at_s": 820497700,
+            "starts_at_s": 820497640
+          },
+          "scheduled_value": 0,
+          "scheduled_request_ids": [],
+          "unfulfilled": [
+            {
+              "request_id": "first-service-1",
+              "reasons": [
+                "planning_start_grid_infeasible"
+              ]
+            },
+            {
+              "request_id": "first-service-2",
+              "reasons": [
+                "planning_start_grid_infeasible"
+              ]
+            },
+            {
+              "request_id": "second-cooldown-1",
+              "reasons": []
+            },
+            {
+              "request_id": "second-service-1",
+              "reasons": [
+                "no_ephemeris_samples_in_request_window"
+              ]
+            },
+            {
+              "request_id": "second-cooldown-2",
+              "reasons": []
+            },
+            {
+              "request_id": "second-service-2",
+              "reasons": [
+                "no_ephemeris_samples_in_request_window"
+              ]
+            }
+          ],
+          "work": {
+            "total_evaluations": 5020,
+            "max_evaluations": 500000,
+            "budget_exhausted": false,
+            "counts": {
+              "attitude": 832,
+              "endpoint": 0,
+              "path": 564,
+              "resource": 3624
+            }
+          }
+        },
+        {
+          "horizon": {
+            "ends_at_s": 820497700,
+            "starts_at_s": 820497660
+          },
+          "scheduled_value": 0,
+          "scheduled_request_ids": [],
+          "unfulfilled": [
+            {
+              "request_id": "first-service-1",
+              "reasons": [
+                "no_command_delivery_opportunity"
+              ]
+            },
+            {
+              "request_id": "first-service-2",
+              "reasons": [
+                "no_command_delivery_opportunity"
+              ]
+            },
+            {
+              "request_id": "second-cooldown-1",
+              "reasons": []
+            },
+            {
+              "request_id": "second-service-1",
+              "reasons": [
+                "no_ephemeris_samples_in_request_window"
+              ]
+            },
+            {
+              "request_id": "second-cooldown-2",
+              "reasons": []
+            },
+            {
+              "request_id": "second-service-2",
+              "reasons": [
+                "no_ephemeris_samples_in_request_window"
+              ]
+            }
+          ],
+          "work": {
+            "total_evaluations": 1534,
+            "max_evaluations": 500000,
+            "budget_exhausted": false,
+            "counts": {
+              "attitude": 0,
+              "endpoint": 0,
+              "path": 322,
+              "resource": 1212
+            }
+          }
+        },
+        {
+          "horizon": {
+            "ends_at_s": 820497700,
+            "starts_at_s": 820497675
+          },
+          "scheduled_value": 0,
+          "scheduled_request_ids": [],
+          "unfulfilled": [
+            {
+              "request_id": "second-cooldown-1",
+              "reasons": []
+            },
+            {
+              "request_id": "second-service-1",
+              "reasons": [
+                "no_ephemeris_samples_in_request_window"
+              ]
+            },
+            {
+              "request_id": "second-cooldown-2",
+              "reasons": []
+            },
+            {
+              "request_id": "second-service-2",
+              "reasons": [
+                "no_ephemeris_samples_in_request_window"
+              ]
+            }
+          ],
+          "work": {
+            "total_evaluations": 964,
+            "max_evaluations": 500000,
+            "budget_exhausted": false,
+            "counts": {
+              "attitude": 0,
+              "endpoint": 0,
+              "path": 202,
+              "resource": 762
+            }
+          }
+        },
+        {
+          "horizon": {
+            "ends_at_s": 820497800.0,
+            "starts_at_s": 820497690
+          },
+          "scheduled_value": 0,
+          "scheduled_request_ids": [],
+          "unfulfilled": [
+            {
+              "request_id": "second-cooldown-1",
+              "reasons": []
+            },
+            {
+              "request_id": "second-service-1",
+              "reasons": [
+                "planning_start_grid_infeasible"
+              ]
+            },
+            {
+              "request_id": "second-cooldown-2",
+              "reasons": []
+            },
+            {
+              "request_id": "second-service-2",
+              "reasons": [
+                "planning_start_grid_infeasible"
+              ]
+            }
+          ],
+          "work": {
+            "total_evaluations": 78828,
+            "max_evaluations": 500000,
+            "budget_exhausted": false,
+            "counts": {
+              "attitude": 12432,
+              "endpoint": 16,
+              "path": 6764,
+              "resource": 59616
+            }
+          }
+        },
+        {
+          "horizon": {
+            "ends_at_s": 820497800.0,
+            "starts_at_s": 820497705
+          },
+          "scheduled_value": 0,
+          "scheduled_request_ids": [],
+          "unfulfilled": [
+            {
+              "request_id": "second-service-1",
+              "reasons": [
+                "planning_start_grid_infeasible"
+              ]
+            },
+            {
+              "request_id": "second-service-2",
+              "reasons": [
+                "planning_start_grid_infeasible"
+              ]
+            }
+          ],
+          "work": {
+            "total_evaluations": 7400,
+            "max_evaluations": 500000,
+            "budget_exhausted": false,
+            "counts": {
+              "attitude": 832,
+              "endpoint": 0,
+              "path": 844,
+              "resource": 5724
+            }
+          }
+        },
+        {
+          "horizon": {
+            "ends_at_s": 820497800.0,
+            "starts_at_s": 820497720
+          },
+          "scheduled_value": 0,
+          "scheduled_request_ids": [],
+          "unfulfilled": [
+            {
+              "request_id": "second-service-1",
+              "reasons": [
+                "planning_start_grid_infeasible"
+              ]
+            },
+            {
+              "request_id": "second-service-2",
+              "reasons": [
+                "planning_start_grid_infeasible"
+              ]
+            }
+          ],
+          "work": {
+            "total_evaluations": 6380,
+            "max_evaluations": 500000,
+            "budget_exhausted": false,
+            "counts": {
+              "attitude": 832,
+              "endpoint": 0,
+              "path": 724,
+              "resource": 4824
+            }
+          }
+        },
+        {
+          "horizon": {
+            "ends_at_s": 820497800.0,
+            "starts_at_s": 820497738
+          },
+          "scheduled_value": 0,
+          "scheduled_request_ids": [],
+          "unfulfilled": [
+            {
+              "request_id": "second-service-1",
+              "reasons": [
+                "no_command_delivery_opportunity"
+              ]
+            },
+            {
+              "request_id": "second-service-2",
+              "reasons": [
+                "no_command_delivery_opportunity"
+              ]
+            }
+          ],
+          "work": {
+            "total_evaluations": 2370,
+            "max_evaluations": 500000,
+            "budget_exhausted": false,
+            "counts": {
+              "attitude": 0,
+              "endpoint": 0,
+              "path": 498,
+              "resource": 1872
+            }
+          }
+        },
+        {
+          "horizon": {
+            "ends_at_s": 820497800.0,
+            "starts_at_s": 820497745
+          },
+          "scheduled_value": 0,
+          "scheduled_request_ids": [],
+          "unfulfilled": [],
+          "work": {
+            "total_evaluations": 2104,
+            "max_evaluations": 500000,
+            "budget_exhausted": false,
+            "counts": {
+              "attitude": 0,
+              "endpoint": 0,
+              "path": 442,
+              "resource": 1662
+            }
+          }
+        },
+        {
+          "horizon": {
+            "ends_at_s": 820497800.0,
+            "starts_at_s": 820497780
+          },
+          "scheduled_value": 0,
+          "scheduled_request_ids": [],
+          "unfulfilled": [],
+          "work": {
+            "total_evaluations": 774,
+            "max_evaluations": 500000,
+            "budget_exhausted": false,
+            "counts": {
+              "attitude": 0,
+              "endpoint": 0,
+              "path": 162,
+              "resource": 612
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "reflect_work_cap",
+      "scenario": "reflect_like_work_cap_operations.json",
+      "asset_count": 3,
+      "cycle_count": 1,
+      "run_status": "stopped_for_review",
+      "native_verification": "passed",
+      "independent_validation": "partial",
+      "independent_issue_counts": {
+        "stopped_operations": 1,
+        "wheel_dynamics_unsupported": 6
+      },
+      "completed_service_count": 0,
+      "completed_service_value": 0,
+      "simulated_completed_service_count": 3,
+      "simulated_completed_service_value": 84.0,
+      "completed_maintenance_count": 0,
+      "completed_maintenance_duration_s": 0,
+      "expired_request_count": 0,
+      "allocated_contact_count": 6,
+      "allocated_contact_duration_s": 24.0,
+      "simulated_receipt_count": 3,
+      "planning_callback_total": 10808,
+      "observed_elapsed_ms": 5618.195,
+      "remaining_static_budgets": {
+        "demo-1": {
+          "service_tokens": 2
+        },
+        "demo-2": {
+          "service_tokens": 2
+        },
+        "demo-3": {
+          "service_tokens": 2
+        }
+      },
+      "minimum_forecast_margins_across_accepted_plans": {
+        "demo-1/battery/battery_energy_supply": {
+          "margin": 8.0,
+          "margin_unit": "Wh"
+        },
+        "demo-1/battery/battery_reserve": {
+          "margin": 6.0,
+          "margin_unit": "Wh"
+        },
+        "demo-1/node/thermal_cold_limit": {
+          "margin": 15,
+          "margin_unit": "K"
+        },
+        "demo-1/node/thermal_hot_limit": {
+          "margin": 24.620758987678812,
+          "margin_unit": "K"
+        },
+        "demo-1/wheels/wheel_1_momentum": {
+          "margin": 999.4028179594711,
+          "margin_unit": "Nms"
+        },
+        "demo-1/wheels/wheel_1_motor_torque": {
+          "margin": 9.876777026325275,
+          "margin_unit": "Nm"
+        },
+        "demo-1/wheels/wheel_2_momentum": {
+          "margin": 998.53595442806,
+          "margin_unit": "Nms"
+        },
+        "demo-1/wheels/wheel_2_motor_torque": {
+          "margin": 9.85694586496509,
+          "margin_unit": "Nm"
+        },
+        "demo-1/wheels/wheel_3_momentum": {
+          "margin": 999.0630576316854,
+          "margin_unit": "Nms"
+        },
+        "demo-1/wheels/wheel_3_motor_torque": {
+          "margin": 9.903881160348845,
+          "margin_unit": "Nm"
+        },
+        "demo-2/battery/battery_energy_supply": {
+          "margin": 8.0,
+          "margin_unit": "Wh"
+        },
+        "demo-2/battery/battery_reserve": {
+          "margin": 6.0,
+          "margin_unit": "Wh"
+        },
+        "demo-2/node/thermal_cold_limit": {
+          "margin": 15,
+          "margin_unit": "K"
+        },
+        "demo-2/node/thermal_hot_limit": {
+          "margin": 24.620758987678812,
+          "margin_unit": "K"
+        },
+        "demo-2/wheels/wheel_1_momentum": {
+          "margin": 999.4379405085344,
+          "margin_unit": "Nms"
+        },
+        "demo-2/wheels/wheel_1_motor_torque": {
+          "margin": 9.885897486912471,
+          "margin_unit": "Nm"
+        },
+        "demo-2/wheels/wheel_2_momentum": {
+          "margin": 998.4468822664613,
+          "margin_unit": "Nms"
+        },
+        "demo-2/wheels/wheel_2_motor_torque": {
+          "margin": 9.847961192533798,
+          "margin_unit": "Nm"
+        },
+        "demo-2/wheels/wheel_3_momentum": {
+          "margin": 999.1916024984591,
+          "margin_unit": "Nms"
+        },
+        "demo-2/wheels/wheel_3_motor_torque": {
+          "margin": 9.916469494052308,
+          "margin_unit": "Nm"
+        },
+        "demo-3/battery/battery_energy_supply": {
+          "margin": 8.0,
+          "margin_unit": "Wh"
+        },
+        "demo-3/battery/battery_reserve": {
+          "margin": 6.0,
+          "margin_unit": "Wh"
+        },
+        "demo-3/node/thermal_cold_limit": {
+          "margin": 15,
+          "margin_unit": "K"
+        },
+        "demo-3/node/thermal_hot_limit": {
+          "margin": 24.620758987678812,
+          "margin_unit": "K"
+        },
+        "demo-3/wheels/wheel_1_momentum": {
+          "margin": 999.4984575513902,
+          "margin_unit": "Nms"
+        },
+        "demo-3/wheels/wheel_1_motor_torque": {
+          "margin": 9.903137807029955,
+          "margin_unit": "Nm"
+        },
+        "demo-3/wheels/wheel_2_momentum": {
+          "margin": 998.3492241036676,
+          "margin_unit": "Nms"
+        },
+        "demo-3/wheels/wheel_2_motor_torque": {
+          "margin": 9.838143345381742,
+          "margin_unit": "Nm"
+        },
+        "demo-3/wheels/wheel_3_momentum": {
+          "margin": 999.3856763283205,
+          "margin_unit": "Nms"
+        },
+        "demo-3/wheels/wheel_3_motor_torque": {
+          "margin": 9.936136970292267,
+          "margin_unit": "Nm"
+        }
+      },
+      "rejected_steps": [
+        {
+          "id": "extend_with_payload_outage",
+          "planning_failure_category": "evaluation_budget_exhausted",
+          "status": "planning_failed",
+          "work": {
+            "budget_exhausted": true,
+            "counts": {
+              "attitude": 106,
+              "endpoint": 0,
+              "path": 894,
+              "resource": 0
+            },
+            "max_evaluations": 1000,
+            "scope": "uncached attitude, resource-step and path-rule callbacks during service trials; endpoint callbacks are separately counted; opportunity generation, propagation and model preparation excluded",
+            "total_evaluations": 1000,
+            "trials": [
+              {
+                "counts": {
+                  "attitude": 106,
+                  "endpoint": 0,
+                  "path": 894,
+                  "resource": 0
+                },
+                "failure": ":planning_work_budget_exhausted",
+                "opportunity_ids": [
+                  "opportunity:6:demo-2:6:late-2:1",
+                  "opportunity:6:demo-3:6:late-3:1"
+                ],
+                "outcome": "failed",
+                "reservations": [],
+                "total_evaluations_after": 1000,
+                "trial": 1
+              }
+            ]
+          }
+        }
+      ],
+      "plans": [
+        {
+          "horizon": {
+            "ends_at_s": 820497900,
+            "starts_at_s": 820497600
+          },
+          "scheduled_value": 84.0,
+          "scheduled_request_ids": [
+            "early-2",
+            "early-3",
+            "early-1"
+          ],
+          "unfulfilled": [
+            {
+              "request_id": "late-1",
+              "reasons": [
+                "planning_start_grid_infeasible"
+              ]
+            },
+            {
+              "request_id": "late-2",
+              "reasons": [
+                "planning_start_grid_infeasible"
+              ]
+            },
+            {
+              "request_id": "late-3",
+              "reasons": [
+                "planning_start_grid_infeasible"
+              ]
+            }
+          ],
+          "work": {
+            "total_evaluations": 9808,
+            "max_evaluations": 200000,
+            "budget_exhausted": false,
+            "counts": {
+              "attitude": 328,
+              "endpoint": 6,
+              "path": 2826,
+              "resource": 6648
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "fast_suite": {
+    "passed": 5445,
+    "excluded": 1148,
+    "seconds": 275.2
+  },
+  "final_focused_tests_passed": 11,
+  "limits": [
+    "invented spacecraft/communications/thermal parameters; no company design validation",
+    "finite sampled feasibility and bounded search; no optimality guarantee",
+    "no command execution, authentic telemetry or flight readiness claim",
+    "work counts exclude trajectory preparation, opportunity discovery and independent checking; elapsed times are observations"
+  ]
+}

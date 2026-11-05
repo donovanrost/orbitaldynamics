@@ -1,0 +1,695 @@
+{
+  "acceptance_case_changes": {
+    "automatic": {},
+    "baseline_only": {
+      "scheduling.maintenance.max_trials": 1
+    },
+    "too_costly": {
+      "path_constraints.assets.demo-3.modes.desaturate.power_load_w": 2000
+    },
+    "unavailable": {
+      "planner.service_unavailable_asset_ids": [
+        "demo-3"
+      ]
+    }
+  },
+  "acceptance_cases": [
+    {
+      "activities": [
+        {
+          "automatic_maintenance": true,
+          "ends_at_s": 820497640.0,
+          "request_id": "unload",
+          "resource_costs": {
+            "unload_tokens": 1.0
+          },
+          "starts_at_s": 820497620.0
+        },
+        {
+          "ends_at_s": 820497680.0,
+          "request_id": "service",
+          "resource_costs": {
+            "service_tokens": 1.0
+          },
+          "starts_at_s": 820497670.0
+        }
+      ],
+      "id": "automatic",
+      "maintenance_search": {
+        "candidate_count": 5,
+        "candidate_generation_truncated": false,
+        "configuration": {
+          "candidate_step_s": 5,
+          "max_candidates": 16,
+          "max_insertions": 1,
+          "max_trials": 16,
+          "request_ids": [
+            "unload"
+          ]
+        },
+        "selected_reservations": [
+          {
+            "asset_id": "demo-3",
+            "ends_at_s": 820497640.0,
+            "request_id": "unload",
+            "starts_at_s": 820497620.0
+          }
+        ],
+        "status": "candidate_sets_exhausted",
+        "trial_count": 6,
+        "trials": [
+          {
+            "accepted": false,
+            "enabled_service_request_ids": [],
+            "failure": null,
+            "maintenance_costs": [],
+            "planning_status": "violated",
+            "reason": "unsupported_candidate",
+            "reservations": [],
+            "service_request_ids": [],
+            "service_value": 0,
+            "trial": 1
+          },
+          {
+            "accepted": true,
+            "enabled_service_request_ids": [
+              "service"
+            ],
+            "failure": null,
+            "maintenance_costs": [
+              {
+                "asset_id": "demo-3",
+                "ends_at_s": 820497640.0,
+                "request_id": "unload",
+                "resource_costs": {
+                  "unload_tokens": 1.0
+                },
+                "starts_at_s": 820497620.0
+              }
+            ],
+            "planning_status": "supported",
+            "reason": "feasibility_restored",
+            "reservations": [
+              {
+                "asset_id": "demo-3",
+                "ends_at_s": 820497640.0,
+                "request_id": "unload",
+                "starts_at_s": 820497620.0
+              }
+            ],
+            "service_request_ids": [
+              "service"
+            ],
+            "service_value": 10.0,
+            "trial": 2
+          },
+          {
+            "accepted": false,
+            "enabled_service_request_ids": [],
+            "failure": null,
+            "maintenance_costs": [
+              {
+                "asset_id": "demo-3",
+                "ends_at_s": 820497645.0,
+                "request_id": "unload",
+                "resource_costs": {
+                  "unload_tokens": 1.0
+                },
+                "starts_at_s": 820497625.0
+              }
+            ],
+            "planning_status": "supported",
+            "reason": "no_service_value_improvement",
+            "reservations": [
+              {
+                "asset_id": "demo-3",
+                "ends_at_s": 820497645.0,
+                "request_id": "unload",
+                "starts_at_s": 820497625.0
+              }
+            ],
+            "service_request_ids": [
+              "service"
+            ],
+            "service_value": 10.0,
+            "trial": 3
+          },
+          {
+            "accepted": false,
+            "enabled_service_request_ids": [],
+            "failure": null,
+            "maintenance_costs": [
+              {
+                "asset_id": "demo-3",
+                "ends_at_s": 820497650.0,
+                "request_id": "unload",
+                "resource_costs": {
+                  "unload_tokens": 1.0
+                },
+                "starts_at_s": 820497630.0
+              }
+            ],
+            "planning_status": "supported",
+            "reason": "no_service_value_improvement",
+            "reservations": [
+              {
+                "asset_id": "demo-3",
+                "ends_at_s": 820497650.0,
+                "request_id": "unload",
+                "starts_at_s": 820497630.0
+              }
+            ],
+            "service_request_ids": [
+              "service"
+            ],
+            "service_value": 10.0,
+            "trial": 4
+          },
+          {
+            "accepted": false,
+            "enabled_service_request_ids": [],
+            "failure": null,
+            "maintenance_costs": [
+              {
+                "asset_id": "demo-3",
+                "ends_at_s": 820497655.0,
+                "request_id": "unload",
+                "resource_costs": {
+                  "unload_tokens": 1.0
+                },
+                "starts_at_s": 820497635.0
+              }
+            ],
+            "planning_status": "supported",
+            "reason": "no_service_value_improvement",
+            "reservations": [
+              {
+                "asset_id": "demo-3",
+                "ends_at_s": 820497655.0,
+                "request_id": "unload",
+                "starts_at_s": 820497635.0
+              }
+            ],
+            "service_request_ids": [
+              "service"
+            ],
+            "service_value": 10.0,
+            "trial": 5
+          },
+          {
+            "accepted": false,
+            "enabled_service_request_ids": [],
+            "failure": null,
+            "maintenance_costs": [
+              {
+                "asset_id": "demo-3",
+                "ends_at_s": 820497660.0,
+                "request_id": "unload",
+                "resource_costs": {
+                  "unload_tokens": 1.0
+                },
+                "starts_at_s": 820497640.0
+              }
+            ],
+            "planning_status": "supported",
+            "reason": "no_service_value_improvement",
+            "reservations": [
+              {
+                "asset_id": "demo-3",
+                "ends_at_s": 820497660.0,
+                "request_id": "unload",
+                "starts_at_s": 820497640.0
+              }
+            ],
+            "service_request_ids": [
+              "service"
+            ],
+            "service_value": 10.0,
+            "trial": 6
+          }
+        ]
+      },
+      "planning_status": "supported"
+    },
+    {
+      "activities": [],
+      "id": "baseline_only",
+      "maintenance_search": {
+        "candidate_count": 5,
+        "candidate_generation_truncated": false,
+        "configuration": {
+          "candidate_step_s": 5,
+          "max_candidates": 16,
+          "max_insertions": 1,
+          "max_trials": 1,
+          "request_ids": [
+            "unload"
+          ]
+        },
+        "selected_reservations": [],
+        "status": "trial_limit_reached",
+        "trial_count": 1,
+        "trials": [
+          {
+            "accepted": false,
+            "enabled_service_request_ids": [],
+            "failure": null,
+            "maintenance_costs": [],
+            "planning_status": "violated",
+            "reason": "unsupported_candidate",
+            "reservations": [],
+            "service_request_ids": [],
+            "service_value": 0,
+            "trial": 1
+          }
+        ]
+      },
+      "planning_status": "violated"
+    },
+    {
+      "activities": [],
+      "id": "too_costly",
+      "maintenance_search": {
+        "candidate_count": 5,
+        "candidate_generation_truncated": false,
+        "configuration": {
+          "candidate_step_s": 5,
+          "max_candidates": 16,
+          "max_insertions": 1,
+          "max_trials": 16,
+          "request_ids": [
+            "unload"
+          ]
+        },
+        "selected_reservations": [],
+        "status": "candidate_sets_exhausted",
+        "trial_count": 6,
+        "trials": [
+          {
+            "accepted": false,
+            "enabled_service_request_ids": [],
+            "failure": null,
+            "maintenance_costs": [],
+            "planning_status": "violated",
+            "reason": "unsupported_candidate",
+            "reservations": [],
+            "service_request_ids": [],
+            "service_value": 0,
+            "trial": 1
+          },
+          {
+            "accepted": false,
+            "enabled_service_request_ids": [],
+            "failure": "{:protected_resources_unsupported, \"demo-3\", %{\"models\" => [%{\"assumptions\" => %{\"capacity_wh\" => 10, \"charge_efficiency\" => 1, \"contact_search\" => :null, \"discharge_efficiency\" => 1, \"generation\" => %{\"kind\" => \"constant\", \"power_w\" => 0}, \"generation_assumptions\" => %{\"configuration\" => %{\"kind\" => \"constant\", \"power_w\" => 0}, \"limits\" => [\"no inferred solar exposure or physical source validation\"], \"model\" => \"declared_bus_power\"}, \"generation_provider\" => \"Elixir.OrbitalDynamics.MissionAnalysis.Resource.Generation.Declared\", \"generation_scope\" => \"bus-side source power from the captured generation provider\", \"initial_wh\" => 10, \"integration\" => \"frozen midpoint source power per interval, with declared source boundaries; geometric crossings may remain between samples\", \"mode_load_field\" => \"power_load_w\", \"model\" => \"ideal_energy_balance_v1\", \"phase_load_w\" => %{\"activity\" => 0, \"brake\" => 0, \"hold\" => 0, \"ramp_to_tracking\" => 0, \"settle\" => 0, \"slew_accelerate\" => 0, \"slew_cruise\" => 0, \"slew_decelerate\" => 0}, \"reserve_wh\" => 2, \"state_units\" => %{\"curtailed_wh\" => \"bus-side Wh\", \"energy_wh\" => \"battery-side Wh\", \"unserved_wh\" => \"bus-side Wh\"}}, \"id\" => \"battery\", \"levels\" => [%{\"evaluated_through_s\" => 820497700, \"final_state\" => %{\"curtailed_wh\" => 0.0, \"energy_wh\" => 0.0, \"unserved_wh\" => 1.1111111111111085}, \"first_issue\" => %{\"checks\" => [%{\"id\" => \"battery_reserve\", \"margin\" => -0.3333333333333306, \"margin_unit\" => \"Wh\", \"status\" => \"violated\"}, %{\"id\" => \"battery_energy_supply\", \"margin\" => 1.6666666666666694, \"margin_unit\" => \"Wh\", \"status\" => \"supported\"}], \"ends_at_s\" => 820497635.0, \"evaluated_at_s\" => 820497634.5, \"metrics\" => %{\"battery_power_w\" => -2000.0, \"generation_evidence\" => %{\"model\" => \"declared_bus_power\"}, \"generation_w\" => 0, \"load_w\" => 2000, \"reserve_crossing_offset_s\" => 0.400000000000005}, \"mode\" => %{\"name\" => \"desaturate\", \"parameters\" => %{\"momentum_unloading\" => true, \"optical_behavior\" => \"stowed\", \"power_load_w\" => 2000}}, \"phase\" => \"activity\", \"scope\" => \"activity:unload\", \"starts_at_s\" => 820497634.0}, \"initial_state\" => %{\"curtailed_wh\" => 0.0, \"energy_wh\" => 10, \"unserved_wh\" => 0.0}, \"maximum_requested_interval_s\" => 1.0, \"minimum_margins\" => %{\"battery_energy_supply\" => %{\"margin\" => -0.5555555555555556, \"margin_unit\" => \"Wh\"}, \"battery_reserve\" => %{\"margin\" => -2.0, \"margin_unit\" => \"Wh\"}}, \"propagated_interval_count\" => 100, \"requested_interval_count\" => 100, \"sample_step_s\" => 1.0, \"state_extrema\" => %{\"curtailed_wh\" => %{\"max\" => 0.0, \"min\" => 0.0}, \"energy_wh\" => %{\"max\" => 10, \"min\" => 0.0}, \"unserved_wh\" => %{\"max\" => 1.1111111111111085, \"min\" => 0.0}}, \"status\" => \"violated\", \"uncovered_intervals\" => []}, %{\"evaluated_through_s\" => 820497700, \"final_state\" => %{\"curtailed_wh\" => 0.0, \"energy_wh\" => 0.0, \"unserved_wh\" => 1.1111111111111267}, \"first_issue\" => %{\"checks\" => [%{\"id\" => \"battery_reserve\", \"margin\" => -0.05555555555557179, \"margin_unit\" => \"Wh\", \"status\" => \"violated\"}, %{\"id\" => \"battery_energy_supply\", \"margin\" => 1.9444444444444282, \"margin_unit\" => \"Wh\", \"status\" => \"supported\"}], \"ends_at_s\" => 820497634.5, \"evaluated_at_s\" => 820497634.375, \"metrics\" => %{\"battery_power_w\" => -2000.0, \"generation_evidence\" => %{\"model\" => \"declared_bus_power\"}, \"generation_w\" => 0, \"load_w\" => 2000, \"reserve_crossing_offset_s\" => 0.14999999999997068}, \"mode\" => %{\"name\" => \"desaturate\", \"parameters\" => %{\"momentum_unloading\" => true, \"optical_behavior\" => \"stowed\", \"power_load_w\" => 2000}}, \"phase\" => \"activity\", \"scope\" => \"activity:unload\", \"starts_at_s\" => 820497634.25}, \"initial_state\" => %{\"curtailed_wh\" => 0.0, \"energy_wh\" => 10, \"unserved_wh\" => 0.0}, \"maximum_requested_interval_s\" => 0.25, \"minimum_margins\" => %{\"battery_energy_supply\" => %{\"margin\" => -0.1388888888888889, \"margin_unit\" => \"Wh\"}, \"battery_reserve\" => %{\"margin\" => -2.0, \"margin_unit\" => \"Wh\"}}, \"propagated_interval_count\" => 400, \"requested_interval_count\" => 400, \"sample_step_s\" => 0.25, \"state_extrema\" => %{\"curtailed_wh\" => %{\"max\" => 0.0, \"min\" => 0.0}, \"energy_wh\" => %{\"max\" => 10, \"min\" => 0.0}, \"unserved_wh\" => %{\"max\" => 1.1111111111111267, \"min\" => 0.0}}, \"status\" => \"violated\", \"uncovered_intervals\" => []}], \"resolution_status\" => \"agrees_across_tested_steps\", \"state_comparison\" => %{\"final_state_range\" => %{\"curtailed_wh\" => %{\"max\" => 0.0, \"min\" => 0.0, \"spread\" => 0.0}, \"energy_wh\" => %{\"max\" => 0.0, \"min\" => 0.0, \"spread\" => 0.0}, \"unserved_wh\" => %{\"max\" => 1.1111111111111267, \"min\" => 1.1111111111111085, \"spread\" => 1.8207657603852567e-14}}, \"limits\" => \"ranges across tested cadences only, not physical error bounds or convergence proof\", \"minimum_state_range\" => %{\"curtailed_wh\" => %{\"max\" => 0.0, \"min\" => 0.0, \"spread\" => 0.0}, \"energy_wh\" => %{\"max\" => 0.0, \"min\" => 0.0, \"spread\" => 0.0}, \"unserved_wh\" => %{\"max\" => 0.0, \"min\" => 0.0, \"spread\" => 0.0}}, \"status\" => \"complete\"}, \"status\" => \"violated\"}, %{...}], ...}}",
+            "maintenance_costs": [],
+            "planning_status": "rejected",
+            "reason": "reservation_or_physical_check_rejected",
+            "reservations": [
+              {
+                "asset_id": "demo-3",
+                "ends_at_s": 820497640.0,
+                "request_id": "unload",
+                "starts_at_s": 820497620.0
+              }
+            ],
+            "service_request_ids": [],
+            "service_value": 0,
+            "trial": 2
+          },
+          {
+            "accepted": false,
+            "enabled_service_request_ids": [],
+            "failure": "{:protected_resources_unsupported, \"demo-3\", %{\"models\" => [%{\"assumptions\" => %{\"capacity_wh\" => 10, \"charge_efficiency\" => 1, \"contact_search\" => :null, \"discharge_efficiency\" => 1, \"generation\" => %{\"kind\" => \"constant\", \"power_w\" => 0}, \"generation_assumptions\" => %{\"configuration\" => %{\"kind\" => \"constant\", \"power_w\" => 0}, \"limits\" => [\"no inferred solar exposure or physical source validation\"], \"model\" => \"declared_bus_power\"}, \"generation_provider\" => \"Elixir.OrbitalDynamics.MissionAnalysis.Resource.Generation.Declared\", \"generation_scope\" => \"bus-side source power from the captured generation provider\", \"initial_wh\" => 10, \"integration\" => \"frozen midpoint source power per interval, with declared source boundaries; geometric crossings may remain between samples\", \"mode_load_field\" => \"power_load_w\", \"model\" => \"ideal_energy_balance_v1\", \"phase_load_w\" => %{\"activity\" => 0, \"brake\" => 0, \"hold\" => 0, \"ramp_to_tracking\" => 0, \"settle\" => 0, \"slew_accelerate\" => 0, \"slew_cruise\" => 0, \"slew_decelerate\" => 0}, \"reserve_wh\" => 2, \"state_units\" => %{\"curtailed_wh\" => \"bus-side Wh\", \"energy_wh\" => \"battery-side Wh\", \"unserved_wh\" => \"bus-side Wh\"}}, \"id\" => \"battery\", \"levels\" => [%{\"evaluated_through_s\" => 820497700, \"final_state\" => %{\"curtailed_wh\" => 0.0, \"energy_wh\" => 0.0, \"unserved_wh\" => 1.1111111111111085}, \"first_issue\" => %{\"checks\" => [%{\"id\" => \"battery_reserve\", \"margin\" => -0.3333333333333306, \"margin_unit\" => \"Wh\", \"status\" => \"violated\"}, %{\"id\" => \"battery_energy_supply\", \"margin\" => 1.6666666666666694, \"margin_unit\" => \"Wh\", \"status\" => \"supported\"}], \"ends_at_s\" => 820497640.0, \"evaluated_at_s\" => 820497639.5, \"metrics\" => %{\"battery_power_w\" => -2000.0, \"generation_evidence\" => %{\"model\" => \"declared_bus_power\"}, \"generation_w\" => 0, \"load_w\" => 2000, \"reserve_crossing_offset_s\" => 0.400000000000005}, \"mode\" => %{\"name\" => \"desaturate\", \"parameters\" => %{\"momentum_unloading\" => true, \"optical_behavior\" => \"stowed\", \"power_load_w\" => 2000}}, \"phase\" => \"activity\", \"scope\" => \"activity:unload\", \"starts_at_s\" => 820497639.0}, \"initial_state\" => %{\"curtailed_wh\" => 0.0, \"energy_wh\" => 10, \"unserved_wh\" => 0.0}, \"maximum_requested_interval_s\" => 1.0, \"minimum_margins\" => %{\"battery_energy_supply\" => %{\"margin\" => -0.5555555555555556, \"margin_unit\" => \"Wh\"}, \"battery_reserve\" => %{\"margin\" => -2.0, \"margin_unit\" => \"Wh\"}}, \"propagated_interval_count\" => 100, \"requested_interval_count\" => 100, \"sample_step_s\" => 1.0, \"state_extrema\" => %{\"curtailed_wh\" => %{\"max\" => 0.0, \"min\" => 0.0}, \"energy_wh\" => %{\"max\" => 10, \"min\" => 0.0}, \"unserved_wh\" => %{\"max\" => 1.1111111111111085, \"min\" => 0.0}}, \"status\" => \"violated\", \"uncovered_intervals\" => []}, %{\"evaluated_through_s\" => 820497700, \"final_state\" => %{\"curtailed_wh\" => 0.0, \"energy_wh\" => 0.0, \"unserved_wh\" => 1.1111111111111267}, \"first_issue\" => %{\"checks\" => [%{\"id\" => \"battery_reserve\", \"margin\" => -0.05555555555557179, \"margin_unit\" => \"Wh\", \"status\" => \"violated\"}, %{\"id\" => \"battery_energy_supply\", \"margin\" => 1.9444444444444282, \"margin_unit\" => \"Wh\", \"status\" => \"supported\"}], \"ends_at_s\" => 820497639.5, \"evaluated_at_s\" => 820497639.375, \"metrics\" => %{\"battery_power_w\" => -2000.0, \"generation_evidence\" => %{\"model\" => \"declared_bus_power\"}, \"generation_w\" => 0, \"load_w\" => 2000, \"reserve_crossing_offset_s\" => 0.14999999999997068}, \"mode\" => %{\"name\" => \"desaturate\", \"parameters\" => %{\"momentum_unloading\" => true, \"optical_behavior\" => \"stowed\", \"power_load_w\" => 2000}}, \"phase\" => \"activity\", \"scope\" => \"activity:unload\", \"starts_at_s\" => 820497639.25}, \"initial_state\" => %{\"curtailed_wh\" => 0.0, \"energy_wh\" => 10, \"unserved_wh\" => 0.0}, \"maximum_requested_interval_s\" => 0.25, \"minimum_margins\" => %{\"battery_energy_supply\" => %{\"margin\" => -0.1388888888888889, \"margin_unit\" => \"Wh\"}, \"battery_reserve\" => %{\"margin\" => -2.0, \"margin_unit\" => \"Wh\"}}, \"propagated_interval_count\" => 400, \"requested_interval_count\" => 400, \"sample_step_s\" => 0.25, \"state_extrema\" => %{\"curtailed_wh\" => %{\"max\" => 0.0, \"min\" => 0.0}, \"energy_wh\" => %{\"max\" => 10, \"min\" => 0.0}, \"unserved_wh\" => %{\"max\" => 1.1111111111111267, \"min\" => 0.0}}, \"status\" => \"violated\", \"uncovered_intervals\" => []}], \"resolution_status\" => \"agrees_across_tested_steps\", \"state_comparison\" => %{\"final_state_range\" => %{\"curtailed_wh\" => %{\"max\" => 0.0, \"min\" => 0.0, \"spread\" => 0.0}, \"energy_wh\" => %{\"max\" => 0.0, \"min\" => 0.0, \"spread\" => 0.0}, \"unserved_wh\" => %{\"max\" => 1.1111111111111267, \"min\" => 1.1111111111111085, \"spread\" => 1.8207657603852567e-14}}, \"limits\" => \"ranges across tested cadences only, not physical error bounds or convergence proof\", \"minimum_state_range\" => %{\"curtailed_wh\" => %{\"max\" => 0.0, \"min\" => 0.0, \"spread\" => 0.0}, \"energy_wh\" => %{\"max\" => 0.0, \"min\" => 0.0, \"spread\" => 0.0}, \"unserved_wh\" => %{\"max\" => 0.0, \"min\" => 0.0, \"spread\" => 0.0}}, \"status\" => \"complete\"}, \"status\" => \"violated\"}, %{...}], ...}}",
+            "maintenance_costs": [],
+            "planning_status": "rejected",
+            "reason": "reservation_or_physical_check_rejected",
+            "reservations": [
+              {
+                "asset_id": "demo-3",
+                "ends_at_s": 820497645.0,
+                "request_id": "unload",
+                "starts_at_s": 820497625.0
+              }
+            ],
+            "service_request_ids": [],
+            "service_value": 0,
+            "trial": 3
+          },
+          {
+            "accepted": false,
+            "enabled_service_request_ids": [],
+            "failure": "{:protected_resources_unsupported, \"demo-3\", %{\"models\" => [%{\"assumptions\" => %{\"capacity_wh\" => 10, \"charge_efficiency\" => 1, \"contact_search\" => :null, \"discharge_efficiency\" => 1, \"generation\" => %{\"kind\" => \"constant\", \"power_w\" => 0}, \"generation_assumptions\" => %{\"configuration\" => %{\"kind\" => \"constant\", \"power_w\" => 0}, \"limits\" => [\"no inferred solar exposure or physical source validation\"], \"model\" => \"declared_bus_power\"}, \"generation_provider\" => \"Elixir.OrbitalDynamics.MissionAnalysis.Resource.Generation.Declared\", \"generation_scope\" => \"bus-side source power from the captured generation provider\", \"initial_wh\" => 10, \"integration\" => \"frozen midpoint source power per interval, with declared source boundaries; geometric crossings may remain between samples\", \"mode_load_field\" => \"power_load_w\", \"model\" => \"ideal_energy_balance_v1\", \"phase_load_w\" => %{\"activity\" => 0, \"brake\" => 0, \"hold\" => 0, \"ramp_to_tracking\" => 0, \"settle\" => 0, \"slew_accelerate\" => 0, \"slew_cruise\" => 0, \"slew_decelerate\" => 0}, \"reserve_wh\" => 2, \"state_units\" => %{\"curtailed_wh\" => \"bus-side Wh\", \"energy_wh\" => \"battery-side Wh\", \"unserved_wh\" => \"bus-side Wh\"}}, \"id\" => \"battery\", \"levels\" => [%{\"evaluated_through_s\" => 820497700, \"final_state\" => %{\"curtailed_wh\" => 0.0, \"energy_wh\" => 0.0, \"unserved_wh\" => 1.1111111111111085}, \"first_issue\" => %{\"checks\" => [%{\"id\" => \"battery_reserve\", \"margin\" => -0.3333333333333306, \"margin_unit\" => \"Wh\", \"status\" => \"violated\"}, %{\"id\" => \"battery_energy_supply\", \"margin\" => 1.6666666666666694, \"margin_unit\" => \"Wh\", \"status\" => \"supported\"}], \"ends_at_s\" => 820497645.0, \"evaluated_at_s\" => 820497644.5, \"metrics\" => %{\"battery_power_w\" => -2000.0, \"generation_evidence\" => %{\"model\" => \"declared_bus_power\"}, \"generation_w\" => 0, \"load_w\" => 2000, \"reserve_crossing_offset_s\" => 0.400000000000005}, \"mode\" => %{\"name\" => \"desaturate\", \"parameters\" => %{\"momentum_unloading\" => true, \"optical_behavior\" => \"stowed\", \"power_load_w\" => 2000}}, \"phase\" => \"activity\", \"scope\" => \"activity:unload\", \"starts_at_s\" => 820497644.0}, \"initial_state\" => %{\"curtailed_wh\" => 0.0, \"energy_wh\" => 10, \"unserved_wh\" => 0.0}, \"maximum_requested_interval_s\" => 1.0, \"minimum_margins\" => %{\"battery_energy_supply\" => %{\"margin\" => -0.5555555555555556, \"margin_unit\" => \"Wh\"}, \"battery_reserve\" => %{\"margin\" => -2.0, \"margin_unit\" => \"Wh\"}}, \"propagated_interval_count\" => 100, \"requested_interval_count\" => 100, \"sample_step_s\" => 1.0, \"state_extrema\" => %{\"curtailed_wh\" => %{\"max\" => 0.0, \"min\" => 0.0}, \"energy_wh\" => %{\"max\" => 10, \"min\" => 0.0}, \"unserved_wh\" => %{\"max\" => 1.1111111111111085, \"min\" => 0.0}}, \"status\" => \"violated\", \"uncovered_intervals\" => []}, %{\"evaluated_through_s\" => 820497700, \"final_state\" => %{\"curtailed_wh\" => 0.0, \"energy_wh\" => 0.0, \"unserved_wh\" => 1.1111111111111267}, \"first_issue\" => %{\"checks\" => [%{\"id\" => \"battery_reserve\", \"margin\" => -0.05555555555557179, \"margin_unit\" => \"Wh\", \"status\" => \"violated\"}, %{\"id\" => \"battery_energy_supply\", \"margin\" => 1.9444444444444282, \"margin_unit\" => \"Wh\", \"status\" => \"supported\"}], \"ends_at_s\" => 820497644.5, \"evaluated_at_s\" => 820497644.375, \"metrics\" => %{\"battery_power_w\" => -2000.0, \"generation_evidence\" => %{\"model\" => \"declared_bus_power\"}, \"generation_w\" => 0, \"load_w\" => 2000, \"reserve_crossing_offset_s\" => 0.14999999999997068}, \"mode\" => %{\"name\" => \"desaturate\", \"parameters\" => %{\"momentum_unloading\" => true, \"optical_behavior\" => \"stowed\", \"power_load_w\" => 2000}}, \"phase\" => \"activity\", \"scope\" => \"activity:unload\", \"starts_at_s\" => 820497644.25}, \"initial_state\" => %{\"curtailed_wh\" => 0.0, \"energy_wh\" => 10, \"unserved_wh\" => 0.0}, \"maximum_requested_interval_s\" => 0.25, \"minimum_margins\" => %{\"battery_energy_supply\" => %{\"margin\" => -0.1388888888888889, \"margin_unit\" => \"Wh\"}, \"battery_reserve\" => %{\"margin\" => -2.0, \"margin_unit\" => \"Wh\"}}, \"propagated_interval_count\" => 400, \"requested_interval_count\" => 400, \"sample_step_s\" => 0.25, \"state_extrema\" => %{\"curtailed_wh\" => %{\"max\" => 0.0, \"min\" => 0.0}, \"energy_wh\" => %{\"max\" => 10, \"min\" => 0.0}, \"unserved_wh\" => %{\"max\" => 1.1111111111111267, \"min\" => 0.0}}, \"status\" => \"violated\", \"uncovered_intervals\" => []}], \"resolution_status\" => \"agrees_across_tested_steps\", \"state_comparison\" => %{\"final_state_range\" => %{\"curtailed_wh\" => %{\"max\" => 0.0, \"min\" => 0.0, \"spread\" => 0.0}, \"energy_wh\" => %{\"max\" => 0.0, \"min\" => 0.0, \"spread\" => 0.0}, \"unserved_wh\" => %{\"max\" => 1.1111111111111267, \"min\" => 1.1111111111111085, \"spread\" => 1.8207657603852567e-14}}, \"limits\" => \"ranges across tested cadences only, not physical error bounds or convergence proof\", \"minimum_state_range\" => %{\"curtailed_wh\" => %{\"max\" => 0.0, \"min\" => 0.0, \"spread\" => 0.0}, \"energy_wh\" => %{\"max\" => 0.0, \"min\" => 0.0, \"spread\" => 0.0}, \"unserved_wh\" => %{\"max\" => 0.0, \"min\" => 0.0, \"spread\" => 0.0}}, \"status\" => \"complete\"}, \"status\" => \"violated\"}, %{...}], ...}}",
+            "maintenance_costs": [],
+            "planning_status": "rejected",
+            "reason": "reservation_or_physical_check_rejected",
+            "reservations": [
+              {
+                "asset_id": "demo-3",
+                "ends_at_s": 820497650.0,
+                "request_id": "unload",
+                "starts_at_s": 820497630.0
+              }
+            ],
+            "service_request_ids": [],
+            "service_value": 0,
+            "trial": 4
+          },
+          {
+            "accepted": false,
+            "enabled_service_request_ids": [],
+            "failure": "{:protected_resources_unsupported, \"demo-3\", %{\"models\" => [%{\"assumptions\" => %{\"capacity_wh\" => 10, \"charge_efficiency\" => 1, \"contact_search\" => :null, \"discharge_efficiency\" => 1, \"generation\" => %{\"kind\" => \"constant\", \"power_w\" => 0}, \"generation_assumptions\" => %{\"configuration\" => %{\"kind\" => \"constant\", \"power_w\" => 0}, \"limits\" => [\"no inferred solar exposure or physical source validation\"], \"model\" => \"declared_bus_power\"}, \"generation_provider\" => \"Elixir.OrbitalDynamics.MissionAnalysis.Resource.Generation.Declared\", \"generation_scope\" => \"bus-side source power from the captured generation provider\", \"initial_wh\" => 10, \"integration\" => \"frozen midpoint source power per interval, with declared source boundaries; geometric crossings may remain between samples\", \"mode_load_field\" => \"power_load_w\", \"model\" => \"ideal_energy_balance_v1\", \"phase_load_w\" => %{\"activity\" => 0, \"brake\" => 0, \"hold\" => 0, \"ramp_to_tracking\" => 0, \"settle\" => 0, \"slew_accelerate\" => 0, \"slew_cruise\" => 0, \"slew_decelerate\" => 0}, \"reserve_wh\" => 2, \"state_units\" => %{\"curtailed_wh\" => \"bus-side Wh\", \"energy_wh\" => \"battery-side Wh\", \"unserved_wh\" => \"bus-side Wh\"}}, \"id\" => \"battery\", \"levels\" => [%{\"evaluated_through_s\" => 820497700, \"final_state\" => %{\"curtailed_wh\" => 0.0, \"energy_wh\" => 0.0, \"unserved_wh\" => 1.1111111111111085}, \"first_issue\" => %{\"checks\" => [%{\"id\" => \"battery_reserve\", \"margin\" => -0.3333333333333306, \"margin_unit\" => \"Wh\", \"status\" => \"violated\"}, %{\"id\" => \"battery_energy_supply\", \"margin\" => 1.6666666666666694, \"margin_unit\" => \"Wh\", \"status\" => \"supported\"}], \"ends_at_s\" => 820497650.0, \"evaluated_at_s\" => 820497649.5, \"metrics\" => %{\"battery_power_w\" => -2000.0, \"generation_evidence\" => %{\"model\" => \"declared_bus_power\"}, \"generation_w\" => 0, \"load_w\" => 2000, \"reserve_crossing_offset_s\" => 0.400000000000005}, \"mode\" => %{\"name\" => \"desaturate\", \"parameters\" => %{\"momentum_unloading\" => true, \"optical_behavior\" => \"stowed\", \"power_load_w\" => 2000}}, \"phase\" => \"activity\", \"scope\" => \"activity:unload\", \"starts_at_s\" => 820497649.0}, \"initial_state\" => %{\"curtailed_wh\" => 0.0, \"energy_wh\" => 10, \"unserved_wh\" => 0.0}, \"maximum_requested_interval_s\" => 1.0, \"minimum_margins\" => %{\"battery_energy_supply\" => %{\"margin\" => -0.5555555555555556, \"margin_unit\" => \"Wh\"}, \"battery_reserve\" => %{\"margin\" => -2.0, \"margin_unit\" => \"Wh\"}}, \"propagated_interval_count\" => 100, \"requested_interval_count\" => 100, \"sample_step_s\" => 1.0, \"state_extrema\" => %{\"curtailed_wh\" => %{\"max\" => 0.0, \"min\" => 0.0}, \"energy_wh\" => %{\"max\" => 10, \"min\" => 0.0}, \"unserved_wh\" => %{\"max\" => 1.1111111111111085, \"min\" => 0.0}}, \"status\" => \"violated\", \"uncovered_intervals\" => []}, %{\"evaluated_through_s\" => 820497700, \"final_state\" => %{\"curtailed_wh\" => 0.0, \"energy_wh\" => 0.0, \"unserved_wh\" => 1.1111111111111267}, \"first_issue\" => %{\"checks\" => [%{\"id\" => \"battery_reserve\", \"margin\" => -0.05555555555557179, \"margin_unit\" => \"Wh\", \"status\" => \"violated\"}, %{\"id\" => \"battery_energy_supply\", \"margin\" => 1.9444444444444282, \"margin_unit\" => \"Wh\", \"status\" => \"supported\"}], \"ends_at_s\" => 820497649.5, \"evaluated_at_s\" => 820497649.375, \"metrics\" => %{\"battery_power_w\" => -2000.0, \"generation_evidence\" => %{\"model\" => \"declared_bus_power\"}, \"generation_w\" => 0, \"load_w\" => 2000, \"reserve_crossing_offset_s\" => 0.14999999999997068}, \"mode\" => %{\"name\" => \"desaturate\", \"parameters\" => %{\"momentum_unloading\" => true, \"optical_behavior\" => \"stowed\", \"power_load_w\" => 2000}}, \"phase\" => \"activity\", \"scope\" => \"activity:unload\", \"starts_at_s\" => 820497649.25}, \"initial_state\" => %{\"curtailed_wh\" => 0.0, \"energy_wh\" => 10, \"unserved_wh\" => 0.0}, \"maximum_requested_interval_s\" => 0.25, \"minimum_margins\" => %{\"battery_energy_supply\" => %{\"margin\" => -0.1388888888888889, \"margin_unit\" => \"Wh\"}, \"battery_reserve\" => %{\"margin\" => -2.0, \"margin_unit\" => \"Wh\"}}, \"propagated_interval_count\" => 400, \"requested_interval_count\" => 400, \"sample_step_s\" => 0.25, \"state_extrema\" => %{\"curtailed_wh\" => %{\"max\" => 0.0, \"min\" => 0.0}, \"energy_wh\" => %{\"max\" => 10, \"min\" => 0.0}, \"unserved_wh\" => %{\"max\" => 1.1111111111111267, \"min\" => 0.0}}, \"status\" => \"violated\", \"uncovered_intervals\" => []}], \"resolution_status\" => \"agrees_across_tested_steps\", \"state_comparison\" => %{\"final_state_range\" => %{\"curtailed_wh\" => %{\"max\" => 0.0, \"min\" => 0.0, \"spread\" => 0.0}, \"energy_wh\" => %{\"max\" => 0.0, \"min\" => 0.0, \"spread\" => 0.0}, \"unserved_wh\" => %{\"max\" => 1.1111111111111267, \"min\" => 1.1111111111111085, \"spread\" => 1.8207657603852567e-14}}, \"limits\" => \"ranges across tested cadences only, not physical error bounds or convergence proof\", \"minimum_state_range\" => %{\"curtailed_wh\" => %{\"max\" => 0.0, \"min\" => 0.0, \"spread\" => 0.0}, \"energy_wh\" => %{\"max\" => 0.0, \"min\" => 0.0, \"spread\" => 0.0}, \"unserved_wh\" => %{\"max\" => 0.0, \"min\" => 0.0, \"spread\" => 0.0}}, \"status\" => \"complete\"}, \"status\" => \"violated\"}, %{...}], ...}}",
+            "maintenance_costs": [],
+            "planning_status": "rejected",
+            "reason": "reservation_or_physical_check_rejected",
+            "reservations": [
+              {
+                "asset_id": "demo-3",
+                "ends_at_s": 820497655.0,
+                "request_id": "unload",
+                "starts_at_s": 820497635.0
+              }
+            ],
+            "service_request_ids": [],
+            "service_value": 0,
+            "trial": 5
+          },
+          {
+            "accepted": false,
+            "enabled_service_request_ids": [],
+            "failure": "{:protected_resources_unsupported, \"demo-3\", %{\"models\" => [%{\"assumptions\" => %{\"capacity_wh\" => 10, \"charge_efficiency\" => 1, \"contact_search\" => :null, \"discharge_efficiency\" => 1, \"generation\" => %{\"kind\" => \"constant\", \"power_w\" => 0}, \"generation_assumptions\" => %{\"configuration\" => %{\"kind\" => \"constant\", \"power_w\" => 0}, \"limits\" => [\"no inferred solar exposure or physical source validation\"], \"model\" => \"declared_bus_power\"}, \"generation_provider\" => \"Elixir.OrbitalDynamics.MissionAnalysis.Resource.Generation.Declared\", \"generation_scope\" => \"bus-side source power from the captured generation provider\", \"initial_wh\" => 10, \"integration\" => \"frozen midpoint source power per interval, with declared source boundaries; geometric crossings may remain between samples\", \"mode_load_field\" => \"power_load_w\", \"model\" => \"ideal_energy_balance_v1\", \"phase_load_w\" => %{\"activity\" => 0, \"brake\" => 0, \"hold\" => 0, \"ramp_to_tracking\" => 0, \"settle\" => 0, \"slew_accelerate\" => 0, \"slew_cruise\" => 0, \"slew_decelerate\" => 0}, \"reserve_wh\" => 2, \"state_units\" => %{\"curtailed_wh\" => \"bus-side Wh\", \"energy_wh\" => \"battery-side Wh\", \"unserved_wh\" => \"bus-side Wh\"}}, \"id\" => \"battery\", \"levels\" => [%{\"evaluated_through_s\" => 820497700, \"final_state\" => %{\"curtailed_wh\" => 0.0, \"energy_wh\" => 0.0, \"unserved_wh\" => 1.1111111111111085}, \"first_issue\" => %{\"checks\" => [%{\"id\" => \"battery_reserve\", \"margin\" => -0.3333333333333306, \"margin_unit\" => \"Wh\", \"status\" => \"violated\"}, %{\"id\" => \"battery_energy_supply\", \"margin\" => 1.6666666666666694, \"margin_unit\" => \"Wh\", \"status\" => \"supported\"}], \"ends_at_s\" => 820497655.0, \"evaluated_at_s\" => 820497654.5, \"metrics\" => %{\"battery_power_w\" => -2000.0, \"generation_evidence\" => %{\"model\" => \"declared_bus_power\"}, \"generation_w\" => 0, \"load_w\" => 2000, \"reserve_crossing_offset_s\" => 0.400000000000005}, \"mode\" => %{\"name\" => \"desaturate\", \"parameters\" => %{\"momentum_unloading\" => true, \"optical_behavior\" => \"stowed\", \"power_load_w\" => 2000}}, \"phase\" => \"activity\", \"scope\" => \"activity:unload\", \"starts_at_s\" => 820497654.0}, \"initial_state\" => %{\"curtailed_wh\" => 0.0, \"energy_wh\" => 10, \"unserved_wh\" => 0.0}, \"maximum_requested_interval_s\" => 1.0, \"minimum_margins\" => %{\"battery_energy_supply\" => %{\"margin\" => -0.5555555555555556, \"margin_unit\" => \"Wh\"}, \"battery_reserve\" => %{\"margin\" => -2.0, \"margin_unit\" => \"Wh\"}}, \"propagated_interval_count\" => 100, \"requested_interval_count\" => 100, \"sample_step_s\" => 1.0, \"state_extrema\" => %{\"curtailed_wh\" => %{\"max\" => 0.0, \"min\" => 0.0}, \"energy_wh\" => %{\"max\" => 10, \"min\" => 0.0}, \"unserved_wh\" => %{\"max\" => 1.1111111111111085, \"min\" => 0.0}}, \"status\" => \"violated\", \"uncovered_intervals\" => []}, %{\"evaluated_through_s\" => 820497700, \"final_state\" => %{\"curtailed_wh\" => 0.0, \"energy_wh\" => 0.0, \"unserved_wh\" => 1.1111111111111267}, \"first_issue\" => %{\"checks\" => [%{\"id\" => \"battery_reserve\", \"margin\" => -0.05555555555557179, \"margin_unit\" => \"Wh\", \"status\" => \"violated\"}, %{\"id\" => \"battery_energy_supply\", \"margin\" => 1.9444444444444282, \"margin_unit\" => \"Wh\", \"status\" => \"supported\"}], \"ends_at_s\" => 820497654.5, \"evaluated_at_s\" => 820497654.375, \"metrics\" => %{\"battery_power_w\" => -2000.0, \"generation_evidence\" => %{\"model\" => \"declared_bus_power\"}, \"generation_w\" => 0, \"load_w\" => 2000, \"reserve_crossing_offset_s\" => 0.14999999999997068}, \"mode\" => %{\"name\" => \"desaturate\", \"parameters\" => %{\"momentum_unloading\" => true, \"optical_behavior\" => \"stowed\", \"power_load_w\" => 2000}}, \"phase\" => \"activity\", \"scope\" => \"activity:unload\", \"starts_at_s\" => 820497654.25}, \"initial_state\" => %{\"curtailed_wh\" => 0.0, \"energy_wh\" => 10, \"unserved_wh\" => 0.0}, \"maximum_requested_interval_s\" => 0.25, \"minimum_margins\" => %{\"battery_energy_supply\" => %{\"margin\" => -0.1388888888888889, \"margin_unit\" => \"Wh\"}, \"battery_reserve\" => %{\"margin\" => -2.0, \"margin_unit\" => \"Wh\"}}, \"propagated_interval_count\" => 400, \"requested_interval_count\" => 400, \"sample_step_s\" => 0.25, \"state_extrema\" => %{\"curtailed_wh\" => %{\"max\" => 0.0, \"min\" => 0.0}, \"energy_wh\" => %{\"max\" => 10, \"min\" => 0.0}, \"unserved_wh\" => %{\"max\" => 1.1111111111111267, \"min\" => 0.0}}, \"status\" => \"violated\", \"uncovered_intervals\" => []}], \"resolution_status\" => \"agrees_across_tested_steps\", \"state_comparison\" => %{\"final_state_range\" => %{\"curtailed_wh\" => %{\"max\" => 0.0, \"min\" => 0.0, \"spread\" => 0.0}, \"energy_wh\" => %{\"max\" => 0.0, \"min\" => 0.0, \"spread\" => 0.0}, \"unserved_wh\" => %{\"max\" => 1.1111111111111267, \"min\" => 1.1111111111111085, \"spread\" => 1.8207657603852567e-14}}, \"limits\" => \"ranges across tested cadences only, not physical error bounds or convergence proof\", \"minimum_state_range\" => %{\"curtailed_wh\" => %{\"max\" => 0.0, \"min\" => 0.0, \"spread\" => 0.0}, \"energy_wh\" => %{\"max\" => 0.0, \"min\" => 0.0, \"spread\" => 0.0}, \"unserved_wh\" => %{\"max\" => 0.0, \"min\" => 0.0, \"spread\" => 0.0}}, \"status\" => \"complete\"}, \"status\" => \"violated\"}, %{...}], ...}}",
+            "maintenance_costs": [],
+            "planning_status": "rejected",
+            "reason": "reservation_or_physical_check_rejected",
+            "reservations": [
+              {
+                "asset_id": "demo-3",
+                "ends_at_s": 820497660.0,
+                "request_id": "unload",
+                "starts_at_s": 820497640.0
+              }
+            ],
+            "service_request_ids": [],
+            "service_value": 0,
+            "trial": 6
+          }
+        ]
+      },
+      "planning_status": "violated"
+    },
+    {
+      "activities": [],
+      "id": "unavailable",
+      "maintenance_search": {
+        "candidate_count": 0,
+        "candidate_generation_truncated": false,
+        "configuration": {
+          "candidate_step_s": 5,
+          "max_candidates": 16,
+          "max_insertions": 1,
+          "max_trials": 16,
+          "request_ids": [
+            "unload"
+          ]
+        },
+        "selected_reservations": [],
+        "status": "candidate_sets_exhausted",
+        "trial_count": 1,
+        "trials": [
+          {
+            "accepted": false,
+            "enabled_service_request_ids": [],
+            "failure": null,
+            "maintenance_costs": [],
+            "planning_status": "violated",
+            "reason": "unsupported_candidate",
+            "reservations": [],
+            "service_request_ids": [],
+            "service_value": 0,
+            "trial": 1
+          }
+        ]
+      },
+      "planning_status": "violated"
+    }
+  ],
+  "date": "2026-11-03",
+  "format": "automatic_maintenance_observation.v1",
+  "independent_validation": {
+    "issues": [
+      {
+        "code": "resource_model_unsupported",
+        "location": "baseline_snapshot.json/demo-3/wheels",
+        "message": "only the declared ideal battery is checked",
+        "severity": "unsupported"
+      },
+      {
+        "code": "resource_model_unsupported",
+        "location": "step-01-execution_snapshot.json/demo-3/wheels",
+        "message": "only the declared ideal battery is checked",
+        "severity": "unsupported"
+      },
+      {
+        "code": "resource_model_unsupported",
+        "location": "step-01-revised_snapshot.json/demo-3/wheels",
+        "message": "only the declared ideal battery is checked",
+        "severity": "unsupported"
+      },
+      {
+        "code": "resource_model_unsupported",
+        "location": "step-02-revised_snapshot.json/demo-3/wheels",
+        "message": "only the declared ideal battery is checked",
+        "severity": "unsupported"
+      },
+      {
+        "code": "resource_model_unsupported",
+        "location": "step-03-execution_snapshot.json/demo-3/wheels",
+        "message": "only the declared ideal battery is checked",
+        "severity": "unsupported"
+      },
+      {
+        "code": "resource_model_unsupported",
+        "location": "step-03-revised_snapshot.json/demo-3/wheels",
+        "message": "only the declared ideal battery is checked",
+        "severity": "unsupported"
+      },
+      {
+        "code": "resource_model_unsupported",
+        "location": "step-04-execution_snapshot.json/demo-3/wheels",
+        "message": "only the declared ideal battery is checked",
+        "severity": "unsupported"
+      },
+      {
+        "code": "resource_model_unsupported",
+        "location": "step-04-revised_snapshot.json/demo-3/wheels",
+        "message": "only the declared ideal battery is checked",
+        "severity": "unsupported"
+      }
+    ],
+    "status": "partial"
+  },
+  "input_sha256": {
+    "studies/automatic_wheel_maintenance.json": "3c041f183ab88e8ad666a945ed6802f2bcabea12674f12040a906309bdad5937",
+    "studies/automatic_wheel_maintenance_operations.json": "e7cb45011aae923fb2d82adad71158b16e6e4ced30718d8336623f49daced089",
+    "studies/automatic_wheel_maintenance_planning.json": "484e3b45e78c926c3c6bde5dcec08239a6c170be96452f3d3dd7e5295a84f865"
+  },
+  "limits": "Synthetic declared requests and external unloading torques. Bounded search, not a global optimum or continuous physical certification. Independent wheel physics checking remains unsupported.",
+  "operations": {
+    "baseline_snapshot_id": "mission_plan_snapshot:4733e0431ff39ccde1d89089f513de7fa53270a580830d1b5fbe5fff23f01cd7",
+    "execution_summary": {
+      "accepted_completion_count": 2,
+      "accepted_expired_count": 0,
+      "scripted_skip_count": 0,
+      "simulated_completed_value": 10.0,
+      "simulated_completion_count": 2
+    },
+    "final_snapshot_id": "mission_plan_snapshot:47a0d3d9689264e28574e2db7be80bc358159ada55212e27c62e1fcbff4fc1e8",
+    "run_status": "completed",
+    "scenario_id": "automatic_wheel_maintenance_operations",
+    "steps": [
+      {
+        "accepted_snapshot_id": "mission_plan_snapshot:97555b20fa28c36d9514ab1abd18609f44f68482eecdc0b973dd280ad11e370d",
+        "adopted": true,
+        "id": "before_unload",
+        "invariant_status": "passed",
+        "kind": "advance",
+        "state_update": {
+          "as_of_s": 820497610,
+          "assets": {
+            "demo-3": {
+              "angular_velocity_inertial_deg_s": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "battery_energy_wh": {
+                "battery": 10
+              },
+              "quaternion_wxyz": [
+                1.0,
+                0.0,
+                0.0,
+                0.0
+              ],
+              "resource_budgets": {
+                "service_tokens": 1,
+                "unload_tokens": 1
+              },
+              "wheel_momentum_nms": {
+                "wheels": [
+                  0.0,
+                  0.0,
+                  0.2000000000000001
+                ]
+              }
+            }
+          },
+          "completed_request_ids": [],
+          "expected_baseline_id": "mission_plan_snapshot:4733e0431ff39ccde1d89089f513de7fa53270a580830d1b5fbe5fff23f01cd7",
+          "frame": "eci_j2000",
+          "not_executed_request_ids": [],
+          "protect_request_ids": [],
+          "revision_id": "before_unload",
+          "scheduling": {
+            "max_trials": 1,
+            "strategy": "greedy"
+          },
+          "source_id": "scripted_execution_and_declared_energy_loss",
+          "time_scale": "utc"
+        },
+        "status": "ready_for_review"
+      },
+      {
+        "accepted_snapshot_id": "mission_plan_snapshot:82ac2be1bf7dc0f4f2f03da5f2530a84172701d3c2b2282bda1b65eb1e715cdc",
+        "adopted": true,
+        "id": "review_remaining_maintenance",
+        "invariant_status": "passed",
+        "kind": "revise",
+        "state_update": null,
+        "status": "ready_for_review"
+      },
+      {
+        "accepted_snapshot_id": "mission_plan_snapshot:37d8d2e23288dc635d7eda5b2d7afff98ff1ca329b9c8982203aab254b75fbc3",
+        "adopted": true,
+        "id": "execute_unload",
+        "invariant_status": "passed",
+        "kind": "advance",
+        "state_update": {
+          "as_of_s": 820497660,
+          "assets": {
+            "demo-3": {
+              "angular_velocity_inertial_deg_s": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "battery_energy_wh": {
+                "battery": 9.933333333333394
+              },
+              "quaternion_wxyz": [
+                1.0,
+                0.0,
+                0.0,
+                0.0
+              ],
+              "resource_budgets": {
+                "service_tokens": 1,
+                "unload_tokens": 0.0
+              },
+              "wheel_momentum_nms": {
+                "wheels": [
+                  0.0,
+                  0.0,
+                  0.10000000000000056
+                ]
+              }
+            }
+          },
+          "completed_request_ids": [
+            "unload"
+          ],
+          "expected_baseline_id": "mission_plan_snapshot:82ac2be1bf7dc0f4f2f03da5f2530a84172701d3c2b2282bda1b65eb1e715cdc",
+          "frame": "eci_j2000",
+          "not_executed_request_ids": [],
+          "protect_request_ids": [
+            "service"
+          ],
+          "revision_id": "execute_unload",
+          "scheduling": {
+            "max_trials": 1,
+            "strategy": "greedy"
+          },
+          "source_id": "scripted_execution_and_declared_energy_loss",
+          "time_scale": "utc"
+        },
+        "status": "ready_for_review"
+      },
+      {
+        "accepted_snapshot_id": "mission_plan_snapshot:47a0d3d9689264e28574e2db7be80bc358159ada55212e27c62e1fcbff4fc1e8",
+        "adopted": true,
+        "id": "execute_service",
+        "invariant_status": "passed",
+        "kind": "advance",
+        "state_update": {
+          "as_of_s": 820497690,
+          "assets": {
+            "demo-3": {
+              "angular_velocity_inertial_deg_s": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "battery_energy_wh": {
+                "battery": 9.92777777777782
+              },
+              "quaternion_wxyz": [
+                1.0,
+                0.0,
+                0.0,
+                0.0
+              ],
+              "resource_budgets": {
+                "service_tokens": 0.0,
+                "unload_tokens": 0.0
+              },
+              "wheel_momentum_nms": {
+                "wheels": [
+                  0.0,
+                  0.0,
+                  0.7000000000000011
+                ]
+              }
+            }
+          },
+          "completed_request_ids": [
+            "service"
+          ],
+          "expected_baseline_id": "mission_plan_snapshot:37d8d2e23288dc635d7eda5b2d7afff98ff1ca329b9c8982203aab254b75fbc3",
+          "frame": "eci_j2000",
+          "not_executed_request_ids": [],
+          "protect_request_ids": [],
+          "revision_id": "execute_service",
+          "scheduling": {
+            "max_trials": 1,
+            "strategy": "greedy"
+          },
+          "source_id": "scripted_execution_and_declared_energy_loss",
+          "time_scale": "utc"
+        },
+        "status": "ready_for_review"
+      }
+    ],
+    "verification_status": "passed"
+  },
+  "verification": {
+    "battery_only_regression": "complete saved report unchanged",
+    "fast_suite": {
+      "command": "mix test.fast --max-cases 8",
+      "elapsed_s": 232.0,
+      "excluded": 1148,
+      "passed": 5385,
+      "scope": "Full suite before the final mixed-numeric grid regression was added; final 12-test focused maintenance run also passed."
+    },
+    "focused_maintenance_tests": "12 passed",
+    "numerical_baseline": "pass"
+  }
+}

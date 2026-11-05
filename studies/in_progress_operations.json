@@ -1,0 +1,72 @@
+{
+  "scenario_id": "in_progress_operations",
+  "mission_manifest": "automatic_wheel_maintenance.json",
+  "planning_study": "automatic_wheel_maintenance_planning.json",
+  "steps": [
+    {
+      "id": "unload_started",
+      "kind": "advance",
+      "expected_status": "ready_for_review",
+      "as_of_s": 820497625,
+      "not_executed_request_ids": [],
+      "energy_losses_wh": {},
+      "protect_request_ids": [],
+      "scheduling": {
+        "strategy": "greedy",
+        "max_trials": 1
+      }
+    },
+    {
+      "id": "unload_still_running",
+      "kind": "advance",
+      "expected_status": "ready_for_review",
+      "as_of_s": 820497630,
+      "not_executed_request_ids": [],
+      "energy_losses_wh": {},
+      "protect_request_ids": [],
+      "scheduling": {
+        "strategy": "greedy",
+        "max_trials": 1
+      }
+    },
+    {
+      "id": "unload_completed",
+      "kind": "advance",
+      "expected_status": "ready_for_review",
+      "as_of_s": 820497640,
+      "not_executed_request_ids": [],
+      "energy_losses_wh": {},
+      "protect_request_ids": [],
+      "scheduling": {
+        "strategy": "greedy",
+        "max_trials": 1
+      }
+    },
+    {
+      "id": "service_started",
+      "kind": "advance",
+      "expected_status": "ready_for_review",
+      "as_of_s": 820497675,
+      "not_executed_request_ids": [],
+      "energy_losses_wh": {},
+      "protect_request_ids": [],
+      "scheduling": {
+        "strategy": "greedy",
+        "max_trials": 1
+      }
+    },
+    {
+      "id": "service_completed",
+      "kind": "advance",
+      "expected_status": "ready_for_review",
+      "as_of_s": 820497680,
+      "not_executed_request_ids": [],
+      "energy_losses_wh": {},
+      "protect_request_ids": [],
+      "scheduling": {
+        "strategy": "greedy",
+        "max_trials": 1
+      }
+    }
+  ]
+}

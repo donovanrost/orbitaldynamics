@@ -1,0 +1,242 @@
+{
+  "date": "2026-11-04",
+  "format": "state_quality_observation.v1",
+  "independent_validation_status": "passed",
+  "limits": "Offline declared provenance and nominal point-state quality gates; no telemetry ingestion, source authentication or robust propagation of error bounds.",
+  "run_status": "completed",
+  "steps": [
+    {
+      "id": "before_unload",
+      "invariant_status": "passed",
+      "kind": "advance",
+      "state_update": {
+        "as_of_s": 820497610,
+        "assets": {
+          "demo-3": {
+            "angular_velocity_inertial_deg_s": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "battery_energy_wh": {
+              "battery": 10
+            },
+            "quality": {
+              "bounds": {
+                "attitude_error_deg": 0,
+                "battery_error_wh": {
+                  "battery": 0
+                },
+                "rate_error_deg_s": 0,
+                "wheel_error_nms": {
+                  "wheels": [
+                    0,
+                    0,
+                    0
+                  ]
+                }
+              },
+              "kind": "synthetic_execution",
+              "measurement_epoch_s": null,
+              "source_id": "scripted_execution_and_declared_energy_loss",
+              "state_epoch_s": 820497610,
+              "valid_until_s": 820497610
+            },
+            "quaternion_wxyz": [
+              1.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "resource_budgets": {
+              "service_tokens": 1,
+              "unload_tokens": 1
+            },
+            "wheel_momentum_nms": {
+              "wheels": [
+                0.0,
+                0.0,
+                0.2000000000000001
+              ]
+            }
+          }
+        },
+        "completed_request_ids": [],
+        "expected_baseline_id": "mission_plan_snapshot:103d498840a4f7c4c8d42e4df9cb001e0ceab3cb0fd4e6f72a1681381ab0b72f",
+        "frame": "eci_j2000",
+        "not_executed_request_ids": [],
+        "protect_request_ids": [],
+        "revision_id": "before_unload",
+        "scheduling": {
+          "max_trials": 1,
+          "strategy": "greedy"
+        },
+        "source_id": "scripted_execution_and_declared_energy_loss",
+        "time_scale": "utc"
+      },
+      "status": "ready_for_review"
+    },
+    {
+      "id": "review_remaining_maintenance",
+      "invariant_status": "passed",
+      "kind": "revise",
+      "state_update": null,
+      "status": "ready_for_review"
+    },
+    {
+      "id": "execute_unload",
+      "invariant_status": "passed",
+      "kind": "advance",
+      "state_update": {
+        "as_of_s": 820497660,
+        "assets": {
+          "demo-3": {
+            "angular_velocity_inertial_deg_s": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "battery_energy_wh": {
+              "battery": 9.933333333333394
+            },
+            "quality": {
+              "bounds": {
+                "attitude_error_deg": 0,
+                "battery_error_wh": {
+                  "battery": 0
+                },
+                "rate_error_deg_s": 0,
+                "wheel_error_nms": {
+                  "wheels": [
+                    0,
+                    0,
+                    0
+                  ]
+                }
+              },
+              "kind": "synthetic_execution",
+              "measurement_epoch_s": null,
+              "source_id": "scripted_execution_and_declared_energy_loss",
+              "state_epoch_s": 820497660,
+              "valid_until_s": 820497660
+            },
+            "quaternion_wxyz": [
+              1.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "resource_budgets": {
+              "service_tokens": 1,
+              "unload_tokens": 0.0
+            },
+            "wheel_momentum_nms": {
+              "wheels": [
+                0.0,
+                0.0,
+                0.10000000000000056
+              ]
+            }
+          }
+        },
+        "completed_request_ids": [
+          "unload"
+        ],
+        "expected_baseline_id": "mission_plan_snapshot:bb4481fdf54e4b017bbfa7acf161e5cfb9b15a36285553ea571fcf62f615a4e2",
+        "frame": "eci_j2000",
+        "not_executed_request_ids": [],
+        "protect_request_ids": [
+          "service"
+        ],
+        "revision_id": "execute_unload",
+        "scheduling": {
+          "max_trials": 1,
+          "strategy": "greedy"
+        },
+        "source_id": "scripted_execution_and_declared_energy_loss",
+        "time_scale": "utc"
+      },
+      "status": "ready_for_review"
+    },
+    {
+      "id": "execute_service",
+      "invariant_status": "passed",
+      "kind": "advance",
+      "state_update": {
+        "as_of_s": 820497690,
+        "assets": {
+          "demo-3": {
+            "angular_velocity_inertial_deg_s": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "battery_energy_wh": {
+              "battery": 9.92777777777782
+            },
+            "quality": {
+              "bounds": {
+                "attitude_error_deg": 0,
+                "battery_error_wh": {
+                  "battery": 0
+                },
+                "rate_error_deg_s": 0,
+                "wheel_error_nms": {
+                  "wheels": [
+                    0,
+                    0,
+                    0
+                  ]
+                }
+              },
+              "kind": "synthetic_execution",
+              "measurement_epoch_s": null,
+              "source_id": "scripted_execution_and_declared_energy_loss",
+              "state_epoch_s": 820497690,
+              "valid_until_s": 820497690
+            },
+            "quaternion_wxyz": [
+              1.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "resource_budgets": {
+              "service_tokens": 0.0,
+              "unload_tokens": 0.0
+            },
+            "wheel_momentum_nms": {
+              "wheels": [
+                0.0,
+                0.0,
+                0.7000000000000011
+              ]
+            }
+          }
+        },
+        "completed_request_ids": [
+          "service"
+        ],
+        "expected_baseline_id": "mission_plan_snapshot:b277419615ee681b932e546c5d099b1f2d62770af25ee723d47d08cf40dac914",
+        "frame": "eci_j2000",
+        "not_executed_request_ids": [],
+        "protect_request_ids": [],
+        "revision_id": "execute_service",
+        "scheduling": {
+          "max_trials": 1,
+          "strategy": "greedy"
+        },
+        "source_id": "scripted_execution_and_declared_energy_loss",
+        "time_scale": "utc"
+      },
+      "status": "ready_for_review"
+    }
+  ],
+  "verification": {
+    "elapsed_s": 250.5,
+    "excluded": 1148,
+    "fast_suite_passed": 5413,
+    "focused_tests": 7
+  },
+  "verification_status": "passed"
+}

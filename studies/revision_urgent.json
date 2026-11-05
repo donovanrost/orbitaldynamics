@@ -1,0 +1,43 @@
+{
+  "protect_request_ids": [
+    "early-1"
+  ],
+  "add_requests": [
+    {
+      "request": {
+        "id": "urgent-illumination",
+        "model": "illumination",
+        "activity_type": "illuminate",
+        "target": {
+          "id": "site-6",
+          "latitude_deg": 6,
+          "longitude_deg": -79.222322111382,
+          "altitude_km": 0,
+          "minimum_elevation_deg": 10
+        },
+        "starts_at_s": 820497640,
+        "ends_at_s": 820497790,
+        "duration_s": 20,
+        "value": 100,
+        "parameters": {
+          "minimum_elevation_deg": 10,
+          "maximum_target_sun_elevation_deg": -6,
+          "minimum_irradiance_w_m2": 0.0001,
+          "target_radius_km": 1
+        },
+        "resource_costs": {}
+      },
+      "activity_modes": {
+        "demo-1": "reflecting",
+        "demo-2": "reflecting",
+        "demo-3": "reflecting"
+      }
+    }
+  ],
+  "unavailable_asset_ids": [],
+  "scheduling": {
+    "strategy": "bounded_replacement",
+    "max_trials": 4
+  },
+  "revision_id": "urgent_service"
+}

@@ -28,15 +28,29 @@ defmodule OrbitalDynamics.MissionAnalysis.Attitude.Profile do
         omega_after = Vector3.scale(Quaternion.delta(q, qp2), 1 / (tp2 - t))
         accel = Vector3.scale(Vector3.subtract(omega_after, omega_before), 2 / (tp2 - tm2))
 
-        {:ok,
-         %{
-           "epoch_s" => t,
-           "quaternion_wxyz" => Tuple.to_list(q),
-           "angular_velocity_inertial_deg_s" => Tuple.to_list(omega),
-           "angular_acceleration_inertial_deg_s2" => Tuple.to_list(accel),
-           "rate_deg_s" => Vector3.norm(omega),
-           "accel_deg_s2" => Vector3.norm(accel)
-         }, cache}
+        point = %{
+          "epoch_s" => t,
+          "quaternion_wxyz" => Tuple.to_list(q),
+          "angular_velocity_inertial_deg_s" => Tuple.to_list(omega),
+          "angular_acceleration_inertial_deg_s2" => Tuple.to_list(accel),
+          "rate_deg_s" => Vector3.norm(omega),
+          "accel_deg_s2" => Vector3.norm(accel)
+        }
+
+        point =
+          if policy.assets[asset.id][:rigid_body],
+            do:
+              Map.put(
+                point,
+                "rigid_body_torque",
+                OrbitalDynamics.MissionAnalysis.Attitude.RigidBody.at(
+                  point,
+                  policy.assets[asset.id].rigid_body
+                )
+              ),
+            else: point
+
+        {:ok, point, cache}
       end
     else
       {:unknown, :attitude_derivative_epoch_precision_exhausted, cache}
@@ -82,6 +96,10 @@ defmodule OrbitalDynamics.MissionAnalysis.Attitude.Profile do
 
               point["accel_deg_s2"] > limits.max_accel_deg_s2 ->
                 {:infeasible, {:tracking_acceleration_exceeds_limit, t, point["accel_deg_s2"]},
+                 cache}
+
+              get_in(point, ["rigid_body_torque", "status"]) == "violated" ->
+                {:infeasible, {:tracking_torque_exceeds_limit, t, point["rigid_body_torque"]},
                  cache}
 
               true ->
@@ -176,6 +194,7 @@ defmodule OrbitalDynamics.MissionAnalysis.Attitude.Profile do
         if cache.evaluations >= policy.max_evaluations do
           {:error, :attitude_evaluation_budget_exhausted, cache}
         else
+          OrbitalDynamics.MissionAnalysis.Scheduling.Work.charge!("attitude")
           {status, value} = evaluate.()
 
           cache = %{

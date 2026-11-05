@@ -1,0 +1,185 @@
+{
+  "baseline_snapshot_id": "mission_plan_snapshot:e52f46243180aaa391121eef1d9530ea8c14ceb788e42f2eea4297e2d6479d49",
+  "date": "2026-11-04",
+  "final_snapshot_id": "mission_plan_snapshot:f710f45f673fa01f9b4318539ce438fdae3c682c01dc63809aeee7259747ba8f",
+  "format": "interval_availability_observation.v1",
+  "independent_validation_status": "passed",
+  "limits": "Synthetic activity eligibility and state/resource consistency; no bus-failure or external actuator validation.",
+  "run_status": "completed",
+  "steps": [
+    {
+      "accepted_snapshot_id": "mission_plan_snapshot:5c5d3c1b18aaef2cfcf53c228c6f0c29d7094be7fbc33f25c723cd2f3b186779",
+      "id": "before_unload",
+      "invariant_status": "passed",
+      "kind": "advance",
+      "state_update": {
+        "as_of_s": 820497610,
+        "assets": {
+          "demo-3": {
+            "angular_velocity_inertial_deg_s": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "battery_energy_wh": {
+              "battery": 10
+            },
+            "quaternion_wxyz": [
+              1.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "resource_budgets": {
+              "service_tokens": 1,
+              "unload_tokens": 1
+            },
+            "wheel_momentum_nms": {
+              "wheels": [
+                0.0,
+                0.0,
+                0.2000000000000001
+              ]
+            }
+          }
+        },
+        "completed_request_ids": [],
+        "expected_baseline_id": "mission_plan_snapshot:e52f46243180aaa391121eef1d9530ea8c14ceb788e42f2eea4297e2d6479d49",
+        "frame": "eci_j2000",
+        "not_executed_request_ids": [],
+        "protect_request_ids": [],
+        "revision_id": "before_unload",
+        "scheduling": {
+          "max_trials": 1,
+          "strategy": "greedy"
+        },
+        "source_id": "scripted_execution_and_declared_energy_loss",
+        "time_scale": "utc"
+      },
+      "status": "ready_for_review"
+    },
+    {
+      "accepted_snapshot_id": "mission_plan_snapshot:f9b6d187c9a6f40f8610e02a500c6d9565393a8a305415a8279fbc1cc28f0482",
+      "id": "review_remaining_maintenance",
+      "invariant_status": "passed",
+      "kind": "revise",
+      "state_update": null,
+      "status": "ready_for_review"
+    },
+    {
+      "accepted_snapshot_id": "mission_plan_snapshot:aa2754c8994b2ac37b280a709b2eccf6a5ed627ac30091f26a42cd2859e8760c",
+      "id": "execute_unload",
+      "invariant_status": "passed",
+      "kind": "advance",
+      "state_update": {
+        "as_of_s": 820497660,
+        "assets": {
+          "demo-3": {
+            "angular_velocity_inertial_deg_s": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "battery_energy_wh": {
+              "battery": 9.933333333333394
+            },
+            "quaternion_wxyz": [
+              1.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "resource_budgets": {
+              "service_tokens": 1,
+              "unload_tokens": 0.0
+            },
+            "wheel_momentum_nms": {
+              "wheels": [
+                0.0,
+                0.0,
+                0.10000000000000045
+              ]
+            }
+          }
+        },
+        "completed_request_ids": [
+          "unload"
+        ],
+        "expected_baseline_id": "mission_plan_snapshot:f9b6d187c9a6f40f8610e02a500c6d9565393a8a305415a8279fbc1cc28f0482",
+        "frame": "eci_j2000",
+        "not_executed_request_ids": [],
+        "protect_request_ids": [
+          "service"
+        ],
+        "revision_id": "execute_unload",
+        "scheduling": {
+          "max_trials": 1,
+          "strategy": "greedy"
+        },
+        "source_id": "scripted_execution_and_declared_energy_loss",
+        "time_scale": "utc"
+      },
+      "status": "ready_for_review"
+    },
+    {
+      "accepted_snapshot_id": "mission_plan_snapshot:f710f45f673fa01f9b4318539ce438fdae3c682c01dc63809aeee7259747ba8f",
+      "id": "execute_service",
+      "invariant_status": "passed",
+      "kind": "advance",
+      "state_update": {
+        "as_of_s": 820497690,
+        "assets": {
+          "demo-3": {
+            "angular_velocity_inertial_deg_s": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "battery_energy_wh": {
+              "battery": 9.92777777777782
+            },
+            "quaternion_wxyz": [
+              1.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "resource_budgets": {
+              "service_tokens": 0.0,
+              "unload_tokens": 0.0
+            },
+            "wheel_momentum_nms": {
+              "wheels": [
+                0.0,
+                0.0,
+                0.700000000000001
+              ]
+            }
+          }
+        },
+        "completed_request_ids": [
+          "service"
+        ],
+        "expected_baseline_id": "mission_plan_snapshot:aa2754c8994b2ac37b280a709b2eccf6a5ed627ac30091f26a42cd2859e8760c",
+        "frame": "eci_j2000",
+        "not_executed_request_ids": [],
+        "protect_request_ids": [],
+        "revision_id": "execute_service",
+        "scheduling": {
+          "max_trials": 1,
+          "strategy": "greedy"
+        },
+        "source_id": "scripted_execution_and_declared_energy_loss",
+        "time_scale": "utc"
+      },
+      "status": "ready_for_review"
+    }
+  ],
+  "verification": {
+    "elapsed_s": 250.6,
+    "excluded": 1148,
+    "fast_suite_passed": 5406,
+    "focused_tests": 7
+  },
+  "verification_status": "passed"
+}

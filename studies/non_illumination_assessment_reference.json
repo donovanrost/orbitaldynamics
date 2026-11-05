@@ -1,0 +1,220 @@
+{
+  "mission_id": "non_illumination_assessment",
+  "epoch_s": 820497600,
+  "duration_s": 120,
+  "sample_step_s": 1,
+  "max_step_s": 1,
+  "solar_year_s": 31556925.216,
+  "max_sample_gap_s": 1,
+  "asset_separation_s": 0,
+  "assets": [
+    {
+      "id": "bus-1",
+      "altitude_km": 600,
+      "local_time_ascending_node_h": 18.04,
+      "initial_argument_of_latitude_deg": 0,
+      "dry_mass_kg": 250,
+      "payloads": {
+        "fixed_attitude": {
+          "activity_types": [
+            "service",
+            "cooldown"
+          ]
+        }
+      },
+      "resource_budgets": {
+        "service_tokens": 2,
+        "unload_tokens": 2
+      }
+    },
+    {
+      "id": "bus-2",
+      "altitude_km": 600,
+      "local_time_ascending_node_h": 18.04,
+      "initial_argument_of_latitude_deg": 2,
+      "dry_mass_kg": 250,
+      "payloads": {
+        "fixed_attitude": {
+          "activity_types": [
+            "service",
+            "cooldown"
+          ]
+        }
+      },
+      "resource_budgets": {
+        "service_tokens": 2,
+        "unload_tokens": 2
+      }
+    }
+  ],
+  "requests": [
+    {
+      "id": "first-cooldown-1",
+      "model": "fixed_attitude",
+      "activity_type": "cooldown",
+      "target": null,
+      "starts_at_s": 820497620,
+      "ends_at_s": 820497640,
+      "duration_s": 20,
+      "value": 0,
+      "parameters": {
+        "quaternion_wxyz": [
+          1,
+          0,
+          0,
+          0
+        ]
+      },
+      "resource_costs": {
+        "unload_tokens": 1
+      }
+    },
+    {
+      "id": "first-service-1",
+      "model": "fixed_attitude",
+      "activity_type": "service",
+      "target": null,
+      "starts_at_s": 820497670,
+      "ends_at_s": 820497680,
+      "duration_s": 10,
+      "value": 10,
+      "parameters": {
+        "quaternion_wxyz": [
+          1,
+          0,
+          0,
+          0
+        ]
+      },
+      "resource_costs": {
+        "service_tokens": 1
+      }
+    },
+    {
+      "id": "first-cooldown-2",
+      "model": "fixed_attitude",
+      "activity_type": "cooldown",
+      "target": null,
+      "starts_at_s": 820497620,
+      "ends_at_s": 820497640,
+      "duration_s": 20,
+      "value": 0,
+      "parameters": {
+        "quaternion_wxyz": [
+          1,
+          0,
+          0,
+          0
+        ]
+      },
+      "resource_costs": {
+        "unload_tokens": 1
+      }
+    },
+    {
+      "id": "first-service-2",
+      "model": "fixed_attitude",
+      "activity_type": "service",
+      "target": null,
+      "starts_at_s": 820497670,
+      "ends_at_s": 820497680,
+      "duration_s": 10,
+      "value": 10,
+      "parameters": {
+        "quaternion_wxyz": [
+          1,
+          0,
+          0,
+          0
+        ]
+      },
+      "resource_costs": {
+        "service_tokens": 1
+      }
+    },
+    {
+      "id": "second-cooldown-1",
+      "model": "fixed_attitude",
+      "activity_type": "cooldown",
+      "target": null,
+      "starts_at_s": 820497700,
+      "ends_at_s": 820497720,
+      "duration_s": 20,
+      "value": 0,
+      "parameters": {
+        "quaternion_wxyz": [
+          1,
+          0,
+          0,
+          0
+        ]
+      },
+      "resource_costs": {
+        "unload_tokens": 1
+      }
+    },
+    {
+      "id": "second-service-1",
+      "model": "fixed_attitude",
+      "activity_type": "service",
+      "target": null,
+      "starts_at_s": 820497740,
+      "ends_at_s": 820497750,
+      "duration_s": 10,
+      "value": 10,
+      "parameters": {
+        "quaternion_wxyz": [
+          1,
+          0,
+          0,
+          0
+        ]
+      },
+      "resource_costs": {
+        "service_tokens": 1
+      }
+    },
+    {
+      "id": "second-cooldown-2",
+      "model": "fixed_attitude",
+      "activity_type": "cooldown",
+      "target": null,
+      "starts_at_s": 820497700,
+      "ends_at_s": 820497720,
+      "duration_s": 20,
+      "value": 0,
+      "parameters": {
+        "quaternion_wxyz": [
+          1,
+          0,
+          0,
+          0
+        ]
+      },
+      "resource_costs": {
+        "unload_tokens": 1
+      }
+    },
+    {
+      "id": "second-service-2",
+      "model": "fixed_attitude",
+      "activity_type": "service",
+      "target": null,
+      "starts_at_s": 820497740,
+      "ends_at_s": 820497750,
+      "duration_s": 10,
+      "value": 10,
+      "parameters": {
+        "quaternion_wxyz": [
+          1,
+          0,
+          0,
+          0
+        ]
+      },
+      "resource_costs": {
+        "service_tokens": 1
+      }
+    }
+  ]
+}

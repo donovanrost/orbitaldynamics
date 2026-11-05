@@ -1,0 +1,1379 @@
+{
+  "format": "rigid_body_torque_observation.v1",
+  "recorded_date": "2026-11-03",
+  "scope": "synthetic fixed-principal-inertia model and declared net body torque box; no actual Reflect Orbital parameters or flight validation",
+  "cases": {
+    "ample": {
+      "snapshot_id": "mission_plan_snapshot:18716c99abddecda9e6bfa16cc5b1310b2caa1e27efcff454b2a51f11a3479cf",
+      "raw_path": "tmp/rigid_body_reference/baseline_snapshot.json",
+      "file_sha256": "e04ab375aef8706bf751299fd76417000b60ba9dff8299570e07ed530b8cf643",
+      "study": {
+        "attitude": {
+          "assets": {
+            "demo-3": {
+              "initial": {
+                "angular_velocity_inertial_deg_s": [
+                  0,
+                  0,
+                  0
+                ],
+                "epoch_s": 820497600,
+                "frame": "eci_j2000",
+                "quaternion_wxyz": [
+                  1,
+                  0,
+                  0,
+                  0
+                ],
+                "time_scale": "utc"
+              },
+              "max_accel_deg_s2": 0.2,
+              "max_rate_deg_s": 2,
+              "pointing_configurations": {
+                "illumination": {
+                  "body_to_payload_quaternion": [
+                    1,
+                    0,
+                    0,
+                    0
+                  ],
+                  "roll_reference_inertial": [
+                    0,
+                    0,
+                    1
+                  ]
+                }
+              },
+              "rigid_body": {
+                "frame": "body_principal_axes",
+                "max_body_torque_nm": [
+                  1,
+                  1,
+                  1
+                ],
+                "principal_moments_kg_m2": [
+                  100,
+                  120,
+                  160
+                ]
+              },
+              "settling_s": 2
+            }
+          },
+          "derivative_step_s": 0.25,
+          "max_candidate_starts": 8,
+          "max_evaluations": 20000,
+          "profile_step_s": 2,
+          "search_step_s": 20
+        },
+        "horizon": {
+          "ends_at_s": 820498200,
+          "starts_at_s": 820497600,
+          "terminals": {
+            "demo-3": {
+              "frame": "eci_j2000",
+              "mode": "standby",
+              "quaternion_wxyz": [
+                1,
+                0,
+                0,
+                0
+              ],
+              "strategy": "fixed_inertial"
+            }
+          },
+          "time_scale": "utc"
+        },
+        "mission_manifest": "rolling_state_reference.json",
+        "opportunity_search": {
+          "entry_margin_s": 0.5,
+          "exit_margin_s": 0.5,
+          "max_check_step_s": 5,
+          "max_evaluations": 50000,
+          "max_iterations": 64,
+          "time_tolerance_s": 0.01
+        },
+        "path_constraints": {
+          "assets": {
+            "demo-3": {
+              "activity_modes": {
+                "early-3": "reflecting",
+                "late-1": "reflecting"
+              },
+              "modes": {
+                "maneuver": {
+                  "optical_behavior": "reflecting",
+                  "power_load_w": 0
+                },
+                "reflecting": {
+                  "optical_behavior": "reflecting",
+                  "power_load_w": 360
+                },
+                "standby": {
+                  "optical_behavior": "reflecting",
+                  "power_load_w": 0
+                }
+              },
+              "rules": [
+                {
+                  "configuration": {
+                    "body_axis": [
+                      0,
+                      0,
+                      1
+                    ],
+                    "maximum_angle_deg": 180,
+                    "minimum_angle_deg": 5,
+                    "reference": {
+                      "kind": "sun"
+                    }
+                  },
+                  "id": "sun_axis",
+                  "model": "angular"
+                },
+                {
+                  "configuration": {
+                    "body_axis": [
+                      1,
+                      0,
+                      0
+                    ],
+                    "maximum_angle_deg": 180,
+                    "minimum_angle_deg": 0,
+                    "reference": {
+                      "kind": "body_limb"
+                    }
+                  },
+                  "id": "limb_axis",
+                  "model": "angular"
+                },
+                {
+                  "configuration": {
+                    "back_face_behavior": "two_sided_reflecting_by_assumption",
+                    "beam_padding_deg": 0.02,
+                    "exclusion_regions": [
+                      {
+                        "id": "synthetic_polar_exclusion",
+                        "latitude_deg": 80,
+                        "longitude_deg": 0,
+                        "radius_km": 25
+                      }
+                    ],
+                    "mirror_normal_body": [
+                      0,
+                      0,
+                      1
+                    ],
+                    "solar_angular_radius_deg": 0.265
+                  },
+                  "id": "reflected_beam",
+                  "model": "reflected_beam"
+                }
+              ],
+              "transition_mode": "maneuver"
+            }
+          },
+          "max_evaluations": 100000,
+          "max_samples_per_segment": 5000,
+          "sample_steps_s": [
+            5,
+            1
+          ]
+        },
+        "refinement": {
+          "max_extra_evaluations": 512,
+          "time_tolerance_s": 0.01,
+          "tracking_lookback_s": 1
+        },
+        "resolution_level": {
+          "max_step_s": 1,
+          "sample_step_s": 2
+        },
+        "resources": {
+          "assets": {
+            "demo-3": [
+              {
+                "configuration": {
+                  "capacity_wh": 10,
+                  "charge_efficiency": 1,
+                  "discharge_efficiency": 1,
+                  "generation": {
+                    "kind": "constant",
+                    "power_w": 0
+                  },
+                  "initial_wh": 10,
+                  "phase_load_w": {
+                    "activity": 0,
+                    "brake": 0,
+                    "hold": 0,
+                    "ramp_to_tracking": 0,
+                    "settle": 0,
+                    "slew_accelerate": 0,
+                    "slew_cruise": 0,
+                    "slew_decelerate": 0
+                  },
+                  "reserve_wh": 2
+                },
+                "id": "battery",
+                "model": "battery"
+              }
+            ]
+          },
+          "max_evaluations": 100000,
+          "max_intervals_per_asset": 5000,
+          "sample_steps_s": [
+            5,
+            1
+          ]
+        },
+        "scheduling": {
+          "max_trials": 1,
+          "strategy": "greedy"
+        },
+        "study_id": "rigid_body_reference"
+      },
+      "scheduled_value": 50.0,
+      "activities": [
+        {
+          "request_id": "early-3",
+          "asset_id": "demo-3",
+          "starts_at_s": 820497660.5,
+          "ends_at_s": 820497680.5,
+          "value": 28.0
+        },
+        {
+          "request_id": "late-1",
+          "asset_id": "demo-3",
+          "starts_at_s": 820497980.5,
+          "ends_at_s": 820498000.5,
+          "value": 22.0
+        }
+      ],
+      "planning_status": "supported",
+      "request_summaries": {
+        "early-3": {
+          "attempt_reasons": {
+            "incoming_transition": 1,
+            "supported": 1
+          },
+          "constraint_issues": [],
+          "evaluation_limits": [],
+          "scope": "returned_incumbent_tested_starts_and_captured_trials_only_no_infeasibility_proof",
+          "search_status": "greedy_complete",
+          "selected_in_trial_ids": [
+            1
+          ],
+          "start_search_truncated": false,
+          "tested_start_count": 2,
+          "unknown_placement_count": 0
+        },
+        "late-1": {
+          "attempt_reasons": {
+            "supported": 1
+          },
+          "constraint_issues": [],
+          "evaluation_limits": [],
+          "scope": "returned_incumbent_tested_starts_and_captured_trials_only_no_infeasibility_proof",
+          "search_status": "greedy_complete",
+          "selected_in_trial_ids": [
+            1
+          ],
+          "start_search_truncated": false,
+          "tested_start_count": 1,
+          "unknown_placement_count": 0
+        }
+      },
+      "maximum_accepted_transition_body_torque_nm": [
+        0.22785834346632627,
+        0.41095116473305765,
+        0.270553437512242
+      ]
+    },
+    "limited": {
+      "snapshot_id": "mission_plan_snapshot:cf4d348f760ef68446371a3f3817ad27370a1c7d3c5b470e48a4f0e8dfcf183c",
+      "raw_path": "tmp/rigid_body_limited/baseline_snapshot.json",
+      "file_sha256": "17e53547064b2d1d01d7d2b6776c64db1d504ebc61e9da54dc20ad9400a4ffe6",
+      "study": {
+        "attitude": {
+          "assets": {
+            "demo-3": {
+              "initial": {
+                "angular_velocity_inertial_deg_s": [
+                  0,
+                  0,
+                  0
+                ],
+                "epoch_s": 820497600,
+                "frame": "eci_j2000",
+                "quaternion_wxyz": [
+                  1,
+                  0,
+                  0,
+                  0
+                ],
+                "time_scale": "utc"
+              },
+              "max_accel_deg_s2": 0.2,
+              "max_rate_deg_s": 2,
+              "pointing_configurations": {
+                "illumination": {
+                  "body_to_payload_quaternion": [
+                    1,
+                    0,
+                    0,
+                    0
+                  ],
+                  "roll_reference_inertial": [
+                    0,
+                    0,
+                    1
+                  ]
+                }
+              },
+              "rigid_body": {
+                "frame": "body_principal_axes",
+                "max_body_torque_nm": [
+                  0.01,
+                  0.01,
+                  0.01
+                ],
+                "principal_moments_kg_m2": [
+                  100,
+                  120,
+                  160
+                ]
+              },
+              "settling_s": 2
+            }
+          },
+          "derivative_step_s": 0.25,
+          "max_candidate_starts": 8,
+          "max_evaluations": 20000,
+          "profile_step_s": 2,
+          "search_step_s": 20
+        },
+        "horizon": {
+          "ends_at_s": 820498200,
+          "starts_at_s": 820497600,
+          "terminals": {
+            "demo-3": {
+              "frame": "eci_j2000",
+              "mode": "standby",
+              "quaternion_wxyz": [
+                1,
+                0,
+                0,
+                0
+              ],
+              "strategy": "fixed_inertial"
+            }
+          },
+          "time_scale": "utc"
+        },
+        "mission_manifest": "rolling_state_reference.json",
+        "opportunity_search": {
+          "entry_margin_s": 0.5,
+          "exit_margin_s": 0.5,
+          "max_check_step_s": 5,
+          "max_evaluations": 50000,
+          "max_iterations": 64,
+          "time_tolerance_s": 0.01
+        },
+        "path_constraints": {
+          "assets": {
+            "demo-3": {
+              "activity_modes": {
+                "early-3": "reflecting",
+                "late-1": "reflecting"
+              },
+              "modes": {
+                "maneuver": {
+                  "optical_behavior": "reflecting",
+                  "power_load_w": 0
+                },
+                "reflecting": {
+                  "optical_behavior": "reflecting",
+                  "power_load_w": 360
+                },
+                "standby": {
+                  "optical_behavior": "reflecting",
+                  "power_load_w": 0
+                }
+              },
+              "rules": [
+                {
+                  "configuration": {
+                    "body_axis": [
+                      0,
+                      0,
+                      1
+                    ],
+                    "maximum_angle_deg": 180,
+                    "minimum_angle_deg": 5,
+                    "reference": {
+                      "kind": "sun"
+                    }
+                  },
+                  "id": "sun_axis",
+                  "model": "angular"
+                },
+                {
+                  "configuration": {
+                    "body_axis": [
+                      1,
+                      0,
+                      0
+                    ],
+                    "maximum_angle_deg": 180,
+                    "minimum_angle_deg": 0,
+                    "reference": {
+                      "kind": "body_limb"
+                    }
+                  },
+                  "id": "limb_axis",
+                  "model": "angular"
+                },
+                {
+                  "configuration": {
+                    "back_face_behavior": "two_sided_reflecting_by_assumption",
+                    "beam_padding_deg": 0.02,
+                    "exclusion_regions": [
+                      {
+                        "id": "synthetic_polar_exclusion",
+                        "latitude_deg": 80,
+                        "longitude_deg": 0,
+                        "radius_km": 25
+                      }
+                    ],
+                    "mirror_normal_body": [
+                      0,
+                      0,
+                      1
+                    ],
+                    "solar_angular_radius_deg": 0.265
+                  },
+                  "id": "reflected_beam",
+                  "model": "reflected_beam"
+                }
+              ],
+              "transition_mode": "maneuver"
+            }
+          },
+          "max_evaluations": 100000,
+          "max_samples_per_segment": 5000,
+          "sample_steps_s": [
+            5,
+            1
+          ]
+        },
+        "refinement": {
+          "max_extra_evaluations": 512,
+          "time_tolerance_s": 0.01,
+          "tracking_lookback_s": 1
+        },
+        "resolution_level": {
+          "max_step_s": 1,
+          "sample_step_s": 2
+        },
+        "resources": {
+          "assets": {
+            "demo-3": [
+              {
+                "configuration": {
+                  "capacity_wh": 10,
+                  "charge_efficiency": 1,
+                  "discharge_efficiency": 1,
+                  "generation": {
+                    "kind": "constant",
+                    "power_w": 0
+                  },
+                  "initial_wh": 10,
+                  "phase_load_w": {
+                    "activity": 0,
+                    "brake": 0,
+                    "hold": 0,
+                    "ramp_to_tracking": 0,
+                    "settle": 0,
+                    "slew_accelerate": 0,
+                    "slew_cruise": 0,
+                    "slew_decelerate": 0
+                  },
+                  "reserve_wh": 2
+                },
+                "id": "battery",
+                "model": "battery"
+              }
+            ]
+          },
+          "max_evaluations": 100000,
+          "max_intervals_per_asset": 5000,
+          "sample_steps_s": [
+            5,
+            1
+          ]
+        },
+        "scheduling": {
+          "max_trials": 1,
+          "strategy": "greedy"
+        },
+        "study_id": "rigid_body_limited_reference"
+      },
+      "scheduled_value": 0,
+      "activities": [],
+      "planning_status": "supported",
+      "request_summaries": {
+        "early-3": {
+          "attempt_reasons": {
+            "incoming_transition": 8
+          },
+          "constraint_issues": [
+            {
+              "epoch_s": 820497607.0539228,
+              "id": "body_x",
+              "kind": "rigid_body_torque",
+              "margin": -0.21785834346632627,
+              "margin_unit": "Nm",
+              "scope": "incoming",
+              "status": "violated"
+            },
+            {
+              "epoch_s": 820497607.0539228,
+              "id": "body_y",
+              "kind": "rigid_body_torque",
+              "margin": -0.344540000655626,
+              "margin_unit": "Nm",
+              "scope": "incoming",
+              "status": "violated"
+            },
+            {
+              "epoch_s": 820497607.0539228,
+              "id": "body_z",
+              "kind": "rigid_body_torque",
+              "margin": -0.26055343751224197,
+              "margin_unit": "Nm",
+              "scope": "incoming",
+              "status": "violated"
+            },
+            {
+              "epoch_s": 820497625.6437985,
+              "id": "body_x",
+              "kind": "rigid_body_torque",
+              "margin": -0.19666239476536482,
+              "margin_unit": "Nm",
+              "scope": "incoming",
+              "status": "violated"
+            },
+            {
+              "epoch_s": 820497625.6437985,
+              "id": "body_y",
+              "kind": "rigid_body_torque",
+              "margin": -0.36104888122079487,
+              "margin_unit": "Nm",
+              "scope": "incoming",
+              "status": "violated"
+            },
+            {
+              "epoch_s": 820497625.6437985,
+              "id": "body_z",
+              "kind": "rigid_body_torque",
+              "margin": -0.22064084194186034,
+              "margin_unit": "Nm",
+              "scope": "incoming",
+              "status": "violated"
+            },
+            {
+              "epoch_s": 820497643.3839041,
+              "id": "body_x",
+              "kind": "rigid_body_torque",
+              "margin": -0.17205554477822685,
+              "margin_unit": "Nm",
+              "scope": "incoming",
+              "status": "violated"
+            },
+            {
+              "epoch_s": 820497643.3839041,
+              "id": "body_y",
+              "kind": "rigid_body_torque",
+              "margin": -0.37510681951266706,
+              "margin_unit": "Nm",
+              "scope": "incoming",
+              "status": "violated"
+            },
+            {
+              "epoch_s": 820497643.3839041,
+              "id": "body_z",
+              "kind": "rigid_body_torque",
+              "margin": -0.17901969885040556,
+              "margin_unit": "Nm",
+              "scope": "incoming",
+              "status": "violated"
+            },
+            {
+              "epoch_s": 820497660.2536975,
+              "id": "body_x",
+              "kind": "rigid_body_torque",
+              "margin": -0.1458428074952718,
+              "margin_unit": "Nm",
+              "scope": "incoming",
+              "status": "violated"
+            },
+            {
+              "epoch_s": 820497660.2536975,
+              "id": "body_y",
+              "kind": "rigid_body_torque",
+              "margin": -0.38601406238196295,
+              "margin_unit": "Nm",
+              "scope": "incoming",
+              "status": "violated"
+            },
+            {
+              "epoch_s": 820497660.2536975,
+              "id": "body_z",
+              "kind": "rigid_body_torque",
+              "margin": -0.138904974116333,
+              "margin_unit": "Nm",
+              "scope": "incoming",
+              "status": "violated"
+            },
+            {
+              "epoch_s": 820497660.5,
+              "id": "body_x",
+              "kind": "rigid_body_torque",
+              "margin": -0.21809076534096986,
+              "margin_unit": "Nm",
+              "scope": "outgoing",
+              "status": "violated"
+            },
+            {
+              "epoch_s": 820497660.5,
+              "id": "body_y",
+              "kind": "rigid_body_torque",
+              "margin": -0.34595603853869233,
+              "margin_unit": "Nm",
+              "scope": "outgoing",
+              "status": "violated"
+            },
+            {
+              "epoch_s": 820497660.5,
+              "id": "body_z",
+              "kind": "rigid_body_torque",
+              "margin": -0.25741812075190035,
+              "margin_unit": "Nm",
+              "scope": "outgoing",
+              "status": "violated"
+            },
+            {
+              "epoch_s": 820497676.3852668,
+              "id": "body_x",
+              "kind": "rigid_body_torque",
+              "margin": -0.11977694127316856,
+              "margin_unit": "Nm",
+              "scope": "incoming",
+              "status": "violated"
+            },
+            {
+              "epoch_s": 820497676.3852668,
+              "id": "body_y",
+              "kind": "rigid_body_torque",
+              "margin": -0.39375280819152086,
+              "margin_unit": "Nm",
+              "scope": "incoming",
+              "status": "violated"
+            },
+            {
+              "epoch_s": 820497676.3852668,
+              "id": "body_z",
+              "kind": "rigid_body_torque",
+              "margin": -0.10334068992082725,
+              "margin_unit": "Nm",
+              "scope": "incoming",
+              "status": "violated"
+            },
+            {
+              "epoch_s": 820497680.5,
+              "id": "body_x",
+              "kind": "rigid_body_torque",
+              "margin": -0.19688544760548238,
+              "margin_unit": "Nm",
+              "scope": "outgoing",
+              "status": "violated"
+            },
+            {
+              "epoch_s": 820497680.5,
+              "id": "body_y",
+              "kind": "rigid_body_torque",
+              "margin": -0.3624817246406463,
+              "margin_unit": "Nm",
+              "scope": "outgoing",
+              "status": "violated"
+            },
+            {
+              "epoch_s": 820497680.5,
+              "id": "body_z",
+              "kind": "rigid_body_torque",
+              "margin": -0.21677788774484627,
+              "margin_unit": "Nm",
+              "scope": "outgoing",
+              "status": "violated"
+            },
+            {
+              "epoch_s": 820497692.0582956,
+              "id": "body_x",
+              "kind": "rigid_body_torque",
+              "margin": -0.09437805764960919,
+              "margin_unit": "Nm",
+              "scope": "incoming",
+              "status": "violated"
+            },
+            {
+              "epoch_s": 820497692.0582956,
+              "id": "body_y",
+              "kind": "rigid_body_torque",
+              "margin": -0.398837430434181,
+              "margin_unit": "Nm",
+              "scope": "incoming",
+              "status": "violated"
+            },
+            {
+              "epoch_s": 820497692.0582956,
+              "id": "body_z",
+              "kind": "rigid_body_torque",
+              "margin": -0.07428713877673641,
+              "margin_unit": "Nm",
+              "scope": "incoming",
+              "status": "violated"
+            },
+            {
+              "epoch_s": 820497699.0550495,
+              "id": "body_x",
+              "kind": "rigid_body_torque",
+              "margin": -0.08304349870563496,
+              "margin_unit": "Nm",
+              "scope": "incoming",
+              "status": "violated"
+            },
+            {
+              "epoch_s": 820497699.0550495,
+              "id": "body_y",
+              "kind": "rigid_body_torque",
+              "margin": -0.40044900489596746,
+              "margin_unit": "Nm",
+              "scope": "incoming",
+              "status": "violated"
+            },
+            {
+              "epoch_s": 820497699.0550495,
+              "id": "body_z",
+              "kind": "rigid_body_torque",
+              "margin": -0.06352907481641594,
+              "margin_unit": "Nm",
+              "scope": "incoming",
+              "status": "violated"
+            },
+            {
+              "epoch_s": 820497700.5,
+              "id": "body_x",
+              "kind": "rigid_body_torque",
+              "margin": -0.1722135285242696,
+              "margin_unit": "Nm",
+              "scope": "outgoing",
+              "status": "violated"
+            },
+            {
+              "epoch_s": 820497700.5,
+              "id": "body_y",
+              "kind": "rigid_body_torque",
+              "margin": -0.3764181013293594,
+              "margin_unit": "Nm",
+              "scope": "outgoing",
+              "status": "violated"
+            },
+            {
+              "epoch_s": 820497700.5,
+              "id": "body_z",
+              "kind": "rigid_body_torque",
+              "margin": -0.17463844173911683,
+              "margin_unit": "Nm",
+              "scope": "outgoing",
+              "status": "violated"
+            },
+            {
+              "epoch_s": 820497720.5,
+              "id": "body_x",
+              "kind": "rigid_body_torque",
+              "margin": -0.1458723842210286,
+              "margin_unit": "Nm",
+              "scope": "outgoing",
+              "status": "violated"
+            },
+            {
+              "epoch_s": 820497720.5,
+              "id": "body_y",
+              "kind": "rigid_body_torque",
+              "margin": -0.3870823961459575,
+              "margin_unit": "Nm",
+              "scope": "outgoing",
+              "status": "violated"
+            },
+            {
+              "epoch_s": 820497720.5,
+              "id": "body_z",
+              "kind": "rigid_body_torque",
+              "margin": -0.13443555423434614,
+              "margin_unit": "Nm",
+              "scope": "outgoing",
+              "status": "violated"
+            },
+            {
+              "epoch_s": 820497740.5,
+              "id": "body_x",
+              "kind": "rigid_body_torque",
+              "margin": -0.11964246276384875,
+              "margin_unit": "Nm",
+              "scope": "outgoing",
+              "status": "violated"
+            },
+            {
+              "epoch_s": 820497740.5,
+              "id": "body_y",
+              "kind": "rigid_body_torque",
+              "margin": -0.39452258767380644,
+              "margin_unit": "Nm",
+              "scope": "outgoing",
+              "status": "violated"
+            },
+            {
+              "epoch_s": 820497740.5,
+              "id": "body_z",
+              "kind": "rigid_body_torque",
+              "margin": -0.09931173167300526,
+              "margin_unit": "Nm",
+              "scope": "outgoing",
+              "status": "violated"
+            },
+            {
+              "epoch_s": 820497760.5,
+              "id": "body_x",
+              "kind": "rigid_body_torque",
+              "margin": -0.09410763031687586,
+              "margin_unit": "Nm",
+              "scope": "outgoing",
+              "status": "violated"
+            },
+            {
+              "epoch_s": 820497760.5,
+              "id": "body_y",
+              "kind": "rigid_body_torque",
+              "margin": -0.39932978129129015,
+              "margin_unit": "Nm",
+              "scope": "outgoing",
+              "status": "violated"
+            },
+            {
+              "epoch_s": 820497760.5,
+              "id": "body_z",
+              "kind": "rigid_body_torque",
+              "margin": -0.07110182553161366,
+              "margin_unit": "Nm",
+              "scope": "outgoing",
+              "status": "violated"
+            },
+            {
+              "epoch_s": 820497780.5,
+              "id": "body_x",
+              "kind": "rigid_body_torque",
+              "margin": -0.06875356415702723,
+              "margin_unit": "Nm",
+              "scope": "outgoing",
+              "status": "violated"
+            },
+            {
+              "epoch_s": 820497780.5,
+              "id": "body_y",
+              "kind": "rigid_body_torque",
+              "margin": -0.4022564032202136,
+              "margin_unit": "Nm",
+              "scope": "outgoing",
+              "status": "violated"
+            },
+            {
+              "epoch_s": 820497780.5,
+              "id": "body_z",
+              "kind": "rigid_body_torque",
+              "margin": -0.05263331536050226,
+              "margin_unit": "Nm",
+              "scope": "outgoing",
+              "status": "violated"
+            },
+            {
+              "epoch_s": 820497789.5,
+              "id": "body_x",
+              "kind": "rigid_body_torque",
+              "margin": -0.05708646713113751,
+              "margin_unit": "Nm",
+              "scope": "outgoing",
+              "status": "violated"
+            },
+            {
+              "epoch_s": 820497789.5,
+              "id": "body_y",
+              "kind": "rigid_body_torque",
+              "margin": -0.403135501522679,
+              "margin_unit": "Nm",
+              "scope": "outgoing",
+              "status": "violated"
+            },
+            {
+              "epoch_s": 820497789.5,
+              "id": "body_z",
+              "kind": "rigid_body_torque",
+              "margin": -0.0535699833546831,
+              "margin_unit": "Nm",
+              "scope": "outgoing",
+              "status": "violated"
+            }
+          ],
+          "evaluation_limits": [],
+          "scope": "returned_incumbent_tested_starts_and_captured_trials_only_no_infeasibility_proof",
+          "search_status": "greedy_complete",
+          "selected_in_trial_ids": [],
+          "start_search_truncated": false,
+          "tested_start_count": 8,
+          "unknown_placement_count": 0
+        },
+        "late-1": {
+          "attempt_reasons": {
+            "incoming_transition": 8
+          },
+          "constraint_issues": [
+            {
+              "epoch_s": 820497913.0965363,
+              "id": "body_x",
+              "kind": "rigid_body_torque",
+              "margin": -0.11670634267960976,
+              "margin_unit": "Nm",
+              "scope": "incoming",
+              "status": "violated"
+            },
+            {
+              "epoch_s": 820497913.0965363,
+              "id": "body_y",
+              "kind": "rigid_body_torque",
+              "margin": -0.3973062597192126,
+              "margin_unit": "Nm",
+              "scope": "incoming",
+              "status": "violated"
+            },
+            {
+              "epoch_s": 820497913.0965363,
+              "id": "body_z",
+              "kind": "rigid_body_torque",
+              "margin": -0.08158199387831368,
+              "margin_unit": "Nm",
+              "scope": "incoming",
+              "status": "violated"
+            },
+            {
+              "epoch_s": 820497929.4819478,
+              "id": "body_x",
+              "kind": "rigid_body_torque",
+              "margin": -0.0976014242765576,
+              "margin_unit": "Nm",
+              "scope": "incoming",
+              "status": "violated"
+            },
+            {
+              "epoch_s": 820497929.4819478,
+              "id": "body_y",
+              "kind": "rigid_body_torque",
+              "margin": -0.400656909318091,
+              "margin_unit": "Nm",
+              "scope": "incoming",
+              "status": "violated"
+            },
+            {
+              "epoch_s": 820497929.4819478,
+              "id": "body_z",
+              "kind": "rigid_body_torque",
+              "margin": -0.06323753788586325,
+              "margin_unit": "Nm",
+              "scope": "incoming",
+              "status": "violated"
+            },
+            {
+              "epoch_s": 820497945.6476569,
+              "id": "body_x",
+              "kind": "rigid_body_torque",
+              "margin": -0.0788192049696462,
+              "margin_unit": "Nm",
+              "scope": "incoming",
+              "status": "violated"
+            },
+            {
+              "epoch_s": 820497945.6476569,
+              "id": "body_y",
+              "kind": "rigid_body_torque",
+              "margin": -0.40306464621717386,
+              "margin_unit": "Nm",
+              "scope": "incoming",
+              "status": "violated"
+            },
+            {
+              "epoch_s": 820497945.6476569,
+              "id": "body_z",
+              "kind": "rigid_body_torque",
+              "margin": -0.07557253018590644,
+              "margin_unit": "Nm",
+              "scope": "incoming",
+              "status": "violated"
+            },
+            {
+              "epoch_s": 820497961.7762039,
+              "id": "body_x",
+              "kind": "rigid_body_torque",
+              "margin": -0.059884115373275267,
+              "margin_unit": "Nm",
+              "scope": "incoming",
+              "status": "violated"
+            },
+            {
+              "epoch_s": 820497961.7762039,
+              "id": "body_y",
+              "kind": "rigid_body_torque",
+              "margin": -0.40472402647408096,
+              "margin_unit": "Nm",
+              "scope": "incoming",
+              "status": "violated"
+            },
+            {
+              "epoch_s": 820497961.7762039,
+              "id": "body_z",
+              "kind": "rigid_body_torque",
+              "margin": -0.08093233346826027,
+              "margin_unit": "Nm",
+              "scope": "incoming",
+              "status": "violated"
+            },
+            {
+              "epoch_s": 820497978.0364082,
+              "id": "body_x",
+              "kind": "rigid_body_torque",
+              "margin": -0.03999171347741656,
+              "margin_unit": "Nm",
+              "scope": "incoming",
+              "status": "violated"
+            },
+            {
+              "epoch_s": 820497978.0364082,
+              "id": "body_y",
+              "kind": "rigid_body_torque",
+              "margin": -0.4058096496079284,
+              "margin_unit": "Nm",
+              "scope": "incoming",
+              "status": "violated"
+            },
+            {
+              "epoch_s": 820497978.0364082,
+              "id": "body_z",
+              "kind": "rigid_body_torque",
+              "margin": -0.07560692026104726,
+              "margin_unit": "Nm",
+              "scope": "incoming",
+              "status": "violated"
+            },
+            {
+              "epoch_s": 820497994.5507026,
+              "id": "body_x",
+              "kind": "rigid_body_torque",
+              "margin": -0.029365435031512538,
+              "margin_unit": "Nm",
+              "scope": "incoming",
+              "status": "violated"
+            },
+            {
+              "epoch_s": 820497994.5507026,
+              "id": "body_y",
+              "kind": "rigid_body_torque",
+              "margin": -0.4064507084562041,
+              "margin_unit": "Nm",
+              "scope": "incoming",
+              "status": "violated"
+            },
+            {
+              "epoch_s": 820497994.5507026,
+              "id": "body_z",
+              "kind": "rigid_body_torque",
+              "margin": -0.05240738577014938,
+              "margin_unit": "Nm",
+              "scope": "incoming",
+              "status": "violated"
+            },
+            {
+              "epoch_s": 820498000.5,
+              "id": "body_x",
+              "kind": "rigid_body_torque",
+              "margin": -0.09733686323978734,
+              "margin_unit": "Nm",
+              "scope": "outgoing",
+              "status": "violated"
+            },
+            {
+              "epoch_s": 820498000.5,
+              "id": "body_y",
+              "kind": "rigid_body_torque",
+              "margin": -0.40095116473305764,
+              "margin_unit": "Nm",
+              "scope": "outgoing",
+              "status": "violated"
+            },
+            {
+              "epoch_s": 820498000.5,
+              "id": "body_z",
+              "kind": "rigid_body_torque",
+              "margin": -0.06292602052492148,
+              "margin_unit": "Nm",
+              "scope": "outgoing",
+              "status": "violated"
+            },
+            {
+              "epoch_s": 820498011.3805696,
+              "id": "body_x",
+              "kind": "rigid_body_torque",
+              "margin": -0.02715652618767208,
+              "margin_unit": "Nm",
+              "scope": "incoming",
+              "status": "violated"
+            },
+            {
+              "epoch_s": 820498011.3805696,
+              "id": "body_y",
+              "kind": "rigid_body_torque",
+              "margin": -0.4088303004466731,
+              "margin_unit": "Nm",
+              "scope": "incoming",
+              "status": "violated"
+            },
+            {
+              "epoch_s": 820498011.3805696,
+              "id": "body_z",
+              "kind": "rigid_body_torque",
+              "margin": -0.007384375151048414,
+              "margin_unit": "Nm",
+              "scope": "incoming",
+              "status": "violated"
+            },
+            {
+              "epoch_s": 820498019.0580654,
+              "id": "body_x",
+              "kind": "rigid_body_torque",
+              "margin": -0.02717713904799931,
+              "margin_unit": "Nm",
+              "scope": "incoming",
+              "status": "violated"
+            },
+            {
+              "epoch_s": 820498019.0580654,
+              "id": "body_y",
+              "kind": "rigid_body_torque",
+              "margin": -0.4079324682584843,
+              "margin_unit": "Nm",
+              "scope": "incoming",
+              "status": "violated"
+            },
+            {
+              "epoch_s": 820498019.0580654,
+              "id": "body_z",
+              "kind": "rigid_body_torque",
+              "margin": -0.02372794305637302,
+              "margin_unit": "Nm",
+              "scope": "incoming",
+              "status": "violated"
+            },
+            {
+              "epoch_s": 820498020.5,
+              "id": "body_x",
+              "kind": "rigid_body_torque",
+              "margin": -0.0784959334510985,
+              "margin_unit": "Nm",
+              "scope": "outgoing",
+              "status": "violated"
+            },
+            {
+              "epoch_s": 820498020.5,
+              "id": "body_y",
+              "kind": "rigid_body_torque",
+              "margin": -0.403273760916276,
+              "margin_unit": "Nm",
+              "scope": "outgoing",
+              "status": "violated"
+            },
+            {
+              "epoch_s": 820498020.5,
+              "id": "body_z",
+              "kind": "rigid_body_torque",
+              "margin": -0.07530423669051244,
+              "margin_unit": "Nm",
+              "scope": "outgoing",
+              "status": "violated"
+            },
+            {
+              "epoch_s": 820498040.5,
+              "id": "body_x",
+              "kind": "rigid_body_torque",
+              "margin": -0.05955267448000331,
+              "margin_unit": "Nm",
+              "scope": "outgoing",
+              "status": "violated"
+            },
+            {
+              "epoch_s": 820498040.5,
+              "id": "body_y",
+              "kind": "rigid_body_torque",
+              "margin": -0.40486077825532474,
+              "margin_unit": "Nm",
+              "scope": "outgoing",
+              "status": "violated"
+            },
+            {
+              "epoch_s": 820498040.5,
+              "id": "body_z",
+              "kind": "rigid_body_torque",
+              "margin": -0.08072906806677153,
+              "margin_unit": "Nm",
+              "scope": "outgoing",
+              "status": "violated"
+            },
+            {
+              "epoch_s": 820498060.5,
+              "id": "body_x",
+              "kind": "rigid_body_torque",
+              "margin": -0.03971241418657582,
+              "margin_unit": "Nm",
+              "scope": "outgoing",
+              "status": "violated"
+            },
+            {
+              "epoch_s": 820498060.5,
+              "id": "body_y",
+              "kind": "rigid_body_torque",
+              "margin": -0.40589006796726734,
+              "margin_unit": "Nm",
+              "scope": "outgoing",
+              "status": "violated"
+            },
+            {
+              "epoch_s": 820498060.5,
+              "id": "body_z",
+              "kind": "rigid_body_torque",
+              "margin": -0.07547697047971676,
+              "margin_unit": "Nm",
+              "scope": "outgoing",
+              "status": "violated"
+            },
+            {
+              "epoch_s": 820498080.5,
+              "id": "body_x",
+              "kind": "rigid_body_torque",
+              "margin": -0.029059598929567616,
+              "margin_unit": "Nm",
+              "scope": "outgoing",
+              "status": "violated"
+            },
+            {
+              "epoch_s": 820498080.5,
+              "id": "body_y",
+              "kind": "rigid_body_torque",
+              "margin": -0.4064889084580824,
+              "margin_unit": "Nm",
+              "scope": "outgoing",
+              "status": "violated"
+            },
+            {
+              "epoch_s": 820498080.5,
+              "id": "body_z",
+              "kind": "rigid_body_torque",
+              "margin": -0.05234616385987976,
+              "margin_unit": "Nm",
+              "scope": "outgoing",
+              "status": "violated"
+            },
+            {
+              "epoch_s": 820498100.5,
+              "id": "body_x",
+              "kind": "rigid_body_torque",
+              "margin": -0.027109328807296253,
+              "margin_unit": "Nm",
+              "scope": "outgoing",
+              "status": "violated"
+            },
+            {
+              "epoch_s": 820498100.5,
+              "id": "body_y",
+              "kind": "rigid_body_torque",
+              "margin": -0.4088304825769585,
+              "margin_unit": "Nm",
+              "scope": "outgoing",
+              "status": "violated"
+            },
+            {
+              "epoch_s": 820498100.5,
+              "id": "body_z",
+              "kind": "rigid_body_torque",
+              "margin": -0.00710294450666807,
+              "margin_unit": "Nm",
+              "scope": "outgoing",
+              "status": "violated"
+            }
+          ],
+          "evaluation_limits": [],
+          "scope": "returned_incumbent_tested_starts_and_captured_trials_only_no_infeasibility_proof",
+          "search_status": "greedy_complete",
+          "selected_in_trial_ids": [],
+          "start_search_truncated": false,
+          "tested_start_count": 8,
+          "unknown_placement_count": 0
+        }
+      },
+      "maximum_accepted_transition_body_torque_nm": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    }
+  },
+  "observations": [
+    "Ample box schedules both services; low box rejects constructed acquisitions while the idle horizon remains supported.",
+    "Opportunities remain unchanged; failures are in motion feasibility rather than visibility discovery.",
+    "Some early starts fail transition timing before reaching torque assessment.",
+    "Torque capacity is optional per asset; the complete preexisting reference report was unchanged when omitted.",
+    "No automatic torque-constrained motion optimization, wheel allocation/momentum, external torques, flexible-body dynamics or power conversion is introduced."
+  ],
+  "verification_cases": {
+    "hand_euler_required_body_nm": [
+      6.2,
+      -5.4,
+      3.2
+    ],
+    "gyro_only_required_body_z_nm": 1,
+    "single_axis_50_kgm2_at_5_deg_s2_required_nm": 4.363323129985823,
+    "single_axis_50_kgm2_at_0_5_deg_s2_required_nm": 0.4363323129985824,
+    "independent_inertial_angular_momentum_finite_difference_tolerance_nm": 2e-08,
+    "phase_envelope_dense_sample_comparison": "passed",
+    "tracking_and_protected_replay": "passed",
+    "idle_terminal_braking": "passed",
+    "disabled_model_full_report_regression": "unchanged"
+  },
+  "primary_equation_reference": "https://ocw.mit.edu/courses/16-07-dynamics-fall-2009/5e1d8699338146e5127080b880b906d6_MIT16_07F09_Lec28.pdf",
+  "validation": {
+    "fast_suite_command": "mix test.fast --max-cases 8",
+    "passed": 5362,
+    "excluded": 1148,
+    "elapsed_s": 272.2,
+    "focused_attitude_scheduling_revision_tests_passed": 57,
+    "new_rigid_body_tests": 11,
+    "frozen_numerical_baseline": "pass",
+    "disabled_model_full_reference_report": "unchanged",
+    "format_check": "pass",
+    "diff_whitespace_check": "pass"
+  }
+}

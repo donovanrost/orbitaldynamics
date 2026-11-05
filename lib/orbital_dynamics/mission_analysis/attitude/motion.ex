@@ -88,6 +88,17 @@ defmodule OrbitalDynamics.MissionAnalysis.Attitude.Motion do
 
         {phases, {_, q, w}} =
           Enum.map_reduce(commands, {0.0, q0, w0}, fn {d, a, kind}, {t, q, w} ->
+            residual = Q.distance_deg(q, q1)
+
+            correction =
+              if hold_position == :terminal and kind == "hold" and V.norm(w) == 0 and
+                   residual <= 1.0e-12, do: residual, else: 0.0
+
+            # Canonicalize an already reached terminal hold to its declared
+            # target, not to identity. This preserves genuine tiny targets while
+            # preventing floating roundoff from creating a later fictitious slew.
+            q = if correction > 0, do: q1, else: q
+
             phase = %{
               "kind" => kind,
               "starts_after_s" => t,
@@ -97,19 +108,114 @@ defmodule OrbitalDynamics.MissionAnalysis.Attitude.Motion do
               "angular_acceleration_inertial_deg_s2" => Tuple.to_list(a)
             }
 
+            phase =
+              if correction > 0,
+                do: Map.put(phase, "orientation_roundoff_correction_deg", correction),
+                else: phase
+
             {nextq, nextw} = advance(q, w, a, d)
             # Roundoff after a braking phase must not accumulate a fictitious drift during a hold.
             nextw = if kind in ["brake", "slew_decelerate"], do: {0.0, 0.0, 0.0}, else: nextw
             {phase, {t + d, nextq, nextw}}
           end)
 
-        {:ok,
-         Map.merge(evidence, %{
-           "status" => "supported_by_kinematic_model",
-           "phases" => phases,
-           "terminal_orientation_residual_deg" => Q.distance_deg(q, q1),
-           "terminal_rate_residual_deg_s" => V.norm(V.subtract(w, w1))
-         })}
+        plan =
+          Map.merge(evidence, %{
+            "status" => "supported_by_kinematic_model",
+            "phases" => phases,
+            "terminal_orientation_residual_deg" => Q.distance_deg(q, q1),
+            "terminal_rate_residual_deg_s" => V.norm(V.subtract(w, w1))
+          })
+
+        if limits[:rigid_body] do
+          torque =
+            OrbitalDynamics.MissionAnalysis.Attitude.RigidBody.transition(plan, limits.rigid_body)
+
+          plan = Map.put(plan, "rigid_body_torque", torque)
+
+          if torque["status"] == "supported",
+            do: {:ok, plan},
+            else:
+              {:infeasible,
+               plan
+               |> Map.put("status", "violated")
+               |> Map.put("reason", "rigid_body_torque_exceeds_limit")}
+        else
+          {:ok, plan}
+        end
+    end
+  end
+
+  @doc "Join an already running activity without reacquiring it at the same epoch."
+  def acquire(source, destination, limits, request_id) do
+    OrbitalDynamics.MissionAnalysis.Attitude.SavedMotion.acquire(
+      source,
+      destination,
+      limits,
+      request_id,
+      fn ->
+        if limits[:continuation_request_id] == request_id and
+             source["epoch_s"] == destination["epoch_s"],
+           do: continuity(source, destination, limits),
+           else: transition(source, destination, limits)
+      end
+    )
+  end
+
+  @doc "Explicit zero-duration state continuity; no braking, slew, settling or future hold."
+  def continuity(source, destination, limits) do
+    q = Q.distance_deg(source["quaternion_wxyz"], destination["quaternion_wxyz"])
+
+    rate =
+      V.norm(
+        V.subtract(
+          List.to_tuple(source["angular_velocity_inertial_deg_s"]),
+          List.to_tuple(destination["angular_velocity_inertial_deg_s"])
+        )
+      )
+
+    peak = V.norm(List.to_tuple(source["angular_velocity_inertial_deg_s"]))
+
+    if source["epoch_s"] == destination["epoch_s"] and q <= 1.0e-8 and rate <= 1.0e-8 and
+         peak <= limits.max_rate_deg_s do
+      {:ok,
+       %{
+         "status" => "supported_by_declared_continuity",
+         "source_epoch_s" => source["epoch_s"],
+         "destination_epoch_s" => destination["epoch_s"],
+         "available_s" => 0.0,
+         "required_s" => 0.0,
+         "time_margin_s" => 0.0,
+         "brake_s" => 0.0,
+         "ramp_s" => 0.0,
+         "slew_s" => 0.0,
+         "slew_angle_deg" => 0.0,
+         "settling_s" => 0.0,
+         "peak_rate_deg_s" => peak,
+         "max_rate_deg_s" => limits.max_rate_deg_s,
+         "max_accel_deg_s2" => limits.max_accel_deg_s2,
+         "terminal_orientation_residual_deg" => q,
+         "terminal_rate_residual_deg_s" => rate,
+         "continuity_tolerance" => %{"orientation_deg" => 1.0e-8, "rate_deg_s" => 1.0e-8},
+         "phases" => [
+           %{
+             "kind" => "continuation",
+             "starts_after_s" => 0.0,
+             "ends_after_s" => 0.0,
+             "quaternion_wxyz" => source["quaternion_wxyz"],
+             "angular_velocity_inertial_deg_s" => source["angular_velocity_inertial_deg_s"],
+             "angular_acceleration_inertial_deg_s2" => [0, 0, 0]
+           }
+         ]
+       }}
+    else
+      {:infeasible,
+       %{
+         "status" => "violated",
+         "reason" => "activity_continuity_mismatch",
+         "orientation_residual_deg" => q,
+         "rate_residual_deg_s" => rate
+       }}
     end
   end
 
@@ -127,6 +233,54 @@ defmodule OrbitalDynamics.MissionAnalysis.Attitude.Motion do
     w = List.to_tuple(phase["angular_velocity_inertial_deg_s"])
     a = List.to_tuple(phase["angular_acceleration_inertial_deg_s2"])
     {q, w} = advance(q, w, a, dt)
+    %{quaternion: q, angular_velocity_deg_s: w, angular_acceleration_deg_s2: a}
+  end
+
+  @doc "Right-sided mission-epoch motion query with translated phase-boundary clamping."
+  def at_epoch(plan, epoch_s) do
+    origin = plan["source_epoch_s"]
+    phases = Enum.filter(plan["phases"], &(&1["ends_after_s"] > &1["starts_after_s"]))
+
+    phase =
+      Enum.find(phases, &(epoch_s < origin + &1["ends_after_s"])) || List.last(plan["phases"])
+
+    kinematics_at_phase(phase, origin, epoch_s)
+  end
+
+  @doc "Original-clock phase evaluation, including clipped saved phases."
+  def kinematics_at_phase(phase, origin, epoch_s) do
+    case phase["source_phase"] do
+      nil ->
+        duration = phase["ends_after_s"] - phase["starts_after_s"]
+
+        elapsed =
+          cond do
+            epoch_s <= origin + phase["starts_after_s"] -> 0.0
+            epoch_s >= origin + phase["ends_after_s"] -> duration
+            true -> epoch_s - origin - phase["starts_after_s"]
+          end
+
+        phase_at(phase, elapsed)
+
+      clock ->
+        time = max(origin + phase["starts_after_s"], min(epoch_s, origin + phase["ends_after_s"]))
+        kinematics_at_phase(clock["phase"], clock["source_epoch_s"], time)
+    end
+  end
+
+  @doc "One-sided kinematics within a named generated phase, including its endpoints."
+  def phase_at(phase, elapsed_s) do
+    dt = max(0.0, min(elapsed_s, phase["ends_after_s"] - phase["starts_after_s"]))
+    a = List.to_tuple(phase["angular_acceleration_inertial_deg_s2"])
+
+    {q, w} =
+      advance(
+        Q.new!(phase["quaternion_wxyz"]),
+        List.to_tuple(phase["angular_velocity_inertial_deg_s"]),
+        a,
+        dt
+      )
+
     %{quaternion: q, angular_velocity_deg_s: w, angular_acceleration_deg_s2: a}
   end
 
