@@ -231,3 +231,33 @@ coherent diagnostic mutations and separate execution/forecast state. No subagent
 rig or publishing used; historical maturity acceptance is unchanged. Details:
 [moving_resource_validation.md](moving_resource_validation.md) and
 [moving_resource_validation_observation.json](moving_resource_validation_observation.json).
+
+## Follow-up: reuse exact validated environment data
+
+Complete on `experiment/environment-validation-reuse`. The user requested resetting
+the uncommitted Rust experiment; source, native build outputs, benchmark limit
+changes and stale experiment modules were removed, starting again at 78a30e61.
+The provider now keeps one successful exact dataset/code-version admission per
+process and emits the verified pinned digest without repeated canonicalization.
+Changed values still run the original file-evidence and semantic validation; all
+request-context and coverage gates remain per query. Local-function code identity
+also prevents reuse across validation code upgrades, including old-code calls
+already in progress. No global cache or public trusted-field shortcut was added.
+
+The unchanged six-spacecraft/nine-request study was run against the original and
+new providers with two alternating-order repeats. Median planning time fell from
+19.49 to 6.37 seconds (3.06x); workflow through report persistence fell from
+21.15 to 8.04 seconds (2.63x). Independent streamed hashes confirm all four complete
+reports are byte-identical, including counters, assignments, windows and margins.
+These are local observations on the original study and work controls, separate
+from the discarded larger Rust experiment's configurations.
+
+Five trace tests cover one hash per unchanged value, numeric type changes, failed
+admission preservation, per-process isolation, bounded single-entry replacement,
+current provenance, query gates and actual code reload. Provider/new tests: 14
+passed. Full fast suite: 5,471 passed/1,148 excluded (271.8 s). Parent local review
+covered every pinned-identity emitter's admission path, immutable/exact matching,
+code-version races, bounded retention, trace cleanup and benchmark clock scope.
+No delegation, rig, commit or push. Historical maturity acceptance unchanged.
+Details: [environment_validation_reuse.md](environment_validation_reuse.md) and
+[environment_validation_reuse_observation.json](environment_validation_reuse_observation.json).

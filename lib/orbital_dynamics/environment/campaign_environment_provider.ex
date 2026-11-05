@@ -32,6 +32,8 @@ defmodule OrbitalDynamics.Environment.CampaignEnvironmentProvider do
   @table_sha256 "757d8d4d1694d0a3cf3897b337cfd2ec818e3ab8715d7103df999d1a0a3697e9"
   @horizons_extracted_payload_sha256 "b8daa37d9404d73f7eb5551bfe8f71f6561c85f9972b96aab807a83a67c3c9ca"
   @dataset_semantic_sha256 "afb0c7252b0b2d2c7e987651e639e02b76bc9ac1ff19d0927b3bf3e6a9ebb5db"
+  @validated_dataset_key {__MODULE__, :validated_dataset}
+
   @j2000_mjd_utc 51_544.5
   @seconds_per_day 86_400.0
   @era_at_j2000_turns 0.779_057_273_264_0
@@ -294,7 +296,7 @@ defmodule OrbitalDynamics.Environment.CampaignEnvironmentProvider do
            "sample_count" => length(dataset.samples),
            "sample_interval_s" => dataset.sample_interval_s,
            "dataset_revision" => dataset.dataset_revision,
-           "dataset_semantic_sha256" => dataset_semantic_sha256(dataset),
+           "dataset_semantic_sha256" => @dataset_semantic_sha256,
            "source_inertial_frame" => dataset.source_inertial_frame,
            "provider_inertial_frame" => dataset.provider_inertial_frame,
            "earth_fixed_frame" => dataset.earth_fixed_frame
@@ -383,7 +385,7 @@ defmodule OrbitalDynamics.Environment.CampaignEnvironmentProvider do
       "provider_id" => dataset.provider_id,
       "provider_revision" => dataset.provider_revision,
       "dataset_revision" => dataset.dataset_revision,
-      "dataset_semantic_sha256" => dataset_semantic_sha256(dataset),
+      "dataset_semantic_sha256" => @dataset_semantic_sha256,
       "source_table_id" => dataset.table_id,
       "content_sha256" => dataset.content_verification["actual_sha256"],
       "coverage" => Map.merge(dataset.coverage, %{"time_scale" => dataset.time_scale}),
@@ -451,11 +453,29 @@ defmodule OrbitalDynamics.Environment.CampaignEnvironmentProvider do
   defp proper_list?(_value), do: false
 
   defp validate_dataset(%Dataset{} = dataset) do
+    # BEAM values are immutable. Match the complete value with exact equality,
+    # including file-verification metadata and integer/float distinctions. A new
+    # or modified value must pass every original gate. One entry per process
+    # bounds retention and avoids a global trust/cache invalidation mechanism.
+    # A local function identifies the executing code version, even if new code
+    # is loaded while an old validation is in progress. Never invoke the cached
+    # function; a new version simply replaces this one bounded admission entry.
+    validator = &validate_uncached_dataset/2
+
+    if Process.get(@validated_dataset_key) === {validator, dataset} do
+      :ok
+    else
+      validate_uncached_dataset(dataset, validator)
+    end
+  end
+
+  defp validate_uncached_dataset(dataset, validator) do
     try do
       with :ok <- validate_dataset_file_verification(dataset.content_verification) do
         actual_sha256 = dataset_semantic_sha256(dataset)
 
         if actual_sha256 == @dataset_semantic_sha256 do
+          Process.put(@validated_dataset_key, {validator, dataset})
           :ok
         else
           {:error,
@@ -1161,7 +1181,7 @@ defmodule OrbitalDynamics.Environment.CampaignEnvironmentProvider do
       "provider_id" => dataset.provider_id,
       "provider_revision" => dataset.provider_revision,
       "dataset_revision" => dataset.dataset_revision,
-      "dataset_semantic_sha256" => dataset_semantic_sha256(dataset),
+      "dataset_semantic_sha256" => @dataset_semantic_sha256,
       "source_table_id" => dataset.table_id,
       "content_sha256" => dataset.content_verification["actual_sha256"],
       "seconds_since_j2000" => seconds_since_j2000,

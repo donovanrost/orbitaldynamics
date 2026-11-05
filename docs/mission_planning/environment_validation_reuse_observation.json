@@ -1,0 +1,650 @@
+{
+  "format": "environment_validation_reuse_observation.v1",
+  "branch": "experiment/environment-validation-reuse",
+  "base_commit": "78a30e6197f5dd008e7b8deab1ad0c70812528b0",
+  "rust_experiment_reset": true,
+  "runtime": {
+    "elixir": "1.20.4",
+    "otp": "29",
+    "schedulers_online": 8
+  },
+  "benchmark": {
+    "assets": 6,
+    "requests": 9,
+    "horizon_s": 250,
+    "repetitions": 2,
+    "order": [
+      "baseline",
+      "reuse",
+      "reuse",
+      "baseline"
+    ],
+    "work_controls": "Unchanged original study; original policy ceilings. No larger Rust-experiment budget settings.",
+    "scope": "Original six-spacecraft/nine-request study; compilation excluded; two alternating-order repeats. Planning and persisted-report clocks measured separately.",
+    "runs": [
+      {
+        "artifact_ms": 1573.155,
+        "asset_count": 6,
+        "asset_request_pairs": 54,
+        "assignments": [
+          {
+            "asset_id": "demo-1",
+            "ends_at_s": 820497680.5,
+            "request_id": "south-1",
+            "starts_at_s": 820497660.5,
+            "value": 30.0
+          },
+          {
+            "asset_id": "demo-3",
+            "ends_at_s": 820497680.5,
+            "request_id": "central-1",
+            "starts_at_s": 820497660.5,
+            "value": 27.0
+          },
+          {
+            "asset_id": "demo-5",
+            "ends_at_s": 820497680.5,
+            "request_id": "north-1",
+            "starts_at_s": 820497660.5,
+            "value": 24.0
+          },
+          {
+            "asset_id": "demo-2",
+            "ends_at_s": 820497690.5,
+            "request_id": "south-2",
+            "starts_at_s": 820497670.5,
+            "value": 29.0
+          },
+          {
+            "asset_id": "demo-4",
+            "ends_at_s": 820497690.5,
+            "request_id": "central-2",
+            "starts_at_s": 820497670.5,
+            "value": 26.0
+          },
+          {
+            "asset_id": "demo-6",
+            "ends_at_s": 820497690.5,
+            "request_id": "north-2",
+            "starts_at_s": 820497670.5,
+            "value": 23.0
+          }
+        ],
+        "attitude_model_evaluation_count": 3417,
+        "batteries": {
+          "demo-1": {
+            "final_energy_wh_range": {
+              "max": 26.276246428357375,
+              "min": 26.260943692159724,
+              "spread": 0.015302736197650546
+            },
+            "minimum_energy_wh": 23.261569444086533,
+            "minimum_reserve_margin_wh": 15.261569444086533,
+            "reserve_wh": 8,
+            "status": "supported"
+          },
+          "demo-2": {
+            "final_energy_wh_range": {
+              "max": 24.36731969348462,
+              "min": 24.34660092479534,
+              "spread": 0.020718768689281575
+            },
+            "minimum_energy_wh": 21.88177264637665,
+            "minimum_reserve_margin_wh": 13.88177264637665,
+            "reserve_wh": 8,
+            "status": "supported"
+          },
+          "demo-3": {
+            "final_energy_wh_range": {
+              "max": 26.064931276475548,
+              "min": 26.036497771670618,
+              "spread": 0.02843350480493001
+            },
+            "minimum_energy_wh": 23.065377594412688,
+            "minimum_reserve_margin_wh": 15.065377594412688,
+            "reserve_wh": 8,
+            "status": "supported"
+          },
+          "demo-4": {
+            "final_energy_wh_range": {
+              "max": 24.19918090742281,
+              "min": 24.170049881842118,
+              "spread": 0.029131025580692693
+            },
+            "minimum_energy_wh": 21.727435150253708,
+            "minimum_reserve_margin_wh": 13.727435150253708,
+            "reserve_wh": 8,
+            "status": "supported"
+          },
+          "demo-5": {
+            "final_energy_wh_range": {
+              "max": 25.861022345873575,
+              "min": 25.830654084374697,
+              "spread": 0.030368261498878724
+            },
+            "minimum_energy_wh": 22.88674581768952,
+            "minimum_reserve_margin_wh": 14.886745817689519,
+            "reserve_wh": 8,
+            "status": "supported"
+          },
+          "demo-6": {
+            "final_energy_wh_range": {
+              "max": 24.035850174121403,
+              "min": 23.997397441673883,
+              "spread": 0.03845273244752079
+            },
+            "minimum_energy_wh": 21.576462826824216,
+            "minimum_reserve_margin_wh": 13.576462826824216,
+            "reserve_wh": 8,
+            "status": "supported"
+          }
+        },
+        "decision_reasons": {
+          "insufficient_resource_budget": 21,
+          "planning_start_grid_infeasible": 6,
+          "request_already_scheduled": 21,
+          "selected": 6
+        },
+        "fulfilled_value": 159.0,
+        "input_sha256": "590d992c5faf96f95ab3e07653634c08259cb0eb4713fe681866fe2f096bc23e",
+        "mode": "baseline",
+        "opportunity_count": 54,
+        "opportunity_evaluation_count": 196956,
+        "planning_status": "supported",
+        "repeat": 1,
+        "report_bytes": 72767978,
+        "report_file": "baseline-1-report.json.gz",
+        "report_sha256": "c9ee7571037ae764dc2160edeb2c5a77fb83ca0d60eea6489ddb865c1cf26cd3",
+        "request_count": 9,
+        "requested_value": 234.0,
+        "resource_model_evaluation_count": 7972,
+        "resource_status": "supported",
+        "scheduled_count": 6,
+        "timings": {
+          "endpoint_verification_ms": 5.531,
+          "opportunity_generation_ms": 6947.266,
+          "preparation_ms": 38.621,
+          "scheduling_ms": 12295.361,
+          "total_ms": 19321.591
+        },
+        "workflow_total_ms": 20896.695
+      },
+      {
+        "artifact_ms": 1607.698,
+        "asset_count": 6,
+        "asset_request_pairs": 54,
+        "assignments": [
+          {
+            "asset_id": "demo-1",
+            "ends_at_s": 820497680.5,
+            "request_id": "south-1",
+            "starts_at_s": 820497660.5,
+            "value": 30.0
+          },
+          {
+            "asset_id": "demo-3",
+            "ends_at_s": 820497680.5,
+            "request_id": "central-1",
+            "starts_at_s": 820497660.5,
+            "value": 27.0
+          },
+          {
+            "asset_id": "demo-5",
+            "ends_at_s": 820497680.5,
+            "request_id": "north-1",
+            "starts_at_s": 820497660.5,
+            "value": 24.0
+          },
+          {
+            "asset_id": "demo-2",
+            "ends_at_s": 820497690.5,
+            "request_id": "south-2",
+            "starts_at_s": 820497670.5,
+            "value": 29.0
+          },
+          {
+            "asset_id": "demo-4",
+            "ends_at_s": 820497690.5,
+            "request_id": "central-2",
+            "starts_at_s": 820497670.5,
+            "value": 26.0
+          },
+          {
+            "asset_id": "demo-6",
+            "ends_at_s": 820497690.5,
+            "request_id": "north-2",
+            "starts_at_s": 820497670.5,
+            "value": 23.0
+          }
+        ],
+        "attitude_model_evaluation_count": 3417,
+        "batteries": {
+          "demo-1": {
+            "final_energy_wh_range": {
+              "max": 26.276246428357375,
+              "min": 26.260943692159724,
+              "spread": 0.015302736197650546
+            },
+            "minimum_energy_wh": 23.261569444086533,
+            "minimum_reserve_margin_wh": 15.261569444086533,
+            "reserve_wh": 8,
+            "status": "supported"
+          },
+          "demo-2": {
+            "final_energy_wh_range": {
+              "max": 24.36731969348462,
+              "min": 24.34660092479534,
+              "spread": 0.020718768689281575
+            },
+            "minimum_energy_wh": 21.88177264637665,
+            "minimum_reserve_margin_wh": 13.88177264637665,
+            "reserve_wh": 8,
+            "status": "supported"
+          },
+          "demo-3": {
+            "final_energy_wh_range": {
+              "max": 26.064931276475548,
+              "min": 26.036497771670618,
+              "spread": 0.02843350480493001
+            },
+            "minimum_energy_wh": 23.065377594412688,
+            "minimum_reserve_margin_wh": 15.065377594412688,
+            "reserve_wh": 8,
+            "status": "supported"
+          },
+          "demo-4": {
+            "final_energy_wh_range": {
+              "max": 24.19918090742281,
+              "min": 24.170049881842118,
+              "spread": 0.029131025580692693
+            },
+            "minimum_energy_wh": 21.727435150253708,
+            "minimum_reserve_margin_wh": 13.727435150253708,
+            "reserve_wh": 8,
+            "status": "supported"
+          },
+          "demo-5": {
+            "final_energy_wh_range": {
+              "max": 25.861022345873575,
+              "min": 25.830654084374697,
+              "spread": 0.030368261498878724
+            },
+            "minimum_energy_wh": 22.88674581768952,
+            "minimum_reserve_margin_wh": 14.886745817689519,
+            "reserve_wh": 8,
+            "status": "supported"
+          },
+          "demo-6": {
+            "final_energy_wh_range": {
+              "max": 24.035850174121403,
+              "min": 23.997397441673883,
+              "spread": 0.03845273244752079
+            },
+            "minimum_energy_wh": 21.576462826824216,
+            "minimum_reserve_margin_wh": 13.576462826824216,
+            "reserve_wh": 8,
+            "status": "supported"
+          }
+        },
+        "decision_reasons": {
+          "insufficient_resource_budget": 21,
+          "planning_start_grid_infeasible": 6,
+          "request_already_scheduled": 21,
+          "selected": 6
+        },
+        "fulfilled_value": 159.0,
+        "input_sha256": "590d992c5faf96f95ab3e07653634c08259cb0eb4713fe681866fe2f096bc23e",
+        "mode": "reuse",
+        "opportunity_count": 54,
+        "opportunity_evaluation_count": 196956,
+        "planning_status": "supported",
+        "repeat": 1,
+        "report_bytes": 72767978,
+        "report_file": "reuse-1-report.json.gz",
+        "report_sha256": "c9ee7571037ae764dc2160edeb2c5a77fb83ca0d60eea6489ddb865c1cf26cd3",
+        "request_count": 9,
+        "requested_value": 234.0,
+        "resource_model_evaluation_count": 7972,
+        "resource_status": "supported",
+        "scheduled_count": 6,
+        "timings": {
+          "endpoint_verification_ms": 1.45,
+          "opportunity_generation_ms": 2726.839,
+          "preparation_ms": 5.468,
+          "scheduling_ms": 3077.709,
+          "total_ms": 5816.793
+        },
+        "workflow_total_ms": 7424.533
+      },
+      {
+        "artifact_ms": 1739.622,
+        "asset_count": 6,
+        "asset_request_pairs": 54,
+        "assignments": [
+          {
+            "asset_id": "demo-1",
+            "ends_at_s": 820497680.5,
+            "request_id": "south-1",
+            "starts_at_s": 820497660.5,
+            "value": 30.0
+          },
+          {
+            "asset_id": "demo-3",
+            "ends_at_s": 820497680.5,
+            "request_id": "central-1",
+            "starts_at_s": 820497660.5,
+            "value": 27.0
+          },
+          {
+            "asset_id": "demo-5",
+            "ends_at_s": 820497680.5,
+            "request_id": "north-1",
+            "starts_at_s": 820497660.5,
+            "value": 24.0
+          },
+          {
+            "asset_id": "demo-2",
+            "ends_at_s": 820497690.5,
+            "request_id": "south-2",
+            "starts_at_s": 820497670.5,
+            "value": 29.0
+          },
+          {
+            "asset_id": "demo-4",
+            "ends_at_s": 820497690.5,
+            "request_id": "central-2",
+            "starts_at_s": 820497670.5,
+            "value": 26.0
+          },
+          {
+            "asset_id": "demo-6",
+            "ends_at_s": 820497690.5,
+            "request_id": "north-2",
+            "starts_at_s": 820497670.5,
+            "value": 23.0
+          }
+        ],
+        "attitude_model_evaluation_count": 3417,
+        "batteries": {
+          "demo-1": {
+            "final_energy_wh_range": {
+              "max": 26.276246428357375,
+              "min": 26.260943692159724,
+              "spread": 0.015302736197650546
+            },
+            "minimum_energy_wh": 23.261569444086533,
+            "minimum_reserve_margin_wh": 15.261569444086533,
+            "reserve_wh": 8,
+            "status": "supported"
+          },
+          "demo-2": {
+            "final_energy_wh_range": {
+              "max": 24.36731969348462,
+              "min": 24.34660092479534,
+              "spread": 0.020718768689281575
+            },
+            "minimum_energy_wh": 21.88177264637665,
+            "minimum_reserve_margin_wh": 13.88177264637665,
+            "reserve_wh": 8,
+            "status": "supported"
+          },
+          "demo-3": {
+            "final_energy_wh_range": {
+              "max": 26.064931276475548,
+              "min": 26.036497771670618,
+              "spread": 0.02843350480493001
+            },
+            "minimum_energy_wh": 23.065377594412688,
+            "minimum_reserve_margin_wh": 15.065377594412688,
+            "reserve_wh": 8,
+            "status": "supported"
+          },
+          "demo-4": {
+            "final_energy_wh_range": {
+              "max": 24.19918090742281,
+              "min": 24.170049881842118,
+              "spread": 0.029131025580692693
+            },
+            "minimum_energy_wh": 21.727435150253708,
+            "minimum_reserve_margin_wh": 13.727435150253708,
+            "reserve_wh": 8,
+            "status": "supported"
+          },
+          "demo-5": {
+            "final_energy_wh_range": {
+              "max": 25.861022345873575,
+              "min": 25.830654084374697,
+              "spread": 0.030368261498878724
+            },
+            "minimum_energy_wh": 22.88674581768952,
+            "minimum_reserve_margin_wh": 14.886745817689519,
+            "reserve_wh": 8,
+            "status": "supported"
+          },
+          "demo-6": {
+            "final_energy_wh_range": {
+              "max": 24.035850174121403,
+              "min": 23.997397441673883,
+              "spread": 0.03845273244752079
+            },
+            "minimum_energy_wh": 21.576462826824216,
+            "minimum_reserve_margin_wh": 13.576462826824216,
+            "reserve_wh": 8,
+            "status": "supported"
+          }
+        },
+        "decision_reasons": {
+          "insufficient_resource_budget": 21,
+          "planning_start_grid_infeasible": 6,
+          "request_already_scheduled": 21,
+          "selected": 6
+        },
+        "fulfilled_value": 159.0,
+        "input_sha256": "590d992c5faf96f95ab3e07653634c08259cb0eb4713fe681866fe2f096bc23e",
+        "mode": "reuse",
+        "opportunity_count": 54,
+        "opportunity_evaluation_count": 196956,
+        "planning_status": "supported",
+        "repeat": 2,
+        "report_bytes": 72767978,
+        "report_file": "reuse-2-report.json.gz",
+        "report_sha256": "c9ee7571037ae764dc2160edeb2c5a77fb83ca0d60eea6489ddb865c1cf26cd3",
+        "request_count": 9,
+        "requested_value": 234.0,
+        "resource_model_evaluation_count": 7972,
+        "resource_status": "supported",
+        "scheduled_count": 6,
+        "timings": {
+          "endpoint_verification_ms": 1.574,
+          "opportunity_generation_ms": 3035.449,
+          "preparation_ms": 5.257,
+          "scheduling_ms": 3868.733,
+          "total_ms": 6916.493
+        },
+        "workflow_total_ms": 8656.175
+      },
+      {
+        "artifact_ms": 1744.247,
+        "asset_count": 6,
+        "asset_request_pairs": 54,
+        "assignments": [
+          {
+            "asset_id": "demo-1",
+            "ends_at_s": 820497680.5,
+            "request_id": "south-1",
+            "starts_at_s": 820497660.5,
+            "value": 30.0
+          },
+          {
+            "asset_id": "demo-3",
+            "ends_at_s": 820497680.5,
+            "request_id": "central-1",
+            "starts_at_s": 820497660.5,
+            "value": 27.0
+          },
+          {
+            "asset_id": "demo-5",
+            "ends_at_s": 820497680.5,
+            "request_id": "north-1",
+            "starts_at_s": 820497660.5,
+            "value": 24.0
+          },
+          {
+            "asset_id": "demo-2",
+            "ends_at_s": 820497690.5,
+            "request_id": "south-2",
+            "starts_at_s": 820497670.5,
+            "value": 29.0
+          },
+          {
+            "asset_id": "demo-4",
+            "ends_at_s": 820497690.5,
+            "request_id": "central-2",
+            "starts_at_s": 820497670.5,
+            "value": 26.0
+          },
+          {
+            "asset_id": "demo-6",
+            "ends_at_s": 820497690.5,
+            "request_id": "north-2",
+            "starts_at_s": 820497670.5,
+            "value": 23.0
+          }
+        ],
+        "attitude_model_evaluation_count": 3417,
+        "batteries": {
+          "demo-1": {
+            "final_energy_wh_range": {
+              "max": 26.276246428357375,
+              "min": 26.260943692159724,
+              "spread": 0.015302736197650546
+            },
+            "minimum_energy_wh": 23.261569444086533,
+            "minimum_reserve_margin_wh": 15.261569444086533,
+            "reserve_wh": 8,
+            "status": "supported"
+          },
+          "demo-2": {
+            "final_energy_wh_range": {
+              "max": 24.36731969348462,
+              "min": 24.34660092479534,
+              "spread": 0.020718768689281575
+            },
+            "minimum_energy_wh": 21.88177264637665,
+            "minimum_reserve_margin_wh": 13.88177264637665,
+            "reserve_wh": 8,
+            "status": "supported"
+          },
+          "demo-3": {
+            "final_energy_wh_range": {
+              "max": 26.064931276475548,
+              "min": 26.036497771670618,
+              "spread": 0.02843350480493001
+            },
+            "minimum_energy_wh": 23.065377594412688,
+            "minimum_reserve_margin_wh": 15.065377594412688,
+            "reserve_wh": 8,
+            "status": "supported"
+          },
+          "demo-4": {
+            "final_energy_wh_range": {
+              "max": 24.19918090742281,
+              "min": 24.170049881842118,
+              "spread": 0.029131025580692693
+            },
+            "minimum_energy_wh": 21.727435150253708,
+            "minimum_reserve_margin_wh": 13.727435150253708,
+            "reserve_wh": 8,
+            "status": "supported"
+          },
+          "demo-5": {
+            "final_energy_wh_range": {
+              "max": 25.861022345873575,
+              "min": 25.830654084374697,
+              "spread": 0.030368261498878724
+            },
+            "minimum_energy_wh": 22.88674581768952,
+            "minimum_reserve_margin_wh": 14.886745817689519,
+            "reserve_wh": 8,
+            "status": "supported"
+          },
+          "demo-6": {
+            "final_energy_wh_range": {
+              "max": 24.035850174121403,
+              "min": 23.997397441673883,
+              "spread": 0.03845273244752079
+            },
+            "minimum_energy_wh": 21.576462826824216,
+            "minimum_reserve_margin_wh": 13.576462826824216,
+            "reserve_wh": 8,
+            "status": "supported"
+          }
+        },
+        "decision_reasons": {
+          "insufficient_resource_budget": 21,
+          "planning_start_grid_infeasible": 6,
+          "request_already_scheduled": 21,
+          "selected": 6
+        },
+        "fulfilled_value": 159.0,
+        "input_sha256": "590d992c5faf96f95ab3e07653634c08259cb0eb4713fe681866fe2f096bc23e",
+        "mode": "baseline",
+        "opportunity_count": 54,
+        "opportunity_evaluation_count": 196956,
+        "planning_status": "supported",
+        "repeat": 2,
+        "report_bytes": 72767978,
+        "report_file": "baseline-2-report.json.gz",
+        "report_sha256": "c9ee7571037ae764dc2160edeb2c5a77fb83ca0d60eea6489ddb865c1cf26cd3",
+        "request_count": 9,
+        "requested_value": 234.0,
+        "resource_model_evaluation_count": 7972,
+        "resource_status": "supported",
+        "scheduled_count": 6,
+        "timings": {
+          "endpoint_verification_ms": 5.345,
+          "opportunity_generation_ms": 7146.339,
+          "preparation_ms": 9.258,
+          "scheduling_ms": 12487.747,
+          "total_ms": 19654.608
+        },
+        "workflow_total_ms": 21398.899
+      }
+    ],
+    "medians": {
+      "baseline": {
+        "planning_s": 19.4880995,
+        "workflow_s": 21.147796999999997
+      },
+      "reuse": {
+        "planning_s": 6.366643,
+        "workflow_s": 8.040353999999999
+      }
+    },
+    "planning_speedup": 3.06096941512191,
+    "persisted_workflow_speedup": 2.6302072023196987,
+    "complete_report_comparison": {
+      "passed": true,
+      "checked_reports": 4,
+      "input_sha256": "590d992c5faf96f95ab3e07653634c08259cb0eb4713fe681866fe2f096bc23e",
+      "report_sha256": "c9ee7571037ae764dc2160edeb2c5a77fb83ca0d60eea6489ddb865c1cf26cd3"
+    }
+  },
+  "source_sha256": {
+    "lib/orbital_dynamics/environment/campaign_environment_provider.ex": "f457a734f8484927542cccef95fff028f104fdfa20637d6c9240bc0e659ed7f3",
+    "dev/benchmark_environment_validation.exs": "793102a1cbaf1ea443d01c6419e56c01b3239bc7ec8c640ee560e09b03ddf411",
+    "studies/small_constellation.json": "5d06340738d77cf20f3419a672c7fb53bacca0c6857941e682634a2940c63d5c",
+    "studies/small_constellation_planning.json": "13b622663b998a804dc78e4b334b04d89411f3591c130aae576c0d23271def1f"
+  },
+  "validation_scope": "One exact-value/code-version admission per process; all raw byte/source/semantic gates on misses and all query gates on every call. Exact implementation parity, not independent physical validation.",
+  "tests": {
+    "new_trace_tests": 5,
+    "provider_and_new_trace_tests_passed": 14,
+    "full_fast_suite": {
+      "passed": 5471,
+      "excluded": 1148,
+      "elapsed_s": 271.8
+    },
+    "formatting_and_whitespace": "passed"
+  }
+}

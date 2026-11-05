@@ -297,3 +297,47 @@ state handoff and no replay/debit on retry. No delegation, rig, commits or pushe
 Historical maturity acceptance is unchanged. Durable evidence:
 docs/mission_planning/moving_resource_validation.md and
 moving_resource_validation_observation.json.
+
+## Environment validation reuse follow-up complete
+
+User asked to reset the Rust experiment and pursue repeated validation. Discarded
+all uncommitted experiment source/limit changes at 78a30e61; removed native build
+outputs and stale experimental BEAM modules. Renamed the clean experiment branch
+to `experiment/environment-validation-reuse`. Prior local timing data remains in
+ignored tmp only; no Rust source or new Rust dependency remains.
+
+Implemented a one-entry process-local successful admission cache, keyed by the
+complete exact immutable dataset and local validator function/code identity.
+Changed/copied-inexact datasets still run the original file-evidence and semantic
+gates. Failed admissions do not replace successful state. Per-query body/frame/
+time/interpolation/coverage gates remain active. Already-admitted identity emitters
+use the pinned digest rather than recomputing it. Local function identity binds
+the executing code version even during an upgrade; one old function reference
+may remain until entry replacement/process exit. Cache bookkeeping is not a
+security sandbox against arbitrary code executing in the same process.
+
+Validation: five new trace tests, 14 provider/new checks passed, and full fast
+suite 5,471 passed/1,148 excluded in 271.8 s. Existing physics/provider targeted
+checks pass. Actual module reload forces a fresh semantic hash. Tests prove one
+hash for unchanged/copy-exact data, strict numeric types, failed admissions, one
+entry per process, correct file provenance and query guards. Formatting and
+whitespace checks pass.
+
+Two alternating-order before/after observations on the original six-asset/nine-
+request study: planning medians 19.49 -> 6.37 s (3.06x), persisted-report workflow
+21.15 -> 8.04 s (2.63x). All four full reports independently streamed and hashed
+byte-identically. Original numerical controls/work ceilings retained; no budget
+relaxation, changed search, skipped physics or physical validation promotion.
+
+Parent local review covered admission/emitter control flow, exact immutable
+matching, code-upgrade races, bounded successful-only retention, process lifetime,
+trace barriers/cleanup, old-provider isolated benchmarking and timing boundaries.
+No subagents, rig, commits or pushes. Work remains uncommitted on the new branch;
+historical maturity acceptance unchanged. Evidence:
+docs/mission_planning/environment_validation_reuse.md and
+environment_validation_reuse_observation.json.
+
+Follow-up: the user requested committing this completed slice and merging it
+into main. The implementation is unchanged from the verified result above; the
+existing 5,471-test result and exact-report comparison apply. No remote push was
+requested.

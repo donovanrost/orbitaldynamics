@@ -10,6 +10,9 @@ after selecting a mission-planning slice.
 
 ## Documents
 
+- [environment_validation_reuse.md](environment_validation_reuse.md) — reuse exact
+  validated dataset values without repeated hashing, with code-version binding.
+
 - [moving_resource_validation.md](moving_resource_validation.md) — independent
   moving-wheel and phase-load battery accounting, including checkpoint retries.
 
