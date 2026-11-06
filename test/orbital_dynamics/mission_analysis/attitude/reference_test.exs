@@ -13,6 +13,14 @@ defmodule OrbitalDynamics.MissionAnalysis.Attitude.ReferenceTest do
     {mission, study}
   end
 
+  test "diagnostic retention option rejects non-boolean values before preparing a mission" do
+    for value <- [nil, "false", 0] do
+      assert_raise ArgumentError, ~r/include_samples must be boolean/, fn ->
+        Reference.run!(%{}, %{}, include_samples: value)
+      end
+    end
+  end
+
   test "real two-request example reserves acquisition and transitions with reproducible endpoint evidence" do
     {mission, study} = inputs()
     report = Reference.run!(mission, study)

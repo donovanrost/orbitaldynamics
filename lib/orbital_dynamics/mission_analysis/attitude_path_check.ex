@@ -502,6 +502,7 @@ defmodule OrbitalDynamics.MissionAnalysis.AttitudePathCheck do
         session
       )
 
+    result = Result.validate!(result)
     status = Result.status(result)
     hit = ReflectedBeam.ray_hit(position, vector(ref, "d"), radius)
     expected_hit = bool(ref, "hit")

@@ -1,6 +1,7 @@
 defmodule OrbitalDynamics.MissionAnalysis.Resource.ReactionWheels do
   @moduledoc "Three orthogonal ideal wheels with signed rotor momentum, motor torque and declared external unloading torque. Prescribed attitude and sampled capacity checks, not closed-loop control."
   @behaviour OrbitalDynamics.MissionAnalysis.Resource.Model
+  alias OrbitalDynamics.MissionAnalysis.Path.CheckResult
   alias OrbitalDynamics.MissionAnalysis.{Input, Models.SurfaceSupport}
   alias OrbitalDynamics.MissionAnalysis.Attitude.Quaternion, as: Q
   alias OrbitalDynamics.MissionAnalysis.Path.Result
@@ -115,12 +116,12 @@ defmodule OrbitalDynamics.MissionAnalysis.Resource.ReactionWheels do
       evaluate(current, input, dt, s)
     else
       {:ok, current,
-       Result.new!(
+       Result.build(
          [
-           %{
-             "id" => "wheel_kinematics",
-             "status" => "unknown",
-             "reason" => "endpoint_and_midpoint_attitude_rate_acceleration_required"
+           %CheckResult{
+             id: "wheel_kinematics",
+             status: :unknown,
+             details: %{"reason" => "endpoint_and_midpoint_attitude_rate_acceleration_required"}
            }
          ],
          %{}
@@ -185,33 +186,44 @@ defmodule OrbitalDynamics.MissionAnalysis.Resource.ReactionWheels do
         peak = Enum.map(values, &abs(elem(&1, axis))) |> Enum.max()
         margin = elem(caps, axis) - peak
 
-        %{
-          "id" => "wheel_#{axis + 1}_#{suffix}",
-          "status" => if(margin >= -1.0e-12, do: "supported", else: "violated"),
-          "margin" => margin,
-          "margin_unit" => unit
+        %CheckResult{
+          id: "wheel_#{axis + 1}_#{suffix}",
+          status:
+            if(margin >= -1.0e-12) do
+              :supported
+            else
+              :violated
+            end,
+          margin: margin,
+          margin_unit: unit
         }
       end
 
     checks =
       checks ++
         [
-          %{
-            "id" => "unload_mode_declared",
-            "status" =>
-              if((requested and active) or (not requested and unload == nil),
-                do: "supported",
-                else: "violated"
-              )
+          %CheckResult{
+            id: "unload_mode_declared",
+            status:
+              if((requested and active) or (not requested and unload == nil)) do
+                :supported
+              else
+                :violated
+              end
           },
-          %{
-            "id" => "unload_stationary_body",
-            "status" => if(not active or stationary, do: "supported", else: "violated")
+          %CheckResult{
+            id: "unload_stationary_body",
+            status:
+              if(not active or stationary) do
+                :supported
+              else
+                :violated
+              end
           }
         ]
 
     {:ok, state(h1),
-     Result.new!(checks, %{
+     Result.build(checks, %{
        "rotor_momentum_mid_nms" => Tuple.to_list(hm),
        "motor_torque_mid_nm" => torques |> Enum.at(1) |> Tuple.to_list(),
        "disturbance_torque_body_nm" => Tuple.to_list(s.disturbance),

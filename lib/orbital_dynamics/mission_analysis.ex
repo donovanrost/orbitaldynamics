@@ -7,6 +7,10 @@ defmodule OrbitalDynamics.MissionAnalysis do
   resource budgets, deterministic scheduling, and explanations. It accepts
   existing `Trajectory` values, independently of how they were generated.
 
+  `include_samples: false` releases dense opportunity scan/model diagnostics only
+  after all audits, retaining outcomes, unknown intervals, counters and first
+  failed-check examples. Full diagnostics remain the default.
+
   All times are absolute seconds since J2000 in one explicitly declared scale.
   No frame/time transformation, propagation, command execution, or legacy
   campaign-artifact adaptation is implicit. Every request asks for one continuous
@@ -198,7 +202,8 @@ defmodule OrbitalDynamics.MissionAnalysis do
              "selection_decisions" => decisions,
              "remaining_resource_budgets" => balances
            }
-           |> scheduling_evidence(search_report),
+           |> scheduling_evidence(search_report)
+           |> OrbitalDynamics.MissionAnalysis.ReportData.encode(),
            %{
              "opportunity_generation_ms" => opportunity_us / 1000,
              "scheduling_ms" => scheduling_us / 1000,
@@ -576,8 +581,8 @@ defmodule OrbitalDynamics.MissionAnalysis do
       end)
     end)
 
-    if Enum.sum(Enum.map(assets, &length(&1.trajectory.states))) * length(requests) > 100_000,
-      do: raise(ArgumentError, "mission analysis exceeds 100000 sample evaluations")
+    if Enum.sum(Enum.map(assets, &length(&1.trajectory.states))) * length(requests) > 3_000_000,
+      do: raise(ArgumentError, "mission analysis exceeds 3000000 sample evaluations")
   end
 
   defp unique_ids!(values) do
@@ -648,7 +653,8 @@ defmodule OrbitalDynamics.MissionAnalysis do
                  session,
                  gap,
                  refinement,
-                 opportunity_search
+                 opportunity_search,
+                 include?
                ) do
           # A segment inherits the original physical request window and its
           # discovery margins. Reapplying those margins to a five-second prefix
@@ -766,21 +772,22 @@ defmodule OrbitalDynamics.MissionAnalysis do
     end
   end
 
-  defp pair_windows(asset, request, session, gap, refinement, nil) do
+  defp pair_windows(asset, request, session, gap, refinement, nil, _include?) do
     with {:ok, samples} <- evaluate_samples(asset, request, session, gap, refinement),
          {:ok, windows, samples, count} <-
            analyze_windows(asset, request, session, samples, gap, refinement),
          do: {:ok, windows, samples, count, nil}
   end
 
-  defp pair_windows(asset, request, session, _gap, refinement, policy) do
+  defp pair_windows(asset, request, session, _gap, refinement, policy, include?) do
     with {:ok, windows, samples, evidence} <-
            OrbitalDynamics.MissionAnalysis.Opportunity.Runner.run(
              asset,
              request,
              session,
              refinement,
-             policy
+             policy,
+             include?
            ),
          do: {:ok, windows, samples, 0, evidence}
   end

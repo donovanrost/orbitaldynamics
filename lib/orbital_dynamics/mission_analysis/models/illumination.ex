@@ -11,6 +11,7 @@ defmodule OrbitalDynamics.MissionAnalysis.Models.Illumination do
   pointing errors, penumbra, and achieved attitude are unmodeled.
   """
   @behaviour OrbitalDynamics.MissionAnalysis.Model
+  alias OrbitalDynamics.MissionAnalysis.Path.CheckResult
   alias OrbitalDynamics.Vector3
   alias OrbitalDynamics.MissionAnalysis.{Evaluation, SphericalScene}
   alias OrbitalDynamics.MissionAnalysis.Models.SurfaceSupport, as: Support
@@ -288,18 +289,18 @@ defmodule OrbitalDynamics.MissionAnalysis.Models.Illumination do
 
     status =
       case behavior do
-        "reflecting" -> "supported"
-        "blocked_by_assumption" -> "violated"
-        _ -> "unknown"
+        "reflecting" -> :supported
+        "blocked_by_assumption" -> :violated
+        _ -> :unknown
       end
 
     {:ok,
-     OrbitalDynamics.MissionAnalysis.Path.Result.new!(
+     OrbitalDynamics.MissionAnalysis.Path.Result.build(
        [
-         %{
-           "id" => "service_operating_mode",
-           "status" => status,
-           "reason" => "declared_optical_behavior:#{inspect(behavior)}"
+         %CheckResult{
+           id: "service_operating_mode",
+           status: status,
+           details: %{"reason" => "declared_optical_behavior:#{inspect(behavior)}"}
          }
        ],
        %{"mode" => mode}

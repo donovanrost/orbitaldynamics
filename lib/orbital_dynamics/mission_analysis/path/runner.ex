@@ -35,7 +35,7 @@ defmodule OrbitalDynamics.MissionAnalysis.Path.Runner do
         end)
       end)
 
-    %{policy: p, sessions: sessions, values: %{}, evaluations: 0}
+    %{policy: p, sessions: sessions, values: %{}, evaluations: 0, released_assets: MapSet.new()}
   end
 
   def activity(asset, request, session, start, stop, pointing_at, state_at, cache) do
@@ -69,8 +69,7 @@ defmodule OrbitalDynamics.MissionAnalysis.Path.Runner do
          cache}
 
       {:ok, %Result{} = result} ->
-        result = Result.new!(result.checks, result.metrics)
-
+        # service_mode admitted the fresh callback or returned an admitted cache hit.
         case Result.status(result) do
           "supported" ->
             evaluate_path(asset, start, stop, [], "activity", mode, pointing_at, state_at, cache)
@@ -100,7 +99,7 @@ defmodule OrbitalDynamics.MissionAnalysis.Path.Runner do
     runtime = cache.path
     key = {:service_mode, asset.id, request.id, mode}
 
-    case Map.fetch(runtime.values, key) do
+    case cached(runtime, asset.id, key) do
       {:ok, response} ->
         {response, cache}
 
@@ -112,14 +111,14 @@ defmodule OrbitalDynamics.MissionAnalysis.Path.Runner do
 
           response =
             case response do
-              {:ok, %Result{} = r} -> {:ok, Result.new!(r.checks, r.metrics)}
+              {:ok, %Result{} = r} -> {:ok, Result.validate!(r)}
               {:error, reason} -> {:error, reason}
               _ -> {:error, :invalid_activity_mode_result}
             end
 
           runtime = %{
             runtime
-            | values: Map.put(runtime.values, key, response),
+            | values: put_cached(runtime.values, asset.id, key, response),
               evaluations: runtime.evaluations + 1
           }
 
@@ -426,7 +425,7 @@ defmodule OrbitalDynamics.MissionAnalysis.Path.Runner do
       {asset.id, rule.id, state.epoch.seconds_since_j2000 * 1.0,
        Quaternion.new!(point.quaternion), mode}
 
-    case Map.fetch(runtime.values, key) do
+    case cached(runtime, asset.id, key) do
       {:ok, result} ->
         {result, cache}
 
@@ -440,18 +439,19 @@ defmodule OrbitalDynamics.MissionAnalysis.Path.Runner do
 
         case captured.module.evaluate(state, point, mode, captured.session) do
           {:ok, %Result{} = r} ->
-            r = Result.new!(r.checks, r.metrics)
+            r = Result.validate!(r)
 
             result = %{
               "rule_id" => rule.id,
               "status" => Result.status(r),
               "checks" => r.checks,
-              "metrics" => r.metrics
+              "metrics" =>
+                OrbitalDynamics.MissionAnalysis.ReportData.pending(r.metrics, "path metrics")
             }
 
             runtime = %{
               runtime
-              | values: Map.put(runtime.values, key, result),
+              | values: put_cached(runtime.values, asset.id, key, result),
                 evaluations: runtime.evaluations + 1
             }
 
@@ -476,6 +476,52 @@ defmodule OrbitalDynamics.MissionAnalysis.Path.Runner do
       Map.update(details, "path_checks", %{}, fn checks ->
         Map.new(checks, fn {k, v} -> {k, brief(v)} end)
       end)
+
+  # Final horizon checking owns the last path queries for each asset. Drop its
+  # whole partition only after those queries complete; counters and evidence
+  # survive. Reopening a released partition would silently spend extra budget.
+  def release_asset(%{path: nil} = cache, _id), do: cache
+
+  def release_asset(cache, id) do
+    runtime = cache.path
+
+    %{
+      cache
+      | path: %{
+          runtime
+          | values: Map.delete(runtime.values, id),
+            released_assets: MapSet.put(runtime.released_assets, id)
+        }
+    }
+  end
+
+  def release(%{path: nil} = cache), do: cache
+
+  def release(cache) do
+    runtime = cache.path
+
+    %{
+      cache
+      | path: %{
+          runtime
+          | values: %{},
+            released_assets:
+              MapSet.union(runtime.released_assets, MapSet.new(Map.keys(runtime.policy.assets)))
+        }
+    }
+  end
+
+  defp cached(runtime, id, key) do
+    if MapSet.member?(runtime.released_assets, id),
+      do: raise(ArgumentError, "path cache for asset #{id} has been released")
+
+    Map.fetch(Map.get(runtime.values, id, %{}), key)
+  end
+
+  defp put_cached(values, id, key, result) do
+    partition = Map.get(values, id, %{})
+    Map.put(values, id, Map.put(partition, key, result))
+  end
 
   def describe(nil), do: :null
 

@@ -232,8 +232,8 @@ defmodule OrbitalDynamics.MissionAnalysis.Scheduling.Explanation do
           is_map(issue),
           rule <- issue["rules"] || [],
           check <- rule["checks"] || [],
-          check["status"] in ["violated", "unknown"] do
-        Map.take(check, ~w(id status margin margin_unit reason))
+          check_status(check) in ["violated", "unknown"] do
+        check_summary(check)
         |> Map.merge(%{
           "kind" => "path",
           "scope" => scope,
@@ -248,8 +248,8 @@ defmodule OrbitalDynamics.MissionAnalysis.Scheduling.Explanation do
           issue = level["first_issue"],
           is_map(issue),
           check <- issue["checks"] || [],
-          check["status"] in ["violated", "unknown"] do
-        Map.take(check, ~w(id status margin margin_unit reason))
+          check_status(check) in ["violated", "unknown"] do
+        check_summary(check)
         |> Map.merge(%{
           "kind" => "resource",
           "model_id" => model["id"],
@@ -291,10 +291,28 @@ defmodule OrbitalDynamics.MissionAnalysis.Scheduling.Explanation do
     Enum.uniq(paths ++ resources ++ causes ++ torque)
   end
 
+  defp check_status(%OrbitalDynamics.MissionAnalysis.Path.CheckResult{status: status}),
+    do: Atom.to_string(status)
+
+  defp check_status(check), do: check["status"]
+
+  defp check_summary(%OrbitalDynamics.MissionAnalysis.Path.CheckResult{} = check),
+    do:
+      check
+      |> OrbitalDynamics.MissionAnalysis.Path.CheckResult.report()
+      |> Map.take(~w(id status margin margin_unit reason))
+
+  defp check_summary(check), do: Map.take(check, ~w(id status margin margin_unit reason))
+
+  defp explicit_reasons(%OrbitalDynamics.MissionAnalysis.Path.CheckResult{} = check),
+    do: check |> OrbitalDynamics.MissionAnalysis.Path.CheckResult.report() |> explicit_reasons()
+
+  defp explicit_reasons(%_{} = value), do: value |> Map.from_struct() |> explicit_reasons()
+
   defp explicit_reasons(m) when is_map(m),
     do:
-      List.wrap(m["reason"]) ++
-        Enum.flat_map(Map.values(Map.delete(m, "reason")), &explicit_reasons/1)
+      List.wrap(Map.get(m, "reason", Map.get(m, :reason))) ++
+        Enum.flat_map(Map.values(Map.drop(m, ["reason", :reason])), &explicit_reasons/1)
 
   defp explicit_reasons(l) when is_list(l), do: Enum.flat_map(l, &explicit_reasons/1)
   defp explicit_reasons(_), do: []

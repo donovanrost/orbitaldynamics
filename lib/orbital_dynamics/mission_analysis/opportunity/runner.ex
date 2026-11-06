@@ -4,7 +4,7 @@ defmodule OrbitalDynamics.MissionAnalysis.Opportunity.Runner do
   alias OrbitalDynamics.EventSearch.Source
   alias OrbitalDynamics.MissionAnalysis.Opportunity.{Windows, Functions, Endpoints}
 
-  def run(asset, request, session, refinement, policy) do
+  def run(asset, request, session, refinement, policy, include_samples? \\ true) do
     states = asset.trajectory.states
     first = hd(states)
     last = List.last(states)
@@ -33,11 +33,11 @@ defmodule OrbitalDynamics.MissionAnalysis.Opportunity.Runner do
         {:ok, [], [], %{"status" => "model_opportunity_constraints_unavailable", "windows" => []}}
 
       true ->
-        search(asset, request, session, refinement, policy, source, start, stop)
+        search(asset, request, session, refinement, policy, source, start, stop, include_samples?)
     end
   end
 
-  defp search(_asset, request, session, refinement, policy, source, start, stop) do
+  defp search(_asset, request, session, refinement, policy, source, start, stop, include_samples?) do
     with {:ok, functions} <-
            request.model.opportunity_functions(session, source, refinement.tracking_lookback_s),
          :ok <- validate_functions(functions),
@@ -59,7 +59,7 @@ defmodule OrbitalDynamics.MissionAnalysis.Opportunity.Runner do
              time_tolerance_s: policy.time_tolerance_s,
              max_iterations: policy.max_iterations,
              max_evaluations: policy.max_evaluations,
-             include_samples: true,
+             include_samples: include_samples?,
              record_function_observations: [evaluation.id]
            ) do
       composition = Windows.compose(report, policy, request.duration_s)
@@ -129,16 +129,10 @@ defmodule OrbitalDynamics.MissionAnalysis.Opportunity.Runner do
             Map.put(w, "sample_count", count)
           end
 
-        report =
-          Map.update!(report, "results", fn rows ->
-            Enum.map(rows, fn row ->
-              Map.update!(row, "scan_samples", fn scans ->
-                Enum.map(scans, fn scan ->
-                  Map.update(scan, "metadata", %{}, &Map.delete(&1, "evaluation"))
-                end)
-              end)
-            end)
-          end)
+        # All scalar, endpoint and complete-model contradiction audits above
+        # consume the full observations. Only then release dense diagnostics,
+        # before the next asset/request pair is analyzed.
+        report = retain_report(report, include_samples?)
 
         {:ok, windows, samples,
          Map.merge(composition, %{
@@ -148,6 +142,7 @@ defmodule OrbitalDynamics.MissionAnalysis.Opportunity.Runner do
                else: report["status"]
              ),
            "event_search" => report,
+           "diagnostic_retention" => retention(samples, include_samples?),
            "requested_window" => %{
              "starts_at_s" => request.starts_at_s,
              "ends_at_s" => request.ends_at_s
@@ -161,6 +156,37 @@ defmodule OrbitalDynamics.MissionAnalysis.Opportunity.Runner do
          })}
       end
     end
+  end
+
+  defp retain_report(report, false), do: Map.delete(report, "function_observations")
+
+  defp retain_report(report, true) do
+    Map.update!(report, "results", fn rows ->
+      Enum.map(rows, fn row ->
+        Map.update!(row, "scan_samples", fn scans ->
+          Enum.map(scans, fn scan ->
+            Map.update(scan, "metadata", %{}, &Map.delete(&1, "evaluation"))
+          end)
+        end)
+      end)
+    end)
+  end
+
+  defp retention(samples, include?) do
+    examples =
+      Enum.reduce(samples, %{}, fn sample, examples ->
+        Enum.reduce(sample["checks"], examples, fn check, acc ->
+          if check["passed"], do: acc, else: Map.put_new(acc, check["id"], sample)
+        end)
+      end)
+
+    %{
+      "mode" => if(include?, do: "full", else: "compact"),
+      "audited_model_sample_count" => length(samples),
+      "first_failed_check_samples" => examples,
+      "limits" =>
+        "All observed model samples audited before retention; compact mode omits dense scan/model observations, retaining outcomes, bounds, unknown intervals, counters and first failure per check. Not a continuous-feasibility proof."
+    }
   end
 
   defp checked_function(function, evaluation) do

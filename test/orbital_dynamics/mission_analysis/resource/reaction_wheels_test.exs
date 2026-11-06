@@ -37,7 +37,7 @@ defmodule OrbitalDynamics.MissionAnalysis.Resource.ReactionWheelsTest do
       mode: %{"name" => "idle", "parameters" => %{}}
     }
 
-  defp failed(r, id), do: Enum.any?(r.checks, &(&1["id"] == id and &1["status"] == "violated"))
+  defp failed(r, id), do: Enum.any?(r.checks, &(&1.id == id and &1.status == :violated))
 
   test "constant disturbance accumulates signed rotor momentum independently of zero body momentum" do
     s = session(config())
@@ -45,7 +45,7 @@ defmodule OrbitalDynamics.MissionAnalysis.Resource.ReactionWheelsTest do
     assert {:ok, next, r} = Wheels.step(state, input(pose()), 10, s)
     assert_in_delta elem(Wheels.vector(next), 2), 0.2, 1.0e-12
     assert_in_delta Enum.at(r.metrics["motor_torque_mid_nm"], 2), 0.02, 1.0e-12
-    assert Enum.all?(r.checks, &(&1["status"] == "supported"))
+    assert Enum.all?(r.checks, &(&1.status == :supported))
   end
 
   test "external unload torque changes momentum continuously rather than resetting it" do
@@ -135,6 +135,6 @@ defmodule OrbitalDynamics.MissionAnalysis.Resource.ReactionWheelsTest do
     end
 
     assert {:ok, _, r} = Wheels.step(Wheels.initial(s), %{}, 1, s)
-    assert hd(r.checks)["status"] == "unknown"
+    assert hd(r.checks).status == :unknown
   end
 end

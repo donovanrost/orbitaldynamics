@@ -153,7 +153,7 @@ defmodule OrbitalDynamics.MissionAnalysis.Attitude.Policy do
       derivative_step_s: derivative,
       search_step_s: Input.positive!(opts[:search_step_s], "search_step_s"),
       max_candidate_starts: integer!(opts[:max_candidate_starts], "max_candidate_starts", 1024),
-      max_evaluations: integer!(opts[:max_evaluations], "max_evaluations", 100_000)
+      max_evaluations: integer!(opts[:max_evaluations], "max_evaluations", 1_000_000)
     }
   end
 

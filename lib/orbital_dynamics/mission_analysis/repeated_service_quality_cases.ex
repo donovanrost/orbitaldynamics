@@ -6,6 +6,7 @@ defmodule OrbitalDynamics.MissionAnalysis.RepeatedServiceQualityCases do
   energy arithmetic, never the production feasibility evaluator. Its exactness
   applies only to these finite declared models and fixed activity intervals.
   """
+  alias OrbitalDynamics.MissionAnalysis.Path.CheckResult
   alias OrbitalDynamics.{Epoch, Frame, StateVector, Trajectory, MissionAnalysis}
   alias OrbitalDynamics.MissionAnalysis.{Asset, Evaluation, Request, WindowRefinement}
   alias OrbitalDynamics.MissionAnalysis.Attitude.{Pointing, Quaternion}
@@ -26,7 +27,7 @@ defmodule OrbitalDynamics.MissionAnalysis.RepeatedServiceQualityCases do
       do: {:ok, Pointing.new!(state.frame, Quaternion.increment({0, 0, s.angle}))}
 
     def activity_mode(_, _),
-      do: {:ok, Result.new!([%{"id" => "service_mode", "status" => "supported"}], %{})}
+      do: {:ok, Result.build([%CheckResult{id: "service_mode", status: :supported}], %{})}
   end
 
   defmodule Guard do
@@ -35,7 +36,7 @@ defmodule OrbitalDynamics.MissionAnalysis.RepeatedServiceQualityCases do
     def prepare(_, _, _), do: {:ok, nil, %{}}
 
     def evaluate(_, _, _, _),
-      do: {:ok, Result.new!([%{"id" => "declared_clear", "status" => "supported"}], %{})}
+      do: {:ok, Result.build([%CheckResult{id: "declared_clear", status: :supported}], %{})}
   end
 
   def cases do

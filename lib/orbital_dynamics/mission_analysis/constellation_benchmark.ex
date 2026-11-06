@@ -6,7 +6,7 @@ defmodule OrbitalDynamics.MissionAnalysis.ConstellationBenchmark do
   """
   alias OrbitalDynamics.MissionAnalysis.Attitude.Reference
 
-  def run_case!(mission, study, size) do
+  def run_case!(mission, study, size, opts \\ []) do
     unless is_integer(size) and size >= 1 and size <= length(mission["assets"]),
       do: raise(ArgumentError, "fleet size must be an available positive asset count")
 
@@ -26,7 +26,9 @@ defmodule OrbitalDynamics.MissionAnalysis.ConstellationBenchmark do
         fn path, config -> update_in(config, path, &Map.take(&1, ids)) end
       )
 
-    {total_us, {report, timings}} = :timer.tc(fn -> Reference.run_profiled!(mission, study) end)
+    {total_us, {report, timings}} =
+      :timer.tc(fn -> Reference.run_profiled!(mission, study, opts) end)
+
     {summarize(report, Map.put(timings, "total_ms", total_us / 1000)), report}
   end
 

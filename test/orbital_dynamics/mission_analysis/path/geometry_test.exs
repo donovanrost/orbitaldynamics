@@ -110,7 +110,7 @@ defmodule OrbitalDynamics.MissionAnalysis.Path.GeometryTest do
     assert Result.status(r) == "violated"
     r = evaluate(scene({-1, 0, 0}), {-1, 0, 0})
     assert Result.status(r) == "supported"
-    assert hd(r.checks)["reason"] == "solar_disk_fully_occulted"
+    assert hd(r.checks).details["reason"] == "solar_disk_fully_occulted"
   end
 
   test "unknown back optics remain unknown when even a positive-center Sun disk reaches the back face" do
@@ -119,7 +119,7 @@ defmodule OrbitalDynamics.MissionAnalysis.Path.GeometryTest do
     normal = {:math.cos(0.1 * :math.pi() / 180), :math.sin(0.1 * :math.pi() / 180), 0}
     r = evaluate(s, normal, c)
     assert Result.status(r) == "unknown"
-    assert hd(r.checks)["reason"] == "back_face_optics_not_known"
+    assert hd(r.checks).details["reason"] == "back_face_optics_not_known"
   end
 
   test "off is not a blocked mirror, and a blocked mirror cannot fulfill illumination service" do

@@ -1,6 +1,7 @@
 defmodule OrbitalDynamics.MissionAnalysis.Path.Checks.Angular do
   @moduledoc "Sun, spherical Earth/body-limb and fixed inertial angular envelopes for a declared body axis."
   @behaviour OrbitalDynamics.MissionAnalysis.Path.Check
+  alias OrbitalDynamics.MissionAnalysis.Path.CheckResult
   alias OrbitalDynamics.Vector3, as: V
   alias OrbitalDynamics.MissionAnalysis.{Input, SphericalScene}
   alias OrbitalDynamics.MissionAnalysis.Models.SurfaceSupport, as: S
@@ -69,21 +70,31 @@ defmodule OrbitalDynamics.MissionAnalysis.Path.Checks.Angular do
         ) - offset
 
       checks = [
-        %{
-          "id" => "minimum_angle",
-          "status" => if(angle >= s.low, do: "supported", else: "violated"),
-          "margin" => angle - s.low,
-          "margin_unit" => "deg"
+        %CheckResult{
+          id: "minimum_angle",
+          status:
+            if(angle >= s.low) do
+              :supported
+            else
+              :violated
+            end,
+          margin: angle - s.low,
+          margin_unit: "deg"
         },
-        %{
-          "id" => "maximum_angle",
-          "status" => if(angle <= s.high, do: "supported", else: "violated"),
-          "margin" => s.high - angle,
-          "margin_unit" => "deg"
+        %CheckResult{
+          id: "maximum_angle",
+          status:
+            if(angle <= s.high) do
+              :supported
+            else
+              :violated
+            end,
+          margin: s.high - angle,
+          margin_unit: "deg"
         }
       ]
 
-      {:ok, Result.new!(checks, %{"angle_deg" => angle, "reference" => s.kind})}
+      {:ok, Result.build(checks, %{"angle_deg" => angle, "reference" => s.kind})}
     end
   end
 

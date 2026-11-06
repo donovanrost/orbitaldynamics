@@ -69,6 +69,17 @@ defmodule OrbitalDynamics.MissionAnalysis.Attitude.Evaluator do
   end
 
   def evaluate(runtime, opportunities, refinement, separation, state_at, protected \\ []) do
+    evaluate_candidates(runtime, opportunities, refinement, separation, state_at, protected)
+  catch
+    {:resource_preparation_failed, asset, model, reason} ->
+      {:error, {:resource_preparation_failed, asset, model, reason}}
+
+    {:path_preparation_failed, asset, rule, reason} ->
+      {:error, {:path_preparation_failed, asset, rule, reason}}
+  end
+
+  # Each phase tail-calls the next without retaining previous cache versions.
+  defp evaluate_candidates(runtime, opportunities, refinement, separation, state_at, protected) do
     %{
       assets: assets,
       requests: requests,
@@ -233,45 +244,66 @@ defmodule OrbitalDynamics.MissionAnalysis.Attitude.Evaluator do
         {:ok, activities, decisions, balances, cache} ->
           activities = Enum.sort_by(activities, &{&1["starts_at_s"], &1["id"]})
 
-          with {:ok, transitions, cache} <-
-                 final_transitions(activities, policy, assets, state_at, cache),
-               {:ok, horizon, cache} <-
-                 Horizon.finish(assets, activities, policy, state_at, cache),
-               {:ok, resources, cache} <-
-                 ResourceRunner.finish(assets, activities, policy, state_at, cache) do
-            {:ok, activities, Enum.reverse(decisions), balances,
-             %{
-               "resource_feasibility" => resources,
-               "planning_status" => planning_status(horizon, resources),
-               "horizon_coverage" => horizon,
-               "model_evaluation_count" => cache.evaluations,
-               "path_constraints" => PathRunner.describe(cache.path),
-               "path_status" =>
-                 cond do
-                   horizon != :null -> horizon["status"]
-                   cache.path == nil -> "not_enabled"
-                   activities == [] -> "no_scheduled_path"
-                   true -> "supported_at_tested_epochs"
-                 end,
-               "transitions" => transitions,
-               "limits" => [
-                 "activity profiles and physical eligibility are sampled, not continuously certified",
-                 "initial state, mount transforms and roll rules are declared assumptions",
-                 "motion phases are a constructed kinematic path, not spacecraft commands or actuator validation"
-               ]
-             }}
-          end
+          finish_paths(
+            assets,
+            policy,
+            state_at,
+            %{activities: activities, decisions: decisions, balances: balances},
+            cache
+          )
 
         error ->
           error
       end
     end
-  catch
-    {:resource_preparation_failed, asset, model, reason} ->
-      {:error, {:resource_preparation_failed, asset, model, reason}}
+  end
 
-    {:path_preparation_failed, asset, rule, reason} ->
-      {:error, {:path_preparation_failed, asset, rule, reason}}
+  defp finish_paths(assets, policy, state_at, result, cache) do
+    with {:ok, transitions, cache} <-
+           final_transitions(result.activities, policy, assets, state_at, cache) do
+      finish_horizon(assets, policy, state_at, Map.put(result, :transitions, transitions), cache)
+    end
+  end
+
+  defp finish_horizon(assets, policy, state_at, result, cache) do
+    # The continuation captures only final output, not the incoming cache. The
+    # horizon loop can retire each asset without the caller retaining old versions.
+    Horizon.finish(assets, result.activities, policy, state_at, cache, fn horizon, cache ->
+      finish_resources(
+        assets,
+        policy,
+        state_at,
+        Map.put(result, :horizon, horizon),
+        PathRunner.release(cache)
+      )
+    end)
+  end
+
+  defp finish_resources(assets, policy, state_at, result, cache) do
+    with {:ok, resources, cache} <-
+           ResourceRunner.finish(assets, result.activities, policy, state_at, cache) do
+      {:ok, result.activities, Enum.reverse(result.decisions), result.balances,
+       %{
+         "resource_feasibility" => resources,
+         "planning_status" => planning_status(result.horizon, resources),
+         "horizon_coverage" => result.horizon,
+         "model_evaluation_count" => cache.evaluations,
+         "path_constraints" => PathRunner.describe(cache.path),
+         "path_status" =>
+           cond do
+             result.horizon != :null -> result.horizon["status"]
+             cache.path == nil -> "not_enabled"
+             result.activities == [] -> "no_scheduled_path"
+             true -> "supported_at_tested_epochs"
+           end,
+         "transitions" => result.transitions,
+         "limits" => [
+           "activity profiles and physical eligibility are sampled, not continuously certified",
+           "initial state, mount transforms and roll rules are declared assumptions",
+           "motion phases are a constructed kinematic path, not spacecraft commands or actuator validation"
+         ]
+       }}
+    end
   end
 
   defp seed_protected(_runtime, [], _refinement, _separation, _state_at, cache),

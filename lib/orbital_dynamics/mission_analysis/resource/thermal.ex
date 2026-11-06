@@ -1,6 +1,7 @@
 defmodule OrbitalDynamics.MissionAnalysis.Resource.Thermal do
   @moduledoc "One isothermal node with declared heat input and linear effective rejection to a fixed sink. Analytic interval evolution; no radiation/view-factor solver."
   @behaviour OrbitalDynamics.MissionAnalysis.Resource.Model
+  alias OrbitalDynamics.MissionAnalysis.Path.CheckResult
   alias OrbitalDynamics.MissionAnalysis.{Input, Models.SurfaceSupport}
   alias OrbitalDynamics.MissionAnalysis.Path.Result
 
@@ -113,18 +114,26 @@ defmodule OrbitalDynamics.MissionAnalysis.Resource.Thermal do
             {"thermal_cold_limit", low - c["minimum_temperature_k"]},
             {"thermal_hot_limit", c["maximum_temperature_k"] - high}
           ],
-          do: %{
-            "id" => id,
-            "status" => if(margin >= 0, do: "supported", else: "violated"),
-            "margin" => margin,
-            "margin_unit" => "K"
+          do: %CheckResult{
+            id: id,
+            status:
+              if(margin >= 0) do
+                :supported
+              else
+                :violated
+              end,
+            margin: margin,
+            margin_unit: "K"
           }
 
-    {:ok, next, Result.new!(checks, metrics)}
+    {:ok, next, Result.build(checks, metrics)}
   end
 
   defp unknown(state, reason),
     do:
       {:ok, state,
-       Result.new!([%{"id" => "thermal_inputs", "status" => "unknown", "reason" => reason}], %{})}
+       Result.build(
+         [%CheckResult{id: "thermal_inputs", status: :unknown, details: %{"reason" => reason}}],
+         %{}
+       )}
 end

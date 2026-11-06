@@ -8,11 +8,16 @@ defmodule OrbitalDynamics.MissionAnalysis.Resource.Comparison do
     if complete do
       keys =
         levels
-        |> Enum.flat_map(fn l -> for {k, v} <- l["final_state"], is_number(v), do: k end)
+        |> Enum.flat_map(fn l ->
+          for {k, v} <- OrbitalDynamics.MissionAnalysis.NativeData.fields(l["final_state"]),
+              is_number(v),
+              do: k
+        end)
         |> Enum.uniq()
         |> Enum.sort()
 
-      final = Map.new(keys, fn k -> {k, range(Enum.map(levels, & &1["final_state"][k]))} end)
+      final =
+        Map.new(keys, fn k -> {k, range(Enum.map(levels, &Map.get(&1["final_state"], k)))} end)
 
       minima =
         Map.new(keys, fn k ->

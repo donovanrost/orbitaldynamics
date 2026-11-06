@@ -8,6 +8,7 @@ defmodule OrbitalDynamics.MissionAnalysis.Resource.Battery do
   battery thermal, voltage and degradation dynamics are not modeled.
   """
   @behaviour OrbitalDynamics.MissionAnalysis.Resource.Model
+  alias OrbitalDynamics.MissionAnalysis.Path.CheckResult
   alias OrbitalDynamics.MissionAnalysis.{Input, Models.SurfaceSupport}
   alias OrbitalDynamics.MissionAnalysis.Path.Result
 
@@ -129,12 +130,12 @@ defmodule OrbitalDynamics.MissionAnalysis.Resource.Battery do
         &(c[&1] == :null)
       ) ->
         {:ok, state,
-         Result.new!(
+         Result.build(
            [
-             %{
-               "id" => "battery_parameters",
-               "status" => "unknown",
-               "reason" => "battery_parameter_unknown"
+             %CheckResult{
+               id: "battery_parameters",
+               status: :unknown,
+               details: %{"reason" => "battery_parameter_unknown"}
              }
            ],
            %{}
@@ -145,12 +146,12 @@ defmodule OrbitalDynamics.MissionAnalysis.Resource.Battery do
 
       load in [nil, :null] or phase in [nil, :null] ->
         {:ok, state,
-         Result.new!(
+         Result.build(
            [
-             %{
-               "id" => "battery_inputs",
-               "status" => "unknown",
-               "reason" => "mode_phase_or_generation_power_unknown"
+             %CheckResult{
+               id: "battery_inputs",
+               status: :unknown,
+               details: %{"reason" => "mode_phase_or_generation_power_unknown"}
              }
            ],
            %{}
@@ -166,12 +167,12 @@ defmodule OrbitalDynamics.MissionAnalysis.Resource.Battery do
 
           {:unknown, reason} ->
             {:ok, state,
-             Result.new!(
+             Result.build(
                [
-                 %{
-                   "id" => "generation_inputs",
-                   "status" => "unknown",
-                   "reason" => inspect(reason)
+                 %CheckResult{
+                   id: "generation_inputs",
+                   status: :unknown,
+                   details: %{"reason" => inspect(reason)}
                  }
                ],
                %{}
@@ -235,15 +236,20 @@ defmodule OrbitalDynamics.MissionAnalysis.Resource.Battery do
             {"battery_reserve", lowest - c["reserve_wh"]},
             {"battery_energy_supply", supply}
           ] do
-        %{
-          "id" => id,
-          "status" => if(margin >= 0, do: "supported", else: "violated"),
-          "margin" => margin,
-          "margin_unit" => "Wh"
+        %CheckResult{
+          id: id,
+          status:
+            if(margin >= 0) do
+              :supported
+            else
+              :violated
+            end,
+          margin: margin,
+          margin_unit: "Wh"
         }
       end
 
-    {:ok, next, Result.new!(checks, metrics)}
+    {:ok, next, Result.build(checks, metrics)}
   end
 
   defp power!(:null), do: :null

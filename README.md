@@ -43,6 +43,8 @@ central-body `mu_km3_s2`.
 
 ## Configurable reference missions
 
+The opt-in [100-spacecraft scaling study](docs/mission_planning/constellation_scaling.md) records current planning time, memory limits and CPU hotspots, with a reproducible bounded benchmark. [Compact opportunity retention](docs/mission_planning/opportunity_retention.md) releases dense diagnostics after audits while preserving planning outcomes. [Memory attribution](docs/mission_planning/planning_memory_attribution.md) identifies the remaining path-cache and report costs. [Path-cache lifetime](docs/mission_planning/path_cache_lifetime.md) describes releasing entries after final asset checks. [Native results](docs/mission_planning/native_results.md) separates path/resource computation from report projection. [Domain admission](docs/mission_planning/domain_admission.md) keeps diagnostic validation at output boundaries.
+
 An opt-in, mission-independent analysis runner now supports flat-mirror
 illumination and optical imaging reference cases with explicit payload assumptions.
 Run either case and inspect its sampled checks, opportunities, and schedule:

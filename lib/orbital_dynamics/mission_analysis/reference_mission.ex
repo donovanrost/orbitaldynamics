@@ -59,7 +59,7 @@ defmodule OrbitalDynamics.MissionAnalysis.ReferenceMission do
     step = Input.number!(config["sample_step_s"], "sample_step_s", 1, duration)
     max_step = Input.number!(config["max_step_s"], "max_step_s", 0.1, step)
     if duration / step > 9999, do: raise(ArgumentError, "too many trajectory samples")
-    bounded_list!(config["assets"], 20, "assets")
+    bounded_list!(config["assets"], 100, "assets")
     bounded_list!(config["requests"], 100, "requests", 0)
     epoch = Epoch.new!(Input.number!(config["epoch_s"], "epoch_s", -1.0e12, 1.0e12), :utc)
     body = CentralBody.earth()

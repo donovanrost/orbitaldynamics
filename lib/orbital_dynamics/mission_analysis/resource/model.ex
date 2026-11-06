@@ -2,7 +2,7 @@ defmodule OrbitalDynamics.MissionAnalysis.Resource.Model do
   @moduledoc """
   Mission-owned state evolution over a complete, ordered planning timeline.
 
-  Sessions are opaque and prepared once. State is a JSON-safe map. Each step
+  Sessions are opaque and prepared once. State is bounded native map or struct data. JSON projection happens at report output. Each step
   receives midpoint spacecraft state/pointing, explicit mode, scope and phase,
   plus duration in seconds. Its inputs are frozen over that interval. Return
   three-valued checks using Path.Result; unknown stops propagation. All declared

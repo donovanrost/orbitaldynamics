@@ -123,6 +123,7 @@ defmodule OrbitalDynamics.MissionAnalysis.WheelCheck do
         }
 
         {:ok, next, result} = Wheels.step(acc.state, input, step, session)
+        result = OrbitalDynamics.MissionAnalysis.Path.Result.validate!(result)
 
         %{
           state: next,
@@ -144,8 +145,8 @@ defmodule OrbitalDynamics.MissionAnalysis.WheelCheck do
                 samples[b]["total_inertial_momentum_nms"]
               )
             ),
-          violations: acc.violations or Enum.any?(result.checks, &(&1["status"] == "violated")),
-          unknown: acc.unknown or Enum.any?(result.checks, &(&1["status"] == "unknown"))
+          violations: acc.violations or Enum.any?(result.checks, &(&1.status == :violated)),
+          unknown: acc.unknown or Enum.any?(result.checks, &(&1.status == :unknown))
         }
       end)
 

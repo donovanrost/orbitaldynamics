@@ -7,6 +7,7 @@ defmodule OrbitalDynamics.MissionAnalysis.Models.Imaging do
   not model MTF, exposure, smear, clouds, terrain, or achieved attitude.
   """
   @behaviour OrbitalDynamics.MissionAnalysis.Model
+  alias OrbitalDynamics.MissionAnalysis.Path.CheckResult
   alias OrbitalDynamics.MissionAnalysis.{Evaluation, SphericalScene}
   alias OrbitalDynamics.MissionAnalysis.Models.SurfaceSupport, as: Support
 
@@ -211,18 +212,18 @@ defmodule OrbitalDynamics.MissionAnalysis.Models.Imaging do
 
     status =
       case behavior do
-        "enabled" -> "supported"
-        "disabled_by_assumption" -> "violated"
-        _ -> "unknown"
+        "enabled" -> :supported
+        "disabled_by_assumption" -> :violated
+        _ -> :unknown
       end
 
     {:ok,
-     OrbitalDynamics.MissionAnalysis.Path.Result.new!(
+     OrbitalDynamics.MissionAnalysis.Path.Result.build(
        [
-         %{
-           "id" => "service_operating_mode",
-           "status" => status,
-           "reason" => "declared_imaging_behavior:#{inspect(behavior)}"
+         %CheckResult{
+           id: "service_operating_mode",
+           status: status,
+           details: %{"reason" => "declared_imaging_behavior:#{inspect(behavior)}"}
          }
        ],
        %{"mode" => mode}

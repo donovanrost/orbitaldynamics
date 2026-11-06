@@ -68,7 +68,7 @@ defmodule OrbitalDynamics.MissionAnalysis.Resource.Policy do
       assets: assets,
       sample_steps_s: Enum.sort(steps, :desc),
       max_intervals_per_asset: integer!(opts[:max_intervals_per_asset], 10000),
-      max_evaluations: integer!(opts[:max_evaluations], 100_000)
+      max_evaluations: integer!(opts[:max_evaluations], 1_000_000)
     }
   end
 

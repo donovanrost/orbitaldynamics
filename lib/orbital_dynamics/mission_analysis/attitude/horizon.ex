@@ -190,98 +190,133 @@ defmodule OrbitalDynamics.MissionAnalysis.Attitude.Horizon do
     )
   end
 
-  def finish(_assets, _activities, %{horizon: nil}, _state_at, cache), do: {:ok, :null, cache}
+  def finish(assets, activities, policy, state_at, cache),
+    do:
+      finish(assets, activities, policy, state_at, cache, fn report, cache ->
+        {:ok, report, cache}
+      end)
 
-  def finish(assets, activities, policy, state_at, cache) do
-    h = policy.horizon
+  @doc false
+  def finish(_assets, _activities, %{horizon: nil}, _state_at, cache, done),
+    do: done.(:null, cache)
 
-    Enum.reduce_while(Enum.sort(assets), {:ok, %{}, cache}, fn {id, asset},
-                                                               {:ok, reports, cache} ->
-      timeline = Enum.filter(activities, &(&1["asset_id"] == id))
-      last = List.last(timeline)
+  def finish(assets, activities, policy, state_at, cache, done) do
+    finish_assets(Enum.sort(assets), activities, policy, state_at, cache, %{}, done)
+  end
 
-      base = %{
-        "starts_at_s" => h.start.seconds_since_j2000,
-        "ends_at_s" => h.stop.seconds_since_j2000,
-        "scheduled_activity_count" => length(timeline)
+  defp finish_assets([], _activities, _policy, _state_at, cache, reports, done) do
+    statuses = Enum.map(reports, fn {_, r} -> r["status"] end)
+
+    status =
+      cond do
+        "violated" in statuses -> "violated"
+        statuses == [] or "unknown" in statuses -> "unknown"
+        true -> "supported"
+      end
+
+    report =
+      %{
+        "status" => status,
+        "assets" => reports,
+        "limits" =>
+          "Full declared horizon at tested epochs only; includes all idle assets. Terminal modes and instantaneous switches are assumptions, not hardware validation."
       }
 
-      result =
-        case readiness(asset, policy) do
-          nil ->
-            source =
-              if last,
-                do: List.last(last["attitude_profile"]),
-                else: pose(policy.assets[id].initial)
+    done.(report, cache)
+  end
 
-            case transition(asset, source, policy) do
-              {:infeasible, evidence} ->
-                {:result, "violated", base, evidence, source["epoch_s"], cache}
+  defp finish_assets([{id, asset} | rest], activities, policy, state_at, cache, reports, done) do
+    case finish_asset(id, asset, activities, policy, state_at, cache) do
+      {:ok, report, cache} ->
+        finish_assets(
+          rest,
+          activities,
+          policy,
+          state_at,
+          cache,
+          Map.put(reports, id, report),
+          done
+        )
 
-              {:ok, plan} ->
-                case check(asset, plan, policy, state_at, cache) do
-                  {status, evidence, cache} when status == :ok ->
-                    {:result, "supported", Map.put(base, "terminal_motion", plan), evidence,
-                     source["epoch_s"], cache}
+      error ->
+        error
+    end
+  end
 
-                  {status, _reason, evidence, cache} when status in [:unknown, :infeasible] ->
-                    {:result, if(status == :unknown, do: "unknown", else: "violated"),
-                     Map.put(base, "terminal_motion", plan), evidence, source["epoch_s"], cache}
+  defp finish_asset(id, asset, activities, policy, state_at, cache) do
+    h = policy.horizon
+    timeline = Enum.filter(activities, &(&1["asset_id"] == id))
+    last = List.last(timeline)
 
-                  {:error, reason, _cache} ->
-                    {:error, reason}
-                end
-            end
+    base = %{
+      "starts_at_s" => h.start.seconds_since_j2000,
+      "ends_at_s" => h.stop.seconds_since_j2000,
+      "scheduled_activity_count" => length(timeline)
+    }
 
-          reason ->
-            {:result, "unknown", base, %{"reason" => Atom.to_string(reason)},
-             h.start.seconds_since_j2000, cache}
-        end
+    result =
+      case readiness(asset, policy) do
+        nil ->
+          source =
+            if last,
+              do: List.last(last["attitude_profile"]),
+              else: pose(policy.assets[id].initial)
 
-      case result do
-        {:result, status, base, evidence, tail_start, cache} ->
-          report =
-            Map.merge(base, %{
-              "status" => status,
-              "terminal_path_evidence" => evidence,
-              "uncovered_intervals" =>
-                if(status == "supported",
-                  do: [],
-                  else: [
-                    %{
-                      "starts_at_s" => tail_start,
-                      "ends_at_s" => h.stop.seconds_since_j2000,
-                      "reason" => "not_fully_supported",
-                      "status" => status
-                    }
-                  ]
-                )
-            })
+          case transition(asset, source, policy) do
+            {:infeasible, evidence} ->
+              {:result, "violated", base, evidence, source["epoch_s"], cache}
 
-          {:cont, {:ok, Map.put(reports, id, report), cache}}
+            {:ok, plan} ->
+              case check(asset, plan, policy, state_at, cache) do
+                {status, evidence, cache} when status == :ok ->
+                  {:result, "supported", Map.put(base, "terminal_motion", plan), evidence,
+                   source["epoch_s"], cache}
 
-        error ->
-          {:halt, error}
-      end
-    end)
-    |> case do
-      {:ok, reports, cache} ->
-        statuses = Enum.map(reports, fn {_, r} -> r["status"] end)
+                {status, _reason, evidence, cache} when status in [:unknown, :infeasible] ->
+                  {:result, if(status == :unknown, do: "unknown", else: "violated"),
+                   Map.put(base, "terminal_motion", plan), evidence, source["epoch_s"], cache}
 
-        status =
-          cond do
-            "violated" in statuses -> "violated"
-            statuses == [] or "unknown" in statuses -> "unknown"
-            true -> "supported"
+                {:error, reason, _cache} ->
+                  {:error, reason}
+              end
           end
 
-        {:ok,
-         %{
-           "status" => status,
-           "assets" => reports,
-           "limits" =>
-             "Full declared horizon at tested epochs only; includes all idle assets. Terminal modes and instantaneous switches are assumptions, not hardware validation."
-         }, cache}
+        reason ->
+          {:result, "unknown", base, %{"reason" => Atom.to_string(reason)},
+           h.start.seconds_since_j2000, cache}
+      end
+
+    case result do
+      {:result, status, base, evidence, tail_start, cache} ->
+        report =
+          Map.merge(base, %{
+            "status" => status,
+            "terminal_path_evidence" => evidence,
+            "uncovered_intervals" =>
+              if(status == "supported",
+                do: [],
+                else: [
+                  %{
+                    "starts_at_s" => tail_start,
+                    "ends_at_s" => h.stop.seconds_since_j2000,
+                    "reason" => "not_fully_supported",
+                    "status" => status
+                  }
+                ]
+              )
+          })
+
+        # No later finalization stage queries this asset's path rules.
+        cache = Runner.release_asset(cache, id)
+        # This asset's terminal evidence is closed; project it before retaining the fleet.
+        report =
+          Map.update!(
+            report,
+            "terminal_path_evidence",
+            &OrbitalDynamics.MissionAnalysis.ReportData.complete/1
+          )
+
+        {:ok, report, cache}
 
       error ->
         error

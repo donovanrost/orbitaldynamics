@@ -108,6 +108,59 @@ defmodule OrbitalDynamics.MissionAnalysis.Resource.RunnerTest do
     end
   end
 
+  defmodule NativeState do
+    defstruct fuel_kg: 100.0
+  end
+
+  defmodule NativeMetrics do
+    defstruct [:axis]
+  end
+
+  defmodule NativeFuel do
+    alias OrbitalDynamics.MissionAnalysis.Path.{Result, CheckResult}
+    def prepare(_, _, c), do: {:ok, c, %{}}
+    def initial(_), do: %NativeState{}
+    def boundaries(_), do: []
+
+    def step(state, _, dt, c) do
+      next = %{state | fuel_kg: state.fuel_kg - dt * 0.1}
+
+      {:ok, next,
+       %Result{
+         checks: [
+           %CheckResult{
+             id: "fuel",
+             status: if(c["unknown"], do: :unknown, else: :supported),
+             details: %{reason: :native_fuel}
+           }
+         ],
+         metrics: %NativeMetrics{axis: {1, 0, 0}}
+       }}
+    end
+  end
+
+  test "resource state stays a struct through steps and converts only in the completed report" do
+    assert {:ok, report} = run([], module: NativeFuel, configuration: %{}, steps: [5, 1])
+
+    for level <- levels(report) do
+      assert_in_delta level["final_state"]["fuel_kg"], 95, 1.0e-9
+      assert level["final_state"]["__struct__"] == nil
+      assert hd(level["samples"])["metrics"]["axis"] == [1, 0, 0]
+    end
+
+    assert report == report |> :json.encode() |> IO.iodata_to_binary() |> :json.decode()
+  end
+
+  test "native failure details and metric structs survive scheduling explanations" do
+    assert {:ok, report} =
+             run([request("r")], module: NativeFuel, configuration: %{"unknown" => true})
+
+    assert report["activities"] == []
+    issues = hd(report["requests"])["scheduling_summary"]["constraint_issues"]
+    assert Enum.any?(issues, &(&1["reason"] == "native_fuel" and &1["status"] == "unknown"))
+    assert report == report |> :json.encode() |> IO.iodata_to_binary() |> :json.decode()
+  end
+
   defp frame, do: Frame.new!(:toy, :toy, :inertial)
   defp state(t), do: StateVector.new!({2000, 0, 0}, {0, 0, 0}, Epoch.new!(t, :tai), frame())
 

@@ -18,13 +18,19 @@ defmodule OrbitalDynamics.MissionAnalysis.Attitude.Reference do
 
   @doc "Typed planner failures for review workflows; malformed reference inputs still raise."
   def run_profiled(mission, study, opts \\ []) do
-    unless Keyword.keyword?(opts) and Keyword.keys(opts) -- [:service_unavailable_asset_ids] == [] and
+    unless Keyword.keyword?(opts) and
+             Keyword.keys(opts) -- [:service_unavailable_asset_ids, :include_samples] == [] and
              length(Keyword.keys(opts)) == length(Enum.uniq(Keyword.keys(opts))),
            do: raise(ArgumentError, "invalid reference planner options")
 
+    include_samples = Keyword.get(opts, :include_samples, true)
+
+    unless is_boolean(include_samples),
+      do: raise(ArgumentError, "include_samples must be boolean")
+
     unavailable = Keyword.get(opts, :service_unavailable_asset_ids, [])
 
-    unless is_list(unavailable) and length(unavailable) <= 20 and
+    unless is_list(unavailable) and length(unavailable) <= 100 and
              Enum.all?(unavailable, &(&1 in Enum.map(mission["assets"], fn a -> a["id"] end))) and
              length(Enum.uniq(unavailable)) == length(unavailable),
            do: raise(ArgumentError, "service unavailability must name unique known asset IDs")
@@ -205,6 +211,7 @@ defmodule OrbitalDynamics.MissionAnalysis.Attitude.Reference do
            p.requests,
            p.context,
            p.options
+           |> Keyword.put(:include_samples, include_samples)
            |> Keyword.put(:attitude, policy)
            |> opportunity_options(study)
            |> scheduling_options(study)

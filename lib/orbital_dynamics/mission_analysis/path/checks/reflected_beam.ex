@@ -1,6 +1,7 @@
 defmodule OrbitalDynamics.MissionAnalysis.Path.Checks.ReflectedBeam do
   @moduledoc "Ideal reflected solar cone and conservative spherical exclusion-cap bounds; no delivered-flux prediction."
   @behaviour OrbitalDynamics.MissionAnalysis.Path.Check
+  alias OrbitalDynamics.MissionAnalysis.Path.CheckResult
   alias OrbitalDynamics.Vector3, as: V
   alias OrbitalDynamics.MissionAnalysis.{Input, SphericalScene}
   alias OrbitalDynamics.MissionAnalysis.Models.SurfaceSupport, as: S
@@ -82,12 +83,12 @@ defmodule OrbitalDynamics.MissionAnalysis.Path.Checks.ReflectedBeam do
     case Map.get(mode["parameters"], "optical_behavior", "unknown") do
       behavior when behavior not in ["reflecting", "blocked_by_assumption"] ->
         {:ok,
-         Result.new!(
+         Result.build(
            [
-             %{
-               "id" => "optical_mode",
-               "status" => "unknown",
-               "reason" => "mode_behavior_not_known"
+             %CheckResult{
+               id: "optical_mode",
+               status: :unknown,
+               details: %{"reason" => "mode_behavior_not_known"}
              }
            ],
            %{"mode" => mode}
@@ -95,12 +96,12 @@ defmodule OrbitalDynamics.MissionAnalysis.Path.Checks.ReflectedBeam do
 
       "blocked_by_assumption" ->
         {:ok,
-         Result.new!(
+         Result.build(
            [
-             %{
-               "id" => "optical_mode",
-               "status" => "supported",
-               "reason" => "blocked_by_explicit_assumption"
+             %CheckResult{
+               id: "optical_mode",
+               status: :supported,
+               details: %{"reason" => "blocked_by_explicit_assumption"}
              }
            ],
            %{"mode" => mode}
@@ -127,12 +128,12 @@ defmodule OrbitalDynamics.MissionAnalysis.Path.Checks.ReflectedBeam do
 
         cosine <= :math.sin(SphericalScene.radians(s.solar + @guard_deg)) and s.back == "unknown" ->
           {:ok,
-           Result.new!(
+           Result.build(
              [
-               %{
-                 "id" => "back_face",
-                 "status" => "unknown",
-                 "reason" => "back_face_optics_not_known"
+               %CheckResult{
+                 id: "back_face",
+                 status: :unknown,
+                 details: %{"reason" => "back_face_optics_not_known"}
                }
              ],
              %{"mode" => mode}
@@ -174,7 +175,7 @@ defmodule OrbitalDynamics.MissionAnalysis.Path.Checks.ReflectedBeam do
             end
 
           {:ok,
-           Result.new!(checks, %{
+           Result.build(checks, %{
              "mode" => mode,
              "central_ray_hit" => location,
              "reflected_direction_inertial" => Tuple.to_list(beam),
@@ -189,10 +190,13 @@ defmodule OrbitalDynamics.MissionAnalysis.Path.Checks.ReflectedBeam do
   defp empty(reason, mode),
     do:
       {:ok,
-       Result.new!([%{"id" => "illumination", "status" => "supported", "reason" => reason}], %{
-         "mode" => mode,
-         "central_ray_hit" => :null
-       })}
+       Result.build(
+         [%CheckResult{id: "illumination", status: :supported, details: %{"reason" => reason}}],
+         %{
+           "mode" => mode,
+           "central_ray_hit" => :null
+         }
+       )}
 
   defp region_check(r, beam, radius, rotation, cone, misses, region) do
     phi = SphericalScene.radians(region.lat)
@@ -221,18 +225,30 @@ defmodule OrbitalDynamics.MissionAnalysis.Path.Checks.ReflectedBeam do
     margin = separation - cone - angular_bound - @guard_deg
     supported = misses or invisible or margin > 0
 
-    %{
-      "id" => "region:#{region.id}",
-      "status" => if(supported, do: "supported", else: "violated"),
-      "reason" =>
-        cond do
-          misses -> "cone_misses_body"
-          invisible -> "region_not_visible"
-          margin > 0 -> "cone_clear_of_region_bound"
-          true -> "possible_cone_overlap_with_region_bound"
+    %CheckResult{
+      id: "region:#{region.id}",
+      status:
+        if(supported) do
+          :supported
+        else
+          :violated
         end,
-      "margin" => if(misses or invisible, do: nil, else: margin),
-      "margin_unit" => "deg"
+      margin:
+        if(misses or invisible) do
+          :unknown
+        else
+          margin
+        end,
+      margin_unit: "deg",
+      details: %{
+        "reason" =>
+          cond do
+            misses -> "cone_misses_body"
+            invisible -> "region_not_visible"
+            margin > 0 -> "cone_clear_of_region_bound"
+            true -> "possible_cone_overlap_with_region_bound"
+          end
+      }
     }
   end
 

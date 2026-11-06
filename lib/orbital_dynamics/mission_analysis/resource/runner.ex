@@ -25,7 +25,7 @@ defmodule OrbitalDynamics.MissionAnalysis.Resource.Runner do
 
             case m.module.prepare(assets[id], context, m.configuration) do
               {:ok, session, assumptions} when is_map(assumptions) ->
-                initial = json_state!(m.module.initial(session))
+                initial = native_state!(m.module.initial(session))
                 boundaries = m.module.boundaries(session)
 
                 unless is_list(boundaries) and length(boundaries) <= 10000,
@@ -91,8 +91,19 @@ defmodule OrbitalDynamics.MissionAnalysis.Resource.Runner do
         activities |> Enum.filter(&(&1["asset_id"] == id)) |> Enum.sort_by(& &1["starts_at_s"])
 
       case assess(asset, timeline, policy, state_at, cache) do
-        {:ok, report, cache} -> {:cont, {:ok, Map.put(reports, id, report), cache}}
-        {:error, reason, _cache} -> {:halt, {:error, reason}}
+        {:ok, report, cache} ->
+          report =
+            Map.update(
+              report,
+              "models",
+              [],
+              &OrbitalDynamics.MissionAnalysis.ReportData.complete/1
+            )
+
+          {:cont, {:ok, Map.put(reports, id, report), cache}}
+
+        {:error, reason, _cache} ->
+          {:halt, {:error, reason}}
       end
     end)
     |> case do
@@ -325,7 +336,7 @@ defmodule OrbitalDynamics.MissionAnalysis.Resource.Runner do
                do: "agrees_across_tested_steps",
                else: "changes_across_tested_steps"
              ),
-           "levels" => levels
+           "levels" => report_levels(levels)
          }, cache}
       end)
 
@@ -500,7 +511,11 @@ defmodule OrbitalDynamics.MissionAnalysis.Resource.Runner do
                   "phase" => segment.phase,
                   "mode" => segment.mode,
                   "checks" => result.checks,
-                  "metrics" => result.metrics
+                  "metrics" =>
+                    OrbitalDynamics.MissionAnalysis.ReportData.pending(
+                      result.metrics,
+                      "resource metrics"
+                    )
                 }
 
                 issue =
@@ -515,10 +530,15 @@ defmodule OrbitalDynamics.MissionAnalysis.Resource.Runner do
                     margins: margins(acc.margins, result.checks)
                 }
 
-                if Enum.any?(result.checks, &(&1["status"] == "unknown")) do
+                if Enum.any?(result.checks, &(&1.status == :unknown)) do
                   {:halt, {halt_unknown(acc, a, stop, "resource_model_unknown"), cache}}
                 else
-                  sample = Map.merge(evidence, %{"epoch_s" => b, "state" => next})
+                  sample =
+                    Map.merge(evidence, %{
+                      "epoch_s" => b,
+                      "state" =>
+                        OrbitalDynamics.MissionAnalysis.ReportData.pending(next, "resource state")
+                    })
 
                   sample =
                     if Map.has_key?(input, :kinematics_start),
@@ -643,7 +663,7 @@ defmodule OrbitalDynamics.MissionAnalysis.Resource.Runner do
 
     case model.module.step(state, input, dt, model.session) do
       {:ok, next, %Result{} = result} ->
-        {json_state!(next), Result.new!(result.checks, result.metrics), cache}
+        {native_state!(next), Result.validate!(result), cache}
 
       {:error, reason} ->
         throw({:resource_evaluation_failed, reason, cache})
@@ -653,10 +673,29 @@ defmodule OrbitalDynamics.MissionAnalysis.Resource.Runner do
     end
   end
 
-  defp json_state!(state) when is_map(state),
-    do: JsonSafety.normalize_input!(state, "resource state")
+  defp report_levels(levels) do
+    Enum.map(levels, fn level ->
+      Enum.reduce(["initial_state", "final_state"], level, fn field, report ->
+        case Map.fetch(report, field) do
+          {:ok, value} when is_map(value) ->
+            Map.put(
+              report,
+              field,
+              OrbitalDynamics.MissionAnalysis.ReportData.pending(value, "resource state")
+            )
 
-  defp json_state!(_), do: raise(ArgumentError, "resource state must be a JSON-safe map")
+          _ ->
+            report
+        end
+      end)
+    end)
+  end
+
+  defp native_state!(state) when is_map(state),
+    do: OrbitalDynamics.MissionAnalysis.NativeData.container!(state, "resource state")
+
+  defp native_state!(_),
+    do: raise(ArgumentError, "resource state must be native map or struct data")
 
   defp status(statuses) do
     cond do
@@ -683,7 +722,7 @@ defmodule OrbitalDynamics.MissionAnalysis.Resource.Runner do
     }
 
   defp extrema(acc, state) do
-    Enum.reduce(state, acc, fn
+    Enum.reduce(OrbitalDynamics.MissionAnalysis.NativeData.fields(state), acc, fn
       {key, x}, acc when is_number(x) ->
         Map.update(acc, key, %{"min" => x, "max" => x}, fn old ->
           %{"min" => min(old["min"], x), "max" => max(old["max"], x)}
@@ -696,13 +735,13 @@ defmodule OrbitalDynamics.MissionAnalysis.Resource.Runner do
 
   defp margins(acc, checks) do
     Enum.reduce(checks, acc, fn c, acc ->
-      if is_number(c["margin"]),
+      if is_number(c.margin),
         do:
-          Map.update(acc, c["id"], Map.take(c, ~w(margin margin_unit)), fn old ->
-            if old["margin_unit"] != c["margin_unit"],
+          Map.update(acc, c.id, %{"margin" => c.margin, "margin_unit" => c.margin_unit}, fn old ->
+            if old["margin_unit"] != c.margin_unit,
               do: raise(ArgumentError, "resource check margin units changed during integration")
 
-            %{old | "margin" => min(old["margin"], c["margin"])}
+            %{old | "margin" => min(old["margin"], c.margin)}
           end),
         else: acc
     end)

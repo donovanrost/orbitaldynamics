@@ -1,6 +1,7 @@
 defmodule OrbitalDynamics.MissionAnalysis.Models.FixedAttitude do
   @moduledoc "Declared fixed body attitude task, including explicitly mode-gated momentum unloading. No payload performance physics is inferred."
   @behaviour OrbitalDynamics.MissionAnalysis.Model
+  alias OrbitalDynamics.MissionAnalysis.Path.CheckResult
   alias OrbitalDynamics.MissionAnalysis.{Evaluation, Input}
   alias OrbitalDynamics.MissionAnalysis.Models.SurfaceSupport, as: S
   alias OrbitalDynamics.MissionAnalysis.Attitude.{Quaternion, Pointing}
@@ -50,17 +51,19 @@ defmodule OrbitalDynamics.MissionAnalysis.Models.FixedAttitude do
   def activity_mode(mode, s),
     do:
       {:ok,
-       Result.new!(
+       Result.build(
          [
-           %{
-             "id" => "unload_mode",
-             "status" =>
+           %CheckResult{
+             id: "unload_mode",
+             status:
                if(
                  s.kind != "momentum_unload" or
-                   get_in(mode, ["parameters", "momentum_unloading"]) == true,
-                 do: "supported",
-                 else: "violated"
-               )
+                   get_in(mode, ["parameters", "momentum_unloading"]) == true
+               ) do
+                 :supported
+               else
+                 :violated
+               end
            }
          ],
          %{}

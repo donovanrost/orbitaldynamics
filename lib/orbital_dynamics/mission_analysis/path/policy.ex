@@ -84,7 +84,7 @@ defmodule OrbitalDynamics.MissionAnalysis.Path.Policy do
     %__MODULE__{
       assets: assets,
       sample_steps_s: Enum.sort(steps, :desc),
-      max_evaluations: integer!(opts[:max_evaluations], "max_evaluations", 100_000),
+      max_evaluations: integer!(opts[:max_evaluations], "max_evaluations", 1_000_000),
       max_samples_per_segment:
         integer!(opts[:max_samples_per_segment], "max_samples_per_segment", 10_000)
     }

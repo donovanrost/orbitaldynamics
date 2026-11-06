@@ -162,6 +162,7 @@ defmodule OrbitalDynamics.MissionAnalysis.Opportunity.RunnerTest do
     MissionAnalysis.run([asset], [request], nil,
       max_sample_gap_s: 100,
       asset_separation_s: 0,
+      include_samples: Keyword.get(opts, :include_samples, true),
       window_refinement: refinement,
       opportunity_search: Keyword.get(opts, :policy, policy())
     )
@@ -296,6 +297,79 @@ defmodule OrbitalDynamics.MissionAnalysis.Opportunity.RunnerTest do
              analysis["opportunity_evidence"]["event_search"]["function_observations"],
              &(&1["epoch_s"] == 10.625 and &1["metadata"]["feasible"] == false)
            )
+  end
+
+  test "compact retention preserves every planning outcome and audited failure while releasing dense observations" do
+    for {subject, options} <- [
+          {%{}, []},
+          {%{"unknown" => true}, []},
+          {%{},
+           [
+             sampler: fn _, t ->
+               if t >= 45 and t <= 55, do: {:unknown, :gap}, else: {:ok, state(t)}
+             end
+           ]},
+          {%{"hidden" => true}, [policy: policy(entry_margin_s: 0, exit_margin_s: 0)]},
+          {%{}, [policy: policy(entry_margin_s: 40, exit_margin_s: 40)]}
+        ] do
+      assert {:ok, full} = run(subject, options)
+      assert {:ok, compact} = run(subject, Keyword.put(options, :include_samples, false))
+      assert outcome_projection(full) === outcome_projection(compact)
+      [analysis] = compact["analyses"]
+      refute Map.has_key?(analysis, "samples")
+      evidence = analysis["opportunity_evidence"]
+      refute Map.has_key?(evidence["event_search"], "function_observations")
+
+      assert Enum.all?(
+               evidence["event_search"]["results"],
+               &(not Map.has_key?(&1, "scan_samples"))
+             )
+
+      retained = evidence["diagnostic_retention"]
+      assert retained["mode"] == "compact"
+      full_analysis = hd(full["analyses"])
+      assert retained["audited_model_sample_count"] == full_analysis["evaluated_sample_count"]
+
+      assert Map.keys(retained["first_failed_check_samples"]) |> Enum.sort() ==
+               Map.keys(analysis["failed_check_counts"]) |> Enum.sort()
+
+      for {id, sample} <- retained["first_failed_check_samples"] do
+        assert sample ===
+                 Enum.find(full_analysis["samples"], fn row ->
+                   Enum.any?(row["checks"], &(&1["id"] == id and not &1["passed"]))
+                 end)
+      end
+    end
+  end
+
+  test "compact mode retains bounded-budget errors and declaration rejection" do
+    for subject <- [%{"omit" => true}, %{"lie" => true}, %{"mislabel" => true}] do
+      assert run(subject, include_samples: false) == run(subject)
+    end
+
+    assert {:error, {:model_error, "asset", "request", :event_search_evaluation_budget_exhausted}} =
+             run(%{}, policy: policy(max_evaluations: 5), include_samples: false)
+
+    assert OrbitalDynamics.EventSearch.Context.current() == nil
+  end
+
+  defp outcome_projection(report) do
+    Map.update!(report, "analyses", fn analyses ->
+      Enum.map(analyses, fn analysis ->
+        analysis
+        |> Map.delete("samples")
+        |> Map.update!("opportunity_evidence", fn evidence ->
+          evidence
+          |> Map.delete("diagnostic_retention")
+          |> Map.update!("event_search", fn search ->
+            search
+            |> Map.delete("function_observations")
+            |> Map.update!("controls", &Map.delete(&1, "include_samples"))
+            |> Map.update!("results", &Enum.map(&1, fn r -> Map.delete(r, "scan_samples") end))
+          end)
+        end)
+      end)
+    end)
   end
 
   test "the same runner composes imaging constraints on an explicit non-Earth scene" do

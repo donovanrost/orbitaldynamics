@@ -155,24 +155,7 @@ defmodule OrbitalDynamics.MissionAnalysis.Path.RunnerTest do
     do: %{path: Runner.prepare(p, %{"a" => asset()}, requests, nil)}
 
   defp run(p, requests \\ [request()]) do
-    attitude =
-      AttitudePolicy.new!(
-        %{
-          "a" => %{
-            max_rate_deg_s: 10,
-            max_accel_deg_s2: 10,
-            settling_s: 0,
-            initial: initial(),
-            pointing_configurations: %{Model => %{}}
-          }
-        },
-        profile_step_s: 1,
-        derivative_step_s: 0.1,
-        search_step_s: 1,
-        max_candidate_starts: 100,
-        max_evaluations: 10000,
-        path_constraints: p
-      )
+    attitude = attitude(p)
 
     refinement =
       WindowRefinement.new!(
@@ -187,6 +170,27 @@ defmodule OrbitalDynamics.MissionAnalysis.Path.RunnerTest do
       asset_separation_s: 0,
       window_refinement: refinement,
       attitude: attitude
+    )
+  end
+
+  defp attitude(p, horizon \\ nil) do
+    AttitudePolicy.new!(
+      %{
+        "a" => %{
+          max_rate_deg_s: 10,
+          max_accel_deg_s2: 10,
+          settling_s: 0,
+          initial: initial(),
+          pointing_configurations: %{Model => %{}}
+        }
+      },
+      profile_step_s: 1,
+      derivative_step_s: 0.1,
+      search_step_s: 1,
+      max_candidate_starts: 100,
+      max_evaluations: 10000,
+      horizon: horizon,
+      path_constraints: p
     )
   end
 
@@ -294,6 +298,93 @@ defmodule OrbitalDynamics.MissionAnalysis.Path.RunnerTest do
 
     assert hd(report["attitude_planning"]["transitions"])["path_evidence"]["status"] ==
              "supported"
+  end
+
+  test "releasing an asset preserves other cache hits, provenance and exact exhausted-budget behavior" do
+    a = asset()
+    b = %{a | id: "b"}
+    p = policy("pass", [5])
+    p = %{p | assets: Map.put(p.assets, b.id, p.assets[a.id])}
+    sampler = fn _, t -> {:ok, state(t)} end
+    at = fn _, c -> {:ok, {1, 0, 0, 0}, c} end
+    cache = %{path: Runner.prepare(p, %{"a" => a, "b" => b}, [request()], nil)}
+    assert {:ok, _, cache} = Runner.activity(a, request(), %{}, 20, 22, at, sampler, cache)
+    assert {:ok, evidence, cache} = Runner.transition(b, plan(), "test", sampler, cache)
+    assert Enum.any?(Map.keys(cache.path.values["a"]), &(elem(&1, 0) == :service_mode))
+    b_values = cache.path.values["b"]
+    count = cache.path.evaluations
+    cache = put_in(cache.path.policy.max_evaluations, count)
+    before = Runner.describe(cache.path)
+    released = Runner.release_asset(cache, "a")
+    refute Map.has_key?(released.path.values, "a")
+    assert released.path.values["b"] === b_values
+    assert Runner.describe(released.path) === before
+    assert {:ok, ^evidence, same} = Runner.transition(b, plan(), "test", sampler, released)
+    assert same.path.evaluations == count
+
+    assert {:error, :path_evaluation_budget_exhausted, _} =
+             Runner.transition(b, plan(90), "test", sampler, same)
+
+    assert_raise ArgumentError, ~r/path cache for asset a has been released/, fn ->
+      Runner.activity(a, request(), %{}, 20, 22, at, sampler, released)
+    end
+
+    assert_raise ArgumentError, ~r/path cache for asset a has been released/, fn ->
+      Runner.transition(a, plan(), "test", sampler, released)
+    end
+
+    finished = Runner.release(released)
+    assert finished.path.values == %{}
+    assert Runner.describe(finished.path) === before
+    assert Runner.release(finished) === finished
+    assert Runner.release_asset(%{path: nil}, "a") == %{path: nil}
+    assert Runner.release(%{path: nil}) == %{path: nil}
+  end
+
+  test "final horizon retires supported, violated and unknown assets while keeping evidence and errors" do
+    alias OrbitalDynamics.MissionAnalysis.Attitude.Horizon
+    a = asset()
+    b = %{a | id: "b"}
+    assets = %{"a" => a, "b" => b}
+    sampler = fn _, t -> {:ok, state(t)} end
+    terminal = %{frame: frame(), quaternion: {1, 0, 0, 0}, mode: "on"}
+
+    h = %{
+      start: Epoch.new!(0, :tai),
+      stop: Epoch.new!(100, :tai),
+      terminals: %{"a" => terminal, "b" => terminal}
+    }
+
+    for {kind, status} <- [{"pass", "supported"}, {"dip", "violated"}] do
+      p = policy(kind, [0.25])
+      p = %{p | assets: Map.put(p.assets, "b", p.assets["a"])}
+      ap = attitude(p, h)
+      ap = %{ap | assets: Map.put(ap.assets, "b", %{ap.assets["a"] | initial: :unknown})}
+      cache = %{path: Runner.prepare(p, assets, [request()], nil)}
+      assert {:ok, report, cache} = Horizon.finish(assets, [], ap, sampler, cache)
+      assert report["assets"]["a"]["status"] == status
+      assert report["assets"]["b"]["status"] == "unknown"
+
+      assert OrbitalDynamics.MissionAnalysis.ReportData.encode(report)["assets"]["a"][
+               "terminal_path_evidence"
+             ]["levels"] != []
+
+      assert cache.path.values == %{}
+      assert cache.path.released_assets == MapSet.new(["a", "b"])
+      assert cache.path.evaluations > 0
+    end
+
+    p = policy("pass", [5], budget: 1)
+    cache = runtime(p)
+
+    assert {:error, :path_evaluation_budget_exhausted} =
+             Horizon.finish(
+               %{"a" => a},
+               [],
+               attitude(p, %{h | terminals: %{"a" => terminal}}),
+               sampler,
+               cache
+             )
   end
 
   test "result admission rejects empty/invalid evidence and keeps unknown separate from supported" do

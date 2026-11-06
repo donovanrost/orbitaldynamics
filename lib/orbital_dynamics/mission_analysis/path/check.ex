@@ -13,47 +13,50 @@ end
 
 defmodule OrbitalDynamics.MissionAnalysis.Path.Result do
   @moduledoc "Three-valued path evidence. Supported means only the declared check passed at that sample."
-  alias OrbitalDynamics.Schema.JsonSafety
-  alias OrbitalDynamics.MissionAnalysis.Input
+  alias OrbitalDynamics.MissionAnalysis.{NativeData, Path.CheckResult}
   @enforce_keys [:checks, :metrics]
   defstruct @enforce_keys
-  @type t :: %__MODULE__{}
-  def new!(checks, metrics) when is_list(checks) and is_map(metrics) do
-    checks = JsonSafety.normalize_input!(checks, "path checks")
-    metrics = JsonSafety.normalize_input!(metrics, "path metrics")
+  @type t :: %__MODULE__{checks: [CheckResult.t()], metrics: map()}
 
-    unless checks != [] and
-             Enum.all?(checks, fn c ->
-               is_map(c) and is_binary(c["id"]) and c["id"] != "" and
-                 c["status"] in ~w(supported violated unknown)
-             end),
-           do:
-             raise(
-               ArgumentError,
-               "path checks require unique names and supported/violated/unknown status"
-             )
+  @doc "Construct native callback data; the runner validates each fresh callback return."
+  def build(checks, metrics) when is_list(checks) and is_map(metrics),
+    do: %__MODULE__{checks: checks, metrics: metrics}
 
-    ids = Enum.map(checks, & &1["id"])
-    if length(Enum.uniq(ids)) != length(ids), do: raise(ArgumentError, "duplicate path check IDs")
+  def new!(checks, metrics),
+    do: checks |> Enum.map(&CheckResult.build/1) |> build(metrics) |> validate!()
 
-    Enum.each(checks, fn c ->
-      if Map.has_key?(c, "margin") do
-        unless is_binary(c["margin_unit"]) and byte_size(c["margin_unit"]) in 1..64,
-          do: raise(ArgumentError, "path margins require units")
-
-        unless c["margin"] == :null,
-          do: Input.number!(c["margin"], "path margin", -1.0e30, 1.0e30)
-      end
-    end)
-
-    %__MODULE__{checks: checks, metrics: metrics}
+  @doc "Admit a fresh callback result without JSON conversion or rebuilding its contents."
+  def validate!(%__MODULE__{checks: checks, metrics: metrics} = result)
+      when is_list(checks) and is_map(metrics) do
+    NativeData.container!(metrics, "result metrics")
+    admit_checks(checks, MapSet.new(), 0)
+    result
   end
 
-  def status(%__MODULE__{checks: checks}) do
+  def validate!(_), do: raise(ArgumentError, "invalid native path/resource result")
+
+  defp admit_checks([], _, count) when count > 0, do: :ok
+
+  defp admit_checks([%CheckResult{} = check | rest], ids, count) when count < 2048 do
+    CheckResult.validate!(check)
+    if MapSet.member?(ids, check.id), do: raise(ArgumentError, "duplicate path check IDs")
+    admit_checks(rest, MapSet.put(ids, check.id), count + 1)
+  end
+
+  defp admit_checks(_, _, _),
+    do:
+      raise(
+        ArgumentError,
+        "path checks must be a nonempty proper list of at most 2048 native checks"
+      )
+
+  def outcome(%__MODULE__{checks: checks}) do
     cond do
-      Enum.any?(checks, &(&1["status"] == "violated")) -> "violated"
-      Enum.any?(checks, &(&1["status"] == "unknown")) -> "unknown"
-      true -> "supported"
+      Enum.any?(checks, &(&1.status == :violated)) -> :violated
+      Enum.any?(checks, &(&1.status == :unknown)) -> :unknown
+      true -> :supported
     end
   end
+
+  def status(result), do: result |> outcome() |> Atom.to_string()
 end

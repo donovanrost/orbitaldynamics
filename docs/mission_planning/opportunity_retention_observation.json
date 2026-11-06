@@ -1,0 +1,4802 @@
+{
+  "format": "opportunity_retention_observation.v1",
+  "date": "2026-11-05",
+  "base_commit": "a8380c7cd7eb5208beb039ca89d6005f390309d6",
+  "host": {
+    "hardware": "Apple M1 / 16 GB",
+    "os": "macOS 15.8"
+  },
+  "runtime": {
+    "architecture": "aarch64-apple-darwin",
+    "elixir": "1.20.4",
+    "otp": "29",
+    "schedulers_online": 8,
+    "warmup_runs": 0
+  },
+  "prior_100_fixed_full": {
+    "asset_count": 100,
+    "controls": {
+      "profile": false,
+      "max_memory_bytes": 6000000000,
+      "timeout_ms": 900000
+    },
+    "input_sha256": "c6d2fb09a97ca41cf92a610aa95b299e461fd93b40e76f244a9092a14538279f",
+    "report_retention": "compact summary only; full in-memory model/path/resource evidence computed; diagnostics not encoded or persisted",
+    "request_count": 9,
+    "sampled_peak_vm_bytes": 3203083175,
+    "stack_profile": {
+      "inclusive_frames": [],
+      "interval_ms": 20,
+      "limits": "Statistical live-stack observations, not call counts or exclusive CPU attribution; up to the VM's saved stack depth. Sampling perturbs timings; compare separate unprofiled runs.",
+      "sample_count": 0,
+      "top_frames": []
+    },
+    "status": "completed",
+    "summary": {
+      "asset_count": 100,
+      "asset_request_pairs": 900,
+      "assignments": [
+        {
+          "asset_id": "demo-1",
+          "ends_at_s": 820497680.5,
+          "request_id": "south-1",
+          "starts_at_s": 820497660.5,
+          "value": 30.0
+        },
+        {
+          "asset_id": "demo-13",
+          "ends_at_s": 820497680.5,
+          "request_id": "south-2",
+          "starts_at_s": 820497660.5,
+          "value": 29.0
+        },
+        {
+          "asset_id": "demo-15",
+          "ends_at_s": 820497680.5,
+          "request_id": "central-2",
+          "starts_at_s": 820497660.5,
+          "value": 26.0
+        },
+        {
+          "asset_id": "demo-11",
+          "ends_at_s": 820497685.5,
+          "request_id": "north-2",
+          "starts_at_s": 820497665.5,
+          "value": 23.0
+        },
+        {
+          "asset_id": "demo-10",
+          "ends_at_s": 820497690.5,
+          "request_id": "central-1",
+          "starts_at_s": 820497670.5,
+          "value": 27.0
+        },
+        {
+          "asset_id": "demo-12",
+          "ends_at_s": 820497690.5,
+          "request_id": "north-3",
+          "starts_at_s": 820497670.5,
+          "value": 22.0
+        },
+        {
+          "asset_id": "demo-14",
+          "ends_at_s": 820497690.5,
+          "request_id": "south-3",
+          "starts_at_s": 820497670.5,
+          "value": 28.0
+        },
+        {
+          "asset_id": "demo-16",
+          "ends_at_s": 820497690.5,
+          "request_id": "central-3",
+          "starts_at_s": 820497670.5,
+          "value": 25.0
+        },
+        {
+          "asset_id": "demo-100",
+          "ends_at_s": 820497690.5,
+          "request_id": "north-1",
+          "starts_at_s": 820497670.5,
+          "value": 24.0
+        }
+      ],
+      "attitude_model_evaluation_count": 7131,
+      "batteries": {
+        "demo-71": {
+          "final_energy_wh_range": {
+            "max": 41.89088216241472,
+            "min": 41.89088215252566,
+            "spread": 9.889056684642128e-09
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-56": {
+          "final_energy_wh_range": {
+            "max": 41.89085255896713,
+            "min": 41.890852548934305,
+            "spread": 1.0032827901795827e-08
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-15": {
+          "final_energy_wh_range": {
+            "max": 25.81583826812498,
+            "min": 25.788162426864943,
+            "spread": 0.02767584126003797
+          },
+          "minimum_energy_wh": 22.856701388667847,
+          "minimum_reserve_margin_wh": 14.856701388667847,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-66": {
+          "final_energy_wh_range": {
+            "max": 41.8908943238883,
+            "min": 41.890894314058336,
+            "spread": 9.82996084530896e-09
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-25": {
+          "final_energy_wh_range": {
+            "max": 41.89084710786728,
+            "min": 41.89084709780777,
+            "spread": 1.0059508781523618e-08
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-39": {
+          "final_energy_wh_range": {
+            "max": 41.89085569317625,
+            "min": 41.89085568315867,
+            "spread": 1.0017579654686415e-08
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-47": {
+          "final_energy_wh_range": {
+            "max": 41.890875304879636,
+            "min": 41.89087529495738,
+            "spread": 9.92225324125684e-09
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-30": {
+          "final_energy_wh_range": {
+            "max": 41.890882752082526,
+            "min": 41.89088274219628,
+            "spread": 9.886242935408518e-09
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-70": {
+          "final_energy_wh_range": {
+            "max": 41.890870369155834,
+            "min": 41.890870359209536,
+            "spread": 9.946298007434962e-09
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-11": {
+          "final_energy_wh_range": {
+            "max": 25.450830603061743,
+            "min": 25.43830704047608,
+            "spread": 0.012523562585663228
+          },
+          "minimum_energy_wh": 22.681467211794804,
+          "minimum_reserve_margin_wh": 14.681467211794804,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-86": {
+          "final_energy_wh_range": {
+            "max": 41.89085705976198,
+            "min": 41.89085704975087,
+            "spread": 1.001110661036364e-08
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-36": {
+          "final_energy_wh_range": {
+            "max": 41.89088456589189,
+            "min": 41.890884556014484,
+            "spread": 9.877403783775662e-09
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-69": {
+          "final_energy_wh_range": {
+            "max": 41.89086104970716,
+            "min": 41.890861039715496,
+            "spread": 9.991666161113244e-09
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-93": {
+          "final_energy_wh_range": {
+            "max": 41.89086617911451,
+            "min": 41.89086616914777,
+            "spread": 9.96674032194278e-09
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-95": {
+          "final_energy_wh_range": {
+            "max": 41.89088975617857,
+            "min": 41.89088974632629,
+            "spread": 9.852278992639185e-09
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-61": {
+          "final_energy_wh_range": {
+            "max": 41.89084934445483,
+            "min": 41.89084933440623,
+            "spread": 1.0048601950529701e-08
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-24": {
+          "final_energy_wh_range": {
+            "max": 41.89088098441473,
+            "min": 41.890880974520044,
+            "spread": 9.894684183109348e-09
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-88": {
+          "final_energy_wh_range": {
+            "max": 41.890875074778855,
+            "min": 41.8908750648554,
+            "spread": 9.923454058480274e-09
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-63": {
+          "final_energy_wh_range": {
+            "max": 41.89085988438698,
+            "min": 41.89085987438964,
+            "spread": 9.99733629214461e-09
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-45": {
+          "final_energy_wh_range": {
+            "max": 41.89085667034727,
+            "min": 41.89085666033439,
+            "spread": 1.0012875861775683e-08
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-9": {
+          "final_energy_wh_range": {
+            "max": 41.89085151612555,
+            "min": 41.89085150608766,
+            "spread": 1.0037894071501796e-08
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-75": {
+          "final_energy_wh_range": {
+            "max": 41.89086226190788,
+            "min": 41.890862251922194,
+            "spread": 9.985683391278144e-09
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-98": {
+          "final_energy_wh_range": {
+            "max": 41.89085918971256,
+            "min": 41.890859179711846,
+            "spread": 1.000071137013947e-08
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-76": {
+          "final_energy_wh_range": {
+            "max": 41.89087189131822,
+            "min": 41.890871881379326,
+            "spread": 9.938894152128341e-09
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-16": {
+          "final_energy_wh_range": {
+            "max": 23.919537653511124,
+            "min": 23.875656476304087,
+            "spread": 0.043881177207037325
+          },
+          "minimum_energy_wh": 21.472582701496638,
+          "minimum_reserve_margin_wh": 13.472582701496638,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-49": {
+          "final_energy_wh_range": {
+            "max": 41.89084840856963,
+            "min": 41.89084839851651,
+            "spread": 1.0053121002329135e-08
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-10": {
+          "final_energy_wh_range": {
+            "max": 24.059317993404004,
+            "min": 24.022537000413003,
+            "spread": 0.03678099299100168
+          },
+          "minimum_energy_wh": 21.599771444137772,
+          "minimum_reserve_margin_wh": 13.599771444137772,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-94": {
+          "final_energy_wh_range": {
+            "max": 41.890876735912784,
+            "min": 41.89087672599732,
+            "spread": 9.915460452702973e-09
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-99": {
+          "final_energy_wh_range": {
+            "max": 41.89086757814776,
+            "min": 41.89086756818781,
+            "spread": 9.95995463881627e-09
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-1": {
+          "final_energy_wh_range": {
+            "max": 26.276246428357375,
+            "min": 26.260943692159724,
+            "spread": 0.015302736197650546
+          },
+          "minimum_energy_wh": 23.261569444086533,
+          "minimum_reserve_margin_wh": 15.261569444086533,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-74": {
+          "final_energy_wh_range": {
+            "max": 41.890855117943836,
+            "min": 41.89085510792335,
+            "spread": 1.0020485774475674e-08
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-48": {
+          "final_energy_wh_range": {
+            "max": 41.89088833157887,
+            "min": 41.89088832171984,
+            "spread": 9.859029148628906e-09
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-38": {
+          "final_energy_wh_range": {
+            "max": 41.89085042573822,
+            "min": 41.890850415694885,
+            "spread": 1.0043336828857719e-08
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-41": {
+          "final_energy_wh_range": {
+            "max": 41.89087370618796,
+            "min": 41.89087369625783,
+            "spread": 9.93013316019642e-09
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-73": {
+          "final_energy_wh_range": {
+            "max": 41.89085047031391,
+            "min": 41.890850460270784,
+            "spread": 1.004312366603699e-08
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-81": {
+          "final_energy_wh_range": {
+            "max": 41.89086352092235,
+            "min": 41.8908635109428,
+            "spread": 9.979551407468534e-09
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-65": {
+          "final_energy_wh_range": {
+            "max": 41.89088037878562,
+            "min": 41.890880368887906,
+            "spread": 9.897711095163686e-09
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-60": {
+          "final_energy_wh_range": {
+            "max": 41.89089228074191,
+            "min": 41.890892270901915,
+            "spread": 9.839993708737893e-09
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-89": {
+          "final_energy_wh_range": {
+            "max": 41.89088778903676,
+            "min": 41.890887779175,
+            "spread": 9.861757632734225e-09
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-42": {
+          "final_energy_wh_range": {
+            "max": 41.89088642575426,
+            "min": 41.89088641588593,
+            "spread": 9.868330153040006e-09
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-84": {
+          "final_energy_wh_range": {
+            "max": 41.89090072639476,
+            "min": 41.8909007165958,
+            "spread": 9.798959865747747e-09
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-26": {
+          "final_energy_wh_range": {
+            "max": 41.890849240733715,
+            "min": 41.89084923068463,
+            "spread": 1.0049085119590018e-08
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-54": {
+          "final_energy_wh_range": {
+            "max": 41.890890283273066,
+            "min": 41.89089027342347,
+            "spread": 9.849593141098012e-09
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-18": {
+          "final_energy_wh_range": {
+            "max": 41.89087926297544,
+            "min": 41.89087925307234,
+            "spread": 9.903097009100748e-09
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-2": {
+          "final_energy_wh_range": {
+            "max": 41.89084744132889,
+            "min": 41.89084743127102,
+            "spread": 1.0057867427804013e-08
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-90": {
+          "final_energy_wh_range": {
+            "max": 41.890902951242595,
+            "min": 41.890902941454385,
+            "spread": 9.788209354155697e-09
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-46": {
+          "final_energy_wh_range": {
+            "max": 41.89086474611285,
+            "min": 41.89086473613916,
+            "spread": 9.973689429898513e-09
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-29": {
+          "final_energy_wh_range": {
+            "max": 41.890870648207375,
+            "min": 41.890870638262506,
+            "spread": 9.944869816536084e-09
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-33": {
+          "final_energy_wh_range": {
+            "max": 41.890854763188855,
+            "min": 41.890854753166614,
+            "spread": 1.0022240815033001e-08
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-87": {
+          "final_energy_wh_range": {
+            "max": 41.89086482668165,
+            "min": 41.89086481670836,
+            "spread": 9.973291525966488e-09
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-82": {
+          "final_energy_wh_range": {
+            "max": 41.89087345988638,
+            "min": 41.890873449955,
+            "spread": 9.931376609984e-09
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-14": {
+          "final_energy_wh_range": {
+            "max": 24.085382465670797,
+            "min": 24.050283473632692,
+            "spread": 0.035098992038104626
+          },
+          "minimum_energy_wh": 21.62489416498716,
+          "minimum_reserve_margin_wh": 13.624894164987161,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-8": {
+          "final_energy_wh_range": {
+            "max": 41.89084781976468,
+            "min": 41.89084780970868,
+            "spread": 1.0055998700408963e-08
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-44": {
+          "final_energy_wh_range": {
+            "max": 41.890851089428864,
+            "min": 41.89085107938878,
+            "spread": 1.0040082543127937e-08
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-50": {
+          "final_energy_wh_range": {
+            "max": 41.8908518005206,
+            "min": 41.89085179048396,
+            "spread": 1.0036643516286858e-08
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-35": {
+          "final_energy_wh_range": {
+            "max": 41.89087215393755,
+            "min": 41.89087214399998,
+            "spread": 9.937572542639828e-09
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-78": {
+          "final_energy_wh_range": {
+            "max": 41.89089854681674,
+            "min": 41.89089853700726,
+            "spread": 9.809483003664354e-09
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-20": {
+          "final_energy_wh_range": {
+            "max": 41.89084871950154,
+            "min": 41.89084870944985,
+            "spread": 1.0051692811430257e-08
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-31": {
+          "final_energy_wh_range": {
+            "max": 41.890847361579354,
+            "min": 41.89084735152097,
+            "spread": 1.0058386124001117e-08
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-32": {
+          "final_energy_wh_range": {
+            "max": 41.89084980949251,
+            "min": 41.89084979944622,
+            "spread": 1.0046285581211123e-08
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-5": {
+          "final_energy_wh_range": {
+            "max": 41.890865091988886,
+            "min": 41.890865082017044,
+            "spread": 9.971842018785537e-09
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-68": {
+          "final_energy_wh_range": {
+            "max": 41.89085421773037,
+            "min": 41.89085420770543,
+            "spread": 1.002494087742889e-08
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-58": {
+          "final_energy_wh_range": {
+            "max": 41.89086746436213,
+            "min": 41.89086745440174,
+            "spread": 9.960388069885084e-09
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-17": {
+          "final_energy_wh_range": {
+            "max": 41.890867776611756,
+            "min": 41.890867766652946,
+            "spread": 9.958810665011697e-09
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-97": {
+          "final_energy_wh_range": {
+            "max": 41.890853290602486,
+            "min": 41.890853280572955,
+            "spread": 1.00295309835019e-08
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-27": {
+          "final_energy_wh_range": {
+            "max": 41.890853880438975,
+            "min": 41.89085387041245,
+            "spread": 1.0026525387729635e-08
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-77": {
+          "final_energy_wh_range": {
+            "max": 41.89088399206065,
+            "min": 41.890883982180526,
+            "spread": 9.880125162453623e-09
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-67": {
+          "final_energy_wh_range": {
+            "max": 41.8908498836575,
+            "min": 41.89084987361141,
+            "spread": 1.0046093734672468e-08
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-12": {
+          "final_energy_wh_range": {
+            "max": 23.896899739866726,
+            "min": 23.85120382927074,
+            "spread": 0.04569591059598466
+          },
+          "minimum_energy_wh": 21.45017344032326,
+          "minimum_reserve_margin_wh": 13.450173440323258,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-96": {
+          "final_energy_wh_range": {
+            "max": 41.89090522125306,
+            "min": 41.890905211475946,
+            "spread": 9.777110676623124e-09
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-72": {
+          "final_energy_wh_range": {
+            "max": 41.890896412613664,
+            "min": 41.89089640279377,
+            "spread": 9.81989245474324e-09
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-51": {
+          "final_energy_wh_range": {
+            "max": 41.89085769464531,
+            "min": 41.89085768463745,
+            "spread": 1.0007859430061217e-08
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-6": {
+          "final_energy_wh_range": {
+            "max": 41.89087595911767,
+            "min": 41.89087594919869,
+            "spread": 9.918984744672343e-09
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-79": {
+          "final_energy_wh_range": {
+            "max": 41.89085110438212,
+            "min": 41.89085109434203,
+            "spread": 1.0040089648555295e-08
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-19": {
+          "final_energy_wh_range": {
+            "max": 41.89084690184486,
+            "min": 41.89084689178444,
+            "spread": 1.0060418276225391e-08
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-100": {
+          "final_energy_wh_range": {
+            "max": 24.36768467823171,
+            "min": 24.351254618381063,
+            "spread": 0.016430059850648604
+          },
+          "minimum_energy_wh": 21.880933314136364,
+          "minimum_reserve_margin_wh": 13.880933314136364,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-13": {
+          "final_energy_wh_range": {
+            "max": 26.01968781750104,
+            "min": 25.988930893264595,
+            "spread": 0.030756924236445826
+          },
+          "minimum_energy_wh": 23.030391604803373,
+          "minimum_reserve_margin_wh": 15.030391604803373,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-7": {
+          "final_energy_wh_range": {
+            "max": 41.89084663296733,
+            "min": 41.890846622905435,
+            "spread": 1.0061896205115772e-08
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-28": {
+          "final_energy_wh_range": {
+            "max": 41.890861019755874,
+            "min": 41.89086100976417,
+            "spread": 9.991701688250032e-09
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-57": {
+          "final_energy_wh_range": {
+            "max": 41.890858766012094,
+            "min": 41.89085875600939,
+            "spread": 1.0002700889799598e-08
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-92": {
+          "final_energy_wh_range": {
+            "max": 41.89085810125089,
+            "min": 41.89085809124488,
+            "spread": 1.000601201894824e-08
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-59": {
+          "final_energy_wh_range": {
+            "max": 41.89087864126234,
+            "min": 41.89087863135629,
+            "spread": 9.90605286688151e-09
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-3": {
+          "final_energy_wh_range": {
+            "max": 41.890850822826046,
+            "min": 41.89085081278473,
+            "spread": 1.004131888748816e-08
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-37": {
+          "final_energy_wh_range": {
+            "max": 41.89084766295359,
+            "min": 41.89084765289677,
+            "spread": 1.0056822929982445e-08
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-22": {
+          "final_energy_wh_range": {
+            "max": 41.89085987150969,
+            "min": 41.89085986151236,
+            "spread": 9.997329186717252e-09
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-55": {
+          "final_energy_wh_range": {
+            "max": 41.89084885274627,
+            "min": 41.890848842695256,
+            "spread": 1.0051010690403928e-08
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-91": {
+          "final_energy_wh_range": {
+            "max": 41.890852514573965,
+            "min": 41.890852504540725,
+            "spread": 1.0033240016582567e-08
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-21": {
+          "final_energy_wh_range": {
+            "max": 41.89085304497875,
+            "min": 41.89085303494828,
+            "spread": 1.0030468899913103e-08
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-83": {
+          "final_energy_wh_range": {
+            "max": 41.89088586763244,
+            "min": 41.89088585776135,
+            "spread": 9.871094164282113e-09
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-34": {
+          "final_energy_wh_range": {
+            "max": 41.890862214981766,
+            "min": 41.890862204995855,
+            "spread": 9.985910764953587e-09
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-53": {
+          "final_energy_wh_range": {
+            "max": 41.89087694993218,
+            "min": 41.8908769400178,
+            "spread": 9.914380427744618e-09
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-80": {
+          "final_energy_wh_range": {
+            "max": 41.89085606530666,
+            "min": 41.89085605529074,
+            "spread": 1.0015916984684736e-08
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-85": {
+          "final_energy_wh_range": {
+            "max": 41.890851785817574,
+            "min": 41.89085177578085,
+            "spread": 1.0036721675987792e-08
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-64": {
+          "final_energy_wh_range": {
+            "max": 41.890868893478135,
+            "min": 41.89086888352466,
+            "spread": 9.953474489066139e-09
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-40": {
+          "final_energy_wh_range": {
+            "max": 41.89086345712293,
+            "min": 41.89086344714305,
+            "spread": 9.979885362554342e-09
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-43": {
+          "final_energy_wh_range": {
+            "max": 41.89084801196092,
+            "min": 41.89084800190579,
+            "spread": 1.0055131838271336e-08
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-4": {
+          "final_energy_wh_range": {
+            "max": 41.89085670926128,
+            "min": 41.890856699248616,
+            "spread": 1.0012662698954955e-08
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-23": {
+          "final_energy_wh_range": {
+            "max": 41.89086918907394,
+            "min": 41.89086917912197,
+            "spread": 9.951968138466327e-09
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-62": {
+          "final_energy_wh_range": {
+            "max": 41.89085336472058,
+            "min": 41.89085335469156,
+            "spread": 1.0029019392732152e-08
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-52": {
+          "final_energy_wh_range": {
+            "max": 41.890866081882756,
+            "min": 41.89086607191563,
+            "spread": 9.96712401502009e-09
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        }
+      },
+      "decision_reasons": {
+        "insufficient_resource_budget": 16,
+        "planning_start_grid_infeasible": 14,
+        "request_already_scheduled": 861,
+        "selected": 9
+      },
+      "fulfilled_value": 234.0,
+      "opportunity_count": 900,
+      "opportunity_evaluation_count": 3276132,
+      "opportunity_search_status_counts": {
+        "complete_under_search_policy": 900
+      },
+      "planning_status": "supported",
+      "request_count": 9,
+      "requested_value": 234.0,
+      "resource_model_evaluation_count": 71474,
+      "resource_status": "supported",
+      "scheduled_count": 9,
+      "summary_sha256": "534f6d36e1ea51364847af8b36c8727da15d9336a7720fdf119440805f9dc2db",
+      "timings": {
+        "endpoint_verification_ms": 2.281,
+        "opportunity_generation_ms": 50235.659,
+        "preparation_ms": 114.085,
+        "scheduling_ms": 23192.904,
+        "total_ms": 73607.55
+      },
+      "wall_ms": 73608
+    }
+  },
+  "compact_fixed_runs": [
+    {
+      "asset_count": 6,
+      "controls": {
+        "profile": false,
+        "full_diagnostics": false,
+        "timeout_ms": 900000,
+        "max_memory_bytes": 6000000000
+      },
+      "input_sha256": "c1866a9e5a42cc110349fa49e9c07518993e93d0b7eb490ed3756766087e96ea",
+      "observed_wall_ms": 6450,
+      "report_retention": "compact saved summary; all model/path/resource checks computed; dense opportunity diagnostics retained across pairs only with full_diagnostics=true",
+      "request_count": 9,
+      "sampled_peak_vm_bytes": 154093575,
+      "stack_profile": {
+        "inclusive_frames": [],
+        "inclusive_modules": [],
+        "interval_ms": 20,
+        "limits": "Statistical live-stack observations, not call counts or exclusive CPU attribution; up to the VM's saved stack depth. Sampling perturbs timings; compare separate unprofiled runs.",
+        "sample_count": 0,
+        "top_frames": []
+      },
+      "status": "completed",
+      "summary": {
+        "asset_count": 6,
+        "asset_request_pairs": 54,
+        "assignments": [
+          {
+            "asset_id": "demo-1",
+            "ends_at_s": 820497680.5,
+            "request_id": "south-1",
+            "starts_at_s": 820497660.5,
+            "value": 30.0
+          },
+          {
+            "asset_id": "demo-3",
+            "ends_at_s": 820497680.5,
+            "request_id": "central-1",
+            "starts_at_s": 820497660.5,
+            "value": 27.0
+          },
+          {
+            "asset_id": "demo-5",
+            "ends_at_s": 820497680.5,
+            "request_id": "north-1",
+            "starts_at_s": 820497660.5,
+            "value": 24.0
+          },
+          {
+            "asset_id": "demo-2",
+            "ends_at_s": 820497690.5,
+            "request_id": "south-2",
+            "starts_at_s": 820497670.5,
+            "value": 29.0
+          },
+          {
+            "asset_id": "demo-4",
+            "ends_at_s": 820497690.5,
+            "request_id": "central-2",
+            "starts_at_s": 820497670.5,
+            "value": 26.0
+          },
+          {
+            "asset_id": "demo-6",
+            "ends_at_s": 820497690.5,
+            "request_id": "north-2",
+            "starts_at_s": 820497670.5,
+            "value": 23.0
+          }
+        ],
+        "attitude_model_evaluation_count": 3417,
+        "batteries": {
+          "demo-1": {
+            "final_energy_wh_range": {
+              "max": 26.276246428357375,
+              "min": 26.260943692159724,
+              "spread": 0.015302736197650546
+            },
+            "minimum_energy_wh": 23.261569444086533,
+            "minimum_reserve_margin_wh": 15.261569444086533,
+            "reserve_wh": 8,
+            "status": "supported"
+          },
+          "demo-2": {
+            "final_energy_wh_range": {
+              "max": 24.36731969348462,
+              "min": 24.34660092479534,
+              "spread": 0.020718768689281575
+            },
+            "minimum_energy_wh": 21.88177264637665,
+            "minimum_reserve_margin_wh": 13.88177264637665,
+            "reserve_wh": 8,
+            "status": "supported"
+          },
+          "demo-3": {
+            "final_energy_wh_range": {
+              "max": 26.064931276475548,
+              "min": 26.036497771670618,
+              "spread": 0.02843350480493001
+            },
+            "minimum_energy_wh": 23.065377594412688,
+            "minimum_reserve_margin_wh": 15.065377594412688,
+            "reserve_wh": 8,
+            "status": "supported"
+          },
+          "demo-4": {
+            "final_energy_wh_range": {
+              "max": 24.19918090742281,
+              "min": 24.170049881842118,
+              "spread": 0.029131025580692693
+            },
+            "minimum_energy_wh": 21.727435150253708,
+            "minimum_reserve_margin_wh": 13.727435150253708,
+            "reserve_wh": 8,
+            "status": "supported"
+          },
+          "demo-5": {
+            "final_energy_wh_range": {
+              "max": 25.861022345873575,
+              "min": 25.830654084374697,
+              "spread": 0.030368261498878724
+            },
+            "minimum_energy_wh": 22.88674581768952,
+            "minimum_reserve_margin_wh": 14.886745817689519,
+            "reserve_wh": 8,
+            "status": "supported"
+          },
+          "demo-6": {
+            "final_energy_wh_range": {
+              "max": 24.035850174121403,
+              "min": 23.997397441673883,
+              "spread": 0.03845273244752079
+            },
+            "minimum_energy_wh": 21.576462826824216,
+            "minimum_reserve_margin_wh": 13.576462826824216,
+            "reserve_wh": 8,
+            "status": "supported"
+          }
+        },
+        "decision_reasons": {
+          "insufficient_resource_budget": 21,
+          "planning_start_grid_infeasible": 6,
+          "request_already_scheduled": 21,
+          "selected": 6
+        },
+        "fulfilled_value": 159.0,
+        "opportunity_count": 54,
+        "opportunity_evaluation_count": 196956,
+        "opportunity_search_status_counts": {
+          "complete_under_search_policy": 54
+        },
+        "planning_status": "supported",
+        "request_count": 9,
+        "requested_value": 234.0,
+        "resource_model_evaluation_count": 7972,
+        "resource_status": "supported",
+        "scheduled_count": 6,
+        "summary_sha256": "a8c1a469974de61ea31dfd70e75c16eede9dbc8dca4fa35331bbdf69055c887d",
+        "timings": {
+          "endpoint_verification_ms": 2.45,
+          "opportunity_generation_ms": 2953.285,
+          "preparation_ms": 35.811,
+          "scheduling_ms": 3422.485,
+          "total_ms": 6438.503
+        },
+        "wall_ms": 6450
+      }
+    },
+    {
+      "asset_count": 100,
+      "controls": {
+        "profile": false,
+        "full_diagnostics": false,
+        "timeout_ms": 900000,
+        "max_memory_bytes": 6000000000
+      },
+      "input_sha256": "c6d2fb09a97ca41cf92a610aa95b299e461fd93b40e76f244a9092a14538279f",
+      "observed_wall_ms": 66804,
+      "report_retention": "compact saved summary; all model/path/resource checks computed; dense opportunity diagnostics retained across pairs only with full_diagnostics=true",
+      "request_count": 9,
+      "sampled_peak_vm_bytes": 760999513,
+      "stack_profile": {
+        "inclusive_frames": [],
+        "inclusive_modules": [],
+        "interval_ms": 20,
+        "limits": "Statistical live-stack observations, not call counts or exclusive CPU attribution; up to the VM's saved stack depth. Sampling perturbs timings; compare separate unprofiled runs.",
+        "sample_count": 0,
+        "top_frames": []
+      },
+      "status": "completed",
+      "summary": {
+        "asset_count": 100,
+        "asset_request_pairs": 900,
+        "assignments": [
+          {
+            "asset_id": "demo-1",
+            "ends_at_s": 820497680.5,
+            "request_id": "south-1",
+            "starts_at_s": 820497660.5,
+            "value": 30.0
+          },
+          {
+            "asset_id": "demo-13",
+            "ends_at_s": 820497680.5,
+            "request_id": "south-2",
+            "starts_at_s": 820497660.5,
+            "value": 29.0
+          },
+          {
+            "asset_id": "demo-15",
+            "ends_at_s": 820497680.5,
+            "request_id": "central-2",
+            "starts_at_s": 820497660.5,
+            "value": 26.0
+          },
+          {
+            "asset_id": "demo-11",
+            "ends_at_s": 820497685.5,
+            "request_id": "north-2",
+            "starts_at_s": 820497665.5,
+            "value": 23.0
+          },
+          {
+            "asset_id": "demo-10",
+            "ends_at_s": 820497690.5,
+            "request_id": "central-1",
+            "starts_at_s": 820497670.5,
+            "value": 27.0
+          },
+          {
+            "asset_id": "demo-12",
+            "ends_at_s": 820497690.5,
+            "request_id": "north-3",
+            "starts_at_s": 820497670.5,
+            "value": 22.0
+          },
+          {
+            "asset_id": "demo-14",
+            "ends_at_s": 820497690.5,
+            "request_id": "south-3",
+            "starts_at_s": 820497670.5,
+            "value": 28.0
+          },
+          {
+            "asset_id": "demo-16",
+            "ends_at_s": 820497690.5,
+            "request_id": "central-3",
+            "starts_at_s": 820497670.5,
+            "value": 25.0
+          },
+          {
+            "asset_id": "demo-100",
+            "ends_at_s": 820497690.5,
+            "request_id": "north-1",
+            "starts_at_s": 820497670.5,
+            "value": 24.0
+          }
+        ],
+        "attitude_model_evaluation_count": 7131,
+        "batteries": {
+          "demo-71": {
+            "final_energy_wh_range": {
+              "max": 41.89088216241472,
+              "min": 41.89088215252566,
+              "spread": 9.889056684642128e-09
+            },
+            "minimum_energy_wh": 35,
+            "minimum_reserve_margin_wh": 27,
+            "reserve_wh": 8,
+            "status": "supported"
+          },
+          "demo-56": {
+            "final_energy_wh_range": {
+              "max": 41.89085255896713,
+              "min": 41.890852548934305,
+              "spread": 1.0032827901795827e-08
+            },
+            "minimum_energy_wh": 35,
+            "minimum_reserve_margin_wh": 27,
+            "reserve_wh": 8,
+            "status": "supported"
+          },
+          "demo-15": {
+            "final_energy_wh_range": {
+              "max": 25.81583826812498,
+              "min": 25.788162426864943,
+              "spread": 0.02767584126003797
+            },
+            "minimum_energy_wh": 22.856701388667847,
+            "minimum_reserve_margin_wh": 14.856701388667847,
+            "reserve_wh": 8,
+            "status": "supported"
+          },
+          "demo-66": {
+            "final_energy_wh_range": {
+              "max": 41.8908943238883,
+              "min": 41.890894314058336,
+              "spread": 9.82996084530896e-09
+            },
+            "minimum_energy_wh": 35,
+            "minimum_reserve_margin_wh": 27,
+            "reserve_wh": 8,
+            "status": "supported"
+          },
+          "demo-25": {
+            "final_energy_wh_range": {
+              "max": 41.89084710786728,
+              "min": 41.89084709780777,
+              "spread": 1.0059508781523618e-08
+            },
+            "minimum_energy_wh": 35,
+            "minimum_reserve_margin_wh": 27,
+            "reserve_wh": 8,
+            "status": "supported"
+          },
+          "demo-39": {
+            "final_energy_wh_range": {
+              "max": 41.89085569317625,
+              "min": 41.89085568315867,
+              "spread": 1.0017579654686415e-08
+            },
+            "minimum_energy_wh": 35,
+            "minimum_reserve_margin_wh": 27,
+            "reserve_wh": 8,
+            "status": "supported"
+          },
+          "demo-47": {
+            "final_energy_wh_range": {
+              "max": 41.890875304879636,
+              "min": 41.89087529495738,
+              "spread": 9.92225324125684e-09
+            },
+            "minimum_energy_wh": 35,
+            "minimum_reserve_margin_wh": 27,
+            "reserve_wh": 8,
+            "status": "supported"
+          },
+          "demo-30": {
+            "final_energy_wh_range": {
+              "max": 41.890882752082526,
+              "min": 41.89088274219628,
+              "spread": 9.886242935408518e-09
+            },
+            "minimum_energy_wh": 35,
+            "minimum_reserve_margin_wh": 27,
+            "reserve_wh": 8,
+            "status": "supported"
+          },
+          "demo-70": {
+            "final_energy_wh_range": {
+              "max": 41.890870369155834,
+              "min": 41.890870359209536,
+              "spread": 9.946298007434962e-09
+            },
+            "minimum_energy_wh": 35,
+            "minimum_reserve_margin_wh": 27,
+            "reserve_wh": 8,
+            "status": "supported"
+          },
+          "demo-11": {
+            "final_energy_wh_range": {
+              "max": 25.450830603061743,
+              "min": 25.43830704047608,
+              "spread": 0.012523562585663228
+            },
+            "minimum_energy_wh": 22.681467211794804,
+            "minimum_reserve_margin_wh": 14.681467211794804,
+            "reserve_wh": 8,
+            "status": "supported"
+          },
+          "demo-86": {
+            "final_energy_wh_range": {
+              "max": 41.89085705976198,
+              "min": 41.89085704975087,
+              "spread": 1.001110661036364e-08
+            },
+            "minimum_energy_wh": 35,
+            "minimum_reserve_margin_wh": 27,
+            "reserve_wh": 8,
+            "status": "supported"
+          },
+          "demo-36": {
+            "final_energy_wh_range": {
+              "max": 41.89088456589189,
+              "min": 41.890884556014484,
+              "spread": 9.877403783775662e-09
+            },
+            "minimum_energy_wh": 35,
+            "minimum_reserve_margin_wh": 27,
+            "reserve_wh": 8,
+            "status": "supported"
+          },
+          "demo-69": {
+            "final_energy_wh_range": {
+              "max": 41.89086104970716,
+              "min": 41.890861039715496,
+              "spread": 9.991666161113244e-09
+            },
+            "minimum_energy_wh": 35,
+            "minimum_reserve_margin_wh": 27,
+            "reserve_wh": 8,
+            "status": "supported"
+          },
+          "demo-93": {
+            "final_energy_wh_range": {
+              "max": 41.89086617911451,
+              "min": 41.89086616914777,
+              "spread": 9.96674032194278e-09
+            },
+            "minimum_energy_wh": 35,
+            "minimum_reserve_margin_wh": 27,
+            "reserve_wh": 8,
+            "status": "supported"
+          },
+          "demo-95": {
+            "final_energy_wh_range": {
+              "max": 41.89088975617857,
+              "min": 41.89088974632629,
+              "spread": 9.852278992639185e-09
+            },
+            "minimum_energy_wh": 35,
+            "minimum_reserve_margin_wh": 27,
+            "reserve_wh": 8,
+            "status": "supported"
+          },
+          "demo-61": {
+            "final_energy_wh_range": {
+              "max": 41.89084934445483,
+              "min": 41.89084933440623,
+              "spread": 1.0048601950529701e-08
+            },
+            "minimum_energy_wh": 35,
+            "minimum_reserve_margin_wh": 27,
+            "reserve_wh": 8,
+            "status": "supported"
+          },
+          "demo-24": {
+            "final_energy_wh_range": {
+              "max": 41.89088098441473,
+              "min": 41.890880974520044,
+              "spread": 9.894684183109348e-09
+            },
+            "minimum_energy_wh": 35,
+            "minimum_reserve_margin_wh": 27,
+            "reserve_wh": 8,
+            "status": "supported"
+          },
+          "demo-88": {
+            "final_energy_wh_range": {
+              "max": 41.890875074778855,
+              "min": 41.8908750648554,
+              "spread": 9.923454058480274e-09
+            },
+            "minimum_energy_wh": 35,
+            "minimum_reserve_margin_wh": 27,
+            "reserve_wh": 8,
+            "status": "supported"
+          },
+          "demo-63": {
+            "final_energy_wh_range": {
+              "max": 41.89085988438698,
+              "min": 41.89085987438964,
+              "spread": 9.99733629214461e-09
+            },
+            "minimum_energy_wh": 35,
+            "minimum_reserve_margin_wh": 27,
+            "reserve_wh": 8,
+            "status": "supported"
+          },
+          "demo-45": {
+            "final_energy_wh_range": {
+              "max": 41.89085667034727,
+              "min": 41.89085666033439,
+              "spread": 1.0012875861775683e-08
+            },
+            "minimum_energy_wh": 35,
+            "minimum_reserve_margin_wh": 27,
+            "reserve_wh": 8,
+            "status": "supported"
+          },
+          "demo-9": {
+            "final_energy_wh_range": {
+              "max": 41.89085151612555,
+              "min": 41.89085150608766,
+              "spread": 1.0037894071501796e-08
+            },
+            "minimum_energy_wh": 35,
+            "minimum_reserve_margin_wh": 27,
+            "reserve_wh": 8,
+            "status": "supported"
+          },
+          "demo-75": {
+            "final_energy_wh_range": {
+              "max": 41.89086226190788,
+              "min": 41.890862251922194,
+              "spread": 9.985683391278144e-09
+            },
+            "minimum_energy_wh": 35,
+            "minimum_reserve_margin_wh": 27,
+            "reserve_wh": 8,
+            "status": "supported"
+          },
+          "demo-98": {
+            "final_energy_wh_range": {
+              "max": 41.89085918971256,
+              "min": 41.890859179711846,
+              "spread": 1.000071137013947e-08
+            },
+            "minimum_energy_wh": 35,
+            "minimum_reserve_margin_wh": 27,
+            "reserve_wh": 8,
+            "status": "supported"
+          },
+          "demo-76": {
+            "final_energy_wh_range": {
+              "max": 41.89087189131822,
+              "min": 41.890871881379326,
+              "spread": 9.938894152128341e-09
+            },
+            "minimum_energy_wh": 35,
+            "minimum_reserve_margin_wh": 27,
+            "reserve_wh": 8,
+            "status": "supported"
+          },
+          "demo-16": {
+            "final_energy_wh_range": {
+              "max": 23.919537653511124,
+              "min": 23.875656476304087,
+              "spread": 0.043881177207037325
+            },
+            "minimum_energy_wh": 21.472582701496638,
+            "minimum_reserve_margin_wh": 13.472582701496638,
+            "reserve_wh": 8,
+            "status": "supported"
+          },
+          "demo-49": {
+            "final_energy_wh_range": {
+              "max": 41.89084840856963,
+              "min": 41.89084839851651,
+              "spread": 1.0053121002329135e-08
+            },
+            "minimum_energy_wh": 35,
+            "minimum_reserve_margin_wh": 27,
+            "reserve_wh": 8,
+            "status": "supported"
+          },
+          "demo-10": {
+            "final_energy_wh_range": {
+              "max": 24.059317993404004,
+              "min": 24.022537000413003,
+              "spread": 0.03678099299100168
+            },
+            "minimum_energy_wh": 21.599771444137772,
+            "minimum_reserve_margin_wh": 13.599771444137772,
+            "reserve_wh": 8,
+            "status": "supported"
+          },
+          "demo-94": {
+            "final_energy_wh_range": {
+              "max": 41.890876735912784,
+              "min": 41.89087672599732,
+              "spread": 9.915460452702973e-09
+            },
+            "minimum_energy_wh": 35,
+            "minimum_reserve_margin_wh": 27,
+            "reserve_wh": 8,
+            "status": "supported"
+          },
+          "demo-99": {
+            "final_energy_wh_range": {
+              "max": 41.89086757814776,
+              "min": 41.89086756818781,
+              "spread": 9.95995463881627e-09
+            },
+            "minimum_energy_wh": 35,
+            "minimum_reserve_margin_wh": 27,
+            "reserve_wh": 8,
+            "status": "supported"
+          },
+          "demo-1": {
+            "final_energy_wh_range": {
+              "max": 26.276246428357375,
+              "min": 26.260943692159724,
+              "spread": 0.015302736197650546
+            },
+            "minimum_energy_wh": 23.261569444086533,
+            "minimum_reserve_margin_wh": 15.261569444086533,
+            "reserve_wh": 8,
+            "status": "supported"
+          },
+          "demo-74": {
+            "final_energy_wh_range": {
+              "max": 41.890855117943836,
+              "min": 41.89085510792335,
+              "spread": 1.0020485774475674e-08
+            },
+            "minimum_energy_wh": 35,
+            "minimum_reserve_margin_wh": 27,
+            "reserve_wh": 8,
+            "status": "supported"
+          },
+          "demo-48": {
+            "final_energy_wh_range": {
+              "max": 41.89088833157887,
+              "min": 41.89088832171984,
+              "spread": 9.859029148628906e-09
+            },
+            "minimum_energy_wh": 35,
+            "minimum_reserve_margin_wh": 27,
+            "reserve_wh": 8,
+            "status": "supported"
+          },
+          "demo-38": {
+            "final_energy_wh_range": {
+              "max": 41.89085042573822,
+              "min": 41.890850415694885,
+              "spread": 1.0043336828857719e-08
+            },
+            "minimum_energy_wh": 35,
+            "minimum_reserve_margin_wh": 27,
+            "reserve_wh": 8,
+            "status": "supported"
+          },
+          "demo-41": {
+            "final_energy_wh_range": {
+              "max": 41.89087370618796,
+              "min": 41.89087369625783,
+              "spread": 9.93013316019642e-09
+            },
+            "minimum_energy_wh": 35,
+            "minimum_reserve_margin_wh": 27,
+            "reserve_wh": 8,
+            "status": "supported"
+          },
+          "demo-73": {
+            "final_energy_wh_range": {
+              "max": 41.89085047031391,
+              "min": 41.890850460270784,
+              "spread": 1.004312366603699e-08
+            },
+            "minimum_energy_wh": 35,
+            "minimum_reserve_margin_wh": 27,
+            "reserve_wh": 8,
+            "status": "supported"
+          },
+          "demo-81": {
+            "final_energy_wh_range": {
+              "max": 41.89086352092235,
+              "min": 41.8908635109428,
+              "spread": 9.979551407468534e-09
+            },
+            "minimum_energy_wh": 35,
+            "minimum_reserve_margin_wh": 27,
+            "reserve_wh": 8,
+            "status": "supported"
+          },
+          "demo-65": {
+            "final_energy_wh_range": {
+              "max": 41.89088037878562,
+              "min": 41.890880368887906,
+              "spread": 9.897711095163686e-09
+            },
+            "minimum_energy_wh": 35,
+            "minimum_reserve_margin_wh": 27,
+            "reserve_wh": 8,
+            "status": "supported"
+          },
+          "demo-60": {
+            "final_energy_wh_range": {
+              "max": 41.89089228074191,
+              "min": 41.890892270901915,
+              "spread": 9.839993708737893e-09
+            },
+            "minimum_energy_wh": 35,
+            "minimum_reserve_margin_wh": 27,
+            "reserve_wh": 8,
+            "status": "supported"
+          },
+          "demo-89": {
+            "final_energy_wh_range": {
+              "max": 41.89088778903676,
+              "min": 41.890887779175,
+              "spread": 9.861757632734225e-09
+            },
+            "minimum_energy_wh": 35,
+            "minimum_reserve_margin_wh": 27,
+            "reserve_wh": 8,
+            "status": "supported"
+          },
+          "demo-42": {
+            "final_energy_wh_range": {
+              "max": 41.89088642575426,
+              "min": 41.89088641588593,
+              "spread": 9.868330153040006e-09
+            },
+            "minimum_energy_wh": 35,
+            "minimum_reserve_margin_wh": 27,
+            "reserve_wh": 8,
+            "status": "supported"
+          },
+          "demo-84": {
+            "final_energy_wh_range": {
+              "max": 41.89090072639476,
+              "min": 41.8909007165958,
+              "spread": 9.798959865747747e-09
+            },
+            "minimum_energy_wh": 35,
+            "minimum_reserve_margin_wh": 27,
+            "reserve_wh": 8,
+            "status": "supported"
+          },
+          "demo-26": {
+            "final_energy_wh_range": {
+              "max": 41.890849240733715,
+              "min": 41.89084923068463,
+              "spread": 1.0049085119590018e-08
+            },
+            "minimum_energy_wh": 35,
+            "minimum_reserve_margin_wh": 27,
+            "reserve_wh": 8,
+            "status": "supported"
+          },
+          "demo-54": {
+            "final_energy_wh_range": {
+              "max": 41.890890283273066,
+              "min": 41.89089027342347,
+              "spread": 9.849593141098012e-09
+            },
+            "minimum_energy_wh": 35,
+            "minimum_reserve_margin_wh": 27,
+            "reserve_wh": 8,
+            "status": "supported"
+          },
+          "demo-18": {
+            "final_energy_wh_range": {
+              "max": 41.89087926297544,
+              "min": 41.89087925307234,
+              "spread": 9.903097009100748e-09
+            },
+            "minimum_energy_wh": 35,
+            "minimum_reserve_margin_wh": 27,
+            "reserve_wh": 8,
+            "status": "supported"
+          },
+          "demo-2": {
+            "final_energy_wh_range": {
+              "max": 41.89084744132889,
+              "min": 41.89084743127102,
+              "spread": 1.0057867427804013e-08
+            },
+            "minimum_energy_wh": 35,
+            "minimum_reserve_margin_wh": 27,
+            "reserve_wh": 8,
+            "status": "supported"
+          },
+          "demo-90": {
+            "final_energy_wh_range": {
+              "max": 41.890902951242595,
+              "min": 41.890902941454385,
+              "spread": 9.788209354155697e-09
+            },
+            "minimum_energy_wh": 35,
+            "minimum_reserve_margin_wh": 27,
+            "reserve_wh": 8,
+            "status": "supported"
+          },
+          "demo-46": {
+            "final_energy_wh_range": {
+              "max": 41.89086474611285,
+              "min": 41.89086473613916,
+              "spread": 9.973689429898513e-09
+            },
+            "minimum_energy_wh": 35,
+            "minimum_reserve_margin_wh": 27,
+            "reserve_wh": 8,
+            "status": "supported"
+          },
+          "demo-29": {
+            "final_energy_wh_range": {
+              "max": 41.890870648207375,
+              "min": 41.890870638262506,
+              "spread": 9.944869816536084e-09
+            },
+            "minimum_energy_wh": 35,
+            "minimum_reserve_margin_wh": 27,
+            "reserve_wh": 8,
+            "status": "supported"
+          },
+          "demo-33": {
+            "final_energy_wh_range": {
+              "max": 41.890854763188855,
+              "min": 41.890854753166614,
+              "spread": 1.0022240815033001e-08
+            },
+            "minimum_energy_wh": 35,
+            "minimum_reserve_margin_wh": 27,
+            "reserve_wh": 8,
+            "status": "supported"
+          },
+          "demo-87": {
+            "final_energy_wh_range": {
+              "max": 41.89086482668165,
+              "min": 41.89086481670836,
+              "spread": 9.973291525966488e-09
+            },
+            "minimum_energy_wh": 35,
+            "minimum_reserve_margin_wh": 27,
+            "reserve_wh": 8,
+            "status": "supported"
+          },
+          "demo-82": {
+            "final_energy_wh_range": {
+              "max": 41.89087345988638,
+              "min": 41.890873449955,
+              "spread": 9.931376609984e-09
+            },
+            "minimum_energy_wh": 35,
+            "minimum_reserve_margin_wh": 27,
+            "reserve_wh": 8,
+            "status": "supported"
+          },
+          "demo-14": {
+            "final_energy_wh_range": {
+              "max": 24.085382465670797,
+              "min": 24.050283473632692,
+              "spread": 0.035098992038104626
+            },
+            "minimum_energy_wh": 21.62489416498716,
+            "minimum_reserve_margin_wh": 13.624894164987161,
+            "reserve_wh": 8,
+            "status": "supported"
+          },
+          "demo-8": {
+            "final_energy_wh_range": {
+              "max": 41.89084781976468,
+              "min": 41.89084780970868,
+              "spread": 1.0055998700408963e-08
+            },
+            "minimum_energy_wh": 35,
+            "minimum_reserve_margin_wh": 27,
+            "reserve_wh": 8,
+            "status": "supported"
+          },
+          "demo-44": {
+            "final_energy_wh_range": {
+              "max": 41.890851089428864,
+              "min": 41.89085107938878,
+              "spread": 1.0040082543127937e-08
+            },
+            "minimum_energy_wh": 35,
+            "minimum_reserve_margin_wh": 27,
+            "reserve_wh": 8,
+            "status": "supported"
+          },
+          "demo-50": {
+            "final_energy_wh_range": {
+              "max": 41.8908518005206,
+              "min": 41.89085179048396,
+              "spread": 1.0036643516286858e-08
+            },
+            "minimum_energy_wh": 35,
+            "minimum_reserve_margin_wh": 27,
+            "reserve_wh": 8,
+            "status": "supported"
+          },
+          "demo-35": {
+            "final_energy_wh_range": {
+              "max": 41.89087215393755,
+              "min": 41.89087214399998,
+              "spread": 9.937572542639828e-09
+            },
+            "minimum_energy_wh": 35,
+            "minimum_reserve_margin_wh": 27,
+            "reserve_wh": 8,
+            "status": "supported"
+          },
+          "demo-78": {
+            "final_energy_wh_range": {
+              "max": 41.89089854681674,
+              "min": 41.89089853700726,
+              "spread": 9.809483003664354e-09
+            },
+            "minimum_energy_wh": 35,
+            "minimum_reserve_margin_wh": 27,
+            "reserve_wh": 8,
+            "status": "supported"
+          },
+          "demo-20": {
+            "final_energy_wh_range": {
+              "max": 41.89084871950154,
+              "min": 41.89084870944985,
+              "spread": 1.0051692811430257e-08
+            },
+            "minimum_energy_wh": 35,
+            "minimum_reserve_margin_wh": 27,
+            "reserve_wh": 8,
+            "status": "supported"
+          },
+          "demo-31": {
+            "final_energy_wh_range": {
+              "max": 41.890847361579354,
+              "min": 41.89084735152097,
+              "spread": 1.0058386124001117e-08
+            },
+            "minimum_energy_wh": 35,
+            "minimum_reserve_margin_wh": 27,
+            "reserve_wh": 8,
+            "status": "supported"
+          },
+          "demo-32": {
+            "final_energy_wh_range": {
+              "max": 41.89084980949251,
+              "min": 41.89084979944622,
+              "spread": 1.0046285581211123e-08
+            },
+            "minimum_energy_wh": 35,
+            "minimum_reserve_margin_wh": 27,
+            "reserve_wh": 8,
+            "status": "supported"
+          },
+          "demo-5": {
+            "final_energy_wh_range": {
+              "max": 41.890865091988886,
+              "min": 41.890865082017044,
+              "spread": 9.971842018785537e-09
+            },
+            "minimum_energy_wh": 35,
+            "minimum_reserve_margin_wh": 27,
+            "reserve_wh": 8,
+            "status": "supported"
+          },
+          "demo-68": {
+            "final_energy_wh_range": {
+              "max": 41.89085421773037,
+              "min": 41.89085420770543,
+              "spread": 1.002494087742889e-08
+            },
+            "minimum_energy_wh": 35,
+            "minimum_reserve_margin_wh": 27,
+            "reserve_wh": 8,
+            "status": "supported"
+          },
+          "demo-58": {
+            "final_energy_wh_range": {
+              "max": 41.89086746436213,
+              "min": 41.89086745440174,
+              "spread": 9.960388069885084e-09
+            },
+            "minimum_energy_wh": 35,
+            "minimum_reserve_margin_wh": 27,
+            "reserve_wh": 8,
+            "status": "supported"
+          },
+          "demo-17": {
+            "final_energy_wh_range": {
+              "max": 41.890867776611756,
+              "min": 41.890867766652946,
+              "spread": 9.958810665011697e-09
+            },
+            "minimum_energy_wh": 35,
+            "minimum_reserve_margin_wh": 27,
+            "reserve_wh": 8,
+            "status": "supported"
+          },
+          "demo-97": {
+            "final_energy_wh_range": {
+              "max": 41.890853290602486,
+              "min": 41.890853280572955,
+              "spread": 1.00295309835019e-08
+            },
+            "minimum_energy_wh": 35,
+            "minimum_reserve_margin_wh": 27,
+            "reserve_wh": 8,
+            "status": "supported"
+          },
+          "demo-27": {
+            "final_energy_wh_range": {
+              "max": 41.890853880438975,
+              "min": 41.89085387041245,
+              "spread": 1.0026525387729635e-08
+            },
+            "minimum_energy_wh": 35,
+            "minimum_reserve_margin_wh": 27,
+            "reserve_wh": 8,
+            "status": "supported"
+          },
+          "demo-77": {
+            "final_energy_wh_range": {
+              "max": 41.89088399206065,
+              "min": 41.890883982180526,
+              "spread": 9.880125162453623e-09
+            },
+            "minimum_energy_wh": 35,
+            "minimum_reserve_margin_wh": 27,
+            "reserve_wh": 8,
+            "status": "supported"
+          },
+          "demo-67": {
+            "final_energy_wh_range": {
+              "max": 41.8908498836575,
+              "min": 41.89084987361141,
+              "spread": 1.0046093734672468e-08
+            },
+            "minimum_energy_wh": 35,
+            "minimum_reserve_margin_wh": 27,
+            "reserve_wh": 8,
+            "status": "supported"
+          },
+          "demo-12": {
+            "final_energy_wh_range": {
+              "max": 23.896899739866726,
+              "min": 23.85120382927074,
+              "spread": 0.04569591059598466
+            },
+            "minimum_energy_wh": 21.45017344032326,
+            "minimum_reserve_margin_wh": 13.450173440323258,
+            "reserve_wh": 8,
+            "status": "supported"
+          },
+          "demo-96": {
+            "final_energy_wh_range": {
+              "max": 41.89090522125306,
+              "min": 41.890905211475946,
+              "spread": 9.777110676623124e-09
+            },
+            "minimum_energy_wh": 35,
+            "minimum_reserve_margin_wh": 27,
+            "reserve_wh": 8,
+            "status": "supported"
+          },
+          "demo-72": {
+            "final_energy_wh_range": {
+              "max": 41.890896412613664,
+              "min": 41.89089640279377,
+              "spread": 9.81989245474324e-09
+            },
+            "minimum_energy_wh": 35,
+            "minimum_reserve_margin_wh": 27,
+            "reserve_wh": 8,
+            "status": "supported"
+          },
+          "demo-51": {
+            "final_energy_wh_range": {
+              "max": 41.89085769464531,
+              "min": 41.89085768463745,
+              "spread": 1.0007859430061217e-08
+            },
+            "minimum_energy_wh": 35,
+            "minimum_reserve_margin_wh": 27,
+            "reserve_wh": 8,
+            "status": "supported"
+          },
+          "demo-6": {
+            "final_energy_wh_range": {
+              "max": 41.89087595911767,
+              "min": 41.89087594919869,
+              "spread": 9.918984744672343e-09
+            },
+            "minimum_energy_wh": 35,
+            "minimum_reserve_margin_wh": 27,
+            "reserve_wh": 8,
+            "status": "supported"
+          },
+          "demo-79": {
+            "final_energy_wh_range": {
+              "max": 41.89085110438212,
+              "min": 41.89085109434203,
+              "spread": 1.0040089648555295e-08
+            },
+            "minimum_energy_wh": 35,
+            "minimum_reserve_margin_wh": 27,
+            "reserve_wh": 8,
+            "status": "supported"
+          },
+          "demo-19": {
+            "final_energy_wh_range": {
+              "max": 41.89084690184486,
+              "min": 41.89084689178444,
+              "spread": 1.0060418276225391e-08
+            },
+            "minimum_energy_wh": 35,
+            "minimum_reserve_margin_wh": 27,
+            "reserve_wh": 8,
+            "status": "supported"
+          },
+          "demo-100": {
+            "final_energy_wh_range": {
+              "max": 24.36768467823171,
+              "min": 24.351254618381063,
+              "spread": 0.016430059850648604
+            },
+            "minimum_energy_wh": 21.880933314136364,
+            "minimum_reserve_margin_wh": 13.880933314136364,
+            "reserve_wh": 8,
+            "status": "supported"
+          },
+          "demo-13": {
+            "final_energy_wh_range": {
+              "max": 26.01968781750104,
+              "min": 25.988930893264595,
+              "spread": 0.030756924236445826
+            },
+            "minimum_energy_wh": 23.030391604803373,
+            "minimum_reserve_margin_wh": 15.030391604803373,
+            "reserve_wh": 8,
+            "status": "supported"
+          },
+          "demo-7": {
+            "final_energy_wh_range": {
+              "max": 41.89084663296733,
+              "min": 41.890846622905435,
+              "spread": 1.0061896205115772e-08
+            },
+            "minimum_energy_wh": 35,
+            "minimum_reserve_margin_wh": 27,
+            "reserve_wh": 8,
+            "status": "supported"
+          },
+          "demo-28": {
+            "final_energy_wh_range": {
+              "max": 41.890861019755874,
+              "min": 41.89086100976417,
+              "spread": 9.991701688250032e-09
+            },
+            "minimum_energy_wh": 35,
+            "minimum_reserve_margin_wh": 27,
+            "reserve_wh": 8,
+            "status": "supported"
+          },
+          "demo-57": {
+            "final_energy_wh_range": {
+              "max": 41.890858766012094,
+              "min": 41.89085875600939,
+              "spread": 1.0002700889799598e-08
+            },
+            "minimum_energy_wh": 35,
+            "minimum_reserve_margin_wh": 27,
+            "reserve_wh": 8,
+            "status": "supported"
+          },
+          "demo-92": {
+            "final_energy_wh_range": {
+              "max": 41.89085810125089,
+              "min": 41.89085809124488,
+              "spread": 1.000601201894824e-08
+            },
+            "minimum_energy_wh": 35,
+            "minimum_reserve_margin_wh": 27,
+            "reserve_wh": 8,
+            "status": "supported"
+          },
+          "demo-59": {
+            "final_energy_wh_range": {
+              "max": 41.89087864126234,
+              "min": 41.89087863135629,
+              "spread": 9.90605286688151e-09
+            },
+            "minimum_energy_wh": 35,
+            "minimum_reserve_margin_wh": 27,
+            "reserve_wh": 8,
+            "status": "supported"
+          },
+          "demo-3": {
+            "final_energy_wh_range": {
+              "max": 41.890850822826046,
+              "min": 41.89085081278473,
+              "spread": 1.004131888748816e-08
+            },
+            "minimum_energy_wh": 35,
+            "minimum_reserve_margin_wh": 27,
+            "reserve_wh": 8,
+            "status": "supported"
+          },
+          "demo-37": {
+            "final_energy_wh_range": {
+              "max": 41.89084766295359,
+              "min": 41.89084765289677,
+              "spread": 1.0056822929982445e-08
+            },
+            "minimum_energy_wh": 35,
+            "minimum_reserve_margin_wh": 27,
+            "reserve_wh": 8,
+            "status": "supported"
+          },
+          "demo-22": {
+            "final_energy_wh_range": {
+              "max": 41.89085987150969,
+              "min": 41.89085986151236,
+              "spread": 9.997329186717252e-09
+            },
+            "minimum_energy_wh": 35,
+            "minimum_reserve_margin_wh": 27,
+            "reserve_wh": 8,
+            "status": "supported"
+          },
+          "demo-55": {
+            "final_energy_wh_range": {
+              "max": 41.89084885274627,
+              "min": 41.890848842695256,
+              "spread": 1.0051010690403928e-08
+            },
+            "minimum_energy_wh": 35,
+            "minimum_reserve_margin_wh": 27,
+            "reserve_wh": 8,
+            "status": "supported"
+          },
+          "demo-91": {
+            "final_energy_wh_range": {
+              "max": 41.890852514573965,
+              "min": 41.890852504540725,
+              "spread": 1.0033240016582567e-08
+            },
+            "minimum_energy_wh": 35,
+            "minimum_reserve_margin_wh": 27,
+            "reserve_wh": 8,
+            "status": "supported"
+          },
+          "demo-21": {
+            "final_energy_wh_range": {
+              "max": 41.89085304497875,
+              "min": 41.89085303494828,
+              "spread": 1.0030468899913103e-08
+            },
+            "minimum_energy_wh": 35,
+            "minimum_reserve_margin_wh": 27,
+            "reserve_wh": 8,
+            "status": "supported"
+          },
+          "demo-83": {
+            "final_energy_wh_range": {
+              "max": 41.89088586763244,
+              "min": 41.89088585776135,
+              "spread": 9.871094164282113e-09
+            },
+            "minimum_energy_wh": 35,
+            "minimum_reserve_margin_wh": 27,
+            "reserve_wh": 8,
+            "status": "supported"
+          },
+          "demo-34": {
+            "final_energy_wh_range": {
+              "max": 41.890862214981766,
+              "min": 41.890862204995855,
+              "spread": 9.985910764953587e-09
+            },
+            "minimum_energy_wh": 35,
+            "minimum_reserve_margin_wh": 27,
+            "reserve_wh": 8,
+            "status": "supported"
+          },
+          "demo-53": {
+            "final_energy_wh_range": {
+              "max": 41.89087694993218,
+              "min": 41.8908769400178,
+              "spread": 9.914380427744618e-09
+            },
+            "minimum_energy_wh": 35,
+            "minimum_reserve_margin_wh": 27,
+            "reserve_wh": 8,
+            "status": "supported"
+          },
+          "demo-80": {
+            "final_energy_wh_range": {
+              "max": 41.89085606530666,
+              "min": 41.89085605529074,
+              "spread": 1.0015916984684736e-08
+            },
+            "minimum_energy_wh": 35,
+            "minimum_reserve_margin_wh": 27,
+            "reserve_wh": 8,
+            "status": "supported"
+          },
+          "demo-85": {
+            "final_energy_wh_range": {
+              "max": 41.890851785817574,
+              "min": 41.89085177578085,
+              "spread": 1.0036721675987792e-08
+            },
+            "minimum_energy_wh": 35,
+            "minimum_reserve_margin_wh": 27,
+            "reserve_wh": 8,
+            "status": "supported"
+          },
+          "demo-64": {
+            "final_energy_wh_range": {
+              "max": 41.890868893478135,
+              "min": 41.89086888352466,
+              "spread": 9.953474489066139e-09
+            },
+            "minimum_energy_wh": 35,
+            "minimum_reserve_margin_wh": 27,
+            "reserve_wh": 8,
+            "status": "supported"
+          },
+          "demo-40": {
+            "final_energy_wh_range": {
+              "max": 41.89086345712293,
+              "min": 41.89086344714305,
+              "spread": 9.979885362554342e-09
+            },
+            "minimum_energy_wh": 35,
+            "minimum_reserve_margin_wh": 27,
+            "reserve_wh": 8,
+            "status": "supported"
+          },
+          "demo-43": {
+            "final_energy_wh_range": {
+              "max": 41.89084801196092,
+              "min": 41.89084800190579,
+              "spread": 1.0055131838271336e-08
+            },
+            "minimum_energy_wh": 35,
+            "minimum_reserve_margin_wh": 27,
+            "reserve_wh": 8,
+            "status": "supported"
+          },
+          "demo-4": {
+            "final_energy_wh_range": {
+              "max": 41.89085670926128,
+              "min": 41.890856699248616,
+              "spread": 1.0012662698954955e-08
+            },
+            "minimum_energy_wh": 35,
+            "minimum_reserve_margin_wh": 27,
+            "reserve_wh": 8,
+            "status": "supported"
+          },
+          "demo-23": {
+            "final_energy_wh_range": {
+              "max": 41.89086918907394,
+              "min": 41.89086917912197,
+              "spread": 9.951968138466327e-09
+            },
+            "minimum_energy_wh": 35,
+            "minimum_reserve_margin_wh": 27,
+            "reserve_wh": 8,
+            "status": "supported"
+          },
+          "demo-62": {
+            "final_energy_wh_range": {
+              "max": 41.89085336472058,
+              "min": 41.89085335469156,
+              "spread": 1.0029019392732152e-08
+            },
+            "minimum_energy_wh": 35,
+            "minimum_reserve_margin_wh": 27,
+            "reserve_wh": 8,
+            "status": "supported"
+          },
+          "demo-52": {
+            "final_energy_wh_range": {
+              "max": 41.890866081882756,
+              "min": 41.89086607191563,
+              "spread": 9.96712401502009e-09
+            },
+            "minimum_energy_wh": 35,
+            "minimum_reserve_margin_wh": 27,
+            "reserve_wh": 8,
+            "status": "supported"
+          }
+        },
+        "decision_reasons": {
+          "insufficient_resource_budget": 16,
+          "planning_start_grid_infeasible": 14,
+          "request_already_scheduled": 861,
+          "selected": 9
+        },
+        "fulfilled_value": 234.0,
+        "opportunity_count": 900,
+        "opportunity_evaluation_count": 3276132,
+        "opportunity_search_status_counts": {
+          "complete_under_search_policy": 900
+        },
+        "planning_status": "supported",
+        "request_count": 9,
+        "requested_value": 234.0,
+        "resource_model_evaluation_count": 71474,
+        "resource_status": "supported",
+        "scheduled_count": 9,
+        "summary_sha256": "534f6d36e1ea51364847af8b36c8727da15d9336a7720fdf119440805f9dc2db",
+        "timings": {
+          "endpoint_verification_ms": 2.477,
+          "opportunity_generation_ms": 44615.081,
+          "preparation_ms": 100.382,
+          "scheduling_ms": 22016.214,
+          "total_ms": 66802.014
+        },
+        "wall_ms": 66803
+      }
+    }
+  ],
+  "prior_100_demand25_failure": {
+    "asset_count": 100,
+    "controls": {
+      "profile": true,
+      "max_memory_bytes": 6000000000,
+      "timeout_ms": 900000
+    },
+    "error": "sampled VM memory exceeded declared ceiling",
+    "input_sha256": "93a8a4dc376fdf7b7bf0dcedb71d9bbed8ea530fb0775f4e0e17906b5e02b361",
+    "observed_wall_ms": 162534,
+    "report_retention": "compact summary only; full in-memory model/path/resource evidence computed; diagnostics not encoded or persisted",
+    "request_count": 25,
+    "sampled_peak_vm_bytes": 6160014257,
+    "stack_profile": {
+      "inclusive_frames": [
+        {
+          "function": "OrbitalDynamics.Schema.JsonSafety.normalize/2",
+          "samples": 2287
+        },
+        {
+          "function": "Enumerable.List.reduce/3",
+          "samples": 2218
+        },
+        {
+          "function": "Enum.reduce_while/3",
+          "samples": 2177
+        },
+        {
+          "function": ":maps.fold_1/4",
+          "samples": 2088
+        },
+        {
+          "function": "Enum.map/2",
+          "samples": 1888
+        },
+        {
+          "function": "OrbitalDynamics.EventSearch.Function.-call/2-fun-0-/2",
+          "samples": 1759
+        },
+        {
+          "function": "Enum.-map/2-fun-0-/3",
+          "samples": 1720
+        },
+        {
+          "function": "OrbitalDynamics.Schema.JsonSafety.-normalize/2-fun-0-/2",
+          "samples": 1674
+        },
+        {
+          "function": "OrbitalDynamics.Schema.JsonSafety.normalize_list/3",
+          "samples": 1672
+        },
+        {
+          "function": "OrbitalDynamics.EventSearch.Context.memo/5",
+          "samples": 1385
+        },
+        {
+          "function": "OrbitalDynamics.MissionAnalysis.Evaluation.new!/2",
+          "samples": 1356
+        },
+        {
+          "function": "OrbitalDynamics.Schema.JsonSafety.-validate_resource_value/4-fun-1-/4",
+          "samples": 1193
+        },
+        {
+          "function": "OrbitalDynamics.Schema.JsonSafety.resource_errors/2",
+          "samples": 1186
+        },
+        {
+          "function": "OrbitalDynamics.MissionAnalysis.Opportunity.Functions.-evaluator/5-fun-1-/6",
+          "samples": 1104
+        },
+        {
+          "function": "OrbitalDynamics.Schema.JsonSafety.normalize_input!/2",
+          "samples": 1087
+        },
+        {
+          "function": "OrbitalDynamics.Schema.JsonSafety.validate_resource_list/5",
+          "samples": 1055
+        },
+        {
+          "function": "String.valid_utf8?/1",
+          "samples": 1009
+        },
+        {
+          "function": "OrbitalDynamics.EventSearch.sample/3",
+          "samples": 999
+        },
+        {
+          "function": "OrbitalDynamics.MissionAnalysis.Models.Illumination.evaluate/3",
+          "samples": 763
+        },
+        {
+          "function": "OrbitalDynamics.Environment.CampaignEnvironmentProvider.fetch/2",
+          "samples": 673
+        },
+        {
+          "function": "OrbitalDynamics.MissionAnalysis.Environments.Campaign.at/2",
+          "samples": 614
+        },
+        {
+          "function": "OrbitalDynamics.MissionAnalysis.Opportunity.Runner.-checked_function/2-fun-1-/3",
+          "samples": 609
+        },
+        {
+          "function": "Enum.-map_reduce/3-lists^mapfoldl/2-0-/3",
+          "samples": 559
+        },
+        {
+          "function": "OrbitalDynamics.Environment.TabularEarthOrientationProvider.fetch/2",
+          "samples": 526
+        },
+        {
+          "function": "OrbitalDynamics.Schema.JsonSafety.resource_child_path/2",
+          "samples": 520
+        },
+        {
+          "function": "Enum.-map/2-lists^map/1-1-/2",
+          "samples": 516
+        },
+        {
+          "function": "OrbitalDynamics.Schema.JsonSafety.normalize_key!/2",
+          "samples": 505
+        },
+        {
+          "function": "OrbitalDynamics.MissionAnalysis.SphericalScene.at/3",
+          "samples": 492
+        },
+        {
+          "function": "OrbitalDynamics.Environment.TabularEarthOrientationProvider.-normalize_samples/1-fun-0-/2",
+          "samples": 464
+        },
+        {
+          "function": "OrbitalDynamics.Environment.TabularEarthOrientationProvider.normalize_sample/1",
+          "samples": 459
+        },
+        {
+          "function": "OrbitalDynamics.Environment.TabularEarthOrientationProvider.normalize_samples/1",
+          "samples": 395
+        },
+        {
+          "function": "OrbitalDynamics.EventSearch.search/3",
+          "samples": 356
+        },
+        {
+          "function": "OrbitalDynamics.Environment.TabularEarthOrientationProvider.normalized_samples/1",
+          "samples": 342
+        },
+        {
+          "function": "OrbitalDynamics.EventSearch.run/3",
+          "samples": 298
+        },
+        {
+          "function": "OrbitalDynamics.Environment.TabularEarthOrientationProvider.-preflight_option_values/1-fun-0-/2",
+          "samples": 293
+        },
+        {
+          "function": "OrbitalDynamics.MissionAnalysis.Opportunity.Functions.-from_evaluation/6-fun-3-/6",
+          "samples": 273
+        },
+        {
+          "function": "OrbitalDynamics.MissionAnalysis.Opportunity.Runner.search/8",
+          "samples": 262
+        },
+        {
+          "function": "OrbitalDynamics.Environment.TabularEarthOrientationProvider.-preflight_samples_option/1-fun-0-/2",
+          "samples": 255
+        },
+        {
+          "function": "Enum.-reduce/3-lists^foldl/2-0-/3",
+          "samples": 251
+        },
+        {
+          "function": "OrbitalDynamics.EventSearch.-windows/6-fun-3-/6",
+          "samples": 240
+        }
+      ],
+      "inclusive_modules": [
+        {
+          "module": "Enum",
+          "samples": 5669
+        },
+        {
+          "module": "OrbitalDynamics.Schema.JsonSafety",
+          "samples": 3869
+        },
+        {
+          "module": "Enumerable.List",
+          "samples": 2218
+        },
+        {
+          "module": ":maps",
+          "samples": 2211
+        },
+        {
+          "module": "OrbitalDynamics.EventSearch.Function",
+          "samples": 1783
+        },
+        {
+          "module": "OrbitalDynamics.EventSearch.Context",
+          "samples": 1583
+        },
+        {
+          "module": "OrbitalDynamics.MissionAnalysis.Opportunity.Functions",
+          "samples": 1385
+        },
+        {
+          "module": "OrbitalDynamics.MissionAnalysis.Evaluation",
+          "samples": 1356
+        },
+        {
+          "module": "OrbitalDynamics.EventSearch",
+          "samples": 1337
+        },
+        {
+          "module": "String",
+          "samples": 1196
+        },
+        {
+          "module": "OrbitalDynamics.Environment.TabularEarthOrientationProvider",
+          "samples": 1143
+        },
+        {
+          "module": "OrbitalDynamics.MissionAnalysis.Models.Illumination",
+          "samples": 951
+        },
+        {
+          "module": "OrbitalDynamics.MissionAnalysis.Opportunity.Runner",
+          "samples": 876
+        },
+        {
+          "module": "OrbitalDynamics.Environment.CampaignEnvironmentProvider",
+          "samples": 673
+        },
+        {
+          "module": "OrbitalDynamics.MissionAnalysis.Environments.Campaign",
+          "samples": 614
+        },
+        {
+          "module": "OrbitalDynamics.MissionAnalysis.SphericalScene",
+          "samples": 590
+        },
+        {
+          "module": "OrbitalDynamics.MissionAnalysis",
+          "samples": 220
+        },
+        {
+          "module": "OrbitalDynamics.MissionAnalysis.Models.SurfaceSupport",
+          "samples": 209
+        },
+        {
+          "module": "Access",
+          "samples": 178
+        },
+        {
+          "module": "Map",
+          "samples": 99
+        },
+        {
+          "module": "Enumerable",
+          "samples": 80
+        },
+        {
+          "module": ":lists",
+          "samples": 67
+        },
+        {
+          "module": "Enumerable.Map",
+          "samples": 62
+        },
+        {
+          "module": "Keyword",
+          "samples": 56
+        },
+        {
+          "module": "Stream.Reducers",
+          "samples": 55
+        },
+        {
+          "module": "String.Chars",
+          "samples": 39
+        },
+        {
+          "module": "String.Chars.Integer",
+          "samples": 39
+        },
+        {
+          "module": "Process",
+          "samples": 34
+        },
+        {
+          "module": "OrbitalDynamics.MissionAnalysis.Input",
+          "samples": 33
+        },
+        {
+          "module": "MapSet",
+          "samples": 27
+        },
+        {
+          "module": "OrbitalDynamics.Vector3",
+          "samples": 27
+        },
+        {
+          "module": ":erlang",
+          "samples": 25
+        },
+        {
+          "module": ":code",
+          "samples": 20
+        },
+        {
+          "module": "List",
+          "samples": 18
+        },
+        {
+          "module": ":timer",
+          "samples": 17
+        },
+        {
+          "module": ":error_handler",
+          "samples": 16
+        },
+        {
+          "module": ":sets",
+          "samples": 15
+        },
+        {
+          "module": "OrbitalDynamics.MissionAnalysis.Attitude.Reference",
+          "samples": 14
+        },
+        {
+          "module": ":code_server",
+          "samples": 8
+        },
+        {
+          "module": "OrbitalDynamics.EventSearch.Source",
+          "samples": 6
+        }
+      ],
+      "interval_ms": 20,
+      "limits": "Statistical live-stack observations, not call counts or exclusive CPU attribution; up to the VM's saved stack depth. Sampling perturbs timings; compare separate unprofiled runs.",
+      "sample_count": 6354,
+      "top_frames": [
+        {
+          "function": "String.valid_utf8?/1",
+          "samples": 1009
+        },
+        {
+          "function": "OrbitalDynamics.Schema.JsonSafety.normalize/2",
+          "samples": 454
+        },
+        {
+          "function": ":maps.fold_1/4",
+          "samples": 291
+        },
+        {
+          "function": "OrbitalDynamics.Schema.JsonSafety.validate_resource_list/5",
+          "samples": 253
+        },
+        {
+          "function": "Enumerable.List.reduce/3",
+          "samples": 251
+        },
+        {
+          "function": "Enum.-map/2-lists^map/1-1-/2",
+          "samples": 209
+        },
+        {
+          "function": "OrbitalDynamics.Schema.JsonSafety.normalize_list/3",
+          "samples": 166
+        },
+        {
+          "function": "Enum.uniq_list/3",
+          "samples": 137
+        },
+        {
+          "function": "Access.get/2",
+          "samples": 116
+        },
+        {
+          "function": "OrbitalDynamics.Schema.JsonSafety.-normalize/2-fun-0-/2",
+          "samples": 114
+        },
+        {
+          "function": "Enum.predicate_list/3",
+          "samples": 105
+        },
+        {
+          "function": "OrbitalDynamics.Schema.JsonSafety.validate_resource_value/4",
+          "samples": 103
+        },
+        {
+          "function": "String.valid?/1",
+          "samples": 103
+        },
+        {
+          "function": "Enum.find_list/3",
+          "samples": 97
+        },
+        {
+          "function": ":maps.try_next/2",
+          "samples": 89
+        },
+        {
+          "function": "OrbitalDynamics.Schema.JsonSafety.resource_child_path/2",
+          "samples": 85
+        },
+        {
+          "function": "String.valid?/2",
+          "samples": 84
+        },
+        {
+          "function": "Enum.filter_list/2",
+          "samples": 82
+        },
+        {
+          "function": "OrbitalDynamics.Schema.JsonSafety.consume_node/2",
+          "samples": 81
+        },
+        {
+          "function": "OrbitalDynamics.Schema.JsonSafety.validate_resources/4",
+          "samples": 79
+        },
+        {
+          "function": ":maps.fold/3",
+          "samples": 76
+        },
+        {
+          "function": "Enum.find_value_list/3",
+          "samples": 74
+        },
+        {
+          "function": "Enum.-map/2-fun-0-/3",
+          "samples": 72
+        },
+        {
+          "function": "OrbitalDynamics.Schema.JsonSafety.-validate_resource_value/4-fun-1-/4",
+          "samples": 66
+        },
+        {
+          "function": "Access.get/3",
+          "samples": 62
+        },
+        {
+          "function": "OrbitalDynamics.Schema.JsonSafety.consume_key_bytes/3",
+          "samples": 58
+        },
+        {
+          "function": "OrbitalDynamics.Schema.JsonSafety.consume_bytes/3",
+          "samples": 56
+        },
+        {
+          "function": ":lists.reverse/1",
+          "samples": 53
+        },
+        {
+          "function": "Enum.-uniq/1-fun-0-/1",
+          "samples": 49
+        },
+        {
+          "function": "Enum.any?/2",
+          "samples": 42
+        },
+        {
+          "function": "Enum.-map/2-anonymous-2-/4",
+          "samples": 39
+        },
+        {
+          "function": "OrbitalDynamics.Environment.TabularEarthOrientationProvider.preflight_container/3",
+          "samples": 39
+        },
+        {
+          "function": "String.Chars.Integer.to_string/1",
+          "samples": 39
+        },
+        {
+          "function": "Enum.map/2",
+          "samples": 38
+        },
+        {
+          "function": "OrbitalDynamics.Environment.TabularEarthOrientationProvider.reject_alias_group_collisions/3",
+          "samples": 37
+        },
+        {
+          "function": "OrbitalDynamics.Schema.JsonSafety.-normalize/2-fun-1-/1",
+          "samples": 37
+        },
+        {
+          "function": "Enumerable.reduce/3",
+          "samples": 36
+        },
+        {
+          "function": "OrbitalDynamics.Environment.TabularEarthOrientationProvider.bounded_list_items/5",
+          "samples": 36
+        },
+        {
+          "function": "OrbitalDynamics.Schema.JsonSafety.normalize_key!/2",
+          "samples": 34
+        },
+        {
+          "function": "Enum.-reduce/3-fun-0-/4",
+          "samples": 33
+        }
+      ]
+    },
+    "status": "memory_budget_exceeded"
+  },
+  "compact_100_demand25": {
+    "asset_count": 100,
+    "controls": {
+      "profile": false,
+      "full_diagnostics": false,
+      "timeout_ms": 900000,
+      "max_memory_bytes": 6000000000
+    },
+    "input_sha256": "93a8a4dc376fdf7b7bf0dcedb71d9bbed8ea530fb0775f4e0e17906b5e02b361",
+    "observed_wall_ms": 167153,
+    "report_retention": "compact saved summary; all model/path/resource checks computed; dense opportunity diagnostics retained across pairs only with full_diagnostics=true",
+    "request_count": 25,
+    "sampled_peak_vm_bytes": 1879807095,
+    "stack_profile": {
+      "inclusive_frames": [],
+      "inclusive_modules": [],
+      "interval_ms": 20,
+      "limits": "Statistical live-stack observations, not call counts or exclusive CPU attribution; up to the VM's saved stack depth. Sampling perturbs timings; compare separate unprofiled runs.",
+      "sample_count": 0,
+      "top_frames": []
+    },
+    "status": "completed",
+    "summary": {
+      "asset_count": 100,
+      "asset_request_pairs": 2500,
+      "assignments": [
+        {
+          "asset_id": "demo-1",
+          "ends_at_s": 820497680.5,
+          "request_id": "request-10",
+          "starts_at_s": 820497660.5,
+          "value": 30.0
+        },
+        {
+          "asset_id": "demo-3",
+          "ends_at_s": 820497680.5,
+          "request_id": "request-24",
+          "starts_at_s": 820497660.5,
+          "value": 25.0
+        },
+        {
+          "asset_id": "demo-13",
+          "ends_at_s": 820497680.5,
+          "request_id": "request-19",
+          "starts_at_s": 820497660.5,
+          "value": 30.0
+        },
+        {
+          "asset_id": "demo-15",
+          "ends_at_s": 820497680.5,
+          "request_id": "request-22",
+          "starts_at_s": 820497660.5,
+          "value": 27.0
+        },
+        {
+          "asset_id": "demo-19",
+          "ends_at_s": 820497680.5,
+          "request_id": "request-11",
+          "starts_at_s": 820497660.5,
+          "value": 29.0
+        },
+        {
+          "asset_id": "demo-26",
+          "ends_at_s": 820497680.5,
+          "request_id": "central-2",
+          "starts_at_s": 820497660.5,
+          "value": 26.0
+        },
+        {
+          "asset_id": "demo-32",
+          "ends_at_s": 820497680.5,
+          "request_id": "central-3",
+          "starts_at_s": 820497660.5,
+          "value": 25.0
+        },
+        {
+          "asset_id": "demo-11",
+          "ends_at_s": 820497685.5,
+          "request_id": "request-25",
+          "starts_at_s": 820497665.5,
+          "value": 24.0
+        },
+        {
+          "asset_id": "demo-17",
+          "ends_at_s": 820497685.5,
+          "request_id": "request-17",
+          "starts_at_s": 820497665.5,
+          "value": 23.0
+        },
+        {
+          "asset_id": "demo-21",
+          "ends_at_s": 820497685.5,
+          "request_id": "request-14",
+          "starts_at_s": 820497665.5,
+          "value": 26.0
+        },
+        {
+          "asset_id": "demo-23",
+          "ends_at_s": 820497685.5,
+          "request_id": "request-18",
+          "starts_at_s": 820497665.5,
+          "value": 22.0
+        },
+        {
+          "asset_id": "demo-25",
+          "ends_at_s": 820497685.5,
+          "request_id": "request-12",
+          "starts_at_s": 820497665.5,
+          "value": 28.0
+        },
+        {
+          "asset_id": "demo-27",
+          "ends_at_s": 820497685.5,
+          "request_id": "request-15",
+          "starts_at_s": 820497665.5,
+          "value": 25.0
+        },
+        {
+          "asset_id": "demo-31",
+          "ends_at_s": 820497685.5,
+          "request_id": "request-21",
+          "starts_at_s": 820497665.5,
+          "value": 28.0
+        },
+        {
+          "asset_id": "demo-37",
+          "ends_at_s": 820497685.5,
+          "request_id": "south-3",
+          "starts_at_s": 820497665.5,
+          "value": 28.0
+        },
+        {
+          "asset_id": "demo-2",
+          "ends_at_s": 820497690.5,
+          "request_id": "request-20",
+          "starts_at_s": 820497670.5,
+          "value": 29.0
+        },
+        {
+          "asset_id": "demo-10",
+          "ends_at_s": 820497690.5,
+          "request_id": "request-13",
+          "starts_at_s": 820497670.5,
+          "value": 27.0
+        },
+        {
+          "asset_id": "demo-12",
+          "ends_at_s": 820497690.5,
+          "request_id": "north-1",
+          "starts_at_s": 820497670.5,
+          "value": 24.0
+        },
+        {
+          "asset_id": "demo-14",
+          "ends_at_s": 820497690.5,
+          "request_id": "south-1",
+          "starts_at_s": 820497670.5,
+          "value": 30.0
+        },
+        {
+          "asset_id": "demo-16",
+          "ends_at_s": 820497690.5,
+          "request_id": "central-1",
+          "starts_at_s": 820497670.5,
+          "value": 27.0
+        },
+        {
+          "asset_id": "demo-18",
+          "ends_at_s": 820497690.5,
+          "request_id": "north-2",
+          "starts_at_s": 820497670.5,
+          "value": 23.0
+        },
+        {
+          "asset_id": "demo-20",
+          "ends_at_s": 820497690.5,
+          "request_id": "south-2",
+          "starts_at_s": 820497670.5,
+          "value": 29.0
+        },
+        {
+          "asset_id": "demo-22",
+          "ends_at_s": 820497690.5,
+          "request_id": "request-23",
+          "starts_at_s": 820497670.5,
+          "value": 26.0
+        },
+        {
+          "asset_id": "demo-100",
+          "ends_at_s": 820497690.5,
+          "request_id": "request-16",
+          "starts_at_s": 820497670.5,
+          "value": 24.0
+        },
+        {
+          "asset_id": "demo-24",
+          "ends_at_s": 820497695.5,
+          "request_id": "north-3",
+          "starts_at_s": 820497675.5,
+          "value": 22.0
+        }
+      ],
+      "attitude_model_evaluation_count": 61260,
+      "batteries": {
+        "demo-71": {
+          "final_energy_wh_range": {
+            "max": 41.89088216241472,
+            "min": 41.89088215252566,
+            "spread": 9.889056684642128e-09
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-56": {
+          "final_energy_wh_range": {
+            "max": 41.89085255896713,
+            "min": 41.890852548934305,
+            "spread": 1.0032827901795827e-08
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-15": {
+          "final_energy_wh_range": {
+            "max": 25.81583826812498,
+            "min": 25.788162426864943,
+            "spread": 0.02767584126003797
+          },
+          "minimum_energy_wh": 22.856701388667847,
+          "minimum_reserve_margin_wh": 14.856701388667847,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-66": {
+          "final_energy_wh_range": {
+            "max": 41.8908943238883,
+            "min": 41.890894314058336,
+            "spread": 9.82996084530896e-09
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-25": {
+          "final_energy_wh_range": {
+            "max": 25.442035073246767,
+            "min": 25.4292308145994,
+            "spread": 0.012804258647367561
+          },
+          "minimum_energy_wh": 22.68277265259358,
+          "minimum_reserve_margin_wh": 14.68277265259358,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-39": {
+          "final_energy_wh_range": {
+            "max": 41.89085569317625,
+            "min": 41.89085568315867,
+            "spread": 1.0017579654686415e-08
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-47": {
+          "final_energy_wh_range": {
+            "max": 41.890875304879636,
+            "min": 41.89087529495738,
+            "spread": 9.92225324125684e-09
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-30": {
+          "final_energy_wh_range": {
+            "max": 41.890882752082526,
+            "min": 41.89088274219628,
+            "spread": 9.886242935408518e-09
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-70": {
+          "final_energy_wh_range": {
+            "max": 41.890870369155834,
+            "min": 41.890870359209536,
+            "spread": 9.946298007434962e-09
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-11": {
+          "final_energy_wh_range": {
+            "max": 25.450830603061743,
+            "min": 25.43830704047608,
+            "spread": 0.012523562585663228
+          },
+          "minimum_energy_wh": 22.681467211794804,
+          "minimum_reserve_margin_wh": 14.681467211794804,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-86": {
+          "final_energy_wh_range": {
+            "max": 41.89085705976198,
+            "min": 41.89085704975087,
+            "spread": 1.001110661036364e-08
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-36": {
+          "final_energy_wh_range": {
+            "max": 41.89088456589189,
+            "min": 41.890884556014484,
+            "spread": 9.877403783775662e-09
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-69": {
+          "final_energy_wh_range": {
+            "max": 41.89086104970716,
+            "min": 41.890861039715496,
+            "spread": 9.991666161113244e-09
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-93": {
+          "final_energy_wh_range": {
+            "max": 41.89086617911451,
+            "min": 41.89086616914777,
+            "spread": 9.96674032194278e-09
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-95": {
+          "final_energy_wh_range": {
+            "max": 41.89088975617857,
+            "min": 41.89088974632629,
+            "spread": 9.852278992639185e-09
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-61": {
+          "final_energy_wh_range": {
+            "max": 41.89084934445483,
+            "min": 41.89084933440623,
+            "spread": 1.0048601950529701e-08
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-24": {
+          "final_energy_wh_range": {
+            "max": 23.310121873038195,
+            "min": 23.280556635424343,
+            "spread": 0.02956523761385199
+          },
+          "minimum_energy_wh": 21.085985668440802,
+          "minimum_reserve_margin_wh": 13.085985668440802,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-88": {
+          "final_energy_wh_range": {
+            "max": 41.890875074778855,
+            "min": 41.8908750648554,
+            "spread": 9.923454058480274e-09
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-63": {
+          "final_energy_wh_range": {
+            "max": 41.89085988438698,
+            "min": 41.89085987438964,
+            "spread": 9.99733629214461e-09
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-45": {
+          "final_energy_wh_range": {
+            "max": 41.89085667034727,
+            "min": 41.89085666033439,
+            "spread": 1.0012875861775683e-08
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-9": {
+          "final_energy_wh_range": {
+            "max": 41.89085151612555,
+            "min": 41.89085150608766,
+            "spread": 1.0037894071501796e-08
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-75": {
+          "final_energy_wh_range": {
+            "max": 41.89086226190788,
+            "min": 41.890862251922194,
+            "spread": 9.985683391278144e-09
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-98": {
+          "final_energy_wh_range": {
+            "max": 41.89085918971256,
+            "min": 41.890859179711846,
+            "spread": 1.000071137013947e-08
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-76": {
+          "final_energy_wh_range": {
+            "max": 41.89087189131822,
+            "min": 41.890871881379326,
+            "spread": 9.938894152128341e-09
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-16": {
+          "final_energy_wh_range": {
+            "max": 23.919537653511124,
+            "min": 23.875656476304087,
+            "spread": 0.043881177207037325
+          },
+          "minimum_energy_wh": 21.472582701496638,
+          "minimum_reserve_margin_wh": 13.472582701496638,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-49": {
+          "final_energy_wh_range": {
+            "max": 41.89084840856963,
+            "min": 41.89084839851651,
+            "spread": 1.0053121002329135e-08
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-10": {
+          "final_energy_wh_range": {
+            "max": 24.059317993404004,
+            "min": 24.022537000413003,
+            "spread": 0.03678099299100168
+          },
+          "minimum_energy_wh": 21.599771444137772,
+          "minimum_reserve_margin_wh": 13.599771444137772,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-94": {
+          "final_energy_wh_range": {
+            "max": 41.890876735912784,
+            "min": 41.89087672599732,
+            "spread": 9.915460452702973e-09
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-99": {
+          "final_energy_wh_range": {
+            "max": 41.89086757814776,
+            "min": 41.89086756818781,
+            "spread": 9.95995463881627e-09
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-1": {
+          "final_energy_wh_range": {
+            "max": 26.276246428357375,
+            "min": 26.260943692159724,
+            "spread": 0.015302736197650546
+          },
+          "minimum_energy_wh": 23.261569444086533,
+          "minimum_reserve_margin_wh": 15.261569444086533,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-74": {
+          "final_energy_wh_range": {
+            "max": 41.890855117943836,
+            "min": 41.89085510792335,
+            "spread": 1.0020485774475674e-08
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-48": {
+          "final_energy_wh_range": {
+            "max": 41.89088833157887,
+            "min": 41.89088832171984,
+            "spread": 9.859029148628906e-09
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-38": {
+          "final_energy_wh_range": {
+            "max": 41.89085042573822,
+            "min": 41.890850415694885,
+            "spread": 1.0043336828857719e-08
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-41": {
+          "final_energy_wh_range": {
+            "max": 41.89087370618796,
+            "min": 41.89087369625783,
+            "spread": 9.93013316019642e-09
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-73": {
+          "final_energy_wh_range": {
+            "max": 41.89085047031391,
+            "min": 41.890850460270784,
+            "spread": 1.004312366603699e-08
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-81": {
+          "final_energy_wh_range": {
+            "max": 41.89086352092235,
+            "min": 41.8908635109428,
+            "spread": 9.979551407468534e-09
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-65": {
+          "final_energy_wh_range": {
+            "max": 41.89088037878562,
+            "min": 41.890880368887906,
+            "spread": 9.897711095163686e-09
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-60": {
+          "final_energy_wh_range": {
+            "max": 41.89089228074191,
+            "min": 41.890892270901915,
+            "spread": 9.839993708737893e-09
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-89": {
+          "final_energy_wh_range": {
+            "max": 41.89088778903676,
+            "min": 41.890887779175,
+            "spread": 9.861757632734225e-09
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-42": {
+          "final_energy_wh_range": {
+            "max": 41.89088642575426,
+            "min": 41.89088641588593,
+            "spread": 9.868330153040006e-09
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-84": {
+          "final_energy_wh_range": {
+            "max": 41.89090072639476,
+            "min": 41.8909007165958,
+            "spread": 9.798959865747747e-09
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-26": {
+          "final_energy_wh_range": {
+            "max": 26.657237651136054,
+            "min": 26.644816607603524,
+            "spread": 0.012421043532530263
+          },
+          "minimum_energy_wh": 23.575165282367173,
+          "minimum_reserve_margin_wh": 15.575165282367173,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-54": {
+          "final_energy_wh_range": {
+            "max": 41.890890283273066,
+            "min": 41.89089027342347,
+            "spread": 9.849593141098012e-09
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-18": {
+          "final_energy_wh_range": {
+            "max": 23.757680203299714,
+            "min": 23.703437895506195,
+            "spread": 0.05424230779351902
+          },
+          "minimum_energy_wh": 21.32220805873265,
+          "minimum_reserve_margin_wh": 13.322208058732649,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-2": {
+          "final_energy_wh_range": {
+            "max": 24.36731969348462,
+            "min": 24.34660092479534,
+            "spread": 0.020718768689281575
+          },
+          "minimum_energy_wh": 21.88177264637665,
+          "minimum_reserve_margin_wh": 13.88177264637665,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-90": {
+          "final_energy_wh_range": {
+            "max": 41.890902951242595,
+            "min": 41.890902941454385,
+            "spread": 9.788209354155697e-09
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-46": {
+          "final_energy_wh_range": {
+            "max": 41.89086474611285,
+            "min": 41.89086473613916,
+            "spread": 9.973689429898513e-09
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-29": {
+          "final_energy_wh_range": {
+            "max": 41.890870648207375,
+            "min": 41.890870638262506,
+            "spread": 9.944869816536084e-09
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-33": {
+          "final_energy_wh_range": {
+            "max": 41.890854763188855,
+            "min": 41.890854753166614,
+            "spread": 1.0022240815033001e-08
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-87": {
+          "final_energy_wh_range": {
+            "max": 41.89086482668165,
+            "min": 41.89086481670836,
+            "spread": 9.973291525966488e-09
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-82": {
+          "final_energy_wh_range": {
+            "max": 41.89087345988638,
+            "min": 41.890873449955,
+            "spread": 9.931376609984e-09
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-14": {
+          "final_energy_wh_range": {
+            "max": 24.085382465670797,
+            "min": 24.050283473632692,
+            "spread": 0.035098992038104626
+          },
+          "minimum_energy_wh": 21.62489416498716,
+          "minimum_reserve_margin_wh": 13.624894164987161,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-8": {
+          "final_energy_wh_range": {
+            "max": 41.89084781976468,
+            "min": 41.89084780970868,
+            "spread": 1.0055998700408963e-08
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-44": {
+          "final_energy_wh_range": {
+            "max": 41.890851089428864,
+            "min": 41.89085107938878,
+            "spread": 1.0040082543127937e-08
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-50": {
+          "final_energy_wh_range": {
+            "max": 41.8908518005206,
+            "min": 41.89085179048396,
+            "spread": 1.0036643516286858e-08
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-35": {
+          "final_energy_wh_range": {
+            "max": 41.89087215393755,
+            "min": 41.89087214399998,
+            "spread": 9.937572542639828e-09
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-78": {
+          "final_energy_wh_range": {
+            "max": 41.89089854681674,
+            "min": 41.89089853700726,
+            "spread": 9.809483003664354e-09
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-20": {
+          "final_energy_wh_range": {
+            "max": 23.94538026054198,
+            "min": 23.90339901938556,
+            "spread": 0.04198124115642088
+          },
+          "minimum_energy_wh": 21.497394328897332,
+          "minimum_reserve_margin_wh": 13.497394328897332,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-31": {
+          "final_energy_wh_range": {
+            "max": 25.3038726485864,
+            "min": 25.29454970489708,
+            "spread": 0.00932294368931963
+          },
+          "minimum_energy_wh": 22.569089129549326,
+          "minimum_reserve_margin_wh": 14.569089129549326,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-32": {
+          "final_energy_wh_range": {
+            "max": 26.546116886864386,
+            "min": 26.539509390226705,
+            "spread": 0.00660749663768101
+          },
+          "minimum_energy_wh": 23.487404463712778,
+          "minimum_reserve_margin_wh": 15.487404463712778,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-5": {
+          "final_energy_wh_range": {
+            "max": 41.890865091988886,
+            "min": 41.890865082017044,
+            "spread": 9.971842018785537e-09
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-68": {
+          "final_energy_wh_range": {
+            "max": 41.89085421773037,
+            "min": 41.89085420770543,
+            "spread": 1.002494087742889e-08
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-58": {
+          "final_energy_wh_range": {
+            "max": 41.89086746436213,
+            "min": 41.89086745440174,
+            "spread": 9.960388069885084e-09
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-17": {
+          "final_energy_wh_range": {
+            "max": 25.324836541868642,
+            "min": 25.315556626172693,
+            "spread": 0.00927991569594866
+          },
+          "minimum_energy_wh": 22.578507706069107,
+          "minimum_reserve_margin_wh": 14.578507706069107,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-97": {
+          "final_energy_wh_range": {
+            "max": 41.890853290602486,
+            "min": 41.890853280572955,
+            "spread": 1.00295309835019e-08
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-27": {
+          "final_energy_wh_range": {
+            "max": 25.250393897112495,
+            "min": 25.242623714526566,
+            "spread": 0.007770182585929319
+          },
+          "minimum_energy_wh": 22.52133886137302,
+          "minimum_reserve_margin_wh": 14.521338861373021,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-77": {
+          "final_energy_wh_range": {
+            "max": 41.89088399206065,
+            "min": 41.890883982180526,
+            "spread": 9.880125162453623e-09
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-67": {
+          "final_energy_wh_range": {
+            "max": 41.8908498836575,
+            "min": 41.89084987361141,
+            "spread": 1.0046093734672468e-08
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-12": {
+          "final_energy_wh_range": {
+            "max": 23.896899739866726,
+            "min": 23.85120382927074,
+            "spread": 0.04569591059598466
+          },
+          "minimum_energy_wh": 21.45017344032326,
+          "minimum_reserve_margin_wh": 13.450173440323258,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-96": {
+          "final_energy_wh_range": {
+            "max": 41.89090522125306,
+            "min": 41.890905211475946,
+            "spread": 9.777110676623124e-09
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-72": {
+          "final_energy_wh_range": {
+            "max": 41.890896412613664,
+            "min": 41.89089640279377,
+            "spread": 9.81989245474324e-09
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-51": {
+          "final_energy_wh_range": {
+            "max": 41.89085769464531,
+            "min": 41.89085768463745,
+            "spread": 1.0007859430061217e-08
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-6": {
+          "final_energy_wh_range": {
+            "max": 41.89087595911767,
+            "min": 41.89087594919869,
+            "spread": 9.918984744672343e-09
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-79": {
+          "final_energy_wh_range": {
+            "max": 41.89085110438212,
+            "min": 41.89085109434203,
+            "spread": 1.0040089648555295e-08
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-19": {
+          "final_energy_wh_range": {
+            "max": 25.88797241284174,
+            "min": 25.855291671603894,
+            "spread": 0.032680741237847144
+          },
+          "minimum_energy_wh": 22.91746828516708,
+          "minimum_reserve_margin_wh": 14.917468285167079,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-100": {
+          "final_energy_wh_range": {
+            "max": 24.36768467823171,
+            "min": 24.351254618381063,
+            "spread": 0.016430059850648604
+          },
+          "minimum_energy_wh": 21.880933314136364,
+          "minimum_reserve_margin_wh": 13.880933314136364,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-13": {
+          "final_energy_wh_range": {
+            "max": 26.01968781750104,
+            "min": 25.988930893264595,
+            "spread": 0.030756924236445826
+          },
+          "minimum_energy_wh": 23.030391604803373,
+          "minimum_reserve_margin_wh": 15.030391604803373,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-7": {
+          "final_energy_wh_range": {
+            "max": 41.89084663296733,
+            "min": 41.890846622905435,
+            "spread": 1.0061896205115772e-08
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-28": {
+          "final_energy_wh_range": {
+            "max": 41.890861019755874,
+            "min": 41.89086100976417,
+            "spread": 9.991701688250032e-09
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-57": {
+          "final_energy_wh_range": {
+            "max": 41.890858766012094,
+            "min": 41.89085875600939,
+            "spread": 1.0002700889799598e-08
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-92": {
+          "final_energy_wh_range": {
+            "max": 41.89085810125089,
+            "min": 41.89085809124488,
+            "spread": 1.000601201894824e-08
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-59": {
+          "final_energy_wh_range": {
+            "max": 41.89087864126234,
+            "min": 41.89087863135629,
+            "spread": 9.90605286688151e-09
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-3": {
+          "final_energy_wh_range": {
+            "max": 26.064931276475548,
+            "min": 26.036497771670618,
+            "spread": 0.02843350480493001
+          },
+          "minimum_energy_wh": 23.065377594412688,
+          "minimum_reserve_margin_wh": 15.065377594412688,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-37": {
+          "final_energy_wh_range": {
+            "max": 25.16246890563056,
+            "min": 25.156596107127655,
+            "spread": 0.005872798502906562
+          },
+          "minimum_energy_wh": 22.45213579613389,
+          "minimum_reserve_margin_wh": 14.452135796133891,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-22": {
+          "final_energy_wh_range": {
+            "max": 23.779894277724296,
+            "min": 23.727689374403482,
+            "spread": 0.0522049033208134
+          },
+          "minimum_energy_wh": 21.344131092691857,
+          "minimum_reserve_margin_wh": 13.344131092691857,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-55": {
+          "final_energy_wh_range": {
+            "max": 41.89084885274627,
+            "min": 41.890848842695256,
+            "spread": 1.0051010690403928e-08
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-91": {
+          "final_energy_wh_range": {
+            "max": 41.890852514573965,
+            "min": 41.890852504540725,
+            "spread": 1.0033240016582567e-08
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-21": {
+          "final_energy_wh_range": {
+            "max": 25.384584179505776,
+            "min": 25.37344391231433,
+            "spread": 0.011140267191446895
+          },
+          "minimum_energy_wh": 22.631613369545768,
+          "minimum_reserve_margin_wh": 14.631613369545768,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-83": {
+          "final_energy_wh_range": {
+            "max": 41.89088586763244,
+            "min": 41.89088585776135,
+            "spread": 9.871094164282113e-09
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-34": {
+          "final_energy_wh_range": {
+            "max": 41.890862214981766,
+            "min": 41.890862204995855,
+            "spread": 9.985910764953587e-09
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-53": {
+          "final_energy_wh_range": {
+            "max": 41.89087694993218,
+            "min": 41.8908769400178,
+            "spread": 9.914380427744618e-09
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-80": {
+          "final_energy_wh_range": {
+            "max": 41.89085606530666,
+            "min": 41.89085605529074,
+            "spread": 1.0015916984684736e-08
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-85": {
+          "final_energy_wh_range": {
+            "max": 41.890851785817574,
+            "min": 41.89085177578085,
+            "spread": 1.0036721675987792e-08
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-64": {
+          "final_energy_wh_range": {
+            "max": 41.890868893478135,
+            "min": 41.89086888352466,
+            "spread": 9.953474489066139e-09
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-40": {
+          "final_energy_wh_range": {
+            "max": 41.89086345712293,
+            "min": 41.89086344714305,
+            "spread": 9.979885362554342e-09
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-43": {
+          "final_energy_wh_range": {
+            "max": 41.89084801196092,
+            "min": 41.89084800190579,
+            "spread": 1.0055131838271336e-08
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-4": {
+          "final_energy_wh_range": {
+            "max": 41.89085670926128,
+            "min": 41.890856699248616,
+            "spread": 1.0012662698954955e-08
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-23": {
+          "final_energy_wh_range": {
+            "max": 25.194960073698983,
+            "min": 25.188917753133374,
+            "spread": 0.006042320565608605
+          },
+          "minimum_energy_wh": 22.47187192259684,
+          "minimum_reserve_margin_wh": 14.47187192259684,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-62": {
+          "final_energy_wh_range": {
+            "max": 41.89085336472058,
+            "min": 41.89085335469156,
+            "spread": 1.0029019392732152e-08
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        },
+        "demo-52": {
+          "final_energy_wh_range": {
+            "max": 41.890866081882756,
+            "min": 41.89086607191563,
+            "spread": 9.96712401502009e-09
+          },
+          "minimum_energy_wh": 35,
+          "minimum_reserve_margin_wh": 27,
+          "reserve_wh": 8,
+          "status": "supported"
+        }
+      },
+      "decision_reasons": {
+        "insufficient_resource_budget": 151,
+        "planning_start_grid_infeasible": 134,
+        "request_already_scheduled": 2190,
+        "selected": 25
+      },
+      "fulfilled_value": 657.0,
+      "opportunity_count": 2500,
+      "opportunity_evaluation_count": 9099354,
+      "opportunity_search_status_counts": {
+        "complete_under_search_policy": 2500
+      },
+      "planning_status": "supported",
+      "request_count": 25,
+      "requested_value": 657.0,
+      "resource_model_evaluation_count": 82282,
+      "resource_status": "supported",
+      "scheduled_count": 25,
+      "summary_sha256": "fa9b57530645f10d664a3dcaa9dbe5d957917acc7644249fd0f9aaa6d7983e35",
+      "timings": {
+        "endpoint_verification_ms": 8.667,
+        "opportunity_generation_ms": 129788.554,
+        "preparation_ms": 230.801,
+        "scheduling_ms": 36581.201,
+        "total_ms": 167049.511
+      },
+      "wall_ms": 167151
+    }
+  },
+  "six_spacecraft_full_compact_verification": {
+    "format": "opportunity_retention_verification.v1",
+    "outcome_projection_equal": true,
+    "projection_scope": "Entire report except analysis.samples, event scan_samples/function_observations, event controls.include_samples and diagnostic_retention metadata. Includes all windows, events, unknown intervals, failure counts, work counters, activities and complete attitude/path/resource evidence.",
+    "runs": [
+      {
+        "encoded_report_bytes": 72827405,
+        "input_sha256": "c1866a9e5a42cc110349fa49e9c07518993e93d0b7eb490ed3756766087e96ea",
+        "mode": "full",
+        "outcome_projection_sha256": "437471b3da9efb59d375af633aa74c20912ea2adee2ba06bc88450ce30d2d81e",
+        "retained_function_observations": 8334,
+        "retained_model_samples": 8442,
+        "summary": {
+          "asset_count": 6,
+          "asset_request_pairs": 54,
+          "assignments": [
+            {
+              "asset_id": "demo-1",
+              "ends_at_s": 820497680.5,
+              "request_id": "south-1",
+              "starts_at_s": 820497660.5,
+              "value": 30.0
+            },
+            {
+              "asset_id": "demo-3",
+              "ends_at_s": 820497680.5,
+              "request_id": "central-1",
+              "starts_at_s": 820497660.5,
+              "value": 27.0
+            },
+            {
+              "asset_id": "demo-5",
+              "ends_at_s": 820497680.5,
+              "request_id": "north-1",
+              "starts_at_s": 820497660.5,
+              "value": 24.0
+            },
+            {
+              "asset_id": "demo-2",
+              "ends_at_s": 820497690.5,
+              "request_id": "south-2",
+              "starts_at_s": 820497670.5,
+              "value": 29.0
+            },
+            {
+              "asset_id": "demo-4",
+              "ends_at_s": 820497690.5,
+              "request_id": "central-2",
+              "starts_at_s": 820497670.5,
+              "value": 26.0
+            },
+            {
+              "asset_id": "demo-6",
+              "ends_at_s": 820497690.5,
+              "request_id": "north-2",
+              "starts_at_s": 820497670.5,
+              "value": 23.0
+            }
+          ],
+          "attitude_model_evaluation_count": 3417,
+          "batteries": {
+            "demo-1": {
+              "final_energy_wh_range": {
+                "max": 26.276246428357375,
+                "min": 26.260943692159724,
+                "spread": 0.015302736197650546
+              },
+              "minimum_energy_wh": 23.261569444086533,
+              "minimum_reserve_margin_wh": 15.261569444086533,
+              "reserve_wh": 8,
+              "status": "supported"
+            },
+            "demo-2": {
+              "final_energy_wh_range": {
+                "max": 24.36731969348462,
+                "min": 24.34660092479534,
+                "spread": 0.020718768689281575
+              },
+              "minimum_energy_wh": 21.88177264637665,
+              "minimum_reserve_margin_wh": 13.88177264637665,
+              "reserve_wh": 8,
+              "status": "supported"
+            },
+            "demo-3": {
+              "final_energy_wh_range": {
+                "max": 26.064931276475548,
+                "min": 26.036497771670618,
+                "spread": 0.02843350480493001
+              },
+              "minimum_energy_wh": 23.065377594412688,
+              "minimum_reserve_margin_wh": 15.065377594412688,
+              "reserve_wh": 8,
+              "status": "supported"
+            },
+            "demo-4": {
+              "final_energy_wh_range": {
+                "max": 24.19918090742281,
+                "min": 24.170049881842118,
+                "spread": 0.029131025580692693
+              },
+              "minimum_energy_wh": 21.727435150253708,
+              "minimum_reserve_margin_wh": 13.727435150253708,
+              "reserve_wh": 8,
+              "status": "supported"
+            },
+            "demo-5": {
+              "final_energy_wh_range": {
+                "max": 25.861022345873575,
+                "min": 25.830654084374697,
+                "spread": 0.030368261498878724
+              },
+              "minimum_energy_wh": 22.88674581768952,
+              "minimum_reserve_margin_wh": 14.886745817689519,
+              "reserve_wh": 8,
+              "status": "supported"
+            },
+            "demo-6": {
+              "final_energy_wh_range": {
+                "max": 24.035850174121403,
+                "min": 23.997397441673883,
+                "spread": 0.03845273244752079
+              },
+              "minimum_energy_wh": 21.576462826824216,
+              "minimum_reserve_margin_wh": 13.576462826824216,
+              "reserve_wh": 8,
+              "status": "supported"
+            }
+          },
+          "decision_reasons": {
+            "insufficient_resource_budget": 21,
+            "planning_start_grid_infeasible": 6,
+            "request_already_scheduled": 21,
+            "selected": 6
+          },
+          "fulfilled_value": 159.0,
+          "opportunity_count": 54,
+          "opportunity_evaluation_count": 196956,
+          "planning_status": "supported",
+          "request_count": 9,
+          "requested_value": 234.0,
+          "resource_model_evaluation_count": 7972,
+          "resource_status": "supported",
+          "scheduled_count": 6,
+          "timings": {
+            "endpoint_verification_ms": 1.63,
+            "opportunity_generation_ms": 2829.569,
+            "preparation_ms": 43.087,
+            "scheduling_ms": 3490.109,
+            "total_ms": 6404.491
+          }
+        },
+        "summary_sha256": "a8c1a469974de61ea31dfd70e75c16eede9dbc8dca4fa35331bbdf69055c887d"
+      },
+      {
+        "encoded_report_bytes": 19446662,
+        "input_sha256": "c1866a9e5a42cc110349fa49e9c07518993e93d0b7eb490ed3756766087e96ea",
+        "mode": "compact",
+        "outcome_projection_sha256": "437471b3da9efb59d375af633aa74c20912ea2adee2ba06bc88450ce30d2d81e",
+        "retained_function_observations": 0,
+        "retained_model_samples": 0,
+        "summary": {
+          "asset_count": 6,
+          "asset_request_pairs": 54,
+          "assignments": [
+            {
+              "asset_id": "demo-1",
+              "ends_at_s": 820497680.5,
+              "request_id": "south-1",
+              "starts_at_s": 820497660.5,
+              "value": 30.0
+            },
+            {
+              "asset_id": "demo-3",
+              "ends_at_s": 820497680.5,
+              "request_id": "central-1",
+              "starts_at_s": 820497660.5,
+              "value": 27.0
+            },
+            {
+              "asset_id": "demo-5",
+              "ends_at_s": 820497680.5,
+              "request_id": "north-1",
+              "starts_at_s": 820497660.5,
+              "value": 24.0
+            },
+            {
+              "asset_id": "demo-2",
+              "ends_at_s": 820497690.5,
+              "request_id": "south-2",
+              "starts_at_s": 820497670.5,
+              "value": 29.0
+            },
+            {
+              "asset_id": "demo-4",
+              "ends_at_s": 820497690.5,
+              "request_id": "central-2",
+              "starts_at_s": 820497670.5,
+              "value": 26.0
+            },
+            {
+              "asset_id": "demo-6",
+              "ends_at_s": 820497690.5,
+              "request_id": "north-2",
+              "starts_at_s": 820497670.5,
+              "value": 23.0
+            }
+          ],
+          "attitude_model_evaluation_count": 3417,
+          "batteries": {
+            "demo-1": {
+              "final_energy_wh_range": {
+                "max": 26.276246428357375,
+                "min": 26.260943692159724,
+                "spread": 0.015302736197650546
+              },
+              "minimum_energy_wh": 23.261569444086533,
+              "minimum_reserve_margin_wh": 15.261569444086533,
+              "reserve_wh": 8,
+              "status": "supported"
+            },
+            "demo-2": {
+              "final_energy_wh_range": {
+                "max": 24.36731969348462,
+                "min": 24.34660092479534,
+                "spread": 0.020718768689281575
+              },
+              "minimum_energy_wh": 21.88177264637665,
+              "minimum_reserve_margin_wh": 13.88177264637665,
+              "reserve_wh": 8,
+              "status": "supported"
+            },
+            "demo-3": {
+              "final_energy_wh_range": {
+                "max": 26.064931276475548,
+                "min": 26.036497771670618,
+                "spread": 0.02843350480493001
+              },
+              "minimum_energy_wh": 23.065377594412688,
+              "minimum_reserve_margin_wh": 15.065377594412688,
+              "reserve_wh": 8,
+              "status": "supported"
+            },
+            "demo-4": {
+              "final_energy_wh_range": {
+                "max": 24.19918090742281,
+                "min": 24.170049881842118,
+                "spread": 0.029131025580692693
+              },
+              "minimum_energy_wh": 21.727435150253708,
+              "minimum_reserve_margin_wh": 13.727435150253708,
+              "reserve_wh": 8,
+              "status": "supported"
+            },
+            "demo-5": {
+              "final_energy_wh_range": {
+                "max": 25.861022345873575,
+                "min": 25.830654084374697,
+                "spread": 0.030368261498878724
+              },
+              "minimum_energy_wh": 22.88674581768952,
+              "minimum_reserve_margin_wh": 14.886745817689519,
+              "reserve_wh": 8,
+              "status": "supported"
+            },
+            "demo-6": {
+              "final_energy_wh_range": {
+                "max": 24.035850174121403,
+                "min": 23.997397441673883,
+                "spread": 0.03845273244752079
+              },
+              "minimum_energy_wh": 21.576462826824216,
+              "minimum_reserve_margin_wh": 13.576462826824216,
+              "reserve_wh": 8,
+              "status": "supported"
+            }
+          },
+          "decision_reasons": {
+            "insufficient_resource_budget": 21,
+            "planning_start_grid_infeasible": 6,
+            "request_already_scheduled": 21,
+            "selected": 6
+          },
+          "fulfilled_value": 159.0,
+          "opportunity_count": 54,
+          "opportunity_evaluation_count": 196956,
+          "planning_status": "supported",
+          "request_count": 9,
+          "requested_value": 234.0,
+          "resource_model_evaluation_count": 7972,
+          "resource_status": "supported",
+          "scheduled_count": 6,
+          "timings": {
+            "endpoint_verification_ms": 1.576,
+            "opportunity_generation_ms": 2740.875,
+            "preparation_ms": 5.908,
+            "scheduling_ms": 3161.111,
+            "total_ms": 5915.11
+          }
+        },
+        "summary_sha256": "a8c1a469974de61ea31dfd70e75c16eede9dbc8dca4fa35331bbdf69055c887d"
+      }
+    ]
+  },
+  "fixed_100_comparison": {
+    "input_equal": true,
+    "compact_summary_equal": true,
+    "sampled_memory_reduction_fraction": 0.7624165619739175,
+    "planning_time_reduction_fraction": 0.09245703735554311
+  },
+  "source_sha256": {
+    "lib/orbital_dynamics/mission_analysis.ex": "d67204c826bb9ce06d1e4f29fefedfebb9ea8271c9547740a823dab72a8ab16f",
+    "lib/orbital_dynamics/mission_analysis/opportunity/runner.ex": "b5129c0556ee2cb083e9a63c51834f5842f0c05d49d233321175eeaf871d30c2",
+    "lib/orbital_dynamics/mission_analysis/attitude/reference.ex": "853172d0eb2725223813d1fb1437ce1bebb7a8034e3476a668bb368cca59d3de",
+    "lib/orbital_dynamics/mission_analysis/constellation_benchmark.ex": "24081f23cb98059482963468cc290a1f8ec9e04384d20381a1afa7c59193a25d",
+    "lib/orbital_dynamics/mission_analysis/constellation_scaling.ex": "cd2a0f1e51af202021d44067697283ef4fef1022a3bf85f64101376995445686",
+    "lib/mix/tasks/orbital_dynamics.mission.scaling.ex": "82214d0b0bc5735c650d616d2e7e3fa16d9ddc0cdacf04081ba2f2db217c92db",
+    "dev/verify_opportunity_retention.exs": "264dbe874f086fea6c6375931f57f1142eb2d6d3008bf5019533280b11487618",
+    "test/orbital_dynamics/mission_analysis/opportunity/runner_test.exs": "c575a067059f387abc22e034184dfc7433ae26876b46642ada4a7ed155c7f4fe",
+    "test/orbital_dynamics/mission_analysis/attitude/reference_test.exs": "81b5628dcf8e939b91cffcff40a6c772492c0f32d1c47404cabf9310962cf2a6"
+  },
+  "validation": {
+    "focused_passed": 25,
+    "full_fast": {
+      "passed": 5480,
+      "excluded": 1148,
+      "seconds": 264.8
+    }
+  },
+  "limits": [
+    "Single local observation per large case; no speed guarantee",
+    "VM total sampled every second, not peak RSS or hard OS quota",
+    "Prior 25-request failure was profiled; no before/after speed comparison for that case",
+    "100-asset parity compares compact result projection; six-asset comparison covers entire report excluding explicitly omitted diagnostics and retention controls/metadata",
+    "Synthetic clustered fleet over 250 seconds, not operational acceptance or independent physical validation",
+    "Core and reference default full diagnostics; scaling harness now defaults compact; subsystem evidence unchanged"
+  ]
+}
